@@ -1,0 +1,37 @@
+{
+	"authHost": "https://daiyas.dev:80",
+	"authEndpoint": "/broadcasting/auth",
+	"clients": [
+		{
+			"appId": "c6f734b493ed06e3",
+			"key": "c207ab5502bd6154ae65b9cdc669c631"
+		}
+	],
+	"database": "redis",
+	"databaseConfig": {
+		"redis": {},
+		"sqlite": {
+			"databasePath": "/database/laravel-echo-server.sqlite"
+		}
+	},
+	"devMode": true,
+	"host": null,
+	"port": "6001",
+	"protocol": "https",
+	"socketio": {},
+	"secureOptions": 67108864,
+	"sslCertPath": "./daiyas-dev.crt",
+	"sslKeyPath": "./daiyas-dev.key",
+	"sslCertChainPath": "",
+	"sslPassphrase": "",
+	"subscribers": {
+		"http": true,
+		"redis": true
+	},
+	"apiOriginAllow": {
+		"allowCors": true,
+		"allowOrigin": "https://daiyas.dev:80",
+		"allowMethods": "GET, POST",
+		"allowHeaders": "Origin, Content-Type, X-Auth-Token, X-Requested-With, Accept, Authorization, X-CSRF-TOKEN, X-Socket-Id"
+	}
+}
