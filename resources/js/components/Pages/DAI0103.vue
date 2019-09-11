@@ -3,19 +3,18 @@
         <div class="row m-0">
             <div class="col-md-12">
                 <div class="row m-0">
-                    <div class="col-md-4">
+                    <div class="col-md-1">
                         <label for="Busyo">部署</label>
+                    </div>
+                    <div class="col-md-11 form-inline">
                         <VueSelect
-                            title.width="200px"
                             id="Busyo"
                             :vmodel=viewModel
                             bind="Busyo"
                             dataUrl="/Utilities/GetBusyoList"
                             :hasNull=true
-                            style="width:200px"
+                            style="min-width: 200px;"
                         />
-                    </div>
-                    <div class="col-md-4">
                         <button
                             id="btn_group_end"
                             type="button"
@@ -29,8 +28,10 @@
                     </div>
                 </div>
                 <div class="row m-0">
-                    <div class="col-md-4">
+                    <div class="col-md-1">
                         <label for="HaisoDate">配送日</label>
+                    </div>
+                    <div class="col-md-11 form-inline">
                         <DatePickerWrapper
                             id="HaisoDate"
                             ref="DatePicker_Date"
@@ -40,46 +41,42 @@
                             :config=HaisoDateConfig
                             :editable=true
                         />
-                    </div>
-                    <div class="col-md-2">
                         <label for="HaisoTime">時間</label>
-                        <input
-                            type="time"
-                            id="HaisoTime"
-                            disabled="true"
-                        />
+                        <input type="time" id="HaisoTime" disabled="true" class="form-control"/>
                     </div>
                 </div>
                 <div class="row m-0">
-                    <div class="col-md-5">
-                        <label for="Customer">得意先</label>
-                        <input type="text" id="CustomerCd" style="width:70px" />
-                        <input type="text" id="CustomerName" style="width:300px" disabled="true"/>
-                    </div>
                     <div class="col-md-1">
+                        <label>得意先</label>
+                    </div>
+                    <div class="col-md-11 form-inline">
+                        <input type="text" class="form-control" id="CustomerCd" style="width:70px" />
+                        <input type="text" class="form-control" id="CustomerName" style="width:300px" disabled="true"/>
                         <button
                             id="btn_search"
                             type="button"
                             class="btn btn-primary"
                         ><span>検索</span></button>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="Tel">ＴＥＬ：</label>
-                        <input type="text" id="Tel" style="width:100px" disabled="true"/>
+                        <label for="Tel">TEL：</label>
+                        <input type="text" class="form-control" id="Tel" style="width:100px" disabled="true"/>
                     </div>
                 </div>
                 <div class="row m-0">
-                    <div class="col-md-5">
-                        <label for="Course">担当者</label>
-                        <input type="text" id="PersonnelCd" style="width:70px" disabled="true"/>
-                        <input type="text" id="PersonnelName" style="width:300px" disabled="true"/>
+                    <div class="col-md-1">
+                        <label>担当者</label>
+                    </div>
+                    <div class="col-md-11 form-inline">
+                        <input type="text" class="form-control" id="PersonnelCd" style="width:70px" disabled="true"/>
+                        <input type="text" class="form-control" id="PersonnelName" style="width:300px" disabled="true"/>
                     </div>
                 </div>
                 <div class="row m-0">
-                    <div class="col-md-5">
-                        <label for="Course">コース</label>
-                        <input type="text" id="CourseCd" style="width:70px" disabled="true"/>
-                        <input type="text" id="CourseName" style="width:200px" disabled="true"/>
+                    <div class="col-md-1">
+                        <label>コース</label>
+                    </div>
+                    <div class="col-md-11 form-inline">
+                        <input type="text" class="form-control" id="CourseCd" style="width:70px" disabled="true"/>
+                        <input type="text" class="form-control" id="CourseName" style="width:200px" disabled="true"/>
                     </div>
                 </div>
                 <div class="row m-0 btn_medium_height">
@@ -93,6 +90,16 @@
                     </div>
                     <div class="col-md-1">
                         <button id="btn_undelivered" type="button" class="btn_middle" style="width: 95%; height: 100%;" disabled="true"><span>未配達</span></button>
+                    </div>
+                    <div class="col-md-1">
+                        <button id="btn_back" type="button" class="btn_middle" style="width: 95%; height: 100%;"><span>戻る</span></button>
+                    </div>
+                    <div class="col-md-1">
+                        <button id="btn_back" type="button" class="btn_middle" style="width: 95%; height: 100%;"><span>先へ</span></button>
+                    </div>
+                    <div class="col-md-1"/>
+                    <div class="col-md-1">
+                        <button id="btn_all" type="button" class="btn_middle" style="width: 95%; height: 100%;"><span>全表示</span></button>
                     </div>
                 </div>
                 <!-- TODO:ボタン作成途中 -->
@@ -112,6 +119,15 @@
             :autoEmptyRowCount=1
             autoEmptyRowFormula="3n"
         />
+        <div class="row m-0">
+            <div class="col form-inline">
+                <label style="width: 562px; text-align: right;">合計</label>
+                <input type="text" class="form-control" disabled="true" style="width: 60px; padding: 0px;"/>
+                <input type="text" class="form-control" disabled="true" style="width: 100px; padding: 0px;"/>
+                <input type="text" class="form-control" disabled="true" style="width: 60px; padding: 0px;"/>
+                <input type="text" class="form-control" disabled="true" style="width: 100px; padding: 0px;"/>
+            </div>
+        </div>
         <div class="row m-0">
             <div class="col-md-1">
                 <label for="Bikou">備考</label>
@@ -153,34 +169,28 @@
 </template>
 
 <style>
-#DAI0103Grid1 .pq-group-toggle-none {
-    display: none !important;
+.form-group{
+    margin-bottom: 0px !important;
 }
 label{
-    width: 80px;
+    margin-bottom: 0px !important;
 }
-.VueSelect > select{
+.form-control{
     max-height: 30px;
-    width: 100%;
-    padding-top: 2px !important;
-    padding-bottom: 2px !important;
-}
-.VueSelect{
-    margin-bottom: 2px !important;
-}
-.DatePickerWrapper > input{
-    max-height: 30px;
-    width: 100%;
-    padding-top: 2px !important;
-    padding-bottom: 2px !important;
 }
 .btn{
-    max-height: 30px;
+    height: 28px;
     padding-top: 2px !important;
     padding-bottom: 2px !important;
 }
 .btn_medium_height > div{
     padding: 0px;
+}
+.btn_middle:disabled,
+.butbtn_middleton[disabled]{
+  border: 1px solid #999999;
+  background-color: #cccccc;
+  color: #666666;
 }
 </style>
 
@@ -226,6 +236,7 @@ export default {
                 autoRow: false,
                 rowHtHead: 25,
                 rowHt: 25,
+                width: 950,
                 editable: true,
                 columnTemplate: {
                     editable: true,
@@ -253,12 +264,12 @@ export default {
                     {
                         title: "商品名",
                         dataIndx: "ProductName", dataType: "string",
-                        width: 50, maxWidth: 150, minWidth: 50,
+                        width: 50, maxWidth: 300, minWidth: 50,
                     },
                     {
                         title: "単価",
                         dataIndx: "Price", dataType: "integer",
-                        width: 100, maxWidth: 100, minWidth: 100,
+                        width: 50, maxWidth: 100, minWidth: 50,
                     },
                     {
                         title: "予定数",
