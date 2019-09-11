@@ -53,8 +53,8 @@ class PID0201Controller extends Controller
             $sheet = $excel->getActiveSheet();
             $sheet->setCellValue('A1', now()->format('Y/m/d'));
             $sheet->setCellValue('G29', $faker->numberBetween(1, 99));
-            $sheet->setCellValue('G30', $faker->numberBetween(1, 99));
-            $sheet->setCellValue('G31', $faker->numberBetween(1, 99));
+            $sheet->setCellValue('G30', $faker->numberBetween(25, 99));
+            $sheet->setCellValue('G31', $faker->numberBetween(50, 99));
             $sheet->setCellValue('G34', $faker->numberBetween(50, 100) * 10000);
             $sheet->setCellValue('G35', $faker->numberBetween(50, 100) * 10000);
             $sheet->setCellValue('G36', $faker->numberBetween(50, 100) * 10000);
