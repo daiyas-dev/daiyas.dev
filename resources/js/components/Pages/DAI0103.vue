@@ -102,7 +102,7 @@
                         <button id="btn_all" type="button" class="btn_middle" style="width: 95%; height: 100%;"><span>全表示</span></button>
                     </div>
                 </div>
-                <!-- TODO:ボタン作成途中xxxx -->
+                <!-- TODO:ボタン作成途中xxxxxx -->
             </div>
         </div>
         <PqGridWrapper
