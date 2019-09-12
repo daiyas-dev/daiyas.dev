@@ -55,9 +55,9 @@ class PID0201Controller extends Controller
             $sheet->setCellValue('G29', $faker->numberBetween(1, 99));
             $sheet->setCellValue('G30', $faker->numberBetween(25, 99));
             $sheet->setCellValue('G31', $faker->numberBetween(50, 99));
-            $sheet->setCellValue('G34', $faker->numberBetween(50, 100) * 10000);
+            $sheet->setCellValue('G34', $faker->numberBetween(30, 100) * 10000);
             $sheet->setCellValue('G35', $faker->numberBetween(50, 100) * 10000);
-            $sheet->setCellValue('G36', $faker->numberBetween(50, 100) * 10000);
+            $sheet->setCellValue('G36', $faker->numberBetween(70, 100) * 10000);
         };
 
         DaiyasCommon::Export($kind, $templatePath, $setter);
