@@ -86,13 +86,13 @@
                     </div>
                     <div class="col-md-1"/>
                     <div class="col-md-1">
-                        <button id="btn_save" type="button" class="btn_middle" style="width: 95%; height: 100%;"><span>登録</span></button>
+                        <button id="btn_save" type="button" class="btn-normal btn_middle" style="width: 95%; height: 100%;"><span>登録</span></button>
                     </div>
                     <div class="col-md-1">
                         <button id="btn_undelivered" type="button" class="btn_middle" style="width: 95%; height: 100%;" disabled="true"><span>未配達</span></button>
                     </div>
                     <div class="col-md-1">
-                        <button id="btn_back" type="button" class="btn_middle" style="width: 95%; height: 100%;"><span>戻る</span></button>
+                        <button id="btn_back" type="button" class="btn-light btn_middle" style="width: 95%; height: 100%;"><span>戻る</span></button>
                     </div>
                     <div class="col-md-1">
                         <button id="btn_back" type="button" class="btn_middle" style="width: 95%; height: 100%;"><span>先へ</span></button>

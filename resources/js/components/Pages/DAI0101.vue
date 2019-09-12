@@ -1,70 +1,96 @@
 ﻿<template>
     <form id="this.$options.name">
-        <div class="row m-0">
-            <div class="col-md-12">
-                <div class="row m-0">
-                    <div class="col-md-4">
-                        <label for="Busyo">部署</label>
-                        <VueSelect
-                            title.width="200px"
-                            id="Busyo"
-                            :vmodel=viewModel
-                            bind="Busyo"
-                            dataUrl="/Utilities/GetBusyoList"
-                            :hasNull=true
-                            style="width:200px"
-                        />
-                    </div>
-                    <div class="col-md-4">
-                        <DatePickerWrapper
-                            id="HaisoDate"
-                            ref="DatePicker_Date"
-                            label="配送日付"
-                            :vmodel=viewModel
-                            bind="HaisoDate"
-                            :config=HaisoDateConfig
-                            :editable=true
-                        />
-                    </div>
-                    <div class="col-md-4">
-                        <label for="CourseKbn">コース区分</label>
-                        <VueSelect
-                            id="CourseKbn"
-                            :vmodel=viewModel
-                            bind="CourseKbn"
-                            dataUrl="/Utilities/GetCourseList"
-                            :hasNull=true
-                        />
-                    </div>
-                </div>
+        <div class="row">
+            <div class="col-md-1">
+                <label>部署</label>
             </div>
-            <div class="col-md-12">
-                <div class="row m-0">
-                    <div class="col-md-4">
-                        <label for="CourseStart">コース開始</label>
-                        <input
-                            type="text"
-                            id="CourseStart"
-                            style="width:50px"
-                        />
-                        <input
-                            type="text"
-                            id="CourseStartName"
-                        />
-                    </div>
-                    <div class="col-md-4">
-                        <label for="CourseEnd">コース終了</label>
-                        <input
-                            type="text"
-                            id="CourseEnd"
-                            style="width:50px"
-                        />
-                        <input
-                            type="text"
-                            id="CourseEndName"
-                        />
-                    </div>
-                </div>
+            <div class="col-md-3">
+                <VueSelect
+                    id="Busyo"
+                    :vmodel=viewModel
+                    bind="Busyo"
+                    uri="/Utilities/GetBusyoList"
+                    codeName="Code"
+                    textName="Name"
+                    :withCode=true
+                    style="width:200px"
+                />
+            </div>
+            <div class="col-md-1">
+                <label>配送日付</label>
+            </div>
+            <div class="col-md-3">
+                <DatePickerWrapper
+                    id="HaisoDate"
+                    ref="DatePicker_Date"
+                    format="YYYY年MM月DD日"
+                    dayViewHeaderFormat="YYYY年MM月"
+                    :vmodel=viewModel
+                    bind="HaisoDate"
+                    :editable=true
+                />
+            </div>
+            <div class="col-md-1">
+                <label>コース区分</label>
+            </div>
+            <div class="col-md-3">
+                <VueSelect
+                    id="CourseKbn"
+                    :vmodel=viewModel
+                    bind="CourseKbn"
+                    uri="/Utilities/GetCodeList"
+                    :params="{ code: 100 }"
+                    :withCode=true
+                    :hasNull=false
+                    style="width:200px"
+                />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1">
+                <label>コース開始</label>
+            </div>
+            <div class="col-md-5">
+                <PopupSelect
+                    id="CourseStart"
+                    ref="PopupSelect_CourseStart"
+                    :vmodel=viewModel
+                    bind="CourseStart"
+                    dataUrl="/Utilities/GetCourseList"
+                    :params="{ kbn: viewModel.CourseKbn }"
+                    title="コース一覧"
+                    labelCd="コースCD"
+                    labelCdNm="コース名"
+                    :isShowName=true
+                    :isModal=true
+                    :editable=true
+                    :reuse=true
+                    :existsCheck=true
+                    :inputWidth=100
+                    :nameWidth=300
+                />
+            </div>
+            <div class="col-md-1">
+                <label>コース終了</label>
+            </div>
+            <div class="col-md-5">
+                <PopupSelect
+                    id="CourseEnd"
+                    ref="PopupSelect_CourseEnd"
+                    :vmodel=viewModel
+                    bind="CourseEnd"
+                    dataUrl="/Utilities/GetCourseList"
+                    :params="{ kbn: viewModel.CourseKbn }"
+                    labelCd="コースCD"
+                    labelCdNm="コース名"
+                    :isShowName=true
+                    :isModal=true
+                    :editable=true
+                    :reuse=true
+                    :existsCheck=true
+                    :inputWidth=100
+                    :nameWidth=300
+                />
             </div>
         </div>
         <PqGridWrapper
@@ -98,26 +124,30 @@ label{
 import PageBaseMixin from "@vcs/PageBaseMixin.vue";
 
 import PopupSelect from "@vcs/PopupSelect.vue";
-import AppHeader from "@vcs/AppHeader.vue";
-import AppFooter from "@vcs/AppFooter.vue";
-import VueDataList from "@vcs/DataList.vue";
 import VueSelect from "@vcs/VueSelect.vue";
-import PqGridWrapper from "@vcs/PqGridWrapper.vue";
 
 export default {
     mixins: [PageBaseMixin],
     name: "DAI0101",
     components: {
-        "PopupSelect": PopupSelect,
-        "AppHeader": AppHeader,
-        "AppFooter": AppFooter,
-        "VueDataList": VueDataList,
         "VueSelect": VueSelect,
-        "PqGridWrapper": PqGridWrapper,
+        "PopupSelect": PopupSelect,
+    },
+    computed: {
+        courseParam: function() {
+            return { kbn: this.CourseKbn };
+        },
     },
     data() {
         return $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "検索条件：持出数一覧表",
+            viewModel: {
+                Busyo: null,
+                HaisoDate: null,
+                CourseKbn: null,
+                CourseStart: null,
+                CourseEnd: null,
+            },
             DAI0101Grid1: null,
             //UnitList: [],
             MajorList: [],
@@ -125,11 +155,6 @@ export default {
             CourseList: [],
            //MinorList: [],
             HaisoDate: null,
-            HaisoDateConfig: {
-                // DatePickerWrapperの基本設定はYYYY/MM/DD
-                // format: "YYYY/MM",
-                // dayViewHeaderFormat: "YYYY",
-            },
             grid1Options: {
                 selectionModel: { type: "cell", mode: "single", row: true },
                 showHeader: true,
@@ -304,81 +329,24 @@ export default {
     //     vm: Object,
     // },
     methods: {
-        // createdFunc: function(vue) {
-        //     //PqGrid集計関数に小計追加
-        //     pq.aggregate.SubTotal = function(arr, col) {
-        //         return pq.formatNumber(pq.aggregate.sum(arr, col), "##,###.0");
-        //     };
-        // },
-        mountedFunc: function(vue) {
-        },
-        setFooterButtons: function(vue) {
-            vue.$root.$emit("setFooterButtons",
-                [
-                    // { visible: "true", value: "保存", id: "DAI0101Grid1_Save", disabled: true,
-                    //     onClick: function () {
-                    //         var vm = vue.viewModel;
-                    //         var grid = vue.DAI0101Grid1;
+        createdFunc: function(vue) {
+            vue.footerButtons.push(
+                { visible: "true", value: "検索", id: "DAI0101Grid1_Search", disabled: false, shortcut: "F5",
+                    onClick: function () {
+                        var params = $.extend(true, {}, vue.viewModel);
 
-                    //         //パラメータの生成
-                    //         var params = grid.createSaveParams();
-
-                    //         //PqGridのデータ保存メソッドを呼び出す
-                    //         grid.saveData(
-                    //             {
-                    //                 uri: "/DAI0101/Save",
-                    //                 params: params,
-                    //                 done: {
-                    //                     callback: (gridVue, grid, res) => {
-                    //                     },
-                    //                 },
-                    //             }
-                    //         );
-                    //     }
-                    // },
-                    { visible: "true", value: "検索", id: "DAI0101Grid1_Search", disabled: false,
-                        onClick: function () {
-                            var params = $.extend(true, {}, DAI0101.vue.viewModel);
-
-                            //配送日を"YYYYMMDD"形式に編集
-                            params.HaisoDate = params.HaisoDate ? params.HaisoDate.replace(/\//g, "") : null;
-                            DAI0101.DAI0101Grid1.searchData(params);
-                        }
-                    },
-                    { visible: "true", value: "印刷", id: "DAI0102Grid1_Printout", disabled: false,
-                        onClick: function () {
-                        }
-                    },
-                    {
-                        visible: "true", value: "終了", align: "right",
-                        class: "btn-danger",
-                        onClick: function() {
-                            //確認ダイアログ
-                            $.dialogConfirm({
-                                title: "確認",
-                                contents: "終了してよろしいですか？",
-                                buttons:[
-                                    {
-                                        text: "はい",
-                                        class: "btn btn-primary",
-                                        click: function(){
-                                            $(this).dialog("close");
-                                            vue.$root.$emit("execLogOff");
-                                        }
-                                    },
-                                    {
-                                        text: "いいえ",
-                                        class: "btn btn-danger",
-                                        click: function(){
-                                            $(this).dialog("close");
-                                        }
-                                    },
-                                ],
-                            });
-                        }
-                    },
-                ]
+                        //配送日を"YYYYMMDD"形式に編集
+                        params.HaisoDate = params.HaisoDate ? params.HaisoDate.replace(/\//g, "") : null;
+                        vue.DAI0101Grid1.searchData(params);
+                    }
+                },
+                { visible: "true", value: "印刷", id: "DAI0102Grid1_Printout", disabled: false, shortcut: "F6",
+                    onClick: function () {
+                    }
+                }
             );
+        },
+        mountedFunc: function(vue) {
         },
         onBeforeCreateGridFunc: function(gridOptions, callback) {
             var vue = this;

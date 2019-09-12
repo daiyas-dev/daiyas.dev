@@ -1,13 +1,13 @@
 ﻿<template>
     <div
-        class="form-group d-inline-flex mb-0"
+        class="form-group d-inline-flex align-items-center mb-0"
         :class='"DatePickerWrapper " + id'
         :style='width ? ("width: " + width + "px") : ""'
     >
-        <span v-if="label" class="text-nowrap d-flex align-items-center mr-1" :for="id + '_calendar_btn'">{{label}}</span>
+        <span v-if="label" class="text-nowrap d-flex align-items-center mr-1" :for="_id + '_calendar_btn'">{{label}}</span>
         <date-picker
-            :id="id"
-            :ref="id"
+            :id="_id"
+            :ref="_id"
             :class="['target-input', editable ? 'editable' : 'readonly']"
             v-model="vmodel[bind]"
             :config="_config"
@@ -17,7 +17,7 @@
         >
         </date-picker>
         <button type="button" class="input-group-addon calendar-button btn btn-info p-0 border-0" :class='[hideButton ? "d-none" : ""]'
-            :id="id + '_calendar_btn'" @click="showCalendar"
+            :id="_id + '_calendar_btn'" @click="showCalendar"
         >
             <i class="fas fa-calendar-check fa-lg"></i>
         </button>
@@ -33,7 +33,7 @@
     border-bottom-right-radius: 0px;
 }
 .DatePickerWrapper .calendar-button {
-    width: 60px !important;
+    width: 45px !important;
     border-left-width: 0px !important;
     display: flex;
     justify-content: center;
@@ -70,6 +70,8 @@ export default {
         hideButton: Boolean,
         width: Number,
         config: Object,
+        format: String,
+        dayViewHeaderFormat: String,
         onChangeFunc: Function,
         onCalendarHiddenFunc: Function,
     },
@@ -77,8 +79,15 @@ export default {
         "DatePicker": DatePicker,
     },
     computed: {
+        _id: function() {
+            return this.id + "_" + this._uid;
+        },
         _config: function() {
-            return $.extend(true, {}, this.default, this.config);
+            var cfg = $.extend(true, {}, this.default, this.config);
+            cfg.format = this.format || cfg.format;
+            cfg.dayViewHeaderFormat = this.dayViewHeaderFormat || cfg.dayViewHeaderFormat;
+
+            return cfg;
         },
         $input: function() {
             return $(this.$el).find(".target-input")[0];
@@ -105,7 +114,7 @@ export default {
     },
     methods: {
         showCalendar: function(event) {
-            $(this.$el).find("#" + this.id).datetimepicker("show");
+            $(this.$el).find("#" + this._id).datetimepicker("show");
         },
         calendarHidden: function(evnet) {
             $(this.$el).find("button").focus();

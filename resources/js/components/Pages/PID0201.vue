@@ -114,71 +114,35 @@ export default {
     },
     methods: {
         createdFunc: function(vue) {
+            vue.footerButtons.push(
+                { visible: "true", value: "Excel出力", id: "PID0201_ExcelExport", shortcut: "F8",
+                    onClick: function () {
+                        var vm = vue.viewModel;
+                        var grid = vue.PID0201Grid1;
+
+                        //パラメータの生成
+                        var params = { kind: "Excel" };
+                        $.downloadFromUrl("PID0201/Export", params, "test.xlsx", response => console.log(response));
+                    }
+                },
+                { visible: "true", value: "PDF出力", id: "PID0201_PDFExport", shortcut: "F9",
+                    onClick: function () {
+                        var vm = vue.viewModel;
+                        var grid = vue.PID0201Grid1;
+
+                        //パラメータの生成
+                        var params = { kind: "Pdf" };
+                        var filename = "test_" + moment().format("YYYYMMDDHHmmss") + ".pdf";
+                        var options = { isPrintImmediately: true };
+
+                        $.showPdfViewer("PID0201/Export", params, filename, options, response => console.log(response));
+                    }
+                },
+            );
         },
         mountedFunc: function(vue) {
         },
         activatedFunc: function(vue) {
-        },
-        setFooterButtons: function(vue) {
-            vue.$root.$emit("setFooterButtons",
-                [
-                    { visible: "true", value: "Excel出力", id: "PID0201_ExcelExport",
-                        onClick: function () {
-                            var vm = vue.viewModel;
-                            var grid = vue.PID0201Grid1;
-
-                            //パラメータの生成
-                            var params = { kind: "Excel" };
-                            $.downloadFromUrl("PID0201/Export", params, "test.xlsx", response => console.log(response));
-                        }
-                    },
-                    { visible: "true", value: "PDF出力", id: "PID0201_PDFExport",
-                        onClick: function () {
-                            var vm = vue.viewModel;
-                            var grid = vue.PID0201Grid1;
-
-                            //パラメータの生成
-                            var params = { kind: "Pdf" };
-                            var filename = "test_" + moment().format("YYYYMMDDHHmmss") + ".pdf";
-                            var options = { isPrintImmediately: true };
-
-                            $.showPdfViewer("PID0201/Export", params, filename, options, response => console.log(response));
-                        }
-                    },
-                    { visible: "true", value: "XXX", id: "PID0201Grid1_XXX", disabled: true,
-                        onClick: function () {
-                        }
-                    },
-                    {
-                        visible: "true", value: "終了", align: "right",
-                        class: "btn-danger",
-                        onClick: function() {
-                            //確認ダイアログ
-                            $.dialogConfirm({
-                                title: "確認",
-                                contents: "終了してよろしいですか？",
-                                buttons:[
-                                    {
-                                        text: "はい",
-                                        class: "btn btn-primary",
-                                        click: function(){
-                                            $(this).dialog("close");
-                                            vue.$root.$emit("execLogOff");
-                                        }
-                                    },
-                                    {
-                                        text: "いいえ",
-                                        class: "btn btn-danger",
-                                        click: function(){
-                                            $(this).dialog("close");
-                                        }
-                                    },
-                                ],
-                            });
-                        }
-                    },
-                ]
-            );
         },
         sendNotification: function(evt, targets) {
             console.log("send notification to " + (targets || "all"));
