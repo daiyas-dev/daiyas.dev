@@ -79,6 +79,1863 @@ module.exports = function(arraybuffer, start, end) {
 
 /***/ }),
 
+/***/ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Pages/DAI0101.vue?vue&type=script&lang=js&":
+/*!************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/babel-loader/lib??ref--4-0!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/Pages/DAI0101.vue?vue&type=script&lang=js& ***!
+  \************************************************************************************************************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _vcs_PageBaseMixin_vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @vcs/PageBaseMixin.vue */ "./resources/js/components/Shared/PageBaseMixin.vue");
+/* harmony import */ var _vcs_PopupSelect_vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @vcs/PopupSelect.vue */ "./resources/js/components/Shared/PopupSelect.vue");
+/* harmony import */ var _vcs_AppHeader_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @vcs/AppHeader.vue */ "./resources/js/components/Shared/AppHeader.vue");
+/* harmony import */ var _vcs_AppFooter_vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @vcs/AppFooter.vue */ "./resources/js/components/Shared/AppFooter.vue");
+/* harmony import */ var _vcs_DataList_vue__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @vcs/DataList.vue */ "./resources/js/components/Shared/DataList.vue");
+/* harmony import */ var _vcs_VueSelect_vue__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @vcs/VueSelect.vue */ "./resources/js/components/Shared/VueSelect.vue");
+/* harmony import */ var _vcs_PqGridWrapper_vue__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @vcs/PqGridWrapper.vue */ "./resources/js/components/Shared/PqGridWrapper.vue");
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+
+
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+  mixins: [_vcs_PageBaseMixin_vue__WEBPACK_IMPORTED_MODULE_0__["default"]],
+  name: "DAI0101",
+  components: {
+    "PopupSelect": _vcs_PopupSelect_vue__WEBPACK_IMPORTED_MODULE_1__["default"],
+    "AppHeader": _vcs_AppHeader_vue__WEBPACK_IMPORTED_MODULE_2__["default"],
+    "AppFooter": _vcs_AppFooter_vue__WEBPACK_IMPORTED_MODULE_3__["default"],
+    "VueDataList": _vcs_DataList_vue__WEBPACK_IMPORTED_MODULE_4__["default"],
+    "VueSelect": _vcs_VueSelect_vue__WEBPACK_IMPORTED_MODULE_5__["default"],
+    "PqGridWrapper": _vcs_PqGridWrapper_vue__WEBPACK_IMPORTED_MODULE_6__["default"]
+  },
+  data: function data() {
+    return $.extend(true, {}, _vcs_PageBaseMixin_vue__WEBPACK_IMPORTED_MODULE_0__["default"].data(), {
+      ScreenTitle: "検索条件：持出数一覧表",
+      DAI0101Grid1: null,
+      //UnitList: [],
+      MajorList: [],
+      BusyoList: [],
+      CourseList: [],
+      //MinorList: [],
+      HaisoDate: null,
+      HaisoDateConfig: {// DatePickerWrapperの基本設定はYYYY/MM/DD
+        // format: "YYYY/MM",
+        // dayViewHeaderFormat: "YYYY",
+      },
+      grid1Options: {
+        selectionModel: {
+          type: "cell",
+          mode: "single",
+          row: true
+        },
+        showHeader: true,
+        showToolbar: false,
+        columnBorders: true,
+        fillHandle: "",
+        numberCell: {
+          show: true,
+          title: "No.",
+          resizable: false
+        },
+        autoRow: false,
+        rowHtHead: 35,
+        rowHt: 35,
+        editable: true,
+        columnTemplate: {
+          editable: true,
+          sortable: true
+        },
+        filterModel: {
+          on: false,
+          header: false,
+          menuIcon: false,
+          hideRows: true
+        },
+        groupModel: {
+          on: true,
+          header: false,
+          dataIndx: ["GroupKey"],
+          collapsed: [false],
+          merge: false,
+          showSummary: [true],
+          grandSummary: true,
+          summaryEdit: false,
+          icon: ["pq-group-toggle-none"]
+        },
+        sortModel: {
+          on: true,
+          cancel: false,
+          type: "remote",
+          sorter: [{
+            dataIndx: "MinorNo",
+            dir: "up"
+          }]
+        },
+        formulas: [["GroupKey", function (rowData) {
+          if (!!rowData.MajorNo && !!rowData.MinorNo && rowData.MinorNo.startsWith(rowData.MajorNo) && !!rowData.Volume && !!rowData.Unit && !!rowData.UPrice1000) {
+            return rowData.MajorNo;
+          } else {
+            return rowData.GroupKey;
+          }
+        }], ["TPrice1000", function (rowData) {
+          if (!!rowData.Volume && rowData.UPrice1000 && !isNaN(rowData.Volume * rowData.UPrice1000)) {
+            return Decimal.mul(rowData.Volume, rowData.UPrice1000).toNumber();
+          } else {
+            return null;
+          }
+        }], ["UPrice", function (rowData) {
+          var price = rowData.UPrice1000 * 1000;
+          price = price == 0 || isNaN(price) ? null : price;
+          return price;
+        }], ["TPrice", function (rowData) {
+          var price = rowData.TPrice1000 * 1000;
+          price = price == 0 || isNaN(price) ? null : price;
+          return price;
+        }]],
+        colModel: [{
+          title: "集計キー",
+          dataType: "string",
+          dataIndx: "GroupKey",
+          editable: false,
+          hidden: true
+        }, {
+          title: "識別番号",
+          dataType: "string",
+          dataIndx: "UID",
+          editable: false,
+          hidden: true,
+          key: true
+        }, {
+          title: "部署",
+          dataType: "string",
+          dataIndx: "Busyo",
+          editable: false,
+          hidden: true
+        }, {
+          title: "配送日付",
+          dataType: "string",
+          dataIndx: "HaisoDate",
+          editable: false,
+          hidden: true
+        }, {
+          title: "コースCD",
+          dataType: "integer",
+          dataIndx: "CourseCd",
+          width: 50,
+          maxWidth: 80,
+          minWidth: 50,
+          editable: true,
+          hidden: true
+        }, {
+          title: "コース名",
+          dataIndx: "CourseName",
+          dataType: "string",
+          key: true,
+          width: 100,
+          maxWidth: 250,
+          minWidth: 100,
+          editable: false
+        }, {
+          title: "A副",
+          dataIndx: "AHukuCourse",
+          dataType: "integer",
+          width: 50,
+          maxWidth: 80,
+          minWidth: 50,
+          editable: false
+        }, {
+          title: "AP",
+          dataIndx: "APCourse",
+          dataType: "integer",
+          width: 50,
+          maxWidth: 80,
+          minWidth: 50,
+          editable: false
+        }, {
+          title: "A特",
+          dataIndx: "ATokuCourse",
+          dataType: "integer",
+          width: 50,
+          maxWidth: 80,
+          minWidth: 50,
+          editable: false
+        }, {
+          title: "ラ",
+          dataIndx: "RaCourse",
+          dataType: "integer",
+          width: 50,
+          maxWidth: 80,
+          minWidth: 50,
+          editable: false
+        }, {
+          title: "ラ大",
+          dataIndx: "RaCourse",
+          dataType: "integer",
+          width: 50,
+          maxWidth: 80,
+          minWidth: 50,
+          editable: false
+        }, {
+          title: "ラ小",
+          dataIndx: "RaCourse",
+          dataType: "integer",
+          width: 50,
+          maxWidth: 80,
+          minWidth: 50,
+          editable: false
+        }, {
+          title: "ラ小P",
+          dataIndx: "RaCourse",
+          dataType: "integer",
+          width: 50,
+          maxWidth: 80,
+          minWidth: 50,
+          editable: false
+        }, {
+          title: "幼",
+          dataIndx: "RaCourse",
+          dataType: "integer",
+          width: 50,
+          maxWidth: 80,
+          minWidth: 50,
+          editable: false
+        }, {
+          title: "ﾗｲﾄF",
+          dataIndx: "RaCourse",
+          dataType: "integer",
+          width: 50,
+          maxWidth: 80,
+          minWidth: 50,
+          editable: false
+        }, {
+          title: "S割",
+          dataIndx: "RaCourse",
+          dataType: "integer",
+          width: 50,
+          maxWidth: 80,
+          minWidth: 50,
+          editable: false
+        }, {
+          title: "御膳",
+          dataIndx: "RaCourse",
+          dataType: "integer",
+          width: 50,
+          maxWidth: 80,
+          minWidth: 50,
+          editable: false
+        }, {
+          title: "ﾍﾙｼｰF",
+          dataIndx: "RaCourse",
+          dataType: "integer",
+          width: 50,
+          maxWidth: 80,
+          minWidth: 50,
+          editable: false
+        }, {
+          title: "ﾚﾃﾞｨｰｽ副",
+          dataIndx: "RaCourse",
+          dataType: "integer",
+          width: 50,
+          maxWidth: 80,
+          minWidth: 50,
+          editable: false
+        }]
+      }
+    });
+  },
+  // props: {
+  //     query: Object,
+  //     vm: Object,
+  // },
+  methods: {
+    // createdFunc: function(vue) {
+    //     //PqGrid集計関数に小計追加
+    //     pq.aggregate.SubTotal = function(arr, col) {
+    //         return pq.formatNumber(pq.aggregate.sum(arr, col), "##,###.0");
+    //     };
+    // },
+    mountedFunc: function mountedFunc(vue) {},
+    setFooterButtons: function setFooterButtons(vue) {
+      vue.$root.$emit("setFooterButtons", [// { visible: "true", value: "保存", id: "DAI0101Grid1_Save", disabled: true,
+      //     onClick: function () {
+      //         var vm = vue.viewModel;
+      //         var grid = vue.DAI0101Grid1;
+      //         //パラメータの生成
+      //         var params = grid.createSaveParams();
+      //         //PqGridのデータ保存メソッドを呼び出す
+      //         grid.saveData(
+      //             {
+      //                 uri: "/DAI0101/Save",
+      //                 params: params,
+      //                 done: {
+      //                     callback: (gridVue, grid, res) => {
+      //                     },
+      //                 },
+      //             }
+      //         );
+      //     }
+      // },
+      {
+        visible: "true",
+        value: "検索",
+        id: "DAI0101Grid1_Search",
+        disabled: false,
+        onClick: function onClick() {
+          var params = $.extend(true, {}, DAI0101.vue.viewModel); //配送日を"YYYYMMDD"形式に編集
+
+          params.HaisoDate = params.HaisoDate ? params.HaisoDate.replace(/\//g, "") : null;
+          DAI0101.DAI0101Grid1.searchData(params);
+        }
+      }, {
+        visible: "true",
+        value: "印刷",
+        id: "DAI0102Grid1_Printout",
+        disabled: false,
+        onClick: function onClick() {}
+      }, {
+        visible: "true",
+        value: "終了",
+        align: "right",
+        "class": "btn-danger",
+        onClick: function onClick() {
+          //確認ダイアログ
+          $.dialogConfirm({
+            title: "確認",
+            contents: "終了してよろしいですか？",
+            buttons: [{
+              text: "はい",
+              "class": "btn btn-primary",
+              click: function click() {
+                $(this).dialog("close");
+                vue.$root.$emit("execLogOff");
+              }
+            }, {
+              text: "いいえ",
+              "class": "btn btn-danger",
+              click: function click() {
+                $(this).dialog("close");
+              }
+            }]
+          });
+        }
+      }]);
+    },
+    onBeforeCreateGridFunc: function onBeforeCreateGridFunc(gridOptions, callback) {
+      var vue = this; //TODO: dummy
+      // vue.UnitList = [
+      //     { Cd: 1, CdNm: "m3"},
+      //     { Cd: 2, CdNm: "kg"},
+      //     { Cd: 3, CdNm: "箱"},
+      //     { Cd: 4, CdNm: "式"},
+      // ];
+
+      vue.MajorList = [{
+        Cd: "01",
+        CdNm: "大分類01"
+      }, {
+        Cd: "02",
+        CdNm: "大分類02"
+      }, {
+        Cd: "03",
+        CdNm: "大分類03"
+      }];
+      vue.BusyoList = [{
+        Cd: "01",
+        CdNm: "部署01"
+      }, {
+        Cd: "02",
+        CdNm: "部署02"
+      }, {
+        Cd: "03",
+        CdNm: "部署03"
+      }];
+      vue.CourseList = [{
+        Cd: "01",
+        CdNm: "平日01コース阿知須"
+      }, {
+        Cd: "02",
+        CdNm: "平日02コース"
+      }, {
+        Cd: "03",
+        CdNm: "平日03コース佐山"
+      }]; // vue.MinorList = [
+      //     { Cd: "0101", CdNm: "大1小1"},
+      //     { Cd: "0102", CdNm: "大1小2"},
+      //     { Cd: "0201", CdNm: "大2小1"},
+      //     { Cd: "0301", CdNm: "大3小1"},
+      //     { Cd: "0302", CdNm: "大3小2"},
+      //     { Cd: "0303", CdNm: "大3小3"},
+      // ];
+
+      callback();
+      return; //PqGrid内リストで使用する一覧の取得
+
+      axios.all([// //単位リストの取得
+      // axios.post("/Utilities/GetUnitList"),
+      //大分類リストの取得
+      axios.post("/Utilities/GetMajorList"), //部署リストの取得
+      axios.post("/Utilities/GetBusyoList"), //コースリストの取得
+      axios.post("/Utilities/GetCourseList")]).then(axios.spread(function (responseUnit, responseMajor, responseMinor) {
+        //var resUnit = responseUnit.data;
+        var resMajor = responseMajor.data;
+        var resBusyo = responseBusyo.data;
+        var resCourse = responseCourse.data; //var resMinor = responseMinor.data;
+
+        if (resUnit.onError && !!resUnit.errors) {
+          //メッセージリストに追加
+          Object.values(resUnit.errors).filter(function (v) {
+            return v;
+          }).forEach(function (v) {
+            return vue.$root.$emit("addMessage", v.replace(/(^\"|\"$)/g, ""));
+          }); //ダイアログ
+
+          $.dialogErr({
+            errObj: resUnit
+          });
+          return;
+        } else if (resUnit.onException) {
+          //メッセージ追加
+          vue.$root.$emit("addMessage", "単位リスト取得失敗(" + vue.page.ScreenTitle + ":" + resUnit.message + ")"); //ダイアログ
+
+          $.dialogErr({
+            title: "異常終了",
+            contents: "単位リストの取得に失敗しました<br/>" + resUnit.message
+          });
+          return;
+        } else if (resUnit == "") {
+          //完了ダイアログ
+          $.dialogErr({
+            title: "単位リスト無し",
+            contents: "該当データは存在しません"
+          });
+          return;
+        }
+
+        if (resMajor.onError && !!resMajor.errors) {
+          //メッセージリストに追加
+          Object.values(resMajor.errors).filter(function (v) {
+            return v;
+          }).forEach(function (v) {
+            return vue.$root.$emit("addMessage", v.replace(/(^\"|\"$)/g, ""));
+          }); //ダイアログ
+
+          $.dialogErr({
+            errObj: resMajor
+          });
+          return;
+        } else if (resMajor.onException) {
+          //メッセージ追加
+          vue.$root.$emit("addMessage", "大分類リスト取得失敗(" + vue.page.ScreenTitle + ":" + resMajor.message + ")"); //ダイアログ
+
+          $.dialogErr({
+            title: "異常終了",
+            contents: "大分類リストの取得に失敗しました<br/>" + resMajor.message
+          });
+          return;
+        } else if (resMajor == "") {
+          //完了ダイアログ
+          $.dialogErr({
+            title: "大分類リスト無し",
+            contents: "該当データは存在しません"
+          });
+          return;
+        }
+
+        if (resMinor.onError && !!resMinor.errors) {
+          //メッセージリストに追加
+          Object.values(resMinor.errors).filter(function (v) {
+            return v;
+          }).forEach(function (v) {
+            return vue.$root.$emit("addMessage", v.replace(/(^\"|\"$)/g, ""));
+          }); //ダイアログ
+
+          $.dialogErr({
+            errObj: resMinor
+          });
+          return;
+        } else if (resMinor.onException) {
+          //メッセージ追加
+          vue.$root.$emit("addMessage", "小分類リスト取得失敗(" + vue.page.ScreenTitle + ":" + resMinor.message + ")"); //ダイアログ
+
+          $.dialogErr({
+            title: "異常終了",
+            contents: "小分類リストの取得に失敗しました<br/>" + resMinor.message
+          });
+          return;
+        } else if (resMinor == "") {
+          //完了ダイアログ
+          $.dialogErr({
+            title: "小分類リスト無し",
+            contents: "該当データは存在しません"
+          });
+          return;
+        } //取得した結果を設定
+        //vue.UnitList = resUnit;
+
+
+        vue.MajorList = resMajor;
+        vue.BusyoList = resBusyo;
+        vue.CourseList = resCourse; //vue.MinorList = resMinor;
+        //callback実行
+
+        callback();
+      }))["catch"](function (error) {
+        //メッセージ追加
+        vue.$root.$emit("addMessage", "マスタ検索失敗(" + vue.page.ScreenTitle + ":" + error + ")"); //完了ダイアログ
+
+        $.dialogErr({
+          title: "異常終了",
+          contents: "マスタの検索に失敗しました<br/>"
+        });
+      });
+    },
+    onRefreshGridFunc: function onRefreshGridFunc(grid) {
+      var vue = this;
+      var canSave = grid.isChanged();
+      $("footer").find("#DAI0101Grid1_Save").prop("disabled", !canSave);
+    },
+    onAddRowFunc: function onAddRowFunc(grid, rowData) {
+      var newRow = {
+        GroupKey: rowData.GroupKey,
+        MajorNo: rowData.MajorNo,
+        MinorNo: rowData.MinorNo
+      };
+      return newRow;
+    }
+  }
+});
+
+/***/ }),
+
+/***/ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Pages/DAI0102.vue?vue&type=script&lang=js&":
+/*!************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/babel-loader/lib??ref--4-0!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/Pages/DAI0102.vue?vue&type=script&lang=js& ***!
+  \************************************************************************************************************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _vcs_PageBaseMixin_vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @vcs/PageBaseMixin.vue */ "./resources/js/components/Shared/PageBaseMixin.vue");
+/* harmony import */ var _vcs_PopupSelect_vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @vcs/PopupSelect.vue */ "./resources/js/components/Shared/PopupSelect.vue");
+/* harmony import */ var _vcs_AppHeader_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @vcs/AppHeader.vue */ "./resources/js/components/Shared/AppHeader.vue");
+/* harmony import */ var _vcs_AppFooter_vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @vcs/AppFooter.vue */ "./resources/js/components/Shared/AppFooter.vue");
+/* harmony import */ var _vcs_DataList_vue__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @vcs/DataList.vue */ "./resources/js/components/Shared/DataList.vue");
+/* harmony import */ var _vcs_VueSelect_vue__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @vcs/VueSelect.vue */ "./resources/js/components/Shared/VueSelect.vue");
+/* harmony import */ var _vcs_PqGridWrapper_vue__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @vcs/PqGridWrapper.vue */ "./resources/js/components/Shared/PqGridWrapper.vue");
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+
+
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+  mixins: [_vcs_PageBaseMixin_vue__WEBPACK_IMPORTED_MODULE_0__["default"]],
+  name: "DAI0102",
+  components: {
+    "PopupSelect": _vcs_PopupSelect_vue__WEBPACK_IMPORTED_MODULE_1__["default"],
+    "AppHeader": _vcs_AppHeader_vue__WEBPACK_IMPORTED_MODULE_2__["default"],
+    "AppFooter": _vcs_AppFooter_vue__WEBPACK_IMPORTED_MODULE_3__["default"],
+    "VueDataList": _vcs_DataList_vue__WEBPACK_IMPORTED_MODULE_4__["default"],
+    "VueSelect": _vcs_VueSelect_vue__WEBPACK_IMPORTED_MODULE_5__["default"],
+    "PqGridWrapper": _vcs_PqGridWrapper_vue__WEBPACK_IMPORTED_MODULE_6__["default"]
+  },
+  data: function data() {
+    return $.extend(true, {}, _vcs_PageBaseMixin_vue__WEBPACK_IMPORTED_MODULE_0__["default"].data(), {
+      ScreenTitle: "日配持出入力",
+      DAI0102Grid1: null,
+      //UnitList: [],
+      MajorList: [],
+      BusyoList: [],
+      CourseList: [],
+      //MinorList: [],
+      HaisoDate: null,
+      HaisoDateConfig: {// DatePickerWrapperの基本設定はYYYY/MM/DD
+        // format: "YYYY/MM",
+        // dayViewHeaderFormat: "YYYY",
+      },
+      grid1Options: {
+        selectionModel: {
+          type: "cell",
+          mode: "single",
+          row: true
+        },
+        showHeader: true,
+        showToolbar: false,
+        columnBorders: true,
+        fillHandle: "",
+        numberCell: {
+          show: true,
+          title: "No.",
+          resizable: false
+        },
+        autoRow: false,
+        rowHtHead: 35,
+        rowHt: 35,
+        editable: true,
+        columnTemplate: {
+          editable: true,
+          sortable: true
+        },
+        filterModel: {
+          on: false,
+          header: false,
+          menuIcon: false,
+          hideRows: true
+        },
+        groupModel: {
+          on: true,
+          header: false,
+          dataIndx: ["GroupKey"],
+          collapsed: [false],
+          merge: false,
+          showSummary: [true],
+          grandSummary: true,
+          summaryEdit: false,
+          icon: ["pq-group-toggle-none"]
+        },
+        sortModel: {
+          on: true,
+          cancel: false,
+          type: "remote",
+          sorter: [{
+            dataIndx: "MinorNo",
+            dir: "up"
+          }]
+        },
+        formulas: [["GroupKey", function (rowData) {
+          if (!!rowData.MajorNo && !!rowData.MinorNo && rowData.MinorNo.startsWith(rowData.MajorNo) && !!rowData.Volume && !!rowData.Unit && !!rowData.UPrice1000) {
+            return rowData.MajorNo;
+          } else {
+            return rowData.GroupKey;
+          }
+        }], ["TPrice1000", function (rowData) {
+          if (!!rowData.Volume && rowData.UPrice1000 && !isNaN(rowData.Volume * rowData.UPrice1000)) {
+            return Decimal.mul(rowData.Volume, rowData.UPrice1000).toNumber();
+          } else {
+            return null;
+          }
+        }], ["UPrice", function (rowData) {
+          var price = rowData.UPrice1000 * 1000;
+          price = price == 0 || isNaN(price) ? null : price;
+          return price;
+        }], ["TPrice", function (rowData) {
+          var price = rowData.TPrice1000 * 1000;
+          price = price == 0 || isNaN(price) ? null : price;
+          return price;
+        }]],
+        colModel: [{
+          title: "集計キー",
+          dataType: "string",
+          dataIndx: "GroupKey",
+          editable: false,
+          hidden: true
+        }, //{ title: "識別番号", dataType: "string",  dataIndx: "UID" , editable: false, hidden: true, key: true,},
+        {
+          title: "部署",
+          dataType: "string",
+          dataIndx: "Busyo",
+          editable: false,
+          hidden: true
+        }, {
+          title: "配送日付",
+          dataType: "string",
+          dataIndx: "HaisoDate",
+          editable: false,
+          hidden: true
+        }, {
+          title: "コースCD",
+          dataType: "integer",
+          dataIndx: "CourseCd",
+          width: 50,
+          maxWidth: 80,
+          minWidth: 50,
+          editable: true,
+          hidden: false
+        }, {
+          title: "コース名",
+          dataIndx: "CourseName",
+          dataType: "string",
+          width: 100,
+          maxWidth: 150,
+          minWidth: 100,
+          editable: false
+        }, {
+          title: "A副",
+          dataIndx: "AHukuCourse",
+          dataType: "integer",
+          width: 50,
+          maxWidth: 100,
+          minWidth: 50,
+          editable: false
+        }, {
+          title: "AP",
+          dataIndx: "APCourse",
+          dataType: "integer",
+          width: 100,
+          maxWidth: 100,
+          minWidth: 100,
+          editable: false
+        }, {
+          title: "A特",
+          dataIndx: "ATokuCourse",
+          dataType: "integer",
+          width: 100,
+          maxWidth: 125,
+          minWidth: 100,
+          editable: false
+        }, {
+          title: "ラ",
+          dataIndx: "RaCourse",
+          dataType: "integer",
+          width: 100,
+          maxWidth: 125,
+          minWidth: 100,
+          editable: false
+        }, {
+          title: "ラ大",
+          dataIndx: "RaCourse",
+          dataType: "integer",
+          width: 50,
+          maxWidth: 80,
+          minWidth: 50,
+          editable: false
+        }, {
+          title: "ラ小",
+          dataIndx: "RaCourse",
+          dataType: "integer",
+          width: 50,
+          maxWidth: 80,
+          minWidth: 50,
+          editable: false
+        }, {
+          title: "ラ小P",
+          dataIndx: "RaCourse",
+          dataType: "integer",
+          width: 50,
+          maxWidth: 80,
+          minWidth: 50,
+          editable: false
+        }, {
+          title: "幼",
+          dataIndx: "RaCourse",
+          dataType: "integer",
+          width: 50,
+          maxWidth: 80,
+          minWidth: 50,
+          editable: false
+        }, {
+          title: "ﾗｲﾄF",
+          dataIndx: "RaCourse",
+          dataType: "integer",
+          width: 50,
+          maxWidth: 80,
+          minWidth: 50,
+          editable: false
+        }, {
+          title: "S割",
+          dataIndx: "RaCourse",
+          dataType: "integer",
+          width: 50,
+          maxWidth: 80,
+          minWidth: 50,
+          editable: false
+        }, {
+          title: "御膳",
+          dataIndx: "RaCourse",
+          dataType: "integer",
+          width: 50,
+          maxWidth: 80,
+          minWidth: 50,
+          editable: false
+        }, {
+          title: "ﾍﾙｼｰF",
+          dataIndx: "RaCourse",
+          dataType: "integer",
+          width: 50,
+          maxWidth: 80,
+          minWidth: 50,
+          editable: false
+        }, {
+          title: "ﾚﾃﾞｨｰｽ副",
+          dataIndx: "RaCourse",
+          dataType: "integer",
+          width: 50,
+          maxWidth: 80,
+          minWidth: 50,
+          editable: false
+        }]
+      }
+    });
+  },
+  // props: {
+  //     query: Object,
+  //     vm: Object,
+  // },
+  methods: {
+    // createdFunc: function(vue) {
+    //     //PqGrid集計関数に小計追加
+    //     pq.aggregate.SubTotal = function(arr, col) {
+    //         return pq.formatNumber(pq.aggregate.sum(arr, col), "##,###.0");
+    //     };
+    // },
+    mountedFunc: function mountedFunc(vue) {},
+    setFooterButtons: function setFooterButtons(vue) {
+      vue.$root.$emit("setFooterButtons", [// { visible: "true", value: "保存", id: "DAI0102Grid1_Save", disabled: true,
+      //     onClick: function () {
+      //         var vm = vue.viewModel;
+      //         var grid = vue.DAI0102Grid1;
+      //         //パラメータの生成
+      //         var params = grid.createSaveParams();
+      //         //PqGridのデータ保存メソッドを呼び出す
+      //         grid.saveData(
+      //             {
+      //                 uri: "/DAI0102/Save",
+      //                 params: params,
+      //                 done: {
+      //                     callback: (gridVue, grid, res) => {
+      //                     },
+      //                 },
+      //             }
+      //         );
+      //     }
+      // },
+      {
+        visible: "true",
+        value: "検索",
+        id: "DAI0102Grid1_Search",
+        disabled: true,
+        onClick: function onClick() {
+          var params = $.extend(true, {}, DAI0102.vue.viewModel); //配送日を"YYYYMMDD"形式に編集
+
+          params.HaisoDate = params.HaisoDate ? params.HaisoDate.replace(/\//g, "") : null;
+          DAI0102.DAI0102Grid1.searchData(params);
+        }
+      }, {
+        visible: "true",
+        value: "印刷",
+        id: "DAI0102Grid1_Printout",
+        disabled: true,
+        onClick: function onClick() {}
+      }, {
+        visible: "true",
+        value: "クリア",
+        id: "DAI0102Grid1_Clear",
+        disabled: false,
+        onClick: function onClick() {}
+      }, {
+        visible: "true",
+        value: "登録",
+        id: "DAI0102Grid1_Save",
+        disabled: false,
+        onClick: function onClick() {}
+      }, {
+        visible: "true",
+        value: "終了",
+        align: "right",
+        "class": "btn-danger",
+        onClick: function onClick() {
+          //確認ダイアログ
+          $.dialogConfirm({
+            title: "確認",
+            contents: "終了してよろしいですか？",
+            buttons: [{
+              text: "はい",
+              "class": "btn btn-primary",
+              click: function click() {
+                $(this).dialog("close");
+                vue.$root.$emit("execLogOff");
+              }
+            }, {
+              text: "いいえ",
+              "class": "btn btn-danger",
+              click: function click() {
+                $(this).dialog("close");
+              }
+            }]
+          });
+        }
+      }]);
+    },
+    onBeforeCreateGridFunc: function onBeforeCreateGridFunc(gridOptions, callback) {
+      var vue = this; //TODO: dummy
+      // vue.UnitList = [
+      //     { Cd: 1, CdNm: "m3"},
+      //     { Cd: 2, CdNm: "kg"},
+      //     { Cd: 3, CdNm: "箱"},
+      //     { Cd: 4, CdNm: "式"},
+      // ];
+
+      vue.MajorList = [{
+        Cd: "01",
+        CdNm: "大分類01"
+      }, {
+        Cd: "02",
+        CdNm: "大分類02"
+      }, {
+        Cd: "03",
+        CdNm: "大分類03"
+      }];
+      vue.BusyoList = [{
+        Cd: "01",
+        CdNm: "部署01"
+      }, {
+        Cd: "02",
+        CdNm: "部署02"
+      }, {
+        Cd: "03",
+        CdNm: "部署03"
+      }];
+      vue.CourseList = [{
+        Cd: "01",
+        CdNm: "平日01コース阿知須"
+      }, {
+        Cd: "02",
+        CdNm: "平日02コース"
+      }, {
+        Cd: "03",
+        CdNm: "平日03コース佐山"
+      }]; // vue.MinorList = [
+      //     { Cd: "0101", CdNm: "大1小1"},
+      //     { Cd: "0102", CdNm: "大1小2"},
+      //     { Cd: "0201", CdNm: "大2小1"},
+      //     { Cd: "0301", CdNm: "大3小1"},
+      //     { Cd: "0302", CdNm: "大3小2"},
+      //     { Cd: "0303", CdNm: "大3小3"},
+      // ];
+
+      callback();
+      return; //PqGrid内リストで使用する一覧の取得
+
+      axios.all([// //単位リストの取得
+      // axios.post("/Utilities/GetUnitList"),
+      //大分類リストの取得
+      axios.post("/Utilities/GetMajorList"), //部署リストの取得
+      axios.post("/Utilities/GetBusyoList"), //コースリストの取得
+      axios.post("/Utilities/GetCourseList")]).then(axios.spread(function (responseUnit, responseMajor, responseMinor) {
+        //var resUnit = responseUnit.data;
+        var resMajor = responseMajor.data;
+        var resBusyo = responseBusyo.data;
+        var resCourse = responseCourse.data; //var resMinor = responseMinor.data;
+
+        if (resUnit.onError && !!resUnit.errors) {
+          //メッセージリストに追加
+          Object.values(resUnit.errors).filter(function (v) {
+            return v;
+          }).forEach(function (v) {
+            return vue.$root.$emit("addMessage", v.replace(/(^\"|\"$)/g, ""));
+          }); //ダイアログ
+
+          $.dialogErr({
+            errObj: resUnit
+          });
+          return;
+        } else if (resUnit.onException) {
+          //メッセージ追加
+          vue.$root.$emit("addMessage", "単位リスト取得失敗(" + vue.page.ScreenTitle + ":" + resUnit.message + ")"); //ダイアログ
+
+          $.dialogErr({
+            title: "異常終了",
+            contents: "単位リストの取得に失敗しました<br/>" + resUnit.message
+          });
+          return;
+        } else if (resUnit == "") {
+          //完了ダイアログ
+          $.dialogErr({
+            title: "単位リスト無し",
+            contents: "該当データは存在しません"
+          });
+          return;
+        }
+
+        if (resMajor.onError && !!resMajor.errors) {
+          //メッセージリストに追加
+          Object.values(resMajor.errors).filter(function (v) {
+            return v;
+          }).forEach(function (v) {
+            return vue.$root.$emit("addMessage", v.replace(/(^\"|\"$)/g, ""));
+          }); //ダイアログ
+
+          $.dialogErr({
+            errObj: resMajor
+          });
+          return;
+        } else if (resMajor.onException) {
+          //メッセージ追加
+          vue.$root.$emit("addMessage", "大分類リスト取得失敗(" + vue.page.ScreenTitle + ":" + resMajor.message + ")"); //ダイアログ
+
+          $.dialogErr({
+            title: "異常終了",
+            contents: "大分類リストの取得に失敗しました<br/>" + resMajor.message
+          });
+          return;
+        } else if (resMajor == "") {
+          //完了ダイアログ
+          $.dialogErr({
+            title: "大分類リスト無し",
+            contents: "該当データは存在しません"
+          });
+          return;
+        }
+
+        if (resMinor.onError && !!resMinor.errors) {
+          //メッセージリストに追加
+          Object.values(resMinor.errors).filter(function (v) {
+            return v;
+          }).forEach(function (v) {
+            return vue.$root.$emit("addMessage", v.replace(/(^\"|\"$)/g, ""));
+          }); //ダイアログ
+
+          $.dialogErr({
+            errObj: resMinor
+          });
+          return;
+        } else if (resMinor.onException) {
+          //メッセージ追加
+          vue.$root.$emit("addMessage", "小分類リスト取得失敗(" + vue.page.ScreenTitle + ":" + resMinor.message + ")"); //ダイアログ
+
+          $.dialogErr({
+            title: "異常終了",
+            contents: "小分類リストの取得に失敗しました<br/>" + resMinor.message
+          });
+          return;
+        } else if (resMinor == "") {
+          //完了ダイアログ
+          $.dialogErr({
+            title: "小分類リスト無し",
+            contents: "該当データは存在しません"
+          });
+          return;
+        } //取得した結果を設定
+        //vue.UnitList = resUnit;
+
+
+        vue.MajorList = resMajor;
+        vue.BusyoList = resBusyo;
+        vue.CourseList = resCourse; //vue.MinorList = resMinor;
+        //callback実行
+
+        callback();
+      }))["catch"](function (error) {
+        //メッセージ追加
+        vue.$root.$emit("addMessage", "マスタ検索失敗(" + vue.page.ScreenTitle + ":" + error + ")"); //完了ダイアログ
+
+        $.dialogErr({
+          title: "異常終了",
+          contents: "マスタの検索に失敗しました<br/>"
+        });
+      });
+    },
+    onRefreshGridFunc: function onRefreshGridFunc(grid) {
+      var vue = this;
+      var canSave = grid.isChanged();
+      $("footer").find("#DAI0101Grid1_Save").prop("disabled", !canSave);
+    },
+    onAddRowFunc: function onAddRowFunc(grid, rowData) {
+      var newRow = {
+        GroupKey: rowData.GroupKey,
+        MajorNo: rowData.MajorNo,
+        MinorNo: rowData.MinorNo
+      };
+      return newRow;
+    }
+  }
+});
+
+/***/ }),
+
+/***/ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Pages/DAI0103.vue?vue&type=script&lang=js&":
+/*!************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/babel-loader/lib??ref--4-0!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/Pages/DAI0103.vue?vue&type=script&lang=js& ***!
+  \************************************************************************************************************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _vcs_PageBaseMixin_vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @vcs/PageBaseMixin.vue */ "./resources/js/components/Shared/PageBaseMixin.vue");
+/* harmony import */ var _vcs_PopupSelect_vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @vcs/PopupSelect.vue */ "./resources/js/components/Shared/PopupSelect.vue");
+/* harmony import */ var _vcs_AppHeader_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @vcs/AppHeader.vue */ "./resources/js/components/Shared/AppHeader.vue");
+/* harmony import */ var _vcs_AppFooter_vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @vcs/AppFooter.vue */ "./resources/js/components/Shared/AppFooter.vue");
+/* harmony import */ var _vcs_DataList_vue__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @vcs/DataList.vue */ "./resources/js/components/Shared/DataList.vue");
+/* harmony import */ var _vcs_VueSelect_vue__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @vcs/VueSelect.vue */ "./resources/js/components/Shared/VueSelect.vue");
+/* harmony import */ var _vcs_PqGridWrapper_vue__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @vcs/PqGridWrapper.vue */ "./resources/js/components/Shared/PqGridWrapper.vue");
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+
+
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+  mixins: [_vcs_PageBaseMixin_vue__WEBPACK_IMPORTED_MODULE_0__["default"]],
+  name: "DAI0103",
+  components: {
+    "PopupSelect": _vcs_PopupSelect_vue__WEBPACK_IMPORTED_MODULE_1__["default"],
+    "AppHeader": _vcs_AppHeader_vue__WEBPACK_IMPORTED_MODULE_2__["default"],
+    "AppFooter": _vcs_AppFooter_vue__WEBPACK_IMPORTED_MODULE_3__["default"],
+    "VueDataList": _vcs_DataList_vue__WEBPACK_IMPORTED_MODULE_4__["default"],
+    "VueSelect": _vcs_VueSelect_vue__WEBPACK_IMPORTED_MODULE_5__["default"],
+    "PqGridWrapper": _vcs_PqGridWrapper_vue__WEBPACK_IMPORTED_MODULE_6__["default"]
+  },
+  data: function data() {
+    return $.extend(true, {}, _vcs_PageBaseMixin_vue__WEBPACK_IMPORTED_MODULE_0__["default"].data(), {
+      ScreenTitle: "注文入力",
+      DAI0103Grid1: null,
+      MajorList: [],
+      HaisoDate: null,
+      HaisoDateConfig: {// DatePickerWrapperの基本設定はYYYY/MM/DD
+        // format: "YYYY/MM",
+        // dayViewHeaderFormat: "YYYY",
+      },
+      grid1Options: {
+        selectionModel: {
+          type: "cell",
+          mode: "single",
+          row: true
+        },
+        showHeader: {
+          rowHtHead: true,
+          rowHt: true,
+          filter: false
+        },
+        showToolbar: false,
+        columnBorders: true,
+        fillHandle: "",
+        numberCell: {
+          show: true,
+          title: "No.",
+          resizable: false
+        },
+        autoRow: false,
+        rowHtHead: 25,
+        rowHt: 25,
+        width: 950,
+        editable: true,
+        columnTemplate: {
+          editable: true,
+          sortable: true
+        },
+        formulas: [["user_id", function (rowData) {
+          return !!rowData.name ? rowData.user_id : undefined;
+        }]],
+        colModel: [{
+          title: "集計キー",
+          dataType: "string",
+          dataIndx: "GroupKey",
+          editable: false,
+          hidden: true
+        }, //{ title: "識別番号", dataType: "string",  dataIndx: "UID" , editable: false, hidden: true, key: true,},
+        {
+          title: "部署",
+          dataType: "string",
+          dataIndx: "Busyo",
+          editable: false,
+          hidden: true
+        }, {
+          title: "配送日付",
+          dataType: "string",
+          dataIndx: "HaisoDate",
+          editable: false,
+          hidden: true
+        }, {
+          title: "得意先CD",
+          dataType: "string",
+          dataIndx: "CustomerCd",
+          editable: false,
+          hidden: true
+        }, {
+          title: "担当者CD",
+          dataType: "string",
+          dataIndx: "PersonnelCd",
+          editable: false,
+          hidden: true
+        }, {
+          title: "コースCD",
+          dataType: "integer",
+          dataIndx: "CourseCd",
+          editable: false,
+          hidden: true
+        }, {
+          title: "コード",
+          dataIndx: "ProductCode",
+          dataType: "string",
+          width: 50,
+          maxWidth: 80,
+          minWidth: 50
+        }, {
+          title: "商品名",
+          dataIndx: "ProductName",
+          dataType: "string",
+          width: 50,
+          maxWidth: 300,
+          minWidth: 50
+        }, {
+          title: "単価",
+          dataIndx: "Price",
+          dataType: "integer",
+          width: 50,
+          maxWidth: 100,
+          minWidth: 50
+        }, {
+          title: "予定数",
+          dataIndx: "AppoNumber",
+          dataType: "integer",
+          width: 80,
+          maxWidth: 80,
+          minWidth: 80
+        }, {
+          title: '現金',
+          colModel: [{
+            title: "個数",
+            dataIndx: 'CashNumber',
+            dataType: 'string',
+            maxWidth: 60
+          }, {
+            title: "金額",
+            dataIndx: 'CashAmount',
+            dataType: 'string',
+            maxWidth: 100
+          }]
+        }, {
+          title: '掛売',
+          colModel: [{
+            title: "個数",
+            dataIndx: 'SaleNumber',
+            dataType: 'string',
+            maxWidth: 60
+          }, {
+            title: "金額",
+            dataIndx: 'SaleAmount',
+            dataType: 'string',
+            maxWidth: 100
+          }]
+        }, {
+          title: "確認",
+          dataIndx: "Check",
+          type: "checkbox",
+          dataType: 'integer',
+          width: 50,
+          maxWidth: 50,
+          minWidth: 50
+        }]
+      }
+    });
+  },
+  methods: {
+    createdFunc: function createdFunc(vue) {},
+    mountedFunc: function mountedFunc(vue) {},
+    setFooterButtons: function setFooterButtons(vue) {
+      vue.$root.$emit("setFooterButtons", [// { visible: "true", value: "保存", id: "DAI0103Grid1_Save", disabled: true,
+      //     onClick: function () {
+      //         var vm = vue.viewModel;
+      //         var grid = vue.DAI0103Grid1;
+      //         //パラメータの生成
+      //         var params = grid.createSaveParams();
+      //         //PqGridのデータ保存メソッドを呼び出す
+      //         grid.saveData(
+      //             {
+      //                 uri: "/DAI0103/Save",
+      //                 params: params,
+      //                 done: {
+      //                     callback: (gridVue, grid, res) => {
+      //                     },
+      //                 },
+      //             }
+      //         );
+      //     }
+      // },
+      //TODO:フッターボタン、コピーしたまま作成途中
+      {
+        visible: "true",
+        value: "検索",
+        id: "DAI0103Grid1_Search",
+        disabled: true,
+        onClick: function onClick() {
+          var params = $.extend(true, {}, DAI0103.vue.viewModel); //配送日を"YYYYMMDD"形式に編集
+
+          params.HaisoDate = params.HaisoDate ? params.HaisoDate.replace(/\//g, "") : null;
+          DAI0103.DAI0103Grid1.searchData(params);
+        }
+      }, {
+        visible: "true",
+        value: "印刷",
+        id: "DAI0103Grid1_Printout",
+        disabled: true,
+        onClick: function onClick() {}
+      }, {
+        visible: "true",
+        value: "クリア",
+        id: "DAI0103Grid1_Clear",
+        disabled: false,
+        onClick: function onClick() {}
+      }, {
+        visible: "true",
+        value: "登録",
+        id: "DAI0103Grid1_Save",
+        disabled: false,
+        onClick: function onClick() {}
+      }, {
+        visible: "true",
+        value: "終了",
+        align: "right",
+        "class": "btn-danger",
+        onClick: function onClick() {
+          //確認ダイアログ
+          $.dialogConfirm({
+            title: "確認",
+            contents: "終了してよろしいですか？",
+            buttons: [{
+              text: "はい",
+              "class": "btn btn-primary",
+              click: function click() {
+                $(this).dialog("close");
+                vue.$root.$emit("execLogOff");
+              }
+            }, {
+              text: "いいえ",
+              "class": "btn btn-danger",
+              click: function click() {
+                $(this).dialog("close");
+              }
+            }]
+          });
+        }
+      }]);
+    },
+    onBeforeCreateGridFunc: function onBeforeCreateGridFunc(gridOptions, callback) {
+      var vue = this; //TODO: dummy
+
+      vue.MajorList = [{
+        Cd: "01",
+        CdNm: "大分類01"
+      }, {
+        Cd: "02",
+        CdNm: "大分類02"
+      }, {
+        Cd: "03",
+        CdNm: "大分類03"
+      }];
+      callback();
+      return; //PqGrid内リストで使用する一覧の取得
+
+      axios.all([//大分類リストの取得
+      axios.post("/Utilities/GetMajorList")]).then(axios.spread(function (responseUnit, responseMajor, responseMinor) {
+        //var resUnit = responseUnit.data;
+        var resMajor = responseMajor.data; //var resMinor = responseMinor.data;
+
+        if (resUnit.onError && !!resUnit.errors) {
+          //メッセージリストに追加
+          Object.values(resUnit.errors).filter(function (v) {
+            return v;
+          }).forEach(function (v) {
+            return vue.$root.$emit("addMessage", v.replace(/(^\"|\"$)/g, ""));
+          }); //ダイアログ
+
+          $.dialogErr({
+            errObj: resUnit
+          });
+          return;
+        } else if (resUnit.onException) {
+          //メッセージ追加
+          vue.$root.$emit("addMessage", "単位リスト取得失敗(" + vue.page.ScreenTitle + ":" + resUnit.message + ")"); //ダイアログ
+
+          $.dialogErr({
+            title: "異常終了",
+            contents: "単位リストの取得に失敗しました<br/>" + resUnit.message
+          });
+          return;
+        } else if (resUnit == "") {
+          //完了ダイアログ
+          $.dialogErr({
+            title: "単位リスト無し",
+            contents: "該当データは存在しません"
+          });
+          return;
+        }
+
+        if (resMajor.onError && !!resMajor.errors) {
+          //メッセージリストに追加
+          Object.values(resMajor.errors).filter(function (v) {
+            return v;
+          }).forEach(function (v) {
+            return vue.$root.$emit("addMessage", v.replace(/(^\"|\"$)/g, ""));
+          }); //ダイアログ
+
+          $.dialogErr({
+            errObj: resMajor
+          });
+          return;
+        } else if (resMajor.onException) {
+          //メッセージ追加
+          vue.$root.$emit("addMessage", "大分類リスト取得失敗(" + vue.page.ScreenTitle + ":" + resMajor.message + ")"); //ダイアログ
+
+          $.dialogErr({
+            title: "異常終了",
+            contents: "大分類リストの取得に失敗しました<br/>" + resMajor.message
+          });
+          return;
+        } else if (resMajor == "") {
+          //完了ダイアログ
+          $.dialogErr({
+            title: "大分類リスト無し",
+            contents: "該当データは存在しません"
+          });
+          return;
+        }
+
+        if (resMinor.onError && !!resMinor.errors) {
+          //メッセージリストに追加
+          Object.values(resMinor.errors).filter(function (v) {
+            return v;
+          }).forEach(function (v) {
+            return vue.$root.$emit("addMessage", v.replace(/(^\"|\"$)/g, ""));
+          }); //ダイアログ
+
+          $.dialogErr({
+            errObj: resMinor
+          });
+          return;
+        } else if (resMinor.onException) {
+          //メッセージ追加
+          vue.$root.$emit("addMessage", "小分類リスト取得失敗(" + vue.page.ScreenTitle + ":" + resMinor.message + ")"); //ダイアログ
+
+          $.dialogErr({
+            title: "異常終了",
+            contents: "小分類リストの取得に失敗しました<br/>" + resMinor.message
+          });
+          return;
+        } else if (resMinor == "") {
+          //完了ダイアログ
+          $.dialogErr({
+            title: "小分類リスト無し",
+            contents: "該当データは存在しません"
+          });
+          return;
+        } //取得した結果を設定
+
+
+        vue.MajorList = resMajor; //callback実行
+
+        callback();
+      }))["catch"](function (error) {
+        //メッセージ追加
+        vue.$root.$emit("addMessage", "マスタ検索失敗(" + vue.page.ScreenTitle + ":" + error + ")"); //完了ダイアログ
+
+        $.dialogErr({
+          title: "異常終了",
+          contents: "マスタの検索に失敗しました<br/>"
+        });
+      });
+    },
+    onRefreshGridFunc: function onRefreshGridFunc(grid) {
+      var vue = this;
+      var canSave = grid.isChanged();
+      $("footer").find("#DAI0101Grid1_Save").prop("disabled", !canSave);
+    }
+  }
+});
+
+/***/ }),
+
 /***/ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Pages/PID0001.vue?vue&type=script&lang=js&":
 /*!************************************************************************************************************************************************************************!*\
   !*** ./node_modules/babel-loader/lib??ref--4-0!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/Pages/PID0001.vue?vue&type=script&lang=js& ***!
@@ -1416,9 +3273,11 @@ __webpack_require__.r(__webpack_exports__);
           var params = {
             kind: "Pdf"
           };
-          var filename = "test_" + moment().format("YYYYMMDDHHmmss") + ".pdf"; //$.downloadFromUrl("PID0201/Export", params, filename, response => console.log(response));
-
-          $.showPdfViewer("PID0201/Export", params, filename, function (response) {
+          var filename = "test_" + moment().format("YYYYMMDDHHmmss") + ".pdf";
+          var options = {
+            isPrintImmediately: true
+          };
+          $.showPdfViewer("PID0201/Export", params, filename, options, function (response) {
             return console.log(response);
           });
         }
@@ -3465,7 +5324,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _vcp_PID0101_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @vcp/PID0101.vue */ "./resources/js/components/Pages/PID0101.vue");
 /* harmony import */ var _vcp_PID0102_vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @vcp/PID0102.vue */ "./resources/js/components/Pages/PID0102.vue");
 /* harmony import */ var _vcp_PID0201_vue__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @vcp/PID0201.vue */ "./resources/js/components/Pages/PID0201.vue");
-/* harmony import */ var _vcs_CommonSelector_vue__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @vcs/CommonSelector.vue */ "./resources/js/components/Shared/CommonSelector.vue");
+/* harmony import */ var _vcp_DAI0101_vue__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @vcp/DAI0101.vue */ "./resources/js/components/Pages/DAI0101.vue");
+/* harmony import */ var _vcp_DAI0102_vue__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @vcp/DAI0102.vue */ "./resources/js/components/Pages/DAI0102.vue");
+/* harmony import */ var _vcp_DAI0103_vue__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @vcp/DAI0103.vue */ "./resources/js/components/Pages/DAI0103.vue");
+/* harmony import */ var _vcs_CommonSelector_vue__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @vcs/CommonSelector.vue */ "./resources/js/components/Shared/CommonSelector.vue");
 //
 //
 //
@@ -3519,6 +5381,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+
+
  //子画面表示確認
 
 
@@ -3567,8 +5432,11 @@ __webpack_require__.r(__webpack_exports__);
     PID0101: _vcp_PID0101_vue__WEBPACK_IMPORTED_MODULE_2__["default"],
     PID0102: _vcp_PID0102_vue__WEBPACK_IMPORTED_MODULE_3__["default"],
     PID0201: _vcp_PID0201_vue__WEBPACK_IMPORTED_MODULE_4__["default"],
+    DAI0101: _vcp_DAI0101_vue__WEBPACK_IMPORTED_MODULE_5__["default"],
+    DAI0102: _vcp_DAI0102_vue__WEBPACK_IMPORTED_MODULE_6__["default"],
+    DAI0103: _vcp_DAI0103_vue__WEBPACK_IMPORTED_MODULE_7__["default"],
     //共通画面用Selector
-    CommonSelector: _vcs_CommonSelector_vue__WEBPACK_IMPORTED_MODULE_5__["default"]
+    CommonSelector: _vcs_CommonSelector_vue__WEBPACK_IMPORTED_MODULE_8__["default"]
   },
   created: function created() {},
   mounted: function mounted() {
@@ -6887,6 +8755,9 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: "top-menu",
   data: function data() {
@@ -9511,6 +11382,63 @@ module.exports = function(a, b){
 
 /***/ }),
 
+/***/ "./node_modules/css-loader/index.js?!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Pages/DAI0101.vue?vue&type=style&index=0&lang=css&":
+/*!*******************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/css-loader??ref--7-1!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src??ref--7-2!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/Pages/DAI0101.vue?vue&type=style&index=0&lang=css& ***!
+  \*******************************************************************************************************************************************************************************************************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(/*! ../../../../node_modules/css-loader/lib/css-base.js */ "./node_modules/css-loader/lib/css-base.js")(false);
+// imports
+
+
+// module
+exports.push([module.i, "\n#DAI0101Grid1 .pq-group-toggle-none {\n    display: none !important;\n}\nlabel{\n    width: 80px;\n}\n", ""]);
+
+// exports
+
+
+/***/ }),
+
+/***/ "./node_modules/css-loader/index.js?!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Pages/DAI0102.vue?vue&type=style&index=0&lang=css&":
+/*!*******************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/css-loader??ref--7-1!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src??ref--7-2!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/Pages/DAI0102.vue?vue&type=style&index=0&lang=css& ***!
+  \*******************************************************************************************************************************************************************************************************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(/*! ../../../../node_modules/css-loader/lib/css-base.js */ "./node_modules/css-loader/lib/css-base.js")(false);
+// imports
+
+
+// module
+exports.push([module.i, "\n#DAI0102Grid1 .pq-group-toggle-none {\n    display: none !important;\n}\nlabel{\n    width: 80px;\n}\n", ""]);
+
+// exports
+
+
+/***/ }),
+
+/***/ "./node_modules/css-loader/index.js?!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Pages/DAI0103.vue?vue&type=style&index=0&lang=css&":
+/*!*******************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/css-loader??ref--7-1!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src??ref--7-2!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/Pages/DAI0103.vue?vue&type=style&index=0&lang=css& ***!
+  \*******************************************************************************************************************************************************************************************************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(/*! ../../../../node_modules/css-loader/lib/css-base.js */ "./node_modules/css-loader/lib/css-base.js")(false);
+// imports
+
+
+// module
+exports.push([module.i, "\n.form-group{\r\n    margin-bottom: 0px !important;\n}\nlabel{\r\n    margin-bottom: 0px !important;\n}\n.form-control{\r\n    max-height: 30px;\n}\n.btn{\r\n    height: 28px;\r\n    padding-top: 2px !important;\r\n    padding-bottom: 2px !important;\n}\n.btn_medium_height > div{\r\n    padding: 0px;\n}\n.btn_middle:disabled,\r\n.butbtn_middleton[disabled]{\r\n  border: 1px solid #999999;\r\n  background-color: #cccccc;\r\n  color: #666666;\n}\r\n", ""]);
+
+// exports
+
+
+/***/ }),
+
 /***/ "./node_modules/css-loader/index.js?!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Pages/PID0101.vue?vue&type=style&index=0&lang=css&":
 /*!*******************************************************************************************************************************************************************************************************************************************************************************!*\
   !*** ./node_modules/css-loader??ref--7-1!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src??ref--7-2!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/Pages/PID0101.vue?vue&type=style&index=0&lang=css& ***!
@@ -9732,7 +11660,7 @@ exports = module.exports = __webpack_require__(/*! ../../../../node_modules/css-
 
 
 // module
-exports.push([module.i, "\n.navbar-brand[data-v-29ba0a96] {\n    font-size: 20px;\n}\n.nav-item.active[data-v-29ba0a96] {\n    background-color: orange;\n}\n.nav-item a[data-v-29ba0a96] {\n    color: white !important;\n    font-size: 18px;\n}\n.nav-item.active a[data-v-29ba0a96] {\n    color: black !important;\n}\n.nav-item[data-v-29ba0a96]:hover {\n    background-color: lightskyblue;\n}\n.nav-item:hover > a[data-v-29ba0a96] {\n    color: black !important;\n}\n.navbar-dark .dropdown-menu[data-v-29ba0a96] {\n    border-radius: 0px;\n}\n.navbar-dark .dropdown-item[data-v-29ba0a96]:hover {\n    color: black !important;\n    background-color: lightskyblue;\n}\n.currentPage[data-v-29ba0a96] {\n    color: black !important;\n    background-color: orange;\n}\n", ""]);
+exports.push([module.i, "\n.navbar-brand[data-v-29ba0a96] {\n    font-size: 20px;\n}\n.nav-item.active[data-v-29ba0a96] {\n    background-color: orange;\n}\n.nav-item a[data-v-29ba0a96] {\n    color: white !important;\n    font-size: 18px;\n}\n.nav-item.active a[data-v-29ba0a96] {\n    color: black !important;\n}\n.nav-item[data-v-29ba0a96]:hover {\n    background-color: lightskyblue;\n}\n.nav-item:hover > a[data-v-29ba0a96] {\n    color: black !important;\n}\n.navbar-dark .dropdown-menu[data-v-29ba0a96] {\n    border-radius: 0px;\n}\n.navbar-dark .dropdown-item[data-v-29ba0a96]:hover {\n    color: black !important;\n    background-color: lightskyblue;\n}\n.sysname[data-v-29ba0a96] {\n    width: 150px;\n}\n.currentPage[data-v-29ba0a96] {\n    color: black !important;\n    background-color: orange;\n}\n", ""]);
 
 // exports
 
@@ -18350,6 +20278,96 @@ module.exports = Array.isArray || function (arr) {
 
 /***/ }),
 
+/***/ "./node_modules/style-loader/index.js!./node_modules/css-loader/index.js?!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Pages/DAI0101.vue?vue&type=style&index=0&lang=css&":
+/*!***********************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/style-loader!./node_modules/css-loader??ref--7-1!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src??ref--7-2!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/Pages/DAI0101.vue?vue&type=style&index=0&lang=css& ***!
+  \***********************************************************************************************************************************************************************************************************************************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+
+var content = __webpack_require__(/*! !../../../../node_modules/css-loader??ref--7-1!../../../../node_modules/vue-loader/lib/loaders/stylePostLoader.js!../../../../node_modules/postcss-loader/src??ref--7-2!../../../../node_modules/vue-loader/lib??vue-loader-options!./DAI0101.vue?vue&type=style&index=0&lang=css& */ "./node_modules/css-loader/index.js?!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Pages/DAI0101.vue?vue&type=style&index=0&lang=css&");
+
+if(typeof content === 'string') content = [[module.i, content, '']];
+
+var transform;
+var insertInto;
+
+
+
+var options = {"hmr":true}
+
+options.transform = transform
+options.insertInto = undefined;
+
+var update = __webpack_require__(/*! ../../../../node_modules/style-loader/lib/addStyles.js */ "./node_modules/style-loader/lib/addStyles.js")(content, options);
+
+if(content.locals) module.exports = content.locals;
+
+if(false) {}
+
+/***/ }),
+
+/***/ "./node_modules/style-loader/index.js!./node_modules/css-loader/index.js?!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Pages/DAI0102.vue?vue&type=style&index=0&lang=css&":
+/*!***********************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/style-loader!./node_modules/css-loader??ref--7-1!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src??ref--7-2!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/Pages/DAI0102.vue?vue&type=style&index=0&lang=css& ***!
+  \***********************************************************************************************************************************************************************************************************************************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+
+var content = __webpack_require__(/*! !../../../../node_modules/css-loader??ref--7-1!../../../../node_modules/vue-loader/lib/loaders/stylePostLoader.js!../../../../node_modules/postcss-loader/src??ref--7-2!../../../../node_modules/vue-loader/lib??vue-loader-options!./DAI0102.vue?vue&type=style&index=0&lang=css& */ "./node_modules/css-loader/index.js?!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Pages/DAI0102.vue?vue&type=style&index=0&lang=css&");
+
+if(typeof content === 'string') content = [[module.i, content, '']];
+
+var transform;
+var insertInto;
+
+
+
+var options = {"hmr":true}
+
+options.transform = transform
+options.insertInto = undefined;
+
+var update = __webpack_require__(/*! ../../../../node_modules/style-loader/lib/addStyles.js */ "./node_modules/style-loader/lib/addStyles.js")(content, options);
+
+if(content.locals) module.exports = content.locals;
+
+if(false) {}
+
+/***/ }),
+
+/***/ "./node_modules/style-loader/index.js!./node_modules/css-loader/index.js?!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Pages/DAI0103.vue?vue&type=style&index=0&lang=css&":
+/*!***********************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/style-loader!./node_modules/css-loader??ref--7-1!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src??ref--7-2!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/Pages/DAI0103.vue?vue&type=style&index=0&lang=css& ***!
+  \***********************************************************************************************************************************************************************************************************************************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+
+var content = __webpack_require__(/*! !../../../../node_modules/css-loader??ref--7-1!../../../../node_modules/vue-loader/lib/loaders/stylePostLoader.js!../../../../node_modules/postcss-loader/src??ref--7-2!../../../../node_modules/vue-loader/lib??vue-loader-options!./DAI0103.vue?vue&type=style&index=0&lang=css& */ "./node_modules/css-loader/index.js?!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Pages/DAI0103.vue?vue&type=style&index=0&lang=css&");
+
+if(typeof content === 'string') content = [[module.i, content, '']];
+
+var transform;
+var insertInto;
+
+
+
+var options = {"hmr":true}
+
+options.transform = transform
+options.insertInto = undefined;
+
+var update = __webpack_require__(/*! ../../../../node_modules/style-loader/lib/addStyles.js */ "./node_modules/style-loader/lib/addStyles.js")(content, options);
+
+if(content.locals) module.exports = content.locals;
+
+if(false) {}
+
+/***/ }),
+
 /***/ "./node_modules/style-loader/index.js!./node_modules/css-loader/index.js?!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Pages/PID0101.vue?vue&type=style&index=0&lang=css&":
 /*!***********************************************************************************************************************************************************************************************************************************************************************************************************!*\
   !*** ./node_modules/style-loader!./node_modules/css-loader??ref--7-1!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src??ref--7-2!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/Pages/PID0101.vue?vue&type=style&index=0&lang=css& ***!
@@ -19374,6 +21392,732 @@ function toArray(list, index) {
 
     return array
 }
+
+
+/***/ }),
+
+/***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Pages/DAI0101.vue?vue&type=template&id=4f779c08&":
+/*!****************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/Pages/DAI0101.vue?vue&type=template&id=4f779c08& ***!
+  \****************************************************************************************************************************************************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "render", function() { return render; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return staticRenderFns; });
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "form",
+    { attrs: { id: "this.$options.name" } },
+    [
+      _c("div", { staticClass: "row m-0" }, [
+        _c("div", { staticClass: "col-md-12" }, [
+          _c("div", { staticClass: "row m-0" }, [
+            _c(
+              "div",
+              { staticClass: "col-md-4" },
+              [
+                _c("label", { attrs: { for: "Busyo" } }, [_vm._v("部署")]),
+                _vm._v(" "),
+                _c("VueSelect", {
+                  staticStyle: { width: "200px" },
+                  attrs: {
+                    "title.width": "200px",
+                    id: "Busyo",
+                    vmodel: _vm.viewModel,
+                    bind: "Busyo",
+                    dataUrl: "/Utilities/GetBusyoList",
+                    hasNull: true
+                  }
+                })
+              ],
+              1
+            ),
+            _vm._v(" "),
+            _c(
+              "div",
+              { staticClass: "col-md-4" },
+              [
+                _c("DatePickerWrapper", {
+                  ref: "DatePicker_Date",
+                  attrs: {
+                    id: "HaisoDate",
+                    label: "配送日付",
+                    vmodel: _vm.viewModel,
+                    bind: "HaisoDate",
+                    config: _vm.HaisoDateConfig,
+                    editable: true
+                  }
+                })
+              ],
+              1
+            ),
+            _vm._v(" "),
+            _c(
+              "div",
+              { staticClass: "col-md-4" },
+              [
+                _c("label", { attrs: { for: "CourseKbn" } }, [
+                  _vm._v("コース区分")
+                ]),
+                _vm._v(" "),
+                _c("VueSelect", {
+                  attrs: {
+                    id: "CourseKbn",
+                    vmodel: _vm.viewModel,
+                    bind: "CourseKbn",
+                    dataUrl: "/Utilities/GetCourseList",
+                    hasNull: true
+                  }
+                })
+              ],
+              1
+            )
+          ])
+        ]),
+        _vm._v(" "),
+        _vm._m(0)
+      ]),
+      _vm._v(" "),
+      _c("PqGridWrapper", {
+        ref: "DAI0101Grid1",
+        attrs: {
+          id: "DAI0101Grid1",
+          dataUrl: "/DAI0101/Search",
+          classes: "mt-2 ml-3 mr-3",
+          query: this.viewModel,
+          SearchOnCreate: true,
+          SearchOnActivate: true,
+          onBeforeCreateFunc: this.onBeforeCreateGridFunc,
+          onRefreshFunc: this.onRefreshGridFunc,
+          onAddRowFunc: this.onAddRowFunc,
+          options: this.grid1Options,
+          autoEmptyRow: false,
+          autoEmptyRowCount: 1
+        }
+      })
+    ],
+    1
+  )
+}
+var staticRenderFns = [
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "col-md-12" }, [
+      _c("div", { staticClass: "row m-0" }, [
+        _c("div", { staticClass: "col-md-4" }, [
+          _c("label", { attrs: { for: "CourseStart" } }, [
+            _vm._v("コース開始")
+          ]),
+          _vm._v(" "),
+          _c("input", {
+            staticStyle: { width: "50px" },
+            attrs: { type: "text", id: "CourseStart" }
+          }),
+          _vm._v(" "),
+          _c("input", { attrs: { type: "text", id: "CourseStartName" } })
+        ]),
+        _vm._v(" "),
+        _c("div", { staticClass: "col-md-4" }, [
+          _c("label", { attrs: { for: "CourseEnd" } }, [_vm._v("コース終了")]),
+          _vm._v(" "),
+          _c("input", {
+            staticStyle: { width: "50px" },
+            attrs: { type: "text", id: "CourseEnd" }
+          }),
+          _vm._v(" "),
+          _c("input", { attrs: { type: "text", id: "CourseEndName" } })
+        ])
+      ])
+    ])
+  }
+]
+render._withStripped = true
+
+
+
+/***/ }),
+
+/***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Pages/DAI0102.vue?vue&type=template&id=4f85b389&":
+/*!****************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/Pages/DAI0102.vue?vue&type=template&id=4f85b389& ***!
+  \****************************************************************************************************************************************************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "render", function() { return render; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return staticRenderFns; });
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "form",
+    { attrs: { id: "this.$options.name" } },
+    [
+      _c("div", { staticClass: "row m-0" }, [
+        _c("div", { staticClass: "col-md-12" }, [
+          _c("div", { staticClass: "row m-0" }, [
+            _c(
+              "div",
+              { staticClass: "col-md-4" },
+              [
+                _c("label", { attrs: { for: "Busyo" } }, [_vm._v("部署")]),
+                _vm._v(" "),
+                _c("VueSelect", {
+                  staticStyle: { width: "200px" },
+                  attrs: {
+                    "title.width": "200px",
+                    id: "Busyo",
+                    vmodel: _vm.viewModel,
+                    bind: "Busyo",
+                    dataUrl: "/Utilities/GetBusyoList",
+                    hasNull: true
+                  }
+                })
+              ],
+              1
+            ),
+            _vm._v(" "),
+            _c(
+              "div",
+              { staticClass: "col-md-4" },
+              [
+                _c("DatePickerWrapper", {
+                  ref: "DatePicker_Date",
+                  attrs: {
+                    id: "HaisoDate",
+                    label: "配送日付",
+                    vmodel: _vm.viewModel,
+                    bind: "HaisoDate",
+                    config: _vm.HaisoDateConfig,
+                    editable: true
+                  }
+                })
+              ],
+              1
+            ),
+            _vm._v(" "),
+            _c(
+              "div",
+              { staticClass: "col-md-4" },
+              [
+                _c("label", { attrs: { for: "CourseKbn" } }, [
+                  _vm._v("コース区分")
+                ]),
+                _vm._v(" "),
+                _c("VueSelect", {
+                  attrs: {
+                    id: "CourseKbn",
+                    vmodel: _vm.viewModel,
+                    bind: "CourseKbn",
+                    dataUrl: "/Utilities/GetCourseList",
+                    hasNull: true
+                  }
+                })
+              ],
+              1
+            )
+          ])
+        ]),
+        _vm._v(" "),
+        _vm._m(0)
+      ]),
+      _vm._v(" "),
+      _c("PqGridWrapper", {
+        ref: "DAI0102Grid1",
+        attrs: {
+          id: "DAI0102Grid1",
+          dataUrl: "/DAI0102/Search",
+          classes: "mt-2 ml-3 mr-3",
+          query: this.viewModel,
+          SearchOnCreate: true,
+          SearchOnActivate: true,
+          onBeforeCreateFunc: this.onBeforeCreateGridFunc,
+          onRefreshFunc: this.onRefreshGridFunc,
+          onAddRowFunc: this.onAddRowFunc,
+          options: this.grid1Options,
+          autoEmptyRow: false,
+          autoEmptyRowCount: 1
+        }
+      })
+    ],
+    1
+  )
+}
+var staticRenderFns = [
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "col-md-12" }, [
+      _c("div", { staticClass: "row m-0" }, [
+        _c("div", { staticClass: "col-md-4" }, [
+          _c("label", { attrs: { for: "CourseStart" } }, [
+            _vm._v("コース開始")
+          ]),
+          _vm._v(" "),
+          _c("input", {
+            staticStyle: { width: "50px" },
+            attrs: { type: "text", id: "CourseStart", disabled: "true" }
+          }),
+          _vm._v(" "),
+          _c("input", {
+            attrs: { type: "text", id: "CourseStartName", disabled: "true" }
+          })
+        ]),
+        _vm._v(" "),
+        _c("div", { staticClass: "col-md-4" }, [
+          _c("label", { attrs: { for: "CourseEnd" } }, [_vm._v("コース終了")]),
+          _vm._v(" "),
+          _c("input", {
+            staticStyle: { width: "50px" },
+            attrs: { type: "text", id: "CourseEnd", disabled: "true" }
+          }),
+          _vm._v(" "),
+          _c("input", {
+            attrs: { type: "text", id: "CourseEndName", disabled: "true" }
+          })
+        ])
+      ])
+    ])
+  }
+]
+render._withStripped = true
+
+
+
+/***/ }),
+
+/***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Pages/DAI0103.vue?vue&type=template&id=4f93cb0a&":
+/*!****************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/Pages/DAI0103.vue?vue&type=template&id=4f93cb0a& ***!
+  \****************************************************************************************************************************************************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "render", function() { return render; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return staticRenderFns; });
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "form",
+    { attrs: { id: "this.$options.name" } },
+    [
+      _c("div", { staticClass: "row m-0" }, [
+        _c("div", { staticClass: "col-md-12" }, [
+          _c("div", { staticClass: "row m-0" }, [
+            _vm._m(0),
+            _vm._v(" "),
+            _c(
+              "div",
+              { staticClass: "col-md-11 form-inline" },
+              [
+                _c("VueSelect", {
+                  staticStyle: { "min-width": "200px" },
+                  attrs: {
+                    id: "Busyo",
+                    vmodel: _vm.viewModel,
+                    bind: "Busyo",
+                    dataUrl: "/Utilities/GetBusyoList",
+                    hasNull: true
+                  }
+                }),
+                _vm._v(" "),
+                _vm._m(1),
+                _vm._v(" "),
+                _vm._m(2)
+              ],
+              1
+            )
+          ]),
+          _vm._v(" "),
+          _c("div", { staticClass: "row m-0" }, [
+            _vm._m(3),
+            _vm._v(" "),
+            _c(
+              "div",
+              { staticClass: "col-md-11 form-inline" },
+              [
+                _c("DatePickerWrapper", {
+                  ref: "DatePicker_Date",
+                  attrs: {
+                    id: "HaisoDate",
+                    lbel: "配送日",
+                    vmodel: _vm.viewModel,
+                    bind: "HaisoDate",
+                    config: _vm.HaisoDateConfig,
+                    editable: true
+                  }
+                }),
+                _vm._v(" "),
+                _c("label", { attrs: { for: "HaisoTime" } }, [_vm._v("時間")]),
+                _vm._v(" "),
+                _c("input", {
+                  staticClass: "form-control",
+                  attrs: { type: "time", id: "HaisoTime", disabled: "true" }
+                })
+              ],
+              1
+            )
+          ]),
+          _vm._v(" "),
+          _vm._m(4),
+          _vm._v(" "),
+          _vm._m(5),
+          _vm._v(" "),
+          _vm._m(6),
+          _vm._v(" "),
+          _vm._m(7)
+        ])
+      ]),
+      _vm._v(" "),
+      _c("PqGridWrapper", {
+        ref: "DAI0103Grid1",
+        attrs: {
+          id: "DAI0103Grid1",
+          dataUrl: "/DAI0103/Search",
+          classes: "mt-2 ml-3 mr-3",
+          query: this.viewModel,
+          SearchOnCreate: true,
+          SearchOnActivate: true,
+          onRefreshFunc: this.onRefreshGridFunc,
+          options: this.grid1Options,
+          autoEmptyRow: false,
+          autoEmptyRowCount: 1,
+          autoEmptyRowFormula: "3n"
+        }
+      }),
+      _vm._v(" "),
+      _vm._m(8),
+      _vm._v(" "),
+      _c("div", { staticClass: "row m-0" }, [
+        _vm._m(9),
+        _vm._v(" "),
+        _c(
+          "div",
+          { staticClass: "col-md-11" },
+          [
+            _c("VueSelect", {
+              staticClass: "bikou",
+              staticStyle: { width: "100%" },
+              attrs: {
+                "title.width": "200px",
+                id: "Bikou",
+                vmodel: _vm.viewModel,
+                bind: "Bikou",
+                dataUrl: "/Utilities/GetBikouList",
+                hasNull: true
+              }
+            }),
+            _vm._v(" "),
+            _c("VueSelect", {
+              staticClass: "bikou",
+              staticStyle: { width: "100%" },
+              attrs: {
+                "title.width": "200px",
+                id: "Bikou",
+                vmodel: _vm.viewModel,
+                bind: "Bikou",
+                dataUrl: "/Utilities/GetBikouList",
+                hasNull: true
+              }
+            }),
+            _vm._v(" "),
+            _c("VueSelect", {
+              staticClass: "bikou",
+              staticStyle: { width: "100%" },
+              attrs: {
+                "title.width": "200px",
+                id: "Bikou",
+                vmodel: _vm.viewModel,
+                bind: "Bikou",
+                dataUrl: "/Utilities/GetBikouList",
+                hasNull: true
+              }
+            })
+          ],
+          1
+        )
+      ])
+    ],
+    1
+  )
+}
+var staticRenderFns = [
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "col-md-1" }, [
+      _c("label", { attrs: { for: "Busyo" } }, [_vm._v("部署")])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c(
+      "button",
+      {
+        staticClass: "btn btn-primary",
+        attrs: { id: "btn_group_end", type: "button" }
+      },
+      [_c("span", [_vm._v("グループ終了")])]
+    )
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c(
+      "button",
+      {
+        staticClass: "btn btn-primary",
+        attrs: { id: "btn_group_search", type: "button" }
+      },
+      [_c("span", [_vm._v("グループ検索")])]
+    )
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "col-md-1" }, [
+      _c("label", { attrs: { for: "HaisoDate" } }, [_vm._v("配送日")])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "row m-0" }, [
+      _c("div", { staticClass: "col-md-1" }, [_c("label", [_vm._v("得意先")])]),
+      _vm._v(" "),
+      _c("div", { staticClass: "col-md-11 form-inline" }, [
+        _c("input", {
+          staticClass: "form-control",
+          staticStyle: { width: "70px" },
+          attrs: { type: "text", id: "CustomerCd" }
+        }),
+        _vm._v(" "),
+        _c("input", {
+          staticClass: "form-control",
+          staticStyle: { width: "300px" },
+          attrs: { type: "text", id: "CustomerName", disabled: "true" }
+        }),
+        _vm._v(" "),
+        _c(
+          "button",
+          {
+            staticClass: "btn btn-primary",
+            attrs: { id: "btn_search", type: "button" }
+          },
+          [_c("span", [_vm._v("検索")])]
+        ),
+        _vm._v(" "),
+        _c("label", { attrs: { for: "Tel" } }, [_vm._v("TEL：")]),
+        _vm._v(" "),
+        _c("input", {
+          staticClass: "form-control",
+          staticStyle: { width: "100px" },
+          attrs: { type: "text", id: "Tel", disabled: "true" }
+        })
+      ])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "row m-0" }, [
+      _c("div", { staticClass: "col-md-1" }, [_c("label", [_vm._v("担当者")])]),
+      _vm._v(" "),
+      _c("div", { staticClass: "col-md-11 form-inline" }, [
+        _c("input", {
+          staticClass: "form-control",
+          staticStyle: { width: "70px" },
+          attrs: { type: "text", id: "PersonnelCd", disabled: "true" }
+        }),
+        _vm._v(" "),
+        _c("input", {
+          staticClass: "form-control",
+          staticStyle: { width: "300px" },
+          attrs: { type: "text", id: "PersonnelName", disabled: "true" }
+        })
+      ])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "row m-0" }, [
+      _c("div", { staticClass: "col-md-1" }, [_c("label", [_vm._v("コース")])]),
+      _vm._v(" "),
+      _c("div", { staticClass: "col-md-11 form-inline" }, [
+        _c("input", {
+          staticClass: "form-control",
+          staticStyle: { width: "70px" },
+          attrs: { type: "text", id: "CourseCd", disabled: "true" }
+        }),
+        _vm._v(" "),
+        _c("input", {
+          staticClass: "form-control",
+          staticStyle: { width: "200px" },
+          attrs: { type: "text", id: "CourseName", disabled: "true" }
+        })
+      ])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "row m-0 btn_medium_height" }, [
+      _c("div", { staticClass: "col-md-1" }),
+      _vm._v(" "),
+      _c("div", { staticClass: "col-md-1 m-0" }, [
+        _c(
+          "label",
+          {
+            staticStyle: {
+              background: "#B5ACE0",
+              padding: "3px",
+              "text-align": "center"
+            }
+          },
+          [_vm._v("F8 : 検索")]
+        )
+      ]),
+      _vm._v(" "),
+      _c("div", { staticClass: "col-md-1" }),
+      _vm._v(" "),
+      _c("div", { staticClass: "col-md-1" }, [
+        _c(
+          "button",
+          {
+            staticClass: "btn_middle",
+            staticStyle: { width: "95%", height: "100%" },
+            attrs: { id: "btn_save", type: "button" }
+          },
+          [_c("span", [_vm._v("登録")])]
+        )
+      ]),
+      _vm._v(" "),
+      _c("div", { staticClass: "col-md-1" }, [
+        _c(
+          "button",
+          {
+            staticClass: "btn_middle",
+            staticStyle: { width: "95%", height: "100%" },
+            attrs: { id: "btn_undelivered", type: "button", disabled: "true" }
+          },
+          [_c("span", [_vm._v("未配達")])]
+        )
+      ]),
+      _vm._v(" "),
+      _c("div", { staticClass: "col-md-1" }, [
+        _c(
+          "button",
+          {
+            staticClass: "btn_middle",
+            staticStyle: { width: "95%", height: "100%" },
+            attrs: { id: "btn_back", type: "button" }
+          },
+          [_c("span", [_vm._v("戻る")])]
+        )
+      ]),
+      _vm._v(" "),
+      _c("div", { staticClass: "col-md-1" }, [
+        _c(
+          "button",
+          {
+            staticClass: "btn_middle",
+            staticStyle: { width: "95%", height: "100%" },
+            attrs: { id: "btn_back", type: "button" }
+          },
+          [_c("span", [_vm._v("先へ")])]
+        )
+      ]),
+      _vm._v(" "),
+      _c("div", { staticClass: "col-md-1" }),
+      _vm._v(" "),
+      _c("div", { staticClass: "col-md-1" }, [
+        _c(
+          "button",
+          {
+            staticClass: "btn_middle",
+            staticStyle: { width: "95%", height: "100%" },
+            attrs: { id: "btn_all", type: "button" }
+          },
+          [_c("span", [_vm._v("全表示")])]
+        )
+      ])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "row m-0" }, [
+      _c("div", { staticClass: "col form-inline" }, [
+        _c(
+          "label",
+          { staticStyle: { width: "562px", "text-align": "right" } },
+          [_vm._v("合計")]
+        ),
+        _vm._v(" "),
+        _c("input", {
+          staticClass: "form-control",
+          staticStyle: { width: "60px", padding: "0px" },
+          attrs: { type: "text", disabled: "true" }
+        }),
+        _vm._v(" "),
+        _c("input", {
+          staticClass: "form-control",
+          staticStyle: { width: "100px", padding: "0px" },
+          attrs: { type: "text", disabled: "true" }
+        }),
+        _vm._v(" "),
+        _c("input", {
+          staticClass: "form-control",
+          staticStyle: { width: "60px", padding: "0px" },
+          attrs: { type: "text", disabled: "true" }
+        }),
+        _vm._v(" "),
+        _c("input", {
+          staticClass: "form-control",
+          staticStyle: { width: "100px", padding: "0px" },
+          attrs: { type: "text", disabled: "true" }
+        })
+      ])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "col-md-1" }, [
+      _c("label", { attrs: { for: "Bikou" } }, [_vm._v("備考")])
+    ])
+  }
+]
+render._withStripped = true
+
 
 
 /***/ }),
@@ -20578,7 +23322,7 @@ var render = function() {
             _c(
               "label",
               {
-                staticClass: "badge-primary m-0 pl-1 pr-1",
+                staticClass: "sysname badge-primary m-0 pl-1 pr-1",
                 staticStyle: { cursor: "pointer" },
                 on: { click: _vm.goHome }
               },
@@ -21637,7 +24381,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var jspdf__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! jspdf */ "./node_modules/jspdf/dist/jspdf.min.js");
 /* harmony import */ var jspdf__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jspdf__WEBPACK_IMPORTED_MODULE_1__);
 //pdfjsのviewerのwrapper
-var showPdfViewer = function showPdfViewer(url, params, filename, callback) {
+var showPdfViewer = function showPdfViewer(url, params, filename, options, opened_callback, closed_callback) {
   //実行中ダイアログ
   var showPdfViewerDlg = $.dialogProgress({
     contents: "<i class='fa fa-spinner fa-spin' style='font-size: 24px; margin-right: 5px;'></i> 帳票表示中…"
@@ -21666,7 +24410,55 @@ var showPdfViewer = function showPdfViewer(url, params, filename, callback) {
     } //PDF => ObjectUrl
 
 
-    var objectUrl = URL.createObjectURL(response.data); // var options = options || { scale: 1 };
+    var objectUrl = URL.createObjectURL(response.data); //表示用iframe
+
+    var preview = $("<iframe>").attr("src", "/js/pdfjs-2.1.266-dist/web/viewer.html" + "?file=" + objectUrl + "#zoom=page-width").addClass("pdfviewer").css("width", "100%").css("height", "60vh"); //dialog表示
+
+    var previewDlg = $("<div>").append(preview).dialog({
+      autoOpen: true,
+      title: "帳票表示",
+      closeOnEscape: false,
+      modal: true,
+      resizable: true,
+      width: "95vw",
+      open: function open() {
+        var vwin = preview[0].contentWindow;
+        $(vwin).on("load", function () {
+          new Promise(function (resolve, reject) {
+            var eventBus = vwin.PDFViewerApplication.eventBus;
+            var timer = setInterval(function () {
+              if (!!eventBus && !!eventBus._listeners && !!eventBus._listeners.pagesloaded) {
+                clearInterval(timer);
+                return resolve(eventBus._listeners.pagesloaded);
+              }
+            }, 10);
+          }).then(function (listener) {
+            listener.push(function () {
+              console.log("application pagesloaded");
+
+              if (!!options && options.isPrintImmediately) {
+                $(vwin.document).find("button.toolbarButton.print").click();
+              }
+
+              if (opened_callback) opened_callback(response);
+            });
+            return;
+          });
+        });
+      },
+      close: function close() {
+        $(this).dialog("destroy").remove();
+      },
+      buttons: [{
+        text: "閉じる",
+        "class": "btn btn-danger",
+        click: function click() {
+          $(this).dialog("close");
+          if (closed_callback) closed_callback(response);
+        }
+      }]
+    }); //TODO: pdfjs direct view
+    // var options = options || { scale: 1 };
     // //PDFJS.disableWorker = true;
     // PDFJS.getDocument(objectUrl).then(pages => {
     //     console.log("PDFJS render");
@@ -21686,38 +24478,6 @@ var showPdfViewer = function showPdfViewer(url, params, filename, callback) {
     //         });
     //     }));
     // });
-    //表示用iframe
-
-    var preview = $("<iframe>").attr("src", "/js/pdfjs-2.1.266-dist/web/viewer.html" + "?file=" + objectUrl + "#zoom=page-width").css("width", "100%").css("height", "60vh"); //dialog表示
-
-    $("<div>").append(preview).dialog({
-      autoOpen: true,
-      title: "帳票表示",
-      closeOnEscape: false,
-      modal: true,
-      resizable: true,
-      width: "90vw",
-      open: function open() {
-        showPdfViewerDlg.dialog("close"); //完了ダイアログ
-
-        $.dialogInfo({
-          title: "帳票作成完了",
-          contents: "** 帳票を作成しました **"
-        });
-        console.log("showPdfViewer completed");
-      },
-      close: function close() {
-        $(this).dialog("destroy").remove();
-      },
-      buttons: [{
-        text: "閉じる",
-        click: function click() {
-          $(this).dialog("close");
-        }
-      }]
-    }); //execute callback
-
-    if (callback) callback(response);
   })["catch"](function (error) {
     showPdfViewerDlg.dialog("close"); //失敗ダイアログ
 
@@ -21972,6 +24732,267 @@ var getScreenPdf = function getScreenPdf(target) {
 $.extend({
   "getScreenPdf": getScreenPdf
 });
+
+/***/ }),
+
+/***/ "./resources/js/components/Pages/DAI0101.vue":
+/*!***************************************************!*\
+  !*** ./resources/js/components/Pages/DAI0101.vue ***!
+  \***************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _DAI0101_vue_vue_type_template_id_4f779c08___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./DAI0101.vue?vue&type=template&id=4f779c08& */ "./resources/js/components/Pages/DAI0101.vue?vue&type=template&id=4f779c08&");
+/* harmony import */ var _DAI0101_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./DAI0101.vue?vue&type=script&lang=js& */ "./resources/js/components/Pages/DAI0101.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport *//* harmony import */ var _DAI0101_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./DAI0101.vue?vue&type=style&index=0&lang=css& */ "./resources/js/components/Pages/DAI0101.vue?vue&type=style&index=0&lang=css&");
+/* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
+
+
+
+
+
+
+/* normalize component */
+
+var component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_3__["default"])(
+  _DAI0101_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__["default"],
+  _DAI0101_vue_vue_type_template_id_4f779c08___WEBPACK_IMPORTED_MODULE_0__["render"],
+  _DAI0101_vue_vue_type_template_id_4f779c08___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"],
+  false,
+  null,
+  null,
+  null
+  
+)
+
+/* hot reload */
+if (false) { var api; }
+component.options.__file = "resources/js/components/Pages/DAI0101.vue"
+/* harmony default export */ __webpack_exports__["default"] = (component.exports);
+
+/***/ }),
+
+/***/ "./resources/js/components/Pages/DAI0101.vue?vue&type=script&lang=js&":
+/*!****************************************************************************!*\
+  !*** ./resources/js/components/Pages/DAI0101.vue?vue&type=script&lang=js& ***!
+  \****************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0101_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib??ref--4-0!../../../../node_modules/vue-loader/lib??vue-loader-options!./DAI0101.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Pages/DAI0101.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport */ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0101_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
+
+/***/ }),
+
+/***/ "./resources/js/components/Pages/DAI0101.vue?vue&type=style&index=0&lang=css&":
+/*!************************************************************************************!*\
+  !*** ./resources/js/components/Pages/DAI0101.vue?vue&type=style&index=0&lang=css& ***!
+  \************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_style_loader_index_js_node_modules_css_loader_index_js_ref_7_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_7_2_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0101_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/style-loader!../../../../node_modules/css-loader??ref--7-1!../../../../node_modules/vue-loader/lib/loaders/stylePostLoader.js!../../../../node_modules/postcss-loader/src??ref--7-2!../../../../node_modules/vue-loader/lib??vue-loader-options!./DAI0101.vue?vue&type=style&index=0&lang=css& */ "./node_modules/style-loader/index.js!./node_modules/css-loader/index.js?!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Pages/DAI0101.vue?vue&type=style&index=0&lang=css&");
+/* harmony import */ var _node_modules_style_loader_index_js_node_modules_css_loader_index_js_ref_7_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_7_2_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0101_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_index_js_node_modules_css_loader_index_js_ref_7_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_7_2_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0101_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__);
+/* harmony reexport (unknown) */ for(var __WEBPACK_IMPORT_KEY__ in _node_modules_style_loader_index_js_node_modules_css_loader_index_js_ref_7_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_7_2_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0101_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__) if(__WEBPACK_IMPORT_KEY__ !== 'default') (function(key) { __webpack_require__.d(__webpack_exports__, key, function() { return _node_modules_style_loader_index_js_node_modules_css_loader_index_js_ref_7_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_7_2_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0101_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__[key]; }) }(__WEBPACK_IMPORT_KEY__));
+ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_style_loader_index_js_node_modules_css_loader_index_js_ref_7_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_7_2_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0101_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default.a); 
+
+/***/ }),
+
+/***/ "./resources/js/components/Pages/DAI0101.vue?vue&type=template&id=4f779c08&":
+/*!**********************************************************************************!*\
+  !*** ./resources/js/components/Pages/DAI0101.vue?vue&type=template&id=4f779c08& ***!
+  \**********************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0101_vue_vue_type_template_id_4f779c08___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../../../node_modules/vue-loader/lib??vue-loader-options!./DAI0101.vue?vue&type=template&id=4f779c08& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Pages/DAI0101.vue?vue&type=template&id=4f779c08&");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0101_vue_vue_type_template_id_4f779c08___WEBPACK_IMPORTED_MODULE_0__["render"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0101_vue_vue_type_template_id_4f779c08___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
+
+
+
+/***/ }),
+
+/***/ "./resources/js/components/Pages/DAI0102.vue":
+/*!***************************************************!*\
+  !*** ./resources/js/components/Pages/DAI0102.vue ***!
+  \***************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _DAI0102_vue_vue_type_template_id_4f85b389___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./DAI0102.vue?vue&type=template&id=4f85b389& */ "./resources/js/components/Pages/DAI0102.vue?vue&type=template&id=4f85b389&");
+/* harmony import */ var _DAI0102_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./DAI0102.vue?vue&type=script&lang=js& */ "./resources/js/components/Pages/DAI0102.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport *//* harmony import */ var _DAI0102_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./DAI0102.vue?vue&type=style&index=0&lang=css& */ "./resources/js/components/Pages/DAI0102.vue?vue&type=style&index=0&lang=css&");
+/* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
+
+
+
+
+
+
+/* normalize component */
+
+var component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_3__["default"])(
+  _DAI0102_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__["default"],
+  _DAI0102_vue_vue_type_template_id_4f85b389___WEBPACK_IMPORTED_MODULE_0__["render"],
+  _DAI0102_vue_vue_type_template_id_4f85b389___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"],
+  false,
+  null,
+  null,
+  null
+  
+)
+
+/* hot reload */
+if (false) { var api; }
+component.options.__file = "resources/js/components/Pages/DAI0102.vue"
+/* harmony default export */ __webpack_exports__["default"] = (component.exports);
+
+/***/ }),
+
+/***/ "./resources/js/components/Pages/DAI0102.vue?vue&type=script&lang=js&":
+/*!****************************************************************************!*\
+  !*** ./resources/js/components/Pages/DAI0102.vue?vue&type=script&lang=js& ***!
+  \****************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0102_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib??ref--4-0!../../../../node_modules/vue-loader/lib??vue-loader-options!./DAI0102.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Pages/DAI0102.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport */ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0102_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
+
+/***/ }),
+
+/***/ "./resources/js/components/Pages/DAI0102.vue?vue&type=style&index=0&lang=css&":
+/*!************************************************************************************!*\
+  !*** ./resources/js/components/Pages/DAI0102.vue?vue&type=style&index=0&lang=css& ***!
+  \************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_style_loader_index_js_node_modules_css_loader_index_js_ref_7_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_7_2_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0102_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/style-loader!../../../../node_modules/css-loader??ref--7-1!../../../../node_modules/vue-loader/lib/loaders/stylePostLoader.js!../../../../node_modules/postcss-loader/src??ref--7-2!../../../../node_modules/vue-loader/lib??vue-loader-options!./DAI0102.vue?vue&type=style&index=0&lang=css& */ "./node_modules/style-loader/index.js!./node_modules/css-loader/index.js?!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Pages/DAI0102.vue?vue&type=style&index=0&lang=css&");
+/* harmony import */ var _node_modules_style_loader_index_js_node_modules_css_loader_index_js_ref_7_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_7_2_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0102_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_index_js_node_modules_css_loader_index_js_ref_7_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_7_2_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0102_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__);
+/* harmony reexport (unknown) */ for(var __WEBPACK_IMPORT_KEY__ in _node_modules_style_loader_index_js_node_modules_css_loader_index_js_ref_7_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_7_2_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0102_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__) if(__WEBPACK_IMPORT_KEY__ !== 'default') (function(key) { __webpack_require__.d(__webpack_exports__, key, function() { return _node_modules_style_loader_index_js_node_modules_css_loader_index_js_ref_7_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_7_2_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0102_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__[key]; }) }(__WEBPACK_IMPORT_KEY__));
+ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_style_loader_index_js_node_modules_css_loader_index_js_ref_7_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_7_2_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0102_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default.a); 
+
+/***/ }),
+
+/***/ "./resources/js/components/Pages/DAI0102.vue?vue&type=template&id=4f85b389&":
+/*!**********************************************************************************!*\
+  !*** ./resources/js/components/Pages/DAI0102.vue?vue&type=template&id=4f85b389& ***!
+  \**********************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0102_vue_vue_type_template_id_4f85b389___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../../../node_modules/vue-loader/lib??vue-loader-options!./DAI0102.vue?vue&type=template&id=4f85b389& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Pages/DAI0102.vue?vue&type=template&id=4f85b389&");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0102_vue_vue_type_template_id_4f85b389___WEBPACK_IMPORTED_MODULE_0__["render"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0102_vue_vue_type_template_id_4f85b389___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
+
+
+
+/***/ }),
+
+/***/ "./resources/js/components/Pages/DAI0103.vue":
+/*!***************************************************!*\
+  !*** ./resources/js/components/Pages/DAI0103.vue ***!
+  \***************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _DAI0103_vue_vue_type_template_id_4f93cb0a___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./DAI0103.vue?vue&type=template&id=4f93cb0a& */ "./resources/js/components/Pages/DAI0103.vue?vue&type=template&id=4f93cb0a&");
+/* harmony import */ var _DAI0103_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./DAI0103.vue?vue&type=script&lang=js& */ "./resources/js/components/Pages/DAI0103.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport *//* harmony import */ var _DAI0103_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./DAI0103.vue?vue&type=style&index=0&lang=css& */ "./resources/js/components/Pages/DAI0103.vue?vue&type=style&index=0&lang=css&");
+/* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
+
+
+
+
+
+
+/* normalize component */
+
+var component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_3__["default"])(
+  _DAI0103_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__["default"],
+  _DAI0103_vue_vue_type_template_id_4f93cb0a___WEBPACK_IMPORTED_MODULE_0__["render"],
+  _DAI0103_vue_vue_type_template_id_4f93cb0a___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"],
+  false,
+  null,
+  null,
+  null
+  
+)
+
+/* hot reload */
+if (false) { var api; }
+component.options.__file = "resources/js/components/Pages/DAI0103.vue"
+/* harmony default export */ __webpack_exports__["default"] = (component.exports);
+
+/***/ }),
+
+/***/ "./resources/js/components/Pages/DAI0103.vue?vue&type=script&lang=js&":
+/*!****************************************************************************!*\
+  !*** ./resources/js/components/Pages/DAI0103.vue?vue&type=script&lang=js& ***!
+  \****************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0103_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib??ref--4-0!../../../../node_modules/vue-loader/lib??vue-loader-options!./DAI0103.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Pages/DAI0103.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport */ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0103_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
+
+/***/ }),
+
+/***/ "./resources/js/components/Pages/DAI0103.vue?vue&type=style&index=0&lang=css&":
+/*!************************************************************************************!*\
+  !*** ./resources/js/components/Pages/DAI0103.vue?vue&type=style&index=0&lang=css& ***!
+  \************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_style_loader_index_js_node_modules_css_loader_index_js_ref_7_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_7_2_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0103_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/style-loader!../../../../node_modules/css-loader??ref--7-1!../../../../node_modules/vue-loader/lib/loaders/stylePostLoader.js!../../../../node_modules/postcss-loader/src??ref--7-2!../../../../node_modules/vue-loader/lib??vue-loader-options!./DAI0103.vue?vue&type=style&index=0&lang=css& */ "./node_modules/style-loader/index.js!./node_modules/css-loader/index.js?!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Pages/DAI0103.vue?vue&type=style&index=0&lang=css&");
+/* harmony import */ var _node_modules_style_loader_index_js_node_modules_css_loader_index_js_ref_7_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_7_2_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0103_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_index_js_node_modules_css_loader_index_js_ref_7_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_7_2_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0103_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__);
+/* harmony reexport (unknown) */ for(var __WEBPACK_IMPORT_KEY__ in _node_modules_style_loader_index_js_node_modules_css_loader_index_js_ref_7_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_7_2_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0103_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__) if(__WEBPACK_IMPORT_KEY__ !== 'default') (function(key) { __webpack_require__.d(__webpack_exports__, key, function() { return _node_modules_style_loader_index_js_node_modules_css_loader_index_js_ref_7_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_7_2_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0103_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__[key]; }) }(__WEBPACK_IMPORT_KEY__));
+ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_style_loader_index_js_node_modules_css_loader_index_js_ref_7_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_7_2_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0103_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default.a); 
+
+/***/ }),
+
+/***/ "./resources/js/components/Pages/DAI0103.vue?vue&type=template&id=4f93cb0a&":
+/*!**********************************************************************************!*\
+  !*** ./resources/js/components/Pages/DAI0103.vue?vue&type=template&id=4f93cb0a& ***!
+  \**********************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0103_vue_vue_type_template_id_4f93cb0a___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../../../node_modules/vue-loader/lib??vue-loader-options!./DAI0103.vue?vue&type=template&id=4f93cb0a& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Pages/DAI0103.vue?vue&type=template&id=4f93cb0a&");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0103_vue_vue_type_template_id_4f93cb0a___WEBPACK_IMPORTED_MODULE_0__["render"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_DAI0103_vue_vue_type_template_id_4f93cb0a___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
+
+
 
 /***/ }),
 
@@ -23486,6 +26507,13 @@ __webpack_require__.r(__webpack_exports__);
   }
 }, {
   path: "/PID02/:pgId",
+  component: _vcs_PageSelector_vue__WEBPACK_IMPORTED_MODULE_0__["default"],
+  props: true,
+  meta: {
+    keepAlive: true
+  }
+}, {
+  path: "/DAI01/:pgId",
   component: _vcs_PageSelector_vue__WEBPACK_IMPORTED_MODULE_0__["default"],
   props: true,
   meta: {

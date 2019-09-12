@@ -1,8 +1,8 @@
 ﻿<template>
     <form id="this.$options.name">
-        <div class="row m-0">
+        <div class="row m-1">
             <div class="col-md-12">
-                <div class="row m-0">
+                <div class="row m-1">
                     <div class="col-md-1">
                         <label for="Busyo">部署</label>
                     </div>
@@ -27,7 +27,7 @@
                         ><span>グループ検索</span></button>
                     </div>
                 </div>
-                <div class="row m-0">
+                <div class="row m-1">
                     <div class="col-md-1">
                         <label for="HaisoDate">配送日</label>
                     </div>
@@ -45,7 +45,7 @@
                         <input type="time" id="HaisoTime" disabled="true" class="form-control"/>
                     </div>
                 </div>
-                <div class="row m-0">
+                <div class="row m-1">
                     <div class="col-md-1">
                         <label>得意先</label>
                     </div>
@@ -61,7 +61,7 @@
                         <input type="text" class="form-control" id="Tel" style="width:100px" disabled="true"/>
                     </div>
                 </div>
-                <div class="row m-0">
+                <div class="row m-1">
                     <div class="col-md-1">
                         <label>担当者</label>
                     </div>
@@ -70,7 +70,7 @@
                         <input type="text" class="form-control" id="PersonnelName" style="width:300px" disabled="true"/>
                     </div>
                 </div>
-                <div class="row m-0">
+                <div class="row m-1">
                     <div class="col-md-1">
                         <label>コース</label>
                     </div>
@@ -79,9 +79,9 @@
                         <input type="text" class="form-control" id="CourseName" style="width:200px" disabled="true"/>
                     </div>
                 </div>
-                <div class="row m-0 btn_medium_height">
+                <div class="row m-1 btn_medium_height">
                     <div class="col-md-1"/>
-                    <div class="col-md-1 m-0">
+                    <div class="col-md-1 m-1">
                         <label style="background: #B5ACE0; padding: 3px; text-align:center;">F8 : 検索</label>
                     </div>
                     <div class="col-md-1"/>
@@ -119,7 +119,7 @@
             :autoEmptyRowCount=1
             autoEmptyRowFormula="3n"
         />
-        <div class="row m-0">
+        <div class="row m-1">
             <div class="col form-inline">
                 <label style="width: 562px; text-align: right;">合計</label>
                 <input type="text" class="form-control" disabled="true" style="width: 60px; padding: 0px;"/>
@@ -128,7 +128,7 @@
                 <input type="text" class="form-control" disabled="true" style="width: 100px; padding: 0px;"/>
             </div>
         </div>
-        <div class="row m-0">
+        <div class="row m-1">
             <div class="col-md-1">
                 <label for="Bikou">備考</label>
             </div>
