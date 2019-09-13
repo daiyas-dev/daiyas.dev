@@ -3,7 +3,7 @@
     <form id="this.$options.name" @submit.prevent="sendNotification">
         <div class="row m-1">
             <div class="col-md-6">
-                <button class="btn btn-primary">全送信</button>
+                <button class="btn btn-primary">全送信x</button>
             </div>
         </div>
         <PqGridWrapper
