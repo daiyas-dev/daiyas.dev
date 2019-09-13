@@ -1,6 +1,6 @@
 <template>
     <header>
-        <div class="row p-2 pl-3">
+        <div class="row m-2">
             <div class="col-md-6">
                 <span :class="['badge', this.isLogOn == true ? 'badge-success' : 'badge-danger']">{{title}}</span>
             </div>
