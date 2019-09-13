@@ -14,6 +14,35 @@ export default {
         return {
             ScreenTitle: "XX",
             viewModel: {},
+            footerButtons: [
+                {
+                    visible: "true", value: "終了", align: "right", shortcut: "F12",
+                    class: "btn-danger",
+                    onClick: function() {
+                        $.dialogConfirm({
+                            title: "確認",
+                            contents: "終了してよろしいですか？",
+                            buttons:[
+                                {
+                                    text: "はい",
+                                    class: "btn btn-primary",
+                                    click: function(){
+                                        $(this).dialog("close");
+                                        vue.$root.$emit("execLogOff");
+                                    }
+                                },
+                                {
+                                    text: "いいえ",
+                                    class: "btn btn-danger",
+                                    click: function(){
+                                        $(this).dialog("close");
+                                    }
+                                },
+                            ],
+                        });
+                    }
+                },
+            ],
         }
     },
     props: {
@@ -30,6 +59,11 @@ export default {
         userInfo: function () {
             var vue = this;
             return vue.$root.$refs.LogonForm.user;
+        },
+    },
+    watch: {
+        footerButtons: {
+            handler: function(newVal) { this.$root.$emit("setFooterButtons", newVal); },
         },
     },
     created: function () {
@@ -123,8 +157,8 @@ export default {
             var vue = vue;
             //
         },
-        setFooterButtons: function(vue) {
-            vue.$root.$emit("setFooterButtons", []);
+        setFooterButtons: function() {
+            this.$root.$emit("setFooterButtons", this.footerButtons);
         },
     }
 }

@@ -1,6 +1,6 @@
 ﻿<template>
     <div
-        class="form-group d-inline-flex mb-0"
+        class="form-group d-inline-flex align-items-center mb-0"
         :class='"PopupSelect " + id '
         :style='width ? ("width: " + width + "px") : ""'
     >
@@ -9,6 +9,7 @@
             :id="id"
             :ref="id"
             :class="['form-control', 'target-input',  editable == true ? 'editable' : 'readonly']"
+            :style='inputWidth ? ("width: " + inputWidth + "px") : ""'
             v-model="vmodel[bind]"
             :readonly="this.editable == false"
             autocomplete="off"
@@ -32,7 +33,12 @@
             <i class="fa fa-times fa-lg"></i>
         </button>
         <label v-if="isShowNameLabel == true">{{nameLabel}}</label>
-		<input v-if="isShowName == true" type="text" class="select-name" disabled :value="selectName">
+		<input v-if="isShowName == true"
+            type="text"
+            class="form-control select-name"
+            disabled
+            :value="selectName"
+            :style='nameWidth ? ("width: " + nameWidth + "px") : ""'>
     </div>
 </template>
 
@@ -46,7 +52,7 @@
 }
 .PopupSelect .clear-button,
 .PopupSelect .selector-button {
-    width: 60px !important;
+    width: 35px !important;
     border-left-width: 0px !important;
     display: flex;
     justify-content: center;
@@ -104,6 +110,7 @@ export default {
         embedded: Boolean,
         container: Object,
         width: Number,
+        inputWidth: Number,
         title: String,
         labelCd: String,
         labelCdNm: String,
@@ -118,6 +125,7 @@ export default {
         index: Number,
         isShowName: Boolean,
         isShowNameLabel: Boolean,
+        nameWidth: Number,
         showTextFunc: String,
         isPreload: Boolean,
         onBeforeFunc: Function,

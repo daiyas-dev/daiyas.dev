@@ -57,7 +57,8 @@ button {
     margin-bottom: 2px;
     margin-right: 5px;
     padding: 0px;
-    font-weight: bold;
+    font-weight: normal;
+    line-height: 1;
 }
 .navbar-nav .nav-item:last-child button {
     margin-right: 0px;
@@ -110,7 +111,8 @@ button.navbar-right {
             return {
                 userId: null,
                 isLogOn: null,
-                buttons: []
+                buttons: [],
+                shortcuts: [],
             }
         },
         computed: {
@@ -122,13 +124,18 @@ button.navbar-right {
             },
         },
         created: function () {
-            this.$root.$on("setFooterButtons", this.setFooterButtons);
+            var vue = this;
+            vue.$root.$on("setFooterButtons", this.setFooterButtons);
+            $(document).on("keydown", evt => vue.receiveShortcutKey(evt));
         },
         methods: {
             setFooterButtons: function (options) {
+                this.shortcuts = [];
                 this.buttons = options.map(k => this.createButton(k))
             },
             createButton: function (option) {
+                var vue = this;
+
                 var defaults = {
                     value: null,
                     id: "footer_button_" + (this.buttons.length + 1),
@@ -144,8 +151,21 @@ button.navbar-right {
                 ret.class = _.concat(defaults.class, option.class || "btn-light");
                 ret.class = _.concat(ret.class, "footer-button-visible-" + ret.visible);
 
+                if (ret.shortcut) {
+                    ret.value += "<br>" + "(" + ret.shortcut + ")";
+                    vue.shortcuts.push({ key: ret.shortcut, func: ret.onClick });
+                }
+
                 return ret;
-            }
+            },
+            receiveShortcutKey: function(evt) {
+                var vue = this;
+                var sc = _.find(vue.shortcuts, v => [evt.code, evt.key, evt.keyCode, evt.which].includes(v.key));
+                if (sc) {
+                    sc.func();
+                    return false;
+                }
+            },
         }
     }
 </script>

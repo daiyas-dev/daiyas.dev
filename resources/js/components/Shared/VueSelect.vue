@@ -1,11 +1,17 @@
 ﻿//required bootstrap css
 <template>
-    <div class="form-group VueSelect" :data-tip="isExists ? null : '選択可能な一覧がありません'">
-        <label v-if="title" class="" :for="id">{{title}}</label>
-        <select class="form-control" :id="id" v-model="vmodel[bind]" @change="onChanged">
+    <div class="form-group d-inline-flex align-items-center VueSelect" :data-tip="isExists ? null : '選択可能な一覧がありません'">
+        <label v-if="title" class="" :for="_id">{{title}}</label>
+        <select class="form-control" :id="_id" v-model="vmodel[bind]" @change="onChanged"
+            style="padding-top: 2px; padding-left: 2px; padding-bottom: 2px;">
             <option v-show="hasNull" value=""></option>
-            <template v-if="entities && entities.length" v-for="entity in entities">
-                <option v-bind:value="entity.code" :selected="vmodel[bind] == entity.code">{{entity.name}}</option>
+            <template v-if="entities && entities.length">
+                <option v-for="entity in entities"
+                    v-bind:key="entity.code"
+                    v-bind:value="entity.code"
+                    :selected="vmodel[bind] == entity.code">
+                    {{entity.name}}
+                </option>
             </template>
         </select>
     </div>
@@ -36,16 +42,21 @@ export default {
         withCode: Boolean,
     },
     watch: {
-        list: {
+        entities: {
             deep: true,
-            handler: function(newVal, oldVal) {
-                this.entities = newVal;
+            handler: function(newVal) {
+                if (!this.hasNull && newVal.length && !_.find(newVal, { code: this.vmodel[this.bind]})) {
+                    this.vmodel[this.bind] = newVal[0].code;
+                }
             }
         },
     },
     computed: {
         isExists: function () {
             return (this.entities && this.entities.length && typeof this.entities == "object");
+        },
+        _id: function() {
+            return this.id + "_" + this._uid;
         },
     },
     created: function () {

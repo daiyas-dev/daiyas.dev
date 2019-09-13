@@ -4,7 +4,7 @@
             <div class="col-md-6">
                 <span :class="['badge', this.isLogOn == true ? 'badge-success' : 'badge-danger']">{{title}}</span>
             </div>
-            <div class="col-md-6 text-right">
+            <div class="col-md-6 justify-content-end">
                 <span :class="['ml-1', 'badge', this.isLogOn == true ? 'badge-success' : 'badge-danger']">{{nowDate}}</span>
                 <span :class="['ml-1', 'badge', this.isLogOn == true ? 'badge-success' : 'badge-danger']">{{isLogOn == true ? userNm : "未ログイン"}}</span>
             </div>
@@ -15,6 +15,7 @@
 <style scoped>
 .badge {
     font-size: 15px;
+    font-weight: normal;
 }
 </style>
 

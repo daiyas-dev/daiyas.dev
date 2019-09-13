@@ -123,7 +123,7 @@ export default {
             vue.$root.$emit("setCurrentPage", componentVue.data().ScreenTitle);
         }
 
-        if (componentVue.data().noViewModel != true) {
+        if (component != "CommonSelector" && componentVue.data().noViewModel != true) {
             //ViewModelの構成を取得
             var uri = location.href.replace(location.hash, "") + vue._pgId + "/GetViewModel";
             axios.post(uri)

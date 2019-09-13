@@ -94,17 +94,6 @@ body {
     width: auto;
 }
 
-/** bootstrap override **/
-input:focus, .form-control:focus {
-    border-color: deepskyblue;
-    background-color: aqua;
-}
-
-.bootstrap-datetimepicker-widget table td.today {
-    color: white;
-    background-color: blue;
-}
-
 #vue-app {
     background-color: lightgray;
     // height: calc(100vh - 100px);
@@ -266,3 +255,36 @@ label {
     width: 80px;
 }
 
+/** bootstrap override **/
+@import '~bootstrap/scss/bootstrap';
+input:focus, .form-control:focus {
+    border-color: deepskyblue;
+    background-color: aqua;
+}
+
+.bootstrap-datetimepicker-widget table td.today {
+    color: white;
+    background-color: blue;
+}
+.btn-normal {
+    @extend .btn-light;
+    background-color: lightgray;
+    &:hover {
+        background-color: gray;
+    }
+}
+div[class^="col-"] {
+    display: flex;
+    align-items: center;
+}
+form > .row {
+    margin-left: 15px;
+    margin-top: 4px;
+    margin-right: 15px;
+    margin-bottom: 4px;
+}
+
+.row div[class^="col-"] {
+    padding-left: 0px;
+    padding-right: 0px;
+}
