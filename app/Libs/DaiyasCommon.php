@@ -32,7 +32,7 @@ class DaiyasCommon
             $writer->save('php://output');
         } else {
             //Export Pdf
-            $work = dirname($template) . '//' . Auth::id() . '_' . now()->format('YmdHis') . '.xlsx';
+            $work = dirname($template) . '\\' . Auth::id() . '_' . now()->format('YmdHis') . '.xlsx';
             $writer->save($work);
             $pdf = preg_replace('/\.xlsx/', '.pdf', $work);
             $cmd = 'cd ' . dirname($work) . ' & ' .

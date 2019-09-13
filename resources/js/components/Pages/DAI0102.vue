@@ -1,74 +1,99 @@
 ﻿<template>
     <form id="this.$options.name">
-        <div class="row m-0">
-            <div class="col-md-12">
-                <div class="row m-0">
-                    <div class="col-md-4">
-                        <label for="Busyo">部署</label>
-                        <VueSelect
-                            title.width="200px"
-                            id="Busyo"
-                            :vmodel=viewModel
-                            bind="Busyo"
-                            dataUrl="/Utilities/GetBusyoList"
-                            :hasNull=true
-                            style="width:200px"
-                        />
-                    </div>
-                    <div class="col-md-4">
-                        <DatePickerWrapper
-                            id="HaisoDate"
-                            ref="DatePicker_Date"
-                            label="配送日付"
-                            :vmodel=viewModel
-                            bind="HaisoDate"
-                            :config=HaisoDateConfig
-                            :editable=true
-                        />
-                    </div>
-                    <div class="col-md-4">
-                        <label for="CourseKbn">コース区分</label>
-                        <VueSelect
-                            id="CourseKbn"
-                            :vmodel=viewModel
-                            bind="CourseKbn"
-                            dataUrl="/Utilities/GetCourseList"
-                            :hasNull=true
-                        />
-                    </div>
-                </div>
+        <div class="row">
+            <div class="col-md-1">
+                <label>部署</label>
             </div>
-            <div class="col-md-12">
-                <div class="row m-0">
-                    <div class="col-md-4">
-                        <label for="CourseStart">コース開始</label>
-                        <input
-                            type="text"
-                            id="CourseStart"
-                            style="width:50px"
-                            disabled="true"
-                        />
-                        <input
-                            type="text"
-                            id="CourseStartName"
-                            disabled="true"
-                        />
-                    </div>
-                    <div class="col-md-4">
-                        <label for="CourseEnd">コース終了</label>
-                        <input
-                            type="text"
-                            id="CourseEnd"
-                            style="width:50px"
-                            disabled="true"
-                        />
-                        <input
-                            type="text"
-                            id="CourseEndName"
-                            disabled="true"
-                        />
-                    </div>
-                </div>
+            <div class="col-md-3">
+                <VueSelect
+                    id="Busyo"
+                    :vmodel=viewModel
+                    bind="Busyo"
+                    uri="/Utilities/GetBusyoList"
+                    codeName="Code"
+                    textName="Name"
+                    :withCode=true
+                    style="width:200px"
+                />
+            </div>
+            <div class="col-md-1">
+                <label>配送日付</label>
+            </div>
+            <div class="col-md-3">
+                <DatePickerWrapper
+                    id="HaisoDate"
+                    ref="DatePicker_Date"
+                    format="YYYY年MM月DD日"
+                    dayViewHeaderFormat="YYYY年MM月"
+                    :vmodel=viewModel
+                    bind="HaisoDate"
+                    :editable=true
+                />
+            </div>
+            <div class="col-md-1">
+                <label>コース区分</label>
+            </div>
+            <div class="col-md-3">
+                <VueSelect
+                    id="CourseKbn"
+                    :vmodel=viewModel
+                    bind="CourseKbn"
+                    uri="/Utilities/GetCodeList"
+                    :params="{ code: 100 }"
+                    :withCode=true
+                    :hasNull=false
+                    style="width:200px"
+                />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1">
+                <label>コース開始</label>
+            </div>
+            <div class="col-md-5">
+                <PopupSelect
+                    id="CourseStart"
+                    ref="PopupSelect_CourseStart"
+                    :vmodel=viewModel
+                    bind="CourseStart"
+                    dataUrl="/Utilities/GetCourseList"
+                    :params="{ kbn: viewModel.CourseKbn }"
+                    title="コース一覧"
+                    labelCd="コースCD"
+                    labelCdNm="コース名"
+                    :isShowName=true
+                    :isModal=true
+                    :editable=true
+                    :reuse=true
+                    :existsCheck=true
+                    :inputWidth=100
+                    :nameWidth=300
+                />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1">
+                <label>コース終了</label>
+            </div>
+            <div class="col-md-5">
+                <PopupSelect
+                    id="CourseEnd"
+                    ref="PopupSelect_CourseEnd"
+                    :vmodel=viewModel
+                    bind="CourseEnd"
+                    dataUrl="/Utilities/GetCourseList"
+                    :params="{ kbn: viewModel.CourseKbn }"
+                    title="コース一覧"
+                    labelCd="コースCD"
+                    labelCdNm="コース名"
+                    :isShowName=true
+                    :isModal=true
+                    :editable=true
+                    :reuse=true
+                    :existsCheck=true
+                    :inputWidth=100
+                    :nameWidth=300
+                />
             </div>
         </div>
         <PqGridWrapper
@@ -102,26 +127,30 @@ label{
 import PageBaseMixin from "@vcs/PageBaseMixin.vue";
 
 import PopupSelect from "@vcs/PopupSelect.vue";
-import AppHeader from "@vcs/AppHeader.vue";
-import AppFooter from "@vcs/AppFooter.vue";
-import VueDataList from "@vcs/DataList.vue";
 import VueSelect from "@vcs/VueSelect.vue";
-import PqGridWrapper from "@vcs/PqGridWrapper.vue";
 
 export default {
     mixins: [PageBaseMixin],
     name: "DAI0102",
     components: {
-        "PopupSelect": PopupSelect,
-        "AppHeader": AppHeader,
-        "AppFooter": AppFooter,
-        "VueDataList": VueDataList,
         "VueSelect": VueSelect,
-        "PqGridWrapper": PqGridWrapper,
+        "PopupSelect": PopupSelect,
+    },
+    computed: {
+        courseParam: function() {
+            return { kbn: this.CourseKbn };
+        },
     },
     data() {
         return $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "日配持出入力",
+            viewModel: {
+                Busyo: null,
+                HaisoDate: null,
+                CourseKbn: null,
+                CourseStart: null,
+                CourseEnd: null,
+            },
             DAI0102Grid1: null,
             //UnitList: [],
             MajorList: [],
@@ -129,11 +158,6 @@ export default {
             CourseList: [],
            //MinorList: [],
             HaisoDate: null,
-            HaisoDateConfig: {
-                // DatePickerWrapperの基本設定はYYYY/MM/DD
-                // format: "YYYY/MM",
-                // dayViewHeaderFormat: "YYYY",
-            },
             grid1Options: {
                 selectionModel: { type: "cell", mode: "single", row: true },
                 showHeader: true,
@@ -214,7 +238,7 @@ export default {
                     //{ title: "識別番号", dataType: "string",  dataIndx: "UID" , editable: false, hidden: true, key: true,},
                     { title: "部署", dataType: "string",  dataIndx: "Busyo" , editable: false, hidden: true, },
                     { title: "配送日付", dataType: "string",  dataIndx: "HaisoDate" , editable: false, hidden: true, },
-                    { title: "コースCD", dataType: "integer",  dataIndx: "CourseCd" , width: 50, maxWidth: 80, minWidth: 50, editable: true, hidden: false, },
+                    { title: "コースCD", dataType: "integer",  dataIndx: "CourseCd" , width: 80, maxWidth: 80, minWidth: 80, editable: true, hidden: false, },
                     {
                         title: "コース名",
                         dataIndx: "CourseName", dataType: "string",
@@ -303,17 +327,24 @@ export default {
             },
         });
     },
-    // props: {
-    //     query: Object,
-    //     vm: Object,
-    // },
     methods: {
-        // createdFunc: function(vue) {
-        //     //PqGrid集計関数に小計追加
-        //     pq.aggregate.SubTotal = function(arr, col) {
-        //         return pq.formatNumber(pq.aggregate.sum(arr, col), "##,###.0");
-        //     };
-        // },
+        createdFunc: function(vue) {
+            vue.footerButtons.push(
+                { visible: "true", value: "検索", id: "DAI0101Grid1_Search", disabled: false, shortcut: "F5",
+                    onClick: function () {
+                        var params = $.extend(true, {}, vue.viewModel);
+
+                        //配送日を"YYYYMMDD"形式に編集
+                        params.HaisoDate = params.HaisoDate ? params.HaisoDate.replace(/\//g, "") : null;
+                        vue.DAI0101Grid1.searchData(params);
+                    }
+                },
+                { visible: "true", value: "印刷", id: "DAI0102Grid1_Printout", disabled: false, shortcut: "F6",
+                    onClick: function () {
+                    }
+                }
+            );
+        },
         mountedFunc: function(vue) {
         },
         setFooterButtons: function(vue) {
@@ -417,14 +448,6 @@ export default {
                 { Cd: "02", CdNm: "平日02コース"},
                 { Cd: "03", CdNm: "平日03コース佐山"},
             ];
-            // vue.MinorList = [
-            //     { Cd: "0101", CdNm: "大1小1"},
-            //     { Cd: "0102", CdNm: "大1小2"},
-            //     { Cd: "0201", CdNm: "大2小1"},
-            //     { Cd: "0301", CdNm: "大3小1"},
-            //     { Cd: "0302", CdNm: "大3小2"},
-            //     { Cd: "0303", CdNm: "大3小3"},
-            // ];
 
             callback();
             return;
