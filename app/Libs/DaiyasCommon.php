@@ -35,10 +35,11 @@ class DaiyasCommon
             $work = dirname($template) . '\\' . Auth::id() . '_' . now()->format('YmdHis') . '.xlsx';
             $writer->save($work);
             $pdf = preg_replace('/\.xlsx/', '.pdf', $work);
-            $cmd = 'cd ' . dirname($work) . ' & ' .
+            $cmd = 'cd ' . dirname($work) . ' & cd & ' .
                    'soffice --nolockcheck --nologo --headless --norestore --language=ja --nofirststartwizard --convert-to pdf ' .
                     $work;
             exec($cmd, $out, $ret);
+            print_r($out);
 
             if ($ret == 0) {
                 header('Content-type:application/pdf');
