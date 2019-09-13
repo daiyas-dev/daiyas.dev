@@ -35,11 +35,18 @@ class DaiyasCommon
             $work = dirname($template) . '\\' . Auth::id() . '_' . now()->format('YmdHis') . '.xlsx';
             $writer->save($work);
             $pdf = preg_replace('/\.xlsx/', '.pdf', $work);
-            $cmd = 'cd ' . dirname($work) . ' & cd & ' .
+
+            //TODO: LibreOffice command line <- without ms-excel
+            $cmd = 'cd ' . dirname($work) . ' & ' .
                    'soffice --nolockcheck --nologo --headless --norestore --language=ja --nofirststartwizard --convert-to pdf ' .
                     $work;
+
+            //TODO: OfficeToPDF https://github.com/cognidox/OfficeToPDF <- require ms-excel
+            $exe = storage_path('excel\OfficeToPDF.exe');
+            $cmd = 'cd ' . dirname($work) . ' & ' . $exe . ' ' . $work . ' ' . $pdf;
+
+            //execute command
             exec($cmd, $out, $ret);
-            print_r($out);
 
             if ($ret == 0) {
                 header('Content-type:application/pdf');
@@ -47,6 +54,10 @@ class DaiyasCommon
                 readfile($pdf);
             } else {
                 //TODO: return error
+                return response()->json([
+                    'status' => 500,
+                    'errors' => ['PDF生成失敗', $out],
+                ], 500);
             }
 
             //delete work
