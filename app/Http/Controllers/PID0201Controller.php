@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Reader\Xlsx as XReader;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx as XWriter;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 use NcJoes\OfficeConverter\OfficeConverter;
 
@@ -51,7 +52,7 @@ class PID0201Controller extends Controller
         $setter = function($excel) {
             $faker = \Faker\Factory::create('ja_JP');
             $sheet = $excel->getActiveSheet();
-            $sheet->setCellValue('A1', now()->format('Y/m/d'));
+            $sheet->setCellValue('A1', Date::PHPToExcel(now()));
             $sheet->setCellValue('G29', $faker->numberBetween(1, 99));
             $sheet->setCellValue('G30', $faker->numberBetween(25, 99));
             $sheet->setCellValue('G31', $faker->numberBetween(50, 99));

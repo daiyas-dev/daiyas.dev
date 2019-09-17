@@ -11,7 +11,7 @@
         window.Laravel.csrfToken = "{{ csrf_token() }}";
     </script>
 </head>
-<body class="daiyas">
+<body class="daiyas" id="daiyas-body">
     <div id="vue-app" class="vh-100">
         <!-- menu -->
         <top-menu ref="TopMenu"></top-menu>

@@ -115,7 +115,7 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "Excel出力", id: "PID0201_ExcelExport", shortcut: "F8",
+                { visible: "true", value: "Excel出力", id: "PID0201_ExportExcel", shortcut: "F8",
                     onClick: function () {
                         var vm = vue.viewModel;
                         var grid = vue.PID0201Grid1;
@@ -125,7 +125,7 @@ export default {
                         $.downloadFromUrl("PID0201/Export", params, "test.xlsx", response => console.log(response));
                     }
                 },
-                { visible: "true", value: "PDF出力", id: "PID0201_PDFExport", shortcut: "F9",
+                { visible: "true", value: "PDF表示", id: "PID0201_ShowPDF", shortcut: "F9",
                     onClick: function () {
                         var vm = vue.viewModel;
                         var grid = vue.PID0201Grid1;
@@ -136,6 +136,20 @@ export default {
                         var options = { isPrintImmediately: true };
 
                         $.showPdfViewer("PID0201/Export", params, filename, options, response => console.log(response));
+                        //$.downloadFromUrl("PID0201/Export", params, filename, response => console.log(response));
+                    }
+                },
+                { visible: "true", value: "PDF印刷", id: "PID0201_PrintPDFF", shortcut: "F10",
+                    onClick: function () {
+                        var vm = vue.viewModel;
+                        var grid = vue.PID0201Grid1;
+
+                        //パラメータの生成
+                        var params = { kind: "Pdf" };
+                        var filename = "test_" + moment().format("YYYYMMDDHHmmss") + ".pdf";
+                        var options = { isPrintImmediately: true };
+
+                        $.printPdf("PID0201/Export", params, filename, options, response => console.log(response));
                     }
                 },
             );

@@ -20,6 +20,9 @@ window.Decimal = Decimal;
 import Algebra from "algebra.js";
 window.Algebra = Algebra;
 
+import printJS from "print-js";
+window.printJS = printJS;
+
 import LogonForm    from "@vcs/LogonForm.vue";
 import TopMenu      from "@vcs/TopMenu.vue";
 import PageDialog   from "@vcs/PageDialog.vue";
