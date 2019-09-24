@@ -35,7 +35,6 @@
             id="PID0002Grid1"
             ref="PID0002Grid1"
             dataUrl="/PID0002/Search"
-            classes="mt-2 ml-3 mr-3"
             :query=this.viewModel
             :SearchOnCreate=true
             :SearchOnActivate=true
@@ -83,6 +82,10 @@ export default {
                 rowHtHead: 35,
                 rowHt: 50,
                 editable: true,
+                filterModel: {
+                    on: false,
+                    header: false,
+                },
                 columnTemplate: {
                     editable: true,
                     sortable: true,
@@ -148,6 +151,27 @@ export default {
                         dataIndx: "info_memo",
                         editor: { type: "textarea" },
                         filter: { crules: [{ condition: "contain" }] },
+                    },
+                    {
+                        title: "チェック",
+                        type: "checkbox",
+                        dataIndx: "check",
+                        editable: true,
+                        cb: {
+                           check: "yes" ,
+                           uncheck: "no",
+                        },
+                        editor: false,
+                    },
+                    {
+                        title: "Availability",
+                        dataIndx: "Discontinued",
+                        type: 'checkbox', //required property.
+                        cb: {
+                            check: "YES", //check the checkbox when cell value is "YES".
+                            uncheck: "NO" //uncheck when "NO".
+                        },
+                        editor: false, //cell renderer i.e., checkbox serves as editor, so no separate editor.
                     },
                 ],
             },

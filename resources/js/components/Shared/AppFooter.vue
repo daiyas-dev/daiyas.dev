@@ -1,5 +1,5 @@
 <template>
-    <footer>
+    <footer class="AppFooter">
         <nav id="footer-bar" class="navbar navbar-expand navbar-inverse navbar-dark bg-dark w-100 pt-0 pb-0">
             <div v-if="this.buttons && this.buttons.length" class="w-100 collapse navbar-collapse">
                 <ul class="navbar-nav mr-auto">

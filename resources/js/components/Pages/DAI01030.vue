@@ -106,9 +106,9 @@
             </div>
         </div>
         <PqGridWrapper
-            id="DAI0103Grid1"
-            ref="DAI0103Grid1"
-            dataUrl="/DAI0103/Search"
+            id="DAI01030Grid1"
+            ref="DAI01030Grid1"
+            dataUrl="/DAI01030/Search"
             classes="mt-2 ml-3 mr-3"
             :query=this.viewModel
             :SearchOnCreate=true
@@ -206,7 +206,7 @@ import PqGridWrapper from "@vcs/PqGridWrapper.vue";
 
 export default {
     mixins: [PageBaseMixin],
-    name: "DAI0103",
+    name: "DAI01030",
     components: {
         "PopupSelect": PopupSelect,
         "AppHeader": AppHeader,
@@ -218,7 +218,7 @@ export default {
     data() {
         return $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "注文入力",
-            DAI0103Grid1: null,
+            DAI01030Grid1: null,
             MajorList: [],
             HaisoDate: null,
             HaisoDateConfig: {
@@ -307,10 +307,10 @@ export default {
         setFooterButtons: function(vue) {
             vue.$root.$emit("setFooterButtons",
                 [
-                    // { visible: "true", value: "保存", id: "DAI0103Grid1_Save", disabled: true,
+                    // { visible: "true", value: "保存", id: "DAI01030Grid1_Save", disabled: true,
                     //     onClick: function () {
                     //         var vm = vue.viewModel;
-                    //         var grid = vue.DAI0103Grid1;
+                    //         var grid = vue.DAI01030Grid1;
 
                     //         //パラメータの生成
                     //         var params = grid.createSaveParams();
@@ -318,7 +318,7 @@ export default {
                     //         //PqGridのデータ保存メソッドを呼び出す
                     //         grid.saveData(
                     //             {
-                    //                 uri: "/DAI0103/Save",
+                    //                 uri: "/DAI01030/Save",
                     //                 params: params,
                     //                 done: {
                     //                     callback: (gridVue, grid, res) => {
@@ -330,24 +330,24 @@ export default {
                     // },
 
                     //TODO:フッターボタン、コピーしたまま作成途中
-                    { visible: "true", value: "検索", id: "DAI0103Grid1_Search", disabled: true,
+                    { visible: "true", value: "検索", id: "DAI01030Grid1_Search", disabled: true,
                         onClick: function () {
-                            var params = $.extend(true, {}, DAI0103.vue.viewModel);
+                            var params = $.extend(true, {}, DAI01030.vue.viewModel);
 
                             //配送日を"YYYYMMDD"形式に編集
                             params.HaisoDate = params.HaisoDate ? params.HaisoDate.replace(/\//g, "") : null;
-                            DAI0103.DAI0103Grid1.searchData(params);
+                            DAI01030.DAI01030Grid1.searchData(params);
                         }
                     },
-                    { visible: "true", value: "印刷", id: "DAI0103Grid1_Printout", disabled: true,
+                    { visible: "true", value: "印刷", id: "DAI01030Grid1_Printout", disabled: true,
                         onClick: function () {
                         }
                     },
-                    { visible: "true", value: "クリア", id: "DAI0103Grid1_Clear", disabled: false,
+                    { visible: "true", value: "クリア", id: "DAI01030Grid1_Clear", disabled: false,
                         onClick: function () {
                         }
                     },
-                    { visible: "true", value: "登録", id: "DAI0103Grid1_Save", disabled: false,
+                    { visible: "true", value: "登録", id: "DAI01030Grid1_Save", disabled: false,
                         onClick: function () {
                         }
                     },
@@ -518,7 +518,7 @@ export default {
             var vue = this;
             var canSave = grid.isChanged();
 
-            $("footer").find("#DAI0101Grid1_Save").prop("disabled", !canSave);
+            $("footer").find("#DAI01010Grid1_Save").prop("disabled", !canSave);
         },
     }
 }

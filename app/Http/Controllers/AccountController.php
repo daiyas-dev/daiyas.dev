@@ -8,6 +8,7 @@ use Dotenv\Exception\ValidationException;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Support\Facades\Auth;
 use App\Events\PublicEvent;
+use Illuminate\Support\Facades\DB;
 
 class AccountController extends Controller
 {
@@ -85,54 +86,8 @@ class AccountController extends Controller
      */
     public function GetMenuList()
     {
-        //TODO: dummy MenuList
-        $MenuList = json_decode('[
-            {
-              "Title": "お知らせ登録",
-              "FunctionId": "PID00",
-              "ProgramId": "PID0002"
-            },
-            {
-              "Title": "メニュー1",
-              "FunctionId": "PID01",
-              "ProgramId": ""
-            },
-            {
-              "Title": "メニュー1-1",
-              "FunctionId": "PID01",
-              "ProgramId": "PID0101"
-            },
-            {
-              "Title": "メニュー1-2",
-              "FunctionId": "PID01",
-              "ProgramId": "PID0102"
-            },
-            {
-              "Title": "通知送信",
-              "FunctionId": "PID02",
-              "ProgramId": "PID0201"
-            },
-            {
-              "Title": "日次処理",
-              "FunctionId": "DAI01",
-              "ProgramId": ""
-            },
-            {
-              "Title": "日次処理-1（持出数一覧表）",
-              "FunctionId": "DAI01",
-              "ProgramId": "DAI0101"
-            },
-            {
-                "Title": "日次処理-2（日配持出入力）",
-                "FunctionId": "DAI01",
-                "ProgramId": "DAI0102"
-            },
-            {
-                "Title": "日次処理-3（注文入力）",
-                "FunctionId": "DAI01",
-                "ProgramId": "DAI0103"
-            }
-        ]');
+        //search menus
+        $MenuList = DB::table('menus')->where('functionId', 'like', '%%')->get();
 
         return response()->json($MenuList);
     }

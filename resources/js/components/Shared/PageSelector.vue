@@ -53,9 +53,10 @@ import PID0002 from "@vcp/PID0002.vue";
 import PID0101 from "@vcp/PID0101.vue";
 import PID0102 from "@vcp/PID0102.vue";
 import PID0201 from "@vcp/PID0201.vue";
-import DAI0101 from "@vcp/DAI0101.vue";
-import DAI0102 from "@vcp/DAI0102.vue";
-import DAI0103 from "@vcp/DAI0103.vue";
+import DAI01010 from "@vcp/DAI01010.vue";
+import DAI01020 from "@vcp/DAI01020.vue";
+import DAI01030 from "@vcp/DAI01030.vue";
+import DAI01040 from "@vcp/DAI01040.vue";
 
 //子画面表示確認
 import CommonSelector from "@vcs/CommonSelector.vue";
@@ -100,16 +101,18 @@ export default {
     },
     components: {
         //ページコンポーネントを登録
+        DAI01010,
+        DAI01020,
+        DAI01030,
+        DAI01040,
+        //共通画面用Selector
+        CommonSelector,
+        //TODO: dummy || sample
         PID0001,
         PID0002,
         PID0101,
         PID0102,
         PID0201,
-        DAI0101,
-        DAI0102,
-        DAI0103,
-        //共通画面用Selector
-        CommonSelector,
     },
     created: function () {
     },

@@ -97,9 +97,9 @@
             </div>
         </div>
         <PqGridWrapper
-            id="DAI0102Grid1"
-            ref="DAI0102Grid1"
-            dataUrl="/DAI0102/Search"
+            id="DAI01020Grid1"
+            ref="DAI01020Grid1"
+            dataUrl="/DAI01020/Search"
             classes="mt-2 ml-3 mr-3"
             :query=this.viewModel
             :SearchOnCreate=true
@@ -115,7 +115,7 @@
 </template>
 
 <style>
-#DAI0102Grid1 .pq-group-toggle-none {
+#DAI01020Grid1 .pq-group-toggle-none {
     display: none !important;
 }
 label{
@@ -131,7 +131,7 @@ import VueSelect from "@vcs/VueSelect.vue";
 
 export default {
     mixins: [PageBaseMixin],
-    name: "DAI0102",
+    name: "DAI01020",
     components: {
         "VueSelect": VueSelect,
         "PopupSelect": PopupSelect,
@@ -151,7 +151,7 @@ export default {
                 CourseStart: null,
                 CourseEnd: null,
             },
-            DAI0102Grid1: null,
+            DAI01020Grid1: null,
             //UnitList: [],
             MajorList: [],
             BusyoList: [],
@@ -330,16 +330,16 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "検索", id: "DAI0101Grid1_Search", disabled: false, shortcut: "F5",
+                { visible: "true", value: "検索", id: "DAI01010Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
                         var params = $.extend(true, {}, vue.viewModel);
 
                         //配送日を"YYYYMMDD"形式に編集
                         params.HaisoDate = params.HaisoDate ? params.HaisoDate.replace(/\//g, "") : null;
-                        vue.DAI0101Grid1.searchData(params);
+                        vue.DAI01010Grid1.searchData(params);
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI0102Grid1_Printout", disabled: false, shortcut: "F6",
+                { visible: "true", value: "印刷", id: "DAI01020Grid1_Printout", disabled: false, shortcut: "F6",
                     onClick: function () {
                     }
                 }
@@ -350,10 +350,10 @@ export default {
         setFooterButtons: function(vue) {
             vue.$root.$emit("setFooterButtons",
                 [
-                    // { visible: "true", value: "保存", id: "DAI0102Grid1_Save", disabled: true,
+                    // { visible: "true", value: "保存", id: "DAI01020Grid1_Save", disabled: true,
                     //     onClick: function () {
                     //         var vm = vue.viewModel;
-                    //         var grid = vue.DAI0102Grid1;
+                    //         var grid = vue.DAI01020Grid1;
 
                     //         //パラメータの生成
                     //         var params = grid.createSaveParams();
@@ -361,7 +361,7 @@ export default {
                     //         //PqGridのデータ保存メソッドを呼び出す
                     //         grid.saveData(
                     //             {
-                    //                 uri: "/DAI0102/Save",
+                    //                 uri: "/DAI01020/Save",
                     //                 params: params,
                     //                 done: {
                     //                     callback: (gridVue, grid, res) => {
@@ -371,24 +371,24 @@ export default {
                     //         );
                     //     }
                     // },
-                    { visible: "true", value: "検索", id: "DAI0102Grid1_Search", disabled: true,
+                    { visible: "true", value: "検索", id: "DAI01020Grid1_Search", disabled: true,
                         onClick: function () {
-                            var params = $.extend(true, {}, DAI0102.vue.viewModel);
+                            var params = $.extend(true, {}, DAI01020.vue.viewModel);
 
                             //配送日を"YYYYMMDD"形式に編集
                             params.HaisoDate = params.HaisoDate ? params.HaisoDate.replace(/\//g, "") : null;
-                            DAI0102.DAI0102Grid1.searchData(params);
+                            DAI01020.DAI01020Grid1.searchData(params);
                         }
                     },
-                    { visible: "true", value: "印刷", id: "DAI0102Grid1_Printout", disabled: true,
+                    { visible: "true", value: "印刷", id: "DAI01020Grid1_Printout", disabled: true,
                         onClick: function () {
                         }
                     },
-                    { visible: "true", value: "クリア", id: "DAI0102Grid1_Clear", disabled: false,
+                    { visible: "true", value: "クリア", id: "DAI01020Grid1_Clear", disabled: false,
                         onClick: function () {
                         }
                     },
-                    { visible: "true", value: "登録", id: "DAI0102Grid1_Save", disabled: false,
+                    { visible: "true", value: "登録", id: "DAI01020Grid1_Save", disabled: false,
                         onClick: function () {
                         }
                     },
@@ -590,7 +590,7 @@ export default {
             var vue = this;
             var canSave = grid.isChanged();
 
-            $("footer").find("#DAI0101Grid1_Save").prop("disabled", !canSave);
+            $("footer").find("#DAI01010Grid1_Save").prop("disabled", !canSave);
         },
         onAddRowFunc: function(grid, rowData) {
             var newRow = {

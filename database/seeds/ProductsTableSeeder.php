@@ -1,13 +1,14 @@
 <?php
 
 use Flynsarmy\CsvSeeder\CsvSeeder;
+use Illuminate\Database\Seeder;
 
-class MenusTableSeeder extends CsvSeeder
+class ProductsTableSeeder extends CsvSeeder
 {
     public function __construct()
     {
-        $this->table = 'menus';
-        $this->filename = base_path() . '/database/seeds/csv/menus.csv';
+        $this->table = 'products';
+        $this->filename = base_path() . '/database/seeds/csv/products.csv';
     }
 
     public function run()

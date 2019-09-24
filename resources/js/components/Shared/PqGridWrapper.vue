@@ -6,6 +6,13 @@
 import pqgrid from "pqgrid";
 window.pq = pqgrid;
 
+pq.aggregate.IntegerTotal = function(arr, col) {
+    return pq.formatNumber(pq.aggregate.sum(arr, col), "#,##0");
+};
+pq.aggregate.FloatTotal = function(arr, col) {
+    return pq.formatNumber(pq.aggregate.sum(arr, col), "##,###.0");
+};
+
 //localize
 import "pqgrid/localize/pq-localize-ja.js";
 
@@ -65,7 +72,7 @@ export default {
         onAddRowFunc: Function,
         onDeleteRowFunc: Function,
         onChangeExceptsColumns: Array,
-        onSearchAfterFunc: Function,
+        onAfterSearchFunc: Function,
         onErrorValsMapFunc: Function,
         canNonSearchInsert: Boolean,
     },
@@ -143,10 +150,11 @@ export default {
             showTitle: false,
             resizable: false,
             showHeader: true,
+            showToolbar: false,
             wrap: false,
             hrap: false,
-            rowHt: 30,
-            rowHtSum: 30,
+            rowHt: 33,
+            rowHtSum: 33,
             animModel: {
                 on: true
             },
@@ -221,8 +229,10 @@ export default {
 
                             if (val) {
                                 ui.cellData = val;
-                                ui.formatVal = val;
+                                ui.formatVal = ["integer", "float"].includes(ui.column.dataType) && ui.column.format
+                                    ? pq.formatNumber(val, ui.column.format) : (val + "");
                                 ui.rowData[ui.dataIndx] = val;
+                                ui.column.editor.getData = ui => _.result(ui.rowData, ui.dataIndx, val);
 
                                 if (ui.column.cautionNegative && $.isNumeric(val)) {
                                     if (val < 0) {
@@ -232,7 +242,7 @@ export default {
                                     }
                                 }
 
-                                return val + "";
+                                return ui.formatVal;
                             }
                         } catch(e) {
                             return "";
@@ -306,11 +316,11 @@ export default {
                                             ref: "DatePicker_" + ui.dataIndx + "_" + ui.rowIndx,
                                             vmodel: ui.column.binder,
                                             bind: ui.dataIndx,
-                                            width: gridCell.outerWidth(),
+                                            width: gridCell.width(),
                                             editable: true,
                                             hideButton: true,
                                             onCalendarHiddenFunc: (event) => {
-                                                grid.getEditCell().$editor.trigger($.Event("keydown", {keyCode: 13, which: 13}))
+                                                //grid.getEditCell().$editor.trigger($.Event("keydown", {keyCode: 13, which: 13}))
                                             },
                                         }
                                     }
@@ -319,6 +329,23 @@ export default {
 
                                 //editor element
                                 var element = $(dp.$el);
+                                element
+                                    .addClass("ml-1")
+                                    .find("input").on("keydown", event => {
+                                        switch (event.which) {
+                                            case 9:
+                                                vue.setCellState(grid, ui);
+                                                vue.moveNextCell(grid, ui, event.shiftKey);
+                                                return false;
+                                            case 13:
+                                                vue.setCellState(grid, ui);
+                                                vue.moveNextCell(grid, ui);
+                                                return false;
+                                            case 27:
+                                                grid.quitEditMode();
+                                                return false;
+                                        }
+                                    });
 
                                 //元々のinputを除去
                                 editCell.find("input").hide();
@@ -395,15 +422,11 @@ export default {
                                         return ui;
                                     },
                                     listener: (ui) => {
-                                        console.log("filter listener");
-                                        console.log(ui);
                                     },
                                 },
                                 ui.column.filter || {},
                             );
                             ui.column.filterFn = (ui) => {
-                                console.log("filterFn");
-                                console.log(ui);
                             };
                         }
                     }
@@ -444,7 +467,7 @@ export default {
                                             editable: ui.column.editable || true,
                                             reuse: ui.column.reuse || true,
                                             existsCheck: ui.column.existsCheck || true,
-                                            width: gridCell.outerWidth(),
+                                            width: gridCell.width(),
                                         }
                                     }
                                 );
@@ -456,9 +479,10 @@ export default {
                                 element.on("keydown", (event) => {
                                     switch (event.which) {
                                         case 9:
-                                            if ($(event.target).hasClass("clear-button")) {
+                                            if (($(event.target).hasClass("clear-button") && !event.shiftKey) ||
+                                                ($(event.target).hasClass("target-input") && event.shiftKey)) {
                                                 vue.setCellState(grid, ui);
-                                                vue.moveNextCell(grid, ui);
+                                                vue.moveNextCell(grid, ui, event.shiftKey);
                                                 return false;
                                             }
                                             return true;
@@ -466,8 +490,13 @@ export default {
                                             vue.setCellState(grid, ui);
                                             vue.moveNextCell(grid, ui);
                                             return false;
+                                        case 27:
+                                            grid.quitEditMode();
+                                            return false;
                                     }
-                                });
+                                })
+                                .addClass("ml-1")
+                                ;
 
                                 //元々のinputを除去
                                 editCell.find("input").hide();
@@ -712,8 +741,6 @@ export default {
                 this.options.vue.setToolbarState();
             },
             refresh: function (event, ui) {
-                //console.log("grid refresh");
-
                 var grid = this;
                 var vue = grid.options.vue;
                 var id = vue.$el.id;
@@ -940,6 +967,11 @@ export default {
             click: function (event, ui) {
                 //console.log("grid click");
             },
+            cellClick: function (event, ui) {
+                if (ui.$td.has(":checkbox").length) {
+                    ui.$td.find(":checkbox")[0].click();
+                }
+            },
             cellSave: function (event, ui) {
                 if (ui.newVal != ui.oldVal) {
                     ui.rowData[ui.dataIndx] = ui.newVal;
@@ -1042,9 +1074,29 @@ export default {
 
                 return true;
             },
+            beforeCellKeyDown: function(event, ui) {
+                var grid = this;
+                var vue = grid.options.vue;
+                var cell = grid.getCell({rowIndx: ui.rowIndx, dataIndx: ui.dataIndx});
+
+                switch(event.which) {
+                    case 13:   //"enter"
+                    case 32:   //"space"
+                        if (cell.has(":checkbox").length) {
+                            cell.find(":checkbox")[0].click();
+                        } else if (ui.column.editable) {
+                            grid.editCell({rowIndx: ui.rowIndx, dataIndx: ui.dataIndx});
+                        }
+
+                        return false;
+                }
+
+                return true;
+            },
             cellKeyDown: function(event, ui) {
                 var grid = this;
                 var vue = grid.options.vue;
+                var cell = this.getCell({rowIndx: ui.rowIndx, dataIndx: ui.dataIndx});
 
                 if (event.ctrlKey) {
                     switch(event.which) {
@@ -1079,7 +1131,6 @@ export default {
                     rule.value2 = moment(rule.value2).add(1, "days").add(-1, "seconds").format("YYYY/MM/DD HH:mm:ss");
                 }
             },
-            filter: (evt, ui) => console.log("filter"),
         };
 
         //VueComponent参照設定
@@ -1185,7 +1236,7 @@ export default {
                     res.forEach(v => v.InitialValue = $.extend(true, {}, v));
 
                     //検索後callbackが指定されていれば実行
-                    if (vue.onSearchAfterFunc) res = vue.onSearchAfterFunc(vue, grid, res);
+                    if (vue.onAfterSearchFunc) res = vue.onAfterSearchFunc(vue, grid, res);
 
                     //検索前データの保持
                     grid.prevData = _.cloneDeep(grid.getData());
@@ -1284,7 +1335,7 @@ export default {
 
             //PqGrid生成
             this.grid = $("#" + this.id)
-                .attr("class", this.classes || "ml-3 mr-3")
+                .attr("class", this.classes || "ml-3 mt-2 mr-3")
                 .pqGrid(pqGridObj)
                 .pqGrid("getInstance").grid;
 
@@ -1293,7 +1344,7 @@ export default {
             this.$parent.$data[this.id] = this.grid;
 
             //colModelのeditableの設定より、PqGridのclassに入力可不可設定
-            var cfg = pqGridObj.columnTemplate.editable || pqGridObj.colModel.map((v) => v.editable).includes(true) ? "editable" : "readonly";
+            var cfg = pqGridObj.columnTemplate.editable ? "editable" : "readonly";
             this.grid.widget().addClass("table_" + cfg);
 
             //urlの再設定
@@ -1958,7 +2009,7 @@ export default {
             }
         },
         resizeBase: function () {
-            //PqGridリサイズ基本設定(パネルとフッターの間に収まるように)
+            //PqGridリサイズ基本設定(ヘッダーとフッターの間に収まるように)
             if (!this.grid || !this.grid.options) return;
 
             //widget
@@ -1972,11 +2023,11 @@ export default {
 
             //空き領域を計算
             var contentHeight = content.height();
-            var elementsHeightSum = _.sum(content.find("form > *").map((i, el) => $(el).outerHeight()));
+            var elementsHeightSum = _.sum(content.find("form > *").map((i, el) => $(el).outerHeight(true)));
 
             //TODO: 厳密には可変サイズのGridが複数存在する場合を考慮に入れなければならないか？ -> そのような画面設計を避けるか...
             //新サイズ計算
-            var newHeight = oldHeight + contentHeight - elementsHeightSum - 5;
+            var newHeight = oldHeight + contentHeight - elementsHeightSum;
 
             if (!this.isFixedHeight && _.round(newHeight) != _.round(oldHeight)) {
                 this.grid.options.height += (_.round(newHeight) - _.round(oldHeight));
@@ -2215,10 +2266,9 @@ export default {
             //rowData更新
             grid.updateRow({ rowIndx: ui.rowIndx, newRow: ui.column.binder });
         },
-        moveNextCell: function(grid, ui) {
+        moveNextCell: function(grid, ui, reverse) {
             //次のセルへ移動
-            grid.getCell({ rowIndx: ui.rowIndx, colIndx: ui.colIndx })
-                .trigger($.Event("keydown", {keyCode: 9, which: 9}));
+            (grid.getEditCell().$editor || grid.getCell({ rowIndx: ui.rowIndx, colIndx: ui.colIndx })).trigger($.Event("keydown", {keyCode: 9, which: 9, shiftKey: reverse}));
         },
         getHeaderContextMenu: function(event, ui) {
             var vue = this;
@@ -2487,7 +2537,7 @@ export default {
     }
     /* 入力可能セル */
     .pq-grid-cell.cell-editable {
-        //background-color: white;
+        /* background-color: white; */
     }
 
     textarea.pq-cell-editor {
@@ -2565,7 +2615,7 @@ export default {
     .pq-summary-outer *:not(.tooltip):not(.arrow):not(.tooltip-inner) {
         font-weight: bold;
         color: black;
-        background-color: gold !important;
+        background-color: lightpink !important;
     }
 
     /* ツールバーボタン */

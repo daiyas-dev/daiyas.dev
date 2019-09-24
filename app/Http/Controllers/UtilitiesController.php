@@ -85,7 +85,7 @@ class UtilitiesController extends Controller
     {
         $kbn = $request->kbn;
 
-        $CourseList = collect(DB::table('courses')->where('kbn', $kbn)->get())
+        $CourseList = collect(DB::table('courses')->where('kbn', 'like', $kbn??'%')->get())
             ->map(function ($course) {
                 $vm = (object) $course;
 
@@ -99,6 +99,26 @@ class UtilitiesController extends Controller
             ->values();
 
         return response()->json($CourseList);
+    }
+
+    /**
+     * GetProductList
+     */
+    public function GetProductList($request)
+    {
+        $isOthersGrouping = $request->isOthersGrouping;
+
+        $ProductList = collect(DB::table('products')->get())
+            ->filter(function ($p) use ($isOthersGrouping) {
+                return !$isOthersGrouping || !$p->isOthers;
+            })
+            ->concat($isOthersGrouping
+                ? [(object) ['id' => 9999, 'productCd' => '9999', 'productNm' => 'その他']]
+                : []
+            )
+            ->values();
+
+        return response()->json($ProductList);
     }
 
     /**

@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
 
-class DAI0101Controller extends Controller
+class DAI01020Controller extends Controller
 {
 
     /**

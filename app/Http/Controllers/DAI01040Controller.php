@@ -6,51 +6,46 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
 
-class DAI0102Controller extends Controller
+class DAI01040Controller extends Controller
 {
-
-    /**
-     * GetViewModel
-     */
-    public function GenerateViewModel()
-    {
-        //TODO: dummy ViewModel
-        $vm = json_decode('
-            {
-            }
-        ');
-
-        return $vm;
-    }
-
-    /**
-     * GetViewModel
-     */
-    public function GetViewModel()
-    {
-        return response()->json($this->GenerateViewModel());
-    }
-
     /**
      * Search
      */
     public function Search($vm)
     {
+        $ProductList = collect(DB::table('products')->get())
+            ->filter(function ($p) {
+                return !$p->isOthers;
+            })
+            ->concat([(object) ['id' => 9999, 'productCd' => '9999', 'productNm' => 'その他']])
+            ->values();
+
         //TODO: dummy DataList
         $faker = \Faker\Factory::create('ja_JP');
         $DataList = Arr::collapse(
-            collect(range(1, 3))
-                ->map(function($k) use($faker) {
-                    $vms = collect(range(1, $faker->numberBetween(1, 3)))
-                        ->map(function($j) use ($k, $faker) {
+            collect(range(1, $faker->numberBetween(5, 7)))
+                ->map(function($k) use($faker, $ProductList) {
+                    $vms = collect(range(1, 2))
+                        ->map(function($j) use ($k, $faker, $ProductList) {
                             $vm = (object) [];
-                            $vm->UID = $faker->uuid;
-                            $vm->MajorNo = sprintf('%02d', $k);
-                            $vm->MinorNo = sprintf('%02d', $k) . sprintf('%02d', $j);
-                            $vm->Volume = $faker->numberBetween(1, 100);
-                            $vm->Unit = $faker->numberBetween(1, 4);
-                            $vm->UPrice1000 = $faker->randomFloat(2, 100, 1000);
-                            $vm->Memo = $faker->realText;
+                            $vm->CustomerIndex = $k;
+                            $vm->CustomerCd = sprintf('%03d', $k);
+                            $vm->CustomerInfo = sprintf('%03d', $k) . '得意先' . $k . ' 現金';
+                            $vm->Payment = $j == 1 ? '現金': '売掛';
+
+                            //TODO: その他まとめ有りの商品リスト
+                            $vm->Orders = collect($ProductList)
+                                ->map(function ($p) use ($k, $j, $faker) {
+                                    $Order = (object)[];
+
+                                    $Order->ProductCd = $p->productCd;
+                                    $quantity = $faker->numberBetween(0, 1);
+                                    $Order->Quantity = $quantity == 0 ? 0 : $faker->numberBetween(1, 3);
+                                    $Order->Price = $Order->Quantity * 420;
+
+                                    return $Order;
+                                })
+                                ->keyBy('ProductCd');
 
                             return $vm;
                         })

@@ -170,10 +170,6 @@ body {
     padding-bottom: 0px;
 }
 
-.pq-grid .btn:focus {
-    box-shadow: unset;
-}
-
 /* ツールチップ */
 .tooltip {
     z-index: 3001;  /* bootstrap及びjQueryUIのデフォルトより上位に */

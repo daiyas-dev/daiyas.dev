@@ -1,5 +1,5 @@
 <template>
-    <header>
+    <header class="TopMenu">
         <nav class="navbar navbar-expand navbar-dark bg-dark w-100 pt-0 pb-0">
             <div id="system-name" class="navbar-brand p-0">
                 <label class="sysname badge-primary m-0 pl-1 pr-1" style="cursor: pointer;" @click="goHome">{{systemName}}</label>
@@ -178,16 +178,13 @@ export default {
                         if (list && list.length) {
                             //取得結果を基にメニュー用配列の生成
                             var menus = [];
-                            list.forEach(function(v) {
-                                var menu = {
-                                    functionId: v.FunctionId,
-                                    programId: v.ProgramId.trim(),
-                                    title: v.Title.trim(),
-                                    target: v.ProgramId.trim() == "" ? "#" : null,
-                                    route:  v.ProgramId.trim() != "" ? ("/" + v.FunctionId + "/" + v.ProgramId.trim()) : null,
-                                };
+                            list.forEach(function(menu) {
+                                menu.target = menu.target
+                                    || (menu.programId && menu.programId.trim() == "" ? "#" : null);
+                                menu.route = menu.route
+                                    || (menu.programId && menu.programId.trim() != "" ? ("/" + menu.functionId + "/" + menu.programId.trim()) : null);
 
-                                var parent = menus.filter(m => m.functionId == menu.functionId && m.programId == "");
+                                var parent = menus.filter(m => m.functionId == menu.functionId && !m.programId);
                                 if (parent.length > 0) {
                                     parent[0].submenus = parent[0].submenus || [];
                                     parent[0].submenus.push(menu);

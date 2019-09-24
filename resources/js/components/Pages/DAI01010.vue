@@ -96,10 +96,9 @@
             </div>
         </div>
         <PqGridWrapper
-            id="DAI0101Grid1"
-            ref="DAI0101Grid1"
-            dataUrl="/DAI0101/Search"
-            classes="mt-2 ml-3 mr-3"
+            id="DAI01010Grid1"
+            ref="DAI01010Grid1"
+            dataUrl="/DAI01010/Search"
             :query=this.viewModel
             :SearchOnCreate=true
             :SearchOnActivate=true
@@ -114,7 +113,7 @@
 </template>
 
 <style>
-#DAI0101Grid1 .pq-group-toggle-none {
+#DAI01010Grid1 .pq-group-toggle-none {
     display: none !important;
 }
 label{
@@ -130,7 +129,7 @@ import VueSelect from "@vcs/VueSelect.vue";
 
 export default {
     mixins: [PageBaseMixin],
-    name: "DAI0101",
+    name: "DAI01010",
     components: {
         "VueSelect": VueSelect,
         "PopupSelect": PopupSelect,
@@ -150,7 +149,7 @@ export default {
                 CourseStart: null,
                 CourseEnd: null,
             },
-            DAI0101Grid1: null,
+            DAI01010Grid1: null,
             //UnitList: [],
             MajorList: [],
             BusyoList: [],
@@ -333,16 +332,16 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "検索", id: "DAI0101Grid1_Search", disabled: false, shortcut: "F5",
+                { visible: "true", value: "検索", id: "DAI01010Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
                         var params = $.extend(true, {}, vue.viewModel);
 
                         //配送日を"YYYYMMDD"形式に編集
                         params.HaisoDate = params.HaisoDate ? params.HaisoDate.replace(/\//g, "") : null;
-                        vue.DAI0101Grid1.searchData(params);
+                        vue.DAI01010Grid1.searchData(params);
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI0102Grid1_Printout", disabled: false, shortcut: "F6",
+                { visible: "true", value: "印刷", id: "DAI01020Grid1_Printout", disabled: false, shortcut: "F6",
                     onClick: function () {
                     }
                 }
@@ -525,7 +524,7 @@ export default {
             var vue = this;
             var canSave = grid.isChanged();
 
-            $("footer").find("#DAI0101Grid1_Save").prop("disabled", !canSave);
+            $("footer").find("#DAI01010Grid1_Save").prop("disabled", !canSave);
         },
         onAddRowFunc: function(grid, rowData) {
             var newRow = {

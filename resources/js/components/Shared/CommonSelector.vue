@@ -10,7 +10,7 @@
             :SearchOnActivate=true
             :options=this.grid1Options
             :showContextMenu=false
-            :onSearchAfterFunc=this.onSearchAfterFunc
+            :onAfterSearchFunc=this.onAfterSearchFunc
             :onCompleteFunc=this.onCompleteFunc
         />
     </form>
@@ -373,7 +373,7 @@ export default {
         },
         resize: function(size) {
         },
-        onSearchAfterFunc: function (vue, grid, res) {
+        onAfterSearchFunc: function (vue, grid, res) {
             var row = res[0];
 
             //コード及び名称以外の取得情報のカラム追加

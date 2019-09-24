@@ -1,0 +1,7 @@
+id,productCd,productNm,isOthers
+1,010,エース,false
+2,020,きらら,false
+3,030,ミール,false
+4,040,スマート,false
+90,900,あああ,true
+100,1000,いいい,true

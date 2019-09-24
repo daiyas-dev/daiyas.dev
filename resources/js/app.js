@@ -88,7 +88,7 @@ const VueApp = new Vue({
         },
         adjustContentHeight: function() {
             $(".body-content").height(
-                $("#vue-app").height() - _.sum($("header, footer").map((i, el) => $(el).height())) - 16
+                $("#vue-app").height() - _.sum($("header, footer").map((i, el) => $(el).outerHeight(true)))
             );
         },
         setWindowSize: _.debounce(function () {

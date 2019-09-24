@@ -18,7 +18,7 @@
         <!-- header -->
         <app-header ref="AppHeader"></app-header>
         <!-- main -->
-        <div class="container body-content ml-0 mt-0 mr-0 mb-3 p-0" style="max-width: none;">
+        <div class="container body-content m-0 p-0" style="max-width: none;">
             <transition name="fade" mode="out-in">
                 <!-- keyによるkeep-alive切替 -->
                 <keep-alive :max=50>
