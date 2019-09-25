@@ -968,9 +968,13 @@ export default {
                 //console.log("grid click");
             },
             cellClick: function (event, ui) {
-                if (ui.$td.has(":checkbox").length) {
-                    ui.$td.find(":checkbox")[0].click();
-                }
+                //TODO: checkbox toggle by cell click
+                // var current = event.currentTarget;
+                // var original = event.originalEvent.target;
+                // var cb = ui.$td.has(":checkbox");
+                // if (cb.length) {
+                //     cb[0].click();
+                // }
             },
             cellSave: function (event, ui) {
                 if (ui.newVal != ui.oldVal) {

@@ -234,20 +234,24 @@ export default {
                     },
                     {
                         title: "確認",
-                        dataIndx: "Check", type: "checkbox",
+                        dataIndx: "Checked", type: "checkbox",
                         width: 50, maxWidth: 50, minWidth: 50,
-                        cbId: "chk", align: "center",
+                        align: "center",
+                        cbId: "CheckState",
                         editable: false,
                         render: ui => {
-                            console.log("check rendered");
+                            if (ui.rowData.summaryRow) {
+                                //合計行では非表示
+                                return "";
+                            }
                         },
                     },
                     {
                         title: "チェック状態",
-                        dataIndx: "chk",
+                        dataIndx: "CheckState",
                         dataType: "bool",
                         cb: { header: false },
-                        hidden: true,
+                        hidden: false,
                         editable: true,
                     },
                 ],
@@ -354,6 +358,10 @@ export default {
                                     title: "掛売上", dataIndx: "QuantitySummary", dataType: "integer",
                                     width: 65, maxWidth: 100, minWidth: 65,
                                     editable: false, format: "#,##0",
+                                        render: ui => {
+                                            // zero to blank
+                                            return ui.rowData[ui.dataIndx] || "";
+                                        },
                                 },
                             ],
                         });
@@ -367,6 +375,10 @@ export default {
                                         title: "個数", dataIndx: "RecordQuantity" + r.productCd, dataType: "integer",
                                         width: 50, maxWidth: 100, minWidth: 50,
                                         editable: true,
+                                        render: ui => {
+                                            // zero to blank
+                                            return ui.rowData[ui.dataIndx] || "";
+                                        },
                                     },
                                 ],
                             };
@@ -423,9 +435,13 @@ export default {
             //mergeCellsの設定
             grid.options.mergeCells = res.filter((r, i) => !(i % 2))
                 .map((r, i) => {
+                    var checkedCol = grid.options.colModel.filter(c => c.dataIndx == "Checked")[0];
+                    var checkStateCol = grid.options.colModel.filter(c => c.dataIndx == "CheckState")[0];
                     return [
                         { r1: i * 2, c1: 0, rc: 2, cc: 1 },
                         { r1: i * 2, c1: 1, rc: 2, cc: 1 },
+                        { r1: i * 2, c1: checkedCol.leftPos, rc: 2, cc: 1 },
+                        { r1: i * 2, c1: checkStateCol.leftPos, rc: 2, cc: 1 },
                     ];
                 })
                 .flat();
