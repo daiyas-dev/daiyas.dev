@@ -38,7 +38,7 @@ export default {
         params: Object,
         list: Array,
         func: Function,
-        changed: Function,
+        onChangedFunc: Function,
         withCode: Boolean,
     },
     watch: {
@@ -47,6 +47,9 @@ export default {
             handler: function(newVal) {
                 if (!this.hasNull && newVal.length && !_.find(newVal, { code: this.vmodel[this.bind]})) {
                     this.vmodel[this.bind] = newVal[0].code;
+                    if (this.onChangedFunc) {
+                        this.onChangedFunc(newVal[0].code, newVal);
+                    }
                 }
             }
         },
@@ -83,9 +86,11 @@ export default {
         accountChanged: function() {
         },
         onChanged: function (event) {
+            var vue = this;
             //変更時関数が指定されていれば呼出
-            if (this.changed) {
-                this.changed(event);
+            if (vue.onChangedFunc) {
+                var code = $(event.target).val();
+                vue.onChangedFunc(code, vue.entities);
             }
 
             return false;
@@ -125,6 +130,7 @@ export default {
                         return {
                             code: code,
                             name: text,
+                            info: v,
                         };
                     });
 

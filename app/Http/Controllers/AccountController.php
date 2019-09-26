@@ -27,13 +27,61 @@ class AccountController extends Controller
     }
 
     /**
+     * Overrides Illuminate\Foundation\Auth\AuthenticatesUsers username().
+     * Get the login username to be used by the controller.
+     *
+     * @return string
+     */
+    public function username()
+    {
+        return 'ユーザーＩＤ';
+    }
+    public function password()
+    {
+        return 'パスワード';
+    }
+
+    /**
+     * Overrides Illuminate\Foundation\Auth\AuthenticatesUsers validateLogin().
+     * Validate the user login request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return void
+     *
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    protected function validateLogin(Request $request)
+    {
+        $request->validate([
+            'userid' => 'required|string',
+            'password' => 'required|string',
+        ]);
+    }
+
+    /**
+     * Overrides Illuminate\Foundation\Auth\AuthenticatesUsers credentials().
+     * Get the needed authorization credentials from the request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    protected function credentials(Request $request)
+    {
+        //return $request->only('userid', 'password');
+        return [
+            $this->username() => $request->userid,
+            $this->password() => $request->password
+        ];
+    }
+
+    /**
      * Login
      */
     public function Login($request)
     {
         //ID/PW
         $vm = (object) $request->all();
-        $UserId = $vm->name;
+        $UserId = $vm->userid;
         $Password = $vm->password;
         $CheckOnly = $vm->CheckOnly;
 
@@ -41,10 +89,10 @@ class AccountController extends Controller
             if (Auth::check()) {
                 return [
                     'IsLogin' => true,
-                    'UserId' => Auth::user()->name,
-                    'UserNm' => Auth::user()->name,
-                    'Password' => '',
-                    'BmnCd' => "bmn01",
+                    'UserId' => Auth::user()->担当者ＣＤ,
+                    'UserNm' => Auth::user()->担当者名,
+                    'BushoCd' => Auth::user()->部署->部署CD,
+                    'BushoNm' => Auth::user()->部署->部署名,
                     'CsrfToken' => $request->session()->token(),
                 ];
             } else {
@@ -57,10 +105,10 @@ class AccountController extends Controller
 
                 return [
                     'IsLogin' => true,
-                    'UserId' => $UserId,
-                    'UserNm' => $UserId,
-                    'Password' => '',
-                    'BmnCd' => 'bmn01',
+                    'UserId' => Auth::user()->担当者ＣＤ,
+                    'UserNm' => Auth::user()->担当者名,
+                    'BushoCd' => Auth::user()->部署->部署CD,
+                    'BushoNm' => Auth::user()->部署->部署名,
                     'CsrfToken' => $request->session()->token(),
                 ];
             } catch (Exception $e) {

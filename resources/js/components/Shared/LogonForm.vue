@@ -12,7 +12,7 @@
                         </div>
                         <div :class="'form-group' + (errors.uid ? ' has-error' : '')">
                             <label class="control-label" for="uid">ユーザID(<u>U</u>)</label>
-                            <input class="form-control" type="text" id="uid" accesskey="u" v-model="user.uid" @keyup.enter="logOn">
+                            <input class="form-control" type="text" id="uid" accesskey="u" v-model="user.uid" @keyup.enter="logOn" autocomplete="off">
                             <label class="control-label">{{errors.uid}}</label>
                         </div>
                         <div :class="'form-group' + (errors.pwd ? ' has-error' : '')">
@@ -98,11 +98,12 @@ export default {
                 uid: "",
                 unm: "",
                 pwd: "",
-                bmn: "",
+                bushoCd: "",
+                bushoNm: "",
                 plant: "",
             },
             prevUid: "",
-            prevBmn: "",
+            prevBushoCd: "",
             prevPlant: "",
             errors: {
                 uid: null,
@@ -164,7 +165,7 @@ export default {
             axios.post(
                 loginUrl,
                 {
-                    name: this.user.uid,
+                    userid: this.user.uid,
                     password: this.user.pwd,
                     CheckOnly: this.isCheckOnly
                 }
@@ -181,7 +182,8 @@ export default {
                         this.user.uid = res.UserId;
                         this.user.unm = res.UserNm;
                         this.user.pwd = res.Password;
-                        this.user.bmn = res.BmnCd;
+                        this.user.bushoCd = res.BushoCd;
+                        this.user.bushoNm = res.BushoNm;
                         this.errors.uid = null;
                         this.errors.pwd = null;
 
@@ -227,7 +229,7 @@ export default {
 
                         this.prevUid = res.UserId;
                         this.prevPlant = res.Password;
-                        this.prevBmn = res.BmnCd;
+                        this.prevBushoCd = res.BushoCd;
 
                         //他コンポーネントに通知
                         this.$root.$emit("logOn", this.$data);
@@ -264,7 +266,8 @@ export default {
             this.user.uid = "";
             this.user.unm = "";
             this.user.pwd = "";
-            this.user.bmn = "";
+            this.user.bushoCd = "";
+            this.user.bushoNm = "";
             this.user.plant = "";
             this.isLogOn = false;
             this.message = "";

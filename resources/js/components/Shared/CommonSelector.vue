@@ -118,7 +118,8 @@ export default {
                             name: "SearchStrings",
 						    type: "textbox",
                             attr: 'name="SearchStrings" tabIndex=-1 searchIndex=0 prevString="" autocomplete="off"',
-                            label: "<i class='fa fa-search'></i>" + "検索 ",
+                            cls: "SearchStrings",
+                            label: "<i class='fa fa-search ml-1'></i>" + "検索 ",
 						    listener: {
                                 "keyup": function(event) {
                                     var grid = this;
@@ -377,17 +378,14 @@ export default {
             var row = res[0];
 
             //コード及び名称以外の取得情報のカラム追加
-            var addMap = _.omit(row, ["Cd", "CdNm", "InitialValue"]);
-            _.forOwn(addMap, (v, k) => {
-                var cfg = vue.$parent.showColumns.filter(c => c.dataIndx == k)[0];
-
-                //colModel追加
+            vue.$parent.showColumns.forEach(c => {
+                //colModelに追加
                 var col = {
-                    title:  cfg ? cfg.title : k,
-                    hidden: !cfg,
-                    dataIndx: k,
-                    dataType: _.isInteger(v) ? "integer" : _.isNumber(v) ? "float" : "string",
-                    width: cfg ? cfg.width : 0,
+                    title:  c ? c.title : k,
+                    hidden: !!c.hidden,
+                    dataIndx: c.dataIndx,
+                    dataType: c.dataType || "string",
+                    width: c.width || 0,
                 };
 
                 var prev = grid.options.colModel.filter(c => c.dataIndx == col.dataIndx)[0];
@@ -397,7 +395,8 @@ export default {
                     grid.options.colModel.push(col);
                 }
             });
-            if (Object.keys(addMap).length > 0) {
+
+            if (vue.$parent.showColumns.length > 0) {
                 //colModel更新
                 grid.refreshCM();
             }

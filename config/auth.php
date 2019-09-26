@@ -67,8 +67,8 @@ return [
 
     'providers' => [
         'users' => [
-            'driver' => 'eloquent',
-            'model' => App\Models\User::class,
+            'driver' => 'daiyas',
+            'model' => App\Models\担当者マスタ::class,
         ],
 
         // 'users' => [

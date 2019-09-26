@@ -146,6 +146,7 @@ export default {
             locale: "ja",
             loading: true,
             editable: false,
+            fillHandle: "",
             scrollModel: { autoFit: true, theme: true },
             showTitle: false,
             resizable: false,
@@ -223,16 +224,19 @@ export default {
                     }
 
                     //nested objectからデータ取得出来るよう拡張
-                    if (!ui.rowData[ui.dataIndx]) {
+                    if (ui.dataIndx.includes(".") || !ui.rowData[ui.dataIndx]) {
                         try {
-                            var val = eval("ui.rowData." + ui.dataIndx)
+                            var val = _.result(ui.rowData, ui.dataIndx);
 
                             if (val) {
                                 ui.cellData = val;
                                 ui.formatVal = ["integer", "float"].includes(ui.column.dataType) && ui.column.format
                                     ? pq.formatNumber(val, ui.column.format) : (val + "");
-                                ui.rowData[ui.dataIndx] = val;
-                                ui.column.editor.getData = ui => _.result(ui.rowData, ui.dataIndx, val);
+                                //ui.rowData[ui.dataIndx] = val;
+
+                                if (ui.column.editor) {
+                                    ui.column.editor.getData = ui => _.result(ui.rowData, ui.dataIndx);
+                                }
 
                                 if (ui.column.cautionNegative && $.isNumeric(val)) {
                                     if (val < 0) {
@@ -577,158 +581,7 @@ export default {
                 on: true,
             },
             toolbar: {
-                items: [
-                    {
-                        name: "insertRow",
-                        type: "button",
-                        label: "<i class='fa fa-plus-square'></i>" + "行追加",
-                        listener: function (grid) {
-                            grid = (grid instanceof $.Event) ? this : grid;
-                            var row = grid.SelectRow().getSelection();
-
-                            var range;
-                            try {
-                                range = grid.Selection().getSelection();
-
-                                if (!!grid.pdata && !grid.pdata[range[0].rowIndx]) {
-                                    range = [];
-                                }
-                            } catch(e) {
-                                range = [];
-                            }
-
-                            var idx = row.length > 0 ? (row[0].rowIndx + 1) : range.length > 0 ? (range[0].rowIndx + 1) : (!!grid.pdata && grid.pdata.length > 0) ? grid.pdata.length : 0 ;
-
-                            //grouping時の補正
-                            var isGrouping = !!grid.options.groupModel && grid.options.groupModel.on;
-                            if (isGrouping) {
-                                idx = idx == 0 ? 0 : (idx - grid.pdata.slice(0, idx).filter(v => v.pq_level == 0).length);
-                            }
-
-                            var newRow = grid.options.vue.onBeforeAddRowFunc ? grid.options.vue.onBeforeAddRowFunc(grid, range[0]) : {};
-
-                            var ridx = grid.addRow({ rowData: newRow, rowIndx: idx, checkEditable: false, history: !isGrouping });
-
-                            //パラメータ指定行追加関数の実行
-                            grid.options.vue.onAddRowFunc ? grid.options.vue.onAddRowFunc(grid, grid.pdata[ridx], ridx) : null;
-
-                            grid.refreshView();
-                        },
-                        attr: "insertRow",
-                        options: { disabled: false },
-                    },
-                    {
-                        name: "deleteRow",
-                        type: "button",
-                        label: "<i class='fa fa-minus-square'></i>" + "行削除",
-                        listener: function (grid) {
-                            grid = (grid instanceof $.Event) ? this : grid;
-
-                            grid.quitEditMode();
-
-                            var row = grid.SelectRow().getSelection();
-
-                            var range;
-                            try {
-                                range = grid.Selection().getSelection();
-                            } catch(e) {
-                                range = [];
-                            }
-
-                            var idx = row.length > 0 ? row[0].rowIndx : range.length > 0 ? range[0].rowIndx : 0;
-                            var pq_ri = grid.pdata[idx].pq_ri;
-
-                            //dataModel.dataでのindexを取得
-                            idx = _.findIndex(grid.options.dataModel.data, {pq_ri: pq_ri});
-
-                            var isGrouping = !!grid.options.groupModel && grid.options.groupModel.on;
-
-                            //パラメータ指定行削除関数の実行
-                            grid.options.vue.onDeleteRowFunc ? grid.options.vue.onDeleteRowFunc(grid, idx) : grid.deleteRow({ rowIndx: idx, history: !isGrouping });
-
-                            grid.refreshView();
-                        },
-                        attr: "deleteRow",
-                        options: { disabled: true },
-                    },
-                    { type: "separator" },
-                    {
-                        name: "cutRange",
-                        type: "button",
-                        label: "<i class='fa fa-cut'></i>" + "切り取り",
-                        listener: function (grid) {
-                            grid = (grid instanceof $.Event) ? this : grid;
-                            grid.cut();
-                        },
-                        attr: "cutRange",
-                        options: { disabled: true },
-                    },
-                    {
-                        name: "copyRange",
-                        type: "button",
-                        label: "<i class='fa fa-copy'></i>" + "コピー",
-                        listener: function (grid) {
-                            grid = (grid instanceof $.Event) ? this : grid;
-                            grid.copy();
-                        },
-                        attr: "copyRange",
-                        options: { disabled: true },
-                    },
-                    {
-                        name: "pasteRange",
-                        type: "button",
-                        label: "<i class='fa fa-paste'></i>" + "貼り付け",
-                        listener: function (grid) {
-                            grid = (grid instanceof $.Event) ? this : grid;
-                            grid.paste();
-                        },
-                        attr: "pasteRange",
-                        options: { disabled: true },
-                    },
-                    { type: "separator" },
-                    {
-                        name: "clear",
-                        type: "button",
-                        label: "<i class='fa fa-ban'></i>" + "クリア",
-                        listener: function (grid) {
-                            grid = (grid instanceof $.Event) ? this : grid;
-
-                            var range = grid.Range({r1: 0, rc: grid.pdata.length });
-                            range.clear();
-                        },
-                        attr: "clear",
-                        options: { disabled: false },
-                    },
-                    { type: "separator" },
-                    {
-                        name: "undo",
-                        type: "button",
-                        label: "<i class='fa fa-undo'></i>" + "元に戻す",
-                        listener: function (grid) {
-                            grid = (grid instanceof $.Event) ? this : grid;
-                            grid.history({ method: "undo" });
-                        },
-                        attr: "undo",
-                        options: { disabled: true },
-                    },
-                    {
-                        name: "redo",
-                        type: "button",
-                        label: "<i class='fa fa-repeat'></i>" + "やり直し",  /* FontAwesome5 => fa-redo */
-                        listener: function (grid) {
-                            grid = (grid instanceof $.Event) ? this : grid;
-                            grid.history({ method: "redo" });
-                        },
-                        attr: "redo",
-                        options: { disabled: true },
-                    },
-                    {
-                        name: "CountConstraintViolation",
-                        type: "<br><label class='CountConstraintViolation'></label>",
-                        attr: "CountConstraintViolation",
-                        style: "display: none;",
-                    },
-                ]
+                items: []
             },
             history: function (event, ui) {
                 //console.log("grid history");
@@ -2099,12 +1952,11 @@ export default {
 
                 vue.$root.$emit("addMessage", "例外発生:" + (exObj.message || exObj.statusText));
 
-                //例外画面へ遷移
-                //PqGridが内部タイマーを用いて300ms後の遅延レンダリングを行っており、即遷移するとエラーとなる為
-                //遷移処理では若干のマージンを取り、400ms待機実行させる(本来はPqGridがtriggerもしくはイベントを準備すべき)
-                setTimeout(function() {
-                    vue.$router.push({ path: "/SIP/Exceptions", query: exObj });
-                }, 400);
+                //例外表示
+                $.dialogErr({ errObj: exObj });
+                // setTimeout(function() {
+                //     vue.$router.push({ path: "/SIP/Exceptions", query: exObj });
+                // }, 400);
             }
         },
         onSaveErrors: function(grid, errObj) {
@@ -2250,12 +2102,11 @@ export default {
             //メッセージリストに追加
             vue.$root.$emit("addMessage", "例外発生:" + (exObj.message || exObj.statusText));
 
-            //例外画面へ遷移
-            //PqGridが内部タイマーを用いて300ms後の遅延レンダリングを行っており、即遷移するとエラーとなる為
-            //遷移処理では若干のマージンを取り、400ms待機実行させる(本来はPqGridがtriggerもしくはイベントを準備すべき)
-            setTimeout(function() {
-                vue.$router.push({ path: "/SIP/Exceptions", query: exObj });
-            }, 400);
+            //例外表示
+            $.dialogErr({ errObj: exObj });
+            // setTimeout(function() {
+            //     vue.$router.push({ path: "/SIP/Exceptions", query: exObj });
+            // }, 400);
         },
         setCellState: function(grid, ui) {
             var $cell = grid.getEditCell().$cell;

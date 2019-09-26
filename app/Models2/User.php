@@ -2,30 +2,38 @@
 
 namespace App\Models2;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-/**
- * @property integer $id
- * @property string $name
- * @property string $email
- * @property string $email_verified_at
- * @property string $password
- * @property string $remember_token
- * @property string $created_at
- * @property string $updated_at
- */
-class User extends Model
+class User extends Authenticatable
 {
-    /**
-     * The "type" of the auto-incrementing ID.
-     * 
-     * @var string
-     */
-    protected $keyType = 'integer';
+    use Notifiable;
 
     /**
+     * The attributes that are mass assignable.
+     *
      * @var array
      */
-    protected $fillable = ['name', 'email', 'email_verified_at', 'password', 'remember_token', 'created_at', 'updated_at'];
+    protected $fillable = [
+        'name', 'email', 'password',
+    ];
 
+    /**
+     * The attributes that should be hidden for arrays.
+     *
+     * @var array
+     */
+    protected $hidden = [
+        'password', 'remember_token',
+    ];
+
+    /**
+     * The attributes that should be cast to native types.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+    ];
 }

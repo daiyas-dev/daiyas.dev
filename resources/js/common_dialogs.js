@@ -19,8 +19,8 @@ var dialogCustom = function(options) {
         reuse: false,
         //TODO: edge/IEのレンダリングエンジンが弱すぎるので
         //TODO: ダイアログ内のPQGridの再描画が間に合わないのでエフェクト停止
-        show: { effect: "clip", duration: 250},
-        hide: { effect: "clip", duration: 250},
+        show: { effect: "clip", duration: 150},
+        hide: { effect: "clip", duration: 150},
         create: function() {
             var op = $(this).dialog("option");
 
@@ -75,12 +75,21 @@ var dialogCustom = function(options) {
 
     //errObj
     if (options && options.errObj) {
-        opt.title += options.errObj.message;
-        opt.contents = opt.contents || "";
-        opt.contents += _.uniq(Object.values(options.errObj.errors).flat().filter(v => v))
-            .map(v => v.replace(/\"/g, "&quot;").replace(/\'/g, "&#39;"))
-            .join("<br/>")
-            .replace(/\r\n/g, "<br>").replace(/(^\"|\"$)/g, "");
+        if (options.errObj.onException) {
+            opt.title += "例外発生";
+            opt.contents = opt.contents || "";
+            opt.contents += options.errObj.statusText;
+
+            //stacktraceを含むため、consoleに出力
+            console.log(options.errObj.errors);
+        } else {
+            opt.title += options.errObj.message;
+            opt.contents = opt.contents || "";
+            opt.contents += _.uniq(Object.values(options.errObj.errors).flat().filter(v => v))
+                .map(v => v.replace(/\"/g, "&quot;").replace(/\'/g, "&#39;"))
+                .join("<br/>")
+                .replace(/\r\n/g, "<br>").replace(/(^\"|\"$)/g, "");
+        }
     }
 
     //call jQuery dialog

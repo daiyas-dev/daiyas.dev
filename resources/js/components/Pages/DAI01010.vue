@@ -6,10 +6,10 @@
             </div>
             <div class="col-md-3">
                 <VueSelect
-                    id="Busyo"
+                    id="Busho"
                     :vmodel=viewModel
-                    bind="Busyo"
-                    uri="/Utilities/GetBusyoList"
+                    bind="Busho"
+                    uri="/Utilities/GetBushoList"
                     codeName="Code"
                     textName="Name"
                     :withCode=true
@@ -143,7 +143,7 @@ export default {
         return $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "検索条件：持出数一覧表",
             viewModel: {
-                Busyo: null,
+                Busho: null,
                 HaisoDate: null,
                 CourseKbn: null,
                 CourseStart: null,
@@ -152,7 +152,7 @@ export default {
             DAI01010Grid1: null,
             //UnitList: [],
             MajorList: [],
-            BusyoList: [],
+            BushoList: [],
             CourseList: [],
            //MinorList: [],
             HaisoDate: null,
@@ -234,7 +234,7 @@ export default {
                 colModel: [
                     { title: "集計キー", dataType: "string",  dataIndx: "GroupKey" , editable: false, hidden: true, },
                     { title: "識別番号", dataType: "string",  dataIndx: "UID" , editable: false, hidden: true, key: true,},
-                    { title: "部署", dataType: "string",  dataIndx: "Busyo" , editable: false, hidden: true, },
+                    { title: "部署", dataType: "string",  dataIndx: "Busho" , editable: false, hidden: true, },
                     { title: "配送日付", dataType: "string",  dataIndx: "HaisoDate" , editable: false, hidden: true, },
                     { title: "コースCD", dataType: "integer",  dataIndx: "CourseCd" , width: 50, maxWidth: 80, minWidth: 50, editable: true, hidden: true, },
                     {
@@ -364,7 +364,7 @@ export default {
                 { Cd: "02", CdNm: "大分類02"},
                 { Cd: "03", CdNm: "大分類03"},
             ];
-            vue.BusyoList = [
+            vue.BushoList = [
                 { Cd: "01", CdNm: "部署01"},
                 { Cd: "02", CdNm: "部署02"},
                 { Cd: "03", CdNm: "部署03"},
@@ -394,7 +394,7 @@ export default {
                     //大分類リストの取得
                     axios.post("/Utilities/GetMajorList"),
                     //部署リストの取得
-                    axios.post("/Utilities/GetBusyoList"),
+                    axios.post("/Utilities/GetBushoList"),
                     //コースリストの取得
                     axios.post("/Utilities/GetCourseList"),
                 //     //小分類リストの取得
@@ -404,7 +404,7 @@ export default {
                 axios.spread((responseUnit, responseMajor, responseMinor) => {
                     //var resUnit = responseUnit.data;
                     var resMajor = responseMajor.data;
-                    var resBusyo = responseBusyo.data;
+                    var resBusho = responseBusho.data;
                     var resCourse = responseCourse.data;
                     //var resMinor = responseMinor.data;
 
@@ -501,7 +501,7 @@ export default {
                     //取得した結果を設定
                     //vue.UnitList = resUnit;
                     vue.MajorList = resMajor;
-                    vue.BusyoList = resBusyo;
+                    vue.BushoList = resBusho;
                     vue.CourseList = resCourse;
                     //vue.MinorList = resMinor;
 

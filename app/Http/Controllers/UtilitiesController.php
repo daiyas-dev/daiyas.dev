@@ -4,12 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Events\PrivateEvent;
 use App\Events\PublicEvent;
+use App\Models\コースマスタ;
+use App\Models\商品マスタ;
+use App\Models\担当者マスタ;
+use App\Models\部署マスタ;
 use Illuminate\Http\Request;
 use DB;
 
 class UtilitiesController extends Controller
 {
-
+    //TODO: 各種テーブルに変更
     /**
      * GetCodeList
      */
@@ -35,20 +39,31 @@ class UtilitiesController extends Controller
         return response()->json($CodeList);
     }
 
-
     /**
      * GetUserList
      */
     public function GetUserList($request)
     {
-        $UserList = collect(DB::table('users')->get())
-            ->map(function($user) {
+        $busho = $request->busho;
+
+        $query = 担当者マスタ::with(['部署'])
+            ->when(
+                $busho,
+                function ($q) use ($busho) {
+                    return $q->where('所属部署ＣＤ', $busho);
+                }
+            )
+            ->where('ユーザーＩＤ', '>', 0);
+
+        $UserList = collect($query->get())
+            ->map(function ($user) {
                 $vm = (object) $user;
 
-                $vm->Cd = $user->id;
-                $vm->CdNm = $user->name;
-                $vm->GroupId = 'Group' . $user->id;
-                $vm->GroupName = 'グループ' . $user->id;
+                $vm->Cd = $user->ユーザーＩＤ;
+                $vm->CdNm = $user->担当者名;
+
+                //password
+                $vm->パスワード = '';
 
                 return $vm;
             })
@@ -58,24 +73,32 @@ class UtilitiesController extends Controller
     }
 
     /**
-     * GetBusyoList
+     * GetBushoList
      */
-    public function GetBusyoList($request)
+    public function GetBushoList($request)
     {
-        //TODO: dummy BusyoList
-        $faker = \Faker\Factory::create('ja_JP');
-        $BusyoList = collect(range(1, 10))
-                ->map(function($k) use($faker) {
-                    $vm = (object) [];
-                    $vm->Code = sprintf('%03d', $k);
-                    $vm->Name = '部署' . sprintf('%03d', $k);
+        $group = $request->group;
 
-                    return $vm;
-                })
-                ->prepend((object) ['Code' => '101', 'Name' => '本社配送'])
-                ->values();
+        $query = 部署マスタ::query()
+            ->when(
+                $group,
+                function($q) use($group) {
+                    return $q->where('部署グループ', $group);
+                });
 
-        return response()->json($BusyoList);
+        $BushoList = collect($query->get())
+            ->map(function ($busho) {
+                $vm = (object) $busho;
+
+                $vm->Cd = $busho->部署CD;
+                $vm->CdNm = $busho->部署名;
+                $vm->Group = $busho->部署グループ;
+
+                return $vm;
+            })
+            ->values();
+
+        return response()->json($BushoList);
     }
 
     /**
@@ -83,16 +106,29 @@ class UtilitiesController extends Controller
      */
     public function GetCourseList($request)
     {
-        $kbn = $request->kbn;
+        $bushoCd = $request->bushoCd;
+        $courseKbn = $request->courseKbn;
 
-        $CourseList = collect(DB::table('courses')->where('kbn', 'like', $kbn??'%')->get())
+        $query = コースマスタ::query()
+            ->when(
+                $bushoCd,
+                function ($q) use ($bushoCd) {
+                    return $q->where('部署ＣＤ', $bushoCd);
+                }
+            )
+            ->when(
+                $courseKbn,
+                function ($q) use ($courseKbn) {
+                    return $q->where('コース区分', $courseKbn);
+                }
+            );
+
+        $CourseList = collect($query->get())
             ->map(function ($course) {
                 $vm = (object) $course;
 
-                $vm->Cd = $course->cd;
-                $vm->CdNm = $course->name;
-                $vm->Kbn = $course->kbn;
-                $vm->user_id = $course->user_id;
+                $vm->Cd = $course->コースＣＤ;
+                $vm->CdNm = $course->コース名;
 
                 return $vm;
             })
@@ -102,19 +138,49 @@ class UtilitiesController extends Controller
     }
 
     /**
-     * GetProductList
+     * GetAvailableProductList
      */
-    public function GetProductList($request)
+    public function GetAvailableProductList($request)
     {
+        $group = $request->group;
         $isOthersGrouping = $request->isOthersGrouping;
 
-        $ProductList = collect(DB::table('products')->get())
-            ->filter(function ($p) use ($isOthersGrouping) {
-                return !$isOthersGrouping || !$p->isOthers;
+        /*
+select
+	*
+from
+(
+	select
+		RANK() over(partition by 商品区分, ｸﾞﾙｰﾌﾟ区分 order by 商品区分, 商品ＣＤ) as rnk,
+		*
+	from 商品マスタ
+	where	表示ＦＬＧ != 1
+	and (商品区分 in (1,2,3) or ｸﾞﾙｰﾌﾟ区分=8)
+) r
+where rnk=1
+order by
+	商品ＣＤ
+
+        */
+
+        $query = 商品マスタ::query()
+            ->select('*', DB::raw('RANK() over(partition by 商品区分, ｸﾞﾙｰﾌﾟ区分 order by 商品区分, 商品ＣＤ) as rnk'))
+            ->where('表示ＦＬＧ', '!=', 1)
+            ->where(
+                function ($q) {
+                    return $q->whereIn('商品区分', [1, 2, 3])->orWhere('ｸﾞﾙｰﾌﾟ区分', 8);
+                }
+            )
+            ->orderBy('商品ＣＤ');
+
+        $ProductList = collect($query->get())
+            ->filter(function ($product) {
+                return $product->rnk == 1;
             })
-            ->concat($isOthersGrouping
-                ? [(object) ['id' => 9999, 'productCd' => '9999', 'productNm' => 'その他']]
-                : []
+            ->concat(
+                $isOthersGrouping
+                    ? [(object) ['商品ＣＤ' => '9999', '商品名' => 'その他']]
+                    : []
             )
             ->values();
 

@@ -31,18 +31,50 @@ class GenerateAllModels extends Command
      */
     public function handle()
     {
-        //$tables = DB::select('SHOW TABLES');  //MySql
-        $tables = DB::connection()->getDoctrineSchemaManager()->listTableNames();   //Postgress
+        //$driver = DB::connection()->getDriverName();  //Variable Any Database?
+        $driver = config('database.connections.' . config('database.default') . '.driver');
+        $database = config('database.connections.' . config('database.default') . '.database');
 
-        $databaseName = config('database.connections.' . config('database.default') . '.database');
-        $tables = collect($tables);
-        //$tables = $tables->pluck('Tables_in_' . $databaseName);   //MySql Only
-        $tables = $tables->map(function($t) {
-            if (mb_strlen($t, 'utf-8') < strlen($t)) {
-                $t = str_replace('"', '', $t);
-            }
-            return $t;
-        });
+        $tables = [];
+        switch ($driver) {
+            case 'sqlsrv':
+                // $tables = DB::select("select name from sysobjects where xtype='U' and name not like '%_20%'");
+                // $tables = collect($tables)->map(function($t) {
+                //     $name = $t->name;
+                //     if (mb_strlen($name, 'utf-8') < strlen($name)) {
+                //         $name = str_replace('"', '', $name);
+                //     }
+                //     return $name;
+                // });
+                $tables = DB::connection()->getDoctrineSchemaManager()->listTableNames();
+                $tables = collect($tables)
+                    ->filter(function ($t) {
+                        return strpos($t, '_20') === false;
+                    })
+                    ->map(function ($t) {
+                        if (mb_strlen($t, 'utf-8') < strlen($t)) {
+                            $t = str_replace('"', '', $t);
+                        }
+                        return $t;
+                    });
+                break;
+            case 'mysql':
+                $tables = DB::select('SHOW TABLES');
+                $tables = collect($tables);
+                $tables = $tables->pluck('Tables_in_' . $database);
+                break;
+            case 'pgsql':
+                $tables = DB::connection()->getDoctrineSchemaManager()->listTableNames();
+                $tables = collect($tables)->map(function ($t) {
+                    if (mb_strlen($t, 'utf-8') < strlen($t)) {
+                        $t = str_replace('"', '', $t);
+                    }
+                    return $t;
+                });
+                break;
+            default:
+
+        }
 
         foreach ($tables as $table) {
             if ($table === 'migrations') continue;

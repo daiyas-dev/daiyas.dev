@@ -4,14 +4,14 @@
             <div class="col-md-12">
                 <div class="row m-1">
                     <div class="col-md-1">
-                        <label for="Busyo">部署</label>
+                        <label for="Busho">部署</label>
                     </div>
                     <div class="col-md-11 form-inline">
                         <VueSelect
-                            id="Busyo"
+                            id="Busho"
                             :vmodel=viewModel
-                            bind="Busyo"
-                            dataUrl="/Utilities/GetBusyoList"
+                            bind="Busho"
+                            dataUrl="/Utilities/GetBushoList"
                             :hasNull=true
                             style="min-width: 200px;"
                         />
@@ -251,7 +251,7 @@ export default {
                 colModel: [
                     { title: "集計キー", dataType: "string",  dataIndx: "GroupKey" , editable: false, hidden: true, },
                     //{ title: "識別番号", dataType: "string",  dataIndx: "UID" , editable: false, hidden: true, key: true,},
-                    { title: "部署", dataType: "string",  dataIndx: "Busyo" , editable: false, hidden: true, },
+                    { title: "部署", dataType: "string",  dataIndx: "Busho" , editable: false, hidden: true, },
                     { title: "配送日付", dataType: "string",  dataIndx: "HaisoDate" , editable: false, hidden: true, },
                     { title: "得意先CD", dataType: "string",  dataIndx: "CustomerCd" , editable: false, hidden: true, },
                     { title: "担当者CD", dataType: "string",  dataIndx: "PersonnelCd" , editable: false, hidden: true, },

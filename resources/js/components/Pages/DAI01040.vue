@@ -6,14 +6,13 @@
             </div>
             <div class="col-md-3">
                 <VueSelect
-                    id="Busyo"
+                    id="Busho"
                     :vmodel=viewModel
-                    bind="Busyo"
-                    uri="/Utilities/GetBusyoList"
-                    codeName="Code"
-                    textName="Name"
+                    bind="BushoCd"
+                    uri="/Utilities/GetBushoList"
                     :withCode=true
                     style="width:200px"
+                    :onChangedFunc=onBushoChanged
                 />
             </div>
         </div>
@@ -44,6 +43,7 @@
                     :vmodel=viewModel
                     bind="CourseCd"
                     dataUrl="/Utilities/GetCourseList"
+                    :params='{ bushoCd: viewModel.BushoCd, courseKbn: 1 }'
                     title="コース一覧"
                     labelCd="コースCD"
                     labelCdNm="コース名"
@@ -71,6 +71,7 @@
                     title="担当者一覧"
                     labelCd="担当者ID"
                     labelCdNm="担当者名"
+                    :showColumns='[{ title: "部署名", dataIndx: "部署.部署名", dataType: "string", width: 200 }]'
                     :isShowName=true
                     :isModal=true
                     :editable=true
@@ -143,7 +144,8 @@ export default {
             ScreenTitle: "日時処理 > コース別注文入力",
             noViewModel: true,
             viewModel: {
-                Busyo: null,
+                BushoCd: null,
+                BushoInfo: null,
                 TargetDate: null,
                 CourseCd: null,
                 TantoCd: null,
@@ -251,7 +253,7 @@ export default {
                         dataIndx: "CheckState",
                         dataType: "bool",
                         cb: { header: false },
-                        hidden: false,
+                        hidden: true,
                         editable: true,
                     },
                 ],
@@ -285,7 +287,13 @@ export default {
             axios.all(
                 [
                     //商品リストの取得
-                    axios.post("/Utilities/GetProductList", { isOthersGrouping: true }),
+                    axios.post(
+                        "/Utilities/GetAvailableProductList",
+                        {
+                            group: vue.viewModel.BushoInfo ? vue.viewModel.BushoInfo["部署グループ"] : null,
+                            isOthersGrouping: true
+                        }
+                    ),
                  ]
             ).then(
                 axios.spread((responseProduct) => {
@@ -328,10 +336,10 @@ export default {
                     vue.grid1Options.colModel.filter(c => c.title == "注文")[0].colModel =
                         resProduct.map(r => {
                             return {
-                                title: r.productNm,
+                                title: r["商品名"],
                                 colModel: [
                                     {
-                                        title: "個数", dataIndx: "OrderQuantity" + r.productCd, dataType: "integer",
+                                        title: "個数", dataIndx: "OrderQuantity" + r["商品ＣＤ"], dataType: "integer",
                                         width: 40, maxWidth: 40, minWidth: 40,
                                         editable: true, format: "#,###",
                                         render: ui => {
@@ -340,7 +348,7 @@ export default {
                                         },
                                     },
                                     {
-                                        title: "金額", dataIndx: "OrderPrice" + r.productCd, dataType: "integer",
+                                        title: "金額", dataIndx: "OrderPrice" + r["商品ＣＤ"], dataType: "integer",
                                         width: 50, maxWidth: 100, minWidth: 50,
                                         editable: true, format: "#,##0",
                                         render: ui => {
@@ -369,10 +377,10 @@ export default {
                     vue.grid1Options.colModel.filter(c => c.title == "実績")[0].colModel =
                         resProduct.map(r => {
                             return {
-                                title: r.productNm,
+                                title: r["商品名"],
                                 colModel: [
                                     {
-                                        title: "個数", dataIndx: "RecordQuantity" + r.productCd, dataType: "integer",
+                                        title: "個数", dataIndx: "RecordQuantity" + r["商品ＣＤ"], dataType: "integer",
                                         width: 50, maxWidth: 100, minWidth: 50,
                                         editable: true,
                                         render: ui => {
@@ -390,10 +398,10 @@ export default {
                         var col2 = String.fromCharCode("D".charCodeAt() + i * 2 + 1);
                         var range1 = col1 + ":" + col1;
                         var range2 = col2 + ":" + col2;
-                        vue.grid1Options.summaryData[0].pq_fn["OrderQuantity" + r.productCd] = "SUMIF(C:C, '現金', " + range1 + ")";
-                        vue.grid1Options.summaryData[0].pq_fn["OrderPrice" + r.productCd] = "SUMIF(C:C, '現金', " + range2 + ")";
-                        vue.grid1Options.summaryData[1].pq_fn["OrderQuantity" + r.productCd] = "SUMIF(C:C, '売掛', " + range1 + ")";
-                        vue.grid1Options.summaryData[1].pq_fn["OrderPrice" + r.productCd] = "SUMIF(C:C, '売掛', " + range2 + ")";
+                        vue.grid1Options.summaryData[0].pq_fn["OrderQuantity" + r["商品ＣＤ"]] = "SUMIF(C:C, '現金', " + range1 + ")";
+                        vue.grid1Options.summaryData[0].pq_fn["OrderPrice" + r["商品ＣＤ"]] = "SUMIF(C:C, '現金', " + range2 + ")";
+                        vue.grid1Options.summaryData[1].pq_fn["OrderQuantity" + r["商品ＣＤ"]] = "SUMIF(C:C, '売掛', " + range1 + ")";
+                        vue.grid1Options.summaryData[1].pq_fn["OrderPrice" + r["商品ＣＤ"]] = "SUMIF(C:C, '売掛', " + range2 + ")";
                     });
 
                     var col = String.fromCharCode("D".charCodeAt() + resProduct.length * 2);
@@ -404,8 +412,8 @@ export default {
                     resProduct.forEach((r, i) => {
                         var col1 = String.fromCharCode("D".charCodeAt() + resProduct.length * 2 + 1 + i);
                         var range1 = col1 + ":" + col1;
-                        vue.grid1Options.summaryData[0].pq_fn["RecordQuantity" + r.productCd] = "SUMIF(C:C, '現金', " + range1 + ")";
-                        vue.grid1Options.summaryData[1].pq_fn["RecordQuantity" + r.productCd] = "SUMIF(C:C, '売掛', " + range1 + ")";
+                        vue.grid1Options.summaryData[0].pq_fn["RecordQuantity" + r["商品ＣＤ"]] = "SUMIF(C:C, '現金', " + range1 + ")";
+                        vue.grid1Options.summaryData[1].pq_fn["RecordQuantity" + r["商品ＣＤ"]] = "SUMIF(C:C, '売掛', " + range1 + ")";
                     });
 
                     //callback実行
@@ -426,8 +434,8 @@ export default {
         onAfterSearchFunc: function (vue, grid, res) {
             res = res.map(r => {
                 _.values(r.Orders).forEach(o => {
-                    r["OrderQuantity" + o.ProductCd] = o.Quantity;
-                    r["OrderPrice" + o.ProductCd] = o.Price;
+                    r["OrderQuantity" + o["商品ＣＤ"]] = o.Quantity;
+                    r["OrderPrice" + o["商品ＣＤ"]] = o.Price;
                 })
                 return r;
             });
@@ -447,6 +455,12 @@ export default {
                 .flat();
 
             return res;
+        },
+        onBushoChanged: function(code, entities) {
+            var vue = this;
+            var entity = entities.find(e => e.code == code);
+
+            vue.viewModel.BushoInfo = entity.info;
         },
     }
 }

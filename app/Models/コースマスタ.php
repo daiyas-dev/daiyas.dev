@@ -1,0 +1,31 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+/**
+ * @property int $部署ＣＤ
+ * @property int $コースＣＤ
+ * @property int $コース区分
+ * @property string $コース名
+ * @property int $担当者ＣＤ
+ * @property int $工場区分
+ * @property int $修正担当者ＣＤ
+ * @property string $修正日
+ */
+class コースマスタ extends Model
+{
+    /**
+     * The table associated with the model.
+     * 
+     * @var string
+     */
+    protected $table = 'コースマスタ';
+
+    /**
+     * @var array
+     */
+    protected $fillable = ['コース区分', 'コース名', '担当者ＣＤ', '工場区分', '修正担当者ＣＤ', '修正日'];
+
+}
