@@ -1,24 +1,24 @@
 <template>
     <div class="modal fade" id="loginDialog" tabindex="-1">
-        <div class="modal-dialog modal-sm">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title">xxxxxxxxシステム - ログオン</h4>
+                    <h4 class="modal-title">ログイン</h4>
                 </div>
                 <div class="modal-body">
                     <form>
-                        <div v-if="message" class="form-group has-error">
-                            <label class="control-label message">{{message}}</label>
+                        <div v-if="message" class="form-group mb-1 has-error">
+                            <label class="message" style="width: 250px; white-space: pre;">{{message}}</label>
                         </div>
                         <div :class="'form-group' + (errors.uid ? ' has-error' : '')">
-                            <label class="control-label" for="uid">ユーザID(<u>U</u>)</label>
+                            <label class="" for="uid">ユーザID</label>
                             <input class="form-control" type="text" id="uid" accesskey="u" v-model="user.uid" @keyup.enter="logOn" autocomplete="off">
-                            <label class="control-label">{{errors.uid}}</label>
+                            <label class="message">{{errors.uid}}</label>
                         </div>
                         <div :class="'form-group' + (errors.pwd ? ' has-error' : '')">
-                            <label class="control-label" for="pwd">パスワード(<u>P</u>)</label>
+                            <label class="" for="pwd">パスワード</label>
                             <input class="form-control" type="password" id="pwd" accesskey="p" placeholder="********" v-model="user.pwd" @keyup.enter="logOn">
-                            <label class="control-label">{{errors.pwd}}</label>
+                            <label class="message">{{errors.pwd}}</label>
                         </div>
                     </form>
                 </div>
@@ -81,6 +81,7 @@
 
     #loginDialog .has-error .message {
         height: auto;
+        color: red;
     }
 
 </style>
@@ -251,9 +252,12 @@ export default {
                 .catch(error => {
                     console.log(loginUrl + " Error!");
                     console.log(error);
+
                     this.show();
                     this.isLogOn = false;
-                    this.message = loginUrl + "で例外発生"
+                    this.message = error.response.status == 422
+                        ? "ユーザIDもしくは\r\nパスワードが違います"
+                        : "ログインに問題が生じています。\r\n管理者に連絡してください。";
 
                     //他コンポーネントに通知
                     this.$root.$emit("logOn", this.$data);

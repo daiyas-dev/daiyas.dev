@@ -17,7 +17,6 @@ class DaiyasUserProvider extends EloquentUserProvider
      */
     public function validateCredentials(Authenticatable $user, array $credentials)
     {
-
         return true;
     }
 }

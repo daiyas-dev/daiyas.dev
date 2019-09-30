@@ -59,7 +59,7 @@ class UtilitiesController extends Controller
             ->map(function ($user) {
                 $vm = (object) $user;
 
-                $vm->Cd = $user->ユーザーＩＤ;
+                $vm->Cd = trim($user->ユーザーＩＤ);
                 $vm->CdNm = $user->担当者名;
 
                 //password

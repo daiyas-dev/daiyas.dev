@@ -129,6 +129,7 @@ export default {
         showTextFunc: String,
         isPreload: Boolean,
         onBeforeFunc: Function,
+        isTrim: Boolean,
     },
     computed: {
         showText: function() {

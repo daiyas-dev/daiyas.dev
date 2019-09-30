@@ -66,7 +66,7 @@
                     id="User"
                     ref="PopupSelect_User"
                     :vmodel=viewModel
-                    bind="UserInfo"
+                    bind="TantoCd"
                     dataUrl="/Utilities/GetUserList"
                     title="担当者一覧"
                     labelCd="担当者ID"
@@ -79,6 +79,7 @@
                     :existsCheck=true
                     :inputWidth=100
                     :nameWidth=300
+                    :isTrim=true
                 />
             </div>
         </div>
@@ -86,7 +87,7 @@
             id="DAI01040Grid1"
             ref="DAI01040Grid1"
             dataUrl="/DAI01040/Search"
-            :query=this.viewModel
+            :query=this.searchParams
             :options=this.grid1Options
             :SearchOnCreate=true
             :SearchOnActivate=true
@@ -106,6 +107,21 @@
 }
 #DAI01040Grid1 .pq-grid-row.pq-striped {
     background-color: white !important;
+}
+#DAI01040Grid1 div.tk_info {
+    width: 100%;
+}
+#DAI01040Grid1 div.tk_credit div {
+    color: royalblue;
+}
+#DAI01040Grid1 div.tk_code {
+    width: 70%;
+}
+#DAI01040Grid1 div.tk_payment {
+    width: 30%;
+}
+#DAI01040Grid1 div.tk_name {
+    width: 100%;
 }
 
 /* 合計行 */
@@ -138,6 +154,14 @@ export default {
         vm: Object,
     },
     computed: {
+        searchParams: function() {
+            return {
+                BushoCd: this.viewModel.BushoCd,
+                TargetDate: moment(this.viewModel.TargetDate, "YYYY年MM月DD日").format("YYYY-MM-DD"),
+                CourseCd: this.viewModel.CourseCd,
+                TantoCd: this.viewModel.TantoCd,
+            };
+        }
     },
     data() {
         return $.extend(true, {}, PageBaseMixin.data(), {
@@ -200,7 +224,7 @@ export default {
                     [
                         "QuantitySummary",
                         function (rowData) {
-                            return _(rowData).pickBy((v, k) => k.startsWith("OrderPrice")).values().sum();
+                            return _(rowData).pickBy((v, k) => k.startsWith("OrderPrice")).map(v => v * 1).values().sum();
                         }
                     ],
                 ],
@@ -213,18 +237,27 @@ export default {
                     {
                         title: "得意先",
                         dataIndx: "CustomerInfo", dataType: "string",
-                        width: 150, maxWidth: 150, minWidth: 150,
+                        width: 150, maxWidth: 1000, minWidth: 150,
                         render: ui => {
                             if (ui.rowData.summaryRow) {
                                 ui.column.align = "center";
+                                return ui;
+                            } else {
+                                var el = $("<div>").addClass("tk_info").addClass(ui.rowData.得意先支払方法 == "売掛" ? "tk_credit" :"tk_cash")
+                                    .append($("<div>").addClass("d-flex")
+                                        .append($("<div>").addClass("tk_code text-left pl-2").text(ui.rowData.得意先ＣＤ))
+                                        .append($("<div>").addClass("tk_payment").text(ui.rowData.得意先支払方法))
+                                    )
+                                    .append($("<div>").addClass("tk_name text-left").text(ui.rowData.得意先名略称))
+                                    ;
+                                return { text: el[0].outerHTML };
                             }
-                            return ui;
                         }
                     },
                     {
                         title: "",
                         dataIndx: "Payment", dataType: "string", align: "center",
-                        width: 50, maxWidth: 50, minWidth: 50,
+                        width: 35, maxWidth: 35, minWidth: 35,
                     },
                     {
                         title: "注文",
@@ -237,7 +270,7 @@ export default {
                     {
                         title: "確認",
                         dataIndx: "Checked", type: "checkbox",
-                        width: 50, maxWidth: 50, minWidth: 50,
+                        width: 40, maxWidth: 40, minWidth: 40,
                         align: "center",
                         cbId: "CheckState",
                         editable: false,
@@ -265,11 +298,7 @@ export default {
             vue.footerButtons.push(
                 { visible: "true", value: "検索", id: "DAI01040Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
-                        var params = $.extend(true, {}, vue.viewModel);
-
-                        //配送日を"YYYYMMDD"形式に編集
-                        params.TargetDate = params.TargetDate ? params.TargetDate.replace(/\//g, "") : null;
-                        vue.DAI01040Grid1.searchData(params);
+                        vue.DAI01040Grid1.searchData(vue.searchParams);
                     }
                 },
                 { visible: "true", value: "印刷", id: "DAI01020Grid1_Printout", disabled: false, shortcut: "F6",
@@ -343,17 +372,21 @@ export default {
                                         width: 40, maxWidth: 40, minWidth: 40,
                                         editable: true, format: "#,###",
                                         render: ui => {
-                                            // zero to blank
-                                            return ui.rowData[ui.dataIndx] || "";
+                                            if (!ui.rowData[ui.dataIndx]) {
+                                                return { text: "" };
+                                            }
+                                            return ui;
                                         },
                                     },
                                     {
                                         title: "金額", dataIndx: "OrderPrice" + r["商品ＣＤ"], dataType: "integer",
-                                        width: 50, maxWidth: 100, minWidth: 50,
+                                        width: 75, maxWidth: 75, minWidth: 75,
                                         editable: true, format: "#,##0",
                                         render: ui => {
-                                            // zero to blank
-                                            return ui.rowData[ui.dataIndx] || "";
+                                            if (!ui.rowData[ui.dataIndx]) {
+                                                return { text: "" };
+                                            }
+                                            return ui;
                                         },
                                     },
                                 ],
@@ -364,7 +397,7 @@ export default {
                             colModel: [
                                 {
                                     title: "掛売上", dataIndx: "QuantitySummary", dataType: "integer",
-                                    width: 65, maxWidth: 100, minWidth: 65,
+                                    width: 75, maxWidth: 75, minWidth: 75,
                                     editable: false, format: "#,##0",
                                         render: ui => {
                                             // zero to blank
@@ -381,7 +414,7 @@ export default {
                                 colModel: [
                                     {
                                         title: "個数", dataIndx: "RecordQuantity" + r["商品ＣＤ"], dataType: "integer",
-                                        width: 50, maxWidth: 100, minWidth: 50,
+                                        width: 75, maxWidth: 75, minWidth: 75,
                                         editable: true,
                                         render: ui => {
                                             // zero to blank
@@ -432,13 +465,31 @@ export default {
             });
         },
         onAfterSearchFunc: function (vue, grid, res) {
-            res = res.map(r => {
-                _.values(r.Orders).forEach(o => {
-                    r["OrderQuantity" + o["商品ＣＤ"]] = o.Quantity;
-                    r["OrderPrice" + o["商品ＣＤ"]] = o.Price;
-                })
-                return r;
-            });
+            var merged = _.values(_.groupBy(res, v => v.得意先ＣＤ + v.支払方法))
+                .map((r, i) => {
+                    var ret = _.reduce(
+                            r,
+                            (acc, v, j) => {
+                                acc.得意先ＣＤ = v.得意先ＣＤ;
+                                acc.得意先名略称 = v.得意先名略称;
+                                acc.売掛現金区分 = v.売掛現金区分;
+                                acc.得意先支払方法 = v.得意先支払方法;
+                                acc.支払方法 = v.支払方法;
+                                acc.CustomerIndex = acc.CustomerIndex || parseInt(i / 2 + 1);
+                                acc.CustomerInfo = acc.CustomerInfo || (v.得意先ＣＤ + "\t" + v.支払方法 + "\r\n" + v.得意先名略称);
+                                acc.Payment = acc.Payment || v.支払方法;
+                                acc["OrderQuantity" + v.商品ＣＤ] = v.個数 * 1;
+                                acc["OrderPrice" + v.商品ＣＤ] = v.金額 * 1;
+                                acc["RecordQuantity" + v.商品ＣＤ] = v.個数 * 1;    //TODO: 実績個数はどこから？
+
+                                return acc;
+                            },
+                            {}
+                    );
+
+                    return ret;
+                });
+            console.log(merged);
 
             //mergeCellsの設定
             grid.options.mergeCells = res.filter((r, i) => !(i % 2))
@@ -454,7 +505,7 @@ export default {
                 })
                 .flat();
 
-            return res;
+            return merged;
         },
         onBushoChanged: function(code, entities) {
             var vue = this;

@@ -16,7 +16,7 @@ class コーステーブル extends Model
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = 'コーステーブル';
@@ -25,5 +25,13 @@ class コーステーブル extends Model
      * @var array
      */
     protected $fillable = ['得意先ＣＤ', '修正担当者ＣＤ', '修正日'];
+
+    /**
+     * Join 得意先マスタ on 得意先ＣＤ
+     */
+    public function 得意先()
+    {
+        return $this->belongsTo('App\Models\得意先マスタ', '得意先ＣＤ', '得意先ＣＤ');
+    }
 
 }
