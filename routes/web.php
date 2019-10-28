@@ -14,6 +14,7 @@ Route::get('/', function () {
     return view('app');
 });
 
+//Route::post('/Account/Login', "AccountController@Login");
 Route::any('/{conroller_name}/{function_name}', "ApiController@Invoke");
 
 Auth::routes();

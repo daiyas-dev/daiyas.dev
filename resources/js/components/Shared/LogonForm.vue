@@ -12,12 +12,12 @@
                         </div>
                         <div :class="'form-group' + (errors.uid ? ' has-error' : '')">
                             <label class="" for="uid">ユーザID</label>
-                            <input class="form-control" type="text" id="uid" accesskey="u" v-model="user.uid" @keyup.enter="logOn" autocomplete="off">
+                            <input class="form-control" type="text" id="uid" inputmode="latin" v-model="user.uid" @keyup.enter="logOn" autocomplete="off">
                             <label class="message">{{errors.uid}}</label>
                         </div>
                         <div :class="'form-group' + (errors.pwd ? ' has-error' : '')">
                             <label class="" for="pwd">パスワード</label>
-                            <input class="form-control" type="password" id="pwd" accesskey="p" placeholder="********" v-model="user.pwd" @keyup.enter="logOn">
+                            <input class="form-control" type="password" id="pwd" inputmode="latin" placeholder="********" v-model="user.pwd" @keyup.enter="logOn">
                             <label class="message">{{errors.pwd}}</label>
                         </div>
                     </form>
@@ -180,6 +180,7 @@ export default {
                         //ログイン成功
                         console.log("Login succeed")
                         this.isLogOn = true;
+                        this.user.isLogOn = true;
                         this.user.uid = res.UserId;
                         this.user.unm = res.UserNm;
                         this.user.pwd = res.Password;
@@ -187,6 +188,8 @@ export default {
                         this.user.bushoNm = res.BushoNm;
                         this.errors.uid = null;
                         this.errors.pwd = null;
+
+                        window.loginInfo = this.user;
 
                         //CSRF Tokenの更新
                         Laravel.csrfToken = res.CsrfToken;
@@ -247,6 +250,7 @@ export default {
                             this.errors.uid = res.errors.UserId || null;
                             this.errors.pwd = res.errors.Password || null;
                         }
+                        window.loginInfo = { isLogOn: false };
                     }
                 })
                 .catch(error => {
@@ -255,9 +259,12 @@ export default {
 
                     this.show();
                     this.isLogOn = false;
-                    this.message = error.response.status == 422
+                    this.message = !!error.response && error.response.status == 422
                         ? "ユーザIDもしくは\r\nパスワードが違います"
-                        : "ログインに問題が生じています。\r\n管理者に連絡してください。";
+                        : "ログインに問題が生じています。\r\n管理者に連絡してください。"
+                            + (!!error.message ? ("\r\n" + error.message) : "");
+
+                    window.loginInfo = { isLogOn: false };
 
                     //他コンポーネントに通知
                     this.$root.$emit("logOn", this.$data);

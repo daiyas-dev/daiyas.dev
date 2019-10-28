@@ -5,101 +5,166 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
+use Illuminate\Support\Carbon;
 
 class DAI01010Controller extends Controller
 {
-
-    /**
-     * GetViewModel
-     */
-    public function GenerateViewModel()
-    {
-        //TODO: dummy ViewModel
-        $vm = json_decode('
-            {
-            }
-        ');
-
-        return $vm;
-    }
-
-    /**
-     * GetViewModel
-     */
-    public function GetViewModel()
-    {
-        return response()->json($this->GenerateViewModel());
-    }
-
     /**
      * Search
      */
     public function Search($vm)
     {
-        //TODO: dummy DataList
-        $faker = \Faker\Factory::create('ja_JP');
-        $DataList = Arr::collapse(
-            collect(range(1, 3))
-                ->map(function($k) use($faker) {
-                    $vms = collect(range(1, $faker->numberBetween(1, 3)))
-                        ->map(function($j) use ($k, $faker) {
-                            $vm = (object) [];
-                            $vm->UID = $faker->uuid;
-                            $vm->MajorNo = sprintf('%02d', $k);
-                            $vm->MinorNo = sprintf('%02d', $k) . sprintf('%02d', $j);
-                            $vm->Volume = $faker->numberBetween(1, 100);
-                            $vm->Unit = $faker->numberBetween(1, 4);
-                            $vm->UPrice1000 = $faker->randomFloat(2, 100, 1000);
-                            $vm->Memo = $faker->realText;
+        $BushoCd = $vm->BushoCd;
+        $CourseKbn = $vm->CourseKbn;
+        $CourseStart = $vm->CourseStart ?? 0;
+        $CourseEnd = $vm->CourseEnd ?? 9999;
+        $DeliveryDate = $vm->DeliveryDate;
+        //$DeliveryDate = Carbon::createFromFormat('Y年m月d日', $vm->DeliveryDate)->format('Ymd') ;
 
-                            return $vm;
-                        })
-                        ->values();
+        //$WhereBusho = $BushoCd ? ("COU.部署ＣＤ = " . $BushoCd . " AND MOB_YOSOKU.部署CD IS NOT NULL AND") : "";
+        $WhereBusho = $BushoCd ? ("COU.部署ＣＤ = " . $BushoCd . " AND") : "";
+        $WhereCourse = $CourseKbn ? ("AND COU.コース区分 = " . $CourseKbn) : "";
 
-                    return $vms;
-                })
-                ->values()
-        );
 
-        // $DataList = [];
+        $sql = "
+WITH WITH_注文データ AS (
+SELECT * FROM 注文データ
+		WHERE 注文区分 = 0
+		    AND 部署CD = $BushoCd
+		    AND CONVERT(varchar, 注文日付, 112) = $DeliveryDate
+		    AND CONVERT(varchar, 配送日, 112)   = $DeliveryDate
+)
+,WITH_モバイル_予測入力 AS (
+SELECT * FROM モバイル_予測入力
+		WHERE 部署CD = $BushoCd
+		    AND CONVERT(varchar, 日付, 112) = $DeliveryDate
+)
 
-        return response()->json($DataList);
-    }
+,WITH_注文予測 AS (
 
-    /**
-     * Save
-     */
-    public function Save($request)
-    {
-        $lists = $request->all();
-        $AddList = $lists['AddList'];
-        $UpdateList = $lists['UpdateList'];
-        $DeleteList = $lists['DeleteList'];
+----- ①：注文予測両方 -----
+SELECT CHU.部署ＣＤ
+	    ,CHU.得意先ＣＤ
+	    ,MOB.商品ＣＤ  AS MOB商品ＣＤ
+	    ,ISNULL(MOB.見込数, 0) AS 見込数
+	    ,CHU.商品CD  AS CHU商品ＣＤ
+	    ,ISNULL(現金個数 + 掛売個数,0) AS 注文数
+    FROM WITH_注文データ CHU ,WITH_モバイル_予測入力 MOB
+    WHERE CHU.部署ＣＤ   = MOB.部署ＣＤ
+    AND CHU.得意先ＣＤ = MOB.得意先ＣＤ
+    AND CHU.商品ＣＤ   = MOB.商品ＣＤ
 
-        //TODO: validation
-        validator()->validate($lists, [
-            'AddList.*.StartYMD' => 'required',
-            'AddList.*.InfoTitle' => 'required',
-            'AddList.*.InfoMemo' => 'required',
-            'UpdateList.*.StartYMD' => 'required',
-            'UpdateList.*.InfoTitle' => 'required',
-            'UpdateList.*.InfoMemo' => 'required',
-        ]);
+UNION
 
-        //TODO: dummy DataList
-        $kow = now();
-        $DataList = collect(range(1, 100))
-            ->map(function($k) use ($kow) {
-                $vm = $this->GenerateViewModel();
-                $vm->InfoTitle = $vm->InfoTitle . sprintf('%03d', $k);
-                $vm->InfoMemo = $vm->InfoMemo . sprintf('%03d', $k);
-                $vm->StartDate = (clone $kow)->addDays($k)->format('Y/m/d');
+----- ②：注文データのみ -----
+SELECT CHU.部署ＣＤ
+	    ,CHU.得意先ＣＤ
+	    ,NULL AS MOB商品ＣＤ
+	    ,NULL AS 見込数
+	    ,CHU.商品CD AS CHU商品ＣＤ
+	    ,ISNULL(現金個数 + 掛売個数,0) AS 注文数
+    FROM WITH_注文データ CHU
+    WHERE
+    NOT EXISTS
+	(SELECT 'X'
+	    FROM WITH_モバイル_予測入力 MOB
+	    WHERE CHU.部署ＣＤ   = MOB.部署ＣＤ
+	    AND CHU.得意先ＣＤ = MOB.得意先ＣＤ
+	    AND CHU.商品ＣＤ   = MOB.商品ＣＤ
+	)
 
-                return $vm;
-            })
-            ->values();
+UNION
 
-        session(["DataList"=>$DataList]);
+----- ③：予測のみ -----
+SELECT MOB.部署ＣＤ
+	    ,MOB.得意先ＣＤ
+	    ,MOB.商品ＣＤ AS MOB商品ＣＤ
+	    ,ISNULL(MOB.見込数, 0) AS 見込数
+	    ,NULL AS CHU商品ＣＤ
+	    ,0 AS 注文数
+    FROM WITH_モバイル_予測入力 MOB
+    WHERE
+    NOT EXISTS
+	(SELECT 'X'
+	    FROM WITH_注文データ CHU
+	    WHERE CHU.部署ＣＤ   = MOB.部署ＣＤ
+	    AND CHU.得意先ＣＤ = MOB.得意先ＣＤ
+	    AND CHU.商品ＣＤ   = MOB.商品ＣＤ)
+	)
+,WITH_コース別持出数 AS (
+SELECT
+    CT.部署ＣＤ
+    , BUSYO.部署名
+    , COU.コースＣＤ
+    , COU.コース名
+    , TOKUISAKI.得意先ＣＤ
+    , TOKUISAKI.得意先名
+    , ISNULL(MOB_YOSOKU.MOB商品ＣＤ, MOB_YOSOKU.CHU商品ＣＤ) as 商品ＣＤ
+    , SHOHIN.商品略称 as 商品名
+    , ISNULL(MOB_YOSOKU.見込数, 0) as 見込数
+    , ISNULL(MOB_YOSOKU.CHU商品ＣＤ, 0) as CHU商品ＣＤ
+    , ISNULL(MOB_YOSOKU.注文数, 0) as CHU注文数
+    , ISNULL(HIBETSUP.製造パターン,TOKUISAKI.既定製造パターン) AS 既定製造パターン
+
+    , case when ISNULL(HIBETSUP.製造パターン,TOKUISAKI.既定製造パターン) > 0
+    then ISNULL(SEIZOHIN.副食ＣＤ, SHOHIN.副食ＣＤ)
+    else SHOHIN.副食ＣＤ
+    end as 副食ＣＤ
+
+    , case when ISNULL(HIBETSUP.製造パターン,TOKUISAKI.既定製造パターン) > 0
+    then ISNULL(SEIZOHIN.主食ＣＤ, SHOHIN.主食ＣＤ)
+    else SHOHIN.主食ＣＤ
+    end as 主食ＣＤ
+
+FROM
+    コースマスタ COU
+    LEFT OUTER JOIN コーステーブル CT ON
+    COU.コースＣＤ = CT.コースＣＤ AND
+    COU.部署ＣＤ = CT.部署ＣＤ
+
+    LEFT JOIN 部署マスタ BUSYO  ON
+    COU.部署ＣＤ = BUSYO.部署CD
+
+    LEFT JOIN 得意先マスタ TOKUISAKI ON
+    CT.得意先ＣＤ = TOKUISAKI.得意先ＣＤ
+
+    LEFT JOIN 日別得意先製造パターン HIBETSUP on
+        HIBETSUP.部署ＣＤ = CT.部署ＣＤ
+    AND CONVERT(varchar, HIBETSUP.製造日, 112) = $DeliveryDate
+    AND HIBETSUP.コースＣＤ = CT.コースＣＤ
+    AND HIBETSUP.得意先ＣＤ = CT.得意先ＣＤ
+
+    LEFT JOIN WITH_注文予測 MOB_YOSOKU ON
+        CT.得意先ＣＤ = MOB_YOSOKU.得意先ＣＤ
+    AND CT.部署ＣＤ   = MOB_YOSOKU.部署ＣＤ
+
+    LEFT JOIN 商品マスタ SHOHIN ON
+    ISNULL(MOB_YOSOKU.CHU商品ＣＤ, MOB_YOSOKU.MOB商品ＣＤ)  = SHOHIN.商品ＣＤ
+
+    LEFT JOIN 製造品マスタ SEIZOHIN ON
+    ISNULL(MOB_YOSOKU.CHU商品ＣＤ, MOB_YOSOKU.MOB商品ＣＤ) = SEIZOHIN.商品ＣＤ
+    AND SEIZOHIN.既定製造パターン = ISNULL(HIBETSUP.製造パターン,TOKUISAKI.既定製造パターン)
+
+WHERE
+    $WhereBusho
+    COU.コースＣＤ >= $CourseStart
+    AND COU.コースＣＤ <= $CourseEnd
+    $WhereCourse
+)
+
+SELECT
+	WITH_コース別持出数.*
+	,s1.商品略称 主食略称
+	,s2.商品略称 副食略称
+from WITH_コース別持出数
+    LEFT JOIN 商品マスタ s1 ON s1.商品ＣＤ = WITH_コース別持出数.主食ＣＤ
+    LEFT JOIN 商品マスタ s2 ON s2.商品ＣＤ = WITH_コース別持出数.副食ＣＤ
+ORDER BY
+    WITH_コース別持出数.部署ＣＤ
+    , WITH_コース別持出数.コースＣＤ
+        ";
+
+        $DataList = DB::select($sql);
 
         return response()->json($DataList);
     }

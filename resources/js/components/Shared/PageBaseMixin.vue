@@ -5,6 +5,8 @@
 /** 以下、VueComponent設定 **/
 import VueDataList from "@vcs/DataList.vue";
 import VueSelect from "@vcs/VueSelect.vue";
+import VueSelectBusho from "@vcs/VueSelectBusho.vue";
+import PopupSelect from "@vcs/PopupSelect.vue";
 import PqGridWrapper from "@vcs/PqGridWrapper.vue";
 import DatePickerWrapper from "@vcs/DatePickerWrapper.vue";
 
@@ -52,6 +54,8 @@ export default {
     components: {
         "VueDataList": VueDataList,
         "VueSelect": VueSelect,
+        "VueSelectBusho": VueSelectBusho,
+        "PopupSelect": PopupSelect,
         "PqGridWrapper": PqGridWrapper,
         "DatePickerWrapper": DatePickerWrapper,
     },
@@ -159,6 +163,9 @@ export default {
         },
         setFooterButtons: function() {
             this.$root.$emit("setFooterButtons", this.footerButtons);
+        },
+        getLoginInfo: function() {
+            return window.loginInfo || { isLogOn: false };
         },
     }
 }

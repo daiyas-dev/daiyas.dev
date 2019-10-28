@@ -79,17 +79,19 @@ var dialogCustom = function(options) {
             opt.title += "例外発生";
             opt.contents = opt.contents || "";
             opt.contents += options.errObj.statusText;
-
-            //stacktraceを含むため、consoleに出力
-            console.log(options.errObj.errors);
         } else {
             opt.title += options.errObj.message;
             opt.contents = opt.contents || "";
-            opt.contents += _.uniq(Object.values(options.errObj.errors).flat().filter(v => v))
-                .map(v => v.replace(/\"/g, "&quot;").replace(/\'/g, "&#39;"))
-                .join("<br/>")
-                .replace(/\r\n/g, "<br>").replace(/(^\"|\"$)/g, "");
+            if (options.errObj.errors) {
+                opt.contents += _.uniq(Object.values(options.errObj.errors).flat().filter(v => v))
+                    .map(v => v.replace(/\"/g, "&quot;").replace(/\'/g, "&#39;"))
+                    .join("<br/>")
+                    .replace(/\r\n/g, "<br>").replace(/(^\"|\"$)/g, "");
+            }
         }
+
+        //stacktraceを含むため、consoleに出力
+        console.log(options.errObj.errors || options.errObj.trace);
     }
 
     //call jQuery dialog

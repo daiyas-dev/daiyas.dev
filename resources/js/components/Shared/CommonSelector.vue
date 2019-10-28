@@ -89,6 +89,7 @@ export default {
                 scrollModel: { autoFit: true, timeout: 0 },
                 rowHtHead: 31,
                 rowHt: 35,
+                numberCell: { width: 55, minWidth: 55 },
                 columnTemplate: {
                     editable: false,
                     sortable: true,
@@ -385,14 +386,20 @@ export default {
                     hidden: !!c.hidden,
                     dataIndx: c.dataIndx,
                     dataType: c.dataType || "string",
-                    width: c.width || 0,
+                    width: c.width || null,
+                    maxWidth: c.maxWidth || null,
+                    minWidth: c.minWidth || null,
                 };
 
                 var prev = grid.options.colModel.filter(c => c.dataIndx == col.dataIndx)[0];
                 if (!!prev) {
                     grid.options.colModel[grid.options.colModel.indexOf(prev)] = col;
                 } else {
-                    grid.options.colModel.push(col);
+                    if (c.colIndx == undefined) {
+                        grid.options.colModel.push(col);
+                    } else {
+                        grid.options.colModel.splice(c.colIndx, 0, col);
+                    }
                 }
             });
 

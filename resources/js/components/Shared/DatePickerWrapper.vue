@@ -29,11 +29,13 @@
     width: auto;
 }
 .DatePickerWrapper .target-input {
+    width: 140px;
+    padding-left: 6px;
     border-top-right-radius: 0px;
     border-bottom-right-radius: 0px;
 }
 .DatePickerWrapper .calendar-button {
-    width: 45px !important;
+    width: 40px !important;
     border-left-width: 0px !important;
     display: flex;
     justify-content: center;
@@ -72,7 +74,7 @@ export default {
         config: Object,
         format: String,
         dayViewHeaderFormat: String,
-        onChangeFunc: Function,
+        onChangedFunc: Function,
         onCalendarHiddenFunc: Function,
     },
     components: {
@@ -123,8 +125,8 @@ export default {
             }
         },
         dateChanged: function(event) {
-            if (this.onChangeFunc) {
-                this.onChangeFunc(event);
+            if (this.onChangedFunc) {
+                this.onChangedFunc(event);
             }
         },
     }

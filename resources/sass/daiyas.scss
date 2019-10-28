@@ -1,6 +1,8 @@
 /*!
  * daiyas.scss
  */
+@import '~bootstrap/scss/bootstrap';
+
 /** bootstrap及びjQueryUIのfontをoverride **/
 body {
     font-family: "Yu Gothic", YuGothic;
@@ -256,7 +258,20 @@ label {
 }
 
 /** bootstrap override **/
-@import '~bootstrap/scss/bootstrap';
+.form-group{
+    margin-bottom: 0px !important;
+}
+label{
+    margin-bottom: 0px !important;
+}
+.form-control{
+    max-height: 30px;
+}
+.btn{
+    height: 28px;
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+}
 input:focus, .form-control:focus {
     border-color: deepskyblue;
     background-color: aqua;
@@ -287,4 +302,8 @@ form > .row {
 .row div[class^="col-"] {
     padding-left: 0px;
     padding-right: 0px;
+}
+
+svg[style*="NaNpx"] {
+    display: none;
 }

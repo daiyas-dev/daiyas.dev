@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="stylesheet" href="{{ mix('/css/app.css') }}" />
-    <link rel="stylesheet" href="{{ mix('/css/daiyas.css') }}" />
+    <link rel="stylesheet" href="{{ mix('css/app.css') }}" />
+    <link rel="stylesheet" href="{{ mix('css/daiyas.css') }}" />
     <script>
         window.Laravel = {};
         window.Laravel.csrfToken = "{{ csrf_token() }}";
@@ -17,6 +17,8 @@
         <top-menu ref="TopMenu"></top-menu>
         <!-- header -->
         <app-header ref="AppHeader"></app-header>
+        <!-- cti recever -->
+        <cti-receiver ref="CtiReceiver"></cti-receiver>
         <!-- main -->
         <div class="container body-content m-0 p-0" style="max-width: none;">
             <transition name="fade" mode="out-in">
@@ -34,8 +36,10 @@
         <!-- dialog -->
         <page-dialog ref="PageDialog"></page-dialog>
     </div>
-    <script src="{{ mix('/js/manifest.js') }}"></script>
-    <script src="{{ mix('/js/vendor.js') }}"></script>
-    <script src="{{ mix('/js/app.js') }}"></script>
+    <script src="{{ mix('js/manifest.js') }}"></script>
+    <script src="{{ mix('js/vendor.js') }}"></script>
+    <script src="{{ mix('js/app.js') }}"></script>
     </body>
+    <!-- pqgridのimportでcssが強制的に読み込まれてしまうので、themeはその後に読み込む -->
+    <link rel="stylesheet" href="{{ mix('css/pqgrid/themes/steelblue/pqgrid.css') }}" />
 </html>

@@ -1,0 +1,26 @@
+{
+  "name": "daiyas-client",
+  "version": "1.0.0",
+  "description": "daiyas electron client",
+  "main": "main.js",
+  "scripts": {
+    "start": "./node_modules/.bin/electron ."
+  },
+  "keywords": [
+    "Electron",
+    "quick",
+    "start",
+    "tutorial",
+    "demo"
+  ],
+  "author": "new",
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {
+    "devtron": "^1.4.0",
+    "electron": "^6.0.12",
+    "electron-rebuild": "^1.8.2",
+    "serialport": "^7.1.5",
+    "winax": "^1.12.0"
+  }
+}

@@ -12,6 +12,7 @@ require("jquery-contextmenu");
 import Vue from "vue";
 
 import moment from "moment"
+moment.locale("ja");
 window.moment = moment;
 
 import { Decimal } from "decimal.js";
@@ -23,11 +24,25 @@ window.Algebra = Algebra;
 import printJS from "print-js";
 window.printJS = printJS;
 
-import LogonForm    from "@vcs/LogonForm.vue";
+import LogonForm from "@vcs/LogonForm.vue";
 import TopMenu      from "@vcs/TopMenu.vue";
 import PageDialog   from "@vcs/PageDialog.vue";
 import AppHeader from "@vcs/AppHeader.vue";
 import AppFooter from "@vcs/AppFooter.vue";
+import CtiReceiver from "@vcs/CtiReceiver.vue";
+
+//PqGrid
+import pqgrid from "pqgrid";
+window.pq = pqgrid;
+
+pq.aggregate.IntegerTotal = function(arr, col) {
+    return pq.formatNumber(pq.aggregate.sum(arr, col), "#,##0");
+};
+pq.aggregate.FloatTotal = function(arr, col) {
+    return pq.formatNumber(pq.aggregate.sum(arr, col), "##,###.0");
+};
+//localize
+import "pqgrid/localize/pq-localize-ja.js";
 
 //vue-router
 import VueRouter from "vue-router"
@@ -71,6 +86,7 @@ const VueApp = new Vue({
         "PageDialog": PageDialog,
         "AppHeader": AppHeader,
         "AppFooter": AppFooter,
+        "CtiReceiver": CtiReceiver,
     },
     data: {
         //resize検知用

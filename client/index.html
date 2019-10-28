@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Hello World!</title>
+  </head>
+  <body>
+    <h1>Hello World!</h1>
+    We are using Node.js <span id="node-version"></span>,
+    Chromium <span id="chrome-version"></span>,
+    and Electron <span id="electron-version"></span>.
+
+    <!-- You can also require other files to run in this process -->
+    <script src="./renderer.js"></script>
+
+    <div id="got-app-info"></div>
+    <div id="got-electron-version"></div>
+    <div id="got-sys-info"></div>
+    <div id="got-screen-info"></div>
+  </body>
+<script>
+    // アプリのパスを取得
+    const ipc = require('electron').ipcRenderer
+    ipc.send('get-app-path')
+    ipc.on('got-app-path', function (event, path) {
+        const message = `This app is located at: ${path}`
+        document.getElementById('got-app-info').innerHTML = message
+    })
+
+    // Electronのバージョンを取得
+    const electronVersion = process.versions.electron
+    const versionMessage = `This app is using Electron version: ${electronVersion}`
+    document.getElementById('got-electron-version').innerHTML = versionMessage
+
+    // OSのホームディレクトリを取得
+    const os = require('os')
+    const homeDir = os.homedir()
+    const homeDirMessage = `Your system home directory is: ${homeDir}`
+    document.getElementById('got-sys-info').innerHTML = homeDirMessage
+
+    // ディスプレイのサイズを取得
+    const electronScreen = require('electron').screen
+    const size = electronScreen.getPrimaryDisplay().size
+    const screenMessage = `Your screen is: ${size.width}px x ${size.height}px`
+    document.getElementById('got-screen-info').innerHTML = screenMessage
+</script>
+</html>

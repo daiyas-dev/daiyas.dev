@@ -143,7 +143,6 @@ var printPdf = function (url, params, filename, options, opened_callback, closed
     printJS({
         printable: url + (params ? "?" + $.param(params) : ""),
         showModal: false,
-        modalMessage: "印刷準備中…",
         onLoadingStart: () => {
             //実行中ダイアログ
             printingDlg = $.dialogProgress({

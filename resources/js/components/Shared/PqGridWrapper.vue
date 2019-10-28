@@ -3,19 +3,6 @@
 </template>
 
 <script>
-import pqgrid from "pqgrid";
-window.pq = pqgrid;
-
-pq.aggregate.IntegerTotal = function(arr, col) {
-    return pq.formatNumber(pq.aggregate.sum(arr, col), "#,##0");
-};
-pq.aggregate.FloatTotal = function(arr, col) {
-    return pq.formatNumber(pq.aggregate.sum(arr, col), "##,###.0");
-};
-
-//localize
-import "pqgrid/localize/pq-localize-ja.js";
-
 //inner component
 import PopupSelect from "@vcs/PopupSelect.vue";
 import DatePickerWrapper from "@vcs/DatePickerWrapper.vue";
@@ -40,6 +27,21 @@ export default {
             CountConstraint: null,
             PopupSelect: PopupSelect,
             DatePickerWrapper: DatePickerWrapper,
+            _onBeforeCreateFunc: Function,
+            _onRefreshFunc: Function,
+            _onCompleteFunc: Function,
+            _onChangeFunc: Function,
+            _onSelectChangeFunc: Function,
+            _onSearchErrorsFunc: Function,
+            _onSearchExceptionsFunc: Function,
+            _onSaveErrorsFunc: Function,
+            _onSaveExceptionsFunc: Function,
+            _onBeforeAddRowFunc: Function,
+            _onAddRowFunc: Function,
+            _onDeleteRowFunc: Function,
+            _onChangeExceptsColumns: Array,
+            _onAfterSearchFunc: Function,
+            _onErrorValsMapFunc: Function,
         }
     },
     props: {
@@ -58,11 +60,13 @@ export default {
         checkChanged: Boolean,
         autoEmptyRow: Boolean,
         autoEmptyRowCount: Number,
+        autoEmptyRowCheckFunc: Function,
         autoEmptyRowFormula: String,
         autoEmptyRowFunc: Function,
         onBeforeCreateFunc: Function,
         onRefreshFunc: Function,
         onCompleteFunc: Function,
+        onChangeFunc: Function,
         onSelectChangeFunc: Function,
         onSearchErrorsFunc: Function,
         onSearchExceptionsFunc: Function,
@@ -84,6 +88,23 @@ export default {
     },
     created: function () {  //createdは一回きり
         var vue = this;
+
+        //set callback funcs
+        vue._onBeforeCreateFunc = vue.onBeforeCreateFunc;
+        vue._onRefreshFunc = vue.onRefreshFunc;
+        vue._onCompleteFunc = vue.onCompleteFunc;
+        vue._onChangeFunc = vue.onChangeFunc;
+        vue._onSelectChangeFunc = vue.onSelectChangeFunc;
+        vue._onSearchErrorsFunc = vue.onSearchErrorsFunc;
+        vue._onSearchExceptionsFunc = vue.onSearchExceptionsFunc;
+        vue._onSaveErrorsFunc = vue.onSaveErrorsFunc;
+        vue._onSaveExceptionsFunc = vue.onSaveExceptionsFunc;
+        vue._onBeforeAddRowFunc = vue.onBeforeAddRowFunc;
+        vue._onAddRowFunc = vue.onAddRowFunc;
+        vue._onDeleteRowFunc = vue.onDeleteRowFunc;
+        vue._onChangeExceptsColumns = vue.onChangeExceptsColumns;
+        vue._onAfterSearchFunc = vue.onAfterSearchFunc;
+        vue._onErrorValsMapFunc = vue.onErrorValsMapFunc;
 
         vue.isSearchOnActivate = vue.SearchOnActivate == false ? false : true;
 
@@ -136,6 +157,16 @@ export default {
             }
         }, 100);
 
+        //PqGrid集計関数に合計(整数)追加
+        pq.aggregate.TotalInt = function(arr, col) {
+            return pq.formatNumber(pq.aggregate.sum(arr, col), "#,###");
+        };
+
+        //PqGrid集計関数に合計(小数)追加
+        pq.aggregate.TotalFloat = function(arr, col) {
+            return pq.formatNumber(pq.aggregate.sum(arr, col), "#,##0.0");
+        };
+
         vue.$parent.$on("panelResize", vue.resize);
     },
     mounted: function () {
@@ -162,7 +193,7 @@ export default {
             selectionModel: {
                 type: "cell",
                 mode: "block",
-                fireSelectChange: true
+                fireSelectChange: true,
             },
             swipeModel: { on: true },
             collapsible: {
@@ -172,7 +203,9 @@ export default {
             },
             editModel: {
                 keyUpDown: true,
-                clicksToEdit: 2
+                clicksToEdit: 2,
+                onSave: "nextEdit",
+                onTab: "nextEdit",
             },
             editorEnd: function(event, ui) {
                 //getData呼出のcolumn取り違えと同様に、cell及びcell内コンポーネントの表示状態の制御にもバグあり
@@ -323,7 +356,7 @@ export default {
                                             width: gridCell.width(),
                                             editable: true,
                                             hideButton: true,
-                                            onCalendarHiddenFunc: (event) => {
+                                            _onCalendarHiddenFunc: (event) => {
                                                 //grid.getEditCell().$editor.trigger($.Event("keydown", {keyCode: 13, which: 13}))
                                             },
                                         }
@@ -440,7 +473,8 @@ export default {
                         ui.column.binder = {};
                         ui.column.editor = {
                             type: "textbox",
-                            init: function(ui) {
+                            init: function(ui, args) {
+                                console.log("popupselect on grid initialize");
                                 var grid = this;
                                 var vue = grid.options.vue;
 
@@ -449,11 +483,21 @@ export default {
 
                                 ui.column.binder = {
                                     [ui.dataIndx]: ui.rowData[ui.dataIndx],
-                                    [ui.column.buddy]: ui.rowData[ui.column.buddy],
                                 };
 
+                                if (ui.column.buddy) {
+                                    ui.column.binder[ui.column.buddy] = ui.rowData[ui.column.buddy];
+                                }
+
+                                // key events?
+                                if (window.event.keyCode && !_.isNaN(window.event.key * 1)) {
+                                    if (ui.column.dataType == "integer" || ui.column.dataType == "float") {
+                                        ui.column.binder[ui.dataIndx] = window.event.key;
+                                    }
+                                }
+
                                 //create PopupSelect instance
-                                var dp = new (VueApp.createInstance(vue.PopupSelect))(
+                                var ps = new (VueApp.createInstance(vue.PopupSelect))(
                                     {
                                         propsData: {
                                             id: "PopupSelect_" + ui.dataIndx + "_" + ui.rowIndx,
@@ -468,23 +512,38 @@ export default {
                                             labelCdNm: ui.column.labelCdNm || (ui.column.title + "名称"),
                                             isGetName: ui.column.isGetName || false,
                                             isModal: ui.column.isModal || true,
-                                            editable: ui.column.editable || true,
+                                            editable: (_.isFunction(ui.column.editable) ? ui.column.editable(ui) : ui.column.editable) || true,
                                             reuse: ui.column.reuse || true,
                                             existsCheck: ui.column.existsCheck || true,
+                                            onChangeFunc: ui.column.onChangeFunc,
                                             width: gridCell.width(),
                                         }
                                     }
                                 );
-                                dp.$mount();
+                                ps.$mount();
+                                ps.grid = grid;
+                                ps.gridCell = gridCell;
+                                ps.ui = ui;
+                                ps.rowData = ui.rowData;
 
                                 //editor element
-                                var element = $(dp.$el);
+                                var element = $(ps.$el);
                                 ui.rowData.pq_inputErrors = ui.rowData.pq_inputErrors || {};
                                 element.on("keydown", (event) => {
+                                    console.log("ps keydown:" + event.which);
                                     switch (event.which) {
                                         case 9:
-                                            if (($(event.target).hasClass("clear-button") && !event.shiftKey) ||
-                                                ($(event.target).hasClass("target-input") && event.shiftKey)) {
+                                            if (
+                                                !ps.hasButtonFocus ||
+                                                (
+                                                    ps.hasButtonFocus &&
+                                                    (
+                                                        $(event.target).hasClass("clear-button") && !event.shiftKey
+                                                        ||
+                                                        $(event.target).hasClass("target-input") && event.shiftKey
+                                                    )
+                                                )
+                                            ) {
                                                 vue.setCellState(grid, ui);
                                                 vue.moveNextCell(grid, ui, event.shiftKey);
                                                 return false;
@@ -508,7 +567,9 @@ export default {
                                 //セルに格納
                                 editCell.append(element);
                                 element.show();
-                                setTimeout(() => element.find(".target-input").focus(), 100);
+                                setTimeout(() => {
+                                    element.find(".target-input").focus()
+                                }, 100);
                             },
                             getData: function(ui, grid) {
                                 return ui.$cell.find(".target-input").val();
@@ -617,8 +678,8 @@ export default {
                 $("#" + id + " .pq-grid-number-cell").off("click").on("click", vue.selectRow);
 
                 //パラメータ指定更新関数
-                if (vue.onRefreshFunc && vue.grid) {
-                    vue.onRefreshFunc(grid);
+                if (vue._onRefreshFunc && vue.grid) {
+                    vue._onRefreshFunc(grid);
                 }
 
                 //検索時エラー/例外設定
@@ -679,50 +740,7 @@ export default {
                 vue.setToolbarState(grid);
 
                 //自動空行補完
-                if (!grid.loading && !!grid.pdata && vue.autoEmptyRow) {
-                    var empties = 0;
-
-                    if (!!vue.autoEmptyRowFormula && vue.autoEmptyRowFormula.includes("n")) {
-                        //calcurate n value
-                        var expr1 = Algebra.parse(vue.autoEmptyRowFormula);
-                        var expr2 = Algebra.parse(grid.pdata.length + " + a");
-
-                        for (var n = 0; true; n++) {
-                            var eq = new Algebra.Equation(expr1.eval({ n: n }), expr2);
-                            var ret = eq.solveFor("a").toString() * 1;
-
-                            if (ret >= 0) {
-                                empties = ret;
-                                break;
-                            }
-                        }
-                    } else if (!!vue.autoEmptyRowCount && _.isInteger(vue.autoEmptyRowCount)) {
-                        empties = vue.autoEmptyRowCount;
-                    } else {
-                        empties = 1;
-                    }
-
-                    var actuals = _.cloneDeep(grid.pdata)
-                        .reverse()
-                        .slice(0, empties)
-                        .map(d => _(d).omitBy((v, k) => k.startsWith("pq") || !v).keys().value().length)
-                        .filter(v => v == 0)
-                        .length
-                        ;
-
-                    if (empties > actuals) {
-                        grid.addRow({
-                            rowList: _.fill(Array(empties - actuals), {})
-                                        .map((v, i) => {
-                                            return {
-                                                newRow: grid.autoEmptyRowFunc ? grid.autoEmptyRowFunc(grid) : {},
-                                                rowIndx: grid.pdata.length + i,
-                                            };
-                                        }),
-                            checkEditable: false,
-                        });
-                    }
-                }
+                vue.addEmptyRow(vue, grid);
 
                 //Bootstrap tooltip設定
                 //refreshイベントのタイミングではレンダリングが完了していない(PqGridが見栄えの為か、timerを生成して実行しているため)
@@ -741,7 +759,7 @@ export default {
                         var offsetHeight = cell.offsetHeight;
                         var scrollHeight = cell.scrollHeight;
 
-                        if (justify != "flex-start") {
+                        if (!$(cell).css("display").includes("flex")) {
                             //clone生成
                             var clone = $(cell).clone();
 
@@ -749,10 +767,10 @@ export default {
                             clone.css("justify-content", "flex-start");
 
                             //offset/scrollのwidth/height再取得
-                            offsetWidth = clone.offsetWidth;
-                            scrollWidth = clone.scrollWidth;
-                            offsetHeight = clone.offsetHeight;
-                            scrollHeight = clone.scrollHeight;
+                            offsetWidth = clone[0].offsetWidth;
+                            scrollWidth = clone[0].scrollWidth;
+                            offsetHeight = clone[0].offsetHeight;
+                            scrollHeight = clone[0].scrollHeight;
                         }
 
                         var title = $(target).attr("title") || $(target).text().replace(/(, )+$/, "").replace(/, /g, "<br>");
@@ -797,14 +815,26 @@ export default {
                             },
                         });
                 }, 100);
+
+                //dirty row number cell highlight
+                setTimeout(() => {
+                    grid.getCellsByClass({cls: "pq-cell-dirty"})
+                        .forEach(c => {
+                            $(".pq-grid-number-cell", grid.widget())
+                                .filter((i, v) => $(v).text() == c.rowIndx + 1)
+                                .addClass("changed-col-row");
+                            $("[pq-col-indx=" + c.colIndx + "]", grid.widget())
+                                .addClass("changed-col-row");
+                        });
+                }, 100);
             },
             complete: function(event, ui) {
                 var grid = this;
                 var vue = grid.options.vue;
 
                 //完了時更新関数
-                if (vue.onCompleteFunc && vue.grid) {
-                    vue.onCompleteFunc(grid, ui);
+                if (vue._onCompleteFunc && vue.grid) {
+                    vue._onCompleteFunc(grid, ui);
                 }
 
                 $("body > div").has("a:contains(ParamQuery)").hide();
@@ -813,9 +843,17 @@ export default {
                 //console.log("grid render");
             },
             change: function (event, ui) {
-                //console.log("grid change");
+                var grid = this;
+                var vue = grid.options.vue;
 
-                this.refreshView();
+                grid.refreshView();
+
+                console.log("grid change");
+
+                //変更時更新関数
+                if (vue._onChangeFunc && vue.grid) {
+                    vue._onChangeFunc(grid, ui, event);
+                }
             },
             click: function (event, ui) {
                 //console.log("grid click");
@@ -843,7 +881,6 @@ export default {
                 //console.log("grid scrollStop");
             },
             selectChange: function(event, ui) {
-                //console.log("grid selectChange");
 
                 var grid = this;
                 var vue = grid.options.vue;
@@ -861,14 +898,15 @@ export default {
                     var next = ui.selection.address()[0];
 
                     if (next && (indices.rowIndx != next.r1 || indices.colIndx != next.c1)) {
+                        console.log("grid selectChange quit edit");
                         vue.setCellState(grid, indices);
                         grid.quitEditMode();
                     }
                 }
 
                 //パラメータ指定更新関数
-                if (vue.onSelectChangeFunc && vue.grid) {
-                    vue.onSelectChangeFunc(grid, ui);
+                if (vue._onSelectChangeFunc && vue.grid) {
+                    vue._onSelectChangeFunc(grid, ui);
                 }
 
                 //PqGrid-Toolbar設定
@@ -935,6 +973,7 @@ export default {
                 var grid = this;
                 var vue = grid.options.vue;
                 var cell = grid.getCell({rowIndx: ui.rowIndx, dataIndx: ui.dataIndx});
+                //console.log("beforeCellKeyDown: " + event.which);
 
                 switch(event.which) {
                     case 13:   //"enter"
@@ -946,14 +985,17 @@ export default {
                         }
 
                         return false;
+                    case 9:
+                        return vue.moveNextCell(grid, ui, event.shiftKey);
+                    default:
+                        return true;
                 }
-
-                return true;
             },
             cellKeyDown: function(event, ui) {
                 var grid = this;
                 var vue = grid.options.vue;
                 var cell = this.getCell({rowIndx: ui.rowIndx, dataIndx: ui.dataIndx});
+                //console.log("cellKeyDown: " + event.which);
 
                 if (event.ctrlKey) {
                     switch(event.which) {
@@ -961,7 +1003,7 @@ export default {
                         case 187:   //";"
                             this.addRow({
                                 rowIndx: ui.rowIndx + 1,
-                                newRow: !!vue.onAddRowFunc ? vue.onAddRowFunc(grid, ui.rowData) : {},
+                                newRow: !!vue._onAddRowFunc ? vue._onAddRowFunc(grid, ui.rowData) : {},
                                 checkEditable: false
                             });
                             return false;
@@ -974,10 +1016,30 @@ export default {
 
                 return true;
             },
+            editorKeyDown: function(event, ui) {
+                var grid = this;
+                var vue = grid.options.vue;
+                var cell = this.getCell({rowIndx: ui.rowIndx, dataIndx: ui.dataIndx});
+                console.log("editorKeyDown: " + event.which);
+
+                if (!event.ctrlKey && !event.shiftKey) {
+                    switch(event.which) {
+                        case 9:
+                        case 13:
+                            //moveNextCell or add new row
+                            return vue.moveNextCell(grid, ui, event.shiftKey);
+                    }
+                }
+
+                return true;
+            },
             beforeFilter: (evt, ui) => {
                 //絞り込み条件変更時に値が失われることの対処
                 var vue = this;
                 var grid = getGrid(evt.target);
+
+                if (!ui.rules.length) return;
+
                 var values = grid.widget().find("[name='" + ui.rules[0].dataIndx + "'].pq-grid-hd-search-field").map((i, v) => $(v).val());
                 var rule = !!ui.rules[0].crules ? ui.rules[0].crules[0] : ui.rules[0];
 
@@ -994,8 +1056,8 @@ export default {
         pqGridObj.vue = vue;
 
         //事前処理指定
-        if (vue.onBeforeCreateFunc) {
-            vue.onBeforeCreateFunc(pqGridObj, () => vue.createPqGrid(pqGridObj));
+        if (vue._onBeforeCreateFunc) {
+            vue._onBeforeCreateFunc(pqGridObj, () => vue.createPqGrid(pqGridObj));
         } else {
             //PqGrid生成
             vue.createPqGrid(pqGridObj);
@@ -1093,7 +1155,7 @@ export default {
                     res.forEach(v => v.InitialValue = $.extend(true, {}, v));
 
                     //検索後callbackが指定されていれば実行
-                    if (vue.onAfterSearchFunc) res = vue.onAfterSearchFunc(vue, grid, res);
+                    if (vue._onAfterSearchFunc) res = vue._onAfterSearchFunc(vue, grid, res);
 
                     //検索前データの保持
                     grid.prevData = _.cloneDeep(grid.getData());
@@ -1224,8 +1286,18 @@ export default {
             };
 
             //検索メソッド追加
-            this.grid.searchData = function(params, isActivated) {
+            this.grid.searchData = function(params, isActivated, callback) {
                 var grid = this;
+                var vue = grid.options.vue;
+
+                if (callback) {
+                    var newFunc = (grid, ui) => {
+                        if (vue.onCompleteFunc) vue.onCompleteFunc(grid, ui);
+                        callback(grid, ui);
+                        vue._onCompleteFunc = vue.onCompleteFunc;
+                    };
+                    vue._onCompleteFunc = newFunc;
+                }
 
                 if (grid.options.vue.checkChanged && grid.isChanged() && !isActivated) {
                     //確認ダイアログ
@@ -1373,7 +1445,7 @@ export default {
                 });
 
                 //例外指定以外で変更されているデータを持たない行は除外
-                var excepts = exceptsColumnArray || grid.options.vue.onChangeExceptsColumns;
+                var excepts = exceptsColumnArray || grid.options.vue._onChangeExceptsColumns;
                 var updateList = $.extend(true, [], changeList.updateList);
                 updateList.forEach(function(row) {
                     var idx = changeList.updateList.map(v => v.pq_ri).indexOf(row.pq_ri);
@@ -1443,7 +1515,7 @@ export default {
             };
 
             //保存メソッド追加
-            this.grid.saveData = function(options, optionEditFunc) {
+            this.grid.saveData = function(options, opti_onEditFunc) {
                 var grid = this;
                 var vue = grid.options.vue;
 
@@ -1492,8 +1564,8 @@ export default {
                 var op = $.extend(true, defOp, options);
 
                 //オプション編集関数
-                if (optionEditFunc) {
-                    optionEditFunc(vue, grid, defOp, options);
+                if (opti_onEditFunc) {
+                    opti_onEditFunc(vue, grid, defOp, options);
                 }
 
                 //createSaveParamsの結果ではなく、直接パラメータ指定の場合を考慮し、nestしたViewModelの対処及びInitialValueの除去
@@ -1564,7 +1636,7 @@ export default {
                                 grid.refreshDataAndView();
 
                                 //メッセージ追加
-                                vue.$root.$emit("addMessage", op.done.title + "(" + vue.$parent.page.ScreenTitle + ")");
+                                vue.$root.$emit("addMessage", op.done.title + "(" + vue.$parent.$data.ScreenTitle + ")");
 
                                 if (op.done.isShow) {
                                     //完了ダイアログ
@@ -1691,7 +1763,22 @@ export default {
                 $.downloadContents(blob, filename, callback);
             };
 
+            //印刷メソッド追加
+            this.grid.print = function(optionSetter) {
+                var grid = this;
+                var vue = grid.options.vue;
+
+                if (optionSetter) {
+                    optionSetter(grid);
+                }
+
+                vue.exportData("", true);
+            };
+
             this.grid.options.loading = false;
+
+            window[this.grid.widget().prop("id")] = this.grid;
+            window.grid = this.grid;
 
             //PqGridのリサイズ
             this.resize();
@@ -1866,9 +1953,11 @@ export default {
             }
         },
         resizeBase: function () {
-            //PqGridリサイズ基本設定(ヘッダーとフッターの間に収まるように)
             if (!this.grid || !this.grid.options) return;
 
+            if (this.options.height) return;
+
+            //PqGridリサイズ基本設定(ヘッダーとフッターの間に収まるように)
             //widget
             var widget = this.grid.widget();
 
@@ -1899,11 +1988,11 @@ export default {
             }
 
             //パラメータ指定優先でエラー処理関数実行
-            this.onSearchErrorsFunc ? this.onSearchErrorsFunc(grid, errObj) : this.onSearchErrorsBase(grid, errObj);
+            this._onSearchErrorsFunc ? this._onSearchErrorsFunc(grid, errObj) : this.onSearchErrorsBase(grid, errObj);
         },
         onSearchErrorsBase: function(grid, errObj) {
             //検索時エラー処理基本関数
-            //個別に指定したい場合は、当コンポーネントにパラメータ指定(onSearchErrorsFunc)を行う
+            //個別に指定したい場合は、当コンポーネントにパラメータ指定(_onSearchErrorsFunc)を行う
             var vue = this;
 
             //画面項目のエラー表示設定
@@ -1938,11 +2027,11 @@ export default {
         },
         onSearchExceptions: function(grid, exObj) {
             //パラメータ指定優先で例外処理関数実行
-            this.onSearchExceptionsFunc ? this.onSearchExceptionsFunc(grid, exObj) : this.onSearchExceptionsBase(grid, exObj);
+            this._onSearchExceptionsFunc ? this._onSearchExceptionsFunc(grid, exObj) : this.onSearchExceptionsBase(grid, exObj);
         },
         onSearchExceptionsBase: function(grid, exObj) {
             //検索時例外処理基本関数
-            //個別に指定したい場合は、当コンポーネントにパラメータ指定(onSearchExceptionsFunc)を行う
+            //個別に指定したい場合は、当コンポーネントにパラメータ指定(_onSearchExceptionsFunc)を行う
             var vue = this;
 
             //メッセージリストに追加
@@ -1961,11 +2050,11 @@ export default {
         },
         onSaveErrors: function(grid, errObj) {
             //パラメータ指定優先でエラー処理関数実行
-            this.onSaveErrorsFunc ? this.onSaveErrorsFunc(grid, errObj) : this.onSaveErrorsBase(grid, errObj);
+            this._onSaveErrorsFunc ? this._onSaveErrorsFunc(grid, errObj) : this.onSaveErrorsBase(grid, errObj);
         },
         onSaveErrorsBase: function(grid, errObj) {
             //保存時エラー処理基本関数
-            //個別に指定したい場合は、当コンポーネントにパラメータ指定(onSaveErrorsFunc)を行う
+            //個別に指定したい場合は、当コンポーネントにパラメータ指定(_onSaveErrorsFunc)を行う
             var vue = this;
 
             //エラー種別判定
@@ -1977,8 +2066,8 @@ export default {
 
                 //キーの一致する行を検索し、該当セルにエラー設定
                 var errorVals = _.pick(errObj.errors, keyCols);
-                if (vue.onErrorValsMapFunc) {
-                    errorVals = vue.onErrorValsMapFunc(errorVals);
+                if (vue._onErrorValsMapFunc) {
+                    errorVals = vue._onErrorValsMapFunc(errorVals);
                 }
                 grid.getData()
                     .filter(row => keyCols.every(k => _.isEqualWith(row[k], errorVals[k], (v, o) => _.trim(v) == _.trim(o))))
@@ -2089,11 +2178,11 @@ export default {
         },
         onSaveExceptions: function(grid, exObj) {
             //パラメータ指定優先で例外処理関数実行
-            this.onSaveExceptionsFunc ? this.onSaveExceptionsFunc(grid, exObj) : this.onSaveExceptionsBase(grid, exObj);
+            this._onSaveExceptionsFunc ? this._onSaveExceptionsFunc(grid, exObj) : this.onSaveExceptionsBase(grid, exObj);
         },
         onSaveExceptionsBase: function(grid, exObj) {
             //保存時例外処理基本関数
-            //個別に指定したい場合は、当コンポーネントにパラメータ指定(onSaveExceptionsFunc)を行う
+            //個別に指定したい場合は、当コンポーネントにパラメータ指定(_onSaveExceptionsFunc)を行う
             var vue = this;
 
             console.log("PqGridWrapper onSaveExceptions");
@@ -2118,12 +2207,66 @@ export default {
                     delete ui.rowData.pq_inputErrors[ui.dataIndx];
                 }
             }
+
             //rowData更新
             grid.updateRow({ rowIndx: ui.rowIndx, newRow: ui.column.binder });
         },
         moveNextCell: function(grid, ui, reverse) {
-            //次のセルへ移動
-            (grid.getEditCell().$editor || grid.getCell({ rowIndx: ui.rowIndx, colIndx: ui.colIndx })).trigger($.Event("keydown", {keyCode: 9, which: 9, shiftKey: reverse}));
+            var vue = this;
+            var editor = grid.getEditCell().$editor;
+            var gridCell = grid.getCell({ rowIndx: ui.rowIndx, colIndx: ui.colIndx });
+
+            //次セル検索 & 移動
+            var moveNext = () => {
+                var indices = grid.widget()
+                    .find(grid.options.selectionModel.onTab == "nextEdit" ? ".pq-grid-cell.cell-editable" : ".pq-grid-cell")
+                    .not("[id^='pq-sum-cell']")
+                    .map((i, c) => grid.getCellIndices({$td: $(c)}))
+                    .filter((i, ind) => _.isFunction(ind.column.editable) ? ind.column.editable(ind) : ind.column.editable)
+                    ;
+                indices = _.sortBy(indices, ["rowIndx", "colIndx"]);
+
+                var next;
+
+                if (reverse || event.shiftKey) {
+                    next = _.find(indices, v => v.rowIndx == ui.rowIndx  && v.colIndx < ui.colIndx)
+                        || _.findLast(indices, v => v.rowIndx < ui.rowIndx)
+                } else {
+                    next = _.find(indices, v => v.rowIndx == ui.rowIndx  && v.colIndx > ui.colIndx)
+                        || _.find(indices, v => v.rowIndx > ui.rowIndx)
+                }
+
+                if (next) {
+                    if (editor) {
+                        if (editor.css("display") == "none") {
+                            //カスタムeditor
+                            editor.trigger($.Event("keydown", {keyCode: 9, which: 9, shiftKey: reverse}));
+                            return false;
+                        } else {
+                            //標準editor
+                            return true;
+                        }
+                    } else {
+                        grid.setSelection({ rowIndx: next.rowIndx, colIndx: next.colIndx });
+                    }
+                    return false;
+
+                } else if (!reverse && !event.shiftKey) {
+                    //自動空行補完
+                    var rows = vue.addEmptyRow(vue, grid, true);
+
+                    //次セル検索 & 移動
+                    if (rows) {
+                        return moveNext();
+                    } else {
+                        return true;
+                    }
+                }
+
+                return true;
+            };
+
+            return moveNext();
         },
         getHeaderContextMenu: function(event, ui) {
             var vue = this;
@@ -2237,22 +2380,9 @@ export default {
                 {
                     name: "印刷",
                     icon: "fas fa-print fa-lg",
-                    subItems: [
-                        {
-                            name: "CSVファイル",
-                            icon: "fas fa-file-csv fa-lg",
-                            action: function(){
-                                vue.exportData("csv", true);
-                            }
-                        },
-                        {
-                            name: "Excelファイル",
-                            icon: "fas fa-file-excel fa-lg",
-                            action: function(){
-                                vue.exportData("xlsx", true);
-                            }
-                        },
-                    ]
+                    action: function(){
+                        vue.exportData("xlsx", true);
+                    }
                 },
                 {
                     name: "ダウンロード",
@@ -2324,7 +2454,7 @@ export default {
                             action: function(){
                                 this.addRow({
                                     rowIndx: ui.rowIndx + 1,
-                                    newRow: !!vue.onAddRowFunc ? vue.onAddRowFunc(grid, ui.rowData) : {},
+                                    newRow: !!vue._onAddRowFunc ? vue._onAddRowFunc(grid, ui.rowData) : {},
                                     checkEditable: false
                                 });
                             }
@@ -2347,20 +2477,147 @@ export default {
             var vue = this;
             var grid = vue.grid;
 
-            var blob = grid.exportData({ format: format });
-            if (typeof blob === "string") {
-                blob = new Blob([blob]);
-            }
-
-            var fileName = vue.$parent.ScreenTitle
-                         + "_" + moment().format("YYYYMMDDHHmmssSSS")
-                         + "." + format.toLowerCase();
-
             if (isPrint) {
+                var json = _(grid.getData()).concat(grid.options.summaryData).flatten().value()
+                    .map(v => {
+                        var base = _.reduce(grid.options.colModel, (acc, c) => { acc[c.dataIndx] = ""; return acc; }, {});
+                        var ret = $.extend(true, base, v);
+                        return ret;
+                    });
+                json = JSON.parse(JSON.stringify(json, (k, v) => v || ""));
+
+                var colWidthSum = _.sumBy(grid.options.colModel.filter(c => !c.hidden), c => c.minWidth || c.width);
+
+                var paperWidthSet = {
+                    A4: { portrait: 595, landscape: 847 },
+                    A3: { portrait: 842, landscape: 1191 },
+                };
+                var printWidth = paperWidthSet[grid.options.printSize || "A4"][grid.options.printDirection || "portrait"] + 150;  //with margin
+
+                var printOptions = {
+                    printable: json,
+                    type: "json",
+                    properties: grid.options.colModel
+                                    .filter(c => !c.hidden)
+                                    .map(c => {
+                                        return {
+                                            field: c.dataIndx,
+                                            displayName: c.title,
+                                            columnSize: (((c.minWidth || c.width) / colWidthSum) * 100).toFixed(2) + "%",
+                                        };
+                                    }),
+                    style: `
+                            table {
+                                table-layout: fixed;
+                                margin-left: 0px !important;
+                                margin-right: 0px !important;
+                                //width: ${printWidth}px !important;
+                                width: 100% !important;
+                            }
+                            th, td {
+                                font-family: "MS UI Gothic";
+                                font-size: 10pt;
+                                font-weight: normal !important;
+                                border-color: black !important;
+                                white-space: nowrap;
+                                overflow: hidden;
+                                margin: 0px;
+                                padding-left: 3px;
+                                padding-right: 3px;
+                            }
+                            th {
+                                height: 22px !important;
+                            }
+                            td {
+                                height: 22px !important;
+                            }
+                            `,
+                };
+
+                if (grid.options.printHeader) printOptions.header = grid.options.printHeader;
+                if (grid.options.printHeaderStyle) printOptions.headerStyle = grid.options.printHeaderStyle;
+                if (grid.options.printGridHeaderStyle) printOptions.gridHeaderStyle = grid.options.printGridHeaderStyle;
+                if (grid.options.printGridStyle) {
+                    printOptions.gridStyle = grid.options.printGridStyle;
+                } else {
+                    printOptions.gridStyle = 'border: 1px solid black;';
+                }
+                if (grid.options.printStyles) {
+                    printOptions.style += grid.options.printStyles;
+                }
+
+                printJS(printOptions);
 
             } else {
+                var blob = grid.exportData({ format: format, sheetName: vue.$parent.ScreenTitle });
+                if (typeof blob === "string") {
+                    blob = new Blob([blob]);
+                }
+
+                var fileName = vue.$parent.ScreenTitle
+                            + "_" + moment().format("YYYYMMDDHHmmssSSS")
+                            + "." + format.toLowerCase();
+
                 saveAs(blob, fileName);
             }
+        },
+        addEmptyRow: function(vue, grid, forced) {
+            if (!grid.loading && !!grid.pdata && vue.autoEmptyRow) {
+                var empties = 0;
+
+                if (!!vue.autoEmptyRowFormula && vue.autoEmptyRowFormula.includes("n")) {
+                    //calcurate n value
+                    var expr1 = Algebra.parse(vue.autoEmptyRowFormula);
+                    var expr2 = Algebra.parse(grid.pdata.length + " + a");
+
+                    for (var n = 0; true; n++) {
+                        var eq = new Algebra.Equation(expr1.eval({ n: n }), expr2);
+                        var ret = eq.solveFor("a").toString() * 1;
+
+                        if (ret >= 0) {
+                            empties = ret;
+                            break;
+                        }
+                    }
+                } else if (!!vue.autoEmptyRowCount && _.isInteger(vue.autoEmptyRowCount)) {
+                    empties = vue.autoEmptyRowCount;
+                } else {
+                    empties = 1;
+                }
+
+                var actuals = _.sortBy(_.cloneDeep(grid.getData()), "pq_order")
+                    // .reverse()
+                    // .slice(0, empties)
+                    .filter(d => {
+                        if (vue.autoEmptyRowCheckFunc) {
+                            return vue.autoEmptyRowCheckFunc(d);
+                        } else {
+                            return _(d).omitBy((v, k) => k.startsWith("pq") || !v).keys().value().length == 0;
+                        }
+                    })
+                    .length
+                    ;
+
+                if (empties > actuals || forced) {
+                    var cnt = forced ? 1 : empties - actuals;
+                    var rowList = _.fill(Array(cnt), {})
+                                    .map((v, i) => {
+                                        return {
+                                            newRow: vue.autoEmptyRowFunc ? vue.autoEmptyRowFunc(grid) : {},
+                                            rowIndx: grid.getData().length + i,
+                                        };
+                                    });
+
+                    grid.addRow({
+                        rowList: rowList,
+                        checkEditable: false,
+                    });
+
+                    return rowList;
+                }
+            }
+
+            return;
         },
     }
 };
@@ -2394,6 +2651,10 @@ export default {
     .pq-grid-cell.cell-editable {
         /* background-color: white; */
     }
+    /* 変更行No.セル */
+    .changed-col-row {
+        background-color: yellow !important;
+    }
 
     textarea.pq-cell-editor {
         margin-top: 8px;
@@ -2402,7 +2663,9 @@ export default {
     }
 
     /* 入力不可セル */
-    .table_editable .pq-grid-cell.cell-readonly {
+    .table_editable .pq-grid-cell.cell-readonly,
+    .pq-grid-cell.cell-readonly-force
+    {
         background-color: darkgray;
     }
     /* マイナス値セル */

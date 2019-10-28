@@ -8,7 +8,13 @@
 		<input type="text"
             :id="id"
             :ref="id"
-            :class="['form-control', 'target-input',  editable == true ? 'editable' : 'readonly']"
+            :class="[
+                'form-control',
+                'target-input',
+                editable == true ? 'editable' : 'readonly',
+                readOnly == true ? 'mr-1' : '',
+                readOnly == true ? 'readOnly' : ''
+            ]"
             :style='inputWidth ? ("width: " + inputWidth + "px") : ""'
             v-model="vmodel[bind]"
             :readonly="this.editable == false"
@@ -17,25 +23,45 @@
             :disabled="isPreload"
         >
         <button type="button"
-            class="selector-button btn btn-info p-0 border-0"
+            :class="[
+                'selector-button',
+                'btn',
+                'btn-info',
+                'p-0',
+                'border-0',
+                readOnly == true ? 'd-none' : ''
+            ]"
             :id="'btn' + id"
             @click="showList"
             :disabled="isPreload"
+            :tabIndex="hasButtonFocus ? 0 : -1"
         >
             <i class="fa fa-search fa-lg"></i>
         </button>
         <button type="button"
-            class="clear-button btn btn-info p-0 border-0"
+            :class="[
+                'clear-button',
+                'btn',
+                'btn-info',
+                'p-0',
+                'border-0',
+                readOnly == true ? 'd-none' : ''
+            ]"
             :id="'btn' + id + 'Clear'"
             @click="clearValue"
             :disabled="isPreload"
+            :tabIndex="hasButtonFocus ? 0 : -1"
         >
             <i class="fa fa-times fa-lg"></i>
         </button>
         <label v-if="isShowNameLabel == true">{{nameLabel}}</label>
 		<input v-if="isShowName == true"
             type="text"
-            class="form-control select-name"
+            :class="[
+                'form-control',
+                'select-name',
+                readOnly == true ? 'readOnly' : ''
+            ]"
             disabled
             :value="selectName"
             :style='nameWidth ? ("width: " + nameWidth + "px") : ""'>
@@ -49,6 +75,10 @@
 .PopupSelect .target-input {
     border-top-right-radius: 0px;
     border-bottom-right-radius: 0px;
+}
+.PopupSelect .target-input.readOnly {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
 }
 .PopupSelect .clear-button,
 .PopupSelect .selector-button {
@@ -74,6 +104,11 @@
     border-left-width: 0px;
     border-top-left-radius: 0px;
     border-bottom-left-radius: 0px;
+}
+.PopupSelect .select-name.readOnly {
+    border-left-width: 1px;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
 }
 .readonly {
     background-color: white;
@@ -114,10 +149,14 @@ export default {
         title: String,
         labelCd: String,
         labelCdNm: String,
+        popupWidth: Number,
+        popupHeight: Number,
         isModal: Boolean,
         editable: Boolean,
+        readOnly: Boolean,
         reuse: Boolean,
         existsCheck: Boolean,
+        exceptCheck: Object,
         isGetName: Boolean,
         isCodeOnly: Boolean,
         showColumns: Array,
@@ -130,6 +169,7 @@ export default {
         isPreload: Boolean,
         onBeforeFunc: Function,
         isTrim: Boolean,
+        hasButtonFocus: Boolean,
     },
     computed: {
         showText: function() {
@@ -150,7 +190,7 @@ export default {
 
             var ev = {};
             ev.change = comp.onChange;
-            if (comp.editable == false) {
+            if (comp.editable == false && comp.readOnly != true) {
                 ev.click = comp.showList;
             }
 
@@ -176,9 +216,12 @@ export default {
             deep: true,
             sync: true,
             handler: function(newVal) {
-                if (!_.isEqual(newVal, this.paramsPrev)) {
-                    this.paramsPrev = _.cloneDeep(newVal);
-                    this.getDataList();
+                var vue = this;
+                if (!_.isEqual(newVal, vue.paramsPrev)) {
+                    vue.paramsPrev = _.cloneDeep(newVal);
+                    vue.getDataList(newVal, (res) => {
+                        vue.setSelectValue(vue.vmodel[vue.bind], true, false);
+                    });
                 }
             },
         },
@@ -302,7 +345,8 @@ export default {
             if (_.trim(vue.selectValue)) {
                 params.selectValue = vue.selectValue;
 
-                params.Keyword = vue.selectValue.includes("*") ? vue.selectValue.replace(/\*/g, "%") : ("%" + vue.selectValue + "%");
+                var key = vue.selectValue + "";
+                params.Keyword = key.includes("*") ? key.replace(/\*/g, "%") : ("%" + key + "%");
             }
 
             vue.searchParams = _.cloneDeep(params);
@@ -351,6 +395,7 @@ export default {
                     vue.$root.$emit("addMessage", vue.dataUrl + "で例外発生" + JSON.stringify(params));
 
                     //エラーダイアログ
+                    var target = vue.labelCd || vue.label || "コード";
                     $.dialogErr({
                         title: target + "一覧取得失敗",
                         contents: error.message
@@ -404,6 +449,8 @@ export default {
                     isModal: vue.isModal,
                     isCodeOnly: vue.isCodeOnly,
                     showColumns: vue.showColumns,
+                    width: vue.popupWidth || null,
+                    height: vue.popupHeight || null,
                     reuse: vue.reuse,
                     callback: callback,
                     buttons: [
@@ -535,6 +582,20 @@ export default {
 
             //値チェック関数object
             var checkValue = function(check) {
+                //対象外指定されている場合
+                if (!!vue.exceptCheck && newVal == vue.exceptCheck[vue.isGetName ? "CdNm" : "Cd"]) {
+                    //エラー項目設定解除
+                    var $container = vue.embedded ? $(vue.$el).parent() : $(vue.$el);
+                    var $target = vue.embedded ? $(vue.$el).parent() : $(vue.$el).find("#" + vue.id);
+
+                    $(vue.$el)
+                        .removeClass("has-error")
+                        .find("#" + vue.id).tooltip("dispose");
+
+                    vue.errorMsg = null;
+                    return true;
+                }
+
                 //検索結果から、現在の値を含むものを抽出
                 var rowData = vue.dataList.filter(v => newVal == v[vue.isGetName ? "CdNm" : "Cd"]);
 

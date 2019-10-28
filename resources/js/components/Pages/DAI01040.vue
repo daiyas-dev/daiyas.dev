@@ -492,7 +492,7 @@ export default {
             console.log(merged);
 
             //mergeCellsの設定
-            grid.options.mergeCells = res.filter((r, i) => !(i % 2))
+            grid.options.mergeCells = _.flattenDeep(res.filter((r, i) => !(i % 2))
                 .map((r, i) => {
                     var checkedCol = grid.options.colModel.filter(c => c.dataIndx == "Checked")[0];
                     var checkStateCol = grid.options.colModel.filter(c => c.dataIndx == "CheckState")[0];
@@ -503,7 +503,7 @@ export default {
                         { r1: i * 2, c1: checkStateCol.leftPos, rc: 2, cc: 1 },
                     ];
                 })
-                .flat();
+            );
 
             return merged;
         },

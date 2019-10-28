@@ -5,63 +5,81 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
+use Illuminate\Support\Carbon;
 
 class DAI01030Controller extends Controller
 {
-
-    /**
-     * GetViewModel
-     */
-    public function GenerateViewModel()
-    {
-        //TODO: dummy ViewModel
-        $vm = json_decode('
-            {
-            }
-        ');
-
-        return $vm;
-    }
-
-    /**
-     * GetViewModel
-     */
-    public function GetViewModel()
-    {
-        return response()->json($this->GenerateViewModel());
-    }
-
     /**
      * Search
      */
     public function Search($vm)
     {
-        //TODO: dummy DataList
-        $faker = \Faker\Factory::create('ja_JP');
-        $DataList = Arr::collapse(
-            collect(range(1, 3))
-                ->map(function($k) use($faker) {
-                    $vms = collect(range(1, $faker->numberBetween(1, 3)))
-                        ->map(function($j) use ($k, $faker) {
-                            $vm = (object) [];
-                            $vm->UID = $faker->uuid;
-                            $vm->MajorNo = sprintf('%02d', $k);
-                            $vm->MinorNo = sprintf('%02d', $k) . sprintf('%02d', $j);
-                            $vm->Volume = $faker->numberBetween(1, 100);
-                            $vm->Unit = $faker->numberBetween(1, 4);
-                            $vm->UPrice1000 = $faker->randomFloat(2, 100, 1000);
-                            $vm->Memo = $faker->realText;
+        $BushoCd = $vm->BushoCd;
+        $CustomerCd = $vm->CustomerCd;
+        $DeliveryDate = $vm->DeliveryDate;
 
-                            return $vm;
-                        })
-                        ->values();
+        $sql = "
+WITH 注文一覧 AS (
+SELECT
+	MTT.得意先ＣＤ,
+	MTT.商品ＣＤ,
+	MTT.単価,
+	MP.商品名,
+	CD.注文区分,
+	CD.注文日付,
+	CD.注文時間,
+	CD.配送日,
+	CD.明細行Ｎｏ,
+	CD.商品区分,
+	CD.入力区分,
+	CD.現金個数,
+	CD.現金金額,
+	CD.掛売個数,
+	CD.掛売金額,
+	CD.備考１,
+	CD.備考２,
+	CD.備考３,
+	CD.備考４,
+	CD.備考５,
+	CD.予備ＣＤ１,
+	CD.予備金額1,
+	CD.修正担当者ＣＤ,
+	CD.修正日
+FROM
+	得意先単価マスタ MTT
+	INNER JOIN 商品マスタ MP
+		ON MP.商品ＣＤ = MTT.商品ＣＤ
+	LEFT OUTER JOIN 注文データ CD
+		ON  CD.得意先ＣＤ = MTT.得意先ＣＤ
+		AND CD.商品ＣＤ = MTT.商品ＣＤ
+		AND	CD.部署ＣＤ = $BushoCd
+		AND CD.配送日 = '$DeliveryDate'
+WHERE
+	MTT.得意先ＣＤ = $CustomerCd
+)
+SELECT
+	得意先ＣＤ,
+	商品ＣＤ,
+	商品名,
+	単価,
+	SUM(IIF(注文区分=1, 現金個数 + 掛売個数, 0)) AS 予定数,
+	SUM(IIF(注文区分=0, 現金個数, 0)) AS 現金個数,
+	SUM(IIF(注文区分=0, 現金金額, 0)) AS 現金金額,
+	SUM(IIF(注文区分=0, 掛売個数, 0)) AS 掛売個数,
+	SUM(IIF(注文区分=0, 掛売金額, 0)) AS 掛売金額,
+	SUM(IIF(注文区分 IS NULL, 1, 0)) AS 全表示
+FROM
+	注文一覧
+GROUP BY
+	得意先ＣＤ,
+	商品ＣＤ,
+	単価,
+	商品名
+ORDER BY
+	商品ＣＤ
+        ";
 
-                    return $vms;
-                })
-                ->values()
-        );
-
-        // $DataList = [];
+        $DataList = DB::select($sql);
 
         return response()->json($DataList);
     }
@@ -71,36 +89,58 @@ class DAI01030Controller extends Controller
      */
     public function Save($request)
     {
-        $lists = $request->all();
-        $AddList = $lists['AddList'];
-        $UpdateList = $lists['UpdateList'];
-        $DeleteList = $lists['DeleteList'];
+        $params = $request->all();
+        $targets = $params['targets'];
 
-        //TODO: validation
-        validator()->validate($lists, [
-            'AddList.*.StartYMD' => 'required',
-            'AddList.*.InfoTitle' => 'required',
-            'AddList.*.InfoMemo' => 'required',
-            'UpdateList.*.StartYMD' => 'required',
-            'UpdateList.*.InfoTitle' => 'required',
-            'UpdateList.*.InfoMemo' => 'required',
+        //validation
+        validator()->validate($targets, [
+            'targets.*.*' => 'required',
         ]);
 
-        //TODO: dummy DataList
-        $kow = now();
-        $DataList = collect(range(1, 100))
-            ->map(function($k) use ($kow) {
-                $vm = $this->GenerateViewModel();
-                $vm->InfoTitle = $vm->InfoTitle . sprintf('%03d', $k);
-                $vm->InfoMemo = $vm->InfoMemo . sprintf('%03d', $k);
-                $vm->StartDate = (clone $kow)->addDays($k)->format('Y/m/d');
+        //トランザクション開始
+        DB::transaction(function () use ($targets) {
+            collect($targets)->each(function ($target, $key) {
+                $BushoCd = $target['部署CD'];
+                $CourseCd = $target['コースＣＤ'];
+                $ShohinCd = $target['商品CD'];
+                $Amount = $target['個数'];
+                $TargetDate = $target['対象日付'];
 
-                return $vm;
-            })
-            ->values();
+                $sql = "
+IF EXISTS (
+	SELECT
+		持ち出し日付
+	FROM
+		モバイル_持ち出し入力
+	WHERE
+		持ち出し日付 = '$TargetDate'
+	AND 部署CD = $BushoCd
+	AND コースＣＤ = $CourseCd
+	AND 商品ＣＤ = $ShohinCd
+)
+BEGIN
+	UPDATE モバイル_持ち出し入力
+	SET
+		商品CD = $ShohinCd,
+		個数 = $Amount,
+		修正日 = GETDATE()
+	WHERE
+		持ち出し日付 = '$TargetDate'
+	AND 部署CD = $BushoCd
+	AND コースＣＤ = $CourseCd
+	AND 商品ＣＤ = $ShohinCd
+END
+ELSE
+	INSERT INTO モバイル_持ち出し入力
+	VALUES ($BushoCd, $CourseCd, '$TargetDate', $ShohinCd, $Amount, GETDATE())
+        ";
 
-        session(["DataList"=>$DataList]);
+                DB::statement($sql);
+            });
+        });
 
-        return response()->json($DataList);
+        return response()->json([
+            'result' => true,
+        ]);
     }
 }

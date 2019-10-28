@@ -1,6 +1,6 @@
 ﻿//required bootstrap css
 <template>
-    <div class="form-group d-inline-flex align-items-center VueSelect" :data-tip="isExists ? null : '選択可能な一覧がありません'">
+    <div :style="_style" class="form-group d-inline-flex align-items-center VueSelect" :data-tip="isExists ? null : '選択可能な一覧がありません'">
         <label v-if="title" class="" :for="_id">{{title}}</label>
         <select class="form-control" :id="_id" v-model="vmodel[bind]" @change="onChanged"
             style="padding-top: 2px; padding-left: 2px; padding-bottom: 2px;">
@@ -10,7 +10,7 @@
                     v-bind:key="entity.code"
                     v-bind:value="entity.code"
                     :selected="vmodel[bind] == entity.code">
-                    {{entity.name}}
+                    {{entity.label}}
                 </option>
             </template>
         </select>
@@ -32,6 +32,7 @@ export default {
         codeName: String,
         textName: String,
         bind: String,
+        buddy: String,
         vmodel: Object,
         hasNull: Boolean,
         uri: String,
@@ -40,6 +41,7 @@ export default {
         func: Function,
         onChangedFunc: Function,
         withCode: Boolean,
+        customStyle: String,
     },
     watch: {
         entities: {
@@ -47,6 +49,10 @@ export default {
             handler: function(newVal) {
                 if (!this.hasNull && newVal.length && !_.find(newVal, { code: this.vmodel[this.bind]})) {
                     this.vmodel[this.bind] = newVal[0].code;
+                    if (this.buddy) {
+                        this.vmodel[this.buddy] = newVal[0].name;
+                    }
+
                     if (this.onChangedFunc) {
                         this.onChangedFunc(newVal[0].code, newVal);
                     }
@@ -61,10 +67,15 @@ export default {
         _id: function() {
             return this.id + "_" + this._uid;
         },
+        _style: function() {
+            return this.customStyle || "width:180px";
+        },
     },
     created: function () {
-        this.$root.$on("plantChanged", this.plantChanged);
-        this.$root.$on("accountChanged", this.accountChanged);
+        var comp = this;
+
+        comp.$root.$on("plantChanged", this.plantChanged);
+        comp.$root.$on("accountChanged", this.accountChanged);
     },
     mounted: function () {
         this.setEntities();
@@ -87,9 +98,15 @@ export default {
         },
         onChanged: function (event) {
             var vue = this;
+
+            var code = $(event.target).val();
+
+            if (vue.buddy) {
+                vue.vmodel[vue.buddy] = _.find(vue.entities, v => v.code == code).name;
+            }
+
             //変更時関数が指定されていれば呼出
             if (vue.onChangedFunc) {
-                var code = $(event.target).val();
                 vue.onChangedFunc(code, vue.entities);
             }
 
@@ -125,11 +142,13 @@ export default {
                     var entities = $.map(response.data, function (v, i) {
 
                         var code = v[component.codeName || "Cd"];
+                        var name = v[component.textName || "CdNm"];
                         var text = (component.withCode ? (code + ":") : "") + v[component.textName || "CdNm"];
 
                         return {
                             code: code,
-                            name: text,
+                            name: name,
+                            label: text,
                             info: v,
                         };
                     });

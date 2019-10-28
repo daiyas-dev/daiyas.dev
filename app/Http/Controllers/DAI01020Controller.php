@@ -5,30 +5,66 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
+use Illuminate\Support\Carbon;
 
 class DAI01020Controller extends Controller
 {
-
     /**
-     * GetViewModel
+     * GetProductList
      */
-    public function GenerateViewModel()
+    public function GetProductList($vm)
     {
-        //TODO: dummy ViewModel
-        $vm = json_decode('
-            {
-            }
-        ');
+        $BushoCd = $vm->BushoCd;
 
-        return $vm;
-    }
+        $sql = "
+WITH Products AS (
+SELECT distinct
+  SHOHIN.商品ＣＤ
+  ,SHOHIN.商品名
+  ,SHOHIN.商品略称
+  ,SHOHIN.商品区分
+  ,SHOHIN.売価単価
+  ,SHOHIN.弁当区分
+  ,SHOHIN.ｸﾞﾙｰﾌﾟ区分
+  ,SHOHIN.副食ＣＤ
+  ,SHOHIN.主食ＣＤ
+  ,SHOHIN.表示ＦＬＧ
+  ,SHOHIN.修正担当者ＣＤ
+  ,SHOHIN.修正日
+FROM
+  商品マスタ SHOHIN
+  LEFT OUTER JOIN 各種テーブル BUSHOGRP ON
+    BUSHOGRP.各種CD = 26
+    AND ( SHOHIN.部署グループ = BUSHOGRP.サブ各種CD2  OR SHOHIN.部署グループ = 9 )
+WHERE
+  SHOHIN.表示ＦＬＧ = 0
+  AND ( SHOHIN.弁当区分 = 0 OR SHOHIN.弁当区分 = 8 )
+  AND (( 1 <= SHOHIN.商品区分 AND SHOHIN.商品区分 <= 7 ) OR SHOHIN.商品区分 = 9 )
+  AND BUSHOGRP.サブ各種CD1 = $BushoCd
+)
+, ProductsMainSub AS (
+SELECT
+	IIF(s1.商品ＣＤ IS NULL, Products.商品ＣＤ, s1.商品ＣＤ) AS 商品ＣＤ
+	,IIF(s1.商品名 IS NULL, Products.商品名, s1.商品名) AS 商品名
+	,IIF(s1.商品略称 IS NULL, Products.商品略称, s1.商品略称) AS 商品略称
+	,IIF(s1.商品区分 IS NULL, Products.商品区分, s1.商品区分) AS 商品区分
+FROM Products
+    LEFT JOIN 商品マスタ s1 ON s1.商品ＣＤ = Products.主食ＣＤ OR s1.商品ＣＤ = Products.副食ＣＤ
+WHERE
+	Products.主食ＣＤ != 0 OR Products.副食ＣＤ != 0 OR Products.表示ＦＬＧ != 1
+)
+SELECT DISTINCT
+	商品ＣＤ,
+	IIF(商品略称 IS NULL, 商品名, 商品略称) AS 表示名,
+	商品区分
+FROM ProductsMainSub
+ORDER BY
+	商品区分, 商品ＣＤ
+        ";
 
-    /**
-     * GetViewModel
-     */
-    public function GetViewModel()
-    {
-        return response()->json($this->GenerateViewModel());
+        $DataList = DB::select($sql);
+
+        return response()->json($DataList);
     }
 
     /**
@@ -36,32 +72,33 @@ class DAI01020Controller extends Controller
      */
     public function Search($vm)
     {
-        //TODO: dummy DataList
-        $faker = \Faker\Factory::create('ja_JP');
-        $DataList = Arr::collapse(
-            collect(range(1, 3))
-                ->map(function($k) use($faker) {
-                    $vms = collect(range(1, $faker->numberBetween(1, 3)))
-                        ->map(function($j) use ($k, $faker) {
-                            $vm = (object) [];
-                            $vm->UID = $faker->uuid;
-                            $vm->MajorNo = sprintf('%02d', $k);
-                            $vm->MinorNo = sprintf('%02d', $k) . sprintf('%02d', $j);
-                            $vm->Volume = $faker->numberBetween(1, 100);
-                            $vm->Unit = $faker->numberBetween(1, 4);
-                            $vm->UPrice1000 = $faker->randomFloat(2, 100, 1000);
-                            $vm->Memo = $faker->realText;
+        $BushoCd = $vm->BushoCd;
+        $CourseKbn = $vm->CourseKbn;
+        $DeliveryDate = $vm->DeliveryDate;
 
-                            return $vm;
-                        })
-                        ->values();
+        $WhereCourseKbn = $CourseKbn ? ("AND コースマスタ.コース区分 = " . $CourseKbn) : "";
 
-                    return $vms;
-                })
-                ->values()
-        );
+        $sql = "
+SELECT
+    コースマスタ.部署CD,
+    '$DeliveryDate' AS 対象日付,
+	コースマスタ.コースＣＤ,
+	コースマスタ.コース名,
+	モバイル_持ち出し入力.持ち出し日付,
+	モバイル_持ち出し入力.商品ＣＤ,
+	モバイル_持ち出し入力.個数
+FROM
+	コースマスタ
+	LEFT OUTER JOIN [モバイル_持ち出し入力]
+		ON  コースマスタ.コースＣＤ = モバイル_持ち出し入力.コースＣＤ
+		AND コースマスタ.部署ＣＤ = モバイル_持ち出し入力.部署ＣＤ
+		AND モバイル_持ち出し入力.持ち出し日付 = '$DeliveryDate'
+WHERE
+    コースマスタ.部署CD = $BushoCd
+$WhereCourseKbn
+        ";
 
-        // $DataList = [];
+        $DataList = DB::select($sql);
 
         return response()->json($DataList);
     }
@@ -71,36 +108,58 @@ class DAI01020Controller extends Controller
      */
     public function Save($request)
     {
-        $lists = $request->all();
-        $AddList = $lists['AddList'];
-        $UpdateList = $lists['UpdateList'];
-        $DeleteList = $lists['DeleteList'];
+        $params = $request->all();
+        $targets = $params['targets'];
 
-        //TODO: validation
-        validator()->validate($lists, [
-            'AddList.*.StartYMD' => 'required',
-            'AddList.*.InfoTitle' => 'required',
-            'AddList.*.InfoMemo' => 'required',
-            'UpdateList.*.StartYMD' => 'required',
-            'UpdateList.*.InfoTitle' => 'required',
-            'UpdateList.*.InfoMemo' => 'required',
+        //validation
+        validator()->validate($targets, [
+            'targets.*.*' => 'required',
         ]);
 
-        //TODO: dummy DataList
-        $kow = now();
-        $DataList = collect(range(1, 100))
-            ->map(function($k) use ($kow) {
-                $vm = $this->GenerateViewModel();
-                $vm->InfoTitle = $vm->InfoTitle . sprintf('%03d', $k);
-                $vm->InfoMemo = $vm->InfoMemo . sprintf('%03d', $k);
-                $vm->StartDate = (clone $kow)->addDays($k)->format('Y/m/d');
+        //トランザクション開始
+        DB::transaction(function() use ($targets) {
+            collect($targets)->each(function ($target, $key) {
+                $BushoCd = $target['部署CD'];
+                $CourseCd = $target['コースＣＤ'];
+                $ShohinCd = $target['商品CD'];
+                $Amount = $target['個数'];
+                $TargetDate = $target['対象日付'];
 
-                return $vm;
-            })
-            ->values();
+                $sql = "
+IF EXISTS (
+	SELECT
+		持ち出し日付
+	FROM
+		モバイル_持ち出し入力
+	WHERE
+		持ち出し日付 = '$TargetDate'
+	AND 部署CD = $BushoCd
+	AND コースＣＤ = $CourseCd
+	AND 商品ＣＤ = $ShohinCd
+)
+BEGIN
+	UPDATE モバイル_持ち出し入力
+	SET
+		商品CD = $ShohinCd,
+		個数 = $Amount,
+		修正日 = GETDATE()
+	WHERE
+		持ち出し日付 = '$TargetDate'
+	AND 部署CD = $BushoCd
+	AND コースＣＤ = $CourseCd
+	AND 商品ＣＤ = $ShohinCd
+END
+ELSE
+	INSERT INTO モバイル_持ち出し入力
+	VALUES ($BushoCd, $CourseCd, '$TargetDate', $ShohinCd, $Amount, GETDATE())
+        ";
 
-        session(["DataList"=>$DataList]);
+                DB::statement($sql);
+            });
+        });
 
-        return response()->json($DataList);
+        return response()->json([
+            'result' => true,
+        ]);
     }
 }

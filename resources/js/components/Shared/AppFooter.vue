@@ -131,14 +131,14 @@ button.navbar-right {
         methods: {
             setFooterButtons: function (options) {
                 this.shortcuts = [];
-                this.buttons = options.map(k => this.createButton(k))
+                this.buttons = options.map((k, i) => this.createButton(k, i))
             },
-            createButton: function (option) {
+            createButton: function (option, idx) {
                 var vue = this;
 
                 var defaults = {
                     value: null,
-                    id: "footer_button_" + (this.buttons.length + 1),
+                    id: "footer_button_" + (idx + 1),
                     class: [],
                     align: "left",    // left/right
                     visible: "none",  // true => visibility:visible / false => visibility:hidden / none => display:none;
