@@ -2240,7 +2240,11 @@ export default {
                     if (editor) {
                         if (editor.css("display") == "none") {
                             //カスタムeditor
-                            editor.trigger($.Event("keydown", {keyCode: 9, which: 9, shiftKey: reverse}));
+                            editor.trigger($.Event("keydown", {
+                                keyCode: 9,
+                                which: 9,
+                                shiftKey: reverse
+                            }));
                             return false;
                         } else {
                             //標準editor
