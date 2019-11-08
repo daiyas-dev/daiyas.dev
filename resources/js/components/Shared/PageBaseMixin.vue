@@ -67,14 +67,15 @@ export default {
     },
     watch: {
         footerButtons: {
-            handler: function(newVal) { this.$root.$emit("setFooterButtons", newVal); },
+            deep: true,
+            sync: true,
+            handler: function(newVal) {
+                this.$root.$emit("setFooterButtons", newVal);
+            },
         },
     },
     created: function () {
         var vue = this;
-
-        //HTML5 menu polyfill
-        $.contextMenu("html5");
 
         //ViewModel設定
         $.extend(true, vue.viewModel, vue.vm);

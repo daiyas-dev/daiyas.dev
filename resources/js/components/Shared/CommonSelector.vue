@@ -188,9 +188,6 @@ export default {
         //ViewModel設定
         $.extend(true, this.viewModel, this.vm);
 
-        //HTML5 menu polyfill
-        $.contextMenu("html5");
-
         this.$root.$on('resize', this.resize);
     },
     mounted: function () {

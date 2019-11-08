@@ -96,8 +96,16 @@ var dialogCustom = function(options) {
 
     //call jQuery dialog
     var target = typeof this == "object" ? $(this) : $("<div id='jqDialog'>");
-    return target.dialog(opt);
+    var dlg = target.dialog(opt);
 
+    dlg.closest(".ui-dialog").on("keydown", function (ev) {
+        if (opt.keyDownHandler) {
+            var element = this;
+            opt.keyDownHandler(target, opt, ev);
+        }
+    });
+
+    return dlg;
 };
 
 //jQueryのfunctionとして追加

@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Events\PrivateEvent;
 use App\Events\PublicEvent;
+use App\Models\コーステーブル;
 use App\Models\コースマスタ;
+use App\Models\備考マスタ;
 use App\Models\各種テーブル;
 use App\Models\商品マスタ;
 use App\Models\得意先マスタ;
 use App\Models\担当者マスタ;
+use App\Models\祝日マスタ;
 use App\Models\部署マスタ;
 use Illuminate\Http\Request;
 use DB;
@@ -168,19 +171,87 @@ class UtilitiesController extends Controller
     }
 
     /**
+     * GetBikouList
+     */
+    public function GetBikouList($request)
+    {
+        $Kbn = $request->kbn;
+
+        $query = 備考マスタ::query()
+            ->when(
+                $Kbn,
+                function ($q) use ($Kbn) {
+                    return $q->whereIn('区分', $Kbn);
+                }
+            );
+
+        $BikouList = collect($query->get())
+            ->map(function ($Bikou) {
+                $vm = (object) $Bikou;
+
+                //一覧用項目追加
+                $vm->Cd = $Bikou->備考ＣＤ;
+                $vm->CdNm = $Bikou->備考;
+                $vm->Group = $Bikou->区分;
+
+                return $vm;
+            })
+            ->values();
+
+        return response()->json($BikouList);
+    }
+
+    /**
+     * GetHolidayList
+     */
+    public function GetHolidayList($request)
+    {
+        $from = $request->from;
+        $to = $request->to;
+
+        $query = 祝日マスタ::query()
+            ->when(
+                $from,
+                function ($q) use ($from) {
+                    return $q->where('対象日付', '>=', $from);
+                }
+            )
+            ->when(
+                $to,
+                function ($q) use ($to) {
+                    return $q->where('対象日付', '<=', $to);
+                }
+            );
+
+        $HolidayList = collect($query->get())
+            ->map(function ($Bikou) {
+                $vm = (object) $Bikou;
+
+                //一覧用項目追加
+                $vm->Cd = $Bikou->対象日付;
+                $vm->CdNm = $Bikou->名称;
+
+                return $vm;
+            })
+            ->values();
+
+        return response()->json($HolidayList);
+    }
+
+    /**
      * GetCourseList
      */
     public function GetCourseList($request)
     {
-        $BushoCdCd = $request->bushoCd;
+        $BushoCd = $request->bushoCd;
         $CourseCd = $request->courseCd;
         $CourseKbn = $request->courseKbn;
 
-        $query = コースマスタ::query()
+        $query = コースマスタ::with(['担当者'])
             ->when(
-                $BushoCdCd,
-                function ($q) use ($BushoCdCd) {
-                    return $q->where('部署ＣＤ', $BushoCdCd);
+                $BushoCd,
+                function ($q) use ($BushoCd) {
+                    return $q->where('部署ＣＤ', $BushoCd);
                 }
             )
             ->when(
@@ -203,11 +274,58 @@ class UtilitiesController extends Controller
                 $vm->Cd = $course->コースＣＤ;
                 $vm->CdNm = $course->コース名;
 
+                $vm->担当者名 = $course->担当者->担当者名;
+
                 return $vm;
             })
             ->values();
 
         return response()->json($CourseList);
+    }
+
+    /**
+     * GetCustomerList
+     */
+    public function GetCustomerListFromCourse($request)
+    {
+        $BushoCd = $request->bushoCd;
+        $CourseCd = $request->courseCd;
+
+        $query = コーステーブル::with(['得意先'])
+            ->when(
+                $BushoCd,
+                function ($q) use ($BushoCd) {
+                    return $q->where('部署ＣＤ', $BushoCd);
+                }
+            )
+            ->when(
+                $CourseCd,
+                function ($q) use ($CourseCd) {
+                    return $q->where('コースＣＤ', $CourseCd);
+                }
+            );
+
+        $CustomerList = collect($query->get())
+            ->map(function ($course) {
+                $vm = (object) $course;
+
+                $vm->Cd = $course->得意先ＣＤ;
+                $vm->CdNm = $course->得意先->得意先名;
+                $vm->得意先名 = $course->得意先->得意先名;
+                $vm->得意先名カナ = $course->得意先->得意先名カナ;
+                $vm->得意先名略称 = $course->得意先->得意先名略称;
+                $vm->電話番号１ = $course->得意先->電話番号１;
+                $vm->備考１ = $course->得意先->備考１;
+                $vm->備考２ = $course->得意先->備考２;
+                $vm->備考３ = $course->得意先->備考３;
+
+                unset($vm->得意先);
+
+                return $vm;
+            })
+            ->values();
+
+        return response()->json($CustomerList);
     }
 
     /**
@@ -347,6 +465,8 @@ SELECT
 	部署名,
 	得意先CD,
 	得意先名,
+    得意先名略称,
+    得意先名カナ,
     売掛現金区分,
     電話番号１,
     備考１,

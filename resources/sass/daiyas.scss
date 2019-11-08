@@ -239,6 +239,13 @@ label {
     -ms-user-select: none;
     user-select: none;
 }
+.label-blue {
+    color: royalblue;
+}
+label.label-blue {
+    font-size: 12pt;
+}
+
 
 /* PqGrid */
 .pq-header-outer .pq-cont-inner {
@@ -305,5 +312,10 @@ form > .row {
 }
 
 svg[style*="NaNpx"] {
+    display: none;
+}
+
+/* ParamQuery CM */
+div[style="position:fixed;bottom:0;right:25px;padding:0 2px;margin:0;opacity:0.5;z-index:10000;border:1px solid lightgray;border-radius:5px;pointer-events:none;"] {
     display: none;
 }

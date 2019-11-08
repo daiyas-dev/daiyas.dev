@@ -58,6 +58,8 @@ import DAI01020 from "@vcp/DAI01020.vue";
 import DAI01030 from "@vcp/DAI01030.vue";
 import DAI01040 from "@vcp/DAI01040.vue";
 
+import DAI07010 from "@vcp/DAI07010.vue";
+
 //子画面表示確認
 import CommonSelector from "@vcs/CommonSelector.vue";
 
@@ -105,6 +107,7 @@ export default {
         DAI01020,
         DAI01030,
         DAI01040,
+        DAI07010,
         //共通画面用Selector
         CommonSelector,
         //TODO: dummy || sample

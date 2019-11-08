@@ -24,6 +24,7 @@ export default {
     },
     data() {
         return {
+            ready: false,
         }
     },
     props: {
@@ -59,8 +60,14 @@ export default {
         var vue = this;
 
         if (!vue.withoutLogin) {
-            vue.$root.$on("logOn", info => vue._vmodel[vue._bind] = info.user.bushoCd);
-            vue.$root.$on("logOff", info => vue._vmodel[vue._bind] = null);
+            vue.$root.$on("logOn", info => {
+                vue.ready = true;
+                vue._vmodel[vue._bind] = info.user.bushoCd;
+            });
+            vue.$root.$on("logOff", info => {
+                vue.ready = false;
+                vue._vmodel[vue._bind] = null;
+            });
         }
     },
     mounted: function () {
@@ -68,6 +75,7 @@ export default {
 
         if (!vue.withoutLogin && window.loginInfo && window.loginInfo.bushoCd) {
             vue._vmodel[vue._bind] = window.loginInfo.bushoCd;
+            vue.ready = true;
         }
     },
     methods: {

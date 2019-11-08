@@ -119,7 +119,6 @@ export default {
             $(this.$el).find("#" + this._id).datetimepicker("show");
         },
         calendarHidden: function(event) {
-            $(this.$el).find("button").focus();
             if (this.onCalendarHiddenFunc) {
                 this.onCalendarHiddenFunc(event);
             }

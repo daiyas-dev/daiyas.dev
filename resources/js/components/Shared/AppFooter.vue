@@ -102,6 +102,10 @@ button.navbar-right {
     margin-right: 0px;
     float: right !important;
 }
+button .shortcut {
+    font-size: 14px;
+    font-weight: normal;
+}
 </style>
 
 <script>
@@ -152,7 +156,7 @@ button.navbar-right {
                 ret.class = _.concat(ret.class, "footer-button-visible-" + ret.visible);
 
                 if (ret.shortcut) {
-                    ret.value += "<br>" + "(" + ret.shortcut + ")";
+                    ret.value += "<br>" + "<span class='shortcut'>(" + ret.shortcut + ")<span>";
                     vue.shortcuts.push({ key: ret.shortcut, func: ret.onClick });
                 }
 
@@ -160,10 +164,51 @@ button.navbar-right {
             },
             receiveShortcutKey: function(evt) {
                 var vue = this;
-                var sc = _.find(vue.shortcuts, v => [evt.code, evt.key, evt.keyCode, evt.which].includes(v.key));
-                if (sc) {
+
+                console.log("receiveShortcutKey:" + evt.key);
+                console.log(evt);
+
+                var sc = _.find(vue.shortcuts, v => {
+                    var keys = v.key.split(/ *, */);
+                    var match = _.some(keys, key => {
+                        var op = key
+                                .split(/ *\+ */)
+                                .filter(k => !["Shift", "Ctrl", "Alt"].includes(k))
+                                .map(k => {
+                                    var conv = {
+                                        "←" : "ArrowLeft",
+                                        "→" : "ArrowRight",
+                                        "↑" : "ArrowUp",
+                                        "↓" : "ArrowDown",
+                                    };
+
+                                    return conv[k] || k;
+                                });
+
+                        var isShift = key.includes("Shift");
+                        var isCtrl = key.includes("Ctrl");
+                        var isAlt = key.includes("Alt");
+
+                        var ret =
+                                (
+                                    _.some(op, k => [evt.code, evt.key, evt.keyCode, evt.which].includes(k))
+                                    ||
+                                    _.some(op, k => [evt.code, evt.key, evt.keyCode, evt.which].includes(k.toLowerCase()))
+                                )
+                                && evt.shiftKey == isShift
+                                && evt.ctrlKey == isCtrl
+                                && evt.altKey == isAlt;
+
+                        return ret;
+                    });
+
+                    return match;
+                });
+                if (sc && !sc.disabled) {
                     sc.func();
                     return false;
+                } else {
+                    return true;
                 }
             },
         }

@@ -32,14 +32,14 @@
             </div>
             <div class="col-md-2">
                 <label class="text-center">時間</label>
-                <input class="form-control p-0 text-center" style="width: 80px;" type="text" :value=viewModel.DeliveryTime readonly>
+                <input class="form-control p-0 text-center" style="width: 80px;" type="text" :value=viewModel.DeliveryTime readonly tabindex="-1">
             </div>
         </div>
         <div class="row">
             <div class="col-md-1">
                 <label>得意先</label>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-9">
                 <PopupSelect
                     id="CustomerSelect"
                     ref="PopupSelect_Customer"
@@ -47,7 +47,7 @@
                     bind="CustomerCd"
                     buddy="CustomerNm"
                     dataUrl="/Utilities/GetCustomerAndCourseList"
-                    :params="{ bushoCd: viewModel.BushoCd, targetDate: FormattedDeliveryDate }"
+                    :params="{ targetDate: FormattedDeliveryDate }"
                     title="得意先一覧"
                     labelCd="得意先CD"
                     labelCdNm="得意先名"
@@ -63,14 +63,14 @@
                     :editable=true
                     :reuse=true
                     :existsCheck=true
-                    :inputWidth=100
+                    :inputWidth=150
                     :nameWidth=400
                     :onChangeFunc=onCustomerChanged
+                    :isShowAutoComplete=true
+                    :AutoCompleteFunc=CustomerAutoCompleteFunc
                 />
-            </div>
-            <div class="col-md-4">
-                <label class="text-center">TEL</label>
-                <input class="form-control p-0 text-center" style="width: 120px;" type="text" :value=viewModel.TelNo readonly>
+                <label class="label-blue text-center">TEL</label>
+                <input class="form-control p-0 text-center" style="width: 120px;" type="text" :value=viewModel.TelNo readonly tabindex="-1">
                 <label class="ml-1 label-blue">{{viewModel.PaymentNm}}</label>
             </div>
         </div>
@@ -79,8 +79,8 @@
                 <label>担当者</label>
             </div>
             <div class="col-md-5">
-                <input class="form-control" style="width: 100px;" type="text" :value=viewModel.TantoCd readonly>
-                <input class="form-control ml-1" style="width: 300px;" type="text" :value=viewModel.TantoNm readonly>
+                <input class="form-control label-blue" style="width: 100px;" type="text" :value=viewModel.TantoCd readonly tabindex="-1">
+                <input class="form-control ml-1 label-blue" style="width: 300px;" type="text" :value=viewModel.TantoNm readonly tabindex="-1">
             </div>
         </div>
         <div class="row">
@@ -88,8 +88,8 @@
                 <label>コース</label>
             </div>
             <div class="col-md-5">
-                <input class="form-control" style="width: 100px;" type="text" :value=viewModel.CourseCd readonly>
-                <input class="form-control ml-1" style="width: 300px;" type="text" :value=viewModel.CourseNm readonly>
+                <input class="form-control label-blue" style="width: 100px;" type="text" :value=viewModel.CourseCd readonly tabindex="-1">
+                <input class="form-control ml-1 label-blue" style="width: 300px;" type="text" :value=viewModel.CourseNm readonly tabindex="-1">
             </div>
         </div>
         <div class="row">
@@ -111,49 +111,42 @@
             :query=this.viewModel
             :SearchOnCreate=false
             :SearchOnActivate=false
+            :checkChanged=true
+            :checkChangedFunc=checkChangedFunc
+            :checkChangedCancelFunc=checkChangedCancelFunc
             :options=this.grid1Options
+            :onCompleteFunc=onCompleteFunc
             :onSelectChangeFunc=onSelectChangeFunc
             :autoEmptyRow=true
             :autoEmptyRowCount=1
             :autoEmptyRowFunc=autoEmptyRowFunc
             :autoEmptyRowCheckFunc=autoEmptyRowCheckFunc
         />
-        <div class="row m-1">
-            <div class="col-md-1">
-                <label for="Bikou">備考</label>
+        <div class="row">
+            <div class="col-md-1 d-block">
+                <label>備考</label>
             </div>
-            <div class="col-md-11">
-                    <VueSelect
-                        title.width="200px"
-                        id="Bikou"
-                        :vmodel=viewModel
-                        bind="Bikou"
-                        dataUrl="/Utilities/GetBikouList"
-                        :hasNull=true
-                        class="bikou"
-                        style="width: 100%"
-                    />
-                    <VueSelect
-                        title.width="200px"
-                        id="Bikou"
-                        :vmodel=viewModel
-                        bind="Bikou"
-                        dataUrl="/Utilities/GetBikouList"
-                        :hasNull=true
-                        class="bikou"
-                        style="width: 100%"
-                    />
-                     <VueSelect
-                        title.width="200px"
-                        id="Bikou"
-                        :vmodel=viewModel
-                        bind="Bikou"
-                        dataUrl="/Utilities/GetBikouList"
-                        :hasNull=true
-                        class="bikou"
-                        style="width: 100%"
-                    />
-      </div>
+            <div class="col-md-8 d-block">
+                <VueDataList v-for="n in 0"
+                    v-bind:key='"Bikou" + n'
+                    :id='"Bikou" + n'
+                    :vmodel=viewModel
+                    :bind='"Bikou" + n'
+                    dataUrl="/Utilities/GetBikouList"
+                    :hasNull=true
+                    class="bikou"
+                    style="width: 675px;"
+                    listHeight="20vh"
+                />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-5 offset-md-5 update-info">
+                <label class="label-blue">修正者</label>
+                <label class="label-blue" style="width: 100px;"></label>
+                <label class="label-blue">修正日時</label>
+                <label class="label-blue" style="width: 100px;"></label>
+            </div>
         </div>
     </form>
 </template>
@@ -162,9 +155,14 @@
 label {
     max-width: 60px;
 }
-label.label-blue {
+.update-info .label-blue {
+    max-width: unset !important;
+    margin-right: 4px;
+}
+</style>
+<style>
+#Page_DAI01030 .CustomerSelect .select-name {
     color: royalblue;
-    font-size: 12pt;
 }
 </style>
 
@@ -215,6 +213,11 @@ export default {
                 TantoNm: null,
                 CourseCd: null,
                 CourseNm: null,
+                Bikou1: null,
+                Bikou2: null,
+                Bikou3: null,
+                Bikou4: null,
+                Bikou5: null,
                 IsShowAll: null,
             },
             DAI01030Grid1: null,
@@ -226,16 +229,16 @@ export default {
                 fillHandle: "",
                 numberCell: { show: true, title: "No.", resizable: false, },
                 autoRow: false,
-                rowHtHead: 30,
+                rowHtHead: 25,
                 rowHt: 30,
-                height: 300,
+                height: 270,
                 editable: true,
                 columnTemplate: {
                     editable: false,
                     sortable: false,
                 },
-                trackModel: { on: false },
-                historyModel: { on: false },
+                trackModel: { on: true },
+                historyModel: { on: true },
                 filterModel: {
                     on: true,
                     mode: "OR",
@@ -436,27 +439,27 @@ export default {
                             },
                         ],
                     },
-                    {
-                        title: "確認",
-                        dataIndx: "Checked", type: "checkbox",
-                        width: 40, maxWidth: 40, minWidth: 40,
-                        align: "center",
-                        cbId: "CheckState",
-                        render: ui => {
-                            if (ui.rowData.summaryRow) {
-                                //合計行では非表示
-                                return "";
-                            }
-                        },
-                    },
-                    {
-                        title: "確認チェック状態",
-                        dataIndx: "CheckState",
-                        dataType: "bool",
-                        cb: { header: false },
-                        hidden: true,
-                        editable: true,
-                    },
+                    // {
+                    //     title: "確認",
+                    //     dataIndx: "Checked", type: "checkbox",
+                    //     width: 40, maxWidth: 40, minWidth: 40,
+                    //     align: "center",
+                    //     cbId: "CheckState",
+                    //     render: ui => {
+                    //         if (ui.rowData.summaryRow) {
+                    //             //合計行では非表示
+                    //             return "";
+                    //         }
+                    //     },
+                    // },
+                    // {
+                    //     title: "確認チェック状態",
+                    //     dataIndx: "CheckState",
+                    //     dataType: "bool",
+                    //     cb: { header: false },
+                    //     hidden: true,
+                    //     editable: true,
+                    // },
                 ],
             },
         });
@@ -479,11 +482,22 @@ export default {
             //条件変更ハンドラ
             //vue.conditionChanged();
         },
-        onCustomerChanged: function(element, info, comp, isNoMsg, isValid) {
+        onCustomerChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
+            var vue = this;
+            vue.CustomerChanged(info, isValid);
+        },
+        CustomerChanged: function(info, isValid, noSearch) {
             var vue = this;
             var grid = vue.DAI01030Grid1;
 
-            vue.viewModel.CustomerInfo = info;
+            //popupselectがviewModelをwatchしているので、得意先CDから更新
+            vue.viewModel.CustomerCd = info["得意先CD"];
+            vue.viewModel.CustomerNm = info["得意先名"];
+
+            if (info["部署CD"] && vue.viewModel.BushoCd != info["部署CD"]) {
+                vue.viewModel.BushoCd = info["部署CD"];
+            }
+
             vue.viewModel.TelNo = info["電話番号１"];
             vue.viewModel.PaymentCd = info["売掛現金区分"];
             vue.viewModel.PaymentNm = ["現金", "掛売"][vue.viewModel.PaymentCd] || (isValid ? "チケット" : "");
@@ -492,23 +506,32 @@ export default {
             vue.viewModel.CourseKbn = info["コース区分"];
             vue.viewModel.CourseCd = info["コースCD"];
             vue.viewModel.CourseNm = info["コース名"];
+            vue.viewModel.CustomerInfo = info;
 
             //現金/掛売列の表示制御
-            grid.columns["現金個数"].editable = info["売掛現金区分"] == 0;
+            grid.columns["現金個数"].hidden = info["売掛現金区分"] != "0";
             grid.columns["現金個数"].cls = info["売掛現金区分"] == 0 ? "cell-editable" : "cell-readonly-force";
+            grid.columns["現金金額"].hidden = info["売掛現金区分"] != "0";
             grid.columns["現金金額"].cls = info["売掛現金区分"] == 0 ? "" : "cell-readonly-force";
-            grid.columns["掛売個数"].editable = info["売掛現金区分"] == 1;
+
+            grid.columns["掛売個数"].hidden = info["売掛現金区分"] != "1";
             grid.columns["掛売個数"].cls = info["売掛現金区分"] == 1 ? "cell-editable" : "cell-readonly-force";
+            grid.columns["掛売金額"].hidden = info["売掛現金区分"] != "1";
             grid.columns["掛売金額"].cls = info["売掛現金区分"] == 1 ? "" : "cell-readonly-force";
 
             //条件変更ハンドラ
-            vue.conditionChanged();
+            vue.conditionChanged(noSearch);
         },
-        conditionChanged: function() {
+        conditionChanged: function(noSearch) {
             var vue = this;
             var grid = vue.DAI01030Grid1;
 
-            if (vue.getLoginInfo().isLogOn && vue.viewModel.BushoCd && vue.viewModel.DeliveryDate && vue.viewModel.CustomerCd) {
+            if (vue.getLoginInfo().isLogOn
+                && vue.viewModel.BushoCd
+                && vue.viewModel.DeliveryDate
+                && vue.viewModel.CustomerCd
+                && noSearch != true
+            ) {
                 var params = $.extend(true, {}, vue.viewModel);
 
                 //配送日を"YYYYMMDD"形式に編集
@@ -535,7 +558,79 @@ export default {
             var vue = this;
             vue.viewModel.IsShowAll = !vue.viewModel.IsShowAll;
         },
+        onCompleteFunc: function(grid, ui) {
+            var vue = this;
+
+            if (grid.pdata.length > 0) {
+                var data = grid.pdata[0];
+                var colIndx = !data["商品ＣＤ"] ? grid.columns["商品ＣＤ"].leftPos
+                    : _(grid.columns).pickBy((v, k) => k.endsWith("個数") && !v.hidden).values().value()[0].leftPos;
+                grid.setSelection({ rowIndx: 0, colIndx: colIndx });
+            }
+        },
         onSelectChangeFunc: function(grid, ui) {
+        },
+        CustomerAutoCompleteFunc: function(input, dataList) {
+            var vue = this;
+            //var input = vmodel.CustomerCd;
+
+            if (!dataList.length || !input) return [];
+
+            console.time("CustomerAutoCompleteFunc");
+
+            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keyAnd = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
+            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
+
+            var wholeColumns = ["得意先名", "得意先名略称", "得意先名カナ", "備考１", "備考２", "備考３"];
+
+            var list = dataList
+                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
+                .filter(v => {
+                    return _.some(keyOR, k => v.得意先CD.startsWith(k))
+                        || _.some(keyOR, k => k.match(/^[0-9\-]{6,}/) != null && !!v.電話番号１ ? v.電話番号１.startsWith(k) : false)
+                        || _.some(keyOR, k => v.whole.includes(k))
+                })
+                .filter(v => {
+                    return keyAnd.length == 0 || _.every(keyAnd, k => (v.whole + (v.電話番号１ || "")).includes(k));
+                })
+                .map(v => {
+                    var ret = v;
+                    ret.label = v.得意先CD + " : " + "【" + v.部署名 + "】" + v.得意先名;
+                    ret.value = v.得意先CD;
+                    ret.text = v.得意先名;
+                    return ret;
+                })
+                ;
+
+            console.timeEnd("CustomerAutoCompleteFunc");
+            console.log("CustomerAutoCompleteFunc:" + input + " = " + list.length);
+            return list;
+        },
+        checkChangedFunc: function(grid) {
+            console.log("checkChangedFunc");
+            return true;
+        },
+        checkChangedCancelFunc: function(grid) {
+            var vue = this;
+            var grid = vue.DAI01030Grid1;
+            var postData = grid.options.dataModel.postData;
+
+            console.log("checkChangedCancelFunc");
+
+            if (vue.viewModel.CustomerCd != postData.CustomerCd) {
+                var ps = vue.$refs.PopupSelect_Customer;
+                var info = ps.dataList.find(v => v.Cd == postData.CustomerCd);
+                ps.selectValue = info["得意先CD"]
+                ps.selectName = info["得意先名"];
+                ps.selectRow = info;
+                vue.CustomerChanged(info, true, true);
+
+                ps.AutoCompleteFocusSkip = true;
+            }
+            if (vue.viewModel.DeliveryDate != postData.DeliveryDate) {
+                vue.viewModel.DeliveryDate = moment(postData.DeliveryDate, "YYYYMMDD").format("YYYY年MM月DD日");
+            }
         },
     }
 }

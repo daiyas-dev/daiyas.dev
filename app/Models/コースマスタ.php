@@ -18,7 +18,7 @@ class コースマスタ extends Model
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = 'コースマスタ';
@@ -27,5 +27,13 @@ class コースマスタ extends Model
      * @var array
      */
     protected $fillable = ['コース区分', 'コース名', '担当者ＣＤ', '工場区分', '修正担当者ＣＤ', '修正日'];
+
+    /**
+     * Join 担当者マスタ on 担当者ＣＤ
+     */
+    public function 担当者()
+    {
+        return $this->belongsTo('App\Models\担当者マスタ', '担当者ＣＤ', '担当者ＣＤ');
+    }
 
 }

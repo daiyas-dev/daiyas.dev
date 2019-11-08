@@ -205,7 +205,7 @@ export default {
 
                         //配送日を"YYYYMMDD"形式に編集
                         params.DeliveryDate = params.DeliveryDate ? moment(params.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
-                        vue.DAI01010Grid1.searchData(params, false, () => vue.DAI01010Grid1.print(vue.setPrintOptions));
+                        vue.DAI01010Grid1.searchData(params, false, null, () => vue.DAI01010Grid1.print(vue.setPrintOptions));
                     }
                 }
             );

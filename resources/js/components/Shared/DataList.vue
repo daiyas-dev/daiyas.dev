@@ -2,12 +2,13 @@
 <template>
     <div :data-tip="isExists ? null : '選択可能な一覧がありません'" class="VueDataList">
         <label v-if="title" :for="idSelector">{{title}}</label>
-        <input type="text" class="form-control" autocomplete="off"
+        <input type="text" class="form-control data-input" autocomplete="off"
             :id="idSelector"
             :style="css"
             :list="(entities && entities.length) ? (id + 'List') : ''"
             @change="onChanged"
         />
+        <select class="form-control selector"></select>
         <input type="hidden" :id="id" :value="value" />
         <input type="hidden" v-if="buddyId" :id="buddyId" />
     </div>
@@ -33,10 +34,11 @@
             labelText: String,
             css: String,
             list: Array,
-            uri: String,
+            dataUrl: String,
             func: Function,
             params: Object,
             changed: Function,
+            listHeight: String,
         },
         computed: {
             isExists: function () {
@@ -56,6 +58,9 @@
             },
             bindBuddyValue: function() {
                 return this.$parent.viewModel ? this.$parent.viewModel[this.buddyId] : null;
+            },
+            "--listHeight": function() {
+                return this.listHeight;
             },
         },
         watch: {
@@ -100,11 +105,24 @@
             this.$root.$on("accountChanged", this.accountChanged);
         },
         mounted: function () {
+            var vue = this;
             //console.log(this.$options.name + " Mounted:");
             //var dt = new Date()
             //console.log(this.id + " mounted:" + dt.toLocaleTimeString() + "." + dt.getMilliseconds());
 
-            this.setEntities();
+            //show selector
+            var $div = $(vue.$el);
+            var $input = $div.find("#" + vue.idSelector);
+            $div.find(".selector")
+                .css("position", "absolute")
+                .css("top", $div.position().top + "px")
+                .css("left", $div.outerWidth() - 10 + "px")
+                .css("width", "20px")
+                .css("height", $input.outerHeight() + "px")
+                .css("display", "block")
+                ;
+
+            vue.setEntities();
         },
         beforeUpdated: function () {
             //console.log(this.$options.name + " BeforeUpdated:");
@@ -149,8 +167,8 @@
 
                 if (this.list) {
                     this.entities = this.list;
-                } else if (this.uri) {
-                    this.getList(this.uri, this.params, this);
+                } else if (this.dataUrl) {
+                    this.getList(this.dataUrl, this.params, this);
                 } else if (this.func) {
                     this.entities = this.func.callee(this.func.params)
                 }
@@ -158,11 +176,11 @@
                 //jQuery Autocomplte生成
                 this.createAutoComplete();
             },
-            getList: function (uri, params, component) {
+            getList: function (dataUrl, params, component) {
                 //var dt = new Date()
                 //console.log(this.id + " getList:" + dt.toLocaleTimeString() + "." + dt.getMilliseconds());
 
-                axios.post(uri, params)
+                axios.post(dataUrl, params)
                     .then(response => {
 
                         if (response.data && (response.data.onError || response.data.onException)) {
@@ -201,17 +219,18 @@
                         component.createAutoComplete();
                     })
                     .catch(error => {
-                        console.log(uri + " Error!");
+                        console.log(dataUrl + " Error!");
                         console.log(error);
 
                         //console.log(error)
                         //他コンポーネントに通知
-                        component.$root.$emit("addMessage", uri + "で例外発生" + JSON.stringify(params));
+                        component.$root.$emit("addMessage", dataUrl + "で例外発生" + JSON.stringify(params));
 
                         component.entities = [];
                     });
             },
             createAutoComplete: function() {
+                var vue = this;
                 //var dt = new Date()
                 //console.log(this.id + " createAutoComplete Start:" + dt.toLocaleTimeString() + "." + dt.getMilliseconds());
 
@@ -233,11 +252,13 @@
 
                         return false;
                     },
+                    position: { my: "left top", at: "left bottom", collision: "flip" },
                     autoFocus: false,
-                    minLength: 0
+                    minLength: 0,
                 })
                     .focus(function() {
                         $(this).autocomplete("search", $(this).val());
+                        $(this).autocomplete("widget").css("max-height", vue.listHeight || "30vh");
                     })
                     .keydown(function(event) {
                         if (event.keyCode == 38 || event.keyCode == 40) { //↑↓キー
@@ -301,62 +322,74 @@
         }
     }
 </script>
-
+<style scoped>
+.data-input {
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+.selector {
+    display: none;
+    width: 15px !important;
+    padding: none;
+    border-left-width: 0;
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+}
+</style>
 <style>
-    .ui-autocomplete {
-        max-height: 50vh;
-        overflow-y: auto;
-        overflow-x: hidden;
-        padding-right: 20px;
-    }
-    #jquery-ui-autocomplete label {
-        float: left;
-        margin-right: 5px;
-        color: black;
-        font-size: 14px;
-    }
+.ui-autocomplete {
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 20px;
+}
+#jquery-ui-autocomplete label {
+    float: left;
+    margin-right: 5px;
+    color: black;
+    font-size: 14px;
+}
 
-    [data-tip] {
-        position: relative;
-    }
+[data-tip] {
+    position: relative;
+}
 
-    [data-tip]:before {
-        content: '';
-        display: none;
-        content: '';
-        border-left: 5px solid transparent;
-        border-right: 5px solid transparent;
-        border-bottom: 5px solid darkorange;
-        position: absolute;
-        top: 30px;
-        left: 50px;
-        z-index: 8;
-        font-size: 0;
-        line-height: 0;
-        width: 0;
-        height: 0;
-    }
+[data-tip]:before {
+    content: '';
+    display: none;
+    content: '';
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 5px solid darkorange;
+    position: absolute;
+    top: 30px;
+    left: 50px;
+    z-index: 8;
+    font-size: 0;
+    line-height: 0;
+    width: 0;
+    height: 0;
+}
 
-    [data-tip]:after {
-        display: none;
-        content: attr(data-tip);
-        position: absolute;
-        font-family: inherit;
-        font-size: 14px;
-        top: 35px;
-        left: 0px;
-        padding: 0px 5px;
-        background: darkorange;
-        z-index: 9;
-        -webkit-border-radius: 3px;
-        -moz-border-radius: 3px;
-        border-radius: 3px;
-        white-space: nowrap;
-        word-wrap: normal;
-    }
+[data-tip]:after {
+    display: none;
+    content: attr(data-tip);
+    position: absolute;
+    font-family: inherit;
+    font-size: 14px;
+    top: 35px;
+    left: 0px;
+    padding: 0px 5px;
+    background: darkorange;
+    z-index: 9;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    white-space: nowrap;
+    word-wrap: normal;
+}
 
-    [data-tip]:not(.has-error):hover:before,
-    [data-tip]:not(.has-error):hover:after {
-        display: block;
-    }
+[data-tip]:not(.has-error):hover:before,
+[data-tip]:not(.has-error):hover:after {
+    display: block;
+}
 </style>

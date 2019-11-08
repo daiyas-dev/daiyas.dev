@@ -42,6 +42,62 @@ export default [
         },
     },
     {
+        path: "/DAI02/:pgId",
+        component: PageSelector,
+        props: true,
+        meta: {
+            keepAlive: true,
+        },
+    },
+    {
+        path: "/DAI03/:pgId",
+        component: PageSelector,
+        props: true,
+        meta: {
+            keepAlive: true,
+        },
+    },
+    {
+        path: "/DAI04/:pgId",
+        component: PageSelector,
+        props: true,
+        meta: {
+            keepAlive: true,
+        },
+    },
+    {
+        path: "/DAI05/:pgId",
+        component: PageSelector,
+        props: true,
+        meta: {
+            keepAlive: true,
+        },
+    },
+    {
+        path: "/DAI06/:pgId",
+        component: PageSelector,
+        props: true,
+        meta: {
+            keepAlive: true,
+        },
+    },
+    {
+        path: "/DAI07/:pgId",
+        component: PageSelector,
+        props: true,
+        meta: {
+            keepAlive: true,
+        },
+    },
+    {
+        path: "/DAI08/:pgId",
+        component: PageSelector,
+        props: true,
+        meta: {
+            keepAlive: true,
+        },
+    },
+    {
         path: "/PID/Exceptions",
         component: {
             template: "<div id='exception'>例外発生:{{this.$route.query.message || this.$route.query.statusText}}<div id='stacktrace' v-html=this.stackTrace></div></div>",

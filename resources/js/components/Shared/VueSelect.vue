@@ -3,6 +3,7 @@
     <div :style="_style" class="form-group d-inline-flex align-items-center VueSelect" :data-tip="isExists ? null : '選択可能な一覧がありません'">
         <label v-if="title" class="" :for="_id">{{title}}</label>
         <select class="form-control" :id="_id" v-model="vmodel[bind]" @change="onChanged"
+            :disabled=disabled
             style="padding-top: 2px; padding-left: 2px; padding-bottom: 2px;">
             <option v-show="hasNull" value=""></option>
             <template v-if="entities && entities.length">
@@ -42,6 +43,7 @@ export default {
         onChangedFunc: Function,
         withCode: Boolean,
         customStyle: String,
+        disabled: Boolean,
     },
     watch: {
         entities: {

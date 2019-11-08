@@ -1,5 +1,8 @@
 ﻿<template>
-    <div :id="this.id"></div>
+    <div>
+        <div :id="this.id"></div>
+        <div v-if=hasFreezeRightCols :id='this.id + "_right"' class="right-grid"></div>
+    </div>
 </template>
 
 <script>
@@ -31,6 +34,7 @@ export default {
             _onRefreshFunc: Function,
             _onCompleteFunc: Function,
             _onChangeFunc: Function,
+            _onCellSaveFunc: Function,
             _onSelectChangeFunc: Function,
             _onSearchErrorsFunc: Function,
             _onSearchExceptionsFunc: Function,
@@ -40,6 +44,7 @@ export default {
             _onAddRowFunc: Function,
             _onDeleteRowFunc: Function,
             _onChangeExceptsColumns: Array,
+            _onBeforeSearchFunc: Function,
             _onAfterSearchFunc: Function,
             _onErrorValsMapFunc: Function,
         }
@@ -56,8 +61,9 @@ export default {
         isFixedHeight: Boolean,
         resizeFunc: Function,
         showContextMenu: Boolean,
-        contextMenu: Object,
         checkChanged: Boolean,
+        checkChangedFunc: Function,
+        checkChangedCancelFunc: Function,
         autoEmptyRow: Boolean,
         autoEmptyRowCount: Number,
         autoEmptyRowCheckFunc: Function,
@@ -67,6 +73,7 @@ export default {
         onRefreshFunc: Function,
         onCompleteFunc: Function,
         onChangeFunc: Function,
+        onCellSaveFunc: Function,
         onSelectChangeFunc: Function,
         onSearchErrorsFunc: Function,
         onSearchExceptionsFunc: Function,
@@ -76,14 +83,23 @@ export default {
         onAddRowFunc: Function,
         onDeleteRowFunc: Function,
         onChangeExceptsColumns: Array,
+        onBeforeSearchFunc: Function,
         onAfterSearchFunc: Function,
         onErrorValsMapFunc: Function,
         canNonSearchInsert: Boolean,
+        freezeRightCols: Number,
+        onBeforeCellKeyDownFunc: Function,
+        onCellKeyDownFunc: Function,
+        setMoveNextCell: Function,
     },
     computed: {
         isDialog: function() {
             var vue = this;
             return $(vue.$parent.$el).closest(".ui-dialog").length == 1;
+        },
+        hasFreezeRightCols: function() {
+            var vue = this;
+            return vue.freezeRightCols > 0;
         },
     },
     created: function () {  //createdは一回きり
@@ -94,6 +110,7 @@ export default {
         vue._onRefreshFunc = vue.onRefreshFunc;
         vue._onCompleteFunc = vue.onCompleteFunc;
         vue._onChangeFunc = vue.onChangeFunc;
+        vue._onCellSaveFunc = vue.onCellSaveFunc;
         vue._onSelectChangeFunc = vue.onSelectChangeFunc;
         vue._onSearchErrorsFunc = vue.onSearchErrorsFunc;
         vue._onSearchExceptionsFunc = vue.onSearchExceptionsFunc;
@@ -103,13 +120,11 @@ export default {
         vue._onAddRowFunc = vue.onAddRowFunc;
         vue._onDeleteRowFunc = vue.onDeleteRowFunc;
         vue._onChangeExceptsColumns = vue.onChangeExceptsColumns;
+        vue._onBeforeSearchFunc = vue.onBeforeSearchFunc;
         vue._onAfterSearchFunc = vue.onAfterSearchFunc;
         vue._onErrorValsMapFunc = vue.onErrorValsMapFunc;
 
         vue.isSearchOnActivate = vue.SearchOnActivate == false ? false : true;
-
-        //HTML5 menu polyfill
-        $.contextMenu("html5");
 
         vue.$root.$on("resize", vue.resize);
         vue.$root.$on("plantChanged", function(info) {
@@ -206,6 +221,9 @@ export default {
                 clicksToEdit: 2,
                 onSave: "nextEdit",
                 onTab: "nextEdit",
+            },
+            editorBegin: function(event, ui) {
+                console.log("Editor Begin:" + ui.$editor.val());
             },
             editorEnd: function(event, ui) {
                 //getData呼出のcolumn取り違えと同様に、cell及びcell内コンポーネントの表示状態の制御にもバグあり
@@ -544,13 +562,13 @@ export default {
                                                     )
                                                 )
                                             ) {
-                                                vue.setCellState(grid, ui);
+                                                vue.setCellState(grid, ui, false);
                                                 vue.moveNextCell(grid, ui, event.shiftKey);
                                                 return false;
                                             }
                                             return true;
                                         case 13:
-                                            vue.setCellState(grid, ui);
+                                            vue.setCellState(grid, ui, false);
                                             vue.moveNextCell(grid, ui);
                                             return false;
                                         case 27:
@@ -657,7 +675,12 @@ export default {
             refresh: function (event, ui) {
                 var grid = this;
                 var vue = grid.options.vue;
-                var id = vue.$el.id;
+                var id = vue.id;
+
+                if (grid.gridRight) {
+                    grid.gridRight.options.dataModel.data = grid.options.dataModel.data;
+                    grid.gridRight.refreshView();
+                }
 
                 //データ読込済みの場合、計算式及び集計行の為の再描画(最新版のFormulaにより解決した模様なのでC/O)
                 //if (grid.pdata && grid.pdata.length > 0 && !grid.isRendered) {
@@ -832,12 +855,16 @@ export default {
                 var grid = this;
                 var vue = grid.options.vue;
 
+                //選択状態解除
+                grid.prevSelection = grid.Selection()._areas;
+                grid.Selection().removeAll();
+
                 //完了時更新関数
                 if (vue._onCompleteFunc && vue.grid) {
                     vue._onCompleteFunc(grid, ui);
                 }
 
-                $("body > div").has("a:contains(ParamQuery)").hide();
+                //$("body > div").has("a:contains(ParamQuery)").hide();
             },
             render: function(event, ui) {
                 //console.log("grid render");
@@ -845,10 +872,9 @@ export default {
             change: function (event, ui) {
                 var grid = this;
                 var vue = grid.options.vue;
+                console.log("grid change");
 
                 grid.refreshView();
-
-                console.log("grid change");
 
                 //変更時更新関数
                 if (vue._onChangeFunc && vue.grid) {
@@ -868,6 +894,15 @@ export default {
                 // }
             },
             cellSave: function (event, ui) {
+                var grid = this;
+                var vue = grid.options.vue;
+                console.log("grid cellSave");
+
+                //変更時更新関数
+                if (vue._onCellSaveFunc && vue.grid) {
+                    vue._onCellSaveFunc(grid, ui, event);
+                }
+
                 if (ui.newVal != ui.oldVal) {
                     ui.rowData[ui.dataIndx] = ui.newVal;
                     this.refreshView();
@@ -884,7 +919,7 @@ export default {
 
                 var grid = this;
                 var vue = grid.options.vue;
-                var id = vue.$el.id;
+                var id = vue.id;
 
                 //セル選択設定で行選択をしている場合は解除
                 if (grid.SelectRow().getSelection().length > 0) {
@@ -975,6 +1010,24 @@ export default {
                 var cell = grid.getCell({rowIndx: ui.rowIndx, dataIndx: ui.dataIndx});
                 //console.log("beforeCellKeyDown: " + event.which);
 
+                if (vue.onBeforeCellKeyDownFunc) {
+                    var ret = vue.onBeforeCellKeyDownFunc(grid, ui, event);
+                    if (!ret) return false;
+                }
+
+                if (event.altKey && event.key != "Alt") {
+                    $(document).trigger($.Event("keydown", {
+                            key: event.key,
+                            keyCode: event.keyCode,
+                            which: event.which,
+                            shiftKey: event.shiftKey,
+                            ctrlKey: event.ctrlKey,
+                            altKey: event.altKey,
+                        })
+                    );
+                    return false;
+                }
+
                 switch(event.which) {
                     case 13:   //"enter"
                     case 32:   //"space"
@@ -996,6 +1049,11 @@ export default {
                 var vue = grid.options.vue;
                 var cell = this.getCell({rowIndx: ui.rowIndx, dataIndx: ui.dataIndx});
                 //console.log("cellKeyDown: " + event.which);
+
+                if (vue.onCellKeyDownFunc) {
+                    var ret = vue.onCellKeyDownFunc(grid, ui, event);
+                    if (!ret) return false;
+                }
 
                 if (event.ctrlKey) {
                     switch(event.which) {
@@ -1021,6 +1079,10 @@ export default {
                 var vue = grid.options.vue;
                 var cell = this.getCell({rowIndx: ui.rowIndx, dataIndx: ui.dataIndx});
                 console.log("editorKeyDown: " + event.which);
+
+                if (event.isOnce) {
+                    return true;
+                }
 
                 if (!event.ctrlKey && !event.shiftKey) {
                     switch(event.which) {
@@ -1101,6 +1163,7 @@ export default {
     },
     methods: {
         createPqGrid: function(pqGridObj) {
+            var vue = this;
             var postData = $.extend(true, {}, this.query);
 
             //dataModelの設定
@@ -1154,11 +1217,11 @@ export default {
                     //削除用検索時初期値の設定
                     res.forEach(v => v.InitialValue = $.extend(true, {}, v));
 
-                    //検索後callbackが指定されていれば実行
-                    if (vue._onAfterSearchFunc) res = vue._onAfterSearchFunc(vue, grid, res);
-
                     //検索前データの保持
                     grid.prevData = _.cloneDeep(grid.getData());
+
+                    //検索後callbackが指定されていれば実行
+                    if (vue._onAfterSearchFunc) res = vue._onAfterSearchFunc(vue, grid, res);
 
                     //PKを比較し、検索前のレコードが全てあるか判定
                     if (grid.getData() && _.differenceWith(grid.getData(), res, (a, b) => a.PK == b.PK).length == 0) {
@@ -1266,6 +1329,56 @@ export default {
             var cfg = pqGridObj.columnTemplate.editable ? "editable" : "readonly";
             this.grid.widget().addClass("table_" + cfg);
 
+            if (this.hasFreezeRightCols) {
+                var widget = this.grid.widget();
+                var mr = widget.attr("class").match(/mr-[0-9]+/g);
+                if (mr) {
+                    mr.forEach(v => widget.removeClass(v));
+                }
+
+                //指定数分、メインテーブルでは列非表示設定
+                var rightColsDataIndices = _.takeRight(
+                        this.grid.options.colModel.filter(c => !c.hidden),
+                        this.freezeRightCols
+                    )
+                    .map(c => c.dataIndx);
+                var rightColsWidth = _.sum(this.grid.options.colModel
+                                        .filter(c => rightColsDataIndices.includes(c.dataIndx))
+                                        .map(c => c.width * 1)
+                                    );
+                this.grid.options.colModel
+                    .filter(c => !c.hidden)
+                    .forEach((c, i) => c.hidden = rightColsDataIndices.includes(c.dataIndx));
+                this.grid.options.width = "100%-" + rightColsWidth;
+                widget.addClass("hasRight");
+
+                //右テーブル用option
+                var rightOptions = $.extend(true, pqGridObj);
+                rightOptions.colModel.forEach((c, i) => c.hidden = !rightColsDataIndices.includes(c.dataIndx));
+                rightOptions.numberCell = { show: false };
+                rightOptions.width = rightColsWidth + 26;
+                rightOptions.dataModel.location = "local";
+
+                widget.parent().addClass("d-flex");
+
+                this.gridRight = $("#" + this.id + "_right")
+                    .attr("class", "grid-right mt-2")
+                    .pqGrid(rightOptions)
+                    .pqGrid("getInstance").grid;
+
+                this.grid.gridRight = this.gridRight;
+                this.gridRight.gridLeft = this.grid;
+
+                this.grid.on("scroll", function() {
+                    vue.scrollBoth(this.scrollY());
+                });
+                this.gridRight.on("scroll", function() {
+                    vue.scrollBoth(this.scrollY());
+                });
+
+                this.grid.refreshView();
+            }
+
             //urlの再設定
             this.grid.options.dataModel.url = this.SearchOnCreate ? url : null;
 
@@ -1286,20 +1399,22 @@ export default {
             };
 
             //検索メソッド追加
-            this.grid.searchData = function(params, isActivated, callback) {
+            this.grid.searchData = function(params, isActivated, beforeCallback, afterCallback) {
                 var grid = this;
                 var vue = grid.options.vue;
 
-                if (callback) {
+                if (afterCallback) {
                     var newFunc = (grid, ui) => {
                         if (vue.onCompleteFunc) vue.onCompleteFunc(grid, ui);
-                        callback(grid, ui);
+                        afterCallback(grid, ui);
                         vue._onCompleteFunc = vue.onCompleteFunc;
                     };
                     vue._onCompleteFunc = newFunc;
                 }
 
-                if (grid.options.vue.checkChanged && grid.isChanged() && !isActivated) {
+                if (vue.checkChanged && grid.isChanged() && !isActivated
+                    && (vue.checkChangedFunc ? vue.checkChangedFunc(grid) : true)
+                ) {
                     //確認ダイアログ
                     $.dialogConfirm({
                         title: "内容が変更されています",
@@ -1312,24 +1427,49 @@ export default {
                                     grid.options.dataModel.url = grid.options.vue.dataUrl
 
                                     grid.options.dataModel.postData = _.cloneDeep(params || grid.options.dataModel.postData);
-                                    grid.refreshDataAndView();
-
-                                    $(this).dialog("close");
+                                    if (beforeCallback) {
+                                        beforeCallback(grid, () => {
+                                            grid.refreshDataAndView();
+                                            $(this).dialog("close");
+                                        });
+                                    } else {
+                                        grid.refreshDataAndView();
+                                        $(this).dialog("close");
+                                    }
                                 }
                             },
                             {
                                 text: "いいえ",
                                 class: "btn btn-danger",
                                 click: function(){
+                                    if (vue.checkChangedCancelFunc) {
+                                        vue.checkChangedCancelFunc(grid);
+                                    }
                                     $(this).dialog("close");
                                 }
                             },
                         ],
+                        keyDownHandler: (element, option, event) => {
+                            if (event.which == 27) {
+                                if (vue.checkChangedCancelFunc) {
+                                    vue.checkChangedCancelFunc(grid);
+                                }
+
+                                $(element).dialog("close");
+                            }
+                        },
                     });
                 } else {
                     grid.options.dataModel.url = grid.options.vue.dataUrl
                     grid.options.dataModel.postData = _.cloneDeep(params || grid.options.dataModel.postData);
-                    grid.refreshDataAndView();
+
+                    if (beforeCallback) {
+                        beforeCallback(grid, () => {
+                            grid.refreshDataAndView();
+                        });
+                    } else {
+                        grid.refreshDataAndView();
+                    }
                 }
             };
 
@@ -1737,12 +1877,14 @@ export default {
                 var rowIndx = grid.Selection().address()[0].r1;
                 var rowData = grid.pdata[rowIndx];
 
-                if (rowData.InitialValue) {
-                    delete rowData.InitialValue;
-                }
+                if (!!rowData) {
+                    if (rowData.InitialValue) {
+                        delete rowData.InitialValue;
+                    }
 
-                if (rowData.hasOwnProperty("pq_rowselect")) {
-                    delete rowData.pq_rowselect;
+                    if (rowData.hasOwnProperty("pq_rowselect")) {
+                        delete rowData.pq_rowselect;
+                    }
                 }
 
                 return rowData;
@@ -1840,94 +1982,6 @@ export default {
             $("button[copyRange]", grid.toolbar()).button("option", { disabled: noSelect });
             $("button[pasteRange]", grid.toolbar()).button("option", { disabled: noSelect || (!hasEditableCell && !isRow) || hasDisabled || hasGrouped });
             $("button[clear]", grid.toolbar()).button("option", { disabled: !canClear });
-
-            //コンテキストメニュー設定
-            this.setCellContextMenu(grid);
-        },
-        //コンテキストメニュー設定
-        setCellContextMenu: function(grid) {
-            if (this.showContextMenu == false) return;
-
-            grid = grid || this.grid;
-
-            //行選択とセル及びセル範囲選択の取得方法が異なるため
-            //どちらなのかを判断して、コンテキストメニューに与えるselectorを決定
-            var row = grid.SelectRow().getSelection();
-
-            var range;
-            try {
-                range = grid.Selection().getSelection();
-            } catch(e) {
-                range = [];
-            }
-
-            var rangeIds = range.map(v => grid.getCell({ rowIndx: v.rowIndx, colIndx: v.colIndx }).attr("id"))
-                .filter(v => !!v)
-                .map(v => "#" + v)
-                .join();
-
-            var selector = row.length == 1 ? ("#" + this.id + " .pq-grid-row.pq-state-select") : rangeIds;
-
-            //未選択時は設定しない
-            if (!selector) return;
-
-            //コンテキストメニュー生成
-            var items = this.createContextMenu();
-
-            //コンテキストメニューイベント設定
-            $.contextMenu({
-                selector: selector,
-                items: items,
-                position: function(opt, x, y) {
-                    //表示位置の調整
-                    var overX = x + opt.$menu.width()  - opt.$menu.parent().width();
-                    var overY = y + opt.$menu.height() - opt.$menu.parent().height();
-
-                    var top  = overY > 0 ? (y - overY) : y;
-                    var left = overX > 0 ? (x - opt.$menu.width() - 10) : x;
-
-                    opt.$menu.css({ top: top, left: left });
-                },
-            });
-        },
-        //コンテキストメニュー生成
-        createContextMenu: function() {
-            var grid = this.grid;
-            var toolbars = grid.options.toolbar.items;
-
-            var items = {};
-            toolbars.forEach(function(v, i) {
-                if (v.type == "separator") {
-                    items["separator" + i] = "";
-                } else if (v.type == "button") {
-                    items[v.name] = {
-                        icon: function(opt, $itemElement, itemKey, item){
-                            //PqGridのtoolbarでの定義を利用
-                            $itemElement.html(v.label);
-                            return 'context-menu-icon-updated';
-                        },
-                        callback: function(itemKey) {
-                            v.listener(grid);
-                        },
-                        disabled: function() {
-                            return $("button[" + v.name + "]", grid.toolbar()).button("option", "disabled");
-                        },
-                    };
-                }
-            });
-
-            if (this.contextMenu) {
-                if (this.contextMenu.mode == "append") {
-                    if (Object.keys(items).length > 0) {
-                        items["separator" + items.length] = "";
-                    }
-                    $.extend(true, items, this.contextMenu.items);
-                } else {
-                    items = this.contextMenu.items;
-                }
-            }
-
-            return items;
         },
         selectRow: function(event) {
             var r = ($(event.target).text() - 1);
@@ -2197,7 +2251,7 @@ export default {
             //     vue.$router.push({ path: "/SIP/Exceptions", query: exObj });
             // }, 400);
         },
-        setCellState: function(grid, ui) {
+        setCellState: function(grid, ui, onHistory) {
             var $cell = grid.getEditCell().$cell;
             if ($cell.find(".has-error").length > 0) {
                 var title = $cell.find(".target-input").data("bs.tooltip").config.title;
@@ -2209,7 +2263,7 @@ export default {
             }
 
             //rowData更新
-            grid.updateRow({ rowIndx: ui.rowIndx, newRow: ui.column.binder });
+            grid.updateRow({ rowIndx: ui.rowIndx, newRow: ui.column.binder, history: onHistory != false });
         },
         moveNextCell: function(grid, ui, reverse) {
             var vue = this;
@@ -2218,6 +2272,12 @@ export default {
 
             //次セル検索 & 移動
             var moveNext = () => {
+                var next;
+
+                if (vue.setMoveNextCell) {
+                    return vue.setMoveNextCell(grid, ui, reverse);
+                }
+
                 var indices = grid.widget()
                     .find(grid.options.selectionModel.onTab == "nextEdit" ? ".pq-grid-cell.cell-editable" : ".pq-grid-cell")
                     .not("[id^='pq-sum-cell']")
@@ -2226,7 +2286,6 @@ export default {
                     ;
                 indices = _.sortBy(indices, ["rowIndx", "colIndx"]);
 
-                var next;
 
                 if (reverse || event.shiftKey) {
                     next = _.find(indices, v => v.rowIndx == ui.rowIndx  && v.colIndx < ui.colIndx)
@@ -2243,7 +2302,8 @@ export default {
                             editor.trigger($.Event("keydown", {
                                 keyCode: 9,
                                 which: 9,
-                                shiftKey: reverse
+                                shiftKey: reverse,
+                                isOnce: true,
                             }));
                             return false;
                         } else {
@@ -2611,7 +2671,6 @@ export default {
                                             rowIndx: grid.getData().length + i,
                                         };
                                     });
-
                     grid.addRow({
                         rowList: rowList,
                         checkEditable: false,
@@ -2623,6 +2682,12 @@ export default {
 
             return;
         },
+        scrollBoth: _.debounce(function(val) {
+            var vue = this;
+
+            vue.grid.scrollY(val);
+            vue.gridRight.scrollY(val);
+        }, 0),
     }
 };
 
@@ -2740,6 +2805,21 @@ export default {
         background-color: lightpink !important;
     }
 
+    /* ヘッダ行 */
+    .pq-grid-col {
+        display: flex;
+        align-items: center;
+    }
+
+    /* 休日列 */
+    .pq-grid-col.holiday_col {
+        color: red;
+        background-color: lightgray;
+    }
+    .pq-grid-cell.holiday_col {
+        background-color: lightgray;
+    }
+
     /* ツールバーボタン */
     .pq-toolbar > button {
         width: 100px;
@@ -2824,6 +2904,23 @@ export default {
         font-size: x-large;
         background-size: 15%;
         padding-left: 45px;
+    }
+
+    .hasRight .pq-body-outer .pq-cont-inner.pq-cont-right::-webkit-scrollbar:vertical {
+        display: none;
+    }
+
+    .grid-right {
+        position: absolute;
+        right: 18px;
+    }
+
+    .grid-right .pq-body-outer .pq-cont-inner.pq-cont-right {
+        overflow-x: hidden !important;
+    }
+
+    .grid-right .pq-grid-norows {
+        display: none !important;
     }
 </style>
 
