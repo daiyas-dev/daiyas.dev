@@ -110,6 +110,44 @@ ORDER BY
     }
 
     /**
+     * Upload
+     */
+    public function Upload($request)
+    {
+        $params = $request->all();
+        $file = $request->file('file');
+
+        //TODO: dummy
+        $ret = [
+            'BushoCd' => 501,
+            'CourseCd' => 101,
+            'CustomerCd' => 11271,
+            'Array' => [
+                [
+                    "20191111" => "2",
+                    "20191112" => "2",
+                    "20191113" => "0",
+                    "20191114" => "2",
+                    "20191115" => "0",
+                    "20191116" => "0",
+                    "商品CD" => "12",
+                ],
+                [
+                    "20191111" => "1",
+                    "20191112" => "1",
+                    "20191113" => "0",
+                    "20191114" => "1",
+                    "20191115" => "0",
+                    "20191116" => "0",
+                    "商品CD" => "406",
+                ]
+            ],
+        ];
+
+        return $ret;
+    }
+
+    /**
      * Save
      */
     public function Save($request)

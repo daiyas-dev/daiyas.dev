@@ -1,5 +1,5 @@
 ﻿<template>
-    <form id="this.$options.name">
+    <form id="this.$options.name" class="droppable" data-url="/DAI07010/Upload" data-upload-callback="uploadCallback">
         <div class="row">
             <div class="col-md-1">
                 <label>部署</label>
@@ -201,6 +201,9 @@ export default {
                 var text = newVal == "week" ? "週" : "月";
                 vue.footerButtons.find(v => v.id == "DAI07010_PrevRange").value = "前の" + text;
                 vue.footerButtons.find(v => v.id == "DAI07010_NextRange").value = "次の" + text;
+
+                //条件変更ハンドラ
+                vue.conditionChanged();
             }
         },
     },
@@ -209,6 +212,7 @@ export default {
         return $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "個人宅 > 得意先別週間売上入力",
             noViewModel: true,
+            conditionTrigger: true,
             viewModel: {
                 CustomerInfo: null,
                 BushoCd: null,
@@ -223,6 +227,7 @@ export default {
                 CourseNm: null,
             },
             viewKind: null,
+            uploadData: null,
             DAI07010Grid1: null,
             grid1Options: {
                 selectionModel: { type: "cell", mode: "block", row: true, onTab: "nextEdit" },
@@ -382,7 +387,6 @@ export default {
                         //TODO: クリア
                     }
                 },
-                {visible: "false"},
                 { visible: "true", value: "前の得意先", id: "DAI07010_PrevCustomer", disabled: true, shortcut: "Alt + ←",
                     onClick: function () {
                         vue.$refs.PopupSelect_Customer.prevList();
@@ -393,7 +397,6 @@ export default {
                         vue.$refs.PopupSelect_Customer.nextList();
                     }
                 },
-                {visible: "false"},
                 { visible: "true", value: "前の週", id: "DAI07010_PrevRange", disabled: false, shortcut: "Alt + ↑",
                     onClick: function () {
                         vue.viewModel.DeliveryDate =
@@ -411,7 +414,7 @@ export default {
                     }
                 },
                 {visible: "false"},
-                { visible: "true", value: "コピー実行", id: "DAI07010_ExecCopy", disabled: false, shortcut: "F7",
+                { visible: "true", value: "コピー実行", id: "DAI07010_ExecCopy", disabled: false, shortcut: "F6",
                     onClick: function () {
                         var grid = vue.DAI07010Grid1;
 
@@ -421,6 +424,29 @@ export default {
                             .map(v => vue.copyValues(grid, v.rowIndx, v.rowData["コピー"]));
 
                         grid.updateRow({ rowList: rowList });
+                    }
+                },
+                { visible: "true", value: "ダウンロード", id: "DAI07010_Download", disabled: false, shortcut: "F7",
+                    onClick: function () {
+                        //TODO: ダウンロード
+                    }
+                },
+                { visible: "true", value: "アップロード", id: "DAI07010_Upload", disabled: false, shortcut: "F8",
+                    onClick: function () {
+                        //アップロード
+                        var ele = $("<input>")
+                            .prop("type", "file")
+                            .prop("accept", ".csv, text/plain")
+                            .on("change", (event) => {
+                                    $.uploadFile(
+                                        event.target.files[0],
+                                        "/DAI07010/Upload",
+                                        (res) => vue.uploadCallback(res.data),
+                                    );
+                                }
+                            );
+
+                        ele[0].click();
                     }
                 },
                 { visible: "true", value: "登録", id: "DAI07010Grid1_Save", disabled: false, shortcut: "F9, Ctrl + S",
@@ -532,6 +558,8 @@ export default {
             var vue = this;
             var grid = vue.DAI07010Grid1;
 
+            if (!vue.conditionTrigger) return;
+
             if (vue.getLoginInfo().isLogOn
                 && vue.viewModel.BushoCd
                 && vue.viewModel.DeliveryDate
@@ -638,6 +666,18 @@ export default {
         },
         beforeSearchCallback: function(grid, callback) {
             var vue = this;
+
+            var params = {
+                from: vue.FirstDay,
+                to: moment(vue.FirstDay).add(vue.TargetDays, "days").format("YYYY/MM/DD"),
+            };
+
+            if (vue.PrevParamsHoliday && _.isEqual(vue.PrevParamsHoliday, params)) {
+                callback();
+                return;
+            }
+
+            vue.PrevParamsHoliday = _.cloneDeep(params);
 
             //事前情報取得
             axios.all(
@@ -794,7 +834,34 @@ export default {
             return res;
         },
         onCompleteFunc: function(grid, ui) {
-            if (grid.pdata.length) {
+            var vue = this;
+
+            if (grid.getData().length) {
+                if (vue.uploadData && vue.uploadData.length) {
+
+                    var rowList = grid.getData()
+                        .filter(v => vue.uploadData.map(u => u.商品CD).includes(v.商品CD))
+                        .map(v => {
+                            var rowIndx = grid.getRowIndx({rowData: v}).rowIndx;
+                            var uploadVals = vue.uploadData.find(u => u.商品CD == v.商品CD);
+
+                            var ret = vue.copyValues(grid, rowIndx, 0);
+
+                            _.keys(ret.newRow).forEach(k => {
+                                if (!!uploadVals[k]) {
+                                    ret.newRow[k] = uploadVals[k];
+                                }
+                            });
+
+                            return ret;
+                        })
+
+                    grid.updateRow({ rowList: rowList });
+
+                    vue.uploadData = null;
+                }
+
+                //set focus
                 var selection = grid.prevSelection;
                 if (!selection || selection.length == 0) {
                     grid.setSelection({ rowIndx: 0, colIndx: grid.columns["コピー"].leftPos });
@@ -939,6 +1006,34 @@ export default {
             }
 
             return false;
+        },
+        uploadCallback: function(res) {
+            var vue = this;
+            var grid = vue.DAI07010Grid1;
+
+            console.log("uploadCallback", res);
+
+            var prev = grid.options.dataModel.postData;
+
+            vue.uploadData = res.Array;
+
+            if (!!prev
+                && prev.BushoCd == res.BushoCd
+                && prev.CourseCd == res.CourseCd
+                && prev.CustomerCd == res.CustomerCd
+                //&& prev.DeliveryDate = "";  //TODO: excel format
+            ) {
+                grid.refreshDataAndView();
+            } else {
+                vue.conditionTrigger = false;
+
+                vue.viewModel.BushoCd = res.BushoCd;
+                //vue.viewModel.DeliveryDate = "";  //TODO: excel format
+                vue.viewModel.CourseCd = res.CourseCd;
+                vue.viewModel.CustomerCd = res.CustomerCd;
+
+                vue.conditionTrigger = true;
+            }
         },
     }
 }

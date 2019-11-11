@@ -5,6 +5,7 @@ require('./bootstrap');
 
 require("@/common_dialogs.js");
 require("@/common_downloads.js");
+require("@/common_uploads.js");
 require("@/common_pdfviewer.js");
 
 require("jquery-contextmenu");
@@ -23,6 +24,8 @@ window.Algebra = Algebra;
 
 import printJS from "print-js";
 window.printJS = printJS;
+
+window.Dropzone = require("dropzone");
 
 import LogonForm from "@vcs/LogonForm.vue";
 import TopMenu      from "@vcs/TopMenu.vue";

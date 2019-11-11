@@ -28,6 +28,7 @@ mix
         'moment',
         'decimal.js',
         'algebra.js',
+        'dropzone',
         'html2canvas',
         'jspdf',
         'deep-object-diff',

@@ -103,6 +103,65 @@ export default {
         window[vue.$options.name] = vue;
 
         vue.setFooterButtons(vue);
+
+        //set dropzone
+        $(vue.$el).parent().find(".droppable[data-url]")
+            .each((i, v) => {
+                console.log($(v).attr("data-url"));
+
+                var dz = new Dropzone(v,
+                    {
+                        url: $(v).attr("data-url"),
+                        headers: {
+                            "X-CSRF-TOKEN": Laravel.csrfToken,
+                        },
+                        params: {
+                        },
+                        dictDefaultMessage: "",
+                        uploadMultiple: false,
+                        init: function() {
+                            this.on("drop", function(file) {
+                                console.log("drop file", file);
+                            });
+                            this.on("success", function(file, json) {
+                                console.log("drop success", file, json);
+                                if ($(v).attr("data-upload-callback")) {
+                                    vue[$(v).attr("data-upload-callback")](json);
+                                }
+                            });
+                            this.on("error", async function(file, errorMessage) {
+                                console.log("drop error", file, errorMessage);
+                            });
+                        },
+                    }
+                );
+
+                // $(v).dropzone({
+                //     url:$(v).attr("data-url"),
+                //     paramName:'csv_file',
+                //     maxFilesize:1, //MB
+                //     addRemoveLinks:true,
+                //     thumbnailWidth:100, //px
+                //     thumbnailHeight:100, //px
+                //     uploadprogress:function(_file, _progress, _size){
+                //         _file.previewElement.querySelector("[data-dz-uploadprogress]").style.width = "" + _progress + "%";
+                //     },
+                //     success:function(_file, _return, _xml){
+                //         _file.previewElement.classList.add("dz-success");
+                //     },
+                //     error:function(_file, _error_msg){
+                //         var ref;
+                //         (ref = _file.previewElement) != null ? ref.parentNode.removeChild(_file.previewElement) : void 0;
+                //     },
+                //     removedfile:function(_file){
+                //         var ref;
+                //         (ref = _file.previewElement) != null ? ref.parentNode.removeChild(_file.previewElement) : void 0;
+                //     },
+                //     dictRemoveFile:'削除',
+                //     dictCancelUpload:'キャンセル'
+                // });
+            });
+
         vue.focused();
         vue.mountedFunc(vue);
     },

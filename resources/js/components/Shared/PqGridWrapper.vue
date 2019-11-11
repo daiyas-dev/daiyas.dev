@@ -679,6 +679,13 @@ export default {
 
                 if (grid.gridRight) {
                     grid.gridRight.options.dataModel.data = grid.options.dataModel.data;
+                    var left = grid.widget().find(".pq-cont-inner.pq-cont-right");
+                    if (left.get(0).scrollWidth > left.width()) {
+                        grid.gridRight.widget().addClass("scrollable-x");
+                    } else {
+                        grid.gridRight.widget().removeClass("scrollable-x");
+                    }
+
                     grid.gridRight.refreshView();
                 }
 
@@ -2917,6 +2924,10 @@ export default {
 
     .grid-right .pq-body-outer .pq-cont-inner.pq-cont-right {
         overflow-x: hidden !important;
+    }
+
+    .grid-right.scrollable-x .pq-body-outer .pq-cont-inner.pq-cont-right {
+        overflow-x: scroll !important;
     }
 
     .grid-right .pq-grid-norows {
