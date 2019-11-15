@@ -25,6 +25,7 @@ export default {
         return {
             entities: [],
             CountConstraint: null,
+            paramPrev: null,
         }
     },
     props: {
@@ -44,8 +45,26 @@ export default {
         withCode: Boolean,
         customStyle: String,
         disabled: Boolean,
+        ParamsChangedCheckFunc: Function,
     },
     watch: {
+        params: {
+            deep: true,
+            sync: true,
+            handler: function(newVal) {
+                var vue = this;
+                console.log("VueSelect param watcher", newVal);
+
+                if (!_.isEqual(newVal, vue.paramsPrev, (v, o) => v == o)) {
+                    if (vue.ParamsChangedCheckFunc && !vue.ParamsChangedCheckFunc(newVal, vue.paramsPrev)) {
+                        return;
+                    }
+
+                    vue.paramsPrev = _.cloneDeep(newVal);
+                    vue.setEntities();
+                }
+            },
+        },
         entities: {
             deep: true,
             handler: function(newVal) {
@@ -74,13 +93,18 @@ export default {
         },
     },
     created: function () {
-        var comp = this;
+        var vue = this;
 
-        comp.$root.$on("plantChanged", this.plantChanged);
-        comp.$root.$on("accountChanged", this.accountChanged);
+        vue.$root.$on("plantChanged", vue.plantChanged);
+        vue.$root.$on("accountChanged", vue.accountChanged);
     },
     mounted: function () {
-        this.setEntities();
+        var vue = this;
+        if (vue.ParamsChangedCheckFunc && !vue.ParamsChangedCheckFunc(vue.params, vue.params)) {
+            return;
+        }
+
+        vue.setEntities();
     },
     beforeUpdated: function () {
     },

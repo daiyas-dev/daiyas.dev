@@ -2,6 +2,34 @@
     <form id="this.$options.name">
         <div class="row">
             <div class="col-md-1">
+                <label>配達日付</label>
+            </div>
+            <div class="col-md-5">
+                <DatePickerWrapper
+                    id="DeliveryDate"
+                    ref="DatePicker_DeliveryDate"
+                    format="YYYY年MM月DD日"
+                    dayViewHeaderFormat="YYYY年MM月"
+                    :vmodel=viewModel
+                    bind="DeliveryDate"
+                    :editable=true
+                    :onChangedFunc=onDeliveryDateChanged
+                    customStyle="width: 205px;"
+                />
+                <label style="width: 120px; max-width: unset; text-align: center;">持出時間</label>
+                <DatePickerWrapper
+                    id="TakeoutTime"
+                    ref="DatePicker_TakeoutTime"
+                    format="HH時mm分"
+                    dayViewHeaderFormat="YYYY年MM月"
+                    :vmodel=viewModel
+                    bind="TakeoutTime"
+                    :editable=true
+                    :onChangedFunc=onTakeoutTimeChanged
+                    customStyle="width: 80px;"
+                />
+            </div>
+            <div class="col-md-1">
                 <label>部署</label>
             </div>
             <div class="col-md-2">
@@ -9,48 +37,43 @@
                     :onChangedFunc=onBushoChanged
                 />
             </div>
-            <div class="col-md-1">
-                <label>グループ</label>
-            </div>
-            <div class="col-md-3">
-                <VueSelect
-                    id="GroupCustomerCd"
-                    :vmodel=viewModel
-                    bind="GroupCustomerCd"
-                    uri="/Utilities/GetCustomerAndCourseList"
-                    :params="{ targetDate: FormattedDeliveryDate, groupCustomerCd: viewModel.CustomerCd }"
-                    customStyle="{width: 200px}"
-                    :withCode=true
-                    :hasNull=true
-                    :ParamsChangedCheckFunc=GroupCustomerParamsChangedCheckFunc
-                    :onChangedFunc=onGroupCustomerChanged
-                />
-            </div>
         </div>
         <div class="row">
             <div class="col-md-1">
-                <label>配送日</label>
+                <label>受注No.</label>
             </div>
-            <div class="col-md-2">
-                <DatePickerWrapper
-                    id="DeliveryDate"
-                    ref="DatePicker_Date"
-                    format="YYYY年MM月DD日"
-                    dayViewHeaderFormat="YYYY年MM月"
+            <div class="col-md-9">
+                <PopupSelect
+                    id="ShidashiOrderNoSelect"
+                    ref="PopupSelect_ShidashiOrderNo"
                     :vmodel=viewModel
-                    bind="DeliveryDate"
+                    bind="ShidashiOrderNo"
+                    dataUrl="/Utilities/GetShidashiOrderNoList"
+                    :params="{ targetDate: FormattedDeliveryDate }"
+                    title="受注No.一覧"
+                    labelCd="受注No."
+                    :showColumns='[
+                        { title: "配達日付", dataIndx: "配達日付", dataType: "string", width: 120, maxWidth: 120, minWidth: 120, colIndx: 0 },
+                    ]'
+                    :popupWidth=1000
+                    :popupHeight=600
+                    :isShowName=false
+                    :isModal=true
                     :editable=true
-                    :onChangedFunc=onDeliveryDateChanged
+                    :reuse=true
+                    :existsCheck=true
+                    :inputWidth=150
+                    :ParamsChangedCheckFunc=ShidashiOrderNoParamsChangedCheckFunc
+                    :onChangeFunc=onShidashiOrderNoChanged
+                    :isShowAutoComplete=true
+                    :AutoCompleteFunc=ShidashiOrderNoAutoCompleteFunc
+                    :enablePrevNext=true
                 />
-            </div>
-            <div class="col-md-2">
-                <label class="text-center">時間</label>
-                <input class="form-control p-0 text-center" style="width: 80px;" type="text" :value=viewModel.DeliveryTime readonly tabindex="-1">
             </div>
         </div>
         <div class="row">
             <div class="col-md-1">
-                <label>得意先</label>
+                <label>顧客</label>
             </div>
             <div class="col-md-9">
                 <PopupSelect
@@ -59,13 +82,13 @@
                     :vmodel=viewModel
                     bind="CustomerCd"
                     buddy="CustomerNm"
-                    dataUrl="/Utilities/GetCustomerAndCourseList"
-                    :params="{ targetDate: FormattedDeliveryDate }"
-                    title="得意先一覧"
-                    labelCd="得意先CD"
-                    labelCdNm="得意先名"
+                    dataUrl="/Utilities/GetShidashiCustomerList"
+                    :params="{}"
+                    title="顧客一覧"
+                    labelCd="顧客CD"
+                    labelCdNm="顧客名"
                     :showColumns='[
-                        { title: "部署名", dataIndx: "部署名", dataType: "string", width: 120, maxWidth: 120, minWidth: 120, colIndx: 0 },
+                        { title: "顧客名カナ", dataIndx: "得意先名カナ", dataType: "string", width: 150, maxWidth: 150, minWidth: 150 },
                         { title: "コースCD", dataIndx: "コースCD", dataType: "integer", width: 100, maxWidth: 100, minWidth: 100 },
                         { title: "コース名", dataIndx: "コース名", dataType: "string", width: 200, maxWidth: 200, minWidth: 200 }
                     ]'
@@ -77,15 +100,15 @@
                     :reuse=true
                     :existsCheck=true
                     :inputWidth=150
-                    :nameWidth=400
-                    :ParamsChangedCheckFunc=CustomerParamsChangedCheckFunc
+                    :nameWidth=300
                     :onChangeFunc=onCustomerChanged
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=CustomerAutoCompleteFunc
+                    :AutoCompleteMinLength=1
+                    :ParamsChangedCheckFunc=CustomerParamsChangedCheckFunc
                 />
                 <label class="label-blue text-center">TEL</label>
                 <input class="form-control p-0 text-center" style="width: 120px;" type="text" :value=viewModel.TelNo readonly tabindex="-1">
-                <label class="ml-1 label-blue">{{viewModel.PaymentNm}}</label>
             </div>
         </div>
         <div class="row">
@@ -119,9 +142,9 @@
             </div>
         </div>
         <PqGridWrapper
-            id="DAI01030Grid1"
-            ref="DAI01030Grid1"
-            dataUrl="/DAI01030/Search"
+            id="DAI08010Grid1"
+            ref="DAI08010Grid1"
+            dataUrl="/DAI08010/Search"
             :query=this.viewModel
             :SearchOnCreate=false
             :SearchOnActivate=false
@@ -175,7 +198,7 @@ label {
 }
 </style>
 <style>
-#Page_DAI01030 .CustomerSelect .select-name {
+#Page_DAI08010 .CustomerSelect .select-name {
     color: royalblue;
 }
 </style>
@@ -185,7 +208,7 @@ import PageBaseMixin from "@vcs/PageBaseMixin.vue";
 
 export default {
     mixins: [PageBaseMixin],
-    name: "DAI01030",
+    name: "DAI08010",
     components: {
     },
     computed: {
@@ -199,7 +222,7 @@ export default {
             handler: function(newVal) {
                 console.log("viewModel.IsShowAll:" + newVal);
                 var vue = this;
-                var grid = vue.DAI01030Grid1;
+                var grid = vue.DAI08010Grid1;
 
                 grid.filter({
                     oper: "replace",
@@ -210,7 +233,7 @@ export default {
     },
     data() {
         return $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "注文入力",
+            ScreenTitle: "仕出処理->仕出注文入力",
             noViewModel: true,
             viewModel: {
                 CustomerInfo: null,
@@ -221,8 +244,6 @@ export default {
                 CustomerCd: null,
                 CustomerNm: null,
                 TelNo: null,
-                PaymentCd: null,
-                PaymentNm: null,
                 TantoCd: null,
                 TantoNm: null,
                 CourseCd: null,
@@ -235,7 +256,7 @@ export default {
                 IsShowAll: null,
                 GroupCustomerCd: null,
             },
-            DAI01030Grid1: null,
+            DAI08010Grid1: null,
             grid1Options: {
                 selectionModel: { type: "cell", mode: "single", row: true, onTab: "nextEdit" },
                 showHeader: true,
@@ -310,7 +331,7 @@ export default {
                         width: 120, maxWidth: 120, minWidth: 120,
                         editable: ui => {
                             var vue = this;
-                            var grid = DAI01030Grid1;
+                            var grid = DAI08010Grid1;
 
                             if (grid.getSelectionRowData()) {
                                 if (grid.getSelectionRowData().pq_ri == ui.rowData.pq_ri
@@ -508,13 +529,18 @@ export default {
             //条件変更ハンドラ
             //vue.conditionChanged();
         },
-        onCustomerChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
+        onTakeoutTimeChanged: function(code, entities) {
+            var vue = this;
+            //条件変更ハンドラ
+            //vue.conditionChanged();
+        },
+        onShidashiOrderNoChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
             var vue = this;
             vue.CustomerChanged(info, isValid);
         },
-        CustomerChanged: function(info, isValid, noSearch) {
+        ShidashiOrderNoChanged: function(info, isValid, noSearch) {
             var vue = this;
-            var grid = vue.DAI01030Grid1;
+            var grid = vue.DAI08010Grid1;
 
             //popupselectがviewModelをwatchしているので、得意先CDから更新
             vue.viewModel.CustomerCd = info["得意先CD"];
@@ -525,8 +551,49 @@ export default {
             }
 
             vue.viewModel.TelNo = info["電話番号１"];
-            vue.viewModel.PaymentCd = info["売掛現金区分"];
-            vue.viewModel.PaymentNm = ["現金", "掛売"][vue.viewModel.PaymentCd] || (isValid ? "チケット" : "");
+            vue.viewModel.TantoCd = info["担当者ＣＤ"];
+            vue.viewModel.TantoNm = info["担当者名"];
+            vue.viewModel.CourseKbn = info["コース区分"];
+            vue.viewModel.CourseCd = info["コースCD"];
+            vue.viewModel.CourseNm = info["コース名"];
+            vue.viewModel.CustomerInfo = info;
+
+            //現金/掛売列の表示制御
+            grid.columns["現金個数"].hidden = info["売掛現金区分"] != "0";
+            grid.columns["現金個数"].cls = info["売掛現金区分"] == 0 ? "cell-editable" : "cell-readonly-force";
+            grid.columns["現金金額"].hidden = info["売掛現金区分"] != "0";
+            grid.columns["現金金額"].cls = info["売掛現金区分"] == 0 ? "" : "cell-readonly-force";
+
+            grid.columns["掛売個数"].hidden = info["売掛現金区分"] != "1";
+            grid.columns["掛売個数"].cls = info["売掛現金区分"] == 1 ? "cell-editable" : "cell-readonly-force";
+            grid.columns["掛売金額"].hidden = info["売掛現金区分"] != "1";
+            grid.columns["掛売金額"].cls = info["売掛現金区分"] == 1 ? "" : "cell-readonly-force";
+
+            //顧客ｸﾞﾙｰﾌﾟ
+            //vue.setGroupCustomer(vue.viewModel.CustomerCd);
+
+            //条件変更ハンドラ
+            vue.conditionChanged(noSearch);
+        },
+        onCustomerChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
+            var vue = this;
+            vue.CustomerChanged(info, isValid);
+        },
+        CustomerChanged: function(info, isValid, noSearch) {
+            var vue = this;
+            var grid = vue.DAI08010Grid1;
+
+            console.log("ShidashiCustomerChanged", JSON.stringify(info));
+
+            //popupselectがviewModelをwatchしているので、得意先CDから更新
+            vue.viewModel.CustomerCd = info["得意先ＣＤ"];
+            vue.viewModel.CustomerNm = info["得意先名"];
+
+            if (info["部署CD"] && vue.viewModel.BushoCd != info["部署CD"]) {
+                vue.viewModel.BushoCd = info["部署CD"];
+            }
+
+            vue.viewModel.TelNo = info["電話番号１"];
             vue.viewModel.TantoCd = info["担当者ＣＤ"];
             vue.viewModel.TantoNm = info["担当者名"];
             vue.viewModel.CourseKbn = info["コース区分"];
@@ -553,7 +620,7 @@ export default {
         },
         conditionChanged: function(noSearch) {
             var vue = this;
-            var grid = vue.DAI01030Grid1;
+            var grid = vue.DAI08010Grid1;
 
             if (vue.getLoginInfo().isLogOn
                 && vue.viewModel.BushoCd
@@ -566,7 +633,7 @@ export default {
                 //配送日を"YYYYMMDD"形式に編集
                 params.DeliveryDate = moment(params.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD");
 
-                vue.DAI01030Grid1.searchData(params);
+                vue.DAI08010Grid1.searchData(params);
             }
         },
         autoEmptyRowFunc: function(grid) {
@@ -599,41 +666,76 @@ export default {
         },
         onSelectChangeFunc: function(grid, ui) {
         },
-        CustomerAutoCompleteFunc: function(input, dataList) {
+        ShidashiOrderNoAutoCompleteFunc: function(input, dataList) {
             var vue = this;
-            //var input = vmodel.CustomerCd;
 
-            if (!dataList.length || !input) return [];
-
-            console.time("CustomerAutoCompleteFunc");
+            if (!dataList.length) return [];
 
             var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
-            var keyAnd = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
+            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 
-            var wholeColumns = ["得意先名", "得意先名略称", "得意先名カナ", "備考１", "備考２", "備考３"];
+            var wholeColumns = ["得意先名", "住所", "配達先"];
 
             var list = dataList
                 .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
                 .filter(v => {
-                    return _.some(keyOR, k => v.得意先CD.startsWith(k))
+                    return keyOR.length == 0
+                        || _.some(keyOR, k => v.受注Ｎｏ.startsWith(k))
                         || _.some(keyOR, k => k.match(/^[0-9\-]{6,}/) != null && !!v.電話番号１ ? v.電話番号１.startsWith(k) : false)
                         || _.some(keyOR, k => v.whole.includes(k))
                 })
                 .filter(v => {
-                    return keyAnd.length == 0 || _.every(keyAnd, k => (v.whole + (v.電話番号１ || "")).includes(k));
+                    return keyAND.length == 0
+                        || _.every(keyAND, k => (v.whole + (v.電話番号１ || "")).includes(k));
                 })
                 .map(v => {
                     var ret = v;
-                    ret.label = v.得意先CD + " : " + "【" + v.部署名 + "】" + v.得意先名;
-                    ret.value = v.得意先CD;
+                    ret.label = v.受注Ｎｏ + " : " + "【" + v.部署名 + "】" + v.得意先名;
+                    ret.value = v.受注Ｎｏ;
                     ret.text = v.得意先名;
                     return ret;
                 })
                 ;
 
-            console.timeEnd("CustomerAutoCompleteFunc");
-            console.log("CustomerAutoCompleteFunc:" + input + " = " + list.length);
+            return list;
+        },
+        CustomerAutoCompleteFunc: function(input, dataList) {
+            var vue = this;
+
+            if (!dataList.length) return [];
+
+            console.time("ShidashiCustomerAutoCompleteFunc");
+
+            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
+            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
+
+            var wholeColumns = ["得意先名", "得意先名カナ", "地区名称", "住所"];
+
+            var list = dataList
+                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
+                .filter(v => {
+                    return keyOR.length == 0
+                        || _.some(keyOR, k => v.得意先ＣＤ.startsWith(k))
+                        || _.some(keyOR, k => k.match(/^[0-9\-]{6,}/) != null && !!v.電話番号１ ? v.電話番号１.startsWith(k) : false)
+                        || _.some(keyOR, k => v.whole.includes(k))
+                })
+                .filter(v => {
+                    return keyAND.length == 0
+                        || _.every(keyAND, k => (v.whole + (v.電話番号１ || "")).includes(k));
+                })
+                .map(v => {
+                    var ret = v;
+                    ret.label = v.得意先ＣＤ + " : " + "【" + v.部署名 + "】" + v.得意先名;
+                    ret.value = v.得意先ＣＤ;
+                    ret.text = v.得意先名;
+                    return ret;
+                })
+                ;
+
+            console.timeEnd("ShidashiCustomerAutoCompleteFunc");
+            console.log("ShidashiCustomerAutoCompleteFunc:" + input + " = " + list.length);
             return list;
         },
         checkChangedFunc: function(grid) {
@@ -642,7 +744,7 @@ export default {
         },
         checkChangedCancelFunc: function(grid) {
             var vue = this;
-            var grid = vue.DAI01030Grid1;
+            var grid = vue.DAI08010Grid1;
             var postData = grid.options.dataModel.postData;
 
             console.log("checkChangedCancelFunc");
@@ -650,7 +752,7 @@ export default {
             if (vue.viewModel.CustomerCd != postData.CustomerCd) {
                 var ps = vue.$refs.PopupSelect_Customer;
                 var info = ps.dataList.find(v => v.Cd == postData.CustomerCd);
-                ps.selectValue = info["得意先CD"]
+                ps.selectValue = info["得意先ＣＤ"]
                 ps.selectName = info["得意先名"];
                 ps.selectRow = info;
                 vue.CustomerChanged(info, true, true);
@@ -661,14 +763,15 @@ export default {
                 vue.viewModel.DeliveryDate = moment(postData.DeliveryDate, "YYYYMMDD").format("YYYY年MM月DD日");
             }
         },
+        ShidashiOrderNoParamsChangedCheckFunc: function(newVal, oldVal) {
+            var ret = !!newVal.targetDate;
+            console.log("ShidashiOrderNoParamsChangedCheckFunc", newVal, ret);
+            return ret;
+        },
         CustomerParamsChangedCheckFunc: function(newVal, oldVal) {
             var ret = !!newVal.targetDate;
             console.log("CustomerParamsChangedCheckFunc", newVal, ret);
-            return ret;
-        },
-        GroupCustomerParamsChangedCheckFunc: function(newVal, oldVal) {
-            var ret = !!newVal.targetDate && !!newVal.groupCustomerCd;
-            console.log("GroupCustomerParamsChangedCheckFunc", newVal, ret);
+            ret = true;
             return ret;
         },
         onGroupCustomerChanged: function() {

@@ -165,8 +165,8 @@ button .shortcut {
             receiveShortcutKey: function(evt) {
                 var vue = this;
 
-                console.log("receiveShortcutKey:" + evt.key);
-                console.log(evt);
+                // console.log("receiveShortcutKey:" + evt.key);
+                // console.log(evt);
 
                 var sc = _.find(vue.shortcuts, v => {
                     var keys = v.key.split(/ *, */);

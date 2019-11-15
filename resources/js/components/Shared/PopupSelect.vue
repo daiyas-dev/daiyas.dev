@@ -165,9 +165,9 @@
 }
 </style>
 <style>
-.PopupSelect ~ .ui-autocomplete {
+.ui-autocomplete {
     max-height: 30vh;
-    overflow-y: auto;
+    overflow-y: scroll;
     overflow-x: hidden;
     padding-right: 0px;
 }
@@ -234,6 +234,7 @@ export default {
         hasButtonFocus: Boolean,
         isShowAutoComplete: Boolean,
         AutoCompleteFunc: Function,
+        AutoCompleteMinLength: Number,
         ParamsChangedCheckFunc: Function,
         enablePrevNext: Boolean,
     },
@@ -305,6 +306,7 @@ export default {
             sync: true,
             handler: function(newVal) {
                 var vue = this;
+                console.log("PopupSelect params", newVal, vue.paramsPrev);
 
                 if (!_.isEqual(newVal, vue.paramsPrev, (v, o) => v == o)) {
                     if (vue.ParamsChangedCheckFunc && !vue.ParamsChangedCheckFunc(newVal, vue.paramsPrev)) {
@@ -471,7 +473,7 @@ export default {
                 .then(response => {
                     var res = response.data;
 
-                    if (!!params && !_.isEqual($.trim(params.selectValue), $.trim(vue.selectValue))) {
+                    if (!!params && !vue.isShowAutoComplete && !_.isEqual($.trim(params.selectValue), $.trim(vue.selectValue))) {
                         console.log("PopupSelect already value chenged:" + params.selectValue + " -> " + vue.selectValue);
                         return;
                     }
@@ -840,9 +842,10 @@ export default {
             input.autocomplete({
                 source: (request, response) => {
                     var list = vue.getAutoCompleteList(request.term);
-                    return response(list.length == 1 ? [] : list);
+                    //return response(!!request.term && list.length == 1 ? [] : list);
+                    return response(list);
                 },
-                appendTo: $(vue.$el).parent(),
+                appendTo: $("body"),    //$(vue.$el).parent(),
                 select : function(event, ui) {
                     console.log("autocomplete select:" + input.val());
                     //選択した値を設定
@@ -853,7 +856,7 @@ export default {
                 position: { my: "left top", at: "left bottom", collision: "flip" },
                 autoFocus: false,
                 delay: 200,
-                minLength: 0
+                minLength: vue.AutoCompleteMinLength || 0,
             })
             .focus(function(ev) {
                 console.log("autocomplete focus:" + input.val() + " skip:" + vue.AutoCompleteFocusSkip);

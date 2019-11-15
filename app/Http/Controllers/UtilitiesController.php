@@ -329,6 +329,41 @@ class UtilitiesController extends Controller
     }
 
     /**
+     * GetGroupCustomerList
+     */
+    public function GetGroupCustomerList($request)
+    {
+        $CustomerCd = $request->CustomerCd;
+
+        if (!$CustomerCd) return [];
+
+        $sql = "
+SELECT
+    得意先ＣＤ AS Cd,
+    得意先名 AS CdNm,
+    *
+FROM 得意先マスタ
+WHERE 得意先ＣＤ IN (
+SELECT
+	DISTINCT(Tel_CustNo) AS 得意先ＣＤ
+FROM C_TelToCust
+WHERE Tel_CustNo != $CustomerCd
+AND Tel_TelNo IN (
+	SELECT Tel_TelNo
+	FROM C_TelToCust
+	WHERE Tel_CustNo = $CustomerCd
+	AND Tel_DelFlg = 0
+)
+AND Tel_DelFlg = 0
+)
+        ";
+
+        $DataList = DB::select($sql);
+
+        return response()->json($DataList);
+    }
+
+    /**
      * GetProductList
      */
     public function GetProductList($request)
@@ -396,6 +431,7 @@ class UtilitiesController extends Controller
         $KanaNm = $request->kanaNm;
         $TelNo = $request->telNo;
         $IsOyaOnly = $request->isOyaOnly ?? true;
+        $GroupCustomerCd = $request->groupCustomerCd;
 
         $WhereBushoCd = $BushoCd ? " AND M1.部署ＣＤ = $BushoCd" : "";
         $WhereKanaNm = $KanaNm ? " AND M1.得意先名カナ LIKE '%$KanaNm%'" : "";
@@ -416,6 +452,21 @@ class UtilitiesController extends Controller
                                                     END
                                             END"
                                     : "";
+
+        $WhereGroupCustomer = $GroupCustomerCd ? "
+             AND M1.得意先ＣＤ IN (
+                SELECT
+                    DISTINCT(Tel_CustNo)
+                FROM C_TelToCust
+                WHERE Tel_CustNo != $GroupCustomerCd
+                AND Tel_TelNo IN (
+                    SELECT Tel_TelNo
+                    FROM C_TelToCust
+                    WHERE Tel_CustNo = $GroupCustomerCd
+                    AND Tel_DelFlg = 0
+                )
+                AND Tel_DelFlg = 0
+            )" : "";
 
         $OrderBy = $KanaNm ? " ORDER BY 得意先名カナ" : " ORDER BY 得意先ＣＤ ";
 
@@ -457,6 +508,7 @@ WITH 得意先_コース一覧 AS
         $WhereTelNo
         $WhereOyaOnly
         $WhereCourseKbn
+        $WhereGroupCustomer
 )
 SELECT
 	得意先CD AS Cd,
@@ -482,6 +534,146 @@ FROM
 WHERE
 	RNK = 1
 $OrderBy
+        ";
+
+        $DataList = DB::select($sql);
+
+        return response()->json($DataList);
+    }
+
+    /**
+     * GetShidashiOrderNoList
+     */
+    public function GetShidashiOrderNoList($request)
+    {
+        $DeliveryDate = $request->targetDate;
+
+        $WhereDeliveryDate = $DeliveryDate ? " AND 配達日付 = '$DeliveryDate'" : "";
+
+        $sql = "
+WITH 仕出顧客 AS (
+SELECT
+    CHUMON.部署ＣＤ
+    ,MB.部署名
+    ,CHUMON.受注Ｎｏ
+    ,CHUMON.配達日付
+    ,CHUMON.配達時間,
+    CHUMON.得意先ＣＤ
+    ,TOK.得意先名
+    ,TOK.電話番号１
+    ,TOK.ＦＡＸ１
+    ,CHUMON.注文日付
+    ,ISNULL(TOK.住所１,'')  +  ISNULL(TOK.住所２,'') AS 住所
+    ,ISNULL(CHUMON.配達先１,'')  + ISNULL(CHUMON.配達先２,'') AS 配達先
+    ,CHUMON.エリアＣＤ
+    ,COUM.コース名 AS エリア名称
+    ,CHUMON.地域区分
+    ,KAKUSHU_TIKU.各種名称 AS 地区名称
+    ,CHUMON.配達区分
+    ,KAKUSHU_HAITATSU.各種名称 AS 配達名称
+    ,CHUMON.税区分
+    ,KAKUSHU_ZEI.各種名称 AS 税名称
+	,RANK() OVER(PARTITION BY CHUMON.得意先ＣＤ ORDER BY CHUMON.注文日付 DESC, CHUMON.受注Ｎｏ DESC) AS RNK
+FROM
+    仕出し注文データ CHUMON
+    LEFT OUTER JOIN 得意先マスタ TOK ON
+    CHUMON.得意先ＣＤ = TOK.得意先ＣＤ
+    LEFT OUTER JOIN 各種テーブル KAKUSHU_TIKU ON
+    KAKUSHU_TIKU.各種CD = 32
+    AND KAKUSHU_TIKU.行NO = CHUMON.地域区分
+    LEFT OUTER JOIN 各種テーブル KAKUSHU_HAITATSU ON
+    KAKUSHU_HAITATSU.各種CD = 31
+    AND KAKUSHU_HAITATSU.行NO = CHUMON.配達区分
+    LEFT OUTER JOIN 各種テーブル KAKUSHU_ZEI ON
+    KAKUSHU_ZEI.各種CD = 20
+    AND KAKUSHU_ZEI.行NO = CHUMON.税区分
+    LEFT OUTER JOIN コースマスタ COUM ON
+    COUM.部署ＣＤ = CHUMON.部署ＣＤ
+    AND COUM.コースＣＤ = CHUMON.エリアＣＤ
+    LEFT OUTER JOIN 部署マスタ MB
+    ON MB.部署CD = CHUMON.部署ＣＤ
+)
+SELECT
+    DISTINCT
+    受注Ｎｏ AS Cd,
+    得意先名 AS CdNm,
+	*
+FROM
+	仕出顧客
+WHERE
+    RNK = 1
+    $WhereDeliveryDate
+ORDER BY
+    得意先ＣＤ
+        ";
+
+        $DataList = DB::select($sql);
+
+        return response()->json($DataList);
+    }
+
+    /**
+     * GetShidashiCustomerList
+     */
+    public function GetShidashiCustomerList($request)
+    {
+        $CustomerCd = $request->CustomerCd;
+
+        $sql = "
+WITH 顧客 AS (
+SELECT
+    TOK.部署ＣＤ
+    ,MB.部署名
+    ,CHUMON.受注Ｎｏ
+    ,CHUMON.配達日付
+    ,CHUMON.配達時間,
+    TOK.得意先ＣＤ
+    ,TOK.得意先名
+    ,TOK.得意先名カナ
+    ,TOK.電話番号１
+    ,TOK.ＦＡＸ１
+    ,CHUMON.注文日付
+    ,ISNULL(TOK.住所１,'')  +  ISNULL(TOK.住所２,'') AS 住所
+    ,ISNULL(CHUMON.配達先１,'')  + ISNULL(CHUMON.配達先２,'') AS 配達先
+    ,CHUMON.エリアＣＤ
+    ,COUM.コース名 AS エリア名称
+    ,CHUMON.地域区分
+    ,KAKUSHU_TIKU.各種名称 AS 地区名称
+    ,CHUMON.配達区分
+    ,KAKUSHU_HAITATSU.各種名称 AS 配達名称
+    ,CHUMON.税区分
+    ,KAKUSHU_ZEI.各種名称 AS 税名称
+	,RANK() OVER(PARTITION BY CHUMON.得意先ＣＤ ORDER BY CHUMON.注文日付 DESC, CHUMON.受注Ｎｏ DESC) AS RNK
+FROM
+	得意先マスタ TOK
+    LEFT OUTER JOIN 仕出し注文データ CHUMON ON
+    CHUMON.得意先ＣＤ = TOK.得意先ＣＤ
+    LEFT OUTER JOIN 各種テーブル KAKUSHU_TIKU ON
+    KAKUSHU_TIKU.各種CD = 32
+    AND KAKUSHU_TIKU.行NO = CHUMON.地域区分
+    LEFT OUTER JOIN 各種テーブル KAKUSHU_HAITATSU ON
+    KAKUSHU_HAITATSU.各種CD = 31
+    AND KAKUSHU_HAITATSU.行NO = CHUMON.配達区分
+    LEFT OUTER JOIN 各種テーブル KAKUSHU_ZEI ON
+    KAKUSHU_ZEI.各種CD = 20
+    AND KAKUSHU_ZEI.行NO = CHUMON.税区分
+    LEFT OUTER JOIN コースマスタ COUM ON
+    COUM.部署ＣＤ = CHUMON.部署ＣＤ
+    AND COUM.コースＣＤ = CHUMON.エリアＣＤ
+    LEFT OUTER JOIN 部署マスタ MB
+    ON MB.部署CD = TOK.部署ＣＤ
+)
+SELECT
+	DISTINCT
+    得意先ＣＤ AS Cd,
+    得意先名 AS CdNm,
+	*
+FROM
+	顧客
+WHERE
+	RNK = 1
+ORDER BY
+    得意先ＣＤ
         ";
 
         $DataList = DB::select($sql);

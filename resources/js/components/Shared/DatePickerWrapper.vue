@@ -2,7 +2,6 @@
     <div
         class="form-group d-inline-flex align-items-center mb-0"
         :class='"DatePickerWrapper " + id'
-        :style='width ? ("width: " + width + "px") : ""'
     >
         <span v-if="label" class="text-nowrap d-flex align-items-center mr-1" :for="_id + '_calendar_btn'">{{label}}</span>
         <date-picker
@@ -14,6 +13,7 @@
             @dp-hide="calendarHidden"
             @dp-change="dateChanged"
             autocomplete="off"
+            :style="customStyle"
         >
         </date-picker>
         <button type="button" class="input-group-addon calendar-button btn btn-info p-0 border-0" :class='[hideButton ? "d-none" : ""]'
@@ -31,6 +31,7 @@
 .DatePickerWrapper .target-input {
     width: 140px;
     padding-left: 6px;
+    padding-right: 6px;
     border-top-right-radius: 0px;
     border-bottom-right-radius: 0px;
 }
@@ -70,7 +71,7 @@ export default {
         bind: String,
         editable: Boolean,
         hideButton: Boolean,
-        width: Number,
+        customStyle: String,
         config: Object,
         format: String,
         dayViewHeaderFormat: String,
