@@ -6,6 +6,7 @@
 import VueDataList from "@vcs/DataList.vue";
 import VueSelect from "@vcs/VueSelect.vue";
 import VueSelectBusho from "@vcs/VueSelectBusho.vue";
+import VueOptions from "@vcs/VueOptions.vue";
 import PopupSelect from "@vcs/PopupSelect.vue";
 import PqGridWrapper from "@vcs/PqGridWrapper.vue";
 import DatePickerWrapper from "@vcs/DatePickerWrapper.vue";
@@ -55,6 +56,7 @@ export default {
         "VueDataList": VueDataList,
         "VueSelect": VueSelect,
         "VueSelectBusho": VueSelectBusho,
+        "VueOptions": VueOptions,
         "PopupSelect": PopupSelect,
         "PqGridWrapper": PqGridWrapper,
         "DatePickerWrapper": DatePickerWrapper,
@@ -161,6 +163,8 @@ export default {
                 //     dictCancelUpload:'キャンセル'
                 // });
             });
+
+        $(vue.$el).parents("div.body-content").removeClass("Scrollable");
 
         vue.focused();
         vue.mountedFunc(vue);

@@ -28,12 +28,16 @@
                 />
             </div>
             <div class="col-md-2">
-                <div class="radio">
-                    <label><input type="radio" v-model="viewKind" value="week">週表示</label>
-                </div>
-                <div class="radio">
-                    <label><input type="radio" v-model="viewKind" value="month">月表示</label>
-                </div>
+                <VueOptions
+                    customLabelStyle="width: 60px; text-align: center;"
+                    id="viewKind"
+                    :vmodel=viewModel
+                    bind="viewKind"
+                    :list="[
+                        {code: 'week', name: '週表示', label: '週表示'},
+                        {code: 'month', name: '月表示', label: '月表示'},
+                    ]"
+                />
             </div>
         </div>
         <div class="row">

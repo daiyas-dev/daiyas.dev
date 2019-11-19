@@ -21,7 +21,7 @@
             :readonly="this.editable == false"
             autocomplete="off"
             v-on=inputListeners
-            :disabled="isPreload"
+            :disabled="isPreload || isLoading"
         >
         <button type="button"
             :class="[
@@ -34,7 +34,7 @@
             ]"
             :id="'btn' + id"
             @click="showList"
-            :disabled="isPreload"
+            :disabled="isPreload || isLoading"
             :tabIndex="hasButtonFocus ? 0 : -1"
         >
             <i class="fa fa-search fa-lg"></i>
@@ -51,7 +51,7 @@
             ]"
             :id="'btn_prev' + id"
             @click="prevList"
-            :disabled=!isPrevEnabled
+            :disabled="isPreload || isLoading"
             :tabIndex="hasButtonFocus ? 0 : -1"
         >
             <i class="fa fa-caret-left fa-lg"></i>
@@ -84,7 +84,7 @@
             ]"
             :id="'btn' + id + 'Clear'"
             @click="clearValue"
-            :disabled="isPreload"
+            :disabled="isPreload || isLoading"
             :tabIndex="hasButtonFocus ? 0 : -1"
         >
             <i class="fa fa-times fa-lg"></i>
@@ -98,7 +98,7 @@
                 'label-blue',
                 readOnly == true ? 'readOnly' : ''
             ]"
-            disabled
+            :disabled="!isNameEditable"
             :value="selectName"
             :style='nameWidth ? ("width: " + nameWidth + "px") : ""'
         >
@@ -194,6 +194,7 @@ export default {
             paramsPrev: null,
             errorMsg: null,
             AutoCompleteFocusSkip: false,
+            isLoading: true,
         }
     },
     props: {
@@ -223,9 +224,11 @@ export default {
         isCodeOnly: Boolean,
         showColumns: Array,
         onChangeFunc: Function,
+        onAfterChangedFunc: Function,
         index: Number,
         isShowName: Boolean,
         isShowNameLabel: Boolean,
+        isNameEditable: Boolean,
         nameWidth: Number,
         showTextFunc: String,
         isPreload: Boolean,
@@ -273,7 +276,7 @@ export default {
                 && !!vue.dataList.length
                 && !_.isEmpty(vue.selectRow)
                 && vue.dataList.indexOf(vue.selectRow) != 0;
-            console.log("isPrevEnabled:" + ret);
+            //console.log("isPrevEnabled:" + ret);
             return ret;
         },
         isNextEnabled: function() {
@@ -286,7 +289,7 @@ export default {
                     ||
                     vue.dataList.indexOf(vue.selectRow) != vue.dataList.length - 1
                 );
-            console.log("isNextEnabled:" + ret);
+            //console.log("isNextEnabled:" + ret);
             return ret;
         },
     },
@@ -306,7 +309,7 @@ export default {
             sync: true,
             handler: function(newVal) {
                 var vue = this;
-                console.log("PopupSelect params", newVal, vue.paramsPrev);
+                //console.log("PopupSelect params", newVal, vue.paramsPrev);
 
                 if (!_.isEqual(newVal, vue.paramsPrev, (v, o) => v == o)) {
                     if (vue.ParamsChangedCheckFunc && !vue.ParamsChangedCheckFunc(newVal, vue.paramsPrev)) {
@@ -450,6 +453,10 @@ export default {
                     vue.vmodel[vue.buddy] = "";
                 }
             }
+
+            if (vue.onAfterChangedFunc) {
+                vue.onAfterChangedFunc("");
+            }
         },
         getDataList: function(params, callback) {
             var vue = this;
@@ -492,12 +499,16 @@ export default {
                         vue.CountConstraint = res.CountConstraint;
 
                         res = res.Data;
+                    } else if (res.Data) {
+                        res = res.Data;
                     }
 
                     //データリスト保持
                     vue.dataList = res;
                     console.log("popup select get dataList");
                     console.log(vue.dataList);
+
+                    vue.isLoading = false;
 
                     if (vue.isShowAutoComplete) {
                         vue.autoCompleteKey = null;
@@ -707,6 +718,10 @@ export default {
                         }
                     }
                 }
+
+                if (vue.onAfterChangedFunc) {
+                    vue.onAfterChangedFunc(newVal, vue.selectRow);
+                }
             }
 
             //値チェック関数object
@@ -847,7 +862,7 @@ export default {
                 },
                 appendTo: $("body"),    //$(vue.$el).parent(),
                 select : function(event, ui) {
-                    console.log("autocomplete select:" + input.val());
+                    //console.log("autocomplete select:" + input.val());
                     //選択した値を設定
                     vue.execSetSelectValue(ui.item.value, true, false);
 
@@ -859,7 +874,7 @@ export default {
                 minLength: vue.AutoCompleteMinLength || 0,
             })
             .focus(function(ev) {
-                console.log("autocomplete focus:" + input.val() + " skip:" + vue.AutoCompleteFocusSkip);
+                //console.log("autocomplete focus:" + input.val() + " skip:" + vue.AutoCompleteFocusSkip);
                 if (vue.AutoCompleteFocusSkip) {
                     vue.AutoCompleteFocusSkip = false;
                 } else {
@@ -869,12 +884,12 @@ export default {
                 }
             })
             .click(function(ev) {
-                console.log("autocomplete click:" + input.val());
+                //console.log("autocomplete click:" + input.val());
                 input.focus();
             })
             .keydown(function(event) {
-                console.log("autocomplete key down:" + event.key);
-                console.log(event);
+                //console.log("autocomplete key down:" + event.key);
+                //console.log(event);
                 switch (event.which) {
                     case 13:
                         var selected = vue.autoCompleteList.length == 1 ? vue.autoCompleteList[0] : vue.selectRow;
@@ -900,7 +915,7 @@ export default {
                 }
             })
             .change(function() {
-                console.log("autocomplete change:" + input.val() + "/" + vue.selectRow[vue.isGetName ? "CdNm" : "Cd"]);
+                //console.log("autocomplete change:" + input.val() + "/" + vue.selectRow[vue.isGetName ? "CdNm" : "Cd"]);
 
                 if (input.val() == vue.selectRow[vue.isGetName ? "CdNm" : "Cd"]) return;
 
@@ -919,7 +934,16 @@ export default {
 
             var match = vue.dataList.filter(v => v[vue.isGetName ? "CdNm" : "Cd"] == key);
             var list = vue.AutoCompleteFunc ? vue.AutoCompleteFunc(key, vue.dataList)
-                : vue.dataList.filter(v => v[vue.isGetName ? "CdNm" : "Cd"].includes(key));
+                : vue.dataList
+                    .filter(v => v[vue.isGetName ? "CdNm" : "Cd"].includes(key))
+                    .map(v => {
+                        var ret = v;
+                        ret.value = v[vue.isGetName ? "CdNm" : "Cd"];
+                        ret.text = v[!vue.isGetName ? "CdNm" : "Cd"];
+                        ret.label = ret.value + " : " + ret.text;
+                        return ret;
+                    })
+                    ;
 
             console.log("getAutoCompleteList:" + key + " = " + list.length + "[" + match.length + "]");
 

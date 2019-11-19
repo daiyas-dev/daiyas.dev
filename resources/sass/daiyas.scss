@@ -7,6 +7,8 @@
 body {
     font-family: "Yu Gothic", YuGothic;
     font-size: 15px;
+    overflow-x: hidden;
+    overflow-y: hidden;
 }
 
 .has-error .form-control {
@@ -25,6 +27,10 @@ body {
     font-family: "Yu Gothic", YuGothic;
     font-size: 15px;
 }
+.ui-widget-overlay.ui-front ~ .ui-widget-overlay.ui-front {
+    display: none;
+}
+
 .tooltip {
     font-family: "Yu Gothic", YuGothic;
     font-size: 15px;
@@ -87,11 +93,6 @@ body {
     padding-right: 4px;
 }
 
-body {
-    overflow-x: hidden;
-    overflow-y: hidden;
-}
-
 .container {
     width: auto;
 }
@@ -120,6 +121,10 @@ body {
 
 .slide-leave-active {
     transform: translateX(-100%);
+}
+
+.container.body-content.Scrollable {
+    overflow-y: auto;
 }
 
 .container.body-content > #exception {
@@ -271,6 +276,10 @@ label.label-blue {
 label{
     margin-bottom: 0px !important;
 }
+div[class^=col-md-]:not(:first-child) > label {
+    text-align: center;
+}
+
 .form-control{
     max-height: 30px;
 }

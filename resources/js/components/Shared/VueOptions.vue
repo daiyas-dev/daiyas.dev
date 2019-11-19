@@ -1,26 +1,28 @@
 ﻿//required bootstrap css
 <template>
-    <div :style="_style" class="form-group d-inline-flex align-items-center VueSelect" :data-tip="isExists ? null : '選択可能な一覧がありません'">
-        <label v-if="title" class="" :for="_id">{{title}}</label>
-        <select class="form-control" :id="_id" v-model="vmodel[bind]" @change="onChanged"
-            :disabled=disabled
-            style="font-size: 15px; padding-top: 2px; padding-left: 2px; padding-bottom: 2px;">
-            <option v-show="hasNull" value=""></option>
-            <template v-if="entities && entities.length">
-                <option v-for="entity in entities"
-                    v-bind:key="entity.code"
-                    v-bind:value="entity.code"
-                    :selected="vmodel[bind] == entity.code">
-                    {{entity.label}}
-                </option>
-            </template>
-        </select>
+    <div class="form-group d-inline-flex align-items-center VueOptions" :data-tip="isExists ? null : '選択可能な一覧がありません'">
+        <label v-if="title" :style="_labelStyle">{{title}}</label>
+        <div class="d-flex pl-1 pr-1" style="border-style: groove">
+            <div v-for="entity in entities" class="radio"
+                v-bind:key="entity.code"
+            >
+                <label :style="_itemStyle">
+                    <input type="radio"
+                        v-model="vmodel[bind]"
+                        v-bind:value="entity.code"
+                        :name="bind"
+                        :selected="vmodel[bind] == entity.code"
+                        :disabled=disabled
+                        @change="onChanged"
+                    >{{entity.label}}</label>
+            </div>
+        </div>
     </div>
 </template>
 
 <script>
 export default {
-    name: "VueSelect",
+    name: "VueOptions",
     data() {
         return {
             entities: [],
@@ -43,7 +45,8 @@ export default {
         func: Function,
         onChangedFunc: Function,
         withCode: Boolean,
-        customStyle: String,
+        customItemStyle: String,
+        customLabelStyle: String,
         disabled: Boolean,
         ParamsChangedCheckFunc: Function,
     },
@@ -68,7 +71,6 @@ export default {
         entities: {
             deep: true,
             handler: function(newVal) {
-                //console.log("VueSelect eintities watcher", newVal);
                 if (!this.hasNull && newVal.length && !_.find(newVal, { code: this.vmodel[this.bind]})) {
                     this.vmodel[this.bind] = newVal[0].code;
                     if (this.buddy) {
@@ -89,8 +91,11 @@ export default {
         _id: function() {
             return this.id + "_" + this._uid;
         },
-        _style: function() {
-            return this.customStyle || "width:180px";
+        _itemStyle: function() {
+            return this.customItemStyle || "width: max-content";
+        },
+        _labelStyle: function() {
+            return this.customLabelStyle || "width: 60px";
         },
     },
     created: function () {
@@ -181,7 +186,6 @@ export default {
                     });
 
                     //view更新
-                    // console.log("VueSelect set entities", entities);
                     component.entities = entities;
                 })
                 .catch(error => {

@@ -69,13 +69,17 @@
                     :AutoCompleteFunc=ShidashiOrderNoAutoCompleteFunc
                     :enablePrevNext=true
                 />
+                <label style="width: 120px; max-width: unset; text-align: center;">注文日付</label>
+                <input class="form-control p-0 text-center" style="width: 120px;" type="text" :value=viewModel.OrderDate readonly tabindex="-1">
+                <label class="text-center">時間</label>
+                <input class="form-control p-0 text-center" style="width: 80px;" type="text" :value=viewModel.OrderTime readonly tabindex="-1">
             </div>
         </div>
         <div class="row">
             <div class="col-md-1">
                 <label>顧客</label>
             </div>
-            <div class="col-md-9">
+            <div class="col-md-5">
                 <PopupSelect
                     id="CustomerSelect"
                     ref="PopupSelect_Customer"
@@ -95,50 +99,227 @@
                     :popupWidth=1000
                     :popupHeight=600
                     :isShowName=true
+                    :isNameEditable=true
                     :isModal=true
                     :editable=true
                     :reuse=true
                     :existsCheck=true
                     :inputWidth=150
-                    :nameWidth=300
+                    :nameWidth=400
                     :onChangeFunc=onCustomerChanged
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=CustomerAutoCompleteFunc
                     :AutoCompleteMinLength=1
                     :ParamsChangedCheckFunc=CustomerParamsChangedCheckFunc
                 />
-                <label class="label-blue text-center">TEL</label>
-                <input class="form-control p-0 text-center" style="width: 120px;" type="text" :value=viewModel.TelNo readonly tabindex="-1">
+            </div>
+            <div class="col-md-2">
+            </div>
+            <div class="col-md-2">
+                <label class="w-50 text-center">売掛現金区分</label>
+                <VueSelect
+                    id="UriGenKbn"
+                    :vmodel=viewModel
+                    bind="UriGenKbn"
+                    uri="/Utilities/GetCodeList"
+                    :params="{ cd: 1 }"
+                    :withCode=true
+                    customStyle="{ width: 100px; }"
+                />
             </div>
         </div>
         <div class="row">
             <div class="col-md-1">
-                <label>担当者</label>
+                <label class="">顧客名ｶﾅ</label>
             </div>
-            <div class="col-md-5">
-                <input class="form-control label-blue" style="width: 100px;" type="text" :value=viewModel.TantoCd readonly tabindex="-1">
-                <input class="form-control ml-1 label-blue" style="width: 300px;" type="text" :value=viewModel.TantoNm readonly tabindex="-1">
+            <div class="col-md-3">
+                <input type="text" class="form-control" :value="viewModel.CustomerNmK">
+            </div>
+            <div class="col-md-2">
+                <label class="w-100 text-center">TEL1</label>
+                <input class="form-control p-2" style="width: 125px;" type="text" :value=viewModel.TelNo1>
+            </div>
+            <div class="col-md-2">
+                <label class="w-100 text-center">TEL2</label>
+                <input class="form-control p-2" style="width: 125px;" type="text" :value=viewModel.TelNo2>
+            </div>
+            <div class="col-md-2">
+                <label class="w-100 text-center">Fax</label>
+                <input class="form-control p-2" style="width: 125px;" type="text" :value=viewModel.FaxNo>
+            </div>
+            <div class="col-md-1">
+                <label class="w-100 text-center">郵便番号</label>
+            </div>
+            <div class="col-md-1">
+                <input class="form-control p-2" style="width: 90px;" type="text" :value=viewModel.FaxNo>
             </div>
         </div>
         <div class="row">
             <div class="col-md-1">
-                <label>コース</label>
+                <label>住所</label>
             </div>
             <div class="col-md-5">
-                <input class="form-control label-blue" style="width: 100px;" type="text" :value=viewModel.CourseCd readonly tabindex="-1">
-                <input class="form-control ml-1 label-blue" style="width: 300px;" type="text" :value=viewModel.CourseNm readonly tabindex="-1">
+                <input class="form-control" type="text" :value=viewModel.TelNo2>
+            </div>
+            <div class="col-md-1">
+                <label class="w-100 text-center">配達先</label>
+            </div>
+            <div class="col-md-5">
+                <input class="form-control" type="text" :value=viewModel.TelNo2>
             </div>
         </div>
         <div class="row">
-            <div class="col-md-1 offset-md-11 d-flex justify-content-center">
-                <button
-                    id="btn_view_toggle"
-                    type="button"
-                    class="btn-light w-100"
-                    @click=toggleGridView
-                >
-                    <span>{{viewModel.IsShowAll ? "初期表示" : "全表示"}}</span>
-                </button>
+            <div class="col-md-5 offset-md-1">
+                <input class="form-control" type="text" :value=viewModel.TelNo2>
+            </div>
+            <div class="col-md-5 offset-md-1">
+                <input class="form-control" type="text" :value=viewModel.TelNo2>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1">
+                <label>エリア</label>
+            </div>
+            <div class="col-md-3">
+                <PopupSelect
+                    id="AreaSelect"
+                    ref="PopupSelect_Area"
+                    :vmodel=viewModel
+                    bind="AreaCd"
+                    buddy="AreaNm"
+                    dataUrl="/Utilities/GetCourseList"
+                    :params="{ bushoCd: viewModel.BushoCd }"
+                    title="エリア一覧"
+                    labelCd="エリアCD"
+                    labelCdNm="エリア名"
+                    :showColumns='[
+                    ]'
+                    :isShowName=true
+                    :isModal=true
+                    :editable=true
+                    :reuse=true
+                    :existsCheck=true
+                    :inputWidth=80
+                    :nameWidth=150
+                    :isShowAutoComplete=true
+                />
+            </div>
+            <div class="col-md-2">
+                <label class="text-center">地域区分</label>
+                <VueSelect
+                    id="TiikiKbn"
+                    :vmodel=viewModel
+                    bind="TiikiKbn"
+                    uri="/Utilities/GetCodeList"
+                    :params="{ cd: 32 }"
+                    :withCode=true
+                    customStyle="{ width: 100px; }"
+                />
+            </div>
+            <div class="col-md-2">
+                <VueOptions
+                    title="AMPM"
+                    customLabelStyle="width: 60px; text-align: center;"
+                    id="AmPmKbn"
+                    :vmodel=viewModel
+                    bind="AmPmKbn"
+                    :list="[
+                        {code: '0', name: 'AM', label: 'AM'},
+                        {code: '1', name: 'PM', label: 'PM'},
+                    ]"
+                />
+            </div>
+            <div class="col-md-2">
+                <label class="text-center">税区分</label>
+                <VueSelect
+                    id="TaxKbn"
+                    :vmodel=viewModel
+                    bind="TaxKbn"
+                    uri="/Utilities/GetCodeList"
+                    :params="{ cd: 20 }"
+                    :withCode=true
+                    customStyle="{ width: 100px; }"
+                />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1">
+                <label>配達区分</label>
+            </div>
+            <div class="col-md-1">
+                <VueSelect
+                    id="DeliveryKbn"
+                    :vmodel=viewModel
+                    bind="DeliveryKbn"
+                    uri="/Utilities/GetCodeList"
+                    :params="{ cd: 31 }"
+                    :withCode=true
+                    customStyle="{ width: 100px; }"
+                />
+            </div>
+            <div class="col-md-2">
+                <VueOptions
+                    title="連絡"
+                    customLabelStyle="width: 60px; text-align: center;"
+                    id="RenrakuKbn"
+                    :vmodel=viewModel
+                    bind="RenrakuKbn"
+                    uri="/Utilities/GetCodeList"
+                    :params="{ cd: 30 }"
+                    :withCode=false
+                />
+            </div>
+            <div class="col-md-4">
+                <label class="text-center">担当者</label>
+                <PopupSelect
+                    id="TantoSelect"
+                    ref="PopupSelect_Tanto"
+                    :vmodel=viewModel
+                    bind="TantoCd"
+                    buddy="TantoNm"
+                    dataUrl="/Utilities/GetTantoList"
+                    :params="{ bushoCd: viewModel.BushoCd }"
+                    title="担当者一覧"
+                    labelCd="担当者CD"
+                    labelCdNm="担当者名"
+                    :showColumns='[
+                        { title: "担当者名カナ", dataIndx: "担当者名カナ", dataType: "string", width: 150, maxWidth: 150, minWidth: 150 },
+                    ]'
+                    :isShowName=true
+                    :isModal=true
+                    :editable=true
+                    :reuse=true
+                    :existsCheck=true
+                    :inputWidth=80
+                    :nameWidth=150
+                    :isShowAutoComplete=true
+                />
+            </div>
+            <div class="col-md-4">
+                <label>営業担当者</label>
+                <PopupSelect
+                    id="EigyoTantoSelect"
+                    ref="PopupSelect_EigyoTanto"
+                    :vmodel=viewModel
+                    bind="EigyoTantoCd"
+                    buddy="EigyoTantoNm"
+                    dataUrl="/Utilities/GetTantoList"
+                    :params="{ bushoCd: viewModel.BushoCd }"
+                    title="営業担当者一覧"
+                    labelCd="担当者CD"
+                    labelCdNm="担当者名"
+                    :showColumns='[
+                        { title: "担当者名カナ", dataIndx: "担当者名カナ", dataType: "string", width: 150, maxWidth: 150, minWidth: 150 },
+                    ]'
+                    :isShowName=true
+                    :isModal=true
+                    :editable=true
+                    :reuse=true
+                    :existsCheck=true
+                    :inputWidth=80
+                    :nameWidth=150
+                    :isShowAutoComplete=true
+                />
             </div>
         </div>
         <PqGridWrapper
@@ -160,21 +341,17 @@
             :autoEmptyRowCheckFunc=autoEmptyRowCheckFunc
         />
         <div class="row">
-            <div class="col-md-1 d-block">
-                <label>備考</label>
+            <div class="col-md-1">
+                <label>製造用特記</label>
             </div>
-            <div class="col-md-8 d-block">
-                <VueDataList v-for="n in 0"
-                    v-bind:key='"Bikou" + n'
-                    :id='"Bikou" + n'
-                    :vmodel=viewModel
-                    :bind='"Bikou" + n'
-                    dataUrl="/Utilities/GetBikouList"
-                    :hasNull=true
-                    class="bikou"
-                    style="width: 675px;"
-                    listHeight="20vh"
-                />
+            <div class="col-md-5">
+                <textarea class="form-control" style="max-height: unset;" :value=viewModel.NoteSeizo rows=3 />
+            </div>
+            <div class="col-md-1">
+                <label class="w-100 text-center">事務用特記</label>
+            </div>
+            <div class="col-md-5">
+                <textarea class="form-control" style="max-height: unset;" :value=viewModel.NoteJimu rows=3 />
             </div>
         </div>
         <div class="row">
@@ -194,7 +371,15 @@ label {
 }
 .update-info .label-blue {
     max-width: unset !important;
-    margin-right: 4px;
+}
+div[class^="col-md"] > label {
+    max-width: unset;
+    line-height: 16px;
+}
+textarea {
+    max-height: unset;
+    line-height: 16px;
+    resize: none;
 }
 </style>
 <style>
@@ -236,25 +421,33 @@ export default {
             ScreenTitle: "仕出処理->仕出注文入力",
             noViewModel: true,
             viewModel: {
-                CustomerInfo: null,
+                OrderNo: null,
                 BushoCd: null,
                 BushoNm: null,
                 DeliveryDate: null,
                 DeliveryTime: null,
                 CustomerCd: null,
                 CustomerNm: null,
-                TelNo: null,
+                TelNo1: null,
+                TelNo2: null,
+                FaxNo: null,
+                OrderDate: null,
+                OrderTime: null,
+                Address: null,
+                DeliveryPlace: null,
+                AreaCd: null,
+                AreaNm: null,
+                TiikiKbn: null,
+                TiikiNm: null,
+                DeliveryKbn: null,
+                DeliveryKbnNm: null,
+                TaxKbn: null,
+                AmPmKbn: null,
+                TaxNm: null,
                 TantoCd: null,
                 TantoNm: null,
-                CourseCd: null,
-                CourseNm: null,
-                Bikou1: null,
-                Bikou2: null,
-                Bikou3: null,
-                Bikou4: null,
-                Bikou5: null,
-                IsShowAll: null,
-                GroupCustomerCd: null,
+                EigyoTantoCd: null,
+                EigyoTantoNm: null,
             },
             DAI08010Grid1: null,
             grid1Options: {
@@ -267,7 +460,7 @@ export default {
                 autoRow: false,
                 rowHtHead: 25,
                 rowHt: 30,
-                height: 270,
+                height: 200,
                 editable: true,
                 columnTemplate: {
                     editable: false,
@@ -538,43 +731,6 @@ export default {
             var vue = this;
             vue.CustomerChanged(info, isValid);
         },
-        ShidashiOrderNoChanged: function(info, isValid, noSearch) {
-            var vue = this;
-            var grid = vue.DAI08010Grid1;
-
-            //popupselectがviewModelをwatchしているので、得意先CDから更新
-            vue.viewModel.CustomerCd = info["得意先CD"];
-            vue.viewModel.CustomerNm = info["得意先名"];
-
-            if (info["部署CD"] && vue.viewModel.BushoCd != info["部署CD"]) {
-                vue.viewModel.BushoCd = info["部署CD"];
-            }
-
-            vue.viewModel.TelNo = info["電話番号１"];
-            vue.viewModel.TantoCd = info["担当者ＣＤ"];
-            vue.viewModel.TantoNm = info["担当者名"];
-            vue.viewModel.CourseKbn = info["コース区分"];
-            vue.viewModel.CourseCd = info["コースCD"];
-            vue.viewModel.CourseNm = info["コース名"];
-            vue.viewModel.CustomerInfo = info;
-
-            //現金/掛売列の表示制御
-            grid.columns["現金個数"].hidden = info["売掛現金区分"] != "0";
-            grid.columns["現金個数"].cls = info["売掛現金区分"] == 0 ? "cell-editable" : "cell-readonly-force";
-            grid.columns["現金金額"].hidden = info["売掛現金区分"] != "0";
-            grid.columns["現金金額"].cls = info["売掛現金区分"] == 0 ? "" : "cell-readonly-force";
-
-            grid.columns["掛売個数"].hidden = info["売掛現金区分"] != "1";
-            grid.columns["掛売個数"].cls = info["売掛現金区分"] == 1 ? "cell-editable" : "cell-readonly-force";
-            grid.columns["掛売金額"].hidden = info["売掛現金区分"] != "1";
-            grid.columns["掛売金額"].cls = info["売掛現金区分"] == 1 ? "" : "cell-readonly-force";
-
-            //顧客ｸﾞﾙｰﾌﾟ
-            //vue.setGroupCustomer(vue.viewModel.CustomerCd);
-
-            //条件変更ハンドラ
-            vue.conditionChanged(noSearch);
-        },
         onCustomerChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
             var vue = this;
             vue.CustomerChanged(info, isValid);
@@ -585,38 +741,55 @@ export default {
 
             console.log("ShidashiCustomerChanged", JSON.stringify(info));
 
-            //popupselectがviewModelをwatchしているので、得意先CDから更新
-            vue.viewModel.CustomerCd = info["得意先ＣＤ"];
-            vue.viewModel.CustomerNm = info["得意先名"];
-
-            if (info["部署CD"] && vue.viewModel.BushoCd != info["部署CD"]) {
-                vue.viewModel.BushoCd = info["部署CD"];
+            if (!(!!info["部署CD"] && (!!info["受注Ｎｏ"] || !!info["得意先ＣＤ"]))) {
+                return;
             }
 
-            vue.viewModel.TelNo = info["電話番号１"];
-            vue.viewModel.TantoCd = info["担当者ＣＤ"];
-            vue.viewModel.TantoNm = info["担当者名"];
-            vue.viewModel.CourseKbn = info["コース区分"];
-            vue.viewModel.CourseCd = info["コースCD"];
-            vue.viewModel.CourseNm = info["コース名"];
-            vue.viewModel.CustomerInfo = info;
+            axios.post(
+                    "/Utilities/GetShidashiCustomer",
+                    {
+                        bushoCd: info["部署CD"],
+                        orderNo: info["受注Ｎｏ"],
+                        customerCd: info["得意先ＣＤ"],
+                    }
+                )
+                .then(response => {
+                    if (!response.data || response.data.length != 1) return;
 
-            //現金/掛売列の表示制御
-            grid.columns["現金個数"].hidden = info["売掛現金区分"] != "0";
-            grid.columns["現金個数"].cls = info["売掛現金区分"] == 0 ? "cell-editable" : "cell-readonly-force";
-            grid.columns["現金金額"].hidden = info["売掛現金区分"] != "0";
-            grid.columns["現金金額"].cls = info["売掛現金区分"] == 0 ? "" : "cell-readonly-force";
+                    var res = response.data[0];
 
-            grid.columns["掛売個数"].hidden = info["売掛現金区分"] != "1";
-            grid.columns["掛売個数"].cls = info["売掛現金区分"] == 1 ? "cell-editable" : "cell-readonly-force";
-            grid.columns["掛売金額"].hidden = info["売掛現金区分"] != "1";
-            grid.columns["掛売金額"].cls = info["売掛現金区分"] == 1 ? "" : "cell-readonly-force";
+                    vue.viewModel.OrderNo = res["受注Ｎｏ"];
+                    vue.viewModel.BushoCd = res["部署ＣＤ"];
+                    vue.viewModel.BushoNm = res["部署名"];
+                    vue.viewModel.DeliveryDate = res["配達日付"];
+                    vue.viewModel.DeliveryTime = res["配達時間"];
+                    vue.viewModel.CustomerCd = res["得意先ＣＤ"];
+                    vue.viewModel.CustomerNm = res["得意先名"];
+                    vue.viewModel.TelNo1 = res["電話番号１"];
+                    vue.viewModel.TelNo2 = res["電話番号２"];
+                    vue.viewModel.FaxNo = res["ＦＡＸ１"];
+                    vue.viewModel.OrderDate = res["注文日付"];
+                    vue.viewModel.Address = res["住所"];
+                    vue.viewModel.DeliveryPlace = res["配達先"];
+                    vue.viewModel.AreaCd = res["エリアＣＤ"];
+                    vue.viewModel.AreaNm = res["エリア名称"];
+                    vue.viewModel.TiikiKbn = res["地域区分"];
+                    vue.viewModel.TiikiNm = res["地区名称"];
+                    vue.viewModel.DeliveryKbn = res["配達区分"];
+                    vue.viewModel.DeliveryKbnNm = res["配達名称"];
+                    vue.viewModel.TaxKbn = res["税区分"];
+                    vue.viewModel.TaxNm = res["税名称"];
+                    vue.viewModel.TantoCd = res["担当者ＣＤ"];
+                    vue.viewModel.TantoNm = res["担当者名"];
+                    vue.viewModel.EigyoTantoCd = res["営業担当者ＣＤ"];
+                    vue.viewModel.EigyoTantoNm = res["営業担当者名"];
 
-            //顧客ｸﾞﾙｰﾌﾟ
-            //vue.setGroupCustomer(vue.viewModel.CustomerCd);
-
-            //条件変更ハンドラ
-            vue.conditionChanged(noSearch);
+                    //条件変更ハンドラ
+                    vue.conditionChanged(noSearch);
+                })
+                .catch(error => {
+                    console.log(error);
+                });
         },
         conditionChanged: function(noSearch) {
             var vue = this;
@@ -773,24 +946,6 @@ export default {
             console.log("CustomerParamsChangedCheckFunc", newVal, ret);
             ret = true;
             return ret;
-        },
-        onGroupCustomerChanged: function() {
-            var vue = this;
-
-            if (!vue.viewModel.GroupCustomerCd) return;
-
-            var vm = _.cloneDeep(vue.viewModel);
-            vue.viewModel.GroupCustomerCd = "";
-
-            vue.$router.push({
-                path: vue.$route.path,
-                query: {
-                    userId: vue.$route.query.userId,
-                    BushoCd: vm.BushoCd,
-                    DeliveryDate: vm.DeliveryDate,
-                    CustomerCd: vm.GroupCustomerCd,
-                }
-            });
         },
     }
 }

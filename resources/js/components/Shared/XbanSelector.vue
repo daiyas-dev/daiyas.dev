@@ -228,7 +228,7 @@ export default {
             deep: true,
             handler: function(newVal) {
                 var vue = this;
-                console.log("XbanSelector selection watcher");
+                //console.log("XbanSelector selection watcher");
 
                 var values = _.cloneDeep(newVal);
                 vue.selectionChanged(values);

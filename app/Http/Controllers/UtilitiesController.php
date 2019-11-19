@@ -18,6 +18,44 @@ use DB;
 
 class UtilitiesController extends Controller
 {
+
+    /**
+     * GetColumns
+     */
+    public function GetColumns($request)
+    {
+        $TableName = $request->TableName;
+
+        $sql = "
+SELECT
+	COLUMN_NAME,
+	ORDINAL_POSITION,
+	(CASE
+		WHEN DATA_TYPE = 'varchar' THEN
+			'string'
+		WHEN DATA_TYPE = 'nvarchar' THEN
+			'string'
+		WHEN DATA_TYPE = 'int' THEN
+			'integer'
+		WHEN DATA_TYPE = 'numeric' AND NUMERIC_SCALE = 0 THEN
+			'integer'
+		WHEN DATA_TYPE = 'numeric' AND NUMERIC_SCALE > 0 THEN
+			'float'
+		WHEN DATA_TYPE = 'datetime' THEN
+			'date'
+		ELSE
+			'string'
+	END) AS DATA_TYPE,
+	ISNULL(CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION) AS COLUMN_LENGTH
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = '$TableName'
+        ";
+
+        $DataList = DB::select($sql);
+
+        return response()->json($DataList);
+    }
+
     /**
      * GetCodeList
      */
@@ -285,6 +323,71 @@ class UtilitiesController extends Controller
 
     /**
      * GetCustomerList
+     */
+    public function GetCustomerList($request)
+    {
+        $BushoCd = $request->bushoCd ?? $request->BushoCd;
+        $KeyWord = $request->KeyWord;
+
+        if ($KeyWord) {
+            $x = 1;
+        }
+
+        $WhereBusho = $BushoCd ? " AND TM.部署ＣＤ=$BushoCd" : "";
+        $WhereKeyWord = $KeyWord
+            ? " AND (
+                    TM.得意先ＣＤ LIKE '$KeyWord%' OR
+                    TM.得意先名 LIKE '%$KeyWord%' OR
+                    TM.得意先名略称 LIKE '%$KeyWord%' OR
+                    TM.得意先名カナ LIKE '%$KeyWord%' OR
+                    TM.電話番号１ LIKE '$KeyWord%' OR
+                    TM.備考１ LIKE '%$KeyWord%' OR
+                    TM.備考２ LIKE '%$KeyWord%' OR
+                    TM.備考３ LIKE '%$KeyWord%'
+                )"
+            : "";
+
+        $CountSql = "
+SELECT
+    COUNT(TM.得意先ＣＤ) AS CNT
+FROM 得意先マスタ TM
+LEFT JOIN 部署マスタ BM
+    ON TM.部署CD = BM.部署CD
+WHERE 0=0
+$WhereBusho
+$WhereKeyWord
+        ";
+
+        $Count = DB::select($CountSql);
+
+        $SelectTop = $Count[0]->CNT > 1000 ? "TOP 1000" : "";
+
+        $sql = "
+SELECT $SelectTop
+    TM.得意先ＣＤ AS Cd,
+    TM.得意先名 AS CdNm,
+    TM.得意先名カナ,
+    TM.得意先名略称,
+    TM.電話番号１,
+    TM.備考１,
+    TM.備考２,
+    TM.備考３,
+    BM.部署名
+FROM 得意先マスタ TM
+LEFT JOIN 部署マスタ BM
+    ON TM.部署CD = BM.部署CD
+WHERE 0=0
+$WhereBusho
+$WhereKeyWord
+        ";
+
+        $DataList = DB::select($sql);
+
+        return response()->json(['Data'=>$DataList, 'CountConstraint'=> !!$SelectTop]);
+    }
+
+    /**
+     * GetCustomerListFromCourse
      */
     public function GetCustomerListFromCourse($request)
     {
@@ -607,9 +710,12 @@ ORDER BY
     得意先ＣＤ
         ";
 
-        $DataList = DB::select($sql);
-
-        return response()->json($DataList);
+        try {
+            $DataList = DB::select($sql);
+            return response()->json($DataList);
+        } catch (\Throwable $th) {
+            return response()->json($th);
+        }
     }
 
     /**
@@ -624,6 +730,66 @@ WITH 顧客 AS (
 SELECT
     TOK.部署ＣＤ
     ,MB.部署名
+    ,TOK.得意先ＣＤ
+    ,TOK.得意先名
+    ,TOK.得意先名カナ
+    ,TOK.電話番号１
+    ,TOK.電話番号２
+    ,TOK.ＦＡＸ１
+    ,ISNULL(TOK.住所１,'')  +  ISNULL(TOK.住所２,'') AS 住所
+    ,ISNULL(CHUMON.配達先１,'')  + ISNULL(CHUMON.配達先２,'') AS 配達先
+    ,CHUMON.地域区分
+    ,KAKUSHU_TIKU.各種名称 AS 地区名称
+	,RANK() OVER(PARTITION BY CHUMON.得意先ＣＤ ORDER BY CHUMON.注文日付 DESC, CHUMON.受注Ｎｏ DESC) AS RNK
+FROM
+	得意先マスタ TOK
+    LEFT OUTER JOIN 仕出し注文データ CHUMON ON
+    CHUMON.得意先ＣＤ = TOK.得意先ＣＤ
+    LEFT OUTER JOIN 各種テーブル KAKUSHU_TIKU ON
+    KAKUSHU_TIKU.各種CD = 32
+    AND KAKUSHU_TIKU.行NO = CHUMON.地域区分
+    LEFT OUTER JOIN 部署マスタ MB
+    ON MB.部署CD = TOK.部署ＣＤ
+)
+SELECT
+	DISTINCT
+    得意先ＣＤ AS Cd,
+    得意先名 AS CdNm,
+	*
+FROM
+	顧客
+WHERE
+	RNK = 1
+ORDER BY
+    得意先ＣＤ
+        ";
+
+        try {
+            $DataList = DB::select($sql);
+            return response()->json($DataList);
+        } catch (\Throwable $th) {
+            return response()->json($th);
+        }
+    }
+
+    /**
+     * GetShidashiCustomer
+     */
+    public function GetShidashiCustomer($request)
+    {
+        $BushoCd = $request->bushoCd;
+        $OrderNo = $request->orderNo;
+        $CustomerCd = $request->customerCd;
+
+        $WhereBusho = $BushoCd ? " AND 部署ＣＤ=$BushoCd" : "";
+        $WhereOrderNo = $OrderNo ? " AND 受注Ｎｏ=$OrderNo" : " AND RNK=1";
+        $WhereCustomerCd = $CustomerCd ? " AND 得意先ＣＤ=$CustomerCd" : "";
+
+        $sql = "
+WITH 顧客 AS (
+SELECT
+    TOK.部署ＣＤ
+    ,MB.部署名
     ,CHUMON.受注Ｎｏ
     ,CHUMON.配達日付
     ,CHUMON.配達時間,
@@ -631,6 +797,7 @@ SELECT
     ,TOK.得意先名
     ,TOK.得意先名カナ
     ,TOK.電話番号１
+    ,TOK.電話番号２
     ,TOK.ＦＡＸ１
     ,CHUMON.注文日付
     ,ISNULL(TOK.住所１,'')  +  ISNULL(TOK.住所２,'') AS 住所
@@ -665,13 +832,14 @@ FROM
 )
 SELECT
 	DISTINCT
-    得意先ＣＤ AS Cd,
-    得意先名 AS CdNm,
 	*
 FROM
 	顧客
 WHERE
-	RNK = 1
+    0=0
+    $WhereBusho
+    $WhereOrderNo
+    $WhereCustomerCd
 ORDER BY
     得意先ＣＤ
         ";

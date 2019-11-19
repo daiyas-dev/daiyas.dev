@@ -8,6 +8,7 @@
         :withCode="withCode || true"
         :customStyle=customStyle
         :onChangedFunc=onChangedFunc
+        :hasNull="hasNull"
     />
 </template>
 
