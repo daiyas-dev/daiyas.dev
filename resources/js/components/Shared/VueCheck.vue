@@ -1,28 +1,23 @@
 ﻿//required bootstrap css
 <template>
-    <div class="form-group d-inline-flex align-items-center VueOptions" :data-tip="isExists ? null : '選択可能な一覧がありません'">
-        <label v-if="title" :style="_labelStyle">{{title}}</label>
-        <div class="d-flex pl-1 pr-1" style="border-style: groove">
-            <div v-for="entity in entities" class="radio"
-                v-bind:key="entity.code"
-            >
-                <label :style="_itemStyle">
-                    <input type="radio"
-                        v-model="vmodel[bind]"
-                        v-bind:value="entity.code"
-                        :name="bind"
-                        :selected="vmodel[bind] == entity.code"
-                        :disabled=disabled
-                        @change="onChanged"
-                    >{{entity.label}}</label>
-            </div>
-        </div>
+    <div class="form-group d-inline-flex align-items-center VueCheck" :style="_containerStyle" :data-tip="isExists ? null : '選択可能な一覧がありません'">
+        <label v-if="title" class="title" :style="_titleStyle">{{title}}</label>
+        <label class="content" :style="_contentStyle" :class="[ _checked == true ? 'Checked' : '' ]">
+            <input type="checkbox"
+                class="form-control"
+                v-model="vmodel[bind]"
+                :true-value="_trueValue"
+                :false-value="_falseValue"
+                :name="bind"
+                :disabled=disabled
+                @change="onChanged"
+            >{{_valueLabel}}</label>
     </div>
 </template>
 
 <script>
 export default {
-    name: "VueOptions",
+    name: "VueCheck",
     data() {
         return {
             entities: [],
@@ -45,10 +40,12 @@ export default {
         func: Function,
         onChangedFunc: Function,
         withCode: Boolean,
-        customItemStyle: String,
-        customLabelStyle: String,
+        customContainerStyle: String,
+        customTitleStyle: String,
+        customContentStyle: String,
         disabled: Boolean,
         ParamsChangedCheckFunc: Function,
+        checkedCode: String,
     },
     watch: {
         params: {
@@ -56,7 +53,7 @@ export default {
             sync: true,
             handler: function(newVal) {
                 var vue = this;
-                //console.log("VueOptions param watcher", newVal);
+                //console.log("VueSelect param watcher", newVal);
 
                 if (!_.isEqual(newVal, vue.paramsPrev, (v, o) => v == o)) {
                     if (vue.ParamsChangedCheckFunc && !vue.ParamsChangedCheckFunc(newVal, vue.paramsPrev)) {
@@ -91,11 +88,34 @@ export default {
         _id: function() {
             return this.id + "_" + this._uid;
         },
-        _itemStyle: function() {
-            return this.customItemStyle || "width: max-content";
+        _containerStyle: function() {
+            return this.containerStyle || "border-style: groove;";
         },
-        _labelStyle: function() {
-            return this.customLabelStyle || "width: 60px";
+        _titleStyle: function() {
+            return this.customTitleStyle || "width: 60px";
+        },
+        _contentStyle: function() {
+            return this.customContentStyle || "width: auto; min-width: auto";
+        },
+        _checkedCode: function() {
+            var vue = this;
+            return vue.checkedCode || "1";
+        },
+        _checked: function() {
+            var vue = this;
+            return vue.vmodel[vue.bind] === vue._checkedCode;
+        },
+        _trueValue: function() {
+            var vue = this;
+            return vue._checkedCode;
+        },
+        _falseValue: function() {
+            var vue = this;
+            return vue.entities.length ? (vue.entities.find(v => v.code != vue._checkedCode) || {}).code : false;
+        },
+        _valueLabel: function() {
+            var vue = this;
+            return vue.entities.length ? (vue.entities.find(v => v.code === vue.vmodel[vue.bind]) || {}).label : "";
         },
     },
     created: function () {
@@ -204,15 +224,23 @@ export default {
 </script>
 
 <style scoped>
-.VueOptions {
+.VueCheck {
     display: inline-flex;
     align-items:center;
 }
-.VueOptions label {
-    display: inline;
+.VueCheck label {
+    display: flex;
     margin: 0px;
     text-align: left;
     vertical-align: middle;
+}
+.VueCheck label.content.Checked {
+    font-weight: bold;
+}
+.VueCheck [type=checkbox] {
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
 }
 </style>
 

@@ -62,6 +62,8 @@ WHERE TABLE_NAME = '$TableName'
     public function GetCodeList($request)
     {
         $cd = $request->cd;
+        $sub1 = $request->sub1;
+        $sub2 = $request->sub2;
         $cds = $request->cds;
 
         $query = 各種テーブル::query()
@@ -69,6 +71,18 @@ WHERE TABLE_NAME = '$TableName'
                 $cd,
                 function ($q) use ($cd) {
                     return $q->where('各種CD', $cd);
+                }
+            )
+            ->when(
+                $sub1,
+                function ($q) use ($sub1) {
+                    return $q->where('サブ各種CD1', $sub1);
+                }
+            )
+            ->when(
+                $sub2,
+                function ($q) use ($sub2) {
+                    return $q->where('サブ各種CD2', $sub2);
                 }
             )
             ->when(
@@ -95,6 +109,124 @@ WHERE TABLE_NAME = '$TableName'
             ->values();
 
         return response()->json($CodeList);
+    }
+
+    /**
+     * GetBankList
+     */
+    public function GetBankList($request)
+    {
+        $BankCd = $request->BankCd;
+        $KeyWord = $request->KeyWord;
+
+        $WhereBank = $BankCd ? " AND BK.銀行CD=$BankCd" : "";
+        $WhereKeyWord = $KeyWord
+            ? " AND (
+                    BK.銀行CD LIKE '$KeyWord%' OR
+                    BK.銀行名 LIKE '%$KeyWord%' OR
+                    BK.銀行名カナ LIKE '%$KeyWord%'
+                )"
+            : "";
+
+        if (is_numeric($BankCd) && $WhereBank) {
+            //銀行CDでの検索
+            $ByCdSql = "
+SELECT
+    BK.銀行CD AS Cd,
+    BK.銀行名 AS CdNm,
+    BK.*
+FROM 金融機関名称 BK
+WHERE 0=0
+$WhereBank
+        ";
+
+            $Result = DB::select($ByCdSql);
+
+            if (count($Result) == 1) {
+                return response()->json($Result);
+            }
+        }
+
+        $sql = "
+SELECT
+    BK.銀行CD AS Cd,
+    BK.銀行名 AS CdNm,
+    BK.*
+FROM 金融機関名称 BK
+WHERE 0=0
+$WhereKeyWord
+        ";
+
+        $Result = DB::select($sql);
+
+        return response()->json($Result);
+    }
+
+    /**
+     * GetBankBranchList
+     */
+    public function GetBankBranchList($request)
+    {
+        $BankCd = $request->BankCd;
+        $BranchCd = $request->BranchCd;
+        $KeyWord = $request->KeyWord;
+
+        if (!is_numeric($BankCd)) {
+            return [];
+        }
+
+        $WhereBank = $BankCd ? " AND BK.銀行CD=$BankCd" : "";
+        $WhereBranch = $BranchCd ? " AND BB.支店CD=$BranchCd" : "";
+        $WhereKeyWord = $KeyWord
+            ? " AND (
+                    BB.支店CD LIKE '$KeyWord%' OR
+                    BB.支店名 LIKE '%$KeyWord%' OR
+                    BB.支店名カナ LIKE '%$KeyWord%'
+                )"
+            : "";
+
+        if (is_int($BranchCd) && $WhereBranch) {
+            //銀行CD,支店CDでの検索
+            $ByCdSql = "
+SELECT
+    BB.支店CD AS Cd,
+    BB.支店名 AS CdNm,
+	BK.銀行CD,
+	BK.銀行名,
+	BB.*
+FROM 金融機関名称 BK
+LEFT JOIN 金融機関支店名称 BB
+    ON BK.銀行CD=BB.銀行CD
+WHERE 0=0
+$WhereBank
+$WhereBranch
+        ";
+
+            $Result = DB::select($ByCdSql);
+
+            if (count($Result) == 1) {
+                return response()->json($Result);
+            }
+        }
+
+        $sql = "
+SELECT
+    BB.支店CD AS Cd,
+    BB.支店名 AS CdNm,
+	BK.銀行CD,
+	BK.銀行名,
+	BB.*
+FROM 金融機関名称 BK
+LEFT JOIN 金融機関支店名称 BB
+    ON BK.銀行CD=BB.銀行CD
+WHERE 0=0
+$WhereBank
+$WhereKeyWord
+        ";
+
+        $Result = DB::select($sql);
+
+        return response()->json($Result);
     }
 
     /**
@@ -322,18 +454,16 @@ WHERE TABLE_NAME = '$TableName'
     }
 
     /**
-     * GetCustomerList
+     * GetCustomerListForSelect
      */
-    public function GetCustomerList($request)
+    public function GetCustomerListForSelect($request)
     {
         $BushoCd = $request->bushoCd ?? $request->BushoCd;
+        $CustomerCd = $request->CustomerCd;
         $KeyWord = $request->KeyWord;
 
-        if ($KeyWord) {
-            $x = 1;
-        }
-
         $WhereBusho = $BushoCd ? " AND TM.部署ＣＤ=$BushoCd" : "";
+        $WhereCustomer = $CustomerCd ? " AND TM.得意先ＣＤ=$CustomerCd" : "";
         $WhereKeyWord = $KeyWord
             ? " AND (
                     TM.得意先ＣＤ LIKE '$KeyWord%' OR
@@ -347,20 +477,46 @@ WHERE TABLE_NAME = '$TableName'
                 )"
             : "";
 
-        $CountSql = "
+        if ($CustomerCd) {
+            //得意先ＣＤでの検索
+            $ByCustomerSql = "
 SELECT
-    COUNT(TM.得意先ＣＤ) AS CNT
+    TM.得意先ＣＤ AS Cd,
+    TM.得意先名 AS CdNm,
+    TM.得意先名カナ,
+    TM.得意先名略称,
+    TM.電話番号１,
+    TM.備考１,
+    TM.備考２,
+    TM.備考３,
+    BM.部署名
 FROM 得意先マスタ TM
 LEFT JOIN 部署マスタ BM
     ON TM.部署CD = BM.部署CD
 WHERE 0=0
 $WhereBusho
+$WhereCustomer
+        ";
+
+            $Result = DB::select($ByCustomerSql);
+
+            if (count($Result) == 1) {
+                return response()->json($Result);
+            }
+        }
+
+        $CountSql = "
+SELECT
+    COUNT(TM.得意先ＣＤ) AS CNT
+FROM 得意先マスタ TM
+WHERE 0=0
+$WhereBusho
 $WhereKeyWord
         ";
 
-        $Count = DB::select($CountSql);
-
-        $SelectTop = $Count[0]->CNT > 1000 ? "TOP 1000" : "";
+        $Result = DB::select($CountSql);
+        $Count = $Result[0]->CNT;
+        $SelectTop = $Count > 1000 ? "TOP 1000" : "";
 
         $sql = "
 SELECT $SelectTop
@@ -383,7 +539,32 @@ $WhereKeyWord
 
         $DataList = DB::select($sql);
 
-        return response()->json(['Data'=>$DataList, 'CountConstraint'=> !!$SelectTop]);
+        return response()->json(['Data' => $DataList, 'CountConstraint' => !!$SelectTop]);
+    }
+
+    /**
+     * GetCustomerList
+     */
+    public function GetCustomerList($request)
+    {
+        $BushoCd = $request->bushoCd ?? $request->BushoCd;
+
+        $WhereBusho = $BushoCd ? " AND TM.部署ＣＤ=$BushoCd" : "";
+
+        $sql = "
+SELECT
+    TM.*,
+    BM.部署名
+FROM 得意先マスタ TM
+LEFT JOIN 部署マスタ BM
+    ON TM.部署CD = BM.部署CD
+WHERE 0=0
+$WhereBusho
+        ";
+
+        $DataList = DB::select($sql);
+
+        return response()->json(['Data'=>$DataList, 'CountConstraint'=> false]);
     }
 
     /**

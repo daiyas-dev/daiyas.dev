@@ -439,7 +439,8 @@ export default {
                 vue.keyword = vue.keyword || str
                 vue.selectRow(grid, target, str, idx);
             } else {
-                if (noSearch != true && !!grid.options.vue.CountConstraint) {
+                if (noSearch != true) {
+                // if (noSearch != true && !!grid.options.vue.CountConstraint) {
                     //再検索
                     var params = _.cloneDeep(vue.query);
 

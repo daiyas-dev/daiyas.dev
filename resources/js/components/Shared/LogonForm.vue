@@ -12,12 +12,12 @@
                         </div>
                         <div :class="'form-group' + (errors.uid ? ' has-error' : '')">
                             <label class="" for="uid">ユーザID</label>
-                            <input class="form-control" type="text" id="uid" inputmode="latin" v-model="user.uid" @keyup.enter="logOn" autocomplete="off">
+                            <input class="form-control" type="email" id="uid" v-model="user.uid" @keyup.enter="logOn" autocomplete="off">
                             <label class="message">{{errors.uid}}</label>
                         </div>
                         <div :class="'form-group' + (errors.pwd ? ' has-error' : '')">
                             <label class="" for="pwd">パスワード</label>
-                            <input class="form-control" type="password" id="pwd" inputmode="latin" placeholder="********" v-model="user.pwd" @keyup.enter="logOn">
+                            <input class="form-control" type="password" id="pwd" placeholder="********" v-model="user.pwd" @keyup.enter="logOn">
                             <label class="message">{{errors.pwd}}</label>
                         </div>
                     </form>

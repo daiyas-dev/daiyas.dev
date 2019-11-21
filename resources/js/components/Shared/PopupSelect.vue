@@ -110,6 +110,7 @@
     width: auto;
 }
 .PopupSelect .target-input {
+    font-size: 15px;
     border-top-right-radius: 0px;
     border-bottom-right-radius: 0px;
 }
@@ -151,6 +152,7 @@
     border-bottom-right-radius: 4px;
 }
 .PopupSelect .select-name {
+    font-size: 15px;
     border-left-width: 0px;
     border-top-left-radius: 0px;
     border-bottom-left-radius: 0px;
@@ -240,6 +242,7 @@ export default {
         AutoCompleteMinLength: Number,
         ParamsChangedCheckFunc: Function,
         enablePrevNext: Boolean,
+        SelectorParamsFunc: Function,
     },
     computed: {
         showText: function() {
@@ -367,7 +370,8 @@ export default {
             vue.dataList = null;
             $(vue.$el).children().prop("disabled", true);
             vue.getDataList(vue.params, (res) => {
-                $(vue.$el).children().prop("disabled", false);
+                $(vue.$el).children().not(".select-name").prop("disabled", false);
+                $(vue.$el).find(".select-name").prop("disabled", !vue.isNameEditable);
                 if (vue.vmodel[vue.bind]) {
                     vue.setSelectValue(vue.vmodel[vue.bind], true);
                 }
@@ -391,32 +395,16 @@ export default {
     destroyed: function () {
     },
     methods: {
-        plantChanged: function() {
-            var vue = this;
-
-            if (vue.isPreload) {
-                vue.dataList = null;
-                $(vue.$el).children().prop("disabled", true);
-                vue.getDataList(vue.params, (res) => {
-                    $(vue.$el).children().prop("disabled", false);
-                    if (vue.vmodel[vue.bind]) {
-                        vue.setSelectValue(vue.vmodel[vue.bind], true);
-                    }
-                });
-            } else {
-                if (vue.vmodel[vue.bind]) {
-                    vue.setSelectValue(vue.vmodel[vue.bind], true);
-                }
-            }
-        },
         accountChanged: function() {
             var vue = this;
+            console.log("PopupSelect accountChanged");
 
             if (vue.isPreload) {
                 vue.dataList = null;
                 $(vue.$el).children().prop("disabled", true);
                 vue.getDataList(vue.params, (res) => {
-                    $(vue.$el).children().prop("disabled", false);
+                    $(vue.$el).children().not(".select-name").prop("disabled", false);
+                    $(vue.$el).find(".select-name").prop("disabled", !vue.isNameEditable);
                     if (vue.vmodel[vue.bind]) {
                         vue.setSelectValue(vue.vmodel[vue.bind], true);
                     }
@@ -500,7 +488,10 @@ export default {
 
                         res = res.Data;
                     } else if (res.Data) {
+                        vue.CountConstraint = false;
                         res = res.Data;
+                    } else {
+                        vue.CountConstraint = false;
                     }
 
                     //データリスト保持
@@ -636,7 +627,13 @@ export default {
                     showSelector(vue.dataUrl, newParams);
                 });
             } else {
-                showSelector(vue.dataUrl, vue.params);
+                var params = _.cloneDeep(vue.params);
+
+                if (vue.SelectorParamsFunc) {
+                    params = vue.SelectorParamsFunc(params, vue);
+                }
+
+                showSelector(vue.dataUrl, params);
             }
         },
         onChange: function(event) {
@@ -677,6 +674,8 @@ export default {
 
             //値設定関数object
             var setValue = function() {
+                try {
+
                 var rowData = vue.dataList.find(v => newVal == v[vue.isGetName ? "CdNm" : "Cd"]);
                 if (!rowData && vue.isShowAutoComplete && vue.autoCompleteList.length == 1) {
                     rowData = vue.autoCompleteList[0];
@@ -721,6 +720,10 @@ export default {
 
                 if (vue.onAfterChangedFunc) {
                     vue.onAfterChangedFunc(newVal, vue.selectRow);
+                }
+
+                } catch(ex) {
+                    console.log("PopupSelect setValue Exception", ex);
                 }
             }
 

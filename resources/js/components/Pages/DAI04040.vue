@@ -119,17 +119,13 @@ export default {
             var vue = this;
             return vue.viewModel.ShoninDate ? moment(vue.viewModel.ShoninDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
         },
+        hasSelectionRow: function() {
+            var vue = this;
+            var grid = vue.DAI04040Grid1;
+            return !!grid && !!grid.getSelectionRowData();
+        },
     },
     watch: {
-        "viewModel.BushoCd": {
-            handler: function(newVal) {
-                var vue = this;
-                var grid = vue.DAI08010Grid1;
-
-                console.log("viewModel.BushoCd", newVal);
-                // vue.conditionChanged();
-            },
-        },
     },
     data() {
         var vue = this;
@@ -175,6 +171,9 @@ export default {
                 },
                 colModel: [
                 ],
+                rowDblClick: function (event, ui) {
+                    vue.showDetail();
+                },
             },
         });
     },
@@ -201,9 +200,9 @@ export default {
                     }
                 },
                 {visible: "false"},
-                { visible: "true", value: "詳細", id: "DAI04040Grid1_Detail", disabled: false, shortcut: "F8",
+                { visible: "true", value: "詳細", id: "DAI04040Grid1_Detail", disabled: true, shortcut: "F8",
                     onClick: function () {
-                        //TODO: 詳細
+                        vue.showDetail();
                     }
                 },
                 { visible: "true", value: "新規登録", id: "DAI04040Grid1_Save", disabled: false, shortcut: "F9",
@@ -214,6 +213,18 @@ export default {
             );
         },
         mountedFunc: function(vue) {
+            //watcher
+            vue.$watch(
+                "hasSelectionRow",
+                (newVal) => {
+                    console.log("hasSelectionRow watcher: " + newVal);
+                    vue.footerButtons.find(v => v.id == "DAI04040Grid1_Detail").disabled = !newVal;
+                }
+            );
+
+            console.log("Cache keys", myCache.keys());
+            console.log("Cache Set Key1", myCache.set("key1", { value: 1 }));
+            console.log("Cache Get Key1", myCache.get("key1"));
         },
         onBushoChanged: function(code, entity) {
             var vue = this;
@@ -381,7 +392,7 @@ export default {
             )
             .catch(error => {
                 //メッセージ追加
-                vue.$root.$emit("addMessage", "得意先マスタ検索失敗(" + vue.page.ScreenTitle + ":" + error + ")");
+                vue.$root.$emit("addMessage", "得意先マスタ検索失敗(" + vue.ScreenTitle + ":" + error + ")");
 
                 //ダイアログ
                 $.dialogErr({
@@ -401,6 +412,23 @@ export default {
             });
 
             return res;
+        },
+        showDetail: function() {
+            var vue = this;
+            var grid = vue.DAI04040Grid1;
+            if (!grid) return;
+
+            var row = grid.getSelectionRowData();
+            if (!row) return;
+
+            var params = _.cloneDeep(row);
+            params.IsNew = false;
+
+            //TODO: 子画面化
+            vue.$router.push({
+                path: "/DAI04/DAI04041",
+                query: params,
+            });
         },
     }
 }

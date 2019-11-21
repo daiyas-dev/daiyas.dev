@@ -63,7 +63,7 @@
                     <div class="row">
                         <div class="col-md-6">
                             <label class="">得意先名カナ</label>
-                            <input type="text" class="form-control" :value="viewModel.得意先名カナ">
+                            <input type="text" class="form-control" style="font-size: 15px !important;" :value="viewModel.得意先名カナ">
                         </div>
                         <div class="col-md-6">
                             <label class="">得意先名略称</label>
@@ -186,11 +186,11 @@
                         </div>
                         <div class="col-md-2">
                             <label style="min-width: 60px;">締日1</label>
-                            <input class="form-control text-right" style="width: 40px;" type="text" :value=viewModel.締日１>
+                            <input class="form-control text-right p-2" style="width: 40px;" type="text" :value=viewModel.締日１>
                         </div>
                         <div class="col-md-2">
                             <label style="min-width: 60px;">締日2</label>
-                            <input class="form-control text-right" style="width: 40px;" type="text" :value=viewModel.締日２>
+                            <input class="form-control text-right p-2" style="width: 40px;" type="text" :value=viewModel.締日２>
                         </div>
                         <div class="col-md-3">
                             <label class="">支払サイト</label>
@@ -206,7 +206,7 @@
                         </div>
                         <div class="col-md-2">
                             <label style="min-width: 60px;">支払日</label>
-                            <input class="form-control text-right" style="width: 40px;" type="text" :value=viewModel.支払日>
+                            <input class="form-control text-right p-2" style="width: 40px;" type="text" :value=viewModel.支払日>
                         </div>
                     </div>
                     <div class="row">
@@ -217,8 +217,9 @@
                                 ref="PopupSelect_Billing"
                                 :vmodel=viewModel
                                 bind="請求先ＣＤ"
-                                dataUrl="/Utilities/GetCustomerList"
-                                :params="{ KeyWord: BillingKeyWord }"
+                                buddy="請求先名"
+                                dataUrl="/Utilities/GetCustomerListForSelect"
+                                :params="{ CustomerCd: viewModel.請求先ＣＤ, KeyWord: BillingKeyWord }"
                                 :isPreload=true
                                 title="請求先一覧"
                                 labelCd="請求先CD"
@@ -242,65 +243,381 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-9 offset-md-3">
-                            <label></label>
-                            <input class="form-control" type="text" :value=viewModel.住所２>
+                        <div class="col-md-4">
+                            <label class="">支払方法1</label>
+                            <VueSelect
+                                id="ShiharaiKind1"
+                                :vmodel=viewModel
+                                bind="支払方法１"
+                                uri="/Utilities/GetCodeList"
+                                :params="{ cd: 6, sub1: 1 }"
+                                :withCode=true
+                                customStyle="{ width: 100px; }"
+                            />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="">支払方法2</label>
+                            <VueSelect
+                                id="ShiharaiKind2"
+                                :vmodel=viewModel
+                                bind="支払方法２"
+                                uri="/Utilities/GetCodeList"
+                                :params="{ cd: 6, sub1: 2 }"
+                                :withCode=true
+                                :hasNull=true
+                                customStyle="{ width: 100px; }"
+                            />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="">税区分</label>
+                            <VueSelect
+                                id="TaxKbn"
+                                :vmodel=viewModel
+                                bind="税区分"
+                                uri="/Utilities/GetCodeList"
+                                :params="{ cd: 20 }"
+                                :withCode=true
+                                customStyle="{ width: 100px; }"
+                            />
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-3">
-                            <label class="">電話番号1</label>
-                            <input class="form-control p-1" style="width: 100px;" type="text" :value=viewModel.電話番号１>
+                        <div class="col-md-4">
+                            <label class="">集金区分</label>
+                            <VueSelect
+                                id="ShiharaiKind1"
+                                :vmodel=viewModel
+                                bind="集金区分"
+                                uri="/Utilities/GetCodeList"
+                                :params="{ cd: 5 }"
+                                :withCode=true
+                                customStyle="{ width: 100px; }"
+                            />
                         </div>
                         <div class="col-md-3">
-                            <label class="">電話番号2</label>
-                            <input class="form-control p-1" style="width: 100px;" type="text" :value=viewModel.電話番号２>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="">FAX1</label>
-                            <input class="form-control p-1" style="width: 100px;" type="text" :value=viewModel.ＦＡＸ１>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="">FAX2</label>
-                            <input class="form-control p-1" style="width: 100px;" type="text" :value=viewModel.ＦＡＸ２>
+                            <label>集金手数料</label>
+                            <input class="form-control text-right" type="text" :value=viewModel.集金手数料>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-12">
-                            <fieldset class="delivery-info w-100">
-                                <legend class="delivery-info">お届け先</legend>
+                            <fieldset class="kouza-info w-100">
+                                <legend class="kouza-info">口座情報</legend>
                                 <div class="row">
-                                    <div class="col-md-3">
-                                        <label class="">郵便番号</label>
-                                        <input class="form-control p-2" style="width: 90px;" type="text" :value=viewModel.お届け先郵便番号>
+                                    <div class="col-md-6">
+                                        <label class="">金融機関名</label>
+                                        <PopupSelect
+                                            id="BankSelect"
+                                            ref="PopupSelect_Bank"
+                                            :vmodel=viewModel
+                                            bind="金融機関CD"
+                                            buddy="金融機関名"
+                                            dataUrl="/Utilities/GetBankList"
+                                            :params="{ BankCd: viewModel.金融機関CD, KeyWord: BankKeyWord }"
+                                            :SelectorParamsFunc=BankSelectorParamsFunc
+                                            :isPreload=true
+                                            title="金融機関一覧"
+                                            labelCd="金融機関CD"
+                                            labelCdNm="金融機関名"
+                                            :showColumns='[
+                                            ]'
+                                            :popupWidth=600
+                                            :popupHeight=600
+                                            :isShowName=true
+                                            :isModal=true
+                                            :editable=true
+                                            :reuse=true
+                                            :existsCheck=true
+                                            :inputWidth=60
+                                            :nameWidth=150
+                                            :onChangeFunc=onBankChanged
+                                            :isShowAutoComplete=true
+                                            :AutoCompleteFunc=BankAutoCompleteFunc
+                                            :AutoCompleteMinLength=1
+                                        />
                                     </div>
-                                    <div class="col-md-9">
-                                        <label>住所</label>
-                                        <input class="form-control" type="text" :value=viewModel.お届け先住所１>
+                                    <div class="col-md-6">
+                                        <label class="">支店名</label>
+                                        <PopupSelect
+                                            id="BankBranchSelect"
+                                            ref="PopupSelect_BankBranch"
+                                            :vmodel=viewModel
+                                            bind="金融機関支店CD"
+                                            buddy="金融機関支店名"
+                                            dataUrl="/Utilities/GetBankBranchList"
+                                            :params="{ BankCd: viewModel.金融機関CD, BranchCd: viewModel.金融機関支店CD, KeyWord: BankBranchKeyWord }"
+                                            :isPreload=true
+                                            title="支店一覧"
+                                            labelCd="支店CD"
+                                            labelCdNm="支店名"
+                                            :showColumns='[
+                                                { title: "金融機関CD", dataIndx: "金融機関CD", dataType: "string", width: 120, maxWidth: 120, minWidth: 120, colIndx: 0 },
+                                                { title: "金融機関名", dataIndx: "金融機関名", dataType: "string", width: 200, maxWidth: 200, minWidth: 200, colIndx: 1 },
+                                            ]'
+                                            :popupWidth=600
+                                            :popupHeight=600
+                                            :isShowName=true
+                                            :isModal=true
+                                            :editable=true
+                                            :reuse=true
+                                            :existsCheck=true
+                                            :inputWidth=60
+                                            :nameWidth=150
+                                            :ParamsChangedCheckFunc=BankBranchParamsChangedCheckFunc
+                                            :onChangeFunc=onBankBranchChanged
+                                            :isShowAutoComplete=true
+                                            :AutoCompleteFunc=BankBranchAutoCompleteFunc
+                                            :AutoCompleteMinLength=1
+                                        />
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-9 offset-md-3">
-                                        <label></label>
-                                        <input class="form-control" type="text" :value=viewModel.お届け先住所２>
+                                    <div class="col-md-4">
+                                        <label>記号番号</label>
+                                        <input class="form-control p-1" style="min-width: 125px;" type="text" :value=viewModel.記号番号>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="">口座種別</label>
+                                        <VueSelect
+                                            id="KouzaKind"
+                                            :vmodel=viewModel
+                                            bind="口座種別"
+                                            uri="/Utilities/GetCodeList"
+                                            :params="{ cd: 7 }"
+                                            :withCode=true
+                                            :hasNull=true
+                                            customStyle="{ width: 100px; }"
+                                        />
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-3">
-                                        <label class="">電話番号1</label>
-                                        <input class="form-control p-1" style="width: 100px;" type="text" :value=viewModel.お届け先電話番号１>
+                                    <div class="col-md-4">
+                                        <label>口座番号</label>
+                                        <input class="form-control p-1" style="min-width: 125px;" type="text" :value=viewModel.口座番号>
                                     </div>
-                                    <div class="col-md-3">
-                                        <label class="">電話番号2</label>
-                                        <input class="form-control p-1" style="width: 100px;" type="text" :value=viewModel.お届け先電話番号２>
+                                    <div class="col-md-6">
+                                        <label class="">口座名義人</label>
+                                        <input class="form-control" type="text" style="font-size: 15px !important;" :value=viewModel.口座名義人>
                                     </div>
-                                    <div class="col-md-3">
-                                        <label class="">FAX1</label>
-                                        <input class="form-control p-1" style="width: 100px;" type="text" :value=viewModel.お届け先ＦＡＸ１>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="">FAX2</label>
-                                        <input class="form-control p-1" style="width: 100px;" type="text" :value=viewModel.お届け先ＦＡＸ２>
+                                </div>
+                            </fieldset>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="col-md-3">
+                右ペイン
+            </div>
+            <div class="col-md-9">
+                <fieldset class="fuzoku-info w-100">
+                    <legend class="fuzoku-info">付属情報</legend>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label>チケット枚数</label>
+                            <input class="form-control text-right p-2" style="width: 80px;" type="text" :value=viewModel.チケット枚数>
+                        </div>
+                        <div class="col-md-2">
+                            <label style="width: 45px;">サービス<br>チケット枚数</label>
+                            <input class="form-control text-right p-2" style="width: 40px;" type="text" :value=viewModel.サービスチケット枚数>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="">受注方法</label>
+                            <VueSelect
+                                id="JuchuKind"
+                                :vmodel=viewModel
+                                bind="受注方法"
+                                buddy="受注方法名称"
+                                uri="/Utilities/GetCodeList"
+                                :params="{ cd: 23 }"
+                                :withCode=true
+                                customStyle="{ width: 100px; }"
+                            />
+                        </div>
+                        <div class="col-md-4">
+                            <label>発信時間</label>
+                            <DatePickerWrapper
+                                id="SendTime"
+                                ref="DatePicker_TakeoutTime"
+                                format="HH時mm分"
+                                dayViewHeaderFormat="YYYY年MM月"
+                                :vmodel=viewModel
+                                bind="発信時間"
+                                :editable=true
+                                customStyle="width: 80px;"
+                            />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="">営業担当者</label>
+                            <VueSelect
+                                id="EigyoTantoCd"
+                                :vmodel=viewModel
+                                bind="営業担当者ＣＤ"
+                                buddy="営業担当者名"
+                                uri="/Utilities/GetTantoList"
+                                :params="{ bushoCd: null }"
+                                :withCode=true
+                                customStyle="{ width: 150px; }"
+                            />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="">獲得営業者</label>
+                            <VueSelect
+                                id="KakutokuEigyoCd"
+                                :vmodel=viewModel
+                                bind="獲得営業者ＣＤ"
+                                buddy="獲得営業者名"
+                                uri="/Utilities/GetTantoList"
+                                :params="{ bushoCd: null }"
+                                :withCode=true
+                                customStyle="{ width: 150px; }"
+                            />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="">登録担当者</label>
+                            <VueSelect
+                                id="TourokuTantoCd"
+                                :vmodel=viewModel
+                                bind="登録担当者ＣＤ"
+                                buddy="登録担当者名"
+                                uri="/Utilities/GetTantoList"
+                                :params="{ bushoCd: null }"
+                                :withCode=true
+                                customStyle="{ width: 150px; }"
+                            />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-9">
+                            <label class="">受注顧客</label>
+                            <PopupSelect
+                                id="JuchuCustomerSelect"
+                                ref="PopupSelect_JuchuCustomer"
+                                :vmodel=viewModel
+                                bind="受注得意先ＣＤ"
+                                buddy="受注得意先名"
+                                dataUrl="/Utilities/GetCustomerListForSelect"
+                                :params="{ CustomerCd: viewModel.受注得意先ＣＤ, KeyWord: JuchuCustomerKeyWord }"
+                                :isPreload=true
+                                title="得意先一覧"
+                                labelCd="得意先CD"
+                                labelCdNm="得意先名"
+                                :showColumns='[
+                                ]'
+                                :popupWidth=1000
+                                :popupHeight=600
+                                :isShowName=true
+                                :isModal=true
+                                :editable=true
+                                :reuse=true
+                                :existsCheck=true
+                                :inputWidth=150
+                                :nameWidth=400
+                                :onChangeFunc=onJuchuCustomerChanged
+                                :isShowAutoComplete=true
+                                :AutoCompleteFunc=JuchuCustomerAutoCompleteFunc
+                                :AutoCompleteMinLength=1
+                            />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="">味噌汁</label>
+                            <VueSelect
+                                id="MisoKbn"
+                                :vmodel=viewModel
+                                bind="味噌汁区分"
+                                uri="/Utilities/GetCodeList"
+                                :params="{ cd: 8 }"
+                                :withCode=true
+                                customStyle="{ width: 100px; }"
+                            />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="">納品書発行</label>
+                            <VueSelect
+                                id="NouhinshoKbn"
+                                :vmodel=viewModel
+                                bind="納品書発行区分"
+                                uri="/Utilities/GetCodeList"
+                                :params="{ cd: 9 }"
+                                :withCode=true
+                                customStyle="{ width: 100px; }"
+                            />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="">請求書敬称</label>
+                            <VueSelect
+                                id="NouhinshoKbn"
+                                :vmodel=viewModel
+                                bind="請求書敬称"
+                                uri="/Utilities/GetCodeList"
+                                :params="{ cd: 9 }"
+                                :withCode=true
+                                customStyle="{ width: 100px; }"
+                            />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="">ふりかけ</label>
+                            <VueSelect
+                                id="FurikakeKbn"
+                                :vmodel=viewModel
+                                bind="ふりかけ区分"
+                                uri="/Utilities/GetCodeList"
+                                :params="{ cd: 8 }"
+                                :withCode=true
+                                customStyle="{ width: 100px; }"
+                            />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="">空き容器回収</label>
+                            <VueSelect
+                                id="KaishuKbn"
+                                :vmodel=viewModel
+                                bind="空き容器回収区分"
+                                uri="/Utilities/GetCodeList"
+                                :params="{ cd: 10 }"
+                                :withCode=true
+                                customStyle="{ width: 100px; }"
+                            />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="">祝日配送</label>
+                            <VueSelect
+                                id="HolidayDeliveryKbn"
+                                :vmodel=viewModel
+                                bind="祝日配送区分"
+                                uri="/Utilities/GetCodeList"
+                                :params="{ cd: 22 }"
+                                :withCode=true
+                                customStyle="{ width: 100px; }"
+                            />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <fieldset class="holiday-info w-100">
+                                <legend class="holiday-info">休日登録</legend>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <VueCheck v-for="dd in Weeks"
+                                            :key=dd
+                                            :id="'HolidayConfig_' + dd"
+                                            :ref="'HolidayConfig_' + dd"
+                                            :title="dd"
+                                            :vmodel=HolidayConfig
+                                            :bind="dd"
+                                            uri="/Utilities/GetCodeList"
+                                            :params="{ cd: 13 }"
+                                            :withCode=true
+                                            checkedCode="1"
+                                            customContainerStyle="border-style: groove; margin-right: 5px;"
+                                            customTitleStyle="width: 20px; justify-content: center;"
+                                            customContentStyle="width: 80px"
+                                        />
                                     </div>
                                 </div>
                             </fieldset>
@@ -312,6 +629,12 @@
                 右ペイン
             </div>
         </div>
+        <div class="row"><input></div>
+        <div class="row"><input></div>
+        <div class="row"><input></div>
+        <div class="row"><input></div>
+        <div class="row"><input></div>
+        <div class="row"><input></div>
     </form>
 </template>
 
@@ -382,17 +705,21 @@ export default {
             var vue = this;
             return vue.viewModel.DeliveryDate ? moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
         },
+        Weeks: function() {
+            return _.range(0, 7).map(v => moment().day(v).format("dd"));
+        },
     },
     watch: {
-        "viewModel.IsShowAll": {
+        "viewModel.休日設定": {
+            deep: true,
             handler: function(newVal) {
-                console.log("viewModel.IsShowAll:" + newVal);
+                console.log("viewModel.休日設定", newVal);
                 var vue = this;
-                var grid = vue.DAI04041Grid1;
 
-                grid.filter({
-                    oper: "replace",
-                    rules: newVal ? [] : [{ dataIndx: "全表示", condition: "notequal", value: "1" }],
+                if (!newVal) return;
+
+                newVal.split("").forEach((v, i) => {
+                    vue.HolidayConfig[moment().day(i).format("dd")] = v;
                 });
             },
         },
@@ -404,6 +731,10 @@ export default {
             noViewModel: true,
             DAI04041Grid1: null,
             BillingKeyWord: null,
+            BankKeyWord: null,
+            BankBranchKeyWord: null,
+            JuchuCustomerKeyWord: null,
+            HolidayConfig: {"日":"0","月":"0","火":"0","水":"0","木":"0","金":"0","土":"0"},
             grid1Options: {
                 selectionModel: { type: "cell", mode: "single", row: true, onTab: "nextEdit" },
                 showHeader: true,
@@ -441,213 +772,12 @@ export default {
                     grandSummary: true,
                 },
                 formulas: [
-                    [
-                        "sortIndx",
-                        function(rowData){
-                            return (rowData["商品ＣＤ"] * 1) || 99999;
-                        }
-                    ],
-                    [
-                        "現金金額",
-                        function(rowData){
-                            return rowData["単価"] * rowData["現金個数"];
-                        }
-                    ],
-                    [
-                        "掛売金額",
-                        function(rowData){
-                            return rowData["単価"] * rowData["掛売個数"];
-                        }
-                    ],
                 ],
                 colModel: [
-                    {
-                        title: "全表示",
-                        dataIndx: "全表示", dataType: "integer",
-                        width: 80, maxWidth: 80, minWidth: 80,
-                        hidden: true,
-                    },
-                    {
-                        title: "sortIndx",
-                        dataIndx: "sortIndx", dataType: "integer",
-                        hidden: true,
-                    },
-                    {
-                        title: "コード",
-                        dataIndx: "商品ＣＤ", dataType: "integer",
-                        width: 120, maxWidth: 120, minWidth: 120,
-                        editable: ui => {
-                            var vue = this;
-                            var grid = DAI04041Grid1;
-
-                            if (grid.getSelectionRowData()) {
-                                if (grid.getSelectionRowData().pq_ri == ui.rowData.pq_ri
-                                    &&
-                                    _(grid.getSelectionData()).keys().first() == "商品ＣＤ"
-                                ) {
-                                    return true;
-                                }
-                            }
-
-                            return !ui.rowData[ui.dataIndx];
-                        },
-                        dataUrl: "/Utilities/GetProductList",
-                        buddy: "商品名",
-                        selectorTitle: "商品一覧",
-                        labelCd: "商品ＣＤ",
-                        labelCdNm: "商品名",
-                        isModal: true,
-                        reuse: true,
-                        existsCheck: true,
-                        onChangeFunc: function(element, info, comp, isNoMsg, isValid) {
-                            console.log("grid popupselect onchange func");
-
-                            comp.ui.rowData["商品名"] = info["商品名"];
-                            comp.ui.rowData["単価"] = info["売価単価"];
-                            comp.grid.refreshCell({ rowIndx: comp.ui.rowIndx, dataIndx: "商品名"});
-                            comp.grid.refreshCell({ rowIndx: comp.ui.rowIndx, dataIndx: "単価"});
-                        },
-                    },
-                    {
-                        title: "商品名",
-                        dataIndx: "商品名", dataType: "string",
-                        width: 200, minWidth: 200,
-                    },
-                    {
-                        title: "単価",
-                        dataIndx: "単価", dataType: "integer", format: "#,##0",
-                        width: 100, maxWidth: 100, minWidth: 100,
-                    },
-                    {
-                        title: "予定数",
-                        dataIndx: "予定数", dataType: "integer", format: "#,##0",
-                        width: 100, maxWidth: 100, minWidth: 100,
-                        render: ui => {
-                            if (ui.rowData.pq_grandsummary) {
-                                //集計行
-                                ui.rowData["予定数"] = "合計";
-                                return { text: "合計" };
-                            } else {
-                                //0非表示
-                                if (!(ui.rowData[ui.dataIndx] * 1)) {
-                                    return { text: "" };
-                                }
-                            }
-                            return ui;
-                        },
-                    },
-                    {
-                        title: "現金",
-                        dataIndx: "現金",
-                        colModel: [
-                            {
-                                title: "個数",
-                                dataIndx: "現金個数", dataType: "integer", format: "#,##0",
-                                width: 100, maxWidth: 100, minWidth: 100,
-                                editable: true,
-                                sortable: false,
-                                render: ui => {
-                                    if (!ui.rowData.pq_grandsummary) {
-                                        //集計行以外、0非表示
-                                        // if (!(ui.rowData[ui.dataIndx] * 1)) {
-                                        //     return { text: "" };
-                                        // }
-                                    }
-                                    return ui;
-                                },
-                                summary: {
-                                    type: "TotalInt",
-                                },
-                            },
-                            {
-                                title: "金額",
-                                dataIndx: "現金金額", dataType: "integer", format: "#,##0",
-                                width: 120, maxWidth: 120, minWidth: 120,
-                                sortable: false,
-                                render: ui => {
-                                    if (!ui.rowData.pq_grandsummary) {
-                                        //集計行以外、0非表示
-                                        if (!(ui.rowData[ui.dataIndx] * 1)) {
-                                            return { text: "" };
-                                        }
-                                    }
-                                    return ui;
-                                },
-                                summary: {
-                                    type: "TotalInt",
-                                },
-                            },
-                        ],
-                    },
-                    {
-                        title: "掛売",
-                        dataIndx: "掛売",
-                        colModel: [
-                            {
-                                title: "個数",
-                                dataIndx: "掛売個数", dataType: "integer", format: "#,##0",
-                                width: 100, maxWidth: 100, minWidth: 100,
-                                editable: true,
-                                sortable: false,
-                                render: ui => {
-                                    if (!ui.rowData.pq_grandsummary) {
-                                        //集計行以外、0非表示
-                                        // if (!(ui.rowData[ui.dataIndx] * 1)) {
-                                        //     return { text: "" };
-                                        // }
-                                    }
-                                    return ui;
-                                },
-                                summary: {
-                                    type: "TotalInt",
-                                },
-                            },
-                            {
-                                title: "金額",
-                                dataIndx: "掛売金額", dataType: "integer", format: "#,##0",
-                                width: 120, maxWidth: 120, minWidth: 120,
-                                sortable: false,
-                                render: ui => {
-                                    if (!ui.rowData.pq_grandsummary) {
-                                        //集計行以外、0非表示
-                                        if (!(ui.rowData[ui.dataIndx] * 1)) {
-                                            return { text: "" };
-                                        }
-                                    }
-                                    return ui;
-                                },
-                                summary: {
-                                    type: "TotalInt",
-                                },
-                            },
-                        ],
-                    },
-                    // {
-                    //     title: "確認",
-                    //     dataIndx: "Checked", type: "checkbox",
-                    //     width: 40, maxWidth: 40, minWidth: 40,
-                    //     align: "center",
-                    //     cbId: "CheckState",
-                    //     render: ui => {
-                    //         if (ui.rowData.summaryRow) {
-                    //             //合計行では非表示
-                    //             return "";
-                    //         }
-                    //     },
-                    // },
-                    // {
-                    //     title: "確認チェック状態",
-                    //     dataIndx: "CheckState",
-                    //     dataType: "bool",
-                    //     cb: { header: false },
-                    //     hidden: true,
-                    //     editable: true,
-                    // },
                 ],
             },
         });
 
-        //TODO:
         if (!!vue.$route && !!vue.$route.query) {
             data.viewModel = vue.$route.query;
         }
@@ -699,6 +829,138 @@ export default {
                 })
                 ;
             console.log("BillingAutoCompleteFunc:" + input + " = " + list.length);
+            return list;
+        },
+        onJuchuCustomerChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
+            var vue = this;
+            console.log("onJuchuCustomerChanged", info, comp, isValid);
+            if (!isValid) {
+                vue.JuchuCustomerKeyWord = comp.selectValue;
+            }
+        },
+        JuchuCustomerAutoCompleteFunc: function(input, dataList) {
+            var vue = this;
+
+            if (!dataList.length) return [];
+
+            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
+            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
+
+            var wholeColumns = ["CdNm", "得意先名略称", "得意先名カナ", "備考１", "備考２", "備考３"];
+
+            var list = dataList
+                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
+                .filter(v => {
+                    return keyOR.length == 0
+                        || _.some(keyOR, k => v.Cd.startsWith(k))
+                        || _.some(keyOR, k => k.match(/^[0-9\-]{6,}/) != null && !!v.電話番号１ ? v.電話番号１.startsWith(k) : false)
+                        || _.some(keyOR, k => v.whole.includes(k))
+                })
+                .filter(v => {
+                    return keyAND.length == 0
+                        || _.every(keyAND, k => (v.whole + (v.電話番号１ || "")).includes(k));
+                })
+                .map(v => {
+                    var ret = v;
+                    ret.label = v.Cd + " : " + "【" + v.部署名 + "】" + v.CdNm;
+                    ret.value = v.Cd;
+                    ret.text = v.CdNm;
+                    return ret;
+                })
+                ;
+            console.log("JuchuCustomerAutoCompleteFunc:" + input + " = " + list.length);
+            return list;
+        },
+        BankSelectorParamsFunc: function(params, comp) {
+            params.KeyWord = null;
+            params.BankCd = null;
+            return params;
+        },
+        onBankChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
+            var vue = this;
+            console.log("onBankChanged", info, comp, isValid);
+            if (!isValid) {
+                vue.BankKeyWord = comp.selectValue;
+            }
+        },
+        BankAutoCompleteFunc: function(input, dataList) {
+            var vue = this;
+
+            if (!dataList.length) return [];
+
+            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
+            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
+
+            var wholeColumns = ["Cd", "CdNm", "銀行名カナ"];
+
+            var list = dataList
+                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
+                .filter(v => {
+                    return keyOR.length == 0
+                        || _.some(keyOR, k => v.Cd.startsWith(k))
+                        || _.some(keyOR, k => v.whole.includes(k))
+                })
+                .filter(v => {
+                    return keyAND.length == 0
+                        || _.every(keyAND, k => v.whole.includes(k));
+                })
+                .map(v => {
+                    var ret = v;
+                    ret.label = v.Cd + " : " + v.CdNm;
+                    ret.value = v.Cd;
+                    ret.text = v.CdNm;
+                    return ret;
+                })
+                ;
+            console.log("BankAutoCompleteFunc:" + input + " = " + list.length);
+            return list;
+        },
+        BankBranchParamsChangedCheckFunc: function(newVal, oldVal) {
+            var vue = this;
+            var ret = !!newVal.BankCd;
+            console.log("BankBranchParamsChangedCheckFunc", ret);
+            return ret;
+        },
+        onBankBranchChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
+            var vue = this;
+            console.log("onBankBranchChanged", info, comp, isValid);
+            if (!isValid) {
+                vue.BankBranchKeyWord = comp.selectValue;
+            }
+        },
+        BankBranchAutoCompleteFunc: function(input, dataList) {
+            var vue = this;
+
+            if (!dataList.length) return [];
+
+            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
+            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
+
+            var wholeColumns = ["Cd", "CdNm", "支店名カナ"];
+
+            var list = dataList
+                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
+                .filter(v => {
+                    return keyOR.length == 0
+                        || _.some(keyOR, k => v.Cd.startsWith(k))
+                        || _.some(keyOR, k => v.whole.includes(k))
+                })
+                .filter(v => {
+                    return keyAND.length == 0
+                        || _.every(keyAND, k => v.whole.includes(k));
+                })
+                .map(v => {
+                    var ret = v;
+                    ret.label = v.Cd + " : " + v.CdNm;
+                    ret.value = v.Cd;
+                    ret.text = v.CdNm;
+                    return ret;
+                })
+                ;
+            console.log("BankBranchAutoCompleteFunc:" + input + " = " + list.length);
             return list;
         },
     }

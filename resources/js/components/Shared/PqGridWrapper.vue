@@ -1219,6 +1219,11 @@ export default {
                         vue.CountConstraint = res.CountConstraint;
 
                         res = res.Data;
+                    } else if (res.Data) {
+                        vue.CountConstraint = false;
+                        res = res.Data;
+                    } else {
+                        vue.CountConstraint = false;
                     }
 
                     //削除用検索時初期値の設定

@@ -7,6 +7,7 @@ import VueDataList from "@vcs/DataList.vue";
 import VueSelect from "@vcs/VueSelect.vue";
 import VueSelectBusho from "@vcs/VueSelectBusho.vue";
 import VueOptions from "@vcs/VueOptions.vue";
+import VueCheck from "@vcs/VueCheck.vue";
 import PopupSelect from "@vcs/PopupSelect.vue";
 import PqGridWrapper from "@vcs/PqGridWrapper.vue";
 import DatePickerWrapper from "@vcs/DatePickerWrapper.vue";
@@ -57,6 +58,7 @@ export default {
         "VueSelect": VueSelect,
         "VueSelectBusho": VueSelectBusho,
         "VueOptions": VueOptions,
+        "VueCheck": VueCheck,
         "PopupSelect": PopupSelect,
         "PqGridWrapper": PqGridWrapper,
         "DatePickerWrapper": DatePickerWrapper,
