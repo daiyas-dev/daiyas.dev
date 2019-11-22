@@ -61,6 +61,8 @@
                     :exceptCheck="{ Cd: 0 }"
                     :inputWidth=100
                     :nameWidth=300
+                    :isShowAutoComplete=true
+                    :AutoCompleteFunc=CourseAutoCompleteFunc
                 />
             </div>
         </div>
@@ -87,6 +89,8 @@
                     :exceptCheck="{ Cd: 9999 }"
                     :inputWidth=100
                     :nameWidth=300
+                    :isShowAutoComplete=true
+                    :AutoCompleteFunc=CourseAutoCompleteFunc
                 />
             </div>
         </div>
@@ -106,6 +110,17 @@
 <style>
 #DAI01010Grid1 .pq-group-toggle-none {
     display: none !important;
+}
+#DAI01010Grid1 .pq-td-div {
+    display: flex;
+    line-height: 13px !important;
+    justify-content: center;
+    align-items: center;
+    height: 50px;
+}
+#DAI01010Grid1 .pq-td-div span {
+    line-height: inherit;
+    text-align: center;
 }
 label{
     width: 80px;
@@ -393,6 +408,40 @@ export default {
                 });
 
             return groupings;
+        },
+        CourseAutoCompleteFunc: function(input, dataList, comp) {
+            var vue = this;
+
+            if (!dataList.length) return [];
+
+            if (input == comp.selectValue && comp.isUnique) return dataList;
+
+            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
+            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
+
+            var wholeColumns = ["コース名", "担当者名"];
+
+            var list = dataList
+                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
+                .filter(v => {
+                    return keyOR.length == 0
+                        || _.some(keyOR, k => v.コースＣＤ.startsWith(k))
+                        || _.some(keyOR, k => v.whole.includes(k))
+                })
+                .filter(v => {
+                    return keyAND.length == 0 || _.every(keyAND, k => v.whole.includes(k));
+                })
+                .map(v => {
+                    var ret = v;
+                    ret.label = v.コースＣＤ + " : " + v.コース名 + "【" + v.担当者名 + "】";
+                    ret.value = v.コースＣＤ;
+                    ret.text = v.コース名;
+                    return ret;
+                })
+                ;
+
+            return list;
         },
     }
 }

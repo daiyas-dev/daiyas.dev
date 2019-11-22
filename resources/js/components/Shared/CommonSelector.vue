@@ -8,6 +8,7 @@
             classes="ml-0 mr-0"
             :SearchOnCreate=true
             :SearchOnActivate=true
+            :keepSelect=true
             :options=this.grid1Options
             :showContextMenu=false
             :onAfterSearchFunc=this.onAfterSearchFunc
@@ -72,7 +73,7 @@ export default {
             handler: function(newVal) {
                 //先頭行を選択
                 var gridVue = this.$refs[this.gridId];
-                var grid = $(gridVue.$el).pqGrid("getInstance").grid;
+                var grid = $(gridVue.$el).find(".pq-grid").pqGrid("getInstance").grid;
                 grid.setSelection({ rowIndx: 0 });
             },
         }
@@ -118,21 +119,9 @@ export default {
 					    {
                             name: "SearchStrings",
 						    type: "textbox",
-                            attr: 'name="SearchStrings" tabIndex=-1 searchIndex=0 prevString="" autocomplete="off"',
+                            attr: 'name="SearchStrings" tabIndex=-1 searchIndex=0 prevString="" autocomplete="off" style="width: calc(100% - 110px) !important;"',
                             cls: "SearchStrings",
-                            label: "<i class='fa fa-search ml-1'></i>" + "検索 ",
-						    listener: {
-                                "keyup": function(event) {
-                                    var grid = this;
-                                    var target = event.target;
-                                    var vue = grid.options.vue.$parent;
-                                    if (event.which == 13) {
-                                        //vue.searchRow(grid, target, target.value, target.searchIndex);
-                                    } else {
-                                        vue.selectRow(grid, target, target.value, target.searchIndex);
-                                    }
-                                },
-                            }
+                            label: "<i class='fa fa-search ml-1'></i>" + "キーワード ",
 					    },
                         {
                             name: "CountConstraintViolation",
@@ -191,7 +180,9 @@ export default {
         this.$root.$on('resize', this.resize);
     },
     mounted: function () {
-        console.log(this.$options.pgId + " Mounted:");
+        var vue = this;
+
+        console.log("CommonSelecotr mounted");
 
         //vueをbindしたエレメント
         var ele = $(this.$el);
@@ -199,7 +190,7 @@ export default {
         //親div
         var parent = ele.closest("div");
         //PqGrid
-        var grid = ele.children(".pq-grid");
+        var grid = ele.find(".pq-grid");
 
         //親divのリサイズハンドラ設定
         parent.resize(function() {
@@ -242,12 +233,12 @@ export default {
 
             //if (!grid.pdata || grid.pdata.length == 0) return false;
 
-            var rowIndx = grid.Selection().getSelection()[0].rowIndx;
+            var rowIndx = grid.Selection().getSelection().length ? grid.Selection().getSelection()[0].rowIndx : 0;
 
             switch(key) {
                 case 9:     //Tab
                     var selectBtn = dlg.closest(".ui-dialog")
-                                       .find(".ui-dialog-buttonpane .ui-button")
+                                       .find(".ui-dialog-buttonpane .btn")
                                        .filter((i, v) => $(v).text() == "選択");
 
                     if (selectBtn.length == 1) {
@@ -269,7 +260,7 @@ export default {
                         return false;
                     } else {
                         var selectBtn = dlg.closest(".ui-dialog")
-                                           .find(".ui-dialog-buttonpane .ui-button")
+                                           .find(".ui-dialog-buttonpane .btn")
                                            .filter((i, v) => $(v).text() == "選択");
 
                         if (selectBtn.length == 1) {
@@ -347,21 +338,18 @@ export default {
         this.focused();
     },
     beforeUpdated: function () {
-        console.log(this.$options.pgId + " BeforeUpdated:");
     },
     updated: function () {
-        console.log(this.$options.pgId + " Updated:");
     },
     activated: function () {    //画面再表示時はこのイベント
-        console.log(this.$options.pgId + " Activated:");
-
+        // console.log("CommonSelecotr activated");
         this.focused();
     },
     deactivated: function () {
-        //console.log(this.$options.pgId + " Deactivated:");
+        // console.log("CommonSelecotr deactivated");
     },
     destroyed: function () {
-        //console.log(this.$options.pgId + " Destroyed:");
+        // console.log("CommonSelecotr destroyed");
     },
     methods: {
         focused: function() {
@@ -422,6 +410,12 @@ export default {
             var vue = grid.options.vue.$parent;
             var target = $(vue.$el).find("[name=SearchStrings]")[0];
             target.value = vue.keyword || "";
+
+            $(target).on("input", (ev => {
+                console.log("SearchStrings input", ev.target.value);
+                vue.selectRow(grid, ev.target, ev.target.value, ev.target.searchIndex);
+            }));
+
             vue.selectRow(grid, target, target.value, 0);
         },
         searchRow: function(grid, target, str, idx, noSearch) {
@@ -429,9 +423,9 @@ export default {
             grid = grid || vue.page[vue.gridId];
 
             var isMatchAll = grid.pdata.length > 0 &&
-                grid.pdata.filter(v => {
-                    return !!v.Cd && v.Cd.toString().includes(str) || !!v.CdNm && v.CdNm.toString().includes(str)
-                }).length == grid.pdata.length
+                grid.pdata.every(v => {
+                    return !!v.Cd && v.Cd.startsWith(str) || !!v.CdNm && v.CdNm.includes(str)
+                })
             ;
 
             if (isMatchAll && (!vue.keyword || vue.keyword == str)) {
@@ -439,8 +433,7 @@ export default {
                 vue.keyword = vue.keyword || str
                 vue.selectRow(grid, target, str, idx);
             } else {
-                if (noSearch != true) {
-                // if (noSearch != true && !!grid.options.vue.CountConstraint) {
+                if (noSearch != true && !!grid.options.vue.CountConstraint) {
                     //再検索
                     var params = _.cloneDeep(vue.query);
 
@@ -487,6 +480,18 @@ export default {
 
                     grid.scrollRow({ rowIndx: rowIndx + buf });
                     grid.setSelection({ rowIndx: rowIndx });
+                } else {
+                    var selectBtn = $(vue.$el).closest(".ui-dialog")
+                                       .find(".ui-dialog-buttonpane .btn")
+                                       .filter((i, v) => $(v).text() == "選択");
+
+                    if (selectBtn.length == 1) {
+                        //選択ボタンがあればclick
+                        selectBtn[0].click();
+
+                        //イベントキャンセル
+                        return false;
+                    }
                 }
             }
             target.focus();

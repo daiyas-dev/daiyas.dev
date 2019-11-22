@@ -91,6 +91,8 @@ export default {
         onBeforeCellKeyDownFunc: Function,
         onCellKeyDownFunc: Function,
         setMoveNextCell: Function,
+        keepSelect: Boolean,
+        keepSelectOnce: Boolean,
     },
     computed: {
         isDialog: function() {
@@ -863,8 +865,10 @@ export default {
                 var vue = grid.options.vue;
 
                 //選択状態解除
-                grid.prevSelection = grid.Selection()._areas;
-                grid.Selection().removeAll();
+                if (!vue.keepSelect) {
+                    grid.prevSelection = grid.Selection()._areas;
+                    grid.Selection().removeAll();
+                }
 
                 //完了時更新関数
                 if (vue._onCompleteFunc && vue.grid) {
