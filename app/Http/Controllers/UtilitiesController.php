@@ -284,7 +284,7 @@ $WhereKeyWord
                     return $q->where('担当者ＣＤ', $TantoCd);
                 }
             )
-            ->where('ユーザーＩＤ', '>', 0);
+           ->where('ユーザーＩＤ', '>', 0);
 
         $UserList = collect($query->get())
             ->map(function ($user) {
@@ -299,6 +299,32 @@ $WhereKeyWord
                 return $vm;
             })
             ->values();
+
+        return response()->json($UserList);
+    }
+    /**
+     * GetTantoListForMaint
+     */
+    public function GetTantoListForMaint($request)
+    {
+        $BushoCd = $request->BushoCd;
+        $TantoCd = $request->TantoCd;
+
+        $query = 担当者マスタ::query()
+            ->when(
+                $BushoCd,
+                function ($q) use ($BushoCd) {
+                    return $q->where('所属部署ＣＤ', $BushoCd);
+                }
+            )
+            ->when(
+                $TantoCd,
+                function ($q) use ($TantoCd) {
+                    return $q->where('担当者ＣＤ', $TantoCd);
+                }
+            );
+
+        $UserList = $query->get();
 
         return response()->json($UserList);
     }

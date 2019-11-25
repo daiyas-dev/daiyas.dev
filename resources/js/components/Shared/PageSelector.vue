@@ -58,6 +58,8 @@ import DAI01020 from "@vcp/DAI01020.vue";
 import DAI01030 from "@vcp/DAI01030.vue";
 import DAI01040 from "@vcp/DAI01040.vue";
 
+import DAI04020 from "@vcp/DAI04020.vue";
+import DAI04021 from "@vcp/DAI04021.vue";
 import DAI04040 from "@vcp/DAI04040.vue";
 import DAI04041 from "@vcp/DAI04041.vue";
 import DAI04080 from "@vcp/DAI04080.vue";
@@ -114,6 +116,8 @@ export default {
         DAI01020,
         DAI01030,
         DAI01040,
+        DAI04020,
+        DAI04021,
         DAI04040,
         DAI04041,
         DAI04080,
