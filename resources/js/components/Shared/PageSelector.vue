@@ -60,6 +60,8 @@ import DAI01040 from "@vcp/DAI01040.vue";
 
 import DAI04040 from "@vcp/DAI04040.vue";
 import DAI04041 from "@vcp/DAI04041.vue";
+import DAI04080 from "@vcp/DAI04080.vue";
+import DAI04090 from "@vcp/DAI04090.vue";
 
 import DAI07010 from "@vcp/DAI07010.vue";
 
@@ -114,6 +116,8 @@ export default {
         DAI01040,
         DAI04040,
         DAI04041,
+        DAI04080,
+        DAI04090,
         DAI07010,
         DAI08010,
         //共通画面用Selector
