@@ -936,7 +936,7 @@ export default {
             }
 
             var match = vue.dataList.filter(v => v[vue.isGetName ? "CdNm" : "Cd"] == key);
-            var list = vue.AutoCompleteFunc ? vue.AutoCompleteFunc(key, vue.dataList)
+            var list = vue.AutoCompleteFunc ? vue.AutoCompleteFunc(key, vue.dataList, vue)
                 : vue.dataList
                     .filter(v => v[vue.isGetName ? "CdNm" : "Cd"].includes(key))
                     .map(v => {
