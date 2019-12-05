@@ -47,7 +47,7 @@
             dataUrl="/Utilities/GetCourseTableForMaint"
             :query=this.viewModel
             :SearchOnCreate=false
-            :SearchOnActivate=true
+            :SearchOnActivate=false
             :options=grid1Options
             :isMultiRowSelectable=true
             :maxRowSelectCount=2
