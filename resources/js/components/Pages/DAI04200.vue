@@ -1,18 +1,5 @@
 <template>
     <form id="this.$options.name">
-        <!-- TODO:nisiyama  -->
-        <!-- <div class="row">
-            <div class="col-md-1">
-                <label>銀行ＣＤ</label>
-            </div>
-            <div class="col-md-2">
-                <VueSelectBank
-                    ref="VueSelectBank"
-                    :hasNull=true
-                    :onChangedFunc=onBankChanged
-                />
-            </div>
-        </div> -->
         <div class="row">
             <div class="col-md-1">
                 <label>銀行</label>
@@ -37,15 +24,15 @@
                     :inputWidth=100
                     :nameWidth=300
                     :isShowAutoComplete=true
-                    :AutoCompleteFunc=CourseAutoCompleteFunc
+                    :AutoCompleteFunc=BankAutoCompleteFunc
                     :onChangeFunc=onBankChanged
                 />
             </div>
             <div class="col-md-1">
-                <label>支店ＣＤ</label>
+                <label>支店CD</label>
             </div>
             <div class="col-md-1">
-                <input type="text" class="form-control" :v-model="viewModel.BranchCd" @input="onBranchCdChanged">
+                <input type="text" class="form-control" :value="viewModel.BranchCd" @input="onBranchCdChanged">
             </div>
         </div>
         <div class="row">
@@ -73,7 +60,7 @@
         <PqGridWrapper
             id="DAI04200Grid1"
             ref="DAI04200Grid1"
-            dataUrl="/Utilities/GetBankBranchListForMaint"
+            dataUrl="/Utilities/GetBankBranchList"
             :query=this.viewModel
             :SearchOnCreate=false
             :SearchOnActivate=false
@@ -195,12 +182,14 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        onBranchCdChanged: function(code, entity) {
+        onBranchCdChanged: _.debounce(function(event) {
             var vue = this;
+
+            vue.viewModel.BranchCd = event.target.value;
 
             //フィルタ変更
             vue.filterChanged();
-        },
+        }, 300),
         onKeyWordChanged: _.debounce(function(event) {
             var vue = this;
 
@@ -234,8 +223,8 @@ export default {
 
             var rules = [];
 
-            if (!!vue.viewModel.BankCd) {
-                rules.push({ dataIndx: "銀行CD", condition: "equal", value: vue.viewModel.BankCd });
+            if (!!vue.viewModel.BranchCd) {
+                rules.push({ dataIndx: "支店CD", condition: "equal", value: vue.viewModel.BranchCd });
             }
             if (!!vue.viewModel.KeyWord) {
                 var keywords = vue.viewModel.KeyWord.split(/[, 、　]/)
@@ -357,7 +346,7 @@ export default {
 
             return res;
         },
-        CourseAutoCompleteFunc: function(input, dataList, comp) {
+        BankAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
 
             if (!dataList.length) return [];

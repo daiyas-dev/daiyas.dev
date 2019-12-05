@@ -5,7 +5,27 @@
                 <label>商品ＣＤ</label>
             </div>
             <div class="col-md-2">
-                <!-- TODO:nishiyama メモ参照20191204-->
+                <input type="text" class="form-control" :value="viewModel.ProductCd" @input="onProductCdChanged">
+            </div>
+            <div class="col-md-3">
+                <label>商品区分</label>
+                <VueSelect
+                    id="State"
+                    :vmodel=viewModel
+                    bind="商品区分"
+                    uri="/Utilities/GetCodeList"
+                    :params="{ cd: 14 }"
+                    :withCode=true
+                    :hasNull=true
+                    customStyle="{ width: 100px; }"
+                    :onChangedFunc=onKbnChanged
+                />
+            </div>
+            <div class="col-md-1">
+                <label>売価単価</label>
+            </div>
+            <div class="col-md-2">
+                <input type="text" class="form-control" :value="viewModel.売価単価" @input="onTankaChanged">
             </div>
         </div>
         <div class="row">
@@ -159,12 +179,29 @@ export default {
             console.log("Cache Set Key1", myCache.set("key1", { value: 1 }));
             console.log("Cache Get Key1", myCache.get("key1"));
         },
-        onProductChanged: function(code, entity) {
+        onProductCdChanged: _.debounce(function(event) {
             var vue = this;
+
+            vue.viewModel.ProductCd = event.target.value;
+
+            //フィルタ変更
+            vue.filterChanged();
+        }, 300),
+        onKbnChanged: function(code, info) {
+            var vue = this;
+            vue.viewModel.商品区分 = event.target.value;
 
             //フィルタ変更
             vue.filterChanged();
         },
+        onTankaChanged: _.debounce(function(event) {
+            var vue = this;
+
+            vue.viewModel.売価単価 = event.target.value;
+
+            //フィルタ変更
+            vue.filterChanged();
+        }, 300),
         onKeyWordChanged: _.debounce(function(event) {
             var vue = this;
 
@@ -201,6 +238,13 @@ export default {
             if (!!vue.viewModel.ProductCd) {
                 rules.push({ dataIndx: "商品ＣＤ", condition: "equal", value: vue.viewModel.ProductCd });
             }
+            if (!!vue.viewModel.商品区分) {
+                rules.push({ dataIndx: "商品区分", condition: "equal", value: vue.viewModel.商品区分 });
+            }
+            if (!!vue.viewModel.売価単価) {
+                rules.push({ dataIndx: "売価単価", condition: "contain", value: vue.viewModel.売価単価 });
+            }
+
             if (!!vue.viewModel.KeyWord) {
                 var keywords = vue.viewModel.KeyWord.split(/[, 、　]/)
                     .map(v => _.trim(v))

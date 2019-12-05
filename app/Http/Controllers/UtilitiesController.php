@@ -313,19 +313,12 @@ $WhereKeyWord
     public function GetTantoListForMaint($request)
     {
         $BushoCd = $request->BushoCd;
-        $TantoCd = $request->TantoCd;
 
         $query = 担当者マスタ::query()
             ->when(
                 $BushoCd,
                 function ($q) use ($BushoCd) {
                     return $q->where('所属部署ＣＤ', $BushoCd);
-                }
-            )
-            ->when(
-                $TantoCd,
-                function ($q) use ($TantoCd) {
-                    return $q->where('担当者ＣＤ', $TantoCd);
                 }
             );
 
@@ -737,7 +730,7 @@ $WhereKeyWord
      */
     public function GetBankListForMaint($request)
     {
-        $cds = $request->BankCd;
+        $cds = $request->bankCd;
 
         $query = 金融機関名称::query()
             ->when(
@@ -775,20 +768,9 @@ $WhereKeyWord
                     return $q->whereIn('銀行CD', $cds);
                 });
 
-        $BranchList = collect($query->get())
-            ->map(function ($BankCd) {
-                $vm = (object) $BankCd;
+                $BranchList = $query->get();
 
-                //一覧用項目追加
-                $vm->BankCd = $BankCd->銀行CD;
-                // $vm->BranchCd = $BankCd->支店CD;
-                // $vm->BranchNm = $BankCd->支店名;
-
-                return $vm;
-            })
-            ->values();
-
-        return response()->json($BranchList);
+                return response()->json($BranchList);
     }
 
     /**

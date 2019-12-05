@@ -151,7 +151,7 @@ export default {
     data() {
         var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "マスタメンテ > 消費税率マスタメンテ > 消費税率マスタメンテ詳細？",
+            ScreenTitle: "マスタメンテ > 消費税率マスタメンテ > 消費税率マスタメンテ詳細",
             noViewModel: true,
             DAI04141Grid1: null,
             BankKeyWord: null,

@@ -27,8 +27,8 @@
             ref="DAI04130Grid1"
             dataUrl="/Utilities/GetCodeListForMaint"
             :query=this.viewModel
-            :SearchOnCreate=false
-            :SearchOnActivate=false
+            :SearchOnCreate=true
+            :SearchOnActivate=true
             :options=grid1Options
             :onBeforeCreateFunc=onBeforeCreateFunc
             :onAfterSearchFunc=onAfterSearchFunc
@@ -61,7 +61,7 @@ export default {
     data() {
         var vue = this;
         return $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "マスタメンテ > 消費税率マスタメンテ",
+            ScreenTitle: "マスタメンテ > 各種テーブルメンテ",
             noViewModel: true,
             conditionTrigger: true,
             viewModel: {

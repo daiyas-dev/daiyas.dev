@@ -2,6 +2,12 @@
     <form id="this.$options.name">
         <div class="row">
             <div class="col-md-1">
+                <label>担当者ＣＤ</label>
+            </div>
+            <div class="col-md-1">
+                <input type="text" class="form-control" :value="viewModel.担当者ＣＤ" @input="onTantoCdChanged">
+            </div>
+            <div class="col-md-1">
                 <label>部署</label>
             </div>
             <div class="col-md-2">
@@ -12,7 +18,7 @@
                 />
             </div>
             <div class="col-md-1">
-                <label style="width:100">営業業務区分</label>
+                <label style="width:90px">営業業務区分</label>
             </div>
             <div class="col-md-2">
                 <VueSelect
@@ -193,6 +199,14 @@ export default {
             //フィルタ変更
             vue.filterChanged();
         },
+        onTantoCdChanged: _.debounce(function(event) {
+            var vue = this;
+
+            vue.viewModel.担当者ＣＤ = event.target.value;
+
+            //フィルタ変更
+            vue.filterChanged();
+        }, 300),
         onKeyWordChanged: _.debounce(function(event) {
             var vue = this;
 
@@ -226,6 +240,9 @@ export default {
 
             var rules = [];
 
+            if (!!vue.viewModel.担当者ＣＤ) {
+                rules.push({ dataIndx: "担当者ＣＤ", condition: "equal", value: vue.viewModel.担当者ＣＤ });
+            }
             if (!!vue.viewModel.SalesDiv) {
                 rules.push({ dataIndx: "営業業務区分", condition: "equal", value: vue.viewModel.SalesDiv });
             }
