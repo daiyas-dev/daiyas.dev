@@ -115,7 +115,7 @@ export default {
                 colModel: [
                 ],
                 rowDblClick: function (event, ui) {
-                    vue.showDetail();
+                    vue.showDetail(ui.rowData);
                 },
             },
         });
@@ -406,16 +406,20 @@ export default {
 
             return res;
         },
-        showDetail: function() {
+        showDetail: function(rowData) {
             var vue = this;
             var grid = vue.DAI04090Grid1;
             if (!grid) return;
 
-            var rows = grid.getSelectionRowData();
-            if (rows.length == 0) return;
+            var params;
+            if (rowData) {
+                params.targets = [_.cloneDeep(rowData)];
+            } else {
+                var rows = grid.SelectRow().getSelection();
+                if (rows.length == 0 || rows.length > 2) return;
 
-            var params = { IsNew: false };
-            params.targets = _.cloneDeep(rows);
+                params.targets = _.cloneDeep(rows);
+            }
 
             //TODO: 子画面化
             vue.$router.push({
