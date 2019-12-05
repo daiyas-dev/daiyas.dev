@@ -13,6 +13,9 @@ use App\Models\得意先マスタ;
 use App\Models\担当者マスタ;
 use App\Models\祝日マスタ;
 use App\Models\部署マスタ;
+use App\Models\金融機関名称;
+use App\Models\金融機関支店名称;
+use App\Models\消費税率マスタ;
 use Illuminate\Http\Request;
 use DB;
 
@@ -57,7 +60,7 @@ WHERE TABLE_NAME = '$TableName'
     }
 
     /**
-     * GetCodeList
+     *
      */
     public function GetCodeList($request)
     {
@@ -103,6 +106,7 @@ WHERE TABLE_NAME = '$TableName'
                 $vm->Cd = $info->行NO;
                 $vm->CdNm = $info->各種名称;
                 $vm->CdAbbr = $info->各種略称;
+                $vm->Sub1 = $info->サブ各種CD1;
 
                 return $vm;
             })
@@ -286,7 +290,7 @@ $WhereKeyWord
             )
            ->where('ユーザーＩＤ', '>', 0);
 
-        $UserList = collect($query->get())
+        $TantoList = collect($query->get())
             ->map(function ($user) {
                 $vm = (object) $user;
 
@@ -300,8 +304,9 @@ $WhereKeyWord
             })
             ->values();
 
-        return response()->json($UserList);
+        return response()->json($TantoList);
     }
+
     /**
      * GetTantoListForMaint
      */
@@ -324,9 +329,70 @@ $WhereKeyWord
                 }
             );
 
-        $UserList = $query->get();
+        $TantoList = $query->get();
 
-        return response()->json($UserList);
+        return response()->json($TantoList);
+    }
+
+    /**
+     * GetProductListForMaint
+     */
+    public function GetProductListForMaint($request)
+    {
+        $ProductCd = $request->productCd;
+
+        $query = 商品マスタ::query()
+            ->when(
+                $ProductCd,
+                function ($q) use ($ProductCd) {
+                    return $q->where('商品ＣＤ', $ProductCd);
+                }
+            );
+
+        $ProductList = $query->get();
+
+        return response()->json($ProductList);
+    }
+
+    /**
+     * GetMainSubListForSelect
+     */
+    public function GetMainSubListForSelect($request)
+    {
+        $BentoKbn = $request->bentoKbn;
+
+        //副食区分、主食区分の選択肢取得
+        $sql = "
+            SELECT
+                MP.商品ＣＤ AS Cd,
+                MP.商品名 AS CdNm
+            FROM 商品マスタ MP
+            WHERE 弁当区分 = $BentoKbn
+            ORDER BY 商品ＣＤ
+        ";
+        $ProductList = DB::select($sql);
+
+        return response()->json($ProductList);
+    }
+
+    /**
+     * GetGroupListForSelect
+     */
+    public function GetGroupListForSelect($request)
+    {
+        $BentoKbn = $request->bentoKbn;
+
+        $sql = "
+            SELECT
+                MP.商品ＣＤ AS Cd,
+                MP.商品名 AS CdNm
+            FROM 商品マスタ MP
+            WHERE 弁当区分 = $BentoKbn
+            ORDER BY 商品ＣＤ
+        ";
+        $ProductList = DB::select($sql);
+
+        return response()->json($ProductList);
     }
 
     /**
@@ -364,6 +430,70 @@ $WhereKeyWord
             ->values();
 
         return response()->json($BushoCdList);
+    }
+
+
+    /**
+     * GetCourseTableForMaint
+     */
+    public function GetCourseTableForMaint($request)
+    {
+        $BushoCd = $request->BushoCd;
+        $CourseCd = $request->CourseCd;
+
+        $query = コーステーブル::with(['得意先'])
+            ->when(
+                $BushoCd,
+                function ($q) use ($BushoCd) {
+                    return $q->where('部署ＣＤ', $BushoCd);
+                }
+            )
+            ->when(
+                $CourseCd,
+                function ($q) use ($CourseCd) {
+                    return $q->where('コースＣＤ', $CourseCd);
+                }
+            );
+
+
+        $CourseTableList = collect($query->get())
+            ->map(function($courseTable){
+                $vm = (object)$courseTable;
+
+                $vm->Cd = $courseTable->得意先ＣＤ;
+                $vm->得意先名 = $courseTable->得意先->得意先名;
+
+                return $vm;
+            })
+            ->values();
+
+        return response()->json($CourseTableList);
+    }
+
+    /**
+     * GetCodeListForMaint
+     */
+    public function GetCodeListForMaint($request)
+    {
+        $sql = "
+            SELECT * FROM 各種テーブル
+        ";
+        $CodeList = DB::select($sql);
+
+        return response()->json($CodeList);
+    }
+
+    /**
+     * GetTaxListForMaint
+     */
+    public function GetTaxListForMaint($request)
+    {
+        $sql = "
+            SELECT * FROM 消費税率マスタ
+        ";
+        $TaxList = DB::select($sql);
+
+        return response()->json($TaxList);
     }
 
     /**
@@ -566,6 +696,99 @@ $WhereKeyWord
         $DataList = DB::select($sql);
 
         return response()->json(['Data' => $DataList, 'CountConstraint' => !!$SelectTop]);
+    }
+
+    /**
+     * GetBushoListForMaint
+     */
+    public function GetBushoListForMaint($request)
+    {
+        $sql = "
+            SELECT
+                MB.*,
+                BK.銀行名 AS 金融機関名称１,
+                BB.支店名 AS 金融機関支店名称１,
+                KK.各種名称 AS 口座種別１,
+                BK2.銀行名 AS 金融機関名称２,
+                BB2.支店名 AS 金融機関支店名称２,
+                KK2.各種名称 AS 口座種別２
+            FROM 部署マスタ MB
+            LEFT JOIN 金融機関名称 BK
+            　ON　MB.金融機関CD1=BK.銀行CD
+            LEFT JOIN 金融機関支店名称 BB
+            　ON　MB.金融機関CD1=BB.銀行CD AND MB.金融機関支店CD1=BB.支店CD
+            LEFT JOIN 各種テーブル KK
+            　ON　'7'=KK.各種CD AND MB.口座種別1=KK.行NO
+            LEFT JOIN 金融機関名称 BK2
+            　ON　MB.金融機関CD2=BK2.銀行CD
+            LEFT JOIN 金融機関支店名称 BB2
+            　ON　MB.金融機関CD2=BB2.銀行CD AND MB.金融機関支店CD2=BB2.支店CD
+            LEFT JOIN 各種テーブル KK2
+            　ON　'7'=KK2.各種CD AND MB.口座種別2=KK2.行NO
+        ";
+        $BusyoList = DB::select($sql);
+
+        return response()->json($BusyoList);
+
+        }
+
+    /**
+     * GetBankListForMaint
+     */
+    public function GetBankListForMaint($request)
+    {
+        $cds = $request->BankCd;
+
+        $query = 金融機関名称::query()
+            ->when(
+                $cds,
+                function ($q) use ($cds) {
+                    return $q->whereIn('銀行CD', $cds);
+                });
+
+        $BankCdList = collect($query->get())
+            ->map(function ($BankCd) {
+                $vm = (object) $BankCd;
+
+                //一覧用項目追加
+                $vm->BankCd = $BankCd->銀行CD;
+                $vm->BankNm = $BankCd->銀行名;
+
+                return $vm;
+            })
+            ->values();
+
+        return response()->json($BankCdList);
+    }
+
+    /**
+     * GetBankBranchListForMaint
+     */
+    public function GetBankBranchListForMaint($request)
+    {
+        $cds = $request->BankCd;
+
+        $query = 金融機関支店名称::query()
+            ->when(
+                $cds,
+                function ($q) use ($cds) {
+                    return $q->whereIn('銀行CD', $cds);
+                });
+
+        $BranchList = collect($query->get())
+            ->map(function ($BankCd) {
+                $vm = (object) $BankCd;
+
+                //一覧用項目追加
+                $vm->BankCd = $BankCd->銀行CD;
+                // $vm->BranchCd = $BankCd->支店CD;
+                // $vm->BranchNm = $BankCd->支店名;
+
+                return $vm;
+            })
+            ->values();
+
+        return response()->json($BranchList);
     }
 
     /**

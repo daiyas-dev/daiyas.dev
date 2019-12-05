@@ -1,44 +1,11 @@
-﻿<template>
+<template>
     <form id="this.$options.name">
         <div class="row">
             <div class="col-md-1">
-                <label>部署</label>
+                <label>商品ＣＤ</label>
             </div>
             <div class="col-md-2">
-                <VueSelectBusho
-                    ref="VueSelectBusho"
-                    bind="BushoCd"
-                    :hasNull=true
-                    :onChangedFunc=onBushoChanged
-                />
-            </div>
-            <div class="col-md-1">
-                <label>コース</label>
-            </div>
-            <div class="col-md-8">
-                <PopupSelect
-                    id="CourseSelect"
-                    ref="PopupSelect_Course"
-                    :vmodel=viewModel
-                    bind="CourseCd"
-                    buddy="CourseNm"
-                    dataUrl="/Utilities/GetCourseList"
-                    :params="{ bushoCd: viewModel.BushoCd }"
-                    title="コース一覧"
-                    labelCd="コースCD"
-                    labelCdNm="コース名"
-                    :showColumns='[
-                    ]'
-                    :isShowName=true
-                    :isModal=true
-                    :editable=true
-                    :reuse=true
-                    :existsCheck=true
-                    :onAfterChangedFunc=onCourseCdChanged
-                    :inputWidth=80
-                    :nameWidth=250
-                    :isShowAutoComplete=true
-                />
+                <!-- TODO:nishiyama メモ参照20191204-->
             </div>
         </div>
         <div class="row">
@@ -64,12 +31,12 @@
             </div>
         </div>
         <PqGridWrapper
-            id="DAI04090Grid1"
-            ref="DAI04090Grid1"
-            dataUrl="/Utilities/GetCourseTableForMaint"
+            id="DAI04030Grid1"
+            ref="DAI04030Grid1"
+            dataUrl="/Utilities/GetProductListForMaint"
             :query=this.viewModel
-            :SearchOnCreate=false
-            :SearchOnActivate=false
+            :SearchOnCreate=true
+            :SearchOnActivate=true
             :options=grid1Options
             :onBeforeCreateFunc=onBeforeCreateFunc
             :onAfterSearchFunc=onAfterSearchFunc
@@ -86,13 +53,13 @@ import PageBaseMixin from "@vcs/PageBaseMixin.vue";
 
 export default {
     mixins: [PageBaseMixin],
-    name: "DAI04090",
+    name: "DAI04030",
     components: {
     },
     computed: {
         hasSelectionRow: function() {
             var vue = this;
-            var grid = vue.DAI04090Grid1;
+            var grid = vue.DAI04030Grid1;
             return !!grid && !!grid.getSelectionRowData();
         },
     },
@@ -101,17 +68,15 @@ export default {
     data() {
         var vue = this;
         return $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "マスタメンテ > コーステーブルメンテ",
+            ScreenTitle: "マスタメンテ > 商品マスタメンテ",
             noViewModel: true,
             conditionTrigger: true,
             viewModel: {
-                BushoCd: null,
-                CourseCd: null,
-                CourseNm: null,
+                ProductCd: null,
                 KeyWord: null,
                 FilterMode: "AND",
             },
-            DAI04090Grid1: null,
+            DAI04030Grid1: null,
             grid1Options: {
                 selectionModel: { type: "row", mode: "block", row: true },
                 showHeader: true,
@@ -148,7 +113,7 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "クリア", id: "DAI04090_Clear", disabled: false, shortcut: "F2",
+                { visible: "true", value: "クリア", id: "DAI04030_Clear", disabled: false, shortcut: "F2",
                     onClick: function () {
                         //TODO: クリア
                     }
@@ -157,23 +122,23 @@ export default {
                 {visible: "false"},
                 {visible: "false"},
                 {visible: "false"},
-                { visible: "true", value: "検索", id: "DAI04090_Search", disabled: false, shortcut: "F5",
+                { visible: "true", value: "検索", id: "DAI04030_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
                         vue.conditionChanged();
                     }
                 },
-                { visible: "true", value: "ダウンロード", id: "DAI04090_Download", disabled: false, shortcut: "F7",
+                { visible: "true", value: "ダウンロード", id: "DAI04030_Download", disabled: false, shortcut: "F7",
                     onClick: function () {
                         //TODO: ダウンロード
                     }
                 },
                 {visible: "false"},
-                { visible: "true", value: "詳細", id: "DAI04090Grid1_Detail", disabled: true, shortcut: "F8",
+                { visible: "true", value: "詳細", id: "DAI04030Grid1_Detail", disabled: true, shortcut: "F8",
                     onClick: function () {
                         vue.showDetail();
                     }
                 },
-                { visible: "true", value: "新規登録", id: "DAI04090Grid1_Save", disabled: false, shortcut: "F9",
+                { visible: "true", value: "新規登録", id: "DAI04030Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         //TODO: 登録
                     }
@@ -186,7 +151,7 @@ export default {
                 "hasSelectionRow",
                 (newVal) => {
                     console.log("hasSelectionRow watcher: " + newVal);
-                    vue.footerButtons.find(v => v.id == "DAI04090Grid1_Detail").disabled = !newVal;
+                    vue.footerButtons.find(v => v.id == "DAI04030Grid1_Detail").disabled = !newVal;
                 }
             );
 
@@ -194,13 +159,7 @@ export default {
             console.log("Cache Set Key1", myCache.set("key1", { value: 1 }));
             console.log("Cache Get Key1", myCache.get("key1"));
         },
-        onBushoChanged: function(code, entity) {
-            var vue = this;
-
-            //条件変更ハンドラ
-            vue.conditionChanged();
-        },
-        onCourseCdChanged: function(element, info, comp, isNoMsg, isValid) {
+        onProductChanged: function(code, entity) {
             var vue = this;
 
             //フィルタ変更
@@ -216,9 +175,9 @@ export default {
         }, 300),
         conditionChanged: function() {
             var vue = this;
-            var grid = vue.DAI04090Grid1;
+            var grid = vue.DAI04030Grid1;
 
-            console.log("DAI04090 conditionChanged", vue.getLoginInfo().isLogOn);
+            console.log("DAI04030 conditionChanged", vue.getLoginInfo().isLogOn);
 
             if (!!grid && vue.getLoginInfo().isLogOn) {
                 var params = $.extend(true, {}, vue.viewModel);
@@ -233,14 +192,14 @@ export default {
         },
         filterChanged: function() {
             var vue = this;
-            var grid = vue.DAI04090Grid1;
+            var grid = vue.DAI04030Grid1;
 
             if (!grid) return;
 
             var rules = [];
 
-            if (!!vue.viewModel.CourseCd) {
-                rules.push({ dataIndx: "コースＣＤ", condition: "equal", value: vue.viewModel.CourseCd });
+            if (!!vue.viewModel.ProductCd) {
+                rules.push({ dataIndx: "商品ＣＤ", condition: "equal", value: vue.viewModel.ProductCd });
             }
             if (!!vue.viewModel.KeyWord) {
                 var keywords = vue.viewModel.KeyWord.split(/[, 、　]/)
@@ -261,46 +220,46 @@ export default {
             //PqGrid表示前に必要な情報の取得
             axios.all(
                 [
-                    //コーステーブルのカラム情報
-                    axios.post("/Utilities/GetColumns", { TableName: "コーステーブル" }),
+                    //商品マスタのカラム情報
+                    axios.post("/Utilities/GetColumns", { TableName: "商品マスタ" }),
                  ]
             ).then(
-                axios.spread((responseCourseTableCols) => {
-                    var resCourseTableCols = responseCourseTableCols.data;
+                axios.spread((responseProductCols) => {
+                    var resProductCols = responseProductCols.data;
 
-                    if (resCourseTableCols.onError && !!resCourseTableCols.errors) {
+                    if (resProductCols.onError && !!resProductCols.errors) {
                         //メッセージリストに追加
-                        Object.values(resCourseTableCols.errors).filter(v => v)
+                        Object.values(resProductCols.errors).filter(v => v)
                             .forEach(v => vue.$root.$emit("addMessage", v.replace(/(^\"|\"$)/g, "")));
 
                         //ダイアログ
-                        $.dialogErr({ errObj: resCourseTableCols });
+                        $.dialogErr({ errObj: resProductCols });
 
                         return;
-                    } else if (resCourseTableCols.onException) {
+                    } else if (resProductCols.onException) {
                         //メッセージ追加
-                        vue.$root.$emit("addMessage", "コーステーブル取得失敗(" + vue.page.ScreenTitle + ":" + resCourseTablevCols.message + ")");
+                        vue.$root.$emit("addMessage", "商品マスタ取得失敗(" + vue.page.ScreenTitle + ":" + resProductCols.message + ")");
 
                         //ダイアログ
                         $.dialogErr({
                             title: "異常終了",
-                            contents: "コーステーブルの取得に失敗しました<br/>" + resCourseTableCols.message,
+                            contents: "商品マスタの取得に失敗しました<br/>" + resProductCols.message,
                         });
 
                         return;
-                    } else if (resCourseTableCols == "") {
+                    } else if (resProductCols == "") {
                         //完了ダイアログ
                         //ダイアログ
                         $.dialogErr({
                             title: "異常終了",
-                            contents: "コーステーブルの取得に失敗しました<br/>" + resCourseTableCols.message,
+                            contents: "商品マスタの取得に失敗しました<br/>" + resProductCols.message,
                         });
 
                         return;
                     }
 
                     //colModel設定
-                    gridOptions.colModel = _.sortBy(resCourseTableCols, v => v.ORDINAL_POSITION * 1)
+                    gridOptions.colModel = _.sortBy(resProductCols, v => v.ORDINAL_POSITION * 1)
                         // .filter(v => v.COLUMN_NAME != "パスワード")
                         .map(v => {
                             var width = !!v.COLUMN_LENGTH
@@ -336,31 +295,18 @@ export default {
                         }
                     );
 
-                    //コース名表示設定
-                    gridOptions.colModel.splice(
-                        gridOptions.colModel.findIndex(c => c.title=="得意先ＣＤ") + 1,
-                        0,
-                        {
-                            title: "得意先名",
-                            dataIndx: "得意先名",
-                            dataType: "string",
-                            width: 350,
-                            minWidth: 100,
-                        }
-                    );
-
                     //callback実行
                     callback();
                 })
             )
             .catch(error => {
                 //メッセージ追加
-                vue.$root.$emit("addMessage", "コーステーブル検索失敗(" + vue.ScreenTitle + ":" + error + ")");
+                vue.$root.$emit("addMessage", "商品マスタ検索失敗(" + vue.ScreenTitle + ":" + error + ")");
 
                 //ダイアログ
                 $.dialogErr({
                     title: "異常終了",
-                    contents: "コーステーブルの検索に失敗しました<br/>",
+                    contents: "商品マスタの検索に失敗しました<br/>",
                 });
             });
         },
@@ -379,7 +325,7 @@ export default {
         },
         showDetail: function() {
             var vue = this;
-            var grid = vue.DAI04090Grid1;
+            var grid = vue.DAI04030Grid1;
             if (!grid) return;
 
             var row = grid.getSelectionRowData();
@@ -390,7 +336,7 @@ export default {
 
             //TODO: 子画面化
             vue.$router.push({
-                path: "/DAI04/DAI04091",
+                path: "/DAI04/DAI04031",
                 query: params,
             });
         },

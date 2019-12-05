@@ -1,44 +1,51 @@
-﻿<template>
+<template>
     <form id="this.$options.name">
-        <div class="row">
+        <!-- TODO:nisiyama  -->
+        <!-- <div class="row">
             <div class="col-md-1">
-                <label>部署</label>
+                <label>銀行ＣＤ</label>
             </div>
             <div class="col-md-2">
-                <VueSelectBusho
-                    ref="VueSelectBusho"
-                    bind="BushoCd"
+                <VueSelectBank
+                    ref="VueSelectBank"
                     :hasNull=true
-                    :onChangedFunc=onBushoChanged
+                    :onChangedFunc=onBankChanged
                 />
             </div>
+        </div> -->
+        <div class="row">
             <div class="col-md-1">
-                <label>コース</label>
+                <label>銀行</label>
             </div>
-            <div class="col-md-8">
+            <div class="col-md-5">
                 <PopupSelect
-                    id="CourseSelect"
-                    ref="PopupSelect_Course"
+                    id="BankCd"
+                    ref="PopupSelect_Bank"
                     :vmodel=viewModel
-                    bind="CourseCd"
-                    buddy="CourseNm"
-                    dataUrl="/Utilities/GetCourseList"
-                    :params="{ bushoCd: viewModel.BushoCd }"
-                    title="コース一覧"
-                    labelCd="コースCD"
-                    labelCdNm="コース名"
-                    :showColumns='[
-                    ]'
+                    bind="BankCd"
+                    dataUrl="/Utilities/GetBankList"
+                    :params='{ bankCd: null }'
+                    title="銀行一覧"
+                    labelCd="銀行CD"
+                    labelCdNm="銀行名"
                     :isShowName=true
                     :isModal=true
                     :editable=true
                     :reuse=true
                     :existsCheck=true
-                    :onAfterChangedFunc=onCourseCdChanged
-                    :inputWidth=80
-                    :nameWidth=250
+                    :exceptCheck="{ Cd: 0 }"
+                    :inputWidth=100
+                    :nameWidth=300
                     :isShowAutoComplete=true
+                    :AutoCompleteFunc=CourseAutoCompleteFunc
+                    :onChangeFunc=onBankChanged
                 />
+            </div>
+            <div class="col-md-1">
+                <label>支店ＣＤ</label>
+            </div>
+            <div class="col-md-1">
+                <input type="text" class="form-control" :v-model="viewModel.BranchCd" @input="onBranchCdChanged">
             </div>
         </div>
         <div class="row">
@@ -64,9 +71,9 @@
             </div>
         </div>
         <PqGridWrapper
-            id="DAI04090Grid1"
-            ref="DAI04090Grid1"
-            dataUrl="/Utilities/GetCourseTableForMaint"
+            id="DAI04200Grid1"
+            ref="DAI04200Grid1"
+            dataUrl="/Utilities/GetBankBranchListForMaint"
             :query=this.viewModel
             :SearchOnCreate=false
             :SearchOnActivate=false
@@ -76,6 +83,7 @@
         />
     </form>
 </template>
+
 <style scoped>
 </style>
 <style>
@@ -86,13 +94,13 @@ import PageBaseMixin from "@vcs/PageBaseMixin.vue";
 
 export default {
     mixins: [PageBaseMixin],
-    name: "DAI04090",
+    name: "DAI04200",
     components: {
     },
     computed: {
         hasSelectionRow: function() {
             var vue = this;
-            var grid = vue.DAI04090Grid1;
+            var grid = vue.DAI04200Grid1;
             return !!grid && !!grid.getSelectionRowData();
         },
     },
@@ -101,17 +109,16 @@ export default {
     data() {
         var vue = this;
         return $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "マスタメンテ > コーステーブルメンテ",
+            ScreenTitle: "マスタメンテ > 金融機関支店名称",
             noViewModel: true,
             conditionTrigger: true,
             viewModel: {
-                BushoCd: null,
-                CourseCd: null,
-                CourseNm: null,
+                BankCd: null,
+                BranchCd: null,
                 KeyWord: null,
                 FilterMode: "AND",
             },
-            DAI04090Grid1: null,
+            DAI04200Grid1: null,
             grid1Options: {
                 selectionModel: { type: "row", mode: "block", row: true },
                 showHeader: true,
@@ -148,32 +155,20 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "クリア", id: "DAI04090_Clear", disabled: false, shortcut: "F2",
-                    onClick: function () {
-                        //TODO: クリア
-                    }
-                },
                 {visible: "false"},
                 {visible: "false"},
-                {visible: "false"},
-                {visible: "false"},
-                { visible: "true", value: "検索", id: "DAI04090_Search", disabled: false, shortcut: "F5",
+                { visible: "true", value: "検索", id: "DAI04200_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
                         vue.conditionChanged();
                     }
                 },
-                { visible: "true", value: "ダウンロード", id: "DAI04090_Download", disabled: false, shortcut: "F7",
-                    onClick: function () {
-                        //TODO: ダウンロード
-                    }
-                },
                 {visible: "false"},
-                { visible: "true", value: "詳細", id: "DAI04090Grid1_Detail", disabled: true, shortcut: "F8",
+                { visible: "true", value: "詳細", id: "DAI04200Grid1_Detail", disabled: true, shortcut: "F8",
                     onClick: function () {
                         vue.showDetail();
                     }
                 },
-                { visible: "true", value: "新規登録", id: "DAI04090Grid1_Save", disabled: false, shortcut: "F9",
+                { visible: "true", value: "新規登録", id: "DAI04200Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         //TODO: 登録
                     }
@@ -186,7 +181,7 @@ export default {
                 "hasSelectionRow",
                 (newVal) => {
                     console.log("hasSelectionRow watcher: " + newVal);
-                    vue.footerButtons.find(v => v.id == "DAI04090Grid1_Detail").disabled = !newVal;
+                    vue.footerButtons.find(v => v.id == "DAI04200Grid1_Detail").disabled = !newVal;
                 }
             );
 
@@ -194,13 +189,13 @@ export default {
             console.log("Cache Set Key1", myCache.set("key1", { value: 1 }));
             console.log("Cache Get Key1", myCache.get("key1"));
         },
-        onBushoChanged: function(code, entity) {
+        onBankChanged: function(code, entity) {
             var vue = this;
 
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        onCourseCdChanged: function(element, info, comp, isNoMsg, isValid) {
+        onBranchCdChanged: function(code, entity) {
             var vue = this;
 
             //フィルタ変更
@@ -216,9 +211,9 @@ export default {
         }, 300),
         conditionChanged: function() {
             var vue = this;
-            var grid = vue.DAI04090Grid1;
+            var grid = vue.DAI04200Grid1;
 
-            console.log("DAI04090 conditionChanged", vue.getLoginInfo().isLogOn);
+            console.log("DAI04200 conditionChanged", vue.getLoginInfo().isLogOn);
 
             if (!!grid && vue.getLoginInfo().isLogOn) {
                 var params = $.extend(true, {}, vue.viewModel);
@@ -233,14 +228,14 @@ export default {
         },
         filterChanged: function() {
             var vue = this;
-            var grid = vue.DAI04090Grid1;
+            var grid = vue.DAI04200Grid1;
 
             if (!grid) return;
 
             var rules = [];
 
-            if (!!vue.viewModel.CourseCd) {
-                rules.push({ dataIndx: "コースＣＤ", condition: "equal", value: vue.viewModel.CourseCd });
+            if (!!vue.viewModel.BankCd) {
+                rules.push({ dataIndx: "銀行CD", condition: "equal", value: vue.viewModel.BankCd });
             }
             if (!!vue.viewModel.KeyWord) {
                 var keywords = vue.viewModel.KeyWord.split(/[, 、　]/)
@@ -261,46 +256,46 @@ export default {
             //PqGrid表示前に必要な情報の取得
             axios.all(
                 [
-                    //コーステーブルのカラム情報
-                    axios.post("/Utilities/GetColumns", { TableName: "コーステーブル" }),
+                    //金融機関支店名称のカラム情報
+                    axios.post("/Utilities/GetColumns", { TableName: "金融機関支店名称" }),
                  ]
             ).then(
-                axios.spread((responseCourseTableCols) => {
-                    var resCourseTableCols = responseCourseTableCols.data;
+                axios.spread((responseBankCols) => {
+                    var resBankCols = responseBankCols.data;
 
-                    if (resCourseTableCols.onError && !!resCourseTableCols.errors) {
+                    if (resBankCols.onError && !!resBankCols.errors) {
                         //メッセージリストに追加
-                        Object.values(resCourseTableCols.errors).filter(v => v)
+                        Object.values(resBankCols.errors).filter(v => v)
                             .forEach(v => vue.$root.$emit("addMessage", v.replace(/(^\"|\"$)/g, "")));
 
                         //ダイアログ
-                        $.dialogErr({ errObj: resCourseTableCols });
+                        $.dialogErr({ errObj: resBankCols });
 
                         return;
-                    } else if (resCourseTableCols.onException) {
+                    } else if (resBankCols.onException) {
                         //メッセージ追加
-                        vue.$root.$emit("addMessage", "コーステーブル取得失敗(" + vue.page.ScreenTitle + ":" + resCourseTablevCols.message + ")");
+                        vue.$root.$emit("addMessage", "金融機関マスタ取得失敗(" + vue.page.ScreenTitle + ":" + resBankCols.message + ")");
 
                         //ダイアログ
                         $.dialogErr({
                             title: "異常終了",
-                            contents: "コーステーブルの取得に失敗しました<br/>" + resCourseTableCols.message,
+                            contents: "金融機関マスタの取得に失敗しました<br/>" + resBankCols.message,
                         });
 
                         return;
-                    } else if (resCourseTableCols == "") {
+                    } else if (resBankCols == "") {
                         //完了ダイアログ
                         //ダイアログ
                         $.dialogErr({
                             title: "異常終了",
-                            contents: "コーステーブルの取得に失敗しました<br/>" + resCourseTableCols.message,
+                            contents: "金融機関マスタの取得に失敗しました<br/>" + resBankCols.message,
                         });
 
                         return;
                     }
 
                     //colModel設定
-                    gridOptions.colModel = _.sortBy(resCourseTableCols, v => v.ORDINAL_POSITION * 1)
+                    gridOptions.colModel = _.sortBy(resBankCols, v => v.ORDINAL_POSITION * 1)
                         // .filter(v => v.COLUMN_NAME != "パスワード")
                         .map(v => {
                             var width = !!v.COLUMN_LENGTH
@@ -336,31 +331,18 @@ export default {
                         }
                     );
 
-                    //コース名表示設定
-                    gridOptions.colModel.splice(
-                        gridOptions.colModel.findIndex(c => c.title=="得意先ＣＤ") + 1,
-                        0,
-                        {
-                            title: "得意先名",
-                            dataIndx: "得意先名",
-                            dataType: "string",
-                            width: 350,
-                            minWidth: 100,
-                        }
-                    );
-
                     //callback実行
                     callback();
                 })
             )
             .catch(error => {
                 //メッセージ追加
-                vue.$root.$emit("addMessage", "コーステーブル検索失敗(" + vue.ScreenTitle + ":" + error + ")");
+                vue.$root.$emit("addMessage", "金融機関マスタ検索失敗(" + vue.ScreenTitle + ":" + error + ")");
 
                 //ダイアログ
                 $.dialogErr({
                     title: "異常終了",
-                    contents: "コーステーブルの検索に失敗しました<br/>",
+                    contents: "金融機関マスタの検索に失敗しました<br/>",
                 });
             });
         },
@@ -369,17 +351,48 @@ export default {
 
             //キーワード追加
             res = res.map(v => {
-                //v.KeyWord = _.values(v).join(",");
-                v.KeyWord = _.keys(v).filter(k => k != "修正日").map(k => v[k]).join(",");
+                v.KeyWord = _.values(v).join(",");
                 // delete v.パスワード;
                 return v;
             });
 
             return res;
         },
+        CourseAutoCompleteFunc: function(input, dataList, comp) {
+            var vue = this;
+
+            if (!dataList.length) return [];
+
+            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
+            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
+
+            var wholeColumns = ["銀行名", "銀行名カナ"];
+
+            var list = dataList
+                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
+                .filter(v => {
+                    return keyOR.length == 0
+                        || _.some(keyOR, k => v.銀行CD.startsWith(k))
+                        || _.some(keyOR, k => v.whole.includes(k))
+                })
+                .filter(v => {
+                    return keyAND.length == 0 || _.every(keyAND, k => v.whole.includes(k));
+                })
+                .map(v => {
+                    var ret = v;
+                    ret.label = v.銀行CD + " : " + v.銀行名 + "【" + v.銀行名カナ + "】";
+                    ret.value = v.銀行CD;
+                    ret.text = v.銀行名;
+                    return ret;
+                })
+                ;
+
+            return list;
+        },
         showDetail: function() {
             var vue = this;
-            var grid = vue.DAI04090Grid1;
+            var grid = vue.DAI04200Grid1;
             if (!grid) return;
 
             var row = grid.getSelectionRowData();
@@ -390,11 +403,10 @@ export default {
 
             //TODO: 子画面化
             vue.$router.push({
-                path: "/DAI04/DAI04091",
+                path: "/DAI04/DAI04201",
                 query: params,
             });
         },
     }
 }
 </script>
-

@@ -169,7 +169,7 @@ export default {
     data() {
         var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "仕出処理->仕出注文入力",
+            ScreenTitle: "マスタメンテ > 担当者マスタメンテ > 担当者マスタメンテ詳細？",
             noViewModel: true,
             DAI04021Grid1: null,
             grid1Options: {
@@ -223,6 +223,57 @@ export default {
     },
     methods: {
         createdFunc: function(vue) {
+            vue.footerButtons.push(
+                { visible: "true", value: "クリア", id: "DAI04071_Clear", disabled: false, shortcut: "F2",
+                    onClick: function () {
+                        //TODO: クリア
+                    }
+                },
+                { visible: "true", value: "削除", id: "DAI04071_Delete", disabled: false, shortcut: "F3",
+                    onClick: function () {
+                        //TODO: 削除
+                    }
+                },
+                {visible: "false"},
+                { visible: "true", value: "登録", id: "DAI04071Grid1_Save", disabled: false, shortcut: "F9",
+                    onClick: function () {
+                        //TODO: 登録
+                        console.log("登録");
+                        return;
+
+                        //var targets = $.extend(true, {}, grid.createSaveParams());
+                        var targets = grid.getCellsByClass({cls: "pq-cell-dirty"})
+                            .map(v => {
+                                return {
+                                    "部署CD": v.rowData["部署CD"],
+                                    "コースＣＤ": v.rowData["コースＣＤ"],
+                                    "商品CD": v.dataIndx,
+                                    "個数": v.rowData[v.dataIndx],
+                                    "対象日付": v.rowData["対象日付"],
+                                };
+                            });
+                        var conditions = $.extend(true, {}, vue.viewModel);
+
+                        vue.DAI01020Grid1.saveData(
+                            {
+                                uri: "/DAI01020/Save",
+                                params: { targets: targets },
+                                //optional: { conditions: conditions },
+                                // done: {
+                                //     callback: (gridVue, grid, res) => {
+                                //         vue.DAI01020Grid1.searchData(params);
+                                //     },
+                                // },
+                            }
+                        );
+                    }
+                },
+                                { visible: "true", value: "CSV", id: "DAI04071_Csv", disabled: false, shortcut: "F10",
+                    onClick: function () {
+                        //TODO: CSV
+                    }
+                },
+            );
         },
         mountedFunc: function(vue) {
             $(vue.$el).parents("div.body-content").addClass("Scrollable");
