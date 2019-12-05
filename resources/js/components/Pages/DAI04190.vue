@@ -5,7 +5,7 @@
                 <label>銀行ＣＤ</label>
             </div>
             <div class="col-md-2">
-                <input type="text" class="form-control" :v-model="viewModel.BankCd" @input="onBankCdChanged">
+                <input type="text" class="form-control" :value="viewModel.BankCd">
             </div>
         </div>
         <div class="row">
@@ -153,7 +153,7 @@ export default {
             var vue = this;
 
             //フィルタ変更
-            vue.conditionChanged();
+            vue.filterChanged();
         },
         onKeyWordChanged: _.debounce(function(event) {
             var vue = this;

@@ -371,7 +371,6 @@ export default {
             res = res.map(v => {
                 //v.KeyWord = _.values(v).join(",");
                 v.KeyWord = _.keys(v).filter(k => k != "修正日").map(k => v[k]).join(",");
-                // delete v.パスワード;
                 return v;
             });
 

@@ -289,7 +289,6 @@ export default {
             //キーワード追加
             res = res.map(v => {
                 v.KeyWord = _.values(v).join(",");
-                // delete v.パスワード;
                 return v;
             });
 
