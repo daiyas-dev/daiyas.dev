@@ -6,34 +6,47 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-2">
-                <label>銀行ＣＤ</label>
-                <input class="form-control text-right" type="text"
-                    :value=viewModel.銀行CD
-                    bind="BankCd"
-                    :readonly=!viewModel.IsNew
-                    :tabindex="viewModel.IsNew ? 0 : -1"
-                >
+            <div class="col-md-1">
+                <label class="">金融機関</label>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-md-4">
-                <label class="">銀行名</label>
-                <VueSelect
-                    id="BankNm"
+            <div class="col-md-5">
+                <PopupSelect
+                    id="BankSelect"
+                    ref="PopupSelect_Bank"
                     :vmodel=viewModel
+                    bind="銀行CD"
                     buddy="銀行名"
-                    uri="/Utilities/GetBankList"
-                    :params="{ bankCd: viewModel.BankCd }"
-                    :withCode=true
-                    customStyle="{ width: 150px; }"
+                    dataUrl="/Utilities/GetBankList"
+                    :params="{ BankCd: viewModel.銀行CD, KeyWord: BankKeyWord }"
+                    :SelectorParamsFunc=BankSelectorParamsFunc
+                    :isPreload=true
+                    title="金融機関一覧"
+                    labelCd="金融機関CD"
+                    labelCdNm="金融機関名"
+                    :showColumns='[
+                    ]'
+                    :popupWidth=600
+                    :popupHeight=600
+                    :isShowName=true
+                    :isModal=true
+                    :editable=false
+                    :reuse=true
+                    :existsCheck=true
+                    :inputWidth=60
+                    :nameWidth=150
+                    :onChangeFunc=onBankChanged
+                    :isShowAutoComplete=true
+                    :AutoCompleteFunc=BankAutoCompleteFunc
+                    :AutoCompleteMinLength=1
                 />
             </div>
         </div>
         <div class="row">
-            <div class="col-md-2">
+            <div class="col-md-1">
                 <label>支店ＣＤ</label>
-                <input class="form-control text-right" type="text"
+        </div>
+            <div class="col-md-1">
+                <input class="form-control text-right" type="text" disabled="true"
                     :value=viewModel.支店CD
                     :readonly=!viewModel.IsNew
                     :tabindex="viewModel.IsNew ? 0 : -1"
@@ -41,15 +54,25 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-1">
                 <label class="">支店名</label>
+            </div>
+            <div class="col-md-3">
                 <input type="text" class="form-control" :value="viewModel.支店名">
             </div>
         </div>
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-1">
                 <label class="">支店名カナ</label>
+            </div>
+            <div class="col-md-3">
                 <input type="text" class="form-control" style="" :value="viewModel.支店名カナ">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-5">
+                <label>無効フラグ</label>
+                <input type="checkbox" class="form-control p-1" style="width: 20px;" v-model="IsUnavailable" disabled="true">
             </div>
         </div>
     </form>
@@ -123,11 +146,16 @@ export default {
             var vue = this;
             return vue.viewModel.IsNew == true ? "新規" : "修正";
         },
+        IsUnavailable: function() {
+            var vue = this;
+            // TODO:
+            // return vue.viewModel.無効フラグ == 1 ? true : false;
+        },
     },
     data() {
         var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "マスタメンテ > 金融機関支店名称メンテ > 金融機関支店名称メンテ詳細？",
+            ScreenTitle: "マスタメンテ > 金融機関支店名称メンテ > 金融機関支店名称メンテ詳細",
             noViewModel: true,
             DAI04201Grid1: null,
             BankKeyWord: null,

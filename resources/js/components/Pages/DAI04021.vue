@@ -169,7 +169,7 @@ export default {
     data() {
         var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "マスタメンテ > 担当者マスタメンテ > 担当者マスタメンテ詳細？",
+            ScreenTitle: "マスタメンテ > 担当者マスタメンテ > 担当者マスタメンテ詳細",
             noViewModel: true,
             DAI04021Grid1: null,
             grid1Options: {

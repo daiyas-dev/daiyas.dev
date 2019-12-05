@@ -6,54 +6,62 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-2">
+            <div class="col-md-1">
                 <label>部署ＣＤ</label>
+            </div>
+            <div class="col-md-1">
                 <input class="form-control text-right" type="text"
                     :value=viewModel.部署CD
                     :readonly=!viewModel.IsNew
                     :tabindex="viewModel.IsNew ? 0 : -1"
                 >
             </div>
-        </div>
-        <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-1">
                 <label class="">部署名</label>
+            </div>
+            <div class="col-md-2">
                 <input type="text" class="form-control" :value="viewModel.部署名">
             </div>
-        </div>
-        <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-1">
                 <label class="">部署名カナ</label>
+            </div>
+            <div class="col-md-2">
                 <input type="text" class="form-control" style="font-size: 15px !important;" :value="viewModel.部署名カナ">
             </div>
         </div>
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-1">
                 <label class="">会社名称</label>
+            </div>
+            <div class="col-md-4">
                 <input type="text" class="form-control" :value="viewModel.会社名称">
             </div>
         </div>
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-1">
                 <label class="">郵便番号</label>
+            </div>
+            <div class="col-md-1">
                 <input class="form-control p-2" style="width: 90px;" type="text" :value=viewModel.郵便番号>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-1">
                 <label>住所</label>
+            </div>
+            <div class="col-md-5">
                 <input class="form-control" type="text" :value=viewModel.住所>
             </div>
         </div>
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-1">
                 <label class="">電話番号</label>
+            </div>
+            <div class="col-md-1">
                 <input class="form-control p-1" style="width: 120px;" type="text" :value=viewModel.電話番号>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-1">
                 <label class="">FAX</label>
+            </div>
+            <div class="col-md-1">
                 <input class="form-control p-1" style="width: 120px;" type="text" :value=viewModel.FAX>
             </div>
         </div>
@@ -254,7 +262,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-7">
+            <div class="col-md-6">
                 <fieldset class="kouza-info w-100">
                     <legend class="kouza-info">モバイル連携情報</legend>
                     <div class="row">
@@ -440,7 +448,7 @@ export default {
     data() {
         var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "マスタメンテ > 部署マスタメンテ > 部署マスタメンテ詳細？",
+            ScreenTitle: "マスタメンテ > 部署マスタメンテ > 部署マスタメンテ詳細",
             noViewModel: true,
             DAI04071Grid1: null,
             BankKeyWord: null,
@@ -570,7 +578,7 @@ export default {
                 vue.ProductKeyWord = comp.selectValue;
             }
         },
-        BankAutoCompleteFunc: function(input, dataList) {
+        BankAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
 
             if (!dataList.length) return [];
@@ -579,28 +587,27 @@ export default {
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 
-            var wholeColumns = ["Cd", "CdNm", "銀行名カナ"];
+            var wholeColumns = ["銀行名", "銀行名カナ"];
 
             var list = dataList
                 .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
                 .filter(v => {
                     return keyOR.length == 0
-                        || _.some(keyOR, k => v.Cd.startsWith(k))
+                        || _.some(keyOR, k => v.銀行CD.startsWith(k))
                         || _.some(keyOR, k => v.whole.includes(k))
                 })
                 .filter(v => {
-                    return keyAND.length == 0
-                        || _.every(keyAND, k => v.whole.includes(k));
+                    return keyAND.length == 0 || _.every(keyAND, k => v.whole.includes(k));
                 })
                 .map(v => {
                     var ret = v;
-                    ret.label = v.Cd + " : " + v.CdNm;
-                    ret.value = v.Cd;
-                    ret.text = v.CdNm;
+                    ret.label = v.銀行CD + " : " + v.銀行名 + "【" + v.銀行名カナ + "】";
+                    ret.value = v.銀行CD;
+                    ret.text = v.銀行名;
                     return ret;
                 })
                 ;
-            console.log("BankAutoCompleteFunc:" + input + " = " + list.length);
+
             return list;
         },
         ProductAutoCompleteFunc: function(input, dataList) {

@@ -27,8 +27,8 @@
             ref="DAI04070Grid1"
             dataUrl="/Utilities/GetBushoListForMaint"
             :query=this.viewModel
-            :SearchOnCreate=false
-            :SearchOnActivate=false
+            :SearchOnCreate=true
+            :SearchOnActivate=true
             :options=grid1Options
             :onBeforeCreateFunc=onBeforeCreateFunc
             :onAfterSearchFunc=onAfterSearchFunc
@@ -65,12 +65,6 @@ export default {
             noViewModel: true,
             conditionTrigger: true,
             viewModel: {
-                BushoCd: null,
-                BushoNm: null,
-                State: null,
-                ShoninDate: null,
-                ShoninCd: null,
-                ShoninNm: null,
                 KeyWord: null,
                 FilterMode: "AND",
             },

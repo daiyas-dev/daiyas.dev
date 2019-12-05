@@ -2,6 +2,20 @@
     <form id="this.$options.name">
         <div class="row">
             <div class="col-md-1">
+                <label>税区分</label>
+            </div>
+            <div class="col-md-1">
+                <input type="text" class="form-control" :value="viewModel.税区分" @input="onTaxKbnChanged">
+            </div>
+            <div class="col-md-1">
+                <label>名称</label>
+            </div>
+            <div class="col-md-2">
+                <input type="text" class="form-control" :value="viewModel.消費税名称" @input="onTaxNmChanged">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1">
                 <label>キーワード</label>
             </div>
             <div class="col-md-5">
@@ -27,8 +41,8 @@
             ref="DAI04140Grid1"
             dataUrl="/Utilities/GetTaxListForMaint"
             :query=this.viewModel
-            :SearchOnCreate=false
-            :SearchOnActivate=false
+            :SearchOnCreate=true
+            :SearchOnActivate=true
             :options=grid1Options
             :onBeforeCreateFunc=onBeforeCreateFunc
             :onAfterSearchFunc=onAfterSearchFunc
@@ -139,6 +153,22 @@ export default {
             console.log("Cache Set Key1", myCache.set("key1", { value: 1 }));
             console.log("Cache Get Key1", myCache.get("key1"));
         },
+        onTaxKbnChanged: _.debounce(function(event) {
+            var vue = this;
+
+            vue.viewModel.税区分 = event.target.value;
+
+            //フィルタ変更
+            vue.filterChanged();
+        }, 300),
+        onTaxNmChanged: _.debounce(function(event) {
+            var vue = this;
+
+            vue.viewModel.消費税名称 = event.target.value;
+
+            //フィルタ変更
+            vue.filterChanged();
+        }, 300),
         onKeyWordChanged: _.debounce(function(event) {
             var vue = this;
 
@@ -172,6 +202,12 @@ export default {
 
             var rules = [];
 
+            if (!!vue.viewModel.税区分) {
+                rules.push({ dataIndx: "税区分", condition: "equal", value: vue.viewModel.税区分 });
+            }
+            if (!!vue.viewModel.消費税名称) {
+                rules.push({ dataIndx: "消費税名称", condition: "equal", value: vue.viewModel.消費税名称 });
+            }
             if (!!vue.viewModel.KeyWord) {
                 var keywords = vue.viewModel.KeyWord.split(/[, 、　]/)
                     .map(v => _.trim(v))

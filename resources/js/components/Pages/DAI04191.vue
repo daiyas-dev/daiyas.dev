@@ -33,6 +33,12 @@
                 <input type="checkbox" class="form-control p-1" style="width: 20px;" v-model="IsChecked">
             </div>
         </div>
+        <div class="row">
+            <div class="col-md-5">
+                <label>無効フラグ</label>
+                <input type="checkbox" class="form-control p-1" style="width: 20px;" v-model="IsUnavailable" disabled="true">
+            </div>
+        </div>
     </form>
 </template>
 
@@ -108,11 +114,16 @@ export default {
             var vue = this;
             return vue.viewModel.郵便フラグ == 1 ? true : false;
         },
+        IsUnavailable: function() {
+            var vue = this;
+            // TODO:
+            // return vue.viewModel.無効フラグ == 1 ? true : false;
+        },
     },
     data() {
         var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "マスタメンテ > 金融機関名称メンテ > 金融機関名称メンテ詳細？",
+            ScreenTitle: "マスタメンテ > 金融機関名称メンテ > 金融機関名称メンテ詳細",
             noViewModel: true,
             DAI04191Grid1: null,
             BankKeyWord: null,

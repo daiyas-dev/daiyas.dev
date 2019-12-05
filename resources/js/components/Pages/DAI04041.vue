@@ -727,7 +727,7 @@ export default {
     data() {
         var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "仕出処理->仕出注文入力",
+            ScreenTitle: "マスタメンテ > 得意先マスタメンテ > 得意先マスタメンテ詳細",
             noViewModel: true,
             DAI04041Grid1: null,
             BillingKeyWord: null,
