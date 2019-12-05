@@ -36,6 +36,7 @@
                     buddy="TantoNm"
                     dataUrl="/Utilities/GetTantoList"
                     :params="{ bushoCd: null }"
+                    :isPreload=true
                     title="担当者一覧"
                     labelCd="担当者CD"
                     labelCdNm="担当者名"
@@ -50,6 +51,7 @@
                     :inputWidth=80
                     :nameWidth=150
                     :isShowAutoComplete=true
+                    :AutoCompleteFunc=CourseAutoCompleteFunc
                 />
             </div>
             <div class="col-md-3">
