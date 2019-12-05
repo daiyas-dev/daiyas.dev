@@ -2,15 +2,13 @@
     <form id="this.$options.name">
         <div class="row">
             <div class="col-md-1">
-                <label>銀行ＣＤ</label>
+                <label>銀行CD</label>
             </div>
-            <div class="col-md-2">
-                <input type="text" class="form-control" :v-model="viewModel.BankCd" @input="onBankCdChanged">
-            </div>
-        </div>
-        <div class="row">
             <div class="col-md-1">
-                <label>キーワード</label>
+                <input type="text" class="form-control" :value="viewModel.BankCd" @input="onBankCdChanged">
+            </div>
+            <div class="col-md-1">
+                <label class="w-100 text-center">キーワード</label>
             </div>
             <div class="col-md-5">
                 <input type="text" class="form-control" :value="viewModel.KeyWord" @input="onKeyWordChanged">
@@ -34,7 +32,6 @@
             id="DAI04190Grid1"
             ref="DAI04190Grid1"
             dataUrl="/Utilities/GetBankListForMaint"
-            :query=this.viewModel
             :SearchOnCreate=true
             :SearchOnActivate=true
             :options=grid1Options
@@ -73,6 +70,7 @@ export default {
             noViewModel: true,
             conditionTrigger: true,
             viewModel: {
+                XXXXX: null,
                 BankCd: null,
                 KeyWord: null,
                 FilterMode: "AND",
@@ -149,12 +147,14 @@ export default {
             console.log("Cache Set Key1", myCache.set("key1", { value: 1 }));
             console.log("Cache Get Key1", myCache.get("key1"));
         },
-        onBankCdChanged: function(code, entity) {
+        onBankCdChanged: _.debounce(function(event) {
             var vue = this;
 
+            vue.viewModel.BankCd = event.target.value;
+
             //フィルタ変更
-            vue.conditionChanged();
-        },
+            vue.filterChanged();
+        }, 300),
         onKeyWordChanged: _.debounce(function(event) {
             var vue = this;
 
@@ -186,6 +186,10 @@ export default {
             if (!grid) return;
 
             var rules = [];
+
+            if (!!vue.viewModel.BankCd) {
+                rules.push({ dataIndx: "銀行CD", condition: "equal", value: vue.viewModel.BankCd });
+            }
 
             if (!!vue.viewModel.KeyWord) {
                 var keywords = vue.viewModel.KeyWord.split(/[, 、　]/)
