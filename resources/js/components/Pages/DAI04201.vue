@@ -70,8 +70,10 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-5">
+            <div class="col-md-1">
                 <label>無効フラグ</label>
+            </div>
+            <div class="col-md-5">
                 <input type="checkbox" class="form-control p-1" style="width: 20px;" v-model="IsUnavailable" disabled="true">
             </div>
         </div>
@@ -217,11 +219,7 @@ export default {
                         //TODO: クリア
                     }
                 },
-                { visible: "true", value: "削除", id: "DAI04201_Delete", disabled: false, shortcut: "F3",
-                    onClick: function () {
-                        //TODO: 削除
-                    }
-                },
+                {visible: "false"},
                 {visible: "false"},
                 { visible: "true", value: "CSV", id: "DAI04201_Csv", disabled: false, shortcut: "F7",
                     onClick: function () {

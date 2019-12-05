@@ -6,8 +6,10 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-2">
+            <div class="col-md-1">
                 <label>銀行ＣＤ</label>
+            </div>
+            <div class="col-md-1">
                 <input class="form-control text-right" type="text"
                     :value=viewModel.銀行CD
                     :readonly=!viewModel.IsNew
@@ -16,26 +18,34 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-1">
                 <label class="">銀行名</label>
+            </div>
+            <div class="col-md-3">
                 <input type="text" class="form-control" :value="viewModel.銀行名">
             </div>
         </div>
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-1">
                 <label class="">銀行名カナ</label>
+            </div>
+            <div class="col-md-3">
                 <input type="text" class="form-control" style="" :value="viewModel.銀行名カナ">
             </div>
         </div>
         <div class="row">
-            <div class="col-md-5">
+            <div class="col-md-1">
                 <label>郵便フラグ</label>
+            </div>
+            <div class="col-md-1">
                 <input type="checkbox" class="form-control p-1" style="width: 20px;" v-model="IsChecked">
             </div>
         </div>
         <div class="row">
-            <div class="col-md-5">
+            <div class="col-md-1">
                 <label>無効フラグ</label>
+            </div>
+            <div class="col-md-1">
                 <input type="checkbox" class="form-control p-1" style="width: 20px;" v-model="IsUnavailable" disabled="true">
             </div>
         </div>
@@ -185,11 +195,7 @@ export default {
                         //TODO: クリア
                     }
                 },
-                { visible: "true", value: "削除", id: "DAI04191_Delete", disabled: false, shortcut: "F3",
-                    onClick: function () {
-                        //TODO: 削除
-                    }
-                },
+                {visible: "false"},
                 {visible: "false"},
                 { visible: "true", value: "CSV", id: "DAI04191_Csv", disabled: false, shortcut: "F7",
                     onClick: function () {
