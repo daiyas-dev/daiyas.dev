@@ -27,6 +27,7 @@ export default {
             saveExceptions: null,
             isSearchOnActivate: true,
             isActivated: false,
+            selectionRowCount: null,
             CountConstraint: null,
             PopupSelect: PopupSelect,
             DatePickerWrapper: DatePickerWrapper,
@@ -95,6 +96,7 @@ export default {
         keepSelectOnce: Boolean,
         isFloat: Boolean,
         isMultiRowSelectable: Boolean,
+        maxRowSelectCount: Number,
     },
     computed: {
         isDialog: function() {
@@ -935,6 +937,7 @@ export default {
                 //console.log("grid scrollStop");
             },
             selectChange: function(event, ui) {
+                console.log("grid selectChange");
 
                 var grid = this;
                 var vue = grid.options.vue;
@@ -974,11 +977,29 @@ export default {
                 //PqGrid-Toolbar設定
                 this.options.vue.setToolbarState();
             },
+            // selectRow: function(event) {
+            //     var r = ($(event.target).text() - 1);
+
+            //     this.grid.setSelection(null);
+
+            //     //表示しているcolIndxのmax/min
+            //     var cols = this.grid.colModel.filter(c => !c.hidden).map(c => c.leftPos);
+            //     var c1 =  Math.min.apply(null, cols);
+            //     var c2 =  Math.max.apply(null, cols);
+
+            //     this.grid.Range({ r1: r, rc: 1, c1: c1, c2: c2 }).select();
+
+            //     //PqGrid-Toolbar設定
+            //     this.setToolbarState();
+            // },
             rowSelect: function(event, ui) {
                 var grid = this;
                 var vue = grid.options.vue;
 
-                //console.log("grid rowSelect");
+                if (grid.options.selectionModel.type == "row") {
+                    vue.selectionRowCount = grid.SelectRow().getSelection().length;
+                    return;
+                }
 
                 if (!vue.isMultiRowSelectable && ui.addList.length > 0) {
                     var r = ui.addList[0].rowIndx;
@@ -995,6 +1016,17 @@ export default {
 
                 //PqGrid-Toolbar設定
                 //this.options.vue.setToolbarState();
+            },
+            beforeRowSelect: function(event, ui) {
+                var grid = this;
+                var vue = grid.options.vue;
+
+                if (vue.isMultiRowSelectable) {
+                    return true;
+                } else {
+                    grid.setSelection(null);
+                    return true;
+                }
             },
             cellRightClick: function( event, ui ) {
                 //console.log("grid cellRightClick");
@@ -1906,6 +1938,10 @@ export default {
                 this.grid.getSelectionRowData = function() {
                     var grid = this;
 
+                    if (grid.SelectRow().getSelection().length > 0) {
+                        return grid.SelectRow().getSelection();
+                    }
+
                     var address = grid.Selection().address();
                     if (address.length == 0) return null;
                     var rowIndx = grid.Selection().address()[0].r1;
@@ -2020,21 +2056,6 @@ export default {
             $("button[copyRange]", grid.toolbar()).button("option", { disabled: noSelect });
             $("button[pasteRange]", grid.toolbar()).button("option", { disabled: noSelect || (!hasEditableCell && !isRow) || hasDisabled || hasGrouped });
             $("button[clear]", grid.toolbar()).button("option", { disabled: !canClear });
-        },
-        selectRow: function(event) {
-            var r = ($(event.target).text() - 1);
-
-            this.grid.setSelection(null);
-
-            //表示しているcolIndxのmax/min
-            var cols = this.grid.colModel.filter(c => !c.hidden).map(c => c.leftPos);
-            var c1 =  Math.min.apply(null, cols);
-            var c2 =  Math.max.apply(null, cols);
-
-            this.grid.Range({ r1: r, rc: 1, c1: c1, c2: c2 }).select();
-
-            //PqGrid-Toolbar設定
-            this.setToolbarState();
         },
         resize: function () {
             //console.log(this.$options.name + " resize");
@@ -2814,14 +2835,17 @@ export default {
     }
 
     /* 選択セル/行 */
-    .pq-state-select.ui-state-highlight > div.pq-grid-cell
-    {
-        color: black;
-        background-color: rgba(0, 0, 0, 0.1);
+    .pq-grid .pq-state-select.pq-grid-row .pq-grid-cell{
+        background: steelblue;
+        color: white;
+    }
+    .pq-grid .pq-state-select.pq-grid-row .pq-grid-number-cell {
+        background: black !important;
+        color: orange;
     }
     svg.pq-grid-overlay
     {
-        background-color: transparent;
+        display: none;
     }
     svg.pq-grid-overlay:not(.pq-head-overlay):not(.pq-number-overlay)
     {

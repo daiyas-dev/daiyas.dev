@@ -62,8 +62,12 @@ export default {
 
         if (!vue.withoutLogin) {
             vue.$root.$on("logOn", info => {
-                vue.ready = true;
-                vue._vmodel[vue._bind] = info.user.bushoCd;
+                vue.ready = info.isLogon;
+
+                if (info.isLogOn && vue._vmodel[vue._bind] != info.user.bushoCd) {
+                    vue._vmodel[vue._bind] = info.user.bushoCd;
+                    vue.onChangedFunc(info.user.bushoCd)
+                }
             });
             vue.$root.$on("logOff", info => {
                 vue.ready = false;
@@ -75,12 +79,25 @@ export default {
         var vue = this;
 
         if (!vue.withoutLogin && window.loginInfo && window.loginInfo.bushoCd) {
-            vue._vmodel[vue._bind] = window.loginInfo.bushoCd;
             vue.ready = true;
+            if (vue._vmodel[vue._bind] != window.loginInfo.bushoCd) {
+                vue._vmodel[vue._bind] = window.loginInfo.bushoCd;
+                vue.onChangedFunc(window.loginInfo.bushoCd)
+            }
         }
     },
     methods: {
+        focus: function() {
+            var vue = this;
 
+            var select = $(vue.$el).find("select");
+            if (select.is(":disabled")) {
+                return false;
+            } else {
+                select.focus();
+                return true;
+            }
+        },
     }
 }
 </script>

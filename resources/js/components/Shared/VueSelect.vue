@@ -195,6 +195,17 @@ export default {
                     component.entities = [];
                 });
         },
+        focus: function() {
+            var vue = this;
+
+            var select = $(vue.$el).find("select");
+            if (select.is(":disabled")) {
+                return false;
+            } else {
+                select.focus();
+                return true;
+            }
+        },
     }
 }
 </script>

@@ -432,35 +432,52 @@ $WhereKeyWord
     public function GetCourseTableForMaint($request)
     {
         $BushoCd = $request->BushoCd;
-        $CourseCd = $request->CourseCd;
 
-        $query = コーステーブル::with(['得意先'])
-            ->when(
-                $BushoCd,
-                function ($q) use ($BushoCd) {
-                    return $q->where('部署ＣＤ', $BushoCd);
-                }
-            )
-            ->when(
-                $CourseCd,
-                function ($q) use ($CourseCd) {
-                    return $q->where('コースＣＤ', $CourseCd);
-                }
-            );
+        if (!$BushoCd) return [];
 
+        $sql = "
+WITH 集約コーステーブル AS
+(
+	SELECT DISTINCT
+		部署ＣＤ,
+		コースＣＤ,
+		基本コースフラグ,
+		適用開始日,
+		適用終了日
+	FROM
+		コーステーブル
+)
+SELECT
+	CM.*,
+	BM.部署名,
+	CK.各種名称 AS コース区分名,
+	TM.担当者名,
+	STM.担当者名 AS 修正担当者名,
+	CT.基本コースフラグ,
+	CT.適用開始日,
+	CT.適用終了日
+FROM コースマスタ CM
+LEFT JOIN 部署マスタ BM
+	ON BM.部署ＣＤ=CM.部署ＣＤ
+LEFT JOIN 各種テーブル CK
+	ON CK.行NO=CM.コース区分 AND CK.各種CD=19
+LEFT JOIN 担当者マスタ TM
+	ON TM.担当者ＣＤ=CM.担当者ＣＤ
+LEFT JOIN 担当者マスタ STM
+	ON STM.担当者ＣＤ=CM.修正担当者ＣＤ
+LEFT JOIN 集約コーステーブル CT
+    ON CT.部署ＣＤ=CM.部署ＣＤ AND CT.コースＣＤ=CM.コースＣＤ
+WHERE
+    CM.部署ＣＤ=$BushoCd
+ORDER BY
+	CM.部署ＣＤ,
+	CM.コースＣＤ,
+	CM.コース区分
+        ";
 
-        $CourseTableList = collect($query->get())
-            ->map(function($courseTable){
-                $vm = (object)$courseTable;
+        $result = DB::select($sql);
 
-                $vm->Cd = $courseTable->得意先ＣＤ;
-                $vm->得意先名 = $courseTable->得意先->得意先名;
-
-                return $vm;
-            })
-            ->values();
-
-        return response()->json($CourseTableList);
+        return response()->json($result);
     }
 
     /**

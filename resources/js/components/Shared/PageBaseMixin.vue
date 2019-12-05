@@ -222,6 +222,9 @@ export default {
 
             //画面タイトル設定
             vue.$root.$emit("setTitle", vue.ScreenTitle);
+
+            //first focus
+            $(vue.$el).find(":input:first").focus();
         },
         resize: function(size) {
             var vue = vue;
