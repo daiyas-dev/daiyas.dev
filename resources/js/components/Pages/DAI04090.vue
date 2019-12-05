@@ -411,7 +411,7 @@ export default {
             var grid = vue.DAI04090Grid1;
             if (!grid) return;
 
-            var params;
+            var params = {};
             if (rowData) {
                 params.targets = [_.cloneDeep(rowData)];
             } else {

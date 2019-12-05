@@ -390,7 +390,7 @@ export default {
                 var rows = grid.SelectRow().getSelection();
                 if (rows.length != 1) return;
 
-                params = _.cloneDeep(rows[0]);
+                params = _.cloneDeep(rows[0].rowData);
             }
 
             params.IsNew = false;
