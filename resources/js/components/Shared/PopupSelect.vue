@@ -205,6 +205,7 @@ export default {
         vmodel: Object,
         bind: String,
         buddy: String,
+        buddies: Object,
         dataUrl: String,
         params: Object,
         embedded: Boolean,
@@ -362,6 +363,7 @@ export default {
     },
     created: function () {
         var vue = this;
+        console.log("PopupSelect created", this.id);
 
         vue.$root.$on("plantChanged", vue.plantChanged);
         vue.$root.$on("accountChanged", vue.accountChanged);
@@ -383,6 +385,7 @@ export default {
         }
     },
     mounted: function () {
+        console.log("PopupSelect mounted", this.id);
     },
     beforeUpdated: function () {
     },
@@ -439,6 +442,9 @@ export default {
                 vue.vmodel[vue.bind] = "";
                 if (vue.buddy) {
                     vue.vmodel[vue.buddy] = "";
+                }
+                if (!!vue.buddies) {
+                    _.forIn(vue.buddies, (v, k) => vue.vmodel[k] = "");
                 }
             }
 
@@ -603,6 +609,9 @@ export default {
                                         if (vue.buddy) {
                                             vue.vmodel[vue.buddy] = name;
                                         }
+                                        if (!!vue.buddies) {
+                                            _.forIn(vue.buddies, (v, k) => vue.vmodel[k] = rowData[v]);
+                                        }
                                     }
                                     if (this.target) {
                                         this.target.val(value);
@@ -709,11 +718,17 @@ export default {
                         if (vue.buddy) {
                             parent.$set(vue.vmodel, vue.buddy, vue.selectName);
                         }
+                        if (!!vue.buddies) {
+                            _.forIn(vue.buddies, (v, k) => parent.$set(vue.vmodel, k, vue.selectRow[v]));
+                        }
                         parent.$forceUpdate();
                     } else {
                         vue.vmodel[vue.bind] = newVal;
                         if (vue.buddy) {
                             vue.vmodel[vue.buddy] = vue.selectName;
+                        }
+                        if (!!vue.buddies) {
+                            _.forIn(vue.buddies, (v, k) => vue.vmodel[k] = vue.selectRow[v]);
                         }
                     }
                 }

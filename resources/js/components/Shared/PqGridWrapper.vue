@@ -1,5 +1,5 @@
 ﻿<template>
-    <div>
+    <div :class="[isFloat ? 'Floating' : '']">
         <div :id="this.id"></div>
         <div v-if=hasFreezeRightCols :id='this.id + "_right"' class="right-grid"></div>
     </div>
@@ -93,6 +93,8 @@ export default {
         setMoveNextCell: Function,
         keepSelect: Boolean,
         keepSelectOnce: Boolean,
+        isFloat: Boolean,
+        isMultiRowSelectable: Boolean,
     },
     computed: {
         isDialog: function() {
@@ -849,16 +851,16 @@ export default {
                 }, 100);
 
                 //dirty row number cell highlight
-                setTimeout(() => {
-                    grid.getCellsByClass({cls: "pq-cell-dirty"})
-                        .forEach(c => {
-                            $(".pq-grid-number-cell", grid.widget())
-                                .filter((i, v) => $(v).text() == c.rowIndx + 1)
-                                .addClass("changed-col-row");
-                            $("[pq-col-indx=" + c.colIndx + "]", grid.widget())
-                                .addClass("changed-col-row");
-                        });
-                }, 100);
+                // setTimeout(() => {
+                //     grid.getCellsByClass({cls: "pq-cell-dirty"})
+                //         .forEach(c => {
+                //             $(".pq-grid-number-cell", grid.widget())
+                //                 .filter((i, v) => $(v).text() == c.rowIndx + 1)
+                //                 .addClass("changed-col-row");
+                //             $("[pq-col-indx=" + c.colIndx + "]", grid.widget())
+                //                 .addClass("changed-col-row");
+                //         });
+                // }, 100);
             },
             complete: function(event, ui) {
                 var grid = this;
@@ -920,8 +922,14 @@ export default {
                 }
             },
             scroll: function (event, ui) {
+                //console.log("grid scroll");
                 //スクロール中にbootstrap tooltipのゴミが残るので消去(bootstrapの処理にモレ)
                 $("body").find("[id^=tooltip]").tooltip("hide");
+
+                //drag handle refresh
+                if (grid.options.dragModel.on) {
+                    grid.refresh();
+                }
             },
             scrollStop: function (event, ui) {
                 //console.log("grid scrollStop");
@@ -933,8 +941,10 @@ export default {
                 var id = vue.id;
 
                 //セル選択設定で行選択をしている場合は解除
-                if (grid.SelectRow().getSelection().length > 0) {
-                    grid.setSelection(null);
+                if (!vue.isMultiRowSelectable) {
+                    if (grid.SelectRow().getSelection().length > 0) {
+                        grid.setSelection(null);
+                    }
                 }
 
                 //exit editor
@@ -965,9 +975,12 @@ export default {
                 this.options.vue.setToolbarState();
             },
             rowSelect: function(event, ui) {
+                var grid = this;
+                var vue = grid.options.vue;
+
                 //console.log("grid rowSelect");
 
-                if (ui.addList.length > 0) {
+                if (!vue.isMultiRowSelectable && ui.addList.length > 0) {
                     var r = ui.addList[0].rowIndx;
 
                     this.setSelection(null);
@@ -1071,7 +1084,7 @@ export default {
                         case 107:   //"+"
                         case 187:   //";"
                             this.addRow({
-                                rowIndx: ui.rowIndx + 1,
+                                rowIndx: ui.rowIndx,
                                 newRow: !!vue._onAddRowFunc ? vue._onAddRowFunc(grid, ui.rowData) : {},
                                 checkEditable: false
                             });
@@ -1177,557 +1190,463 @@ export default {
             var vue = this;
             var postData = $.extend(true, {}, this.query);
 
-            //dataModelの設定
-            pqGridObj.dataModel = {
-                recIndx: "pq_ri",
-                url: this.SearchOnCreate ? this.dataUrl : null,
-                method: "POST",
-                postData: postData,
-                location: "remote",
-                beforeSend: function(jqXHR, settings) {
-                    //Laravel CSRF Token
-                    jqXHR.setRequestHeader("X-CSRF-TOKEN", Laravel.csrfToken);
-                },
-                getData: function(res) {
-                    var grid = this;
-                    var vue = grid.options.vue;
+            try {
+                //dataModelの設定
+                pqGridObj.dataModel = {
+                    recIndx: "pq_ri",
+                    url: this.SearchOnCreate ? this.dataUrl : null,
+                    method: "POST",
+                    postData: postData,
+                    location: "remote",
+                    beforeSend: function(jqXHR, settings) {
+                        var grid = this;
 
-                    //画面項目のエラー表示/tooltip設定解除
-                    $(".panel .form-control:enabled", $(grid.options.vue.$parent.$el)).closest("div:not(.input-group)").removeClass("has-error");
-                    $(".panel .form-control:enabled", $(grid.options.vue.$parent.$el)).tooltip("dispose");
+                        grid.prevPostData = _.cloneDeep(grid.options.dataModel.postData);
 
-                    //PqGrid内のエラー設定及びtooltipを解除
-                    $(".pq-grid .ui-state-error", $(grid.options.vue.$parent.$el)).removeClass("ui-state-error").tooltip("dispose");
+                        //Laravel CSRF Token
+                        jqXHR.setRequestHeader("X-CSRF-TOKEN", Laravel.csrfToken);
+                    },
+                    getData: function(res) {
+                        var grid = this;
+                        var vue = grid.options.vue;
 
-                    //検索時エラー/例外オブジェクトの解放
-                    vue.searchErrors = null;
-                    vue.searchExceptions = null;
+                        //画面項目のエラー表示/tooltip設定解除
+                        $(".panel .form-control:enabled", $(grid.options.vue.$parent.$el)).closest("div:not(.input-group)").removeClass("has-error");
+                        $(".panel .form-control:enabled", $(grid.options.vue.$parent.$el)).tooltip("dispose");
 
-                    //保存時エラー/例外オブジェクトの解放
-                    vue.saveErrors = null;
-                    vue.saveExceptions = null;
+                        //PqGrid内のエラー設定及びtooltipを解除
+                        $(".pq-grid .ui-state-error", $(grid.options.vue.$parent.$el)).removeClass("ui-state-error").tooltip("dispose");
 
-                    //初回フラグの設定
-                    res.isNew = true;
+                        //検索時エラー/例外オブジェクトの解放
+                        vue.searchErrors = null;
+                        vue.searchExceptions = null;
 
-                    if (res.onError) {
-                        //エラー設定
-                        vue.searchErrors = res;
-                        return { data: [] };
-                    } else if (res.onException) {
+                        //保存時エラー/例外オブジェクトの解放
+                        vue.saveErrors = null;
+                        vue.saveExceptions = null;
+
+                        //初回フラグの設定
+                        res.isNew = true;
+
+                        if (res.onError) {
+                            //エラー設定
+                            vue.searchErrors = res;
+                            return { data: [] };
+                        } else if (res.onException) {
+                            //例外設定
+                            vue.searchExceptions = res;
+                            return { data: [] };
+                        } else if (res.CountConstraint) {
+                            //件数制約違反設定
+                            vue.CountConstraint = res.CountConstraint;
+
+                            res = res.Data;
+                        } else if (res.Data) {
+                            vue.CountConstraint = false;
+                            res = res.Data;
+                        } else {
+                            vue.CountConstraint = false;
+                        }
+
+                        //削除用検索時初期値の設定
+                        res.forEach(v => v.InitialValue = $.extend(true, {}, v));
+
+                        //検索前データの保持
+                        grid.prevData = _.cloneDeep(grid.getData());
+
+                        //検索後callbackが指定されていれば実行
+                        if (vue._onAfterSearchFunc) res = vue._onAfterSearchFunc(vue, grid, res);
+
+                        //PKを比較し、検索前のレコードが全てあるか判定
+                        if (grid.getData() && _.differenceWith(grid.getData(), res, (a, b) => a.PK == b.PK).length == 0) {
+                            //colModelでkeep設定されている列取得
+                            var keeps = grid.options.colModel.filter((v) => v.keep).map((v) => v.dataIndx);
+
+                            //対象にPK列も追加
+                            keeps.push("PK");
+
+                            //検索前の上記列の値とPKを抽出
+                            var keepVals = grid.getData().map((v) => _.pick(v, keeps));
+
+                            //keepした値で復元
+                            res.forEach(function(row, i) {
+                                var keepVal = keepVals.filter((v) => v.PK == row.PK);
+                                if (keepVal.length == 1) {
+                                    $.extend(true, row, keepVal[0]);
+                                }
+                            });
+                        }
+
+                        //grouping時deleteListの取得バグ対処の為に検索結果を保持
+                        grid.searchResult = _.cloneDeep(res);
+
+                        return { data: res };
+                    },
+                    error: function(xhr, status, ex) {
+                        //console.log("grid getData error");
+
+                        var grid = this;
+                        var vue = grid.options.vue;
+
+                        //但し、連続通信によるabortは除外
+                        if (status == "abort") {
+                            return { data: [] };
+                        }
+
+                        vue.searchErrors = null;
+                        vue.searchExceptions = null;
+
                         //例外設定
-                        vue.searchExceptions = res;
-                        return { data: [] };
-                    } else if (res.CountConstraint) {
-                        //件数制約違反設定
-                        vue.CountConstraint = res.CountConstraint;
+                        vue.searchExceptions = {};
+                        vue.searchExceptions.onException = true;
+                        vue.searchExceptions.isNew = true;
+                        vue.searchExceptions.statusText = xhr.statusText + "(" + xhr.state() + ") on " + grid.options.dataModel.url;
+                        vue.searchExceptions.errors = xhr.responseText || JSON.stringify(xhr);
+                        grid.refreshView();
+                    },
+                };
 
-                        res = res.Data;
-                    } else if (res.Data) {
-                        vue.CountConstraint = false;
-                        res = res.Data;
-                    } else {
-                        vue.CountConstraint = false;
-                    }
+                //メタ情報が設定されている場合、それをcolModelに利用
+                if (this.meta) {
+                    pqGridObj.colModel = this.meta;
+                }
 
-                    //削除用検索時初期値の設定
-                    res.forEach(v => v.InitialValue = $.extend(true, {}, v));
+                //追加オプションを導入
+                $.extend(true, pqGridObj, this.options);
 
-                    //検索前データの保持
-                    grid.prevData = _.cloneDeep(grid.getData());
+                //共通カラムを導入
+                pqGridObj.colModel.push({ title: "自動生成PK", dataType: "integer", dataIndx: "PK", editable: false, hidden: true });
+                pqGridObj.colModel.push({ title: "プラント", dataType: "string", dataIndx: "Plant", editable: false, hidden: true });
+                pqGridObj.colModel.push({ title: "作成日", dataType: "string", dataIndx: "CreateDate", editable: false, hidden: true });
+                pqGridObj.colModel.push({ title: "作成者", dataType: "string", dataIndx: "CreateUser", editable: false, hidden: true });
+                pqGridObj.colModel.push({ title: "更新日", dataType: "string", dataIndx: "UpdateDate", editable: false, hidden: true });
+                pqGridObj.colModel.push({ title: "更新者", dataType: "string", dataIndx: "UpdateUser", editable: false, hidden: true });
+                pqGridObj.colModel.push({ title: "削除日時", dataType: "date", dataIndx: "DeleteDate", editable: false, hidden: true });
+                pqGridObj.colModel.push({ title: "Ver.No.", dataType: "integer", dataIndx: "VersionNo", editable: false, hidden: true });
 
-                    //検索後callbackが指定されていれば実行
-                    if (vue._onAfterSearchFunc) res = vue._onAfterSearchFunc(vue, grid, res);
+                //PqGridの変更検知のdeleteがバグっているので検索時の値を保持する項目を追加(検索時の値ではなく、削除時の値でdeleteListに格納される)
+                pqGridObj.colModel.push(
+                    { title: "初期値", dataType: "string", dataIndx: "InitialValue", editable: false, hidden: true,
+                        render: function (ui) {
+                            //console.log("initialValue render")
 
-                    //PKを比較し、検索前のレコードが全てあるか判定
-                    if (grid.getData() && _.differenceWith(grid.getData(), res, (a, b) => a.PK == b.PK).length == 0) {
-                        //colModelでkeep設定されている列取得
-                        var keeps = grid.options.colModel.filter((v) => v.keep).map((v) => v.dataIndx);
-
-                        //対象にPK列も追加
-                        keeps.push("PK");
-
-                        //検索前の上記列の値とPKを抽出
-                        var keepVals = grid.getData().map((v) => _.pick(v, keeps));
-
-                        //keepした値で復元
-                        res.forEach(function(row, i) {
-                            var keepVal = keepVals.filter((v) => v.PK == row.PK);
-                            if (keepVal.length == 1) {
-                                $.extend(true, row, keepVal[0]);
+                            if (ui.attr.filter(v => v.includes("-sum")).length > 0) {
+                                //集計行は除外
+                                return ui;
                             }
-                        });
-                    }
 
-                    //grouping時deleteListの取得バグ対処の為に検索結果を保持
-                    grid.searchResult = _.cloneDeep(res);
-
-                    return { data: res };
-                },
-                error: function(xhr, status, ex) {
-                    //console.log("grid getData error");
-
-                    var grid = this;
-                    var vue = grid.options.vue;
-
-                    //但し、連続通信によるabortは除外
-                    if (status == "abort") {
-                        return { data: [] };
-                    }
-
-                    vue.searchErrors = null;
-                    vue.searchExceptions = null;
-
-                    //例外設定
-                    vue.searchExceptions = {};
-                    vue.searchExceptions.onException = true;
-                    vue.searchExceptions.isNew = true;
-                    vue.searchExceptions.statusText = xhr.statusText + "(" + xhr.state() + ") on " + grid.options.dataModel.url;
-                    vue.searchExceptions.errors = xhr.responseText || JSON.stringify(xhr);
-                    grid.refreshView();
-                },
-            };
-
-            //メタ情報が設定されている場合、それをcolModelに利用
-            if (this.meta) {
-                pqGridObj.colModel = this.meta;
-            }
-
-            //追加オプションを導入
-            $.extend(true, pqGridObj, this.options);
-
-            //共通カラムを導入
-            pqGridObj.colModel.push({ title: "自動生成PK", dataType: "integer", dataIndx: "PK", editable: false, hidden: true });
-            pqGridObj.colModel.push({ title: "プラント", dataType: "string", dataIndx: "Plant", editable: false, hidden: true });
-            pqGridObj.colModel.push({ title: "作成日", dataType: "string", dataIndx: "CreateDate", editable: false, hidden: true });
-            pqGridObj.colModel.push({ title: "作成者", dataType: "string", dataIndx: "CreateUser", editable: false, hidden: true });
-            pqGridObj.colModel.push({ title: "更新日", dataType: "string", dataIndx: "UpdateDate", editable: false, hidden: true });
-            pqGridObj.colModel.push({ title: "更新者", dataType: "string", dataIndx: "UpdateUser", editable: false, hidden: true });
-            pqGridObj.colModel.push({ title: "削除日時", dataType: "date", dataIndx: "DeleteDate", editable: false, hidden: true });
-            pqGridObj.colModel.push({ title: "Ver.No.", dataType: "integer", dataIndx: "VersionNo", editable: false, hidden: true });
-
-            //PqGridの変更検知のdeleteがバグっているので検索時の値を保持する項目を追加(検索時の値ではなく、削除時の値でdeleteListに格納される)
-            pqGridObj.colModel.push(
-                { title: "初期値", dataType: "string", dataIndx: "InitialValue", editable: false, hidden: true,
-                    render: function (ui) {
-                        //console.log("initialValue render")
-
-                        if (ui.attr.filter(v => v.includes("-sum")).length > 0) {
-                            //集計行は除外
-                            return ui;
-                        }
-
-                        //初回設定時に行の全ての値を保持
-                        if (!ui.rowData[ui.dataIndx]) {
-                            var values = $.extend(true, {}, ui.rowData);
-                            ui.rowData[ui.dataIndx] = values;
-                            return ui;
+                            //初回設定時に行の全ての値を保持
+                            if (!ui.rowData[ui.dataIndx]) {
+                                var values = $.extend(true, {}, ui.rowData);
+                                ui.rowData[ui.dataIndx] = values;
+                                return ui;
+                            }
                         }
                     }
-                }
-            );
+                );
 
-            //初期表示時検索設定がfalseの場合、生成するまでurlを設定しない
-            var url = pqGridObj.dataModel.url || this.dataUrl;
-            pqGridObj.dataModel.url = this.SearchOnCreate ? url : null;
+                //初期表示時検索設定がfalseの場合、生成するまでurlを設定しない
+                var url = pqGridObj.dataModel.url || this.dataUrl;
+                pqGridObj.dataModel.url = this.SearchOnCreate ? url : null;
 
-            //PqGrid生成
-            this.grid = $("#" + this.id)
-                .attr("class", this.classes || "ml-3 mt-2 mr-3")
-                .pqGrid(pqGridObj)
-                .pqGrid("getInstance").grid;
-
-            //PqGrid参照設定
-            if (!this.grid) return;
-            this.$parent.$data[this.id] = this.grid;
-
-            //colModelのeditableの設定より、PqGridのclassに入力可不可設定
-            var cfg = pqGridObj.columnTemplate.editable ? "editable" : "readonly";
-            this.grid.widget().addClass("table_" + cfg);
-
-            if (this.hasFreezeRightCols) {
-                var widget = this.grid.widget();
-                var mr = widget.attr("class").match(/mr-[0-9]+/g);
-                if (mr) {
-                    mr.forEach(v => widget.removeClass(v));
-                }
-
-                //指定数分、メインテーブルでは列非表示設定
-                var rightColsDataIndices = _.takeRight(
-                        this.grid.options.colModel.filter(c => !c.hidden),
-                        this.freezeRightCols
-                    )
-                    .map(c => c.dataIndx);
-                var rightColsWidth = _.sum(this.grid.options.colModel
-                                        .filter(c => rightColsDataIndices.includes(c.dataIndx))
-                                        .map(c => c.width * 1)
-                                    );
-                this.grid.options.colModel
-                    .filter(c => !c.hidden)
-                    .forEach((c, i) => c.hidden = rightColsDataIndices.includes(c.dataIndx));
-                this.grid.options.width = "100%-" + rightColsWidth;
-                widget.addClass("hasRight");
-
-                //右テーブル用option
-                var rightOptions = $.extend(true, pqGridObj);
-                rightOptions.colModel.forEach((c, i) => c.hidden = !rightColsDataIndices.includes(c.dataIndx));
-                rightOptions.numberCell = { show: false };
-                rightOptions.width = rightColsWidth + 26;
-                rightOptions.dataModel.location = "local";
-
-                widget.parent().addClass("d-flex");
-
-                this.gridRight = $("#" + this.id + "_right")
-                    .attr("class", "grid-right mt-2")
-                    .pqGrid(rightOptions)
+                //PqGrid生成
+                this.grid = $("#" + this.id)
+                    .attr("class", this.classes || "ml-3 mt-2 mr-3")
+                    .pqGrid(pqGridObj)
                     .pqGrid("getInstance").grid;
 
-                this.grid.gridRight = this.gridRight;
-                this.gridRight.gridLeft = this.grid;
+                //PqGrid参照設定
+                if (!this.grid) return;
+                this.$parent.$data[this.id] = this.grid;
 
-                this.grid.on("scroll", function() {
-                    vue.scrollBoth(this.scrollY());
-                });
-                this.gridRight.on("scroll", function() {
-                    vue.scrollBoth(this.scrollY());
-                });
+                //colModelのeditableの設定より、PqGridのclassに入力可不可設定
+                var cfg = pqGridObj.columnTemplate.editable ? "editable" : "readonly";
+                this.grid.widget().addClass("table_" + cfg);
 
-                this.grid.refreshView();
-            }
+                if (this.hasFreezeRightCols) {
+                    var widget = this.grid.widget();
+                    var mr = widget.attr("class").match(/mr-[0-9]+/g);
+                    if (mr) {
+                        mr.forEach(v => widget.removeClass(v));
+                    }
 
-            //urlの再設定
-            this.grid.options.dataModel.url = this.SearchOnCreate ? url : null;
+                    //指定数分、メインテーブルでは列非表示設定
+                    var rightColsDataIndices = _.takeRight(
+                            this.grid.options.colModel.filter(c => !c.hidden),
+                            this.freezeRightCols
+                        )
+                        .map(c => c.dataIndx);
+                    var rightColsWidth = _.sum(this.grid.options.colModel
+                                            .filter(c => rightColsDataIndices.includes(c.dataIndx))
+                                            .map(c => c.width * 1)
+                                        );
+                    this.grid.options.colModel
+                        .filter(c => !c.hidden)
+                        .forEach((c, i) => c.hidden = rightColsDataIndices.includes(c.dataIndx));
+                    this.grid.options.width = "100%-" + rightColsWidth;
+                    widget.addClass("hasRight");
 
-            this.grid.concatCellData = function(upper, lower) {
-                return ((upper && (upper + "").trim()) ? (upper + "").trim() : "-") + "\n"
-                    +  ((lower && (lower + "").trim()) ? (lower + "").trim() : "-");
-            };
+                    //右テーブル用option
+                    var rightOptions = $.extend(true, pqGridObj);
+                    rightOptions.colModel.forEach((c, i) => c.hidden = !rightColsDataIndices.includes(c.dataIndx));
+                    rightOptions.numberCell = { show: false };
+                    rightOptions.width = rightColsWidth + 26;
+                    rightOptions.dataModel.location = "local";
 
+                    widget.parent().addClass("d-flex");
 
-            //変更有無判定メソッド追加
-            this.grid.isChanged = function() {
-                var grid = this;
+                    this.gridRight = $("#" + this.id + "_right")
+                        .attr("class", "grid-right mt-2")
+                        .pqGrid(rightOptions)
+                        .pqGrid("getInstance").grid;
 
-                //変更有無判定
-                var isChanged = $.map(grid.createSaveParams(), (v) => v.length > 0).includes(true);
+                    this.grid.gridRight = this.gridRight;
+                    this.gridRight.gridLeft = this.grid;
 
-                return isChanged;
-            };
+                    this.grid.on("scroll", function() {
+                        vue.scrollBoth(this.scrollY());
+                    });
+                    this.gridRight.on("scroll", function() {
+                        vue.scrollBoth(this.scrollY());
+                    });
 
-            //検索メソッド追加
-            this.grid.searchData = function(params, isActivated, beforeCallback, afterCallback) {
-                var grid = this;
-                var vue = grid.options.vue;
-
-                if (afterCallback) {
-                    var newFunc = (grid, ui) => {
-                        if (vue.onCompleteFunc) vue.onCompleteFunc(grid, ui);
-                        afterCallback(grid, ui);
-                        vue._onCompleteFunc = vue.onCompleteFunc;
-                    };
-                    vue._onCompleteFunc = newFunc;
+                    this.grid.refreshView();
                 }
 
-                if (vue.checkChanged && grid.isChanged() && !isActivated
-                    && (vue.checkChangedFunc ? vue.checkChangedFunc(grid) : true)
-                ) {
-                    //確認ダイアログ
-                    $.dialogConfirm({
-                        title: "内容が変更されています",
-                        contents: "検索を行いますか？(変更は破棄されます)",
-                        buttons:[
-                            {
-                                text: "はい",
-                                class: "btn btn-primary",
-                                click: function(){
-                                    grid.options.dataModel.url = grid.options.vue.dataUrl
+                //urlの再設定
+                this.grid.options.dataModel.url = this.SearchOnCreate ? url : null;
 
-                                    grid.options.dataModel.postData = _.cloneDeep(params || grid.options.dataModel.postData);
-                                    if (beforeCallback) {
-                                        beforeCallback(grid, () => {
+                this.grid.concatCellData = function(upper, lower) {
+                    return ((upper && (upper + "").trim()) ? (upper + "").trim() : "-") + "\n"
+                        +  ((lower && (lower + "").trim()) ? (lower + "").trim() : "-");
+                };
+
+
+                //変更有無判定メソッド追加
+                this.grid.isChanged = function() {
+                    var grid = this;
+
+                    //変更有無判定
+                    var isChanged = $.map(grid.createSaveParams(), (v) => v.length > 0).includes(true);
+
+                    return isChanged;
+                };
+
+                //検索メソッド追加
+                this.grid.searchData = function(params, isActivated, beforeCallback, afterCallback) {
+                    var grid = this;
+                    var vue = grid.options.vue;
+
+                    if (afterCallback) {
+                        var newFunc = (grid, ui) => {
+                            if (vue.onCompleteFunc) vue.onCompleteFunc(grid, ui);
+                            afterCallback(grid, ui);
+                            vue._onCompleteFunc = vue.onCompleteFunc;
+                        };
+                        vue._onCompleteFunc = newFunc;
+                    }
+
+                    if (vue.checkChanged && grid.isChanged() && !isActivated
+                        && (vue.checkChangedFunc ? vue.checkChangedFunc(grid) : true)
+                    ) {
+                        //確認ダイアログ
+                        $.dialogConfirm({
+                            title: "内容が変更されています",
+                            contents: "検索を行いますか？(変更は破棄されます)",
+                            buttons:[
+                                {
+                                    text: "はい",
+                                    class: "btn btn-primary",
+                                    click: function(){
+                                        grid.options.dataModel.url = grid.options.vue.dataUrl
+
+                                        grid.options.dataModel.postData = _.cloneDeep(params || grid.options.dataModel.postData);
+                                        if (beforeCallback) {
+                                            beforeCallback(grid, () => {
+                                                grid.refreshDataAndView();
+                                                $(this).dialog("close");
+                                            });
+                                        } else {
                                             grid.refreshDataAndView();
                                             $(this).dialog("close");
-                                        });
-                                    } else {
-                                        grid.refreshDataAndView();
+                                        }
+                                    }
+                                },
+                                {
+                                    text: "いいえ",
+                                    class: "btn btn-danger",
+                                    click: function(){
+                                        if (vue.checkChangedCancelFunc) {
+                                            vue.checkChangedCancelFunc(grid);
+                                        }
                                         $(this).dialog("close");
                                     }
-                                }
-                            },
-                            {
-                                text: "いいえ",
-                                class: "btn btn-danger",
-                                click: function(){
+                                },
+                            ],
+                            keyDownHandler: (element, option, event) => {
+                                if (event.which == 27) {
                                     if (vue.checkChangedCancelFunc) {
                                         vue.checkChangedCancelFunc(grid);
                                     }
-                                    $(this).dialog("close");
+
+                                    $(element).dialog("close");
                                 }
                             },
-                        ],
-                        keyDownHandler: (element, option, event) => {
-                            if (event.which == 27) {
-                                if (vue.checkChangedCancelFunc) {
-                                    vue.checkChangedCancelFunc(grid);
-                                }
-
-                                $(element).dialog("close");
-                            }
-                        },
-                    });
-                } else {
-                    grid.options.dataModel.url = grid.options.vue.dataUrl
-                    grid.options.dataModel.postData = _.cloneDeep(params || grid.options.dataModel.postData);
-
-                    if (beforeCallback) {
-                        beforeCallback(grid, () => {
-                            grid.refreshDataAndView();
                         });
                     } else {
-                        grid.refreshDataAndView();
+                        grid.options.dataModel.url = grid.options.vue.dataUrl
+                        grid.options.dataModel.postData = _.cloneDeep(params || grid.options.dataModel.postData);
+
+                        if (beforeCallback) {
+                            beforeCallback(grid, () => {
+                                grid.refreshDataAndView();
+                            });
+                        } else {
+                            grid.refreshDataAndView();
+                        }
                     }
-                }
-            };
+                };
 
-            //検索結果クリアメソッド追加
-            this.grid.clearData = function(initialArray, callback) {
-                var grid = this;
-                var vue = grid.options.vue;
+                //検索結果クリアメソッド追加
+                this.grid.clearData = function(initialArray, callback) {
+                    var grid = this;
+                    var vue = grid.options.vue;
 
-                initialArray = initialArray || [];
+                    initialArray = initialArray || [];
 
-                var location = grid.options.dataModel.location;
+                    var location = grid.options.dataModel.location;
 
-                grid.searchResult = null;
-                grid.options.dataModel.location = "local";
-                grid.options.dataModel.data = initialArray;
-                grid.options.dataModel.postData = {};
-                grid.refreshDataAndView();
-                grid.options.dataModel.location = location;
+                    grid.searchResult = null;
+                    grid.options.dataModel.location = "local";
+                    grid.options.dataModel.data = initialArray;
+                    grid.options.dataModel.postData = {};
+                    grid.refreshDataAndView();
+                    grid.options.dataModel.location = location;
 
-                vue.CountConstraint = null;
-                var CountConstraintViolation = grid.options.toolbar.items.filter(v => v.name == "CountConstraintViolation")[0];
-                if (CountConstraintViolation) {
-                    CountConstraintViolation.type = "<label class='CountConstraintViolation'></label>";
-                    grid.refreshToolbar();
-                }
-
-                if (callback) {
-                    callback(grid);
-                }
-            }
-
-            //保存パラメータ生成メソッド追加
-            this.grid.createSaveParams = function(exceptsColumnArray) {
-                var grid = this;
-
-                //PqGridの変更リストを編集用にdeepcopy
-                var changeList = _.cloneDeep(grid.getChanges());
-                try {
-                    changeList = $.extend(
-                        true,
-                        {},
-                        JSON.parse(JSON.stringify(changeList, (k, v) => {
-                        //JSON.parse($.safeJsonStringify(changeList, (k, v) => {
-	                        if (k == "clickTarget") return;
-                            var ret = k == "parent" ? null : v == undefined ? null : v; //値がundefinedの要素を考慮し、nullに置換
-                            return ret;
-                        }))
-                    );
-                } catch(ex) {
-                    console.log("JSON parse/stringify raize exception");
-                    console.log(ex);
-                    console.log(changeList);
-                }
-
-                //grouping時、changeListの取得がバグっているので対処
-                var isGrouping = !!grid.options.groupModel && grid.options.groupModel.on;
-                if (isGrouping) {
-                    //pq_levelを持つ行は除外
-                    changeList.deleteList = changeList.deleteList.filter(v => v.pq_level == undefined);
-
-                    //検索時の値から差分抽出
-                    var org = _.sortBy(grid.searchResult, "PK");
-                    var cur = _.sortBy(grid.options.dataModel.data, "PK");
-                    var deletedList = _.xorBy(org, cur, "PK").filter(v => !!v.PK);
-
-                    //deleteListに設定
-                    changeList.deleteList = deletedList;
-
-                    //updateListにdeleteListに登録した行が入っている場合の対処(PqGridが履歴からupdateListを作っている模様)
-                    changeList.updateList = changeList.updateList.filter(v => !deletedList.map(d => d.PK).includes(v.PK));
-                }
-
-                //PqGridバグ対応
-                //2行追加し、上位行を削除した場合は問題ないが、下位行を削除した場合はそれがUpdateListに残ってしまう
-                //PqGridの変更リストに対し、この時点でのPqGrid内容と比較して存在しないものは削除
-                changeList.addList = _.intersectionBy(changeList.addList, grid.getData(), "pq_ri");
-                changeList.updateList = _.intersectionBy(changeList.updateList, grid.getData(), "pq_ri");
-
-                //空行追加したものに入力した場合、addListではなくupdateListに入るので、addListに移動
-                changeList.updateList.forEach(function(row, i) {
-                    //追加済であれば良い
-                    if (changeList.addList.map(v => v.pq_ri).indexOf(row.pq_ri) != -1) {
-                        return;
+                    vue.CountConstraint = null;
+                    var CountConstraintViolation = grid.options.toolbar.items.filter(v => v.name == "CountConstraintViolation")[0];
+                    if (CountConstraintViolation) {
+                        CountConstraintViolation.type = "<label class='CountConstraintViolation'></label>";
+                        grid.refreshToolbar();
                     }
 
-                    //初期値とVersionNoを持つ場合はupdate, 持たない場合はadd
-                    if (!row.InitialValue && typeof(row.VersionNo) == "undefined") {
-                        changeList.addList.push(row);
+                    if (callback) {
+                        callback(grid);
                     }
-                });
+                }
 
-                //addListにupdateListに追加した行が含まれるので補正、PqGridバグっぽい
-                changeList.addList.forEach(function(v) {
-                    var idx  = changeList.updateList.map(v => v.pq_ri).indexOf(v.pq_ri);
+                //保存パラメータ生成メソッド追加
+                this.grid.createSaveParams = function(exceptsColumnArray) {
+                    var grid = this;
 
-                    if (idx != -1) {
-                        changeList.updateList.splice(idx, 1);
-                        changeList.oldList.splice(idx, 1);
+                    //PqGridの変更リストを編集用にdeepcopy
+                    var changeList = _.cloneDeep(grid.getChanges());
+                    try {
+                        changeList = $.extend(
+                            true,
+                            {},
+                            JSON.parse(JSON.stringify(changeList, (k, v) => {
+                            //JSON.parse($.safeJsonStringify(changeList, (k, v) => {
+                                if (k == "clickTarget") return;
+                                var ret = k == "parent" ? null : v == undefined ? null : v; //値がundefinedの要素を考慮し、nullに置換
+                                return ret;
+                            }))
+                        );
+                    } catch(ex) {
+                        console.log("JSON parse/stringify raize exception");
+                        console.log(ex);
+                        console.log(changeList);
                     }
-                });
 
-                //入力可能項目に入力がないaddListは除外
-                changeList.addList = changeList.addList.filter(function(row, i) {
-                    var isNotNull = false;
-                    $.each(row, function(k, v) {
-                        if (grid.columns[k] && grid.columns[k].editable && v) {
-                            isNotNull = true;
+                    //grouping時、changeListの取得がバグっているので対処
+                    var isGrouping = !!grid.options.groupModel && grid.options.groupModel.on;
+                    if (isGrouping) {
+                        //pq_levelを持つ行は除外
+                        changeList.deleteList = changeList.deleteList.filter(v => v.pq_level == undefined);
+
+                        //検索時の値から差分抽出
+                        var org = _.sortBy(grid.searchResult, "PK");
+                        var cur = _.sortBy(grid.options.dataModel.data, "PK");
+                        var deletedList = _.xorBy(org, cur, "PK").filter(v => !!v.PK);
+
+                        //deleteListに設定
+                        changeList.deleteList = deletedList;
+
+                        //updateListにdeleteListに登録した行が入っている場合の対処(PqGridが履歴からupdateListを作っている模様)
+                        changeList.updateList = changeList.updateList.filter(v => !deletedList.map(d => d.PK).includes(v.PK));
+                    }
+
+                    //PqGridバグ対応
+                    //2行追加し、上位行を削除した場合は問題ないが、下位行を削除した場合はそれがUpdateListに残ってしまう
+                    //PqGridの変更リストに対し、この時点でのPqGrid内容と比較して存在しないものは削除
+                    changeList.addList = _.intersectionBy(changeList.addList, grid.getData(), grid.options.dataModel.recIndx);
+                    changeList.updateList = _.intersectionBy(changeList.updateList, grid.getData(), grid.options.dataModel.recIndx);
+
+                    //空行追加したものに入力した場合、addListではなくupdateListに入るので、addListに移動
+                    changeList.updateList.forEach(function(row, i) {
+                        //追加済であれば良い
+                        if (changeList.addList.map(v => v[grid.options.dataModel.recIndx]).indexOf(row[grid.options.dataModel.recIndx]) != -1) {
                             return;
+                        }
+
+                        //初期値とVersionNoを持つ場合はupdate, 持たない場合はadd
+                        if (!row.InitialValue && typeof(row.VersionNo) == "undefined") {
+                            changeList.addList.push(row);
                         }
                     });
 
-                    return isNotNull;
-                });
+                    //addListにupdateListに追加した行が含まれるので補正、PqGridバグっぽい
+                    changeList.addList.forEach(function(v) {
+                        var idx  = changeList.updateList.map(v => v[grid.options.dataModel.recIndx]).indexOf(v[grid.options.dataModel.recIndx]);
 
-                //例外指定以外で変更されているデータを持たない行は除外
-                var excepts = exceptsColumnArray || grid.options.vue._onChangeExceptsColumns;
-                var updateList = $.extend(true, [], changeList.updateList);
-                updateList.forEach(function(row) {
-                    var idx = changeList.updateList.map(v => v.pq_ri).indexOf(row.pq_ri);
-                    var oldRow = changeList.oldList[idx];
+                        if (idx != -1) {
+                            changeList.updateList.splice(idx, 1);
+                            changeList.oldList.splice(idx, 1);
+                        }
+                    });
 
-                    var exists = !excepts ? true : Object.keys(oldRow).filter((k) => !excepts.includes(k)).length > 0;
-
-                    if (!exists) {
-                        changeList.updateList.splice(idx, 1);
-                        changeList.oldList.splice(idx, 1);
-                    }
-                });
-
-                //oldListは変更前のカラムの値だけなので、updateListにextendしたものに置換
-                changeList.oldList = $.extend(true,
-                    [],
-                    changeList.updateList,
-                    JSON.parse(JSON.stringify(changeList.oldList, (k, v) => v == undefined ? null : v)) //値がundefinedの要素を考慮し、nullに置換
-                );
-
-                //deleteListは検索時の値ではなく削除時の値が設定されてしまうため、検索時の値に置換
-                changeList.deleteList = changeList.deleteList
-                    .filter(v => !!v.InitialValue)
-                    .map(v => v.InitialValue);
-
-                //nestしたViewModelの対応(取りあえず1階層のみ)
-                $.each(changeList, function(k, list) {
-                    $.each(list, function(k, row) {
-                        //nestしたキーを取得
-                        var nestKeys = Object.keys(row).filter((k) => k.includes("."));
-
-                        //nestしたViewModelに値設定
-                        nestKeys.forEach(function(k) {
-                            var nk = k.split(".");
-                            row[nk[0]] = row[nk[0]] || {};
-                            row[nk[0]][nk[1]] = row[k];
-                            delete row[k];
-                        });
-
-                        //objectのキーを取得
-                        var objectKeys = Object.keys(row).filter((k) => !!row[k] && typeof row[k] == "object" && k != "InitialValue" && k != "pq_cellcls");
-
-                        //nestしたViewModelに変更が無ければnullにする
-                        objectKeys.forEach(function(k) {
-                            if (!!row[k] && !!row["InitialValue"] && !!row["InitialValue"][k] && grid.options.vue._.isEqual(row[k], row["InitialValue"][k])) {
-                                delete row[k];
+                    //入力可能項目に入力がないaddListは除外
+                    changeList.addList = changeList.addList.filter(function(row, i) {
+                        var isNotNull = false;
+                        $.each(row, function(k, v) {
+                            if (grid.columns[k] && grid.columns[k].editable && v) {
+                                isNotNull = true;
+                                return;
                             }
                         });
 
-                        //初期値objectを削除
-                        delete row["InitialValue"];
-
-                        //grouping objectを削除
-                        delete row["parent"];
+                        return isNotNull;
                     });
-                });
 
-                //保存用パラメータとして設定
-                var params = {
-                    AddList: changeList.addList,
-                    UpdateList: changeList.updateList,
-                    OldList: changeList.oldList,
-                    DeleteList: changeList.deleteList,
-                };
+                    //例外指定以外で変更されているデータを持たない行は除外
+                    var excepts = exceptsColumnArray || grid.options.vue._onChangeExceptsColumns;
+                    var updateList = $.extend(true, [], changeList.updateList);
+                    updateList.forEach(function(row) {
+                        var idx = changeList.updateList.map(v => v[grid.options.dataModel.recIndx]).indexOf(row[grid.options.dataModel.recIndx]);
+                        var oldRow = changeList.oldList[idx];
 
-                return params;
-            };
+                        var exists = !excepts ? true : Object.keys(oldRow).filter((k) => !excepts.includes(k)).length > 0;
 
-            //保存メソッド追加
-            this.grid.saveData = function(options, opti_onEditFunc) {
-                var grid = this;
-                var vue = grid.options.vue;
+                        if (!exists) {
+                            changeList.updateList.splice(idx, 1);
+                            changeList.oldList.splice(idx, 1);
+                        }
+                    });
 
-                //groupingを行っているPqGridのparent propety対処
-                var params = _.cloneDeep(options.params);
-                options.params = $.extend(
-                    true,
-                    {},
-                    JSON.parse(JSON.stringify(params, (k, v) => {
-                        var ret = k == "parent" ? null : v == undefined ? null : v;
-                        return ret;
-                    }))
-                );
-                var optional = _.cloneDeep(options.optional);
-                options.optional = $.extend(
-                    true,
-                    {},
-                    JSON.parse(JSON.stringify(optional, (k, v) => {
-                        var ret = k == "parent" ? null : v == undefined ? null : v;
-                        return ret;
-                    }))
-                );
+                    //oldListは変更前のカラムの値だけなので、updateListにextendしたものに置換
+                    changeList.oldList = $.extend(true,
+                        [],
+                        changeList.updateList,
+                        JSON.parse(JSON.stringify(changeList.oldList, (k, v) => v == undefined ? null : v)) //値がundefinedの要素を考慮し、nullに置換
+                    );
 
-                var defOp = {
-                    uri: "",
-                    params: $.extend(true, grid.createSaveParams(), options.optional),
-                    confirm: {
-                        isShow: true,
-                        title: "確認",
-                        message: "変更内容を保存します。宜しいですか？",
-                    },
-                    done: {
-                        isShow: true,
-                        title: "正常終了",
-                        message: "変更内容の保存が完了しました。",
-                        callback: (vue, grid, res)=>{},
-                    },
-                    error: {
-                        isShow: true,
-                        title: "異常終了",
-                        message: "変更内容の保存に失敗しました",
-                        callback: (vue, grid, error)=>{},
-                    },
-                };
+                    //deleteListは検索時の値ではなく削除時の値が設定されてしまうため、検索時の値に置換
+                    changeList.deleteList = changeList.deleteList
+                        .filter(v => !!v.InitialValue)
+                        .map(v => v.InitialValue);
 
-                var op = $.extend(true, defOp, options);
-
-                //オプション編集関数
-                if (opti_onEditFunc) {
-                    opti_onEditFunc(vue, grid, defOp, options);
-                }
-
-                //createSaveParamsの結果ではなく、直接パラメータ指定の場合を考慮し、nestしたViewModelの対処及びInitialValueの除去
-                $.each(op.params, function(k, list) {
-
-                    if (Array.isArray(list)) {
+                    //nestしたViewModelの対応(取りあえず1階層のみ)
+                    $.each(changeList, function(k, list) {
                         $.each(list, function(k, row) {
                             //nestしたキーを取得
                             var nestKeys = Object.keys(row).filter((k) => k.includes("."));
@@ -1752,194 +1671,297 @@ export default {
 
                             //初期値objectを削除
                             delete row["InitialValue"];
-                        });
-                    }
-                });
 
-                //保存処理
-                var saveFunc = function() {
-                    //保存中ダイアログ
-                    var saveDlg = $.dialogProgress({
-                        contents: "<i class='fa fa-spinner fa-spin' style='font-size: 24px; margin-right: 5px;'></i> 保存中…",
+                            //grouping objectを削除
+                            delete row["parent"];
+                        });
                     });
 
-                    //保存時エラー/例外オブジェクトの解放
-                    vue.saveErrors = null;
-                    vue.saveExceptions = null;
+                    //保存用パラメータとして設定
+                    var params = {
+                        AddList: changeList.addList,
+                        UpdateList: changeList.updateList,
+                        OldList: changeList.oldList,
+                        DeleteList: changeList.deleteList,
+                    };
 
-                    //PqGrid内のエラー設定及びtooltipを解除
-                    $(".pq-grid .ui-state-error", $(vue.$parent.$el)).removeClass("ui-state-error").tooltip("dispose");
-
-                    //post dataの保存
-                    grid.options.dataModel.postSaveData = op.params;
-
-                    axios.post(op.uri, op.params)
-                        .then(response => {
-
-                            var res = response.data;
-
-                            if (res.CountConstraint) {
-                                //件数制約違反設定
-                                vue.CountConstraint = res.CountConstraint;
-                            }
-
-                            //コールバックの実行
-                            var ret = op.done.callback(vue, grid, res);
-
-                            if (ret != false) {
-                                //PqGridのコミット、データ再取得
-                                grid.commit();
-                                grid.refreshDataAndView();
-
-                                //メッセージ追加
-                                vue.$root.$emit("addMessage", op.done.title + "(" + vue.$parent.$data.ScreenTitle + ")");
-
-                                if (op.done.isShow) {
-                                    //完了ダイアログ
-                                    $.dialogInfo({
-                                        title: op.done.title,
-                                        contents: op.done.message,
-                                    });
-                                }
-                            }
-
-                            //保存中ダイアログ閉じる
-                            saveDlg.dialog("close");
-                        })
-                        .catch(error => {
-                            var status = error.response.status;
-                            var errObj = error.response.data;
-
-                            if (status == 422) {
-                                //validation error
-                                errObj.isNew = true;
-                                vue.saveErrors = errObj;
-                                vue.onSaveErrors(grid, errObj);
-                                //初回更新終了設定
-                                vue.saveErrors.isNew = false;
-                            } else {
-                                //exception error
-                                errObj.isNew = true;
-                                vue.saveExceptions = errObj;
-                                vue.onSaveExceptions(grid, errObj);
-                                //初回更新終了設定
-                                vue.onSaveExceptions.isNew = false;
-                            }
-
-                            //コールバックの実行
-                            op.error.callback(vue, grid, errObj);
-
-                            //メッセージ追加
-                            vue.$root.$emit("addMessage",
-                                op.error.title + "(" + vue.$parent.ScreenTitle + ":" + errObj.message + ")");
-
-                            //保存中ダイアログ閉じる
-                            saveDlg.dialog("close");
-                        });
+                    return params;
                 };
 
+                //保存メソッド追加
+                this.grid.saveData = function(options, opti_onEditFunc) {
+                    var grid = this;
+                    var vue = grid.options.vue;
 
-                if (op.confirm.isShow) {
-                    //確認ダイアログ
-                    $.dialogConfirm({
-                        title: op.confirm.title,
-                        contents: op.confirm.message,
-                        buttons:[
-                            {
-                                text: "はい",
-                                class: "btn btn-primary",
-                                click: function(){
-                                    $(this).dialog("close");
+                    //groupingを行っているPqGridのparent propety対処
+                    var params = _.cloneDeep(options.params);
+                    options.params = $.extend(
+                        true,
+                        {},
+                        JSON.parse(JSON.stringify(params, (k, v) => {
+                            var ret = k == "parent" ? null : v == undefined ? null : v;
+                            return ret;
+                        }))
+                    );
+                    var optional = _.cloneDeep(options.optional);
+                    options.optional = $.extend(
+                        true,
+                        {},
+                        JSON.parse(JSON.stringify(optional, (k, v) => {
+                            var ret = k == "parent" ? null : v == undefined ? null : v;
+                            return ret;
+                        }))
+                    );
 
-                                    //保存処理
-                                    saveFunc();
-                                }
-                            },
-                            {
-                                text: "いいえ",
-                                class: "btn btn-danger",
-                                click: function(){
-                                    $(this).dialog("close");
-                                }
-                            },
-                        ],
+                    var defOp = {
+                        uri: "",
+                        params: $.extend(true, grid.createSaveParams(), options.optional),
+                        confirm: {
+                            isShow: true,
+                            title: "確認",
+                            message: "変更内容を保存します。宜しいですか？",
+                        },
+                        done: {
+                            isShow: true,
+                            title: "正常終了",
+                            message: "変更内容の保存が完了しました。",
+                            callback: (vue, grid, res)=>{},
+                        },
+                        error: {
+                            isShow: true,
+                            title: "異常終了",
+                            message: "変更内容の保存に失敗しました",
+                            callback: (vue, grid, error)=>{},
+                        },
+                    };
+
+                    var op = $.extend(true, defOp, options);
+
+                    //オプション編集関数
+                    if (opti_onEditFunc) {
+                        opti_onEditFunc(vue, grid, defOp, options);
+                    }
+
+                    //createSaveParamsの結果ではなく、直接パラメータ指定の場合を考慮し、nestしたViewModelの対処及びInitialValueの除去
+                    $.each(op.params, function(k, list) {
+
+                        if (Array.isArray(list)) {
+                            $.each(list, function(k, row) {
+                                //nestしたキーを取得
+                                var nestKeys = Object.keys(row).filter((k) => k.includes("."));
+
+                                //nestしたViewModelに値設定
+                                nestKeys.forEach(function(k) {
+                                    var nk = k.split(".");
+                                    row[nk[0]] = row[nk[0]] || {};
+                                    row[nk[0]][nk[1]] = row[k];
+                                    delete row[k];
+                                });
+
+                                //objectのキーを取得
+                                var objectKeys = Object.keys(row).filter((k) => !!row[k] && typeof row[k] == "object" && k != "InitialValue" && k != "pq_cellcls");
+
+                                //nestしたViewModelに変更が無ければnullにする
+                                objectKeys.forEach(function(k) {
+                                    if (!!row[k] && !!row["InitialValue"] && !!row["InitialValue"][k] && grid.options.vue._.isEqual(row[k], row["InitialValue"][k])) {
+                                        delete row[k];
+                                    }
+                                });
+
+                                //初期値objectを削除
+                                delete row["InitialValue"];
+                            });
+                        }
                     });
-                } else {
+
                     //保存処理
-                    saveFunc();
-                }
-            };
+                    var saveFunc = function() {
+                        //保存中ダイアログ
+                        var saveDlg = $.dialogProgress({
+                            contents: "<i class='fa fa-spinner fa-spin' style='font-size: 24px; margin-right: 5px;'></i> 保存中…",
+                        });
 
-            //選択範囲データ取得メソッド追加
-            this.grid.getSelectionData = function() {
-                var grid = this;
-                var temp = {};
-                grid.Selection().getSelection().map(function(c) {
-                    if (c.rowData) {
-                        temp[c.rowIndx] = temp[c.rowIndx] || {};
-                        temp[c.rowIndx][c.dataIndx] = c.rowData[c.dataIndx];
+                        //保存時エラー/例外オブジェクトの解放
+                        vue.saveErrors = null;
+                        vue.saveExceptions = null;
+
+                        //PqGrid内のエラー設定及びtooltipを解除
+                        $(".pq-grid .ui-state-error", $(vue.$parent.$el)).removeClass("ui-state-error").tooltip("dispose");
+
+                        //post dataの保存
+                        grid.options.dataModel.postSaveData = op.params;
+
+                        axios.post(op.uri, op.params)
+                            .then(response => {
+
+                                var res = response.data;
+
+                                if (res.CountConstraint) {
+                                    //件数制約違反設定
+                                    vue.CountConstraint = res.CountConstraint;
+                                }
+
+                                //コールバックの実行
+                                var ret = op.done.callback(vue, grid, res);
+
+                                if (ret != false) {
+                                    //PqGridのコミット、データ再取得
+                                    grid.commit();
+                                    grid.refreshDataAndView();
+
+                                    //メッセージ追加
+                                    vue.$root.$emit("addMessage", op.done.title + "(" + vue.$parent.$data.ScreenTitle + ")");
+
+                                    if (op.done.isShow) {
+                                        //完了ダイアログ
+                                        $.dialogInfo({
+                                            title: op.done.title,
+                                            contents: op.done.message,
+                                        });
+                                    }
+                                }
+
+                                //保存中ダイアログ閉じる
+                                saveDlg.dialog("close");
+                            })
+                            .catch(error => {
+                                var status = error.response.status;
+                                var errObj = error.response.data;
+
+                                if (status == 422) {
+                                    //validation error
+                                    errObj.isNew = true;
+                                    vue.saveErrors = errObj;
+                                    vue.onSaveErrors(grid, errObj);
+                                    //初回更新終了設定
+                                    vue.saveErrors.isNew = false;
+                                } else {
+                                    //exception error
+                                    errObj.isNew = true;
+                                    vue.saveExceptions = errObj;
+                                    vue.onSaveExceptions(grid, errObj);
+                                    //初回更新終了設定
+                                    vue.onSaveExceptions.isNew = false;
+                                }
+
+                                //コールバックの実行
+                                op.error.callback(vue, grid, errObj);
+
+                                //メッセージ追加
+                                vue.$root.$emit("addMessage",
+                                    op.error.title + "(" + vue.$parent.ScreenTitle + ":" + errObj.message + ")");
+
+                                //保存中ダイアログ閉じる
+                                saveDlg.dialog("close");
+                            });
+                    };
+
+
+                    if (op.confirm.isShow) {
+                        //確認ダイアログ
+                        $.dialogConfirm({
+                            title: op.confirm.title,
+                            contents: op.confirm.message,
+                            buttons:[
+                                {
+                                    text: "はい",
+                                    class: "btn btn-primary",
+                                    click: function(){
+                                        $(this).dialog("close");
+
+                                        //保存処理
+                                        saveFunc();
+                                    }
+                                },
+                                {
+                                    text: "いいえ",
+                                    class: "btn btn-danger",
+                                    click: function(){
+                                        $(this).dialog("close");
+                                    }
+                                },
+                            ],
+                        });
+                    } else {
+                        //保存処理
+                        saveFunc();
                     }
-                });
-                var values = Object.values(temp);
-                return values.length == 1 ? values[0] : values;
-            };
+                };
 
-            //選択行データ取得メソッド追加
-            this.grid.getSelectionRowData = function() {
-                var grid = this;
+                //選択範囲データ取得メソッド追加
+                this.grid.getSelectionData = function() {
+                    var grid = this;
+                    var temp = {};
+                    grid.Selection().getSelection().map(function(c) {
+                        if (c.rowData) {
+                            temp[c.rowIndx] = temp[c.rowIndx] || {};
+                            temp[c.rowIndx][c.dataIndx] = c.rowData[c.dataIndx];
+                        }
+                    });
+                    var values = Object.values(temp);
+                    return values.length == 1 ? values[0] : values;
+                };
 
-                var address = grid.Selection().address();
-                if (address.length == 0) return null;
-                var rowIndx = grid.Selection().address()[0].r1;
-                var rowData = grid.pdata[rowIndx];
+                //選択行データ取得メソッド追加
+                this.grid.getSelectionRowData = function() {
+                    var grid = this;
 
-                if (!!rowData) {
-                    if (rowData.InitialValue) {
-                        delete rowData.InitialValue;
+                    var address = grid.Selection().address();
+                    if (address.length == 0) return null;
+                    var rowIndx = grid.Selection().address()[0].r1;
+                    var rowData = grid.pdata[rowIndx];
+
+                    if (!!rowData) {
+                        if (rowData.InitialValue) {
+                            delete rowData.InitialValue;
+                        }
+
+                        if (rowData.hasOwnProperty("pq_rowselect")) {
+                            delete rowData.pq_rowselect;
+                        }
                     }
 
-                    if (rowData.hasOwnProperty("pq_rowselect")) {
-                        delete rowData.pq_rowselect;
+                    return rowData;
+                };
+
+                //CSVダウンロードメソッド追加
+                this.grid.downloadCsv = function(filename, editor, callback) {
+                    var blob = this.exportData({
+                        format: "csv",
+                        nopqdata: true,
+                        render: true
+                    });
+
+                    if (editor) {
+                        blob = editor(blob);
                     }
-                }
 
-                return rowData;
-            };
+                    $.downloadContents(blob, filename, callback);
+                };
 
-            //CSVダウンロードメソッド追加
-            this.grid.downloadCsv = function(filename, editor, callback) {
-                var blob = this.exportData({
-                    format: "csv",
-                    nopqdata: true,
-                    render: true
-                });
+                //印刷メソッド追加
+                this.grid.print = function(optionSetter) {
+                    var grid = this;
+                    var vue = grid.options.vue;
 
-                if (editor) {
-                    blob = editor(blob);
-                }
+                    if (optionSetter) {
+                        optionSetter(grid);
+                    }
 
-                $.downloadContents(blob, filename, callback);
-            };
+                    vue.exportData("", true);
+                };
 
-            //印刷メソッド追加
-            this.grid.print = function(optionSetter) {
-                var grid = this;
-                var vue = grid.options.vue;
+                this.grid.options.loading = false;
 
-                if (optionSetter) {
-                    optionSetter(grid);
-                }
+                window[this.grid.widget().prop("id")] = this.grid;
+                window.grid = this.grid;
 
-                vue.exportData("", true);
-            };
-
-            this.grid.options.loading = false;
-
-            window[this.grid.widget().prop("id")] = this.grid;
-            window.grid = this.grid;
-
-            //PqGridのリサイズ
-            this.resize();
+                //PqGridのリサイズ
+                this.resize();
+            } catch (ex) {
+                console.log("pqGrid create exception", ex);
+                throw ex;
+            }
         },
         //PqGrid-Toolbar設定
         setToolbarState: function(grid) {
@@ -2533,7 +2555,7 @@ export default {
                             shortcut: "Ctrl - +",
                             action: function(){
                                 this.addRow({
-                                    rowIndx: ui.rowIndx + 1,
+                                    rowIndx: ui.rowIndx,
                                     newRow: !!vue._onAddRowFunc ? vue._onAddRowFunc(grid, ui.rowData) : {},
                                     checkEditable: false
                                 });
@@ -2891,7 +2913,7 @@ export default {
     .pq-grid-number-cell {
         display: flex;
         align-items: center;
-        justify-content: center;
+        justify-content: space-evenly;
     }
 
     /* toolbar件数制約違反メッセージ */
@@ -2942,7 +2964,25 @@ export default {
     .grid-right .pq-grid-norows {
         display: none !important;
     }
+
+    .pq-drag-handle {
+        display: contents !important;
+        width: 100px !important;
+        height: 100% !important;
+        left: 0px !important;
+        background-image: none !important;
+        background-color: red !important;
+        cursor: grab !important;
+    }
+    .pq-drag-handle::before {
+        font-family: "Font Awesome 5 Free";
+        content: "\f7a5";
+        cursor: grab !important;
+    }
 </style>
 
 <style scoped>
+.Floating {
+    float: left;
+}
 </style>

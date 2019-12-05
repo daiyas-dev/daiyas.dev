@@ -18,3 +18,5 @@ yarn-error.log
 /public/js/vendor.js
 /public/mix-manifest.json
 /client/node_modules
+/client/build/*
+/public/client/win/*

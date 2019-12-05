@@ -89,7 +89,7 @@ export default {
             return this.id + "_" + this._uid;
         },
         _containerStyle: function() {
-            return this.containerStyle || "border-style: groove;";
+            return this.customContainerStyle || "border-style: groove;";
         },
         _titleStyle: function() {
             return this.customTitleStyle || "width: 60px";

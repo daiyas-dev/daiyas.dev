@@ -53,6 +53,9 @@ import PID0002 from "@vcp/PID0002.vue";
 import PID0101 from "@vcp/PID0101.vue";
 import PID0102 from "@vcp/PID0102.vue";
 import PID0201 from "@vcp/PID0201.vue";
+
+import DAI00010 from "@vcp/DAI00010.vue";
+import DAI00020 from "@vcp/DAI00020.vue";
 import DAI01010 from "@vcp/DAI01010.vue";
 import DAI01020 from "@vcp/DAI01020.vue";
 import DAI01030 from "@vcp/DAI01030.vue";
@@ -63,7 +66,7 @@ import DAI04021 from "@vcp/DAI04021.vue";
 import DAI04040 from "@vcp/DAI04040.vue";
 import DAI04041 from "@vcp/DAI04041.vue";
 import DAI04080 from "@vcp/DAI04080.vue";
-import DAI04090 from "@vcp/DAI04090.vue";
+import DAI04091 from "@vcp/DAI04091.vue";
 
 import DAI07010 from "@vcp/DAI07010.vue";
 
@@ -112,6 +115,8 @@ export default {
     },
     components: {
         //ページコンポーネントを登録
+        DAI00010,
+        DAI00020,
         DAI01010,
         DAI01020,
         DAI01030,
@@ -121,7 +126,7 @@ export default {
         DAI04040,
         DAI04041,
         DAI04080,
-        DAI04090,
+        DAI04091,
         DAI07010,
         DAI08010,
         //共通画面用Selector
