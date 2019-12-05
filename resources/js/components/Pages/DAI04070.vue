@@ -97,7 +97,7 @@ export default {
                 colModel: [
                 ],
                 rowDblClick: function (event, ui) {
-                    vue.showDetail();
+                    vue.showDetail(ui.rowData);
                 },
             },
         });
@@ -378,15 +378,21 @@ export default {
 
             return res;
         },
-        showDetail: function() {
+        showDetail: function(rowData) {
             var vue = this;
             var grid = vue.DAI04070Grid1;
             if (!grid) return;
 
-            var row = grid.getSelectionRowData();
-            if (!row) return;
+            var params;
+            if (rowData) {
+                params = _.cloneDeep(rowData);
+            } else {
+                var rows = grid.SelectRow().getSelection();
+                if (rows.length != 1) return;
 
-            var params = _.cloneDeep(row);
+                params = _.cloneDeep(rows[0]);
+            }
+
             params.IsNew = false;
 
             //TODO: 子画面化
