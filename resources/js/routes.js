@@ -4,7 +4,7 @@ export default [
     {
         path: "/",
         component: PageSelector,
-        props: { pgId: "PID0001" },
+        props: { pgId: "DAI00010" },
         meta: {
             keepAlive: true,
         },

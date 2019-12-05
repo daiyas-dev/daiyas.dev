@@ -24,7 +24,9 @@ try {
     });
     window.myCache = myCache;
 
-} catch (e) {}
+} catch (e) {
+    console.log("bootstrap error", e);
+}
 
 /**
  * We'll load the axios HTTP library which allows us to easily issue requests

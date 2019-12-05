@@ -408,11 +408,6 @@ export default {
                     gridOptions.colModel.find(c => c.dataIndx=="コース区分").align = "left";
 
                     //担当者名表示設定
-                    var p = [1,2,3,5,13];
-                    var p2 = [7,11];
-                    Array.prototype.splice.apply(p,[4,0].concat(p2));
-                    console.log(p);
-
                     gridOptions.colModel.splice(
                         gridOptions.colModel.findIndex(c => c.title=="担当者ＣＤ") + 1,
                         0,

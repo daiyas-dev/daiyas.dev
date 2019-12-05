@@ -53,6 +53,9 @@ import PID0002 from "@vcp/PID0002.vue";
 import PID0101 from "@vcp/PID0101.vue";
 import PID0102 from "@vcp/PID0102.vue";
 import PID0201 from "@vcp/PID0201.vue";
+
+import DAI00010 from "@vcp/DAI00010.vue";
+import DAI00020 from "@vcp/DAI00020.vue";
 import DAI01010 from "@vcp/DAI01010.vue";
 import DAI01020 from "@vcp/DAI01020.vue";
 import DAI01030 from "@vcp/DAI01030.vue";
@@ -68,6 +71,7 @@ import DAI04070 from "@vcp/DAI04070.vue";
 import DAI04071 from "@vcp/DAI04071.vue";
 import DAI04080 from "@vcp/DAI04080.vue";
 import DAI04090 from "@vcp/DAI04090.vue";
+import DAI04091 from "@vcp/DAI04091.vue";
 import DAI04130 from "@vcp/DAI04130.vue";
 import DAI04140 from "@vcp/DAI04140.vue";
 import DAI04141 from "@vcp/DAI04141.vue";
@@ -123,6 +127,8 @@ export default {
     },
     components: {
         //ページコンポーネントを登録
+        DAI00010,
+        DAI00020,
         DAI01010,
         DAI01020,
         DAI01030,
@@ -137,6 +143,7 @@ export default {
         DAI04071,
         DAI04080,
         DAI04090,
+        DAI04091,
         DAI04130,
         DAI04140,
         DAI04141,

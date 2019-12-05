@@ -27,6 +27,14 @@ class コーステーブル extends Model
     protected $fillable = ['得意先ＣＤ', '修正担当者ＣＤ', '修正日'];
 
     /**
+     * Join コースマスタ on コースＣＤ
+     */
+    public function コース()
+    {
+        return $this->belongsTo('App\Models\コースマスタ', 'コースＣＤ', 'コースＣＤ');
+    }
+
+    /**
      * Join 得意先マスタ on 得意先ＣＤ
      */
     public function 得意先()

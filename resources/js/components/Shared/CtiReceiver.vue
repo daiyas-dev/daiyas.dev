@@ -1,12 +1,20 @@
 <template>
-    <div class="CtiReceiver" style="display: none;">Calling</div>
+    <div class="CtiReceiver" v-show="isCalling || existsFax">
+        <span v-show="isCalling" class="badge badge-danger">{{callInfo}}</span>
+        <span v-show="existsFax" class="badge badge-danger">{{faxInfo}}</span>
+    </div>
 </template>
 
-<style>
-CtiReceiver {
-    color: black;
-    background-color: orange;
-    font-weight: bold;
+<style scoped>
+.badge {
+    font-size: 15px;
+    font-weight: normal;
+}
+#vue-app > .CtiReceiver {
+    z-index: 1000;
+    position: fixed;
+    bottom: 65px;
+    right: 5px;
 }
 </style>
 
@@ -15,6 +23,10 @@ export default {
     name: "CtiReceiver",
     data() {
         return {
+            isCalling: false,
+            callInfo: null,
+            existsFax: false,
+            faxInfo: false,
         };
     },
     components: {
@@ -24,42 +36,32 @@ export default {
     mounted: function () {
         var vue = this;
 
-        vue.$root.$on("OnCall", (arg) => vue.onCall(arg));
-        vue.$root.$on("OffCall", (arg) => vue.offCall(arg));
-
-        if (window.ipcRenderer) {
-            window.ipcRenderer.on("onCall", (e, arg) => {
-                console.log("emit OnCall");
-                vue.$root.$emit("OnCall", arg);
-            });
-            window.ipcRenderer.on("offCall", (e, arg) => {
-                console.log("emit OffCall");
-                vue.$root.$emit("OffCall", arg);
-            });
-
-            // window.ipcRenderer.on("count", (e, arg) => {
-            //     console.log("pong:" + arg);
-            //     if (arg > 5) {
-            //         vue.$root.$emit("OffCall", arg);
-            //     } else {
-            //         vue.$root.$emit("OnCall", arg);
-            //         setTimeout(() => {
-            //             var c = arg + 1;
-            //             ipcRenderer.send("count", c);
-            //             console.log("ping:" + c);
-            //         }, 500);
-            //     }
-            // });
-        }
+        vue.setCti();
     },
     methods: {
-        onCall: function(arg) {
-            console.log("OnCall");
-            $(".CtiReceiver").text("着信:" + arg).show();
-        },
-        offCall: function(arg) {
-            console.log("OffCall");
-            $(".CtiReceiver").hide();
+        setCti: function() {
+            var vue = this;
+
+            vue.$root.$on("OnCall", info => {
+                console.log("message OnCall", info);
+                vue.isCalling = true;
+                var no = info.replace("TELCONNECT:", "");
+                vue.callInfo = "通話中:" + no;
+            });
+
+            if (window.ipcRenderer) {
+                window.ipcRenderer.on("CTI_MessageFromMain", (e, arg) => {
+                    var msg = new TextDecoder("utf-8").decode(arg);
+                    var ret = msg + " : OK";
+
+                    console.log("CTI_MessageFromMain", msg);
+                    e.sender.send("CTI_MessageFromRender", ret);
+
+                    vue.$root.$emit("OnCall", msg);
+                });
+                ipcRenderer.on("CTI_Listening", (e, arg) => console.log("CTI_Listening"));
+                ipcRenderer.on("CTI_BindError", (e, arg) => console.log("CTI_BindError", arg));
+            }
         },
     }
 };
