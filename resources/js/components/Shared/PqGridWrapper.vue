@@ -1024,7 +1024,6 @@ export default {
                 if (vue.isMultiRowSelectable) {
                     return true;
                 } else {
-                    grid.setSelection(null);
                     return true;
                 }
             },

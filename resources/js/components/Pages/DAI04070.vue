@@ -32,6 +32,7 @@
             :options=grid1Options
             :onBeforeCreateFunc=onBeforeCreateFunc
             :onAfterSearchFunc=onAfterSearchFunc
+            :maxRowSelectCount=1
         />
     </form>
 </template>
@@ -53,11 +54,6 @@ export default {
         FormattedShoninDate: function() {
             var vue = this;
             return vue.viewModel.ShoninDate ? moment(vue.viewModel.ShoninDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
-        },
-        hasSelectionRow: function() {
-            var vue = this;
-            var grid = vue.DAI04070Grid1;
-            return !!grid && !!grid.getSelectionRowData();
         },
     },
     watch: {
@@ -150,10 +146,10 @@ export default {
         mountedFunc: function(vue) {
             //watcher
             vue.$watch(
-                "hasSelectionRow",
-                (newVal) => {
-                    console.log("hasSelectionRow watcher: " + newVal);
-                    vue.footerButtons.find(v => v.id == "DAI04070Grid1_Detail").disabled = !newVal;
+                "$refs.DAI04070Grid1.selectionRowCount",
+                cnt => {
+                    console.log("selectionRowCount watcher: " + cnt);
+                    vue.footerButtons.find(v => v.id == "DAI04070Grid1_Detail").disabled = cnt == 0 || cnt > 2;
                 }
             );
 

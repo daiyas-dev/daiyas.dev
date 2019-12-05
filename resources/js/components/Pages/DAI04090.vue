@@ -411,11 +411,11 @@ export default {
             var grid = vue.DAI04090Grid1;
             if (!grid) return;
 
-            var row = grid.getSelectionRowData();
-            if (!row) return;
+            var rows = grid.getSelectionRowData();
+            if (rows.length == 0) return;
 
-            var params = _.cloneDeep(row);
-            params.IsNew = false;
+            var params = { IsNew: false };
+            params.targets = _.cloneDeep(rows);
 
             //TODO: 子画面化
             vue.$router.push({

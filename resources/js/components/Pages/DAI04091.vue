@@ -4,29 +4,25 @@
             <div class="col-md-1">
                 <label>部署</label>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-4">
                 <VueSelectBusho
                     ref="VueSelectBusho"
                     :hasNull=false
                     :onChangedFunc=onBushoChanged
                 />
             </div>
-            <div class="col-md-3">
-                <VueCheck
-                    id="ReferenceExistCourse"
-                    ref="VueCheck_ReferenceExistCourse"
-                    title="登録済コース参照"
-                    :vmodel=viewModel
-                    bind="IsReferenceExistCourse"
-                    :withCode=false
-                    checkedCode="1"
-                    :list="[
-                        {code: '0', name: '参照しない', label: '参照しない'},
-                        {code: '1', name: '参照する', label: '参照する'},
-                    ]"
-                    customContainerStyle="border-style: none;"
-                    customTitleStyle="width: 150px; justify-content: center;"
-                    customContentStyle="width: 120px"
+            <div class="col-md-2">
+            </div>
+            <div class="col-md-1">
+                <label class="text-left">部署</label>
+            </div>
+            <div class="col-md-4">
+                <VueSelectBusho
+                    ref="VueSelectBusho"
+                    :v-vmodel=others
+                    bind="BushoCd"
+                    :hasNull=false
+                    :onChangedFunc=onBushoChanged
                 />
             </div>
         </div>
@@ -34,7 +30,7 @@
             <div class="col-md-1">
                 <label>コース</label>
             </div>
-            <div class="col-md-5">
+            <div class="col-md-4">
                 <PopupSelect
                     id="CourseSelect"
                     ref="PopupSelect_Course"
@@ -58,68 +54,72 @@
                     :editable=true
                     :reuse=true
                     :existsCheck=true
-                    :inputWidth=100
-                    :nameWidth=200
+                    :inputWidth=90
+                    :nameWidth=195
                     :onAfterChangedFunc=onCourseChanged
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=CourseAutoCompleteFunc
                     :ParamsChangedCheckFunc=CourseParamsChangedCheckFunc
                 />
             </div>
-            <template v-if="viewModel.IsReferenceExistCourse == 1">
-                <div class="col-md-6">
-                    <label style="width: 100px;">コース(参照)</label>
-                    <PopupSelect
-                        id="CourseSelect_Ref"
-                        ref="PopupSelect_Course_Ref"
-                        :vmodel=reference
-                        bind="CourseCd"
-                        :buddies='{ CourseNm: "コース名", TantoCd: "担当者ＣＤ", TantoNm: "担当者名" }'
-                        dataUrl="/Utilities/GetCourseList"
-                        :params="{ bushoCd: viewModel.BushoCd }"
-                        :isPreload=true
-                        title="コース一覧"
-                        labelCd="コースCD"
-                        labelCdNm="コース名"
-                        :showColumns='[
-                            { title: "担当者ＣＤ", dataIndx: "担当者ＣＤ", dataType: "integer", width: 100, maxWidth: 100, minWidth: 100 },
-                            { title: "担当者名", dataIndx: "担当者名", dataType: "string", width: 100, maxWidth: 100, minWidth: 100 }
-                        ]'
-                        :popupWidth=600
-                        :popupHeight=600
-                        :isShowName=true
-                        :isModal=true
-                        :editable=true
-                        :reuse=true
-                        :existsCheck=true
-                        :inputWidth=100
-                        :nameWidth=200
-                        :onAfterChangedFunc=onCourseChanged
-                        :isShowAutoComplete=true
-                        :AutoCompleteFunc=CourseAutoCompleteFunc
-                        :ParamsChangedCheckFunc=CourseParamsChangedCheckFunc
-                    />
-                </div>
-            </template>
+            <div class="col-md-2">
+            </div>
+            <div class="col-md-1">
+                <label class="text-left">コース</label>
+            </div>
+            <div class="col-md-4">
+                <PopupSelect
+                    id="CourseSelect_Ref"
+                    ref="PopupSelect_Course_Ref"
+                    :vmodel=others
+                    bind="CourseCd"
+                    :buddies='{ CourseNm: "コース名", TantoCd: "担当者ＣＤ", TantoNm: "担当者名" }'
+                    dataUrl="/Utilities/GetCourseList"
+                    :params="{ bushoCd: viewModel.BushoCd }"
+                    :isPreload=true
+                    title="コース一覧"
+                    labelCd="コースCD"
+                    labelCdNm="コース名"
+                    :showColumns='[
+                        { title: "担当者ＣＤ", dataIndx: "担当者ＣＤ", dataType: "integer", width: 100, maxWidth: 100, minWidth: 100 },
+                        { title: "担当者名", dataIndx: "担当者名", dataType: "string", width: 100, maxWidth: 100, minWidth: 100 }
+                    ]'
+                    :popupWidth=600
+                    :popupHeight=600
+                    :isShowName=true
+                    :isModal=true
+                    :editable=true
+                    :reuse=true
+                    :existsCheck=true
+                    :inputWidth=90
+                    :nameWidth=195
+                    :onAfterChangedFunc=onCourseChanged
+                    :isShowAutoComplete=true
+                    :AutoCompleteFunc=CourseAutoCompleteFunc
+                    :ParamsChangedCheckFunc=CourseParamsChangedCheckFunc
+                />
+            </div>
         </div>
         <div class="row">
             <div class="col-md-1">
                 <label>担当者</label>
             </div>
-            <div class="col-md-5">
-                <input class="form-control label-blue" style="width: 100px;" type="text" :value=viewModel.TantoCd readonly tabindex="-1">
-                <input class="form-control ml-1 label-blue" style="width: 265px;" type="text" :value=viewModel.TantoNm readonly tabindex="-1">
+            <div class="col-md-4">
+                <input class="form-control label-blue" style="width: 90px;" type="text" :value=viewModel.TantoCd readonly tabindex="-1">
+                <input class="form-control ml-1 label-blue" style="width: 260px;" type="text" :value=viewModel.TantoNm readonly tabindex="-1">
             </div>
-            <template v-if="viewModel.IsReferenceExistCourse == 1">
-                <div class="col-md-6">
-                    <label style="width: 100px;">担当者(参照)</label>
-                    <input class="form-control label-blue" style="width: 100px;" type="text" :value=reference.TantoCd readonly tabindex="-1">
-                    <input class="form-control ml-1 label-blue" style="width: 265px;" type="text" :value=reference.TantoNm readonly tabindex="-1">
-                </div>
-            </template>
+            <div class="col-md-2">
+            </div>
+            <div class="col-md-1">
+                <label class="text-left">担当者</label>
+            </div>
+            <div class="col-md-4">
+                <input class="form-control label-blue" style="width: 90px;" type="text" :value=others.TantoCd readonly tabindex="-1">
+                <input class="form-control ml-1 label-blue" style="width: 260px;" type="text" :value=others.TantoNm readonly tabindex="-1">
+            </div>
         </div>
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-5">
                 <PqGridWrapper
                     id="DAI04091Grid1"
                     ref="DAI04091Grid1"
@@ -136,30 +136,85 @@
                     classes="mt-2 mb-2"
                 />
             </div>
-            <template v-if="viewModel.IsReferenceExistCourse == 1">
-                <div class="col-md-6">
-                    <PqGridWrapper
-                        id="DAI04091Grid2"
-                        ref="DAI04091Grid2"
-                        dataUrl="/Utilities/GetCustomerListFromCourse"
-                        :query="{ bushoCd: viewModel.BushoCd, courseCd: reference.CourseCd }"
-                        :SearchOnCreate=false
-                        :SearchOnActivate=false
-                        :options=grid2Options
-                        :onAfterSearchFunc=onAfterSearchFunc
-                        :onChangeFunc=onChangeGrid
-                        :isFloat=true
-                        :resizeFunc=onSubGridResize
-                        :isMultiRowSelectable=true
-                        classes="mt-2 mb-2"
-                    />
+            <div class="col-md-2">
+                <div class="btn-group-vertical w-100 d-flex align-items-center moveButtons">
+                    <fieldset class="text-center">
+                        <legend class="moveLegend">先頭に移動</legend>
+                        <div class="btn-group moveTops">
+                            <button type="button" class="btn btn-light toLeft p-0 mr-2">
+                                <span><i class="fa fa-angle-double-left fa-lg"></i>左へ</span>
+                            </button>
+                            <button type="button" class="btn btn-light toRight d-flex align-items-center p-0 ml-2">
+                                <span>右へ<i class="fa fa-angle-double-right fa-lg"></i></span>
+                            </button>
+                        </div>
+                    </fieldset>
+                    <fieldset class="text-center">
+                        <legend class="moveLegend">選択位置に移動</legend>
+                        <div class="btn-group moveAt">
+                            <button type="button" class="btn btn-light toLeft p-0 mr-2">
+                                <span><i class="fa fa-angle-left fa-lg"></i>左へ</span>
+                            </button>
+                            <button type="button" class="btn btn-light toRight d-flex align-items-center p-0 ml-2">
+                                <span>右へ<i class="fa fa-angle-right fa-lg"></i></span>
+                            </button>
+                        </div>
+                    </fieldset>
+                    <fieldset class="text-center">
+                        <legend class="moveLegend">末尾に移動</legend>
+                        <div class="btn-group moveBottoms">
+                            <button type="button" class="btn btn-light toLeft p-0 mr-2">
+                                <span><i class="fa fa-angle-double-left fa-lg"></i>左へ</span>
+                            </button>
+                            <button type="button" class="btn btn-light toRight d-flex align-items-center p-0 ml-2">
+                                <span>右へ<i class="fa fa-angle-double-right fa-lg"></i></span>
+                            </button>
+                        </div>
+                    </fieldset>
                 </div>
-            </template>
+            </div>
+            <div class="col-md-5">
+                <PqGridWrapper
+                    id="DAI04091Grid2"
+                    ref="DAI04091Grid2"
+                    dataUrl="/Utilities/GetCustomerListFromCourse"
+                    :query="{ bushoCd: viewModel.BushoCd, courseCd: others.CourseCd }"
+                    :SearchOnCreate=false
+                    :SearchOnActivate=false
+                    :options=grid2Options
+                    :onAfterSearchFunc=onAfterSearchFunc
+                    :onChangeFunc=onChangeGrid
+                    :isFloat=true
+                    :resizeFunc=onSubGridResize
+                    :isMultiRowSelectable=true
+                    classes="mt-2 mb-2"
+                />
+            </div>
         </div>
     </form>
 </template>
 
 <style scoped>
+fieldset {
+    width: 80%;
+    border: 1px solid gray;
+    padding: 0;
+    padding-bottom: 5px;
+    margin: 0;
+    margin-bottom: 5px;
+}
+.moveLegend {
+    width: auto;
+    font-size: 15px;
+}
+.moveButtons button {
+    width: 55px;
+}
+.moveButtons button span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 </style>
 <style>
 #Page_DAI04091 .pq-grid .pq-state-select.pq-grid-row .pq-grid-cell{
@@ -200,13 +255,6 @@ export default {
         },
     },
     watch: {
-        "viewModel.IsReferenceExistCourse": {
-            handler: function(newVal) {
-                var vue = this;
-                var grid = vue.DAI04091Grid1;
-                var grid2 = vue.DAI04091Grid2;
-            },
-        },
     },
     data() {
         var vue = this;
@@ -221,9 +269,8 @@ export default {
                 CourseNm: null,
                 TantoCd: null,
                 TantoNm: null,
-                IsReferenceExistCourse: "0",
             },
-            reference: {
+            others: {
                 CourseCd: null,
                 CourseNm: null,
                 TantoCd: null,
@@ -242,7 +289,7 @@ export default {
                 rowHtHead: 30,
                 rowHt: 30,
                 freezeCols: 2,
-                width: 475,
+                width: 450,
                 editable: true,
                 columnTemplate: {
                     editable: true,
@@ -469,12 +516,12 @@ export default {
             }
 
             if (!!grid2 && vue.getLoginInfo().isLogOn) {
-                var required = !!vue.viewModel.BushoCd && !!vue.reference.CourseCd;
+                var required = !!vue.viewModel.BushoCd && !!vue.others.CourseCd;
                 var bushoChanged = !grid2.prevPostData || grid2.prevPostData.bushoCd != vue.viewModel.BushoCd;
-                var courseChanged = !grid2.prevPostData || grid2.prevPostData.courseCd != vue.reference.CourseCd;
+                var courseChanged = !grid2.prevPostData || grid2.prevPostData.courseCd != vue.others.CourseCd;
 
                 if (required && (forced || bushoChanged ||courseChanged)) {
-                    grid2.searchData({ bushoCd: vue.viewModel.BushoCd, courseCd: vue.reference.CourseCd });
+                    grid2.searchData({ bushoCd: vue.viewModel.BushoCd, courseCd: vue.others.CourseCd });
                 }
             }
         },
