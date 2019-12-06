@@ -709,7 +709,7 @@ export default {
         },
         CourseParamsChangedCheckFunc: function(newVal, oldVal, comp) {
             var vue = this;
-            // console.log(comp.id + " CourseParamsChangedCheckFunc", newVal);
+            console.log(comp.id + " CourseParamsChangedCheckFunc", newVal);
             return !!newVal.bushoCd;
         },
         onAfterSearchFunc: function (gridVue, grid, res) {

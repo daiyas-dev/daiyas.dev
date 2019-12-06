@@ -21,7 +21,7 @@
             :readonly="this.editable == false"
             autocomplete="off"
             v-on=inputListeners
-            :disabled="isPreload || isLoading"
+            :disabled=isDisabled
         >
         <button type="button"
             :class="[
@@ -34,7 +34,7 @@
             ]"
             :id="'btn' + id"
             @click="showList"
-            :disabled="isPreload || isLoading"
+            :disabled=isDisabled
             :tabIndex="hasButtonFocus ? 0 : -1"
         >
             <i class="fa fa-search fa-lg"></i>
@@ -51,7 +51,7 @@
             ]"
             :id="'btn_prev' + id"
             @click="prevList"
-            :disabled="isPreload || isLoading"
+            :disabled=isDisabled
             :tabIndex="hasButtonFocus ? 0 : -1"
         >
             <i class="fa fa-caret-left fa-lg"></i>
@@ -84,7 +84,7 @@
             ]"
             :id="'btn' + id + 'Clear'"
             @click="clearValue"
-            :disabled="isPreload || isLoading"
+            :disabled=isDisabled
             :tabIndex="hasButtonFocus ? 0 : -1"
         >
             <i class="fa fa-times fa-lg"></i>
@@ -274,6 +274,10 @@ export default {
                 ev,
             )
         },
+        isDisabled: function() {
+            var vue = this;
+            return vue.isPreload || vue.isLoading;
+        },
         isPrevEnabled: function() {
             var vue = this;
             var ret = !!vue.dataList
@@ -313,7 +317,7 @@ export default {
             sync: true,
             handler: function(newVal) {
                 var vue = this;
-                //console.log("PopupSelect params", newVal, vue.paramsPrev);
+                console.log(vue.id + " PopupSelect params watch", newVal, vue.paramsPrev);
 
                 if (!_.isEqual(newVal, vue.paramsPrev, (v, o) => v == o)) {
                     if (vue.ParamsChangedCheckFunc && !vue.ParamsChangedCheckFunc(newVal, vue.paramsPrev, vue)) {
@@ -333,6 +337,7 @@ export default {
             sync: true,
             handler: function(newVal, oldVal) {
                 var vue = this;
+                console.log(vue.id + " PopupSelect vmodel watch", newVal, vue.selectValue);
                 var value = _.cloneDeep(vue.vmodel[vue.bind]);
 
                 if (!_.isEqual(_.trim(vue.selectValue), _.trim(value))) {
@@ -368,6 +373,7 @@ export default {
         vue.$root.$on("accountChanged", vue.accountChanged);
 
         if (vue.isPreload) {
+            console.log(vue.id + " create preload", vue.params);
             if (!!vue.ParamsChangedCheckFunc && !vue.ParamsChangedCheckFunc(vue.params, vue.paramsPrev, vue)) {
                 return;
             }
@@ -407,6 +413,7 @@ export default {
             // console.log("PopupSelect accountChanged");
 
             if (vue.isPreload) {
+                console.log(vue.id + " accountChanged", vue.params);
                 if (!!vue.ParamsChangedCheckFunc && !vue.ParamsChangedCheckFunc(vue.params, vue.paramsPrev, vue)) {
                     return;
                 }
