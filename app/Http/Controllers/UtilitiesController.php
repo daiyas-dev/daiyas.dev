@@ -332,7 +332,7 @@ $WhereKeyWord
      */
     public function GetProductListForMaint($request)
     {
-        $ProductCd = $request->productCd;
+        $ProductCd = $request->ProductCd;
 
         $query = 商品マスタ::query()
             ->when(
@@ -342,7 +342,17 @@ $WhereKeyWord
                 }
             );
 
-        $ProductList = $query->get();
+        // $ProductList = $query->get();
+        $ProductList = collect($query->get())
+            ->map(function($product){
+                $vm = (object) $product;
+
+                $vm->Cd = $product->商品ＣＤ;
+                $vm->CdNm = $product->商品名;
+
+                return $vm;
+            })
+            ->values();
 
         return response()->json($ProductList);
     }

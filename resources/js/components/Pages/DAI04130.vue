@@ -2,6 +2,26 @@
     <form id="this.$options.name">
         <div class="row">
             <div class="col-md-1">
+                <label>各種CD</label>
+            </div>
+            <div class="col-md-1">
+                <input type="text" class="form-control" :value="viewModel.各種CD" @input="onCodeChanged">
+            </div>
+            <div class="col-md-1">
+                <label style="width:90px">サブ各種CD1</label>
+            </div>
+            <div class="col-md-1">
+                <input type="text" class="form-control" :value="viewModel.サブ各種CD1" @input="onSubCode1Changed">
+            </div>
+            <div class="col-md-1">
+                <label style="width:90px">サブ各種CD2</label>
+            </div>
+            <div class="col-md-1">
+                <input type="text" class="form-control" :value="viewModel.サブ各種CD2" @input="onSubCode2Changed">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1">
                 <label>キーワード</label>
             </div>
             <div class="col-md-5">
@@ -141,6 +161,30 @@ export default {
             console.log("Cache Set Key1", myCache.set("key1", { value: 1 }));
             console.log("Cache Get Key1", myCache.get("key1"));
         },
+        onCodeChanged: _.debounce(function(event) {
+            var vue = this;
+
+            vue.viewModel.各種CD = event.target.value;
+
+            //フィルタ変更
+            vue.filterChanged();
+        }, 300),
+        onSubCode1Changed: _.debounce(function(event) {
+            var vue = this;
+
+            vue.viewModel.サブ各種CD1 = event.target.value;
+
+            //フィルタ変更
+            vue.filterChanged();
+        }, 300),
+        onSubCode2Changed: _.debounce(function(event) {
+            var vue = this;
+
+            vue.viewModel.サブ各種CD2 = event.target.value;
+
+            //フィルタ変更
+            vue.filterChanged();
+        }, 300),
         onKeyWordChanged: _.debounce(function(event) {
             var vue = this;
 
@@ -174,7 +218,16 @@ export default {
 
             var rules = [];
 
-            if (!!vue.viewModel.KeyWord) {
+            if (!!vue.viewModel.各種CD) {
+                rules.push({ dataIndx: "各種CD", condition: "equal", value: vue.viewModel.各種CD });
+            }
+            if (!!vue.viewModel.サブ各種CD1) {
+                rules.push({ dataIndx: "サブ各種CD1", condition: "equal", value: vue.viewModel.サブ各種CD1 });
+            }
+            if (!!vue.viewModel.サブ各種CD2) {
+                rules.push({ dataIndx: "サブ各種CD2", condition: "equal", value: vue.viewModel.サブ各種CD2 });
+            }
+           if (!!vue.viewModel.KeyWord) {
                 var keywords = vue.viewModel.KeyWord.split(/[, 、　]/)
                     .map(v => _.trim(v))
                     .map(k => k.replace(/^[\+＋]/, ""))

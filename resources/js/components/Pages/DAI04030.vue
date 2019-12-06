@@ -4,10 +4,10 @@
             <div class="col-md-1">
                 <label>商品ＣＤ</label>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-1">
                 <input type="text" class="form-control" :value="viewModel.ProductCd" @input="onProductCdChanged">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label>商品区分</label>
                 <VueSelect
                     id="State"
@@ -24,7 +24,7 @@
             <div class="col-md-1">
                 <label>売価単価</label>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-1">
                 <input type="text" class="form-control" :value="viewModel.売価単価" @input="onTankaChanged">
             </div>
         </div>
@@ -60,6 +60,7 @@
             :options=grid1Options
             :onBeforeCreateFunc=onBeforeCreateFunc
             :onAfterSearchFunc=onAfterSearchFunc
+            :maxRowSelectCount=1
         />
     </form>
 </template>
@@ -125,7 +126,7 @@ export default {
                 colModel: [
                 ],
                 rowDblClick: function (event, ui) {
-                    vue.showDetail();
+                    vue.showDetail(ui.rowData);
                 },
             },
         });
@@ -168,10 +169,10 @@ export default {
         mountedFunc: function(vue) {
             //watcher
             vue.$watch(
-                "hasSelectionRow",
-                (newVal) => {
-                    console.log("hasSelectionRow watcher: " + newVal);
-                    vue.footerButtons.find(v => v.id == "DAI04030Grid1_Detail").disabled = !newVal;
+                "$refs.DAI04030Grid1.selectionRowCount",
+                cnt => {
+                    console.log("selectionRowCount watcher: " + cnt);
+                    vue.footerButtons.find(v => v.id == "DAI04030Grid1_Detail").disabled = cnt == 0 || cnt > 1;
                 }
             );
 
@@ -366,15 +367,21 @@ export default {
 
             return res;
         },
-        showDetail: function() {
+        showDetail: function(rowData) {
             var vue = this;
             var grid = vue.DAI04030Grid1;
             if (!grid) return;
 
-            var row = grid.getSelectionRowData();
-            if (!row) return;
+            var params;
+            if (rowData) {
+                params = _.cloneDeep(rowData);
+            } else {
+                var rows = grid.SelectRow().getSelection();
+                if (rows.length != 1) return;
 
-            var params = _.cloneDeep(row);
+                params = _.cloneDeep(rows[0].rowData);
+            }
+
             params.IsNew = false;
 
             //TODO: 子画面化

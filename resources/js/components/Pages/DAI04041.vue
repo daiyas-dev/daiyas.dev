@@ -304,7 +304,7 @@
                             <fieldset class="kouza-info w-100">
                                 <legend class="kouza-info">口座情報</legend>
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-md-12">
                                         <label class="">金融機関名</label>
                                         <PopupSelect
                                             id="BankSelect"
@@ -328,16 +328,18 @@
                                             :editable=true
                                             :reuse=true
                                             :existsCheck=true
-                                            :inputWidth=60
-                                            :nameWidth=150
+                                            :inputWidth=100
+                                            :nameWidth=235
                                             :onChangeFunc=onBankChanged
                                             :isShowAutoComplete=true
                                             :AutoCompleteFunc=BankAutoCompleteFunc
                                             :AutoCompleteMinLength=1
                                         />
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="">支店名</label>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <label class="" >支店名</label>
                                         <PopupSelect
                                             id="BankBranchSelect"
                                             ref="PopupSelect_BankBranch"
@@ -351,8 +353,8 @@
                                             labelCd="支店CD"
                                             labelCdNm="支店名"
                                             :showColumns='[
-                                                { title: "金融機関CD", dataIndx: "金融機関CD", dataType: "string", width: 120, maxWidth: 120, minWidth: 120, colIndx: 0 },
-                                                { title: "金融機関名", dataIndx: "金融機関名", dataType: "string", width: 200, maxWidth: 200, minWidth: 200, colIndx: 1 },
+                                                { title: "金融機関CD", dataIndx: "銀行CD", dataType: "string", width: 100, maxWidth: 100, minWidth: 100, colIndx: 0 },
+                                                { title: "金融機関名", dataIndx: "銀行名", dataType: "string", width: 150, maxWidth: 250, minWidth: 150, colIndx: 1 },
                                             ]'
                                             :popupWidth=600
                                             :popupHeight=600
@@ -361,8 +363,8 @@
                                             :editable=true
                                             :reuse=true
                                             :existsCheck=true
-                                            :inputWidth=60
-                                            :nameWidth=150
+                                            :inputWidth=100
+                                            :nameWidth=235
                                             :ParamsChangedCheckFunc=BankBranchParamsChangedCheckFunc
                                             :onChangeFunc=onBankBranchChanged
                                             :isShowAutoComplete=true

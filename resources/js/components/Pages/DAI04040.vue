@@ -2,6 +2,12 @@
     <form id="this.$options.name">
         <div class="row">
             <div class="col-md-1">
+                <label>得意先ＣＤ</label>
+            </div>
+            <div class="col-md-1">
+                <input type="text" class="form-control" :value="viewModel.得意先ＣＤ" @input="onCustomerCdChanged">
+            </div>
+            <div class="col-md-1">
                 <label>部署</label>
             </div>
             <div class="col-md-2">
@@ -38,8 +44,12 @@
                     :onChangedFunc=onShoninDateChanged
                 />
             </div>
-            <div class="col-md-4">
+        </div>
+        <div class="row">
+            <div class="col-md-1">
                 <label>承認者</label>
+            </div>
+            <div class="col-md-4">
                 <PopupSelect
                     id="ShoninSelect"
                     ref="PopupSelect_Shonin"
@@ -64,12 +74,10 @@
                     :isShowAutoComplete=true
                 />
             </div>
-        </div>
-        <div class="row">
             <div class="col-md-1">
                 <label>キーワード</label>
             </div>
-            <div class="col-md-5">
+            <div class="col-md-3">
                 <input type="text" class="form-control" :value="viewModel.KeyWord" @input="onKeyWordChanged">
             </div>
             <div class="col-md-3">
@@ -172,7 +180,7 @@ export default {
                 colModel: [
                 ],
                 rowDblClick: function (event, ui) {
-                    vue.showDetail();
+                    vue.showDetail(ui.rowData);
                 },
             },
         });
@@ -215,10 +223,10 @@ export default {
         mountedFunc: function(vue) {
             //watcher
             vue.$watch(
-                "hasSelectionRow",
-                (newVal) => {
-                    console.log("hasSelectionRow watcher: " + newVal);
-                    vue.footerButtons.find(v => v.id == "DAI04040Grid1_Detail").disabled = !newVal;
+                "$refs.DAI04040Grid1.selectionRowCount",
+                cnt => {
+                    console.log("selectionRowCount watcher: " + cnt);
+                    vue.footerButtons.find(v => v.id == "DAI04040Grid1_Detail").disabled = cnt == 0 || cnt > 1;
                 }
             );
 
@@ -231,6 +239,14 @@ export default {
 
             //条件変更ハンドラ
             vue.conditionChanged();
+        },
+        onCustomerCdChanged: function(code, entity) {
+            var vue = this;
+
+            vue.viewModel.得意先ＣＤ = event.target.value;
+
+            //フィルタ変更
+            vue.filterChanged();
         },
         onStateChanged: function(code, entity) {
             var vue = this;
@@ -283,6 +299,9 @@ export default {
 
             var rules = [];
 
+            if (!!vue.viewModel.得意先ＣＤ) {
+                rules.push({ dataIndx: "得意先ＣＤ", condition: "equal", value: vue.viewModel.得意先ＣＤ });
+            }
             if (!!vue.viewModel.State) {
                 rules.push({ dataIndx: "状態区分", condition: "equal", value: vue.viewModel.State });
             }
@@ -413,15 +432,21 @@ export default {
 
             return res;
         },
-        showDetail: function() {
+        showDetail: function(rowData) {
             var vue = this;
             var grid = vue.DAI04040Grid1;
             if (!grid) return;
 
-            var row = grid.getSelectionRowData();
-            if (!row) return;
+            var params;
+            if (rowData) {
+                params = _.cloneDeep(rowData);
+            } else {
+                var rows = grid.SelectRow().getSelection();
+                if (rows.length != 1) return;
 
-            var params = _.cloneDeep(row);
+                params = _.cloneDeep(rows[0].rowData);
+            }
+
             params.IsNew = false;
 
             //TODO: 子画面化

@@ -84,7 +84,9 @@ export default {
             vue.ready = true;
             if (vue._vmodel[vue._bind] != window.loginInfo.bushoCd) {
                 vue._vmodel[vue._bind] = window.loginInfo.bushoCd;
+                if (vue.onChangedFunc) {
                 vue.onChangedFunc(window.loginInfo.bushoCd)
+                }
             }
         }
     },

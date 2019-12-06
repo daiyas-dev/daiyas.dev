@@ -37,6 +37,7 @@
             :options=grid1Options
             :onBeforeCreateFunc=onBeforeCreateFunc
             :onAfterSearchFunc=onAfterSearchFunc
+            :maxRowSelectCount=1
         />
     </form>
 </template>
@@ -104,7 +105,7 @@ export default {
                 colModel: [
                 ],
                 rowDblClick: function (event, ui) {
-                    vue.showDetail();
+                    vue.showDetail(ui.rowData);
                 },
             },
         });
@@ -135,10 +136,10 @@ export default {
         mountedFunc: function(vue) {
             //watcher
             vue.$watch(
-                "hasSelectionRow",
-                (newVal) => {
-                    console.log("hasSelectionRow watcher: " + newVal);
-                    vue.footerButtons.find(v => v.id == "DAI04190Grid1_Detail").disabled = !newVal;
+                "$refs.DAI04190Grid1.selectionRowCount",
+                cnt => {
+                    console.log("selectionRowCount watcher: " + cnt);
+                    vue.footerButtons.find(v => v.id == "DAI04190Grid1_Detail").disabled = cnt == 0 || cnt > 1;
                 }
             );
 
@@ -310,15 +311,21 @@ export default {
 
             return res;
         },
-        showDetail: function() {
+        showDetail: function(rowData) {
             var vue = this;
             var grid = vue.DAI04190Grid1;
             if (!grid) return;
 
-            var row = grid.getSelectionRowData();
-            if (!row) return;
+            var params;
+            if (rowData) {
+                params = _.cloneDeep(rowData);
+            } else {
+                var rows = grid.SelectRow().getSelection();
+                if (rows.length != 1) return;
 
-            var params = _.cloneDeep(row);
+                params = _.cloneDeep(rows[0].rowData);
+            }
+
             params.IsNew = false;
 
             //TODO: 子画面化
