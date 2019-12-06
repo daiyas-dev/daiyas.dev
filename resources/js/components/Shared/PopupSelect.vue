@@ -276,7 +276,7 @@ export default {
         },
         isDisabled: function() {
             var vue = this;
-            return vue.isPreload || vue.isLoading;
+            return vue.isPreload ? vue.isLoading : false;
         },
         isPrevEnabled: function() {
             var vue = this;
