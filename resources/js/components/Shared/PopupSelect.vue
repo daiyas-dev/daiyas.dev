@@ -955,7 +955,7 @@ export default {
             var vue = this;
 
             if (key == vue.autoCompleteKey && !vue.autoCompleteList) {
-                console.log("getAutoCompleteList: same key " + key);
+                // console.log("getAutoCompleteList: same key " + key);
                 return vue.autoCompleteList;
             }
 
@@ -972,7 +972,7 @@ export default {
                     })
                     ;
 
-            console.log("getAutoCompleteList:" + key + " = " + list.length + "[" + match.length + "]");
+            // console.log("getAutoCompleteList:" + key + " = " + list.length + "[" + match.length + "]");
 
             vue.autoCompleteKey = key;
             vue.autoCompleteList = list;

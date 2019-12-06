@@ -483,7 +483,6 @@ export default {
         },
         CourseAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
-            console.log(comp._id, " Autocomplete")
 
             if (!dataList.length) return [];
 
