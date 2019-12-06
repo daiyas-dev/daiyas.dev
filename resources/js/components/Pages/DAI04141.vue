@@ -22,7 +22,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="">消費税率</label>
                 <input type="text" class="form-control text-right" style="" :value="viewModel.消費税率">
             </div>

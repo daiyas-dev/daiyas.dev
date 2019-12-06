@@ -2,6 +2,34 @@
     <form id="this.$options.name">
         <div class="row">
             <div class="col-md-1">
+                <label>部署CD</label>
+            </div>
+            <div class="col-md-1">
+                <input type="text" class="form-control" :value="viewModel.部署CD" @input="onBushoCdChanged">
+            </div>
+            <div class="col-md-1">
+                <label style="width:90px">部署グループ</label>
+            </div>
+            <div class="col-md-1">
+                <input type="text" class="form-control" :value="viewModel.部署グループ" @input="onBushoGroupChanged">
+            </div>
+            <div class="col-md-2">
+                <label class="groupFactory">工場</label>
+                <VueSelect
+                    id="factory"
+                    :vmodel=viewModel
+                    bind="工場ＣＤ"
+                    uri="/Utilities/GetCodeList"
+                    :params="{ cd: 37 }"
+                    :withCode=true
+                    :hasNull=true
+                    customStyle="{ width: 100px; }"
+                    :onChangedFunc=onFactoryChanged
+                />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1">
                 <label>キーワード</label>
             </div>
             <div class="col-md-5">
@@ -151,6 +179,28 @@ export default {
             console.log("Cache Set Key1", myCache.set("key1", { value: 1 }));
             console.log("Cache Get Key1", myCache.get("key1"));
         },
+        onBushoCdChanged: _.debounce(function(event) {
+            var vue = this;
+
+            vue.viewModel.部署CD = event.target.value;
+
+            //フィルタ変更
+            vue.filterChanged();
+        }, 300),
+        onBushoGroupChanged: _.debounce(function(event) {
+            var vue = this;
+
+            vue.viewModel.部署グループ = event.target.value;
+
+            //フィルタ変更
+            vue.filterChanged();
+        }, 300),
+        onFactoryChanged: function(code, entity) {
+            var vue = this;
+
+            //フィルタ変更
+            vue.filterChanged();
+        },
         onKeyWordChanged: _.debounce(function(event) {
             var vue = this;
 
@@ -184,6 +234,15 @@ export default {
 
             var rules = [];
 
+            if (!!vue.viewModel.部署CD) {
+                rules.push({ dataIndx: "部署CD", condition: "equal", value: vue.viewModel.部署CD });
+            }
+            if (!!vue.viewModel.部署グループ) {
+                rules.push({ dataIndx: "部署グループ", condition: "equal", value: vue.viewModel.部署グループ });
+            }
+            if (!!vue.viewModel.工場ＣＤ) {
+                rules.push({ dataIndx: "工場ＣＤ", condition: "equal", value: vue.viewModel.工場ＣＤ });
+            }
             if (!!vue.viewModel.KeyWord) {
                 var keywords = vue.viewModel.KeyWord.split(/[, 、　]/)
                     .map(v => _.trim(v))

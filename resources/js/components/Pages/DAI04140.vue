@@ -111,7 +111,7 @@ export default {
                 colModel: [
                 ],
                 rowDblClick: function (event, ui) {
-                    vue.showDetail();
+                    vue.showDetail(ui.rowData);
                 },
             },
         });
@@ -142,13 +142,12 @@ export default {
         mountedFunc: function(vue) {
             //watcher
             vue.$watch(
-                "hasSelectionRow",
-                (newVal) => {
-                    console.log("hasSelectionRow watcher: " + newVal);
-                    vue.footerButtons.find(v => v.id == "DAI04140Grid1_Detail").disabled = !newVal;
+                "$refs.DAI04140Grid1.selectionRowCount",
+                cnt => {
+                    console.log("selectionRowCount watcher: " + cnt);
+                    vue.footerButtons.find(v => v.id == "DAI04140Grid1_Detail").disabled = cnt == 0 || cnt > 1;
                 }
             );
-
             console.log("Cache keys", myCache.keys());
             console.log("Cache Set Key1", myCache.set("key1", { value: 1 }));
             console.log("Cache Get Key1", myCache.get("key1"));
@@ -206,7 +205,7 @@ export default {
                 rules.push({ dataIndx: "税区分", condition: "equal", value: vue.viewModel.税区分 });
             }
             if (!!vue.viewModel.消費税名称) {
-                rules.push({ dataIndx: "消費税名称", condition: "equal", value: vue.viewModel.消費税名称 });
+                rules.push({ dataIndx: "消費税名称", condition: "contain", value: vue.viewModel.消費税名称 });
             }
             if (!!vue.viewModel.KeyWord) {
                 var keywords = vue.viewModel.KeyWord.split(/[, 、　]/)
@@ -328,15 +327,21 @@ export default {
 
             return res;
         },
-        showDetail: function() {
+        showDetail: function(rowData) {
             var vue = this;
             var grid = vue.DAI04140Grid1;
             if (!grid) return;
 
-            var row = grid.getSelectionRowData();
-            if (!row) return;
+            var params;
+            if (rowData) {
+                params = _.cloneDeep(rowData);
+            } else {
+                var rows = grid.SelectRow().getSelection();
+                if (rows.length != 1) return;
 
-            var params = _.cloneDeep(row);
+                params = _.cloneDeep(rows[0].rowData);
+            }
+
             params.IsNew = false;
 
             //TODO: 子画面化
