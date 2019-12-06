@@ -425,6 +425,74 @@ $WhereKeyWord
         return response()->json($BushoCdList);
     }
 
+    /**
+     * GetCourseTableMngForMaint
+     */
+    public function GetCourseTableMngForMaint($request)
+    {
+        $BushoCd = $request->BushoCd;
+
+        if (!$BushoCd) return [];
+
+        $CourseCd = $request->CourseCd;
+        $WhereCourseCd = $CourseCd ? " AND CM.コースＣＤ=$CourseCd " : "";
+
+        $sql = "
+SELECT
+	CM.部署ＣＤ,
+	BM.部署名,
+	CM.コース区分,
+	CK.各種名称 AS コース区分名,
+	CM.コースＣＤ,
+	CM.コース名,
+    CM.担当者ＣＤ,
+	TM.担当者名,
+	CTM.管理ＣＤ,
+	CTM.一時フラグ,
+	IIF(CTM.一時フラグ=0, '基本', IIF(CTM.一時フラグ=1, '一時', '未登録')) AS 種別,
+	CTM.適用開始日,
+    CTM.適用終了日,
+    CTM.修正担当者ＣＤ,
+	CTM.備考,
+	STM.担当者名 AS 修正担当者名,
+    CTM.修正日
+FROM コースマスタ CM
+LEFT JOIN 部署マスタ BM
+	ON BM.部署ＣＤ=CM.部署ＣＤ
+LEFT JOIN 各種テーブル CK
+	ON CK.行NO=CM.コース区分 AND CK.各種CD=19
+LEFT JOIN 担当者マスタ TM
+	ON TM.担当者ＣＤ=CM.担当者ＣＤ
+LEFT JOIN コーステーブル管理 CTM
+    ON CTM.部署ＣＤ=CM.部署ＣＤ AND CTM.コースＣＤ=CM.コースＣＤ
+LEFT JOIN 担当者マスタ STM
+	ON STM.担当者ＣＤ=CTM.修正担当者ＣＤ
+WHERE
+    CM.部署ＣＤ=$BushoCd
+$WhereCourseCd
+ORDER BY
+	CM.部署ＣＤ,
+	CM.コースＣＤ,
+	CM.コース区分,
+	CTM.一時フラグ,
+	CTM.適用開始日,
+    CTM.適用終了日
+        ";
+
+        $result = collect(DB::select($sql))
+            ->map(function ($mng) {
+                $vm = (object) $mng;
+
+                //一覧用項目追加
+                $vm->Cd = $mng->種別;
+                $vm->CdNm = $mng->備考;
+
+                return $vm;
+            })
+            ->values();
+
+        return response()->json($result);
+    }
 
     /**
      * GetCourseTableForMaint

@@ -57,6 +57,7 @@ const router = new VueRouter({
     mode: "hash",
     base: __dirname,
     routes: routes,
+    stringifyQuery: params => _.isEmpty(params) ? "" : ("?" + $.param(params)),
 });
 router.beforeEach((to, from, next) => {
     if (!!window.VueApp) {
