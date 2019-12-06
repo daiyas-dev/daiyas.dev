@@ -66,7 +66,9 @@ export default {
 
                 if (info.isLogOn && vue._vmodel[vue._bind] != info.user.bushoCd) {
                     vue._vmodel[vue._bind] = info.user.bushoCd;
-                    vue.onChangedFunc(info.user.bushoCd)
+                    if (vue.onChangedFunc) {
+                        vue.onChangedFunc(info.user.bushoCd)
+                    }
                 }
             });
             vue.$root.$on("logOff", info => {

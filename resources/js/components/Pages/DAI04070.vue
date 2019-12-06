@@ -56,7 +56,7 @@
             dataUrl="/Utilities/GetBushoListForMaint"
             :query=this.viewModel
             :SearchOnCreate=true
-            :SearchOnActivate=true
+            :SearchOnActivate=false
             :options=grid1Options
             :onBeforeCreateFunc=onBeforeCreateFunc
             :onAfterSearchFunc=onAfterSearchFunc
@@ -125,6 +125,7 @@ export default {
                 colModel: [
                 ],
                 rowDblClick: function (event, ui) {
+                    this.SelectRow().add({rowIndx: ui.rowIndx});
                     vue.showDetail(ui.rowData);
                 },
             },

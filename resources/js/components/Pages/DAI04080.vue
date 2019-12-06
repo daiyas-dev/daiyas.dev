@@ -51,7 +51,7 @@
                     :inputWidth=80
                     :nameWidth=150
                     :isShowAutoComplete=true
-                    :AutoCompleteFunc=CourseAutoCompleteFunc
+                    :AutoCompleteFunc=TantoAutoCompleteFunc
                 />
             </div>
             <div class="col-md-3">
@@ -475,6 +475,42 @@ export default {
                 path: "/DAI04/DAI04041",
                 query: params,
             });
+        },
+        TantoAutoCompleteFunc: function(input, dataList, comp) {
+            var vue = this;
+
+            if (!dataList.length) return [];
+
+            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
+            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
+
+            var wholeColumns = ["担当者名", "部署.部署名"];
+
+            if (input == comp.selectValue && comp.isUnique) {
+                keyAND = keyOR = [];
+            }
+
+            var list = dataList
+                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
+                .filter(v => {
+                    return keyOR.length == 0
+                        || _.some(keyOR, k => v.担当者ＣＤ.startsWith(k))
+                        || _.some(keyOR, k => v.whole.includes(k))
+                })
+                .filter(v => {
+                    return keyAND.length == 0 || _.every(keyAND, k => v.whole.includes(k));
+                })
+                .map(v => {
+                    var ret = v;
+                    ret.label = v.担当者ＣＤ + " : " + v.担当者名 + "【" + (!!v.部署 ? v.部署.部署名 : "部署無し") + "】";
+                    ret.value = v.担当者ＣＤ;
+                    ret.text = v.担当者名;
+                    return ret;
+                })
+                ;
+
+            return list;
         },
     }
 }

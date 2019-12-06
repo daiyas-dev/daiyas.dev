@@ -19,7 +19,7 @@
             <div class="col-md-4">
                 <VueSelectBusho
                     ref="VueSelectBusho"
-                    :v-vmodel=others
+                    :vmodel=others
                     bind="BushoCd"
                     :hasNull=false
                     :onChangedFunc=onBushoChanged
@@ -69,13 +69,13 @@
             </div>
             <div class="col-md-4">
                 <PopupSelect
-                    id="CourseSelect_Ref"
-                    ref="PopupSelect_Course_Ref"
+                    id="CourseSelectOthers"
+                    ref="PopupSelect_CourseOthers"
                     :vmodel=others
                     bind="CourseCd"
                     :buddies='{ CourseNm: "コース名", TantoCd: "担当者ＣＤ", TantoNm: "担当者名" }'
                     dataUrl="/Utilities/GetCourseList"
-                    :params="{ bushoCd: viewModel.BushoCd }"
+                    :params="{ bushoCd: others.BushoCd }"
                     :isPreload=true
                     title="コース一覧"
                     labelCd="コースCD"
@@ -119,7 +119,64 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-5">
+            <div class="col-md-1">
+                <label>適用期間</label>
+            </div>
+            <div class="col-md-4">
+                <DatePickerWrapper
+                    id="StartDate"
+                    ref="DatePicker_StartDate"
+                    format="YYYY年MM月DD日"
+                    dayViewHeaderFormat="YYYY年MM月"
+                    :vmodel=viewModel
+                    bind="StartDate"
+                    :editable=true
+                    :hideButton=true
+                />
+                <span class="ml-2 mr-2">～</span>
+                <DatePickerWrapper
+                    id="EndDate"
+                    ref="DatePicker_EndDate"
+                    format="YYYY年MM月DD日"
+                    dayViewHeaderFormat="YYYY年MM月"
+                    :vmodel=viewModel
+                    bind="EndDate"
+                    :editable=true
+                    :hideButton=true
+                />
+            </div>
+            <div class="col-md-2">
+            </div>
+            <div class="col-md-1">
+                <label class="text-left">適用期間</label>
+            </div>
+            <div class="col-md-4">
+                <DatePickerWrapper
+                    id="StartDateOthers"
+                    ref="DatePicker_StartDateOthers"
+                    format="YYYY年MM月DD日"
+                    dayViewHeaderFormat="YYYY年MM月"
+                    :vmodel=others
+                    bind="StartDate"
+                    :editable=true
+                    :hideButton=true
+                />
+                <span class="ml-2 mr-2">～</span>
+                <DatePickerWrapper
+                    id="EndDateOthers"
+                    ref="DatePicker_EndDateOthers"
+                    format="YYYY年MM月DD日"
+                    dayViewHeaderFormat="YYYY年MM月"
+                    :vmodel=others
+                    bind="EndDate"
+                    :editable=true
+                    :hideButton=true
+                />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-5 align-items-start">
                 <PqGridWrapper
                     id="DAI04091Grid1"
                     ref="DAI04091Grid1"
@@ -138,42 +195,93 @@
             </div>
             <div class="col-md-2">
                 <div class="btn-group-vertical w-100 d-flex align-items-center moveButtons">
-                    <fieldset class="text-center">
-                        <legend class="moveLegend">先頭に移動</legend>
-                        <div class="btn-group moveTops">
-                            <button type="button" class="btn btn-light toLeft p-0 mr-2">
-                                <span><i class="fa fa-angle-double-left fa-lg"></i>左へ</span>
-                            </button>
-                            <button type="button" class="btn btn-light toRight d-flex align-items-center p-0 ml-2">
-                                <span>右へ<i class="fa fa-angle-double-right fa-lg"></i></span>
-                            </button>
+                    <fieldset class="text-center moveSelection">
+                        <legend class="moveLegend">選択行</legend>
+                        <div class="w-100 d-flex justify-content-center">
+                            <fieldset class="text-center">
+                                <legend class="moveLegend moveFirst">先頭に<span class="moveAction">移動</span></legend>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-light toLeft">
+                                        <span><i class="fa fa-angle-left fa-lg"></i>左へ</span>
+                                    </button>
+                                    <button type="button" class="btn btn-light toRight">
+                                        <span>右へ<i class="fa fa-angle-right fa-lg"></i></span>
+                                    </button>
+                                </div>
+                            </fieldset>
+                        </div>
+                        <div class="w-100 d-flex justify-content-center">
+                            <fieldset class="text-center">
+                                <legend class="moveLegend moveAt">選択位置に<span class="moveAction">移動</span></legend>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-light toLeft">
+                                        <span><i class="fa fa-angle-left fa-lg"></i>左へ</span>
+                                    </button>
+                                    <button type="button" class="btn btn-light toRight">
+                                        <span>右へ<i class="fa fa-angle-right fa-lg"></i></span>
+                                    </button>
+                                </div>
+                            </fieldset>
+                        </div>
+                        <div class="w-100 d-flex justify-content-center">
+                            <fieldset class="text-center">
+                                <legend class="moveLegend moveLast">末尾に<span class="moveAction">移動</span></legend>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-light toLeft">
+                                        <span><i class="fa fa-angle-left fa-lg"></i>左へ</span>
+                                    </button>
+                                    <button type="button" class="btn btn-light toRight">
+                                        <span>右へ<i class="fa fa-angle-right fa-lg"></i></span>
+                                    </button>
+                                </div>
+                            </fieldset>
                         </div>
                     </fieldset>
-                    <fieldset class="text-center">
-                        <legend class="moveLegend">選択位置に移動</legend>
-                        <div class="btn-group moveAt">
-                            <button type="button" class="btn btn-light toLeft p-0 mr-2">
-                                <span><i class="fa fa-angle-left fa-lg"></i>左へ</span>
-                            </button>
-                            <button type="button" class="btn btn-light toRight d-flex align-items-center p-0 ml-2">
-                                <span>右へ<i class="fa fa-angle-right fa-lg"></i></span>
-                            </button>
+                    <fieldset class="text-center moveSelection">
+                        <legend class="moveLegend">全行</legend>
+                        <div class="w-100 d-flex justify-content-center">
+                            <fieldset class="text-center">
+                                <legend class="moveLegend moveFirst">先頭に<span class="moveAction">移動</span></legend>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-light toLeft">
+                                        <span><i class="fa fa-angle-double-left fa-lg"></i>左へ</span>
+                                    </button>
+                                    <button type="button" class="btn btn-light toRight">
+                                        <span>右へ<i class="fa fa-angle-double-right fa-lg"></i></span>
+                                    </button>
+                                </div>
+                            </fieldset>
                         </div>
-                    </fieldset>
-                    <fieldset class="text-center">
-                        <legend class="moveLegend">末尾に移動</legend>
-                        <div class="btn-group moveBottoms">
-                            <button type="button" class="btn btn-light toLeft p-0 mr-2">
-                                <span><i class="fa fa-angle-double-left fa-lg"></i>左へ</span>
-                            </button>
-                            <button type="button" class="btn btn-light toRight d-flex align-items-center p-0 ml-2">
-                                <span>右へ<i class="fa fa-angle-double-right fa-lg"></i></span>
-                            </button>
+                        <div class="w-100 d-flex justify-content-center">
+                            <fieldset class="text-center">
+                                <legend class="moveLegend moveAt">選択位置に<span class="moveAction">移動</span></legend>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-light toLeft">
+                                        <span><i class="fa fa-angle-double-left fa-lg"></i>左へ</span>
+                                    </button>
+                                    <button type="button" class="btn btn-light toRight">
+                                        <span>右へ<i class="fa fa-angle-double-right fa-lg"></i></span>
+                                    </button>
+                                </div>
+                            </fieldset>
+                        </div>
+                        <div class="w-100 d-flex justify-content-center">
+                            <fieldset class="text-center">
+                                <legend class="moveLegend moveLast">末尾に<span class="moveAction">移動</span></legend>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-light toLeft">
+                                        <span><i class="fa fa-angle-double-left fa-lg"></i>左へ</span>
+                                    </button>
+                                    <button type="button" class="btn btn-light toRight">
+                                        <span>右へ<i class="fa fa-angle-double-right fa-lg"></i></span>
+                                    </button>
+                                </div>
+                            </fieldset>
                         </div>
                     </fieldset>
                 </div>
             </div>
-            <div class="col-md-5">
+            <div class="col-md-5 align-items-start">
                 <PqGridWrapper
                     id="DAI04091Grid2"
                     ref="DAI04091Grid2"
@@ -196,7 +304,9 @@
 
 <style scoped>
 fieldset {
-    width: 80%;
+    width: 90%;
+    display: flex;
+    justify-content: center;
     border: 1px solid gray;
     padding: 0;
     padding-bottom: 5px;
@@ -206,9 +316,24 @@ fieldset {
 .moveLegend {
     width: auto;
     font-size: 15px;
+    margin: 0;
+}
+.moveAction {
+    font-weight: bold;
+    color: green;
+}
+.moveAction.copy {
+    color: orange;
 }
 .moveButtons button {
-    width: 55px;
+    width: 55px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    margin-left: 8px;
+    margin-right: 8px;
 }
 .moveButtons button span {
     display: flex;
@@ -269,12 +394,18 @@ export default {
                 CourseNm: null,
                 TantoCd: null,
                 TantoNm: null,
+                StartDate: null,
+                EndDate: null,
             },
             others: {
+                BushoCd: null,
+                BushoNm: null,
                 CourseCd: null,
                 CourseNm: null,
                 TantoCd: null,
                 TantoNm: null,
+                StartDate: null,
+                EndDate: null,
             },
             DAI04091Grid1: null,
             DAI04091Grid2: null,
@@ -475,18 +606,29 @@ export default {
             );
         },
         mountedFunc: function(vue) {
+            //keydown handler
+            $(document)
+            .on("keydown", event => {
+                if (event.key == "Control") {
+                    $(vue.$el).find(".moveAction").text("コピー").addClass("copy");
+                }
+                return true;
+            })
+            .on("keyup", event => {
+                if (event.key == "Control") {
+                    $(vue.$el).find(".moveAction").text("移動").removeClass("copy");
+                }
+                return true;
+            });
+
             //watcher
             vue.$watch(
                 "hasSelectionRow",
                 (newVal) => {
-                    console.log("hasSelectionRow watcher: " + newVal);
+                    // console.log("hasSelectionRow watcher: " + newVal);
                     vue.footerButtons.find(v => v.id == "DAI04091Grid1_Detail").disabled = !newVal;
                 }
             );
-
-            console.log("Cache keys", myCache.keys());
-            console.log("Cache Set Key1", myCache.set("key1", { value: 1 }));
-            console.log("Cache Get Key1", myCache.get("key1"));
         },
         onBushoChanged: function(code, entity) {
             var vue = this;
@@ -528,7 +670,7 @@ export default {
         CourseAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
 
-            console.log("CourseAutoCompleteFunc", comp.id, dataList);
+            // console.log("CourseAutoCompleteFunc", comp.id, dataList);
 
             if (!dataList.length) return [];
 
@@ -538,7 +680,7 @@ export default {
 
             var wholeColumns = ["コース名", "担当者名"];
 
-            if (input == comp.selectValue && comp.isUnique) {
+            if ((input == comp.selectValue && comp.isUnique) || comp.isError) {
                 keyAND = keyOR = [];
             }
 
@@ -561,14 +703,14 @@ export default {
                 })
                 ;
 
-            console.log("CourseAutoCompleteFunc", comp.id, list);
+            // console.log("CourseAutoCompleteFunc", comp.id, list);
 
             return list;
         },
-        CourseParamsChangedCheckFunc: function(newVal, oldVal) {
+        CourseParamsChangedCheckFunc: function(newVal, oldVal, comp) {
             var vue = this;
-
-            return !!newVal.bushoCd && vue.$refs.VueSelectBusho.ready;
+            console.log(comp.id + " CourseParamsChangedCheckFunc", newVal);
+            return !!newVal.bushoCd;
         },
         onAfterSearchFunc: function (gridVue, grid, res) {
             var vue = this;
@@ -581,7 +723,7 @@ export default {
         },
         onChangeGrid: function(grid, ui, event) {
             var vue = this;
-            console.log("DAI04091 onChangeGrid", ui, event);
+            // console.log("DAI04091 onChangeGrid", ui, event);
 
             var targetEvents = ["add", "delete", "addNodes", "deleteNodes"];
 
@@ -592,7 +734,7 @@ export default {
         resetData: function(grid) {
             var vue = this;
 
-            console.log("resetData", grid.widget().prop("id"));
+            // console.log("resetData", grid.widget().prop("id"));
 
             var rowList = grid.pdata
                 .map((v, i) => {

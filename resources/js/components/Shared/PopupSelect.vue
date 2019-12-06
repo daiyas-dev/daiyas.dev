@@ -21,7 +21,7 @@
             :readonly="this.editable == false"
             autocomplete="off"
             v-on=inputListeners
-            :disabled="isPreload || isLoading"
+            :disabled=isDisabled
         >
         <button type="button"
             :class="[
@@ -34,7 +34,7 @@
             ]"
             :id="'btn' + id"
             @click="showList"
-            :disabled="isPreload || isLoading"
+            :disabled=isDisabled
             :tabIndex="hasButtonFocus ? 0 : -1"
         >
             <i class="fa fa-search fa-lg"></i>
@@ -51,7 +51,7 @@
             ]"
             :id="'btn_prev' + id"
             @click="prevList"
-            :disabled="isPreload || isLoading"
+            :disabled=isDisabled
             :tabIndex="hasButtonFocus ? 0 : -1"
         >
             <i class="fa fa-caret-left fa-lg"></i>
@@ -84,7 +84,7 @@
             ]"
             :id="'btn' + id + 'Clear'"
             @click="clearValue"
-            :disabled="isPreload || isLoading"
+            :disabled=isDisabled
             :tabIndex="hasButtonFocus ? 0 : -1"
         >
             <i class="fa fa-times fa-lg"></i>
@@ -274,6 +274,10 @@ export default {
                 ev,
             )
         },
+        isDisabled: function() {
+            var vue = this;
+            return vue.isPreload ? vue.isLoading : false;
+        },
         isPrevEnabled: function() {
             var vue = this;
             var ret = !!vue.dataList
@@ -313,10 +317,10 @@ export default {
             sync: true,
             handler: function(newVal) {
                 var vue = this;
-                //console.log("PopupSelect params", newVal, vue.paramsPrev);
+                console.log(vue.id + " PopupSelect params watch", newVal, vue.paramsPrev);
 
                 if (!_.isEqual(newVal, vue.paramsPrev, (v, o) => v == o)) {
-                    if (vue.ParamsChangedCheckFunc && !vue.ParamsChangedCheckFunc(newVal, vue.paramsPrev)) {
+                    if (vue.ParamsChangedCheckFunc && !vue.ParamsChangedCheckFunc(newVal, vue.paramsPrev, vue)) {
                         return;
                     }
 
@@ -333,6 +337,7 @@ export default {
             sync: true,
             handler: function(newVal, oldVal) {
                 var vue = this;
+                console.log(vue.id + " PopupSelect vmodel watch", newVal, vue.selectValue);
                 var value = _.cloneDeep(vue.vmodel[vue.bind]);
 
                 if (!_.isEqual(_.trim(vue.selectValue), _.trim(value))) {
@@ -363,14 +368,19 @@ export default {
     },
     created: function () {
         var vue = this;
-        console.log("PopupSelect created", this.id);
 
         vue.$root.$on("plantChanged", vue.plantChanged);
         vue.$root.$on("accountChanged", vue.accountChanged);
 
         if (vue.isPreload) {
+            console.log(vue.id + " create preload", vue.params);
+            if (!!vue.ParamsChangedCheckFunc && !vue.ParamsChangedCheckFunc(vue.params, vue.paramsPrev, vue)) {
+                return;
+            }
+
             vue.dataList = null;
             $(vue.$el).children().prop("disabled", true);
+
             vue.getDataList(vue.params, (res) => {
                 $(vue.$el).children().not(".select-name").prop("disabled", false);
                 $(vue.$el).find(".select-name").prop("disabled", !vue.isNameEditable);
@@ -385,7 +395,7 @@ export default {
         }
     },
     mounted: function () {
-        console.log("PopupSelect mounted", this.id);
+        // console.log("PopupSelect mounted", this.id);
     },
     beforeUpdated: function () {
     },
@@ -400,11 +410,17 @@ export default {
     methods: {
         accountChanged: function() {
             var vue = this;
-            console.log("PopupSelect accountChanged");
+            // console.log("PopupSelect accountChanged");
 
             if (vue.isPreload) {
+                console.log(vue.id + " accountChanged", vue.params);
+                if (!!vue.ParamsChangedCheckFunc && !vue.ParamsChangedCheckFunc(vue.params, vue.paramsPrev, vue)) {
+                    return;
+                }
+
                 vue.dataList = null;
                 $(vue.$el).children().prop("disabled", true);
+
                 vue.getDataList(vue.params, (res) => {
                     $(vue.$el).children().not(".select-name").prop("disabled", false);
                     $(vue.$el).find(".select-name").prop("disabled", !vue.isNameEditable);
@@ -475,7 +491,7 @@ export default {
                     var res = response.data;
 
                     if (!!params && !vue.isShowAutoComplete && !_.isEqual($.trim(params.selectValue), $.trim(vue.selectValue))) {
-                        console.log("PopupSelect already value chenged:" + params.selectValue + " -> " + vue.selectValue);
+                        // console.log("PopupSelect already value chenged:" + params.selectValue + " -> " + vue.selectValue);
                         return;
                     }
 
@@ -502,8 +518,8 @@ export default {
 
                     //データリスト保持
                     vue.dataList = res;
-                    console.log("popup select get dataList");
-                    console.log(vue.dataList);
+                    // console.log(vue.id + " get dataList");
+                    // console.log(vue.dataList);
 
                     vue.isLoading = false;
 
@@ -946,7 +962,7 @@ export default {
             var vue = this;
 
             if (key == vue.autoCompleteKey && !vue.autoCompleteList) {
-                console.log("getAutoCompleteList: same key " + key);
+                // console.log("getAutoCompleteList: same key " + key);
                 return vue.autoCompleteList;
             }
 
@@ -963,7 +979,7 @@ export default {
                     })
                     ;
 
-            console.log("getAutoCompleteList:" + key + " = " + list.length + "[" + match.length + "]");
+            // console.log("getAutoCompleteList:" + key + " = " + list.length + "[" + match.length + "]");
 
             vue.autoCompleteKey = key;
             vue.autoCompleteList = list;

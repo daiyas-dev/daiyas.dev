@@ -21,6 +21,7 @@
                     :vmodel=viewModel
                     bind="DeliveryDate"
                     :editable=true
+                    :onChangedFunc=onDeliveryDateChanged
                 />
             </div>
         </div>
@@ -37,6 +38,7 @@
                     :params="{ cd: 19 }"
                     :withCode=true
                     :hasNull=false
+                    :onChangedFunc=onCourseKbnChanged
                 />
             </div>
             <div class="col-md-1">
@@ -61,6 +63,7 @@
                     :exceptCheck="{ Cd: 0 }"
                     :inputWidth=100
                     :nameWidth=300
+                    :onAfterChangedFunc=onCourseStartChanged
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=CourseAutoCompleteFunc
                 />
@@ -89,6 +92,7 @@
                     :exceptCheck="{ Cd: 9999 }"
                     :inputWidth=100
                     :nameWidth=300
+                    :onAfterChangedFunc=onCourseEndChanged
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=CourseAutoCompleteFunc
                 />
@@ -171,10 +175,11 @@ export default {
                     sortable: false,
                 },
                 filterModel: {
-                    on: false,
+                    on: true,
+                    mode: "AND",
                     header: false,
                     menuIcon: false,
-                    hideRows: true,
+                    hideRows: false,
                 },
                 sortModel: {
                     on: true,
@@ -191,6 +196,28 @@ export default {
                 formulas: [
                 ],
                 colModel: [
+                    {
+                        title: "コースＣＤ",
+                        dataIndx: "コースＣＤ", dataType: "string", key: true,
+                        hidden: true,
+                        editable: false,
+                        fixed: true,
+                    },
+                    {
+                        title: "コース名",
+                        dataIndx: "コース名", dataType: "string", key: true,
+                        width: 200, minWidth: 200,
+                        editable: false,
+                        fixed: true,
+                        render: ui => {
+                            if (ui.rowData.pq_grandsummary) {
+                                //集計行
+                                ui.rowData["コース名"] = "合計";
+                                return { text: "合計" };
+                            }
+                            return ui;
+                        },
+                    },
                 ],
                 printSize: "A4",    //TODO: deprecated
                 printDirection: "portrait", //"landscape"   //TODO: deprecated
@@ -207,20 +234,14 @@ export default {
             vue.footerButtons.push(
                 { visible: "true", value: "検索", id: "DAI01010Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
-                        var params = $.extend(true, {}, vue.viewModel);
-
-                        //配送日を"YYYYMMDD"形式に編集
-                        params.DeliveryDate = params.DeliveryDate ? moment(params.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
-                        vue.DAI01010Grid1.searchData(params);
+                        vue.conditionChanged();
                     }
                 },
                 { visible: "true", value: "印刷", id: "DAI01020Grid1_Printout", disabled: false, shortcut: "F6",
                     onClick: function () {
-                        var params = $.extend(true, {}, vue.viewModel);
-
-                        //配送日を"YYYYMMDD"形式に編集
-                        params.DeliveryDate = params.DeliveryDate ? moment(params.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
-                        vue.DAI01010Grid1.searchData(params, false, null, () => vue.DAI01010Grid1.print(vue.setPrintOptions));
+                        vue.DAI01010Grid1.print(vue.setPrintOptions);
+                        //TODO: 検索 + 印刷とするか？
+                        //vue.conditionChanged(() => vue.DAI01010Grid1.print(vue.setPrintOptions));
                     }
                 }
             );
@@ -306,9 +327,81 @@ export default {
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
-            var entity = entities.find(e => e.code == code);
 
-            //vue.viewModel.BushoInfo = entity.info;
+            //検索条件変更
+            vue.conditionChanged();
+        },
+        onDeliveryDateChanged: function(code, entity) {
+            var vue = this;
+
+            //条件変更ハンドラ
+            vue.conditionChanged();
+        },
+        onCourseKbnChanged: function(code, entity) {
+            var vue = this;
+
+            //条件変更ハンドラ
+            vue.conditionChanged();
+        },
+        onCourseStartChanged: function(code, entity) {
+            var vue = this;
+
+            //フィルタ変更ハンドラ
+            vue.filterChanged();
+        },
+        onCourseEndChanged: function(code, entity) {
+            var vue = this;
+
+            //フィルタ変更ハンドラ
+            vue.filterChanged();
+        },
+        conditionChanged: _.debounce(function(callback) {
+            var vue = this;
+            var grid = vue.DAI01010Grid1;
+
+            //PqGrid読込待ち
+            new Promise((resolve, reject) => {
+                var timer = setInterval(function () {
+                    grid = vue.DAI01010Grid1;
+                    if (!!grid && vue.getLoginInfo().isLogOn) {
+                        clearInterval(timer);
+                        return resolve(grid);
+                    }
+                }, 500);
+            })
+            .then((grid) => {
+                var params = $.extend(true, {}, vue.viewModel);
+
+                //配送日を"YYYYMMDD"形式に編集
+                params.DeliveryDate = params.DeliveryDate ? moment(params.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
+
+                //コース開始/終了はフィルタするので除外
+                delete params.CourseStart;
+                delete params.CourseEnd;
+
+                grid.searchData(params, false, null, callback);
+            });
+        }, 300),
+        filterChanged: function() {
+            var vue = this;
+            var grid = vue.DAI01010Grid1;
+
+            if (!grid) return;
+
+            var rules = [];
+            var crules = [];
+            if (!!vue.viewModel.CourseStart) {
+                crules.push({ condition: "gte", value: vue.viewModel.CourseStart });
+            }
+            if (!!vue.viewModel.CourseEnd) {
+                crules.push({ condition: "lte", value: vue.viewModel.CourseEnd });
+            }
+
+            if (crules.length) {
+                rules.push({ dataIndx: "コースＣＤ", mode: "AND", crules: crules });
+            }
+
+            grid.filter({ oper: "replace", mode: "AND", rules: rules });
         },
         onAfterSearchFunc: function (vue, grid, res) {
             //集計単位取得
@@ -322,29 +415,8 @@ export default {
             .flatten().uniqBy("Cd").sortBy("Cd").value()
             .filter(v => !!v.Nm);
 
-            //列定義にコース名を設定
-            grid.options.colModel = [
-                {
-                    title: "コースＣＤ",
-                    dataIndx: "コースＣＤ", dataType: "string", key: true,
-                    hidden: true,
-                    editable: false,
-                },
-                {
-                    title: "コース名",
-                    dataIndx: "コース名", dataType: "string", key: true,
-                    width: 200, minWidth: 200,
-                    editable: false,
-                    render: ui => {
-                        if (ui.rowData.pq_grandsummary) {
-                            //集計行
-                            ui.rowData["コース名"] = "合計";
-                            return { text: "合計" };
-                        }
-                        return ui;
-                    },
-                },
-            ];
+            //列定義初期化
+            grid.options.colModel = grid.options.colModel.filter(c => c.fixed);
 
             //列定義に集計単位を設定
             grid.options.colModel = grid.options.colModel.concat(items.map(v => {
@@ -414,13 +486,15 @@ export default {
 
             if (!dataList.length) return [];
 
-            if (input == comp.selectValue && comp.isUnique) return dataList;
-
             var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 
             var wholeColumns = ["コース名", "担当者名"];
+
+            if ((input == comp.selectValue && comp.isUnique) || comp.isError) {
+                keyAND = keyOR = [];
+            }
 
             var list = dataList
                 .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })

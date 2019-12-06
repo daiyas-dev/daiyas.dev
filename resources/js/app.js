@@ -64,7 +64,10 @@ router.beforeEach((to, from, next) => {
         var userId = window.VueApp.$refs.LogonForm.$data.user.uid;
         if (!!userId && !to.query["userId"]) {
             to.query["userId"] = userId;
-            next(to);
+            router.push({
+                path: to.path,
+                query: to.query,
+            })
         } else {
             next();
         }
