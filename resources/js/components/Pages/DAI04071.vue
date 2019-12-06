@@ -16,6 +16,7 @@
                     :tabindex="viewModel.IsNew ? 0 : -1"
                 >
             </div>
+            <div class="col-md-1" />
             <div class="col-md-1">
                 <label class="">部署名</label>
             </div>
@@ -41,7 +42,7 @@
             <div class="col-md-1">
                 <label class="">郵便番号</label>
             </div>
-            <div class="col-md-1">
+            <div class="col-md-2">
                 <input class="form-control p-2" style="width: 90px;" type="text" :value=viewModel.郵便番号>
             </div>
             <div class="col-md-1">
@@ -55,7 +56,7 @@
             <div class="col-md-1">
                 <label class="">電話番号</label>
             </div>
-            <div class="col-md-1">
+            <div class="col-md-2">
                 <input class="form-control p-1" style="width: 120px;" type="text" :value=viewModel.電話番号>
             </div>
             <div class="col-md-1">
@@ -66,7 +67,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-9">
+            <div class="col-md-12">
                 <fieldset class="kouza-info w-100">
                     <legend class="kouza-info">口座情報１</legend>
                     <div class="row">
@@ -94,8 +95,8 @@
                                 :editable=true
                                 :reuse=true
                                 :existsCheck=true
-                                :inputWidth=60
-                                :nameWidth=150
+                                :inputWidth=95
+                                :nameWidth=235
                                 :onChangeFunc=onBankChanged
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=BankAutoCompleteFunc
@@ -111,7 +112,7 @@
                                 bind="金融機関支店CD1"
                                 buddy="金融機関支店名"
                                 dataUrl="/Utilities/GetBankBranchList"
-                                :params="{ BankCd: viewModel.金融機関CD1, BranchCd: viewModel.金融機関支店CD1, KeyWord: BankBranchKeyWord }"
+                                :params="{ BankCd: viewModel.金融機関CD1, BranchCd: viewModel.金融機関支店CD1, KeyWord: BankBranchKeyWord1 }"
                                 :isPreload=true
                                 title="支店一覧"
                                 labelCd="支店CD"
@@ -127,10 +128,10 @@
                                 :editable=true
                                 :reuse=true
                                 :existsCheck=true
-                                :inputWidth=60
-                                :nameWidth=150
+                                :inputWidth=95
+                                :nameWidth=190
                                 :ParamsChangedCheckFunc=BankBranchParamsChangedCheckFunc
-                                :onChangeFunc=onBankBranchChanged
+                                :onChangeFunc=onBankBranchChanged1
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=BankBranchAutoCompleteFunc
                                 :AutoCompleteMinLength=1
@@ -138,7 +139,7 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="">口座種別</label>
                             <VueSelect
                                 id="KouzaKind"
@@ -151,10 +152,11 @@
                                 customStyle="{ width: 100px; }"
                             />
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label>口座番号</label>
                             <input class="form-control p-1" style="min-width: 125px;" type="text" :value=viewModel.口座番号1>
                         </div>
+                        <div class="col-md-1" />
                         <div class="col-md-5">
                             <label class="">口座名義人</label>
                             <input class="form-control" type="text" style="font-size: 15px !important;" :value=viewModel.口座名義人1>
@@ -164,7 +166,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-9">
+            <div class="col-md-12">
                 <fieldset class="kouza-info w-100">
                     <legend class="kouza-info">口座情報２</legend>
                     <div class="row">
@@ -191,8 +193,8 @@
                                 :editable=true
                                 :reuse=true
                                 :existsCheck=true
-                                :inputWidth=60
-                                :nameWidth=150
+                                :inputWidth=95
+                                :nameWidth=235
                                 :onChangeFunc=onBankChanged
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=BankAutoCompleteFunc
@@ -208,7 +210,7 @@
                                 bind="金融機関支店CD2"
                                 buddy="金融機関支店名"
                                 dataUrl="/Utilities/GetBankBranchList"
-                                :params="{ BankCd: viewModel.金融機関CD2, BranchCd: viewModel.金融機関支店CD2, KeyWord: BankBranchKeyWord }"
+                                :params="{ BankCd: viewModel.金融機関CD2, BranchCd: viewModel.金融機関支店CD2, KeyWord: BankBranchKeyWord2 }"
                                 :isPreload=true
                                 title="支店一覧"
                                 labelCd="支店CD"
@@ -224,10 +226,10 @@
                                 :editable=true
                                 :reuse=true
                                 :existsCheck=true
-                                :inputWidth=60
-                                :nameWidth=150
+                                :inputWidth=95
+                                :nameWidth=190
                                 :ParamsChangedCheckFunc=BankBranchParamsChangedCheckFunc
-                                :onChangeFunc=onBankBranchChanged
+                                :onChangeFunc=onBankBranchChanged2
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=BankBranchAutoCompleteFunc
                                 :AutoCompleteMinLength=1
@@ -235,7 +237,7 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="">口座種別</label>
                             <VueSelect
                                 id="KouzaKind"
@@ -248,10 +250,11 @@
                                 customStyle="{ width: 100px; }"
                             />
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label>口座番号</label>
                             <input class="form-control p-1" style="min-width: 125px;" type="text" :value=viewModel.口座番号2>
                         </div>
+                        <div class="col-md-1" />
                         <div class="col-md-5">
                             <label class="">口座名義人</label>
                             <input class="form-control" type="text" style="font-size: 15px !important;" :value=viewModel.口座名義人2>
@@ -261,7 +264,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-9">
                 <fieldset class="kouza-info w-100">
                     <legend class="kouza-info">モバイル連携情報</legend>
                     <div class="row">
@@ -273,7 +276,7 @@
                                 :vmodel=viewModel
                                 bind="モバイル_主要商品ＣＤ1"
                                 buddy="商品名"
-                                dataUrl="/Utilities/GetProductList"
+                                dataUrl="/Utilities/GetProductListForMaint"
                                 :params="{ ProductCd: viewModel.モバイル_主要商品ＣＤ1 }"
                                 :isPreload=true
                                 title="商品名一覧"
@@ -288,8 +291,8 @@
                                 :editable=true
                                 :reuse=true
                                 :existsCheck=true
-                                :inputWidth=60
-                                :nameWidth=220
+                                :inputWidth=95
+                                :nameWidth=235
                                 :onChangeFunc=onProductChanged
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=ProductAutoCompleteFunc
@@ -306,7 +309,7 @@
                                 :vmodel=viewModel
                                 bind="モバイル_主要商品ＣＤ2"
                                 buddy="商品名"
-                                dataUrl="/Utilities/GetProductList"
+                                dataUrl="/Utilities/GetProductListForMaint"
                                 :params="{ ProductCd: viewModel.モバイル_主要商品ＣＤ2 }"
                                 :isPreload=true
                                 title="商品名一覧"
@@ -321,8 +324,8 @@
                                 :editable=true
                                 :reuse=true
                                 :existsCheck=true
-                                :inputWidth=60
-                                :nameWidth=220
+                                :inputWidth=95
+                                :nameWidth=235
                                 :onChangeFunc=onProductChanged
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=ProductAutoCompleteFunc
@@ -338,7 +341,7 @@
                     </div>
                 </fieldset>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="row">
                     <div class="col-md-12">
                         <label class="groupFactory">部署グループ</label>
@@ -451,7 +454,8 @@ export default {
             noViewModel: true,
             DAI04071Grid1: null,
             BankKeyWord: null,
-            BankBranchKeyWord: null,
+            BankBranchKeyWord1: null,
+            BankBranchKeyWord2: null,
             grid1Options: {
                 selectionModel: { type: "cell", mode: "single", row: true, onTab: "nextEdit" },
                 showHeader: true,
@@ -609,6 +613,59 @@ export default {
 
             return list;
         },
+        BankBranchParamsChangedCheckFunc: function(newVal, oldVal) {
+            var vue = this;
+            var ret = !!newVal.BankCd;
+            console.log("BankBranchParamsChangedCheckFunc", ret);
+            return ret;
+        },
+        onBankBranchChanged1: function(element, info, comp, isNoMsg, isValid, noSearch) {
+            var vue = this;
+            console.log("onBankBranchChanged1", info, comp, isValid);
+            if (!isValid) {
+                vue.BankBranchKeyWord1 = comp.selectValue;
+            }
+        },
+        onBankBranchChanged2: function(element, info, comp, isNoMsg, isValid, noSearch) {
+            var vue = this;
+            console.log("onBankBranchChanged2", info, comp, isValid);
+            if (!isValid) {
+                vue.BankBranchKeyWord2 = comp.selectValue;
+            }
+        },
+        BankBranchAutoCompleteFunc: function(input, dataList, comp) {
+            var vue = this;
+
+            if (!dataList.length) return [];
+
+            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
+            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
+
+            var wholeColumns = ["Cd", "CdNm", "支店名カナ"];
+
+            var list = dataList
+                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
+                .filter(v => {
+                    return keyOR.length == 0
+                        || _.some(keyOR, k => v.Cd.startsWith(k))
+                        || _.some(keyOR, k => v.whole.includes(k))
+                })
+                .filter(v => {
+                    return keyAND.length == 0
+                        || _.every(keyAND, k => v.whole.includes(k));
+                })
+                .map(v => {
+                    var ret = v;
+                    ret.label = v.Cd + " : " + v.CdNm+ "【" + v.支店名カナ + "】";
+                    ret.value = v.Cd;
+                    ret.text = v.CdNm;
+                    return ret;
+                })
+                ;
+            console.log("BankBranchAutoCompleteFunc:" + input + " = " + list.length);
+            return list;
+        },
         ProductAutoCompleteFunc: function(input, dataList) {
             var vue = this;
 
@@ -633,59 +690,13 @@ export default {
                 })
                 .map(v => {
                     var ret = v;
-                    ret.label = v.Cd + " : " + v.CdNm;
+                    ret.label = v.Cd + " : " + v.CdNm+ "【" + v.商品略称 + "】";
                     ret.value = v.Cd;
                     ret.text = v.CdNm;
                     return ret;
                 })
                 ;
             console.log("ProductAutoCompleteFunc:" + input + " = " + list.length);
-            return list;
-        },
-        BankBranchParamsChangedCheckFunc: function(newVal, oldVal) {
-            var vue = this;
-            var ret = !!newVal.BankCd;
-            console.log("BankBranchParamsChangedCheckFunc", ret);
-            return ret;
-        },
-        onBankBranchChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
-            var vue = this;
-            console.log("onBankBranchChanged", info, comp, isValid);
-            if (!isValid) {
-                vue.BankBranchKeyWord = comp.selectValue;
-            }
-        },
-        BankBranchAutoCompleteFunc: function(input, dataList) {
-            var vue = this;
-
-            if (!dataList.length) return [];
-
-            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
-            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
-            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
-
-            var wholeColumns = ["Cd", "CdNm", "支店名カナ"];
-
-            var list = dataList
-                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
-                .filter(v => {
-                    return keyOR.length == 0
-                        || _.some(keyOR, k => v.Cd.startsWith(k))
-                        || _.some(keyOR, k => v.whole.includes(k))
-                })
-                .filter(v => {
-                    return keyAND.length == 0
-                        || _.every(keyAND, k => v.whole.includes(k));
-                })
-                .map(v => {
-                    var ret = v;
-                    ret.label = v.Cd + " : " + v.CdNm;
-                    ret.value = v.Cd;
-                    ret.text = v.CdNm;
-                    return ret;
-                })
-                ;
-            console.log("BankBranchAutoCompleteFunc:" + input + " = " + list.length);
             return list;
         },
     }

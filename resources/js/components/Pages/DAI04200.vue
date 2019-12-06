@@ -26,6 +26,7 @@
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=BankAutoCompleteFunc
                     :onChangeFunc=onBankChanged
+                    :isPreload=true
                 />
             </div>
             <div class="col-md-1">

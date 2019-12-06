@@ -304,7 +304,7 @@
                             <fieldset class="kouza-info w-100">
                                 <legend class="kouza-info">口座情報</legend>
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-md-12">
                                         <label class="">金融機関名</label>
                                         <PopupSelect
                                             id="BankSelect"
@@ -328,16 +328,18 @@
                                             :editable=true
                                             :reuse=true
                                             :existsCheck=true
-                                            :inputWidth=60
-                                            :nameWidth=150
+                                            :inputWidth=100
+                                            :nameWidth=235
                                             :onChangeFunc=onBankChanged
                                             :isShowAutoComplete=true
                                             :AutoCompleteFunc=BankAutoCompleteFunc
                                             :AutoCompleteMinLength=1
                                         />
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="">支店名</label>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <label class="" >支店名</label>
                                         <PopupSelect
                                             id="BankBranchSelect"
                                             ref="PopupSelect_BankBranch"
@@ -361,8 +363,8 @@
                                             :editable=true
                                             :reuse=true
                                             :existsCheck=true
-                                            :inputWidth=60
-                                            :nameWidth=150
+                                            :inputWidth=100
+                                            :nameWidth=235
                                             :ParamsChangedCheckFunc=BankBranchParamsChangedCheckFunc
                                             :onChangeFunc=onBankBranchChanged
                                             :isShowAutoComplete=true
