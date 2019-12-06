@@ -1,7 +1,10 @@
 ﻿<template>
     <div
         class="form-group d-inline-flex align-items-center mb-0"
-        :class='"DatePickerWrapper " + id'
+        :class='[
+            "DatePickerWrapper " + id,
+            hideButton ? "hideButton" : ""
+        ]'
     >
         <span v-if="label" class="text-nowrap d-flex align-items-center mr-1" :for="_id + '_calendar_btn'">{{label}}</span>
         <date-picker
@@ -34,6 +37,10 @@
     padding-right: 6px;
     border-top-right-radius: 0px;
     border-bottom-right-radius: 0px;
+}
+.DatePickerWrapper.hideButton input.target-input {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
 }
 .DatePickerWrapper .calendar-button {
     width: 40px !important;

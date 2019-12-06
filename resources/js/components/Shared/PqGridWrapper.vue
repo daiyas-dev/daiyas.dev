@@ -200,7 +200,7 @@ export default {
             editable: false,
             fillHandle: "",
             scrollModel: { autoFit: true, theme: true },
-            showTitle: false,
+            showTitle: true,
             resizable: false,
             showHeader: true,
             showToolbar: false,
@@ -695,23 +695,15 @@ export default {
                     grid.gridRight.refreshView();
                 }
 
-                //データ読込済みの場合、計算式及び集計行の為の再描画(最新版のFormulaにより解決した模様なのでC/O)
-                //if (grid.pdata && grid.pdata.length > 0 && !grid.isRendered) {
-                //    grid.isRendered = true;
-                //    grid.refreshView();
-                //    return false;
-                //} else {
-                //    grid.isRendered = false;
-                //}
+                //title
+                if (!!grid.options.filterModel && !!grid.options.filterModel.rules && !!grid.options.filterModel.rules.length) {
+                    grid.options.title = "件数: " + grid.pdata.length + " / " + grid.getData().length + " [フィルタ中]";
+                } else {
+                    grid.options.title = "件数: " + grid.getData().length;
+                }
+                grid._refreshTitle();
 
                 vue.resize();
-
-                //ヘッダ行中央寄せ
-                //$("#" + id + " .pq-grid-col *").css("text-align", "center");
-                //$("#" + id + " .pq-grid-col *").css("vertical-align", "middle");
-
-                //NumberCell選択時に行選択
-                $("#" + id + " .pq-grid-number-cell").off("click").on("click", vue.selectRow);
 
                 //パラメータ指定更新関数
                 if (vue._onRefreshFunc && vue.grid) {
@@ -2600,7 +2592,7 @@ export default {
             var grid = vue.grid;
 
             if (isPrint) {
-                var json = _(grid.getData()).concat(grid.options.summaryData).flatten().value()
+                var json = _(grid.pdata).concat(grid.options.summaryData).flatten().value()
                     .map(v => {
                         var base = _.reduce(grid.options.colModel, (acc, c) => { acc[c.dataIndx] = ""; return acc; }, {});
                         var ret = $.extend(true, base, v);
@@ -2756,6 +2748,11 @@ export default {
     .pq-body-outer .pq-cont-inner.pq-cont-right {
         overflow-x: auto !important;
         overflow-y: scroll !important;
+    }
+
+    .pq-grid-title {
+        font-weight: bold;
+        padding-bottom: 0 !important;
     }
 
     /* セル */

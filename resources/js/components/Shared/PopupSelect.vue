@@ -316,7 +316,7 @@ export default {
                 //console.log("PopupSelect params", newVal, vue.paramsPrev);
 
                 if (!_.isEqual(newVal, vue.paramsPrev, (v, o) => v == o)) {
-                    if (vue.ParamsChangedCheckFunc && !vue.ParamsChangedCheckFunc(newVal, vue.paramsPrev)) {
+                    if (vue.ParamsChangedCheckFunc && !vue.ParamsChangedCheckFunc(newVal, vue.paramsPrev, vue)) {
                         return;
                     }
 
@@ -363,14 +363,18 @@ export default {
     },
     created: function () {
         var vue = this;
-        console.log("PopupSelect created", this.id);
 
         vue.$root.$on("plantChanged", vue.plantChanged);
         vue.$root.$on("accountChanged", vue.accountChanged);
 
         if (vue.isPreload) {
+            if (!!vue.ParamsChangedCheckFunc && !vue.ParamsChangedCheckFunc(vue.params, vue.paramsPrev, vue)) {
+                return;
+            }
+
             vue.dataList = null;
             $(vue.$el).children().prop("disabled", true);
+
             vue.getDataList(vue.params, (res) => {
                 $(vue.$el).children().not(".select-name").prop("disabled", false);
                 $(vue.$el).find(".select-name").prop("disabled", !vue.isNameEditable);
@@ -385,7 +389,7 @@ export default {
         }
     },
     mounted: function () {
-        console.log("PopupSelect mounted", this.id);
+        // console.log("PopupSelect mounted", this.id);
     },
     beforeUpdated: function () {
     },
@@ -400,11 +404,16 @@ export default {
     methods: {
         accountChanged: function() {
             var vue = this;
-            console.log("PopupSelect accountChanged");
+            // console.log("PopupSelect accountChanged");
 
             if (vue.isPreload) {
+                if (!!vue.ParamsChangedCheckFunc && !vue.ParamsChangedCheckFunc(vue.params, vue.paramsPrev, vue)) {
+                    return;
+                }
+
                 vue.dataList = null;
                 $(vue.$el).children().prop("disabled", true);
+
                 vue.getDataList(vue.params, (res) => {
                     $(vue.$el).children().not(".select-name").prop("disabled", false);
                     $(vue.$el).find(".select-name").prop("disabled", !vue.isNameEditable);
@@ -475,7 +484,7 @@ export default {
                     var res = response.data;
 
                     if (!!params && !vue.isShowAutoComplete && !_.isEqual($.trim(params.selectValue), $.trim(vue.selectValue))) {
-                        console.log("PopupSelect already value chenged:" + params.selectValue + " -> " + vue.selectValue);
+                        // console.log("PopupSelect already value chenged:" + params.selectValue + " -> " + vue.selectValue);
                         return;
                     }
 
@@ -502,8 +511,8 @@ export default {
 
                     //データリスト保持
                     vue.dataList = res;
-                    console.log("popup select get dataList");
-                    console.log(vue.dataList);
+                    // console.log(vue.id + " get dataList");
+                    // console.log(vue.dataList);
 
                     vue.isLoading = false;
 

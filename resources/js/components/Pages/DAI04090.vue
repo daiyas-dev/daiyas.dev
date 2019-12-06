@@ -115,6 +115,7 @@ export default {
                 colModel: [
                 ],
                 rowDblClick: function (event, ui) {
+                    this.SelectRow().add({rowIndx: ui.rowIndx});
                     vue.showDetail(ui.rowData);
                 },
             },
@@ -195,12 +196,11 @@ export default {
             new Promise((resolve, reject) => {
                 var timer = setInterval(function () {
                     grid = vue.DAI04090Grid1;
-                    console.log("DAI04090 conditionChanged", "grid is " + grid, vue.getLoginInfo().isLogOn);
                     if (!!grid && vue.getLoginInfo().isLogOn) {
                         clearInterval(timer);
                         return resolve(grid);
                     }
-                }, 100);
+                }, 500);
             })
             .then((grid) => {
                 //再検索

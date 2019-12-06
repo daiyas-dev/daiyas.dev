@@ -85,7 +85,7 @@
                     :existsCheck=true
                     :inputWidth=150
                     :nameWidth=300
-                    :onChangeFunc=onCourseChanged
+                    :onAfterChangedFunc=onCourseChanged
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=CourseAutoCompleteFunc
                     :ParamsChangedCheckFunc=CourseParamsChangedCheckFunc
@@ -124,7 +124,7 @@
                     :existsCheck=true
                     :inputWidth=150
                     :nameWidth=300
-                    :onChangeFunc=onCustomerChanged
+                    :onAfterChangedFunc=onCustomerChanged
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=CustomerAutoCompleteFunc
                     :ParamsChangedCheckFunc=CustomerParamsChangedCheckFunc
@@ -523,40 +523,17 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        onCourseChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
+        onCourseChanged: function(code, entity) {
             var vue = this;
-            vue.CourseChanged(info, isValid);
-        },
-        CourseChanged: function(info, isValid, noSearch) {
-            var vue = this;
-            var grid = vue.DAI07010Grid1;
-
-            vue.viewModel.CourseCd = info["コースCD"];
-            vue.viewModel.CourseNm = info["コース名"];
-
-            vue.viewModel.TantoCd = info["担当者ＣＤ"];
-            vue.viewModel.TantoNm = info["担当者名"];
-
-            if (vue.viewModel.CourseCd) {
-                vue.$refs.PopupSelect_Customer.focus();
-            }
 
             //条件変更ハンドラ
-            vue.conditionChanged(noSearch);
+            vue.conditionChanged();
         },
-        onCustomerChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
+        onCustomerChanged: function(code, entity) {
             var vue = this;
-            vue.CustomerChanged(info, isValid);
-        },
-        CustomerChanged: function(info, isValid, noSearch) {
-            var vue = this;
-
-            vue.viewModel.CustomerCd = info["得意先ＣＤ"];
-            vue.viewModel.CustomerNm = info["得意先名"];
-            vue.viewModel.TelNo = info["電話番号１"];
 
             //条件変更ハンドラ
-            vue.conditionChanged(noSearch);
+            vue.conditionChanged();
         },
         conditionChanged: function(noSearch) {
             var vue = this;
