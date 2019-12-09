@@ -22,6 +22,7 @@
         :showColumns=this.showColumns
         :is="this.component"
         :query=this.query
+        :params=this.params
         :vm=this.viewModel></div>
 </template>
 

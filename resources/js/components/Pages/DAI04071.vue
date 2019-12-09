@@ -80,7 +80,7 @@
                                 bind="金融機関CD1"
                                 buddy="金融機関名称1"
                                 dataUrl="/Utilities/GetBankList"
-                                :params="{ BankCd: viewModel.金融機関CD1, KeyWord: BankKeyWord }"
+                                :params="{ BankCd: null, KeyWord: null }"
                                 :SelectorParamsFunc=BankSelectorParamsFunc
                                 :isPreload=true
                                 title="金融機関一覧"
@@ -277,7 +277,7 @@
                                 bind="モバイル_主要商品ＣＤ1"
                                 buddy="商品名"
                                 dataUrl="/Utilities/GetProductListForMaint"
-                                :params="{ ProductCd: viewModel.モバイル_主要商品ＣＤ1 }"
+                                :params="{ ProductCd: null }"
                                 :isPreload=true
                                 title="商品名一覧"
                                 labelCd="モバイル_主要商品ＣＤ1"
@@ -296,7 +296,6 @@
                                 :onChangeFunc=onProductChanged
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=ProductAutoCompleteFunc
-                                :AutoCompleteMinLength=1
                             />
                         </div>
                     </div>
@@ -310,7 +309,7 @@
                                 bind="モバイル_主要商品ＣＤ2"
                                 buddy="商品名"
                                 dataUrl="/Utilities/GetProductListForMaint"
-                                :params="{ ProductCd: viewModel.モバイル_主要商品ＣＤ2 }"
+                                :params="{ ProductCd: null }"
                                 :isPreload=true
                                 title="商品名一覧"
                                 labelCd="モバイル_主要商品ＣＤ2"
@@ -329,7 +328,6 @@
                                 :onChangeFunc=onProductChanged
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=ProductAutoCompleteFunc
-                                :AutoCompleteMinLength=1
                             />
                         </div>
                     </div>

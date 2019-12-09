@@ -130,7 +130,7 @@
                     bind="MngCd"
                     :buddies='{ Kind: "一時フラグ", KindNm: "種別", StartDate: "適用開始日", EndDate: "適用終了日", Memo: "備考" }'
                     dataUrl="/Utilities/GetCourseTableMngForMaint"
-                    :params="{ BushoCd: viewModel.BushoCd, CourseCd: viewModel.CourseCd }"
+                    :params="{ BushoCd: viewModel.BushoCd, CourseCd: viewModel.CourseCd, WithNew: true }"
                     :isPreload=true
                     title="コーステーブル一覧"
                     labelCd="種別"
@@ -147,6 +147,7 @@
                     :editable=true
                     :reuse=true
                     :existsCheck=true
+                    :exceptCheck="[{Cd: '新規'}]"
                     :inputWidth=90
                     :nameWidth=195
                     :onAfterChangedFunc=onMngCdChanged
@@ -168,7 +169,7 @@
                     bind="MngCd"
                     :buddies='{ Kind: "一時フラグ", KindNm: "種別", StartDate: "適用開始日", EndDate: "適用終了日", Memo: "備考" }'
                     dataUrl="/Utilities/GetCourseTableMngForMaint"
-                    :params="{ BushoCd: others.BushoCd, CourseCd: others.CourseCd }"
+                    :params="{ BushoCd: others.BushoCd, CourseCd: others.CourseCd, WithNew: true }"
                     :isPreload=true
                     title="コーステーブル一覧"
                     labelCd="種別"
@@ -185,6 +186,7 @@
                     :editable=true
                     :reuse=true
                     :existsCheck=true
+                    :exceptCheck='[""]'
                     :inputWidth=90
                     :nameWidth=195
                     :onAfterChangedFunc=onMngCdChangedOthers
@@ -273,8 +275,8 @@
                     <fieldset class="text-center moveSelection">
                         <legend class="moveLegend">選択行</legend>
                         <div class="w-100 d-flex justify-content-center">
-                            <fieldset class="text-center">
-                                <legend class="moveLegend moveFirst">先頭に<span class="moveAction">移動</span></legend>
+                            <fieldset class="text-center moveFirst">
+                                <legend class="moveLegend">先頭に<span class="moveAction">移動</span></legend>
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-light toLeft">
                                         <span><i class="fa fa-angle-left fa-lg"></i>左へ</span>
@@ -286,8 +288,8 @@
                             </fieldset>
                         </div>
                         <div class="w-100 d-flex justify-content-center">
-                            <fieldset class="text-center">
-                                <legend class="moveLegend moveAt">選択位置に<span class="moveAction">移動</span></legend>
+                            <fieldset class="text-center moveAt">
+                                <legend class="moveLegend">選択位置に<span class="moveAction">移動</span></legend>
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-light toLeft">
                                         <span><i class="fa fa-angle-left fa-lg"></i>左へ</span>
@@ -299,8 +301,8 @@
                             </fieldset>
                         </div>
                         <div class="w-100 d-flex justify-content-center">
-                            <fieldset class="text-center">
-                                <legend class="moveLegend moveLast">末尾に<span class="moveAction">移動</span></legend>
+                            <fieldset class="text-center moveLast">
+                                <legend class="moveLegend">末尾に<span class="moveAction">移動</span></legend>
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-light toLeft">
                                         <span><i class="fa fa-angle-left fa-lg"></i>左へ</span>
@@ -312,11 +314,11 @@
                             </fieldset>
                         </div>
                     </fieldset>
-                    <fieldset class="text-center moveSelection">
+                    <fieldset class="text-center moveWhole">
                         <legend class="moveLegend">全行</legend>
                         <div class="w-100 d-flex justify-content-center">
-                            <fieldset class="text-center">
-                                <legend class="moveLegend moveFirst">先頭に<span class="moveAction">移動</span></legend>
+                            <fieldset class="text-center moveFirst">
+                                <legend class="moveLegend">先頭に<span class="moveAction">移動</span></legend>
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-light toLeft">
                                         <span><i class="fa fa-angle-double-left fa-lg"></i>左へ</span>
@@ -328,8 +330,8 @@
                             </fieldset>
                         </div>
                         <div class="w-100 d-flex justify-content-center">
-                            <fieldset class="text-center">
-                                <legend class="moveLegend moveAt">選択位置に<span class="moveAction">移動</span></legend>
+                            <fieldset class="text-center moveAt">
+                                <legend class="moveLegend">選択位置に<span class="moveAction">移動</span></legend>
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-light toLeft">
                                         <span><i class="fa fa-angle-double-left fa-lg"></i>左へ</span>
@@ -341,8 +343,8 @@
                             </fieldset>
                         </div>
                         <div class="w-100 d-flex justify-content-center">
-                            <fieldset class="text-center">
-                                <legend class="moveLegend moveLast">末尾に<span class="moveAction">移動</span></legend>
+                            <fieldset class="text-center moveLast">
+                                <legend class="moveLegend">末尾に<span class="moveAction">移動</span></legend>
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-light toLeft">
                                         <span><i class="fa fa-angle-double-left fa-lg"></i>左へ</span>
@@ -443,7 +445,12 @@ export default {
         hasSelectionRow: function() {
             var vue = this;
             var grid = vue.DAI04091Grid1;
-            return !!grid && !!grid.getSelectionRowData();
+            return !!grid && !!grid.SelectRow().getSelection().length;
+        },
+        hasSelectionRowOthers: function() {
+            var vue = this;
+            var grid = vue.DAI04091Grid2;
+            return !!grid && !!grid.SelectRow().getSelection().length;
         },
         grid2Options: function() {
             var vue = this;
@@ -644,7 +651,21 @@ export default {
         });
 
         if (!!vue.$route && !!vue.$route.query) {
-            data.viewModel = $.extend(true, data.viewModel, vue.$route.query);
+            var targets = vue.$route.query.targets;
+
+            if (!targets) return;
+
+            if (targets[0]) {
+                data.viewModel.BushoCd = targets[0].部署ＣＤ;
+                data.viewModel.CourseCd = targets[0].コースＣＤ;
+                data.viewModel.MngCd = targets[0].管理ＣＤ;
+            }
+
+            if (targets[1]) {
+                data.others.BushoCd = targets[1].部署ＣＤ;
+                data.others.CourseCd = targets[1].コースＣＤ;
+                data.others.MngCd = targets[1].管理ＣＤ;
+            }
         }
 
         return data;
@@ -707,12 +728,20 @@ export default {
                 return true;
             });
 
+            //move node buttons
+            $(vue.$el).find(".moveButtons .btn").on("click", event => vue.moveNodes(event, vue));
+
             //watcher
             vue.$watch(
                 "hasSelectionRow",
-                (newVal) => {
-                    // console.log("hasSelectionRow watcher: " + newVal);
-                    vue.footerButtons.find(v => v.id == "DAI04091Grid1_Detail").disabled = !newVal;
+                newVal => {
+                    console.log("hasSelectionRow watch", newVal);
+                }
+            );
+            vue.$watch(
+                "hasSelectionRowOthers",
+                newVal => {
+                    console.log("hasSelectionRowOthers watch", newVal);
                 }
             );
         },
@@ -760,7 +789,8 @@ export default {
                 var required = !!vue.viewModel.BushoCd && !!vue.viewModel.CourseCd && !!vue.viewModel.MngCd;
                 var bushoChanged = !grid1.prevPostData || grid1.prevPostData.bushoCd != vue.viewModel.BushoCd;
                 var courseChanged = !grid1.prevPostData || grid1.prevPostData.courseCd != vue.viewModel.CourseCd;
-                var mngCdChanged = !grid1.prevPostData || grid1.prevPostData.mngCd != vue.viewModel.MngCd;
+                var mngCdChanged = !["新規基本", "新規一時"].includes(vue.viewModel.MngCd)
+                                 && (!grid1.prevPostData || grid1.prevPostData.mngCd != vue.viewModel.MngCd);
 
                 if (required && (forced || bushoChanged || courseChanged || mngCdChanged)) {
                     grid1.searchData({ bushoCd: vue.viewModel.BushoCd, courseCd: vue.viewModel.CourseCd, mngCd: vue.viewModel.MngCd });
@@ -772,13 +802,14 @@ export default {
             var grid2 = vue.DAI04091Grid2;
 
             if (!!grid2 && vue.getLoginInfo().isLogOn) {
-                var required = !!vue.viewModel.BushoCd && !!vue.others.CourseCd && !!vue.others.MngCd;
+                var required = !!vue.others.BushoCd && !!vue.others.CourseCd && !!vue.others.MngCd;
                 var bushoChanged = !grid2.prevPostData || grid2.prevPostData.bushoCd != vue.viewModel.BushoCd;
                 var courseChanged = !grid2.prevPostData || grid2.prevPostData.courseCd != vue.others.CourseCd;
-                var mngCdChanged = !grid2.prevPostData || grid2.prevPostData.mngCd != vue.others.MngCd;
+                var mngCdChanged = !["新規基本", "新規一時"].includes(vue.others.MngCd)
+                                 && (!grid2.prevPostData || grid2.prevPostData.mngCd != vue.others.MngCd);
 
                 if (required && (forced || bushoChanged || courseChanged || mngCdChanged)) {
-                    grid2.searchData({ bushoCd: vue.viewModel.BushoCd, courseCd: vue.others.CourseCd, mngCd: vue.others.MngCd });
+                    grid2.searchData({ bushoCd: vue.others.BushoCd, courseCd: vue.others.CourseCd, mngCd: vue.others.MngCd });
                 }
             }
         },
@@ -884,13 +915,29 @@ export default {
                     var ret = v;
                     ret.label = v.種別
                               + (!!v.一時フラグ || !!v.備考 ? " : " : "")
-                              + (!!v.一時フラグ ? (v.適用開始日 + " ～ " + v.適用終了日) : "")
+                              + (!!v.適用開始日 && !!v.適用終了日 ? (v.適用開始日 + " ～ " + v.適用終了日) : "")
                               + (!!v.備考 ? ("(" + v.備考 + ")") : "");
-                    ret.value = v.種別;
-                    ret.text = v.種別;
+                    ret.value = v.管理ＣＤ || "";
+                    ret.text = v.種別 + (!!v.備考 ? ("(" + v.備考 + ")") : "");
                     return ret;
                 })
                 ;
+
+            // //新規(一時)用
+            // list.unshift({
+            //     label: "新規(一時)",
+            //     value: "",
+            //     text: "新規(一時)",
+            // });
+
+            // //新規(基本)用
+            // if (!list.some(v => v.一時フラグ == "0")) {
+            //     list.unshift({
+            //         label: "新規(基本)",
+            //         value: "",
+            //         text: "新規(基本)",
+            //     });
+            // }
 
             return list;
         },
@@ -953,10 +1000,50 @@ export default {
 
             grid.updateRow({ rowList: rowList, history: false });
         },
-        onMainGridResize: function(grid) {
+        moveNodes: (event, vue) => {
+            var grid1 = vue.DAI04091Grid1;
+            var grid2 = vue.DAI04091Grid2;
+
+            var $btn = $(event.currentTarget);
+
+            var isSelection = $btn.closest(".moveSelection").length == 1;
+
+            var toRight = $btn.hasClass("toRight");
+            var from = toRight ? grid1 : grid2;
+            var to = toRight ? grid2 : grid1;
+
+            if (!isSelection) {
+                from.SelectRow().selectAll();
+            }
+
+            var nodes = from.SelectRow().getSelection().length > 0
+                ? from.SelectRow().getSelection().map(v => v.rowData)
+                : [];
+
+            if (!nodes.length) return;
+            var nodes = _.cloneDeep(nodes);
+
+            var moveAt = $btn.closest(".moveFirst").length
+                ? 0
+                : $btn.closest(".moveLast").length
+                    ? to.getData().length
+                    : to.SelectRow().getSelection().length
+                        ? (_.last(to.SelectRow().getSelection()).rowIndx + 1)
+                        : 0;
+
+            var isCopy = event.ctrlKey;
+
+            console.log("moveNodes", nodes.map(v => v.Cd), moveAt, isCopy);
+            if (!isCopy) {
+                from.deleteNodes(nodes);
+            }
+            to.addNodes(nodes , moveAt);
+            to.scrollRow({rowIndxPage: moveAt + (nodes.length - 1)});
+        },
+        onMainGridResize: grid => {
 
         },
-        onSubGridResize: function(grid) {
+        onSubGridResize: grid => {
 
         },
     }

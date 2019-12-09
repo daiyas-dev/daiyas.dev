@@ -393,13 +393,14 @@ export default {
                 var rows = grid.SelectRow().getSelection();
                 if (rows.length == 0 || rows.length > 2) return;
 
-                params.targets = _.cloneDeep(rows).map(v => _.pick(v, ["部署ＣＤ", "コースＣＤ", "管理ＣＤ"]));
+                params.targets = _.cloneDeep(rows).map(v => _.pick(v.rowData, ["部署ＣＤ", "コースＣＤ", "管理ＣＤ"]));
             }
 
             //TODO: 子画面化
             vue.$router.push({
                 path: "/DAI04/DAI04091",
                 query: params,
+                params: params,
             });
         },
     }

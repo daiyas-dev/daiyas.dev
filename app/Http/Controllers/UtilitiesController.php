@@ -494,12 +494,36 @@ ORDER BY
                 $vm = (object) $mng;
 
                 //一覧用項目追加
-                $vm->Cd = $mng->種別;
-                $vm->CdNm = $mng->備考;
+                $vm->Cd = $mng->管理ＣＤ;
+                $vm->CdNm = $mng->種別 . (!!$mng->備考 ? ("(" . $mng->備考 . ")") : "");
 
                 return $vm;
             })
             ->values();
+
+        if ($request->WithNew) {
+            $result = collect($result)
+                ->prepend([
+                    'Cd' => '新規一時',
+                    'CdNm' => '一時',
+                    '管理ＣＤ' => '新規一時',
+                    '一時フラグ' => 1,
+                    '種別' => '一時',
+                    '備考' => '新規'
+                ]);
+
+            if (!collect($result)->contains('一時フラグ', 0)) {
+                $result = collect($result)
+                    ->prepend([
+                        'Cd' => '新規基本',
+                        'CdNm' => '基本',
+                        '管理ＣＤ' => '新規基本',
+                        '一時フラグ' => 0,
+                        '種別' => '基本',
+                        '備考' => '新規'
+                    ]);
+            }
+        }
 
         return response()->json($result);
     }

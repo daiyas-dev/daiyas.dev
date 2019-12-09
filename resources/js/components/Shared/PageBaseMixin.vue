@@ -51,6 +51,7 @@ export default {
         }
     },
     props: {
+        params: Object,
         query: Object,
         vm: Object,
     },
