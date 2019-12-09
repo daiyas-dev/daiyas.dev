@@ -219,7 +219,7 @@
                                 bind="請求先ＣＤ"
                                 buddy="請求先名"
                                 dataUrl="/Utilities/GetCustomerListForSelect"
-                                :params="{ CustomerCd: viewModel.請求先ＣＤ, KeyWord: BillingKeyWord }"
+                                :params="{ CustomerCd: null, KeyWord: BillingKeyWord }"
                                 :isPreload=true
                                 title="請求先一覧"
                                 labelCd="請求先CD"
@@ -238,7 +238,6 @@
                                 :onChangeFunc=onBillingChanged
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=BillingAutoCompleteFunc
-                                :AutoCompleteMinLength=1
                             />
                         </div>
                     </div>
@@ -313,7 +312,7 @@
                                             bind="金融機関CD"
                                             buddy="金融機関名"
                                             dataUrl="/Utilities/GetBankList"
-                                            :params="{ BankCd: viewModel.金融機関CD, KeyWord: BankKeyWord }"
+                                            :params="{ BankCd: null, KeyWord: BankKeyWord }"
                                             :SelectorParamsFunc=BankSelectorParamsFunc
                                             :isPreload=true
                                             title="金融機関一覧"
@@ -333,7 +332,6 @@
                                             :onChangeFunc=onBankChanged
                                             :isShowAutoComplete=true
                                             :AutoCompleteFunc=BankAutoCompleteFunc
-                                            :AutoCompleteMinLength=1
                                         />
                                     </div>
                                 </div>
@@ -347,7 +345,7 @@
                                             bind="金融機関支店CD"
                                             buddy="金融機関支店名"
                                             dataUrl="/Utilities/GetBankBranchList"
-                                            :params="{ BankCd: viewModel.金融機関CD, BranchCd: viewModel.金融機関支店CD, KeyWord: BankBranchKeyWord }"
+                                            :params="{ BankCd: viewModel.金融機関CD, BranchCd: null, KeyWord: BankBranchKeyWord }"
                                             :isPreload=true
                                             title="支店一覧"
                                             labelCd="支店CD"
@@ -369,7 +367,6 @@
                                             :onChangeFunc=onBankBranchChanged
                                             :isShowAutoComplete=true
                                             :AutoCompleteFunc=BankBranchAutoCompleteFunc
-                                            :AutoCompleteMinLength=1
                                         />
                                     </div>
                                 </div>
@@ -500,7 +497,7 @@
                                 bind="受注得意先ＣＤ"
                                 buddy="受注得意先名"
                                 dataUrl="/Utilities/GetCustomerListForSelect"
-                                :params="{ CustomerCd: viewModel.受注得意先ＣＤ, KeyWord: JuchuCustomerKeyWord }"
+                                :params="{ CustomerCd: null, KeyWord: JuchuCustomerKeyWord }"
                                 :isPreload=true
                                 title="得意先一覧"
                                 labelCd="得意先CD"
@@ -921,7 +918,7 @@ export default {
         },
         BankBranchParamsChangedCheckFunc: function(newVal, oldVal) {
             var vue = this;
-            var ret = !!newVal.BankCd;
+            var ret = !!newVal.BankCd && newVal.BankCd != 0 ;
             console.log("BankBranchParamsChangedCheckFunc", ret);
             return ret;
         },
