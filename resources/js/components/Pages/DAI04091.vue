@@ -1016,12 +1016,15 @@ export default {
                 from.SelectRow().selectAll();
             }
 
-            var nodes = from.SelectRow().getSelection().length > 0
+            var fromNodes = from.SelectRow().getSelection().length > 0
                 ? from.SelectRow().getSelection().map(v => v.rowData)
                 : [];
 
-            if (!nodes.length) return;
-            var nodes = _.cloneDeep(nodes);
+            if (!fromNodes.length) return;
+            var toNodes = _.cloneDeep(fromNodes).map(v => {
+                delete v.pq_ri;
+                return v;
+            });
 
             var moveAt = $btn.closest(".moveFirst").length
                 ? 0
@@ -1033,12 +1036,12 @@ export default {
 
             var isCopy = event.ctrlKey;
 
-            console.log("moveNodes", nodes.map(v => v.Cd), moveAt, isCopy);
+            console.log("moveNodes", fromNodes, moveAt, isCopy);
             if (!isCopy) {
-                from.deleteNodes(nodes);
+                from.deleteNodes(fromNodes);
             }
-            to.addNodes(nodes , moveAt);
-            to.scrollRow({rowIndxPage: moveAt + (nodes.length - 1)});
+            to.addNodes(toNodes , moveAt);
+            to.scrollRow({rowIndxPage: moveAt + (toNodes.length - 1)});
         },
         onMainGridResize: grid => {
 
