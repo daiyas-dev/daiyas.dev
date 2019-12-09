@@ -51,12 +51,17 @@ import "pqgrid/localize/pq-localize-ja.js";
 import VueRouter from "vue-router"
 Vue.use(VueRouter);
 
+import deparam from "jquery-deparam";
+$.deparam = deparam;
+
 //route定義
 import routes from "@/routes.js"
 const router = new VueRouter({
     mode: "hash",
     base: __dirname,
     routes: routes,
+    stringifyQuery: params => _.isEmpty(params) ? "" : ("?" + $.param(params)),
+    parseQuery: query =>  $.deparam(query),
 });
 router.beforeEach((to, from, next) => {
     if (!!window.VueApp) {

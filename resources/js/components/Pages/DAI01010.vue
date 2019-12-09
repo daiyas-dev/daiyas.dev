@@ -60,7 +60,7 @@
                     :editable=true
                     :reuse=true
                     :existsCheck=true
-                    :exceptCheck="{ Cd: 0 }"
+                    :exceptCheck="[{ Cd: 0 }]"
                     :inputWidth=100
                     :nameWidth=300
                     :onAfterChangedFunc=onCourseStartChanged
@@ -89,7 +89,7 @@
                     :editable=true
                     :reuse=true
                     :existsCheck=true
-                    :exceptCheck="{ Cd: 9999 }"
+                    :exceptCheck="[{ Cd: 9999 }]"
                     :inputWidth=100
                     :nameWidth=300
                     :onAfterChangedFunc=onCourseEndChanged

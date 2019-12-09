@@ -45,6 +45,7 @@
     },
     "dependencies": {
         "install": "^0.13.0",
+        "jquery-deparam": "^0.5.3",
         "node-cache": "^5.0.2",
         "npm": "^6.11.3"
     }

@@ -294,7 +294,6 @@
                                 :onChangeFunc=onProductChanged
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=ProductAutoCompleteFunc
-                                :AutoCompleteMinLengt=1
                             />
                         </div>
                     </div>
@@ -329,7 +328,6 @@
                                 :onChangeFunc=onProductChanged
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=ProductAutoCompleteFunc
-                                :AutoCompleteMinLengt=1
                             />
                         </div>
                     </div>
@@ -447,6 +445,29 @@ export default {
             return vue.viewModel.DeliveryDate ? moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
         },
     },
+    watch: {
+        "viewModel.金融機関CD1": {
+            deep: true,
+            sync: true,
+            handler: function(newVal) {
+                var vue = this;
+                if (newVal == "0") {
+                    vue.viewModel.金融機関CD1 = "";
+                }
+            },
+        },
+        "viewModel.金融機関CD2": {
+            deep: true,
+            sync: true,
+            handler: function(newVal) {
+                var vue = this;
+                console.log("viewModel.金融機関CD2 watch", newVal);
+                if (newVal == "0") {
+                    vue.viewModel.金融機関CD2 = "";
+                }
+            },
+        },
+    },
     data() {
         var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {
@@ -521,38 +542,17 @@ export default {
                 {visible: "false"},
                 { visible: "true", value: "登録", id: "DAI04071Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
-                        //TODO: 登録
-                        console.log("登録");
-                        return;
+                        var params = _.cloneDeep(vue.viewModel);
 
-                        //var targets = $.extend(true, {}, grid.createSaveParams());
-                        var targets = grid.getCellsByClass({cls: "pq-cell-dirty"})
-                            .map(v => {
-                                return {
-                                    "部署CD": v.rowData["部署CD"],
-                                    "コースＣＤ": v.rowData["コースＣＤ"],
-                                    "商品CD": v.dataIndx,
-                                    "個数": v.rowData[v.dataIndx],
-                                    "対象日付": v.rowData["対象日付"],
-                                };
-                            });
-                        var conditions = $.extend(true, {}, vue.viewModel);
+                        //金融機関CD: nullの0置換
+                        params.金融機関CD1 = params.金融機関CD1 || 0;
+                        params.金融機関CD2 = params.金融機関CD2 || 0;
 
-                        vue.DAI01020Grid1.saveData(
-                            {
-                                uri: "/DAI01020/Save",
-                                params: { targets: targets },
-                                //optional: { conditions: conditions },
-                                // done: {
-                                //     callback: (gridVue, grid, res) => {
-                                //         vue.DAI01020Grid1.searchData(params);
-                                //     },
-                                // },
-                            }
-                        );
+                        //TODO: 登録用controller method call
+                        console.log("登録", params);
                     }
                 },
-                                { visible: "true", value: "CSV", id: "DAI04071_Csv", disabled: false, shortcut: "F10",
+                { visible: "true", value: "CSV", id: "DAI04071_Csv", disabled: false, shortcut: "F10",
                     onClick: function () {
                         //TODO: CSV
                     }

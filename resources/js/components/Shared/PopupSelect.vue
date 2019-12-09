@@ -222,7 +222,7 @@ export default {
         readOnly: Boolean,
         reuse: Boolean,
         existsCheck: Boolean,
-        exceptCheck: Object,
+        exceptCheck: Array,
         isGetName: Boolean,
         isCodeOnly: Boolean,
         showColumns: Array,
@@ -317,7 +317,7 @@ export default {
             sync: true,
             handler: function(newVal) {
                 var vue = this;
-                console.log(vue.id + " PopupSelect params watch", newVal, vue.paramsPrev);
+                // console.log(vue.id + " PopupSelect params watch", newVal, vue.paramsPrev);
 
                 if (!_.isEqual(newVal, vue.paramsPrev, (v, o) => v == o)) {
                     if (vue.ParamsChangedCheckFunc && !vue.ParamsChangedCheckFunc(newVal, vue.paramsPrev, vue)) {
@@ -337,7 +337,7 @@ export default {
             sync: true,
             handler: function(newVal, oldVal) {
                 var vue = this;
-                console.log(vue.id + " PopupSelect vmodel watch", newVal, vue.selectValue);
+                // console.log(vue.id + " PopupSelect vmodel watch", newVal, vue.selectValue);
                 var value = _.cloneDeep(vue.vmodel[vue.bind]);
 
                 if (!_.isEqual(_.trim(vue.selectValue), _.trim(value))) {
@@ -761,7 +761,7 @@ export default {
             //値チェック関数object
             var checkValue = function(check) {
                 //対象外指定されている場合
-                if (!!vue.exceptCheck && newVal == vue.exceptCheck[vue.isGetName ? "CdNm" : "Cd"]) {
+                if (!!vue.exceptCheck && vue.exceptCheck.some(v => _.keys(v).some(k => v[k] == newVal))) {
                     //エラー項目設定解除
                     var $container = vue.embedded ? $(vue.$el).parent() : $(vue.$el);
                     var $target = vue.embedded ? $(vue.$el).parent() : $(vue.$el).find("#" + vue.id);
@@ -771,6 +771,7 @@ export default {
                         .find("#" + vue.id).tooltip("dispose");
 
                     vue.errorMsg = null;
+
                     return true;
                 }
 
@@ -898,6 +899,7 @@ export default {
                 select : function(event, ui) {
                     //console.log("autocomplete select:" + input.val());
                     //選択した値を設定
+                    vue.selectRow = ui.item;
                     vue.execSetSelectValue(ui.item.value, true, false);
 
                     return false;

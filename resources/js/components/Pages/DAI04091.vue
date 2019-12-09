@@ -18,11 +18,11 @@
             </div>
             <div class="col-md-4">
                 <VueSelectBusho
-                    ref="VueSelectBusho"
+                    ref="VueSelectBushoOthers"
                     :vmodel=others
                     bind="BushoCd"
                     :hasNull=false
-                    :onChangedFunc=onBushoChanged
+                    :onChangedFunc=onBushoChangedOthers
                 />
             </div>
         </div>
@@ -93,7 +93,7 @@
                     :existsCheck=true
                     :inputWidth=90
                     :nameWidth=195
-                    :onAfterChangedFunc=onCourseChanged
+                    :onAfterChangedFunc=onCourseChangedOthers
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=CourseAutoCompleteFunc
                     :ParamsChangedCheckFunc=CourseParamsChangedCheckFunc
@@ -116,6 +116,84 @@
             <div class="col-md-4">
                 <input class="form-control label-blue" style="width: 90px;" type="text" :value=others.TantoCd readonly tabindex="-1">
                 <input class="form-control ml-1 label-blue" style="width: 260px;" type="text" :value=others.TantoNm readonly tabindex="-1">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1">
+                <label>種別</label>
+            </div>
+            <div class="col-md-4">
+                <PopupSelect
+                    id="MngCdSelect"
+                    ref="PopupSelect_MngCd"
+                    :vmodel=viewModel
+                    bind="MngCd"
+                    :buddies='{ Kind: "一時フラグ", KindNm: "種別", StartDate: "適用開始日", EndDate: "適用終了日", Memo: "備考" }'
+                    dataUrl="/Utilities/GetCourseTableMngForMaint"
+                    :params="{ BushoCd: viewModel.BushoCd, CourseCd: viewModel.CourseCd, WithNew: true }"
+                    :isPreload=true
+                    title="コーステーブル一覧"
+                    labelCd="種別"
+                    :showColumns='[
+                        { title: "コースＣＤ", dataIndx: "コースＣＤ", dataType: "integer", width: 100, maxWidth: 100, minWidth: 100, colIndx: 0 },
+                        { title: "コース名", dataIndx: "コース名", dataType: "string", width: 100, maxWidth: 100, minWidth: 100, colIndx: 1 },
+                        { title: "適用開始日", dataIndx: "適用開始日", dataType: "date", format: "yy/mm/dd", width: 100, maxWidth: 100, minWidth: 100,},
+                        { title: "適用終了日", dataIndx: "適用終了日", dataType: "date", format: "yy/mm/dd", width: 100, maxWidth: 100, minWidth: 100,},
+                    ]'
+                    :popupWidth=800
+                    :popupHeight=600
+                    :isShowName=true
+                    :isModal=true
+                    :editable=true
+                    :reuse=true
+                    :existsCheck=true
+                    :exceptCheck="[{Cd: '新規'}]"
+                    :inputWidth=90
+                    :nameWidth=195
+                    :onAfterChangedFunc=onMngCdChanged
+                    :isShowAutoComplete=true
+                    :AutoCompleteFunc=MngCdAutoCompleteFunc
+                    :ParamsChangedCheckFunc=MngCdParamsChangedCheckFunc
+                />
+            </div>
+            <div class="col-md-2">
+            </div>
+            <div class="col-md-1">
+                <label class="text-left">種別</label>
+            </div>
+            <div class="col-md-4">
+                <PopupSelect
+                    id="MngCdSelectOthers"
+                    ref="PopupSelect_MngCdOthers"
+                    :vmodel=others
+                    bind="MngCd"
+                    :buddies='{ Kind: "一時フラグ", KindNm: "種別", StartDate: "適用開始日", EndDate: "適用終了日", Memo: "備考" }'
+                    dataUrl="/Utilities/GetCourseTableMngForMaint"
+                    :params="{ BushoCd: others.BushoCd, CourseCd: others.CourseCd, WithNew: true }"
+                    :isPreload=true
+                    title="コーステーブル一覧"
+                    labelCd="種別"
+                    :showColumns='[
+                        { title: "コースＣＤ", dataIndx: "コースＣＤ", dataType: "integer", width: 100, maxWidth: 100, minWidth: 100, colIndx: 0 },
+                        { title: "コース名", dataIndx: "コース名", dataType: "string", width: 100, maxWidth: 100, minWidth: 100, colIndx: 1 },
+                        { title: "適用開始日", dataIndx: "適用開始日", dataType: "date", format: "yy/mm/dd", width: 100, maxWidth: 100, minWidth: 100,},
+                        { title: "適用終了日", dataIndx: "適用終了日", dataType: "date", format: "yy/mm/dd", width: 100, maxWidth: 100, minWidth: 100,},
+                    ]'
+                    :popupWidth=800
+                    :popupHeight=600
+                    :isShowName=true
+                    :isModal=true
+                    :editable=true
+                    :reuse=true
+                    :existsCheck=true
+                    :exceptCheck='[""]'
+                    :inputWidth=90
+                    :nameWidth=195
+                    :onAfterChangedFunc=onMngCdChangedOthers
+                    :isShowAutoComplete=true
+                    :AutoCompleteFunc=MngCdAutoCompleteFunc
+                    :ParamsChangedCheckFunc=MngCdParamsChangedCheckFunc
+                />
             </div>
         </div>
         <div class="row">
@@ -174,7 +252,6 @@
                 />
             </div>
         </div>
-
         <div class="row">
             <div class="col-md-5 align-items-start">
                 <PqGridWrapper
@@ -198,8 +275,8 @@
                     <fieldset class="text-center moveSelection">
                         <legend class="moveLegend">選択行</legend>
                         <div class="w-100 d-flex justify-content-center">
-                            <fieldset class="text-center">
-                                <legend class="moveLegend moveFirst">先頭に<span class="moveAction">移動</span></legend>
+                            <fieldset class="text-center moveFirst">
+                                <legend class="moveLegend">先頭に<span class="moveAction">移動</span></legend>
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-light toLeft">
                                         <span><i class="fa fa-angle-left fa-lg"></i>左へ</span>
@@ -211,8 +288,8 @@
                             </fieldset>
                         </div>
                         <div class="w-100 d-flex justify-content-center">
-                            <fieldset class="text-center">
-                                <legend class="moveLegend moveAt">選択位置に<span class="moveAction">移動</span></legend>
+                            <fieldset class="text-center moveAt">
+                                <legend class="moveLegend">選択位置に<span class="moveAction">移動</span></legend>
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-light toLeft">
                                         <span><i class="fa fa-angle-left fa-lg"></i>左へ</span>
@@ -224,8 +301,8 @@
                             </fieldset>
                         </div>
                         <div class="w-100 d-flex justify-content-center">
-                            <fieldset class="text-center">
-                                <legend class="moveLegend moveLast">末尾に<span class="moveAction">移動</span></legend>
+                            <fieldset class="text-center moveLast">
+                                <legend class="moveLegend">末尾に<span class="moveAction">移動</span></legend>
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-light toLeft">
                                         <span><i class="fa fa-angle-left fa-lg"></i>左へ</span>
@@ -237,11 +314,11 @@
                             </fieldset>
                         </div>
                     </fieldset>
-                    <fieldset class="text-center moveSelection">
+                    <fieldset class="text-center moveWhole">
                         <legend class="moveLegend">全行</legend>
                         <div class="w-100 d-flex justify-content-center">
-                            <fieldset class="text-center">
-                                <legend class="moveLegend moveFirst">先頭に<span class="moveAction">移動</span></legend>
+                            <fieldset class="text-center moveFirst">
+                                <legend class="moveLegend">先頭に<span class="moveAction">移動</span></legend>
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-light toLeft">
                                         <span><i class="fa fa-angle-double-left fa-lg"></i>左へ</span>
@@ -253,8 +330,8 @@
                             </fieldset>
                         </div>
                         <div class="w-100 d-flex justify-content-center">
-                            <fieldset class="text-center">
-                                <legend class="moveLegend moveAt">選択位置に<span class="moveAction">移動</span></legend>
+                            <fieldset class="text-center moveAt">
+                                <legend class="moveLegend">選択位置に<span class="moveAction">移動</span></legend>
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-light toLeft">
                                         <span><i class="fa fa-angle-double-left fa-lg"></i>左へ</span>
@@ -266,8 +343,8 @@
                             </fieldset>
                         </div>
                         <div class="w-100 d-flex justify-content-center">
-                            <fieldset class="text-center">
-                                <legend class="moveLegend moveLast">末尾に<span class="moveAction">移動</span></legend>
+                            <fieldset class="text-center moveLast">
+                                <legend class="moveLegend">末尾に<span class="moveAction">移動</span></legend>
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-light toLeft">
                                         <span><i class="fa fa-angle-double-left fa-lg"></i>左へ</span>
@@ -368,7 +445,12 @@ export default {
         hasSelectionRow: function() {
             var vue = this;
             var grid = vue.DAI04091Grid1;
-            return !!grid && !!grid.getSelectionRowData();
+            return !!grid && !!grid.SelectRow().getSelection().length;
+        },
+        hasSelectionRowOthers: function() {
+            var vue = this;
+            var grid = vue.DAI04091Grid2;
+            return !!grid && !!grid.SelectRow().getSelection().length;
         },
         grid2Options: function() {
             var vue = this;
@@ -394,8 +476,12 @@ export default {
                 CourseNm: null,
                 TantoCd: null,
                 TantoNm: null,
+                MngCd: null,
+                Kind: null,
+                KindNm: null,
                 StartDate: null,
                 EndDate: null,
+                Memo: null,
             },
             others: {
                 BushoCd: null,
@@ -565,7 +651,21 @@ export default {
         });
 
         if (!!vue.$route && !!vue.$route.query) {
-            data.viewModel = $.extend(true, data.viewModel, vue.$route.query);
+            var targets = vue.$route.query.targets;
+
+            if (!targets) return;
+
+            if (targets[0]) {
+                data.viewModel.BushoCd = targets[0].部署ＣＤ;
+                data.viewModel.CourseCd = targets[0].コースＣＤ;
+                data.viewModel.MngCd = targets[0].管理ＣＤ;
+            }
+
+            if (targets[1]) {
+                data.others.BushoCd = targets[1].部署ＣＤ;
+                data.others.CourseCd = targets[1].コースＣＤ;
+                data.others.MngCd = targets[1].管理ＣＤ;
+            }
         }
 
         return data;
@@ -579,27 +679,34 @@ export default {
                     }
                 },
                 {visible: "false"},
-                {visible: "false"},
-                { visible: "true", value: "再検索", id: "DAI04091_Search", disabled: false, shortcut: "F5",
+                { visible: "true", value: "再検索(左)", id: "DAI04091_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
                         vue.conditionChanged(true);
                     }
                 },
-                { visible: "true", value: "ダウンロード", id: "DAI04091_Download", disabled: false, shortcut: "F7",
+                { visible: "true", value: "保存(左)", id: "DAI04091_Save", disabled: false, shortcut: "F6",
                     onClick: function () {
-                        //TODO: ダウンロード
+                        vue.saveCourse();
                     }
                 },
-                {visible: "false"},
-                {visible: "false"},
-                { visible: "true", value: "詳細", id: "DAI04091Grid1_Detail", disabled: true, shortcut: "F8",
+                { visible: "true", value: "再検索(右)", id: "DAI04091_SearchOthers", disabled: false, shortcut: "F7",
                     onClick: function () {
-                        vue.showDetail();
+                        vue.conditionChangedOthers(true);
                     }
                 },
-                { visible: "true", value: "新規登録", id: "DAI04091Grid1_Save", disabled: false, shortcut: "F9",
+                { visible: "true", value: "保存(右)", id: "DAI04091_SaveOthers", disabled: false, shortcut: "F8",
                     onClick: function () {
-                        //TODO: 登録
+                        vue.saveCourseOthers();
+                    }
+                },
+                { visible: "true", value: "再検索(両方)", id: "DAI04091_SearchBoth", disabled: false, shortcut: "F9",
+                    onClick: function () {
+                        vue.conditionChangedBoth(true);
+                    }
+                },
+                { visible: "true", value: "保存(両方)", id: "DAI04091_SaveBoth", disabled: false, shortcut: "F10",
+                    onClick: function () {
+                        vue.saveCourseBoth();
                     }
                 },
                 {visible: "false"},
@@ -621,12 +728,20 @@ export default {
                 return true;
             });
 
+            //move node buttons
+            $(vue.$el).find(".moveButtons .btn").on("click", event => vue.moveNodes(event, vue));
+
             //watcher
             vue.$watch(
                 "hasSelectionRow",
-                (newVal) => {
-                    // console.log("hasSelectionRow watcher: " + newVal);
-                    vue.footerButtons.find(v => v.id == "DAI04091Grid1_Detail").disabled = !newVal;
+                newVal => {
+                    console.log("hasSelectionRow watch", newVal);
+                }
+            );
+            vue.$watch(
+                "hasSelectionRowOthers",
+                newVal => {
+                    console.log("hasSelectionRowOthers watch", newVal);
                 }
             );
         },
@@ -642,30 +757,88 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
+        onMngCdChanged: function(code, entity) {
+            var vue = this;
+
+            //条件変更ハンドラ
+            vue.conditionChanged();
+        },
+        onBushoChangedOthers: function(code, entity) {
+            var vue = this;
+
+            //条件変更ハンドラ
+            vue.conditionChangedOthers();
+        },
+        onCourseChangedOthers: function(code, entity) {
+            var vue = this;
+
+            //条件変更ハンドラ
+            vue.conditionChangedOthers();
+        },
+        onMngCdChangedOthers: function(code, entity) {
+            var vue = this;
+
+            //条件変更ハンドラ
+            vue.conditionChangedOthers();
+        },
         conditionChanged: function(forced) {
             var vue = this;
             var grid1 = vue.DAI04091Grid1;
-            var grid2 = vue.DAI04091Grid2;
 
             if (!!grid1 && vue.getLoginInfo().isLogOn) {
-                var required = !!vue.viewModel.BushoCd && !!vue.viewModel.CourseCd;
+                var required = !!vue.viewModel.BushoCd && !!vue.viewModel.CourseCd && !!vue.viewModel.MngCd;
                 var bushoChanged = !grid1.prevPostData || grid1.prevPostData.bushoCd != vue.viewModel.BushoCd;
                 var courseChanged = !grid1.prevPostData || grid1.prevPostData.courseCd != vue.viewModel.CourseCd;
+                var mngCdChanged = !["新規基本", "新規一時"].includes(vue.viewModel.MngCd)
+                                 && (!grid1.prevPostData || grid1.prevPostData.mngCd != vue.viewModel.MngCd);
 
-                if (required && (forced || bushoChanged ||courseChanged)) {
-                    grid1.searchData({ bushoCd: vue.viewModel.BushoCd, courseCd: vue.viewModel.CourseCd });
+                if (required && (forced || bushoChanged || courseChanged || mngCdChanged)) {
+                    grid1.searchData({ bushoCd: vue.viewModel.BushoCd, courseCd: vue.viewModel.CourseCd, mngCd: vue.viewModel.MngCd });
                 }
             }
+        },
+        conditionChangedOthers: function(forced) {
+            var vue = this;
+            var grid2 = vue.DAI04091Grid2;
 
             if (!!grid2 && vue.getLoginInfo().isLogOn) {
-                var required = !!vue.viewModel.BushoCd && !!vue.others.CourseCd;
+                var required = !!vue.others.BushoCd && !!vue.others.CourseCd && !!vue.others.MngCd;
                 var bushoChanged = !grid2.prevPostData || grid2.prevPostData.bushoCd != vue.viewModel.BushoCd;
                 var courseChanged = !grid2.prevPostData || grid2.prevPostData.courseCd != vue.others.CourseCd;
+                var mngCdChanged = !["新規基本", "新規一時"].includes(vue.others.MngCd)
+                                 && (!grid2.prevPostData || grid2.prevPostData.mngCd != vue.others.MngCd);
 
-                if (required && (forced || bushoChanged ||courseChanged)) {
-                    grid2.searchData({ bushoCd: vue.viewModel.BushoCd, courseCd: vue.others.CourseCd });
+                if (required && (forced || bushoChanged || courseChanged || mngCdChanged)) {
+                    grid2.searchData({ bushoCd: vue.others.BushoCd, courseCd: vue.others.CourseCd, mngCd: vue.others.MngCd });
                 }
             }
+        },
+        conditionChangedBoth: function(forced) {
+            var vue = this;
+
+            Promise.all([
+                new Promise((resolve, reject ) => resolve()).then(() => vue.conditionChanged(true)),
+                new Promise((resolve, reject ) => resolve()).then(() => vue.conditionChangedOthers(true)),
+            ])
+            .then(() => {
+                //TODO: message?
+            })
+            .catch(err => {
+                console.log(vue.id + " conditionChangedBoth", err);
+            })
+            ;
+        },
+        saveCourse: function() {
+            var vue = this;
+            var grid1 = vue.DAI04091Grid1;
+
+            grid.saveData(
+                {
+                    uri: "/DAI04091/Save",
+                    params: { targets: targets },
+                }
+            );
+
         },
         CourseAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
@@ -709,8 +882,69 @@ export default {
         },
         CourseParamsChangedCheckFunc: function(newVal, oldVal, comp) {
             var vue = this;
-            console.log(comp.id + " CourseParamsChangedCheckFunc", newVal);
+            // console.log(comp.id + " CourseParamsChangedCheckFunc", newVal);
             return !!newVal.bushoCd;
+        },
+        MngCdAutoCompleteFunc: function(input, dataList, comp) {
+            var vue = this;
+            // console.log("MngCdAutoCompleteFunc", input, dataList, comp);
+
+            if (!dataList.length) return [];
+
+            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
+            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
+
+            var wholeColumns = ["種別", "適用開始日", "適用終了日", "備考"];
+
+            if ((input == comp.selectValue && comp.isUnique) || comp.isError) {
+                keyAND = keyOR = [];
+            }
+
+            var list = dataList
+                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
+                .filter(v => {
+                    return keyOR.length == 0
+                        || _.some(keyOR, k => v.コースＣＤ.startsWith(k))
+                        || _.some(keyOR, k => v.whole.includes(k))
+                })
+                .filter(v => {
+                    return keyAND.length == 0 || _.every(keyAND, k => v.whole.includes(k));
+                })
+                .map(v => {
+                    var ret = v;
+                    ret.label = v.種別
+                              + (!!v.一時フラグ || !!v.備考 ? " : " : "")
+                              + (!!v.適用開始日 && !!v.適用終了日 ? (v.適用開始日 + " ～ " + v.適用終了日) : "")
+                              + (!!v.備考 ? ("(" + v.備考 + ")") : "");
+                    ret.value = v.管理ＣＤ || "";
+                    ret.text = v.種別 + (!!v.備考 ? ("(" + v.備考 + ")") : "");
+                    return ret;
+                })
+                ;
+
+            // //新規(一時)用
+            // list.unshift({
+            //     label: "新規(一時)",
+            //     value: "",
+            //     text: "新規(一時)",
+            // });
+
+            // //新規(基本)用
+            // if (!list.some(v => v.一時フラグ == "0")) {
+            //     list.unshift({
+            //         label: "新規(基本)",
+            //         value: "",
+            //         text: "新規(基本)",
+            //     });
+            // }
+
+            return list;
+        },
+        MngCdParamsChangedCheckFunc: function(newVal, oldVal, comp) {
+            var vue = this;
+            // console.log("MngCdParamsChangedCheckFunc", newVal, oldVal, comp);
+            return !!newVal.BushoCd && newVal.CourseCd;
         },
         onAfterSearchFunc: function (gridVue, grid, res) {
             var vue = this;
@@ -766,10 +1000,53 @@ export default {
 
             grid.updateRow({ rowList: rowList, history: false });
         },
-        onMainGridResize: function(grid) {
+        moveNodes: (event, vue) => {
+            var grid1 = vue.DAI04091Grid1;
+            var grid2 = vue.DAI04091Grid2;
+
+            var $btn = $(event.currentTarget);
+
+            var isSelection = $btn.closest(".moveSelection").length == 1;
+
+            var toRight = $btn.hasClass("toRight");
+            var from = toRight ? grid1 : grid2;
+            var to = toRight ? grid2 : grid1;
+
+            if (!isSelection) {
+                from.SelectRow().selectAll();
+            }
+
+            var fromNodes = from.SelectRow().getSelection().length > 0
+                ? from.SelectRow().getSelection().map(v => v.rowData)
+                : [];
+
+            if (!fromNodes.length) return;
+            var toNodes = _.cloneDeep(fromNodes).map(v => {
+                delete v.pq_ri;
+                return v;
+            });
+
+            var moveAt = $btn.closest(".moveFirst").length
+                ? 0
+                : $btn.closest(".moveLast").length
+                    ? to.getData().length
+                    : to.SelectRow().getSelection().length
+                        ? (_.last(to.SelectRow().getSelection()).rowIndx + 1)
+                        : 0;
+
+            var isCopy = event.ctrlKey;
+
+            console.log("moveNodes", fromNodes, moveAt, isCopy);
+            if (!isCopy) {
+                from.deleteNodes(fromNodes);
+            }
+            to.addNodes(toNodes , moveAt);
+            to.scrollRow({rowIndxPage: moveAt + (toNodes.length - 1)});
+        },
+        onMainGridResize: grid => {
 
         },
-        onSubGridResize: function(grid) {
+        onSubGridResize: grid => {
 
         },
     }

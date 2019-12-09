@@ -18,6 +18,25 @@
             <div class="col-md-1">
                 <input type="text" class="form-control CourseCd" :value="viewModel.CourseCd" @input="onCourseCdChanged">
             </div>
+            <div class="col-md-1">
+            </div>
+            <div class="col-md-4">
+                <VueCheckList
+                    title="種別"
+                    id="MngKind"
+                    :vmodel=viewModel
+                    bind="MngKind"
+                    :isGetName=true
+                    customTitleStyle="justify-content: center;"
+                    customContentStyle="width: 70px;"
+                    :list="[
+                        {code: '0', name: '基本', label: '基本'},
+                        {code: '1', name: '一時', label: '一時'},
+                        {code: 'null', name: '未登録', label: '未登録'},
+                    ]"
+                    :onChangedFunc=onMngKindChanged
+                />
+            </div>
         </div>
         <div class="row">
             <div class="col-md-1">
@@ -44,14 +63,13 @@
         <PqGridWrapper
             id="DAI04090Grid1"
             ref="DAI04090Grid1"
-            dataUrl="/Utilities/GetCourseTableForMaint"
+            dataUrl="/Utilities/GetCourseTableMngForMaint"
             :query=this.viewModel
             :SearchOnCreate=false
             :SearchOnActivate=false
             :options=grid1Options
             :isMultiRowSelectable=true
             :maxRowSelectCount=2
-            :onBeforeCreateFunc=onBeforeCreateFunc
             :onAfterSearchFunc=onAfterSearchFunc
         />
     </form>
@@ -84,6 +102,7 @@ export default {
                 CourseCd: null,
                 CourseNm: null,
                 KeyWord: null,
+                MngKind: null,
                 FilterMode: "AND",
             },
             DAI04090Grid1: null,
@@ -113,6 +132,110 @@ export default {
                     hideRows: false,
                 },
                 colModel: [
+                    {
+                        title: "部署ＣＤ",
+                        dataIndx: "部署ＣＤ",
+                        dataType: "integer",
+                        hidden: true,
+                    },
+                    {
+                        title: "部署名",
+                        dataIndx: "部署名",
+                        dataType: "string",
+                        width: 100,
+                        minWidth: 100,
+                    },
+                    {
+                        title: "コース区分",
+                        dataIndx: "コース区分",
+                        dataType: "integer",
+                        hidden: true,
+                    },
+                    {
+                        title: "区分",
+                        dataIndx: "コース区分名",
+                        dataType: "string",
+                        align: "center",
+                        width: 50,
+                        minWidth: 50,
+                        maxWidth: 50,
+                    },
+                    {
+                        title: "コースＣＤ",
+                        dataIndx: "コースＣＤ",
+                        dataType: "integer",
+                        width: 85,
+                        minWidth: 85,
+                        maxWidth: 85,
+                    },
+                    {
+                        title: "コース名",
+                        dataIndx: "コース名",
+                        dataType: "string",
+                        width: 200,
+                        minWidth: 200,
+                    },
+                    {
+                        title: "担当者ＣＤ",
+                        dataIndx: "担当者ＣＤ",
+                        dataType: "integer",
+                        hidden: true,
+                    },
+                    {
+                        title: "担当者名",
+                        dataIndx: "担当者名",
+                        dataType: "string",
+                        width: 100,
+                        minWidth: 100,
+                    },
+                    {
+                        title: "一時フラグ",
+                        dataIndx: "一時フラグ",
+                        dataType: "integer",
+                        hidden: true,
+                    },
+                    {
+                        title: "種別",
+                        dataIndx: "種別",
+                        dataType: "string",
+                        align: "center",
+                        width: 65,
+                        minWidth: 65,
+                        maxWidth: 65,
+                    },
+                    {
+                        title: "適用開始日",
+                        dataIndx: "適用開始日",
+                        dataType: "date", format: "yy/mm/dd",
+                        align: "center",
+                        width: 100,
+                        minWidth: 100,
+                        maxWidth: 100,
+                    },
+                    {
+                        title: "適用終了日",
+                        dataIndx: "適用終了日",
+                        dataType: "date", format: "yy/mm/dd",
+                        align: "center",
+                        width: 100,
+                        minWidth: 100,
+                        maxWidth: 100,
+                    },
+                    {
+                        title: "備考",
+                        dataIndx: "備考",
+                        dataType: "string",
+                        width: 150,
+                        minWidth: 150,
+                    },
+                    {
+                        title: "KeyWord",
+                        dataIndx: "KeyWord",
+                        dataType: "string",
+                        hidden: true,
+                    }
+                ],
+                formulas: [
                 ],
                 rowDblClick: function (event, ui) {
                     this.SelectRow().add({rowIndx: ui.rowIndx});
@@ -180,6 +303,12 @@ export default {
             //フィルタ変更
             vue.filterChanged();
         }, 300),
+        onMngKindChanged: function(list) {
+            var vue = this;
+
+            //フィルタ変更
+            vue.filterChanged();
+        },
         onKeyWordChanged: _.debounce(function(event) {
             var vue = this;
 
@@ -222,11 +351,11 @@ export default {
 
             var rules = [];
 
-            // if (!!vue.viewModel.BushoCd) {
-            //     rules.push({ dataIndx: "部署ＣＤ", condition: "equal", value: vue.viewModel.BushoCd });
-            // }
             if (!!vue.viewModel.CourseCd) {
                 rules.push({ dataIndx: "コースＣＤ", condition: "equal", value: vue.viewModel.CourseCd });
+            }
+            if (!!vue.viewModel.MngKind) {
+                rules.push({ dataIndx: "種別", condition: "range", value: vue.viewModel.MngKind });
             }
             if (!!vue.viewModel.KeyWord) {
                 var keywords = vue.viewModel.KeyWord.split(/[, 、　]/)
@@ -240,160 +369,6 @@ export default {
             }
 
             grid.filter({ oper: "replace", mode: "AND", rules: rules });
-        },
-        onBeforeCreateFunc: function(gridOptions, callback) {
-            var vue = this;
-
-            //PqGrid表示前に必要な情報の取得
-            axios.all(
-                [
-                    //コースマスタのカラム情報
-                    axios.post("/Utilities/GetColumns", { TableName: "コースマスタ" }),
-                 ]
-            ).then(
-                axios.spread((responseCourseTableCols) => {
-                    var resCourseTableCols = responseCourseTableCols.data;
-
-                    if (resCourseTableCols.onError && !!resCourseTableCols.errors) {
-                        //メッセージリストに追加
-                        Object.values(resCourseTableCols.errors).filter(v => v)
-                            .forEach(v => vue.$root.$emit("addMessage", v.replace(/(^\"|\"$)/g, "")));
-
-                        //ダイアログ
-                        $.dialogErr({ errObj: resCourseTableCols });
-
-                        return;
-                    } else if (resCourseTableCols.onException) {
-                        //メッセージ追加
-                        vue.$root.$emit("addMessage", "コースマスタ取得失敗(" + vue.page.ScreenTitle + ":" + resCourseTablevCols.message + ")");
-
-                        //ダイアログ
-                        $.dialogErr({
-                            title: "異常終了",
-                            contents: "コースマスタの取得に失敗しました<br/>" + resCourseTableCols.message,
-                        });
-
-                        return;
-                    } else if (resCourseTableCols == "") {
-                        //完了ダイアログ
-                        //ダイアログ
-                        $.dialogErr({
-                            title: "異常終了",
-                            contents: "コースマスタの取得に失敗しました<br/>" + resCourseTableCols.message,
-                        });
-
-                        return;
-                    }
-
-                    //colModel設定
-                    gridOptions.colModel = _.sortBy(resCourseTableCols, v => v.ORDINAL_POSITION * 1)
-                        .map(v => {
-                            var width = !!v.COLUMN_LENGTH
-                                ? (v.COLUMN_LENGTH * (v.DATA_TYPE == "string" && v.COLUMN_LENGTH > 20 ? 5 : 9)) : 100;
-
-                            var titleWidth = Math.ceil((v.COLUMN_NAME.length + 1) / 2) * 15 + 15;
-                            if (width < titleWidth) {
-                                width = titleWidth;
-                            }
-
-                            var model = {
-                                title: v.COLUMN_NAME,
-                                dataIndx: v.COLUMN_NAME,
-                                dataType: v.DATA_TYPE,
-                                width: width,
-                                minWidth: width,
-                                dbLength: v.COLUMN_LENGTH * 1,
-                            };
-
-                            if (model.dataType == "date") {
-                                model.format = "yy/mm/dd";
-                            }
-
-                            return model;
-                        });
-
-                    //部署名表示設定
-                    gridOptions.colModel.splice(
-                        gridOptions.colModel.findIndex(c => c.dataIndx=="部署ＣＤ") + 1,
-                        0,
-                        {
-                            title: "部署名",
-                            dataIndx: "部署名",
-                            dataType: "string",
-                            width: 100,
-                            minWidth: 100,
-                        }
-                    );
-
-                    //コース区分名表示設定
-                    gridOptions.colModel.find(c => c.dataIndx=="コース区分").hidden = true;
-                    gridOptions.colModel.splice(
-                        gridOptions.colModel.findIndex(c => c.dataIndx=="コース区分") + 1,
-                        0,
-                        {
-                            title: "コース区分",
-                            dataIndx: "コース区分名",
-                            dataType: "string",
-                            width: 100,
-                            minWidth: 100,
-                        }
-                    );
-
-                    //担当者名表示設定
-                    gridOptions.colModel.find(c => c.dataIndx=="担当者ＣＤ").hidden = true;
-                    gridOptions.colModel.splice(
-                        gridOptions.colModel.findIndex(c => c.dataIndx=="担当者ＣＤ") + 1,
-                        0,
-                        {
-                            title: "担当者",
-                            dataIndx: "担当者名",
-                            dataType: "string",
-                            width: 100,
-                            minWidth: 100,
-                        }
-                    );
-
-                    //修正担当者名表示設定
-                    gridOptions.colModel.find(c => c.dataIndx=="修正担当者ＣＤ").hidden = true;
-                    gridOptions.colModel.splice(
-                        gridOptions.colModel.findIndex(c => c.dataIndx=="修正担当者ＣＤ") + 1,
-                        0,
-                        {
-                            title: "修正担当者",
-                            dataIndx: "修正担当者名",
-                            dataType: "string",
-                            width: 100,
-                            minWidth: 100,
-                        }
-                    );
-
-                    //工場区分非表示設定
-                    gridOptions.colModel.find(c => c.dataIndx=="工場区分").hidden = true;
-
-                    //KeyWordカラム設定
-                    gridOptions.colModel.push(
-                        {
-                            title: "KeyWord",
-                            dataIndx: "KeyWord",
-                            dataType: "string",
-                            hidden: true,
-                        }
-                    );
-
-                    //callback実行
-                    callback();
-                })
-            )
-            .catch(error => {
-                //メッセージ追加
-                vue.$root.$emit("addMessage", "コーステーブル検索失敗(" + vue.ScreenTitle + ":" + error + ")");
-
-                //ダイアログ
-                $.dialogErr({
-                    title: "異常終了",
-                    contents: "コーステーブルの検索に失敗しました<br/>",
-                });
-            });
         },
         onAfterSearchFunc: function (gridVue, grid, res) {
             var vue = this;
@@ -413,18 +388,19 @@ export default {
 
             var params = {};
             if (rowData) {
-                params.targets = [_.cloneDeep(rowData)];
+                params.targets = [_.pick(_.cloneDeep(rowData), ["部署ＣＤ", "コースＣＤ", "管理ＣＤ"])];
             } else {
                 var rows = grid.SelectRow().getSelection();
                 if (rows.length == 0 || rows.length > 2) return;
 
-                params.targets = _.cloneDeep(rows);
+                params.targets = _.cloneDeep(rows).map(v => _.pick(v.rowData, ["部署ＣＤ", "コースＣＤ", "管理ＣＤ"]));
             }
 
             //TODO: 子画面化
             vue.$router.push({
                 path: "/DAI04/DAI04091",
                 query: params,
+                params: params,
             });
         },
     }
