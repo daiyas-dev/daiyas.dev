@@ -54,6 +54,13 @@ Vue.use(VueRouter);
 import deparam from "jquery-deparam";
 $.deparam = deparam;
 
+import { diff, addedDiff, deletedDiff, updatedDiff, detailedDiff } from "deep-object-diff";
+window.diff = diff;
+window.addedDiff = addedDiff;
+window.deletedDiff = deletedDiff;
+window.updatedDiff = updatedDiff;
+window.detailedDiff = detailedDiff;
+
 //route定義
 import routes from "@/routes.js"
 const router = new VueRouter({

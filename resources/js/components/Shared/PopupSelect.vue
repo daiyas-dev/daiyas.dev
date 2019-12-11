@@ -504,16 +504,16 @@ export default {
                         console.log(res);
 
                         return;
-                    } else if (res.CountConstraint) {
+                    } else if (!!res.CountConstraint) {
                         //件数制約違反設定
                         vue.CountConstraint = res.CountConstraint;
 
                         res = res.Data;
                     } else if (res.Data) {
-                        vue.CountConstraint = false;
+                        vue.CountConstraint = null;
                         res = res.Data;
                     } else {
-                        vue.CountConstraint = false;
+                        vue.CountConstraint = null;
                     }
 
                     //データリスト保持
@@ -893,6 +893,7 @@ export default {
                 source: (request, response) => {
                     var list = vue.getAutoCompleteList(request.term);
                     //return response(!!request.term && list.length == 1 ? [] : list);
+
                     return response(list);
                 },
                 appendTo: $("body"),    //$(vue.$el).parent(),
