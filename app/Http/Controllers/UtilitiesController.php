@@ -812,6 +812,29 @@ $WhereKeyWord
     }
 
     /**
+     * GetProductListForSelect
+     */
+    public function GetProductListForSelect($request)
+    {
+        $sql = "
+        SELECT
+            MP.商品ＣＤ AS Cd,
+            MP.商品名 AS CdNm,
+            MP.商品区分,
+            MP.売価単価,
+            KK.各種名称
+        FROM 商品マスタ MP
+        LEFT JOIN 各種テーブル KK
+            ON MP.商品区分 = KK.行NO
+            AND KK.各種CD = '14'
+        ";
+        $ProductList = DB::select($sql);
+
+        return response()->json($ProductList);
+    }
+
+
+    /**
      * GetBushoListForMaint
      */
     public function GetBushoListForMaint($request)
@@ -872,25 +895,6 @@ $WhereKeyWord
             ->values();
 
         return response()->json($BankCdList);
-    }
-
-    /**
-     * GetBankBranchListForMaint
-     */
-    public function GetBankBranchListForMaint($request)
-    {
-        $cds = $request->BankCd;
-
-        $query = 金融機関支店名称::query()
-            ->when(
-                $cds,
-                function ($q) use ($cds) {
-                    return $q->whereIn('銀行CD', $cds);
-                });
-
-                $BranchList = $query->get();
-
-                return response()->json($BranchList);
     }
 
     /**

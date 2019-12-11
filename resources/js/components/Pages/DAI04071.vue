@@ -74,13 +74,13 @@
                         <div class="col-md-6">
                             <label class="">金融機関名</label>
                             <PopupSelect
-                                id="BankSelect"
-                                ref="PopupSelect_Bank"
+                                id="BankSelect1"
+                                ref="PopupSelect_Bank1"
                                 :vmodel=viewModel
                                 bind="金融機関CD1"
                                 buddy="金融機関名称1"
                                 dataUrl="/Utilities/GetBankList"
-                                :params="{ BankCd: null, KeyWord: null }"
+                                :params="{ BankCd: null, KeyWord: BankKeyWord }"
                                 :SelectorParamsFunc=BankSelectorParamsFunc
                                 :isPreload=true
                                 title="金融機関一覧"
@@ -100,19 +100,18 @@
                                 :onChangeFunc=onBankChanged
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=BankAutoCompleteFunc
-                                :AutoCompleteMinLength=1
                             />
                         </div>
                         <div class="col-md-6">
                             <label class="">支店名</label>
                             <PopupSelect
-                                id="BankBranchSelect"
-                                ref="PopupSelect_BankBranch"
+                                id="BankBranchSelect1"
+                                ref="PopupSelect_BankBranch1"
                                 :vmodel=viewModel
                                 bind="金融機関支店CD1"
                                 buddy="金融機関支店名"
                                 dataUrl="/Utilities/GetBankBranchList"
-                                :params="{ BankCd: viewModel.金融機関CD1, BranchCd: viewModel.金融機関支店CD1, KeyWord: BankBranchKeyWord1 }"
+                                :params="{ BankCd: viewModel.金融機関CD1, BranchCd: null, KeyWord: BankBranchKeyWord }"
                                 :isPreload=true
                                 title="支店一覧"
                                 labelCd="支店CD"
@@ -131,10 +130,9 @@
                                 :inputWidth=95
                                 :nameWidth=190
                                 :ParamsChangedCheckFunc=BankBranchParamsChangedCheckFunc
-                                :onChangeFunc=onBankBranchChanged1
+                                :onChangeFunc=onBankBranchChanged
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=BankBranchAutoCompleteFunc
-                                :AutoCompleteMinLength=1
                             />
                         </div>
                     </div>
@@ -173,13 +171,13 @@
                         <div class="col-md-6">
                             <label class="">金融機関名</label>
                             <PopupSelect
-                                id="BankSelect"
-                                ref="PopupSelect_Bank"
+                                id="BankSelect2"
+                                ref="PopupSelect_Bank2"
                                 :vmodel=viewModel
                                 bind="金融機関CD2"
                                 buddy="金融機関名"
                                 dataUrl="/Utilities/GetBankList"
-                                :params="{ BankCd: viewModel.金融機関CD2, KeyWord: BankKeyWord }"
+                                :params="{ BankCd: null, KeyWord: BankKeyWord }"
                                 :isPreload=true
                                 title="金融機関一覧"
                                 labelCd="金融機関CD"
@@ -198,19 +196,18 @@
                                 :onChangeFunc=onBankChanged
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=BankAutoCompleteFunc
-                                :AutoCompleteMinLength=1
                             />
                         </div>
                         <div class="col-md-6">
                             <label class="">支店名</label>
                             <PopupSelect
-                                id="BankBranchSelect"
-                                ref="PopupSelect_BankBranch"
+                                id="BankBranchSelect2"
+                                ref="PopupSelect_BankBranch2"
                                 :vmodel=viewModel
                                 bind="金融機関支店CD2"
                                 buddy="金融機関支店名"
                                 dataUrl="/Utilities/GetBankBranchList"
-                                :params="{ BankCd: viewModel.金融機関CD2, BranchCd: viewModel.金融機関支店CD2, KeyWord: BankBranchKeyWord2 }"
+                                :params="{ BankCd: viewModel.金融機関CD2, BranchCd: null, KeyWord: BankBranchKeyWord }"
                                 :isPreload=true
                                 title="支店一覧"
                                 labelCd="支店CD"
@@ -229,10 +226,9 @@
                                 :inputWidth=95
                                 :nameWidth=190
                                 :ParamsChangedCheckFunc=BankBranchParamsChangedCheckFunc
-                                :onChangeFunc=onBankBranchChanged2
+                                :onChangeFunc=onBankBranchChanged
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=BankBranchAutoCompleteFunc
-                                :AutoCompleteMinLength=1
                             />
                         </div>
                     </div>
@@ -272,17 +268,19 @@
                             <label class="">主要商品CD１</label>
                             <PopupSelect
                                 id="ProductSelect1"
-                                ref="PopupSelect_Product"
+                                ref="PopupSelect_Product1"
                                 :vmodel=viewModel
                                 bind="モバイル_主要商品ＣＤ1"
                                 buddy="商品名"
-                                dataUrl="/Utilities/GetProductListForMaint"
-                                :params="{ ProductCd: null }"
+                                dataUrl="/Utilities/GetProductListForSelect"
+                                :params="{ ProductCd: null, KeyWord: ProductKeyWord }"
                                 :isPreload=true
                                 title="商品名一覧"
                                 labelCd="モバイル_主要商品ＣＤ1"
                                 labelCdNm="商品名"
                                 :showColumns='[
+                                    { title: "商品区分", dataIndx: "商品区分", dataType: "string", width: 80, maxWidth: 80, minWidth: 80, colIndx: 2 },
+                                    { title: "売価単価", dataIndx: "売価単価", dataType: "string", width: 80, maxWidth: 80, minWidth: 80, colIndx: 3 },
                                 ]'
                                 :popupWidth=600
                                 :popupHeight=600
@@ -304,17 +302,19 @@
                             <label class="">主要商品CD２</label>
                             <PopupSelect
                                 id="ProductSelect2"
-                                ref="PopupSelect_Product"
+                                ref="PopupSelect_Product2"
                                 :vmodel=viewModel
                                 bind="モバイル_主要商品ＣＤ2"
                                 buddy="商品名"
-                                dataUrl="/Utilities/GetProductListForMaint"
-                                :params="{ ProductCd: null }"
+                                dataUrl="/Utilities/GetProductListForSelect"
+                                :params="{ ProductCd: null, KeyWord: ProductKeyWord }"
                                 :isPreload=true
                                 title="商品名一覧"
                                 labelCd="モバイル_主要商品ＣＤ2"
                                 labelCdNm="商品名"
                                 :showColumns='[
+                                    { title: "商品区分", dataIndx: "商品区分", dataType: "string", width: 80, maxWidth: 80, minWidth: 80, colIndx: 2 },
+                                    { title: "売価単価", dataIndx: "売価単価", dataType: "string", width: 80, maxWidth: 80, minWidth: 80, colIndx: 3 },
                                 ]'
                                 :popupWidth=600
                                 :popupHeight=600
@@ -475,8 +475,8 @@ export default {
             noViewModel: true,
             DAI04071Grid1: null,
             BankKeyWord: null,
-            BankBranchKeyWord1: null,
-            BankBranchKeyWord2: null,
+            BankBranchKeyWord: null,
+            ProductKeyWord: null,
             grid1Options: {
                 selectionModel: { type: "cell", mode: "single", row: true, onTab: "nextEdit" },
                 showHeader: true,
@@ -615,22 +615,15 @@ export default {
         },
         BankBranchParamsChangedCheckFunc: function(newVal, oldVal) {
             var vue = this;
-            var ret = !!newVal.BankCd;
+            var ret = !!newVal.BankCd && newVal.BankCd != 0 ;
             console.log("BankBranchParamsChangedCheckFunc", ret);
             return ret;
         },
-        onBankBranchChanged1: function(element, info, comp, isNoMsg, isValid, noSearch) {
+        onBankBranchChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
             var vue = this;
-            console.log("onBankBranchChanged1", info, comp, isValid);
+            console.log("onBankBranchChanged", info, comp, isValid);
             if (!isValid) {
-                vue.BankBranchKeyWord1 = comp.selectValue;
-            }
-        },
-        onBankBranchChanged2: function(element, info, comp, isNoMsg, isValid, noSearch) {
-            var vue = this;
-            console.log("onBankBranchChanged2", info, comp, isValid);
-            if (!isValid) {
-                vue.BankBranchKeyWord2 = comp.selectValue;
+                vue.BankBranchKeyWord = comp.selectValue;
             }
         },
         BankBranchAutoCompleteFunc: function(input, dataList, comp) {
@@ -675,7 +668,7 @@ export default {
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 
-            var wholeColumns = ["Cd", "CdNm", "商品略称"];
+            var wholeColumns = ["Cd", "CdNm", "商品区分", "各種名称", "売価単価"];
 
             var list = dataList
                 .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
@@ -690,7 +683,7 @@ export default {
                 })
                 .map(v => {
                     var ret = v;
-                    ret.label = v.Cd + " : " + v.CdNm+ "【" + v.商品略称 + "】";
+                    ret.label = v.Cd + " : " + v.CdNm+ "【 " + v.商品区分 + "：" + v.各種名称 + "】"+ "￥" + v.売価単価 ;
                     ret.value = v.Cd;
                     ret.text = v.CdNm;
                     return ret;
