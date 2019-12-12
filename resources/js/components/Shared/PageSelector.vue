@@ -164,6 +164,9 @@ export default {
         PID0201,
     },
     created: function () {
+        var vue = this;
+        vue.$on("setDialogTitle", args => vue.$parent.$emit("setDialogTitle", args));
+        vue.$on("setDialogButtons", args => vue.$parent.$emit("setDialogButtons", args));
     },
     mounted: function () {
         var vue = this;

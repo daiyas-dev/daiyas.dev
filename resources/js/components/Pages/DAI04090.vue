@@ -396,20 +396,14 @@ export default {
                 params.targets = _.cloneDeep(rows).map(v => _.pick(v.rowData, ["部署ＣＤ", "コースＣＤ", "管理ＣＤ"]));
             }
 
-            // vue.$router.push({
-            //     path: "/DAI04/DAI04091",
-            //     query: params,
-            //     params: params,
-            // });
-
             //DAI04091を子画面表示
             PageDialog.show({
                 pgId: "DAI04091",
                 params: params,
                 isModal: true,
                 isChild: true,
-                reuse: true,
-                width: 1000,
+                resizable: false,
+                width: 1120,
                 height: 800,
             });
         },

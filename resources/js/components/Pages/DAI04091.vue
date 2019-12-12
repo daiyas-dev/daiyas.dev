@@ -186,7 +186,7 @@
                     :editable=true
                     :reuse=true
                     :existsCheck=true
-                    :exceptCheck='[""]'
+                    :exceptCheck="[{Cd: '新規'}]"
                     :inputWidth=90
                     :nameWidth=195
                     :onAfterChangedFunc=onMngCdChangedOthers
@@ -419,12 +419,12 @@ fieldset {
 }
 </style>
 <style>
-#Page_DAI04091 .pq-grid .DAI04091_toolbar {
+form[pgid="DAI04091"] .pq-grid .DAI04091_toolbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
-#Page_DAI04091 .pq-grid .DAI04091_toolbar .toolbar_button {
+form[pgid="DAI04091"] .pq-grid .DAI04091_toolbar .toolbar_button {
     width: 45px;
     height: 30px;
     padding: 0px;
@@ -435,13 +435,13 @@ fieldset {
     justify-content: center;
     align-items: center;
 }
-#Page_DAI04091 .pq-grid .DAI04091_toolbar .toolbar_button > i {
+form[pgid="DAI04091"] .pq-grid .DAI04091_toolbar .toolbar_button > i {
     margin: 0px;
 }
-#Page_DAI04091 .pq-grid .DAI04091_toolbar .toolbar_button > i > span {
+form[pgid="DAI04091"] .pq-grid .DAI04091_toolbar .toolbar_button > i > span {
     font-size: 12px !important;
 }
-#Page_DAI04091 .pq-grid .DAI04091_toolbar .toolbar_button.ope {
+form[pgid="DAI04091"] .pq-grid .DAI04091_toolbar .toolbar_button.ope {
     width: 45px;
 }
 </style>
@@ -830,22 +830,23 @@ export default {
             },
         });
 
-        if (!!vue.$route && !!vue.$route.query) {
-            var targets = vue.$route.query.targets;
+        var targets;
+        if (!!vue.params || !!vue.query) {
+            targets = (vue.params || vue.query).targets;
+        }
 
-            if (!targets) return;
+        if (!targets) return data;
 
-            if (targets[0]) {
-                data.viewModel.BushoCd = targets[0].部署ＣＤ;
-                data.viewModel.CourseCd = targets[0].コースＣＤ;
-                data.viewModel.MngCd = targets[0].管理ＣＤ;
-            }
+        if (targets[0]) {
+            data.viewModel.BushoCd = targets[0].部署ＣＤ;
+            data.viewModel.CourseCd = targets[0].コースＣＤ;
+            data.viewModel.MngCd = targets[0].管理ＣＤ;
+        }
 
-            if (targets[1]) {
-                data.others.BushoCd = targets[1].部署ＣＤ;
-                data.others.CourseCd = targets[1].コースＣＤ;
-                data.others.MngCd = targets[1].管理ＣＤ;
-            }
+        if (targets[1]) {
+            data.others.BushoCd = targets[1].部署ＣＤ;
+            data.others.CourseCd = targets[1].コースＣＤ;
+            data.others.MngCd = targets[1].管理ＣＤ;
         }
 
         return data;
@@ -1236,7 +1237,7 @@ export default {
             to.scrollRow({rowIndxPage: moveAt + (toNodes.length - 1)});
         },
         moveNodesSelf: (event, grid, vue) => {
-            var $btn = $(event.event.currentTarget);
+            var $btn = $(event.currentTarget);
 
             var nodes = grid.SelectRow().getSelection().map(v => v.rowData);
 

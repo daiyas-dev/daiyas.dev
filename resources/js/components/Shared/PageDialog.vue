@@ -33,6 +33,7 @@ export default {
     data() {
         return {
             targets: [],
+            buttons: [],
         };
     },
     props: {
@@ -41,7 +42,8 @@ export default {
         "PageSelector": PageSelector,
     },
     created: function () {
-        this.$root.$on("setDialogTitle", this.setDialogTitle);
+        this.$on("setDialogTitle", this.setDialogTitle);
+        this.$on("setDialogButtons", this.setDialogButtons);
 
         window.PageDialog = this;
     },
@@ -55,6 +57,9 @@ export default {
     },
     methods: {
         showSelector: function (options) {
+
+            options.buttons = options.buttons || [];
+
             //再利用が指定されている場合、表示済みダイアログを検索
             if (options.reuse) {
                 var reuseTargets = options.pgId ?
@@ -77,6 +82,7 @@ export default {
                             text: v.text,
                             class: v.class,
                             target: v.target,
+                            shortcut: v.shortcut,
                             click: function() {
                                 var uniqueId = $(this).dialog("option").target.uniqueId;
                                 var vue = window[uniqueId].vue;
@@ -92,6 +98,7 @@ export default {
                             {
                                 text: "閉じる",
                                 class: "btn btn-danger",
+                                shortcut: "ESC",
                                 click: function(){
                                     $(this).dialog("close");
                                 }
@@ -108,6 +115,9 @@ export default {
                         grid.widget().css("visibility", "hidden");
                         options.callback(grid);
                     }
+
+                    //ボタン編集
+                    buttons = this.editButtons(buttons);
 
                     //option再設定後、表示
                     reuseTarget.wrapper.dialog("option", "title", options.title);
@@ -171,6 +181,7 @@ export default {
                         text: v.text,
                         class: v.class,
                         target: v.target,
+                        shortcut: v.shortcut,
                         click: function() {
                             var uniqueId = $(this).dialog("option").target.uniqueId;
                             var vue = window[uniqueId].vue;
@@ -186,11 +197,15 @@ export default {
                         {
                             text: "閉じる",
                             class: "btn btn-danger",
+                            shortcut: "ESC",
                             click: function(){
                                 $(this).dialog("close");
                             }
                         });
                 }
+
+                //ボタン編集
+                buttons = this.editButtons(buttons);
 
                 //wrapperを基にdialog生成
                 wrapper.dialogChild({
@@ -198,7 +213,7 @@ export default {
                     modal: target.isModal,
                     width: options.width || 600,
                     height: options.height || 500,
-                    resizable: true,
+                    resizable: options.resizable || true,
                     reuse: options.reuse || false,
                     buttons: buttons,
                 });
@@ -217,6 +232,8 @@ export default {
             });
         },
         show: function (options) {
+            options.buttons = options.buttons || [];
+
             //再利用が指定されている場合、表示済みダイアログを検索
             if (options.reuse) {
                 var reuseTargets = options.pgId ? this.targets.filter(v => v.pgId == options.pgId)  //pgId指定時はそれで検索
@@ -235,6 +252,9 @@ export default {
                     var buttons = options.buttons.map(function(v) {
                         return {
                             text: v.text,
+                            class: v.class,
+                            target: v.target,
+                            shortcut: v.shortcut,
                             click: function() {
                                 var pgId = $(this).dialog("option").target.pgId;
                                 var uniqueId = $(this).dialog("option").target.uniqueId;
@@ -253,6 +273,8 @@ export default {
                         buttons.push(
                             {
                                 text: "閉じる",
+                                class: "btn btn-danger",
+                                shortcut: "ESC",
                                 click: function(){
                                     $(this).dialog("close");
                                 }
@@ -265,6 +287,9 @@ export default {
                         grid.widget().css("visibility", "hidden");
                         options.callback(grid);
                     }
+
+                    //ボタン編集
+                    buttons = this.editButtons(buttons);
 
                     //option再設定後、表示
                     reuseTarget.wrapper.dialog("option", "title", options.title);
@@ -313,6 +338,8 @@ export default {
                     return {
                         text: v.text,
                         class: v.class,
+                        target: v.target,
+                        shortcut: v.shortcut,
                         click: function() {
                             var pgId = $(this).dialog("option").target.pgId;
                             var uniqueId = $(this).dialog("option").target.uniqueId;
@@ -333,11 +360,16 @@ export default {
                     buttons.push(
                         {
                             text: "閉じる",
+                            class: "btn btn-danger",
+                            shortcut: "ESC",
                             click: function(){
                                 $(this).dialog("close");
                             }
                         });
                 }
+
+                //ボタン編集
+                buttons = this.editButtons(buttons);
 
                 //wrapperを基にdialog生成
                 wrapper.dialogChild({
@@ -345,7 +377,7 @@ export default {
                     modal: target.isModal,
                     width: options.width || 500,
                     height: options.height || 500,
-                    resizable: true,
+                    resizable: options.resizable || true,
                     reuse: options.reuse || false,
                     buttons: buttons,
                 });
@@ -358,6 +390,14 @@ export default {
                 this.targets.filter(v => v.uniqueId == uniqueId).map(v => v.wrapper = wrapper);
             });
         },
+        editButtons: function(buttons) {
+            buttons.forEach(v => {
+                if (!!v.shortcut && !v.text.includes(v.shortcut)) {
+                    v.text += "\r\n" + "(" + v.shortcut + ")";
+                }
+            });
+            return buttons;
+        },
         hide: function (pgId) {
             $("#closeBtn").click();
         },
@@ -368,6 +408,47 @@ export default {
             //ダイアログタイトルの設定
             this.targets.filter(v => v.uniqueId == uniqueId && !!v.wrapper)
                     .forEach(v => v.wrapper.dialog("option", "title", title));
+        },
+        setDialogButtons: function(info) {
+            var uniqueId = info.uniqueId;
+
+            //ダイアログボタン向けにoption変更
+            var buttons = _.cloneDeep(info.buttons)
+                .filter(v => v.value != "終了" && v.shortcut != "F12")
+                .map(v => {
+                    if (eval(v.visible) == false) {
+                        return {
+                            text: "",
+                            class: "btn btn-primary invisible",
+                            disabled: true,
+                        };
+                    }
+
+                    var text = v.value.includes(v.shortcut) ? v.value : (v.value + "\r\n" + "(" + v.shortcut + ")");
+
+                    return {
+                            text: text,
+                            class: "btn btn-primary",
+                            shortcut: v.shortcut,
+                            click: v.onClick,
+                            disabled: v.disabled || false,
+                    };
+                });
+
+                buttons.push(
+                    {
+                        text: "閉じる\r\n(ESC)",
+                        class: "btn btn-danger",
+                        shortcut: "ESC",
+                        click: function(){
+                            $(this).dialog("close");
+                        }
+                    }
+                );
+
+            //ダイアログボタンの設定
+            this.targets.filter(v => v.uniqueId == uniqueId && !!v.wrapper)
+                    .forEach(v => v.wrapper.dialog("option", "buttons", buttons));
         },
     }
 };

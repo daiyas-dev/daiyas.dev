@@ -481,8 +481,6 @@ export default {
             var grid = vue.DAI04080Grid1;
             if (!grid) return;
 
-            console.log("showDetail", event.key);
-
             var params;
 
             if (grid.pdata.filter(v => v.コースＣＤ == vue.viewModel.CourseCd).length == 1) {

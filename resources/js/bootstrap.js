@@ -60,12 +60,13 @@ window.axios.interceptors.response.use(
         var data = response.data;
 
         //console.log("axios response interceptor", url, params);
-        var key = response.config.url + (params ? ("?" + $.param(JSON.parse(params))) : "");
+        var key = response.config.url + (!!params && !_(params).values().every(v => !v) ? ("?" + $.param(JSON.parse(params))) : "");
 
         var all = [
             "/Utilities/GetBushoList",
             "/Utilities/GetTantoList",
             "/Utilities/GetCodeList",
+            "/Utilities/GetBankList",
         ];
 
         var excepts = [
@@ -96,8 +97,7 @@ window.axios.interceptors.request.use(
         var url = request.url;
         var params = request.data;
 
-        //console.log("axios request interceptor", url, params);
-        var key = request.url + (params ? ("?" + $.param(params)) : "");
+        var key = request.url + (!!params && !_(params).values().every(v => !v) ? ("?" + $.param(params)) : "");
 
         if (!window.myCache.has(key) && url == "/Utilities/GetTantoList") {
             key = url;
@@ -106,6 +106,7 @@ window.axios.interceptors.request.use(
             key = url;
         }
 
+        // console.log("axios request interceptor", url, params, window.myCache.has(key));
         if (window.myCache.has(key)) {
             var cache = window.myCache.get(key);
 
@@ -118,6 +119,7 @@ window.axios.interceptors.request.use(
                 cache = cache.filter(v => v.各種CD == params.cd);
             }
             //console.log("axios request find Cache", url, cache);
+            request.cache = true;
 
             request.adapter = () => {
                 return Promise.resolve({
@@ -126,7 +128,7 @@ window.axios.interceptors.request.use(
                     statusText: request.statusText,
                     headers: request.headers,
                     config: request,
-                    request: request
+                    request: request,
                 });
             };
         }
