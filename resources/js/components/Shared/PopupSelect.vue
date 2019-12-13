@@ -197,6 +197,7 @@ export default {
             errorMsg: null,
             AutoCompleteFocusSkip: false,
             isLoading: true,
+            AutoCompleteListMaxDefault: 500,
         }
     },
     props: {
@@ -241,6 +242,8 @@ export default {
         isShowAutoComplete: Boolean,
         AutoCompleteFunc: Function,
         AutoCompleteMinLength: Number,
+        AutoCompleteNoLimit: Boolean,
+        AutoCompleteListMax: Number,
         ParamsChangedCheckFunc: Function,
         enablePrevNext: Boolean,
         SelectorParamsFunc: Function,
@@ -894,11 +897,31 @@ export default {
             input.autocomplete({
                 source: (request, response) => {
                     var list = vue.getAutoCompleteList(request.term);
-                    //return response(!!request.term && list.length == 1 ? [] : list);
+
+                    var max = vue.AutoCompleteListMax || vue.AutoCompleteListMaxDefault;
+                    if (!vue.AutoCompleteNoLimit && list.length > max) {
+                        var len = list.length;
+                        list = _.slice(list, 0, max - 1);
+                        var msg = "先頭" + max + "件のみ表示しています(" + len + "件中)"
+                                + "\r\n"
+                                + "絞り込み条件を追加して下さい";
+                        $(vue.$el)
+                            .find("#" + vue.id).tooltip({
+                                animation: false,
+                                placement: "auto",
+                                trigger: "hover",
+                                title: msg,
+                                container: "body",
+                                template: '<div class="tooltip" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>'
+                            })
+                            .tooltip("show");
+                    } else {
+                        $(vue.$el).find("#" + vue.id).tooltip("dispose");
+                    }
 
                     return response(list);
                 },
-                appendTo: $("body"),    //$(vue.$el).parent(),
+                appendTo: $(vue.$el).closest("form"),
                 select : function(event, ui) {
                     //console.log("autocomplete select:" + input.val());
                     //選択した値を設定
@@ -906,6 +929,12 @@ export default {
                     vue.execSetSelectValue(ui.item.value, true, false);
 
                     return false;
+                },
+                close: function(event, ui) {
+                    console.log("autocomplete close", event, ui);
+                    if (!$(vue.$el).hasClass("has-error")) {
+                        input.tooltip("dispose");
+                    }
                 },
                 position: { my: "left top", at: "left bottom", collision: "flip" },
                 autoFocus: false,
@@ -926,10 +955,10 @@ export default {
                 //console.log("autocomplete click:" + input.val());
                 input.focus();
             })
-            .keydown(function(event) {
-                //console.log("autocomplete key down:" + event.key);
-                //console.log(event);
-                switch (event.which) {
+            .keydown(function(ev) {
+                //console.log("autocomplete key down:" + ev.key);
+                //console.log(ev);
+                switch (ev.which) {
                     case 13:
                         var selected = vue.autoCompleteList.length == 1 ? vue.autoCompleteList[0] : vue.selectRow;
 

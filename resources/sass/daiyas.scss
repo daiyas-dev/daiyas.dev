@@ -31,7 +31,7 @@ body {
     display: none;
 }
 .ui-widget.ui-autocomplete {
-    z-index: 3001 !important;
+    // z-index: 3001 !important;
 }
 
 .tooltip {
@@ -127,7 +127,11 @@ body {
 }
 
 .container.body-content.Scrollable {
-    overflow-y: auto;
+    overflow-y: auto !important;
+}
+.ui-dialog-content.body-content.Scrollable {
+    overflow-y: auto !important;
+    padding-bottom: 0px;
 }
 
 .container.body-content > #exception {
@@ -198,6 +202,7 @@ body {
 .tooltip-inner {
     max-width: none;
     text-align: left;
+    white-space: pre;
 }
 
 /* 入力項目エラーツールチップ */
