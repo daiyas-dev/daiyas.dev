@@ -71,6 +71,12 @@
                         </div>
                     </div>
                     <div class="row">
+                        <div class="col-md-6">
+                            <label class="" style="width:360px !important">スマフォ表示用得意先名称</label>
+                            <input type="text" class="form-control" :value="viewModel.スマフォ表示用得意先名名称">
+                        </div>
+                    </div>
+                    <div class="row">
                         <div class="col-md-5">
                             <label>部署</label>
                             <VueSelectBusho　/>
@@ -125,6 +131,33 @@
                     <div class="row">
                         <div class="col-md-12">
                             <fieldset class="delivery-info w-100">
+                                <legend class="delivery-info">得意先の担当者</legend>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <label class="">氏名</label>
+                                        <input class="form-control p-1" type="text" :value=viewModel.得意先担当者氏名>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <label>部署</label>
+                                        <input class="form-control p-1" type="text" :value=viewModel.得意先担当者部署>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <label>電話番号</label>
+                                        <input class="form-control p-1" type="text" style="width: 100px;" :value=viewModel.得意先担当者電話番号>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <label>メール</label>
+                                        <input class="form-control p-1" type="text" :value=viewModel.得意先担当者メール>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <fieldset class="delivery-info w-100">
                                 <legend class="delivery-info">お届け先</legend>
                                 <div class="row">
                                     <div class="col-md-3">
@@ -166,7 +199,33 @@
                 </fieldset>
             </div>
             <div class="col-md-3">
-                右ペイン
+                <div class="row">
+                    <div class="col-md-12">
+                        <label class="" >状態理由</label>
+                        <VueSelect
+                            id="StateReason"
+                            :vmodel=viewModel
+                            bind="状態理由区分"
+                            uri="/Utilities/GetCodeList"
+                            :params="{ cd: 36 }"
+                            :withCode=true
+                            customStyle="{ width: 100px; }"
+                            :disabled='viewModel.状態区分 != "40"'
+                        />
+                    </div>
+                    <div class="col-md-12">
+                        <label class="" style="margin-left:30px">失客日</label>
+                        <DatePickerWrapper
+                            id="ShikkyakuDate"
+                            ref="DatePicker_ShikkyakuDate"
+                            format="YYYY年MM月DD日"
+                            dayViewHeaderFormat="YYYY年MM月"
+                            :vmodel=viewModel
+                            bind="失客日"
+                            :editable='viewModel.状態区分 == "40"'
+                        />
+                    </div>
+                </div>
             </div>
             <div class="col-md-9">
                 <fieldset class="shiharai-info w-100">
@@ -407,11 +466,11 @@
             <div class="col-md-3">
                 右ペイン
             </div>
-            <div class="col-md-9">
+            <div class="col-md-12">
                 <fieldset class="fuzoku-info w-100">
                     <legend class="fuzoku-info">付属情報</legend>
                     <div class="row">
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label>チケット枚数</label>
                             <input class="form-control text-right p-2" style="width: 80px;" type="text" :value=viewModel.チケット枚数>
                         </div>
@@ -419,7 +478,7 @@
                             <label style="width: 45px;">サービス<br>チケット枚数</label>
                             <input class="form-control text-right p-2" style="width: 40px;" type="text" :value=viewModel.サービスチケット枚数>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="">受注方法</label>
                             <VueSelect
                                 id="JuchuKind"
@@ -432,7 +491,7 @@
                                 customStyle="{ width: 100px; }"
                             />
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label>発信時間</label>
                             <DatePickerWrapper
                                 id="SendTime"
@@ -445,9 +504,13 @@
                                 customStyle="width: 80px;"
                             />
                         </div>
+                        <div class="col-md-3">
+                            <label>顧客メモ</label>
+                            <input class="form-control p-2" type="textarea" :value=viewModel.備考１>
+                        </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="">営業担当者</label>
                             <VueSelect
                                 id="EigyoTantoCd"
@@ -460,7 +523,7 @@
                                 customStyle="{ width: 150px; }"
                             />
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="">獲得営業者</label>
                             <VueSelect
                                 id="KakutokuEigyoCd"
@@ -473,7 +536,7 @@
                                 customStyle="{ width: 150px; }"
                             />
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="">登録担当者</label>
                             <VueSelect
                                 id="TourokuTantoCd"
@@ -615,17 +678,70 @@
                                             checkedCode="1"
                                             customContainerStyle="border-style: groove; margin-right: 5px;"
                                             customTitleStyle="width: 20px; justify-content: center;"
-                                            customContentStyle="width: 80px"
+                                            customContentStyle="width: 70px"
                                         />
                                     </div>
                                 </div>
                             </fieldset>
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col-md-9">
+                            <label>顧客メモ</label>
+                            <input class="form-control p-2" type="text" :value=viewModel.備考１>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-9">
+                            <label>発信メモ</label>
+                            <input class="form-control p-2" type="text" :value=viewModel.備考２>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-9">
+                            <label>発送メモ</label>
+                            <input class="form-control p-2" type="text" :value=viewModel.備考３>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label>誕生日１</label>
+                            <input class="form-control text-right p-2" style="width: 80px;" type="text" :value=viewModel.誕生日１>
+                        </div>
+                        <div class="col-md-3">
+                            <label>誕生日２</label>
+                            <input class="form-control text-right p-2" style="width: 80px;" type="text" :value=viewModel.誕生日２>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-5">
+                            <label class="" style="width:120px !important">規定製造パターン</label>
+                            <VueSelect
+                                id="SeizoPattern"
+                                :vmodel=viewModel
+                                bind="既定製造パターン"
+                                uri="/Utilities/GetCodeList"
+                                :params="{ cd: 35 }"
+                                :withCode=true
+                                customStyle="{ width: 100px; }"
+                            />
+                        </div>
+                        <div class="col-md-5">
+                            <label class="" style="width:120px !important">新規顧客登録日</label>
+                            <DatePickerWrapper
+                                id="TorokuDate"
+                                ref="DatePicker_TorokuDate"
+                                format="YYYY年MM月DD日"
+                                dayViewHeaderFormat="YYYY年MM月"
+                                :vmodel=viewModel
+                                bind="新規登録日"
+                                :editable=true
+                            />
+                        </div>
+                    </div>
                 </fieldset>
             </div>
-            <div class="col-md-3">
-                右ペイン
+            <div class="col-md-3">右ペイン
             </div>
         </div>
         <div class="row"><input></div>
@@ -700,10 +816,6 @@ export default {
             var vue = this;
             return vue.viewModel.IsNew == true ? "新規" : "修正";
         },
-        FormattedDeliveryDate: function() {
-            var vue = this;
-            return vue.viewModel.DeliveryDate ? moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
-        },
         Weeks: function() {
             return _.range(0, 7).map(v => moment().day(v).format("dd"));
         },
@@ -722,6 +834,40 @@ export default {
                 });
             },
         },
+        "viewModel.金融機関CD": {
+            deep: true,
+            sync: true,
+            handler: function(newVal) {
+                var vue = this;
+                if (newVal == "0") {
+                    vue.viewModel.金融機関CD = "";
+                }
+            },
+        },
+        "viewModel.金融機関支店CD": {
+            deep: true,
+            sync: true,
+            handler: function(newVal) {
+                var vue = this;
+                if (newVal == "0") {
+                    vue.viewModel.金融機関支店CD = "";
+                }
+            },
+        },
+        // "viewModel.状態区分": {
+        //     deep: true,
+        //     sync: true,
+        //     handler: function(newVal) {
+        //         var vue = this;
+        //         if (newVal == "40") {
+        //             $('[id^=StateReason_]').prop('disabled', false);
+        //             $('[id^=ShikkyakuDate_]').prop('disabled', false);
+        //         } else{
+        //             $('[id^=StateReason_]').prop('disabled', true);
+        //             $('[id^=ShikkyakuDate_]').prop('disabled', true);
+        //         }
+        //     },
+        // },
     },
     data() {
         var vue = this;
@@ -785,6 +931,38 @@ export default {
     },
     methods: {
         createdFunc: function(vue) {
+            vue.footerButtons.push(
+                { visible: "true", value: "クリア", id: "DAI04041_Clear", disabled: false, shortcut: "F2",
+                    onClick: function () {
+                        //TODO: クリア
+                    }
+                },
+                { visible: "true", value: "削除", id: "DAI04041_Delete", disabled: false, shortcut: "F3",
+                    onClick: function () {
+                        //TODO: 削除
+                    }
+                },
+                {visible: "false"},
+                {visible: "false"},
+                {visible: "false"},
+              　{ visible: "true", value: "登録", id: "DAI04041Grid1_Save", disabled: false, shortcut: "F9",
+                    onClick: function () {
+                        var params = _.cloneDeep(vue.viewModel);
+
+                        //金融機関CD: nullの0置換
+                        params.金融機関CD = params.金融機関CD || 0;
+                        params.金融機関支店CD = params.金融機関支店CD || 0;
+
+                        //TODO: 登録用controller method call
+                        console.log("登録", params);
+                    }
+                },
+                { visible: "true", value: "CSV", id: "DAI04041_Csv", disabled: false, shortcut: "F7",
+                    onClick: function () {
+                        //TODO: CSV
+                    }
+                },
+            );
         },
         mountedFunc: function(vue) {
             $(vue.$el).parents("div.body-content").addClass("Scrollable");

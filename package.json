@@ -22,6 +22,7 @@
         "html2canvas": "1.0.0-rc.3",
         "jquery": "^3.2",
         "jquery-contextmenu": "2.8.0",
+        "jquery-deparam": "^0.5.3",
         "jquery-ui-pack": "1.12.2",
         "jspdf": "1.5.2",
         "jszip": "2.5.0",
@@ -45,7 +46,6 @@
     },
     "dependencies": {
         "install": "^0.13.0",
-        "jquery-deparam": "^0.5.3",
         "node-cache": "^5.0.2",
         "npm": "^6.11.3"
     }
