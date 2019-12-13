@@ -921,7 +921,7 @@ export default {
 
                     return response(list);
                 },
-                appendTo: $(vue.$el).closest("form"),
+                appendTo: $(vue.$el).closest(".ui-dialog, body"),
                 select : function(event, ui) {
                     //console.log("autocomplete select:" + input.val());
                     //選択した値を設定
