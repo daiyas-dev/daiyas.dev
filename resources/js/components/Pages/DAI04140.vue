@@ -5,7 +5,7 @@
                 <label>税区分</label>
             </div>
             <div class="col-md-1">
-                <input type="text" class="form-control" :value="viewModel.税区分" @input="onTaxKbnChanged">
+                <input type="text" class="form-control" :value="viewModel.税区分" @input="onTaxKbnChanged" @keydown.enter="() => showDetail()">
             </div>
             <div class="col-md-1">
                 <label>名称</label>
@@ -333,21 +333,33 @@ export default {
             if (!grid) return;
 
             var params;
+
+            var params;
             if (rowData) {
                 params = _.cloneDeep(rowData);
             } else {
-                var rows = grid.SelectRow().getSelection();
-                if (rows.length != 1) return;
+                if (grid.pdata.filter(v => v.税区分 == vue.viewModel.税区分).length == 1) {
+                    params = _.cloneDeep(grid.pdata.find(v => v.税区分 == vue.viewModel.税区分));
+                } else {
+                    var selection = grid.SelectRow().getSelection();
 
-                params = _.cloneDeep(rows[0].rowData);
+                    var rows = grid.SelectRow().getSelection();
+                    if (rows.length != 1) return;
+
+                    params = _.cloneDeep(rows[0].rowData);
+                }
             }
 
             params.IsNew = false;
 
-            //TODO: 子画面化
-            vue.$router.push({
-                path: "/DAI04/DAI04141",
-                query: params,
+            //DAI04141を子画面表示
+            PageDialog.show({
+                pgId: "DAI04141",
+                params: params,
+                isModal: true,
+                isChild: true,
+                width: 900,
+                height: 600,
             });
         },
     }

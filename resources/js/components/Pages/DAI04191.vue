@@ -133,7 +133,7 @@ export default {
     data() {
         var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "マスタメンテ > 金融機関名称メンテ > 金融機関名称メンテ詳細",
+            ScreenTitle: "金融機関名称メンテ詳細",
             noViewModel: true,
             DAI04191Grid1: null,
             BankKeyWord: null,
@@ -181,8 +181,8 @@ export default {
             },
         });
 
-        if (!!vue.$route && !!vue.$route.query) {
-            data.viewModel = vue.$route.query;
+        if (!!vue.params || !!vue.query) {
+            data.viewModel = $.extend(true, {}, vue.params, vue.query);
         }
 
         return data;

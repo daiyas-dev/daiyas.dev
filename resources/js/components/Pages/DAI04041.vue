@@ -201,7 +201,7 @@
             <div class="col-md-3">
                 <div class="row">
                     <div class="col-md-12">
-                        <label class="" >状態理由</label>
+                        <label class="" style="margin-left:30px; text-align: left;">状態理由</label>
                         <VueSelect
                             id="StateReason"
                             :vmodel=viewModel
@@ -214,7 +214,7 @@
                         />
                     </div>
                     <div class="col-md-12">
-                        <label class="" style="margin-left:30px">失客日</label>
+                        <label class="" style="margin-left:30px; text-align: left;">失客日</label>
                         <DatePickerWrapper
                             id="ShikkyakuDate"
                             ref="DatePicker_ShikkyakuDate"
@@ -227,7 +227,9 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-9">
+        </div>
+        <div class="row">
+            <div class="col-md-12">
                 <fieldset class="shiharai-info w-100">
                     <legend class="shiharai-info">支払情報</legend>
                     <div class="row">
@@ -301,7 +303,7 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-2">
                             <label class="">支払方法1</label>
                             <VueSelect
                                 id="ShiharaiKind1"
@@ -313,7 +315,7 @@
                                 customStyle="{ width: 100px; }"
                             />
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-2">
                             <label class="">支払方法2</label>
                             <VueSelect
                                 id="ShiharaiKind2"
@@ -324,9 +326,11 @@
                                 :withCode=true
                                 :hasNull=true
                                 customStyle="{ width: 100px; }"
+                                :disabled='viewModel.支払方法１ == "1"'
+
                             />
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-2">
                             <label class="">税区分</label>
                             <VueSelect
                                 id="TaxKbn"
@@ -338,9 +342,7 @@
                                 customStyle="{ width: 100px; }"
                             />
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="">集金区分</label>
                             <VueSelect
                                 id="ShiharaiKind1"
@@ -350,11 +352,12 @@
                                 :params="{ cd: 5 }"
                                 :withCode=true
                                 customStyle="{ width: 100px; }"
+                                :disabled='viewModel.支払方法１ != "4"'
                             />
                         </div>
                         <div class="col-md-3">
                             <label>集金手数料</label>
-                            <input class="form-control text-right" type="text" :value=viewModel.集金手数料>
+                            <input class="form-control text-right" type="text" :value=viewModel.集金手数料 :disabled='viewModel.支払方法１ != "4"'>
                         </div>
                     </div>
                     <div class="row">
@@ -362,7 +365,7 @@
                             <fieldset class="kouza-info w-100">
                                 <legend class="kouza-info">口座情報</legend>
                                 <div class="row">
-                                    <div class="col-md-12">
+                                    <div class="col-md-6">
                                         <label class="">金融機関名</label>
                                         <PopupSelect
                                             id="BankSelect"
@@ -383,7 +386,7 @@
                                             :popupHeight=600
                                             :isShowName=true
                                             :isModal=true
-                                            :editable=true
+                                            :editable='viewModel.支払方法１ == "4"'
                                             :reuse=true
                                             :existsCheck=true
                                             :inputWidth=100
@@ -393,9 +396,7 @@
                                             :AutoCompleteFunc=BankAutoCompleteFunc
                                         />
                                     </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-12">
+                                    <div class="col-md-6">
                                         <label class="" >支店名</label>
                                         <PopupSelect
                                             id="BankBranchSelect"
@@ -417,7 +418,7 @@
                                             :popupHeight=600
                                             :isShowName=true
                                             :isModal=true
-                                            :editable=true
+                                            :editable='viewModel.支払方法１ == "4"'
                                             :reuse=true
                                             :existsCheck=true
                                             :inputWidth=100
@@ -430,11 +431,11 @@
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label>記号番号</label>
-                                        <input class="form-control p-1" style="min-width: 125px;" type="text" :value=viewModel.記号番号>
+                                        <input class="form-control p-1" style="min-width: 125px;" type="text" :value=viewModel.記号番号 :disabled='viewModel.支払方法１ != "4"'>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label class="">口座種別</label>
                                         <VueSelect
                                             id="KouzaKind"
@@ -445,311 +446,300 @@
                                             :withCode=true
                                             :hasNull=true
                                             customStyle="{ width: 100px; }"
+                                            :disabled='viewModel.支払方法１ != "4"'
                                         />
                                     </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label>口座番号</label>
-                                        <input class="form-control p-1" style="min-width: 125px;" type="text" :value=viewModel.口座番号>
+                                        <input class="form-control p-1" style="min-width: 125px;" type="text" :value=viewModel.口座番号 :disabled='viewModel.支払方法１ != "4"'>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-3">
                                         <label class="">口座名義人</label>
-                                        <input class="form-control" type="text" style="font-size: 15px !important;" :value=viewModel.口座名義人>
+                                        <input class="form-control" type="text" style="font-size: 15px !important;" :value=viewModel.口座名義人 :disabled='viewModel.支払方法１ != "4"'>
                                     </div>
                                 </div>
                             </fieldset>
                         </div>
                     </div>
                 </fieldset>
-            </div>
-            <div class="col-md-3">
-                右ペイン
-            </div>
-            <div class="col-md-12">
-                <fieldset class="fuzoku-info w-100">
-                    <legend class="fuzoku-info">付属情報</legend>
-                    <div class="row">
-                        <div class="col-md-2">
-                            <label>チケット枚数</label>
-                            <input class="form-control text-right p-2" style="width: 80px;" type="text" :value=viewModel.チケット枚数>
-                        </div>
-                        <div class="col-md-2">
-                            <label style="width: 45px;">サービス<br>チケット枚数</label>
-                            <input class="form-control text-right p-2" style="width: 40px;" type="text" :value=viewModel.サービスチケット枚数>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="">受注方法</label>
-                            <VueSelect
-                                id="JuchuKind"
-                                :vmodel=viewModel
-                                bind="受注方法"
-                                buddy="受注方法名称"
-                                uri="/Utilities/GetCodeList"
-                                :params="{ cd: 23 }"
-                                :withCode=true
-                                customStyle="{ width: 100px; }"
-                            />
-                        </div>
-                        <div class="col-md-3">
-                            <label>発信時間</label>
-                            <DatePickerWrapper
-                                id="SendTime"
-                                ref="DatePicker_TakeoutTime"
-                                format="HH時mm分"
-                                dayViewHeaderFormat="YYYY年MM月"
-                                :vmodel=viewModel
-                                bind="発信時間"
-                                :editable=true
-                                customStyle="width: 80px;"
-                            />
-                        </div>
-                        <div class="col-md-3">
-                            <label>顧客メモ</label>
-                            <input class="form-control p-2" type="textarea" :value=viewModel.備考１>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-3">
-                            <label class="">営業担当者</label>
-                            <VueSelect
-                                id="EigyoTantoCd"
-                                :vmodel=viewModel
-                                bind="営業担当者ＣＤ"
-                                buddy="営業担当者名"
-                                uri="/Utilities/GetTantoList"
-                                :params="{ bushoCd: null }"
-                                :withCode=true
-                                customStyle="{ width: 150px; }"
-                            />
-                        </div>
-                        <div class="col-md-3">
-                            <label class="">獲得営業者</label>
-                            <VueSelect
-                                id="KakutokuEigyoCd"
-                                :vmodel=viewModel
-                                bind="獲得営業者ＣＤ"
-                                buddy="獲得営業者名"
-                                uri="/Utilities/GetTantoList"
-                                :params="{ bushoCd: null }"
-                                :withCode=true
-                                customStyle="{ width: 150px; }"
-                            />
-                        </div>
-                        <div class="col-md-3">
-                            <label class="">登録担当者</label>
-                            <VueSelect
-                                id="TourokuTantoCd"
-                                :vmodel=viewModel
-                                bind="登録担当者ＣＤ"
-                                buddy="登録担当者名"
-                                uri="/Utilities/GetTantoList"
-                                :params="{ bushoCd: null }"
-                                :withCode=true
-                                customStyle="{ width: 150px; }"
-                            />
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-9">
-                            <label class="">受注顧客</label>
-                            <PopupSelect
-                                id="JuchuCustomerSelect"
-                                ref="PopupSelect_JuchuCustomer"
-                                :vmodel=viewModel
-                                bind="受注得意先ＣＤ"
-                                buddy="受注得意先名"
-                                dataUrl="/Utilities/GetCustomerListForSelect"
-                                :params="{ CustomerCd: null, KeyWord: JuchuCustomerKeyWord }"
-                                :isPreload=true
-                                title="得意先一覧"
-                                labelCd="得意先CD"
-                                labelCdNm="得意先名"
-                                :showColumns='[
-                                ]'
-                                :popupWidth=1000
-                                :popupHeight=600
-                                :isShowName=true
-                                :isModal=true
-                                :editable=true
-                                :reuse=true
-                                :existsCheck=true
-                                :inputWidth=150
-                                :nameWidth=400
-                                :onChangeFunc=onJuchuCustomerChanged
-                                :isShowAutoComplete=true
-                                :AutoCompleteFunc=JuchuCustomerAutoCompleteFunc
-                                :AutoCompleteMinLength=1
-                            />
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <label class="">味噌汁</label>
-                            <VueSelect
-                                id="MisoKbn"
-                                :vmodel=viewModel
-                                bind="味噌汁区分"
-                                uri="/Utilities/GetCodeList"
-                                :params="{ cd: 8 }"
-                                :withCode=true
-                                customStyle="{ width: 100px; }"
-                            />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="">納品書発行</label>
-                            <VueSelect
-                                id="NouhinshoKbn"
-                                :vmodel=viewModel
-                                bind="納品書発行区分"
-                                uri="/Utilities/GetCodeList"
-                                :params="{ cd: 9 }"
-                                :withCode=true
-                                customStyle="{ width: 100px; }"
-                            />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="">請求書敬称</label>
-                            <VueSelect
-                                id="NouhinshoKbn"
-                                :vmodel=viewModel
-                                bind="請求書敬称"
-                                uri="/Utilities/GetCodeList"
-                                :params="{ cd: 9 }"
-                                :withCode=true
-                                customStyle="{ width: 100px; }"
-                            />
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <label class="">ふりかけ</label>
-                            <VueSelect
-                                id="FurikakeKbn"
-                                :vmodel=viewModel
-                                bind="ふりかけ区分"
-                                uri="/Utilities/GetCodeList"
-                                :params="{ cd: 8 }"
-                                :withCode=true
-                                customStyle="{ width: 100px; }"
-                            />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="">空き容器回収</label>
-                            <VueSelect
-                                id="KaishuKbn"
-                                :vmodel=viewModel
-                                bind="空き容器回収区分"
-                                uri="/Utilities/GetCodeList"
-                                :params="{ cd: 10 }"
-                                :withCode=true
-                                customStyle="{ width: 100px; }"
-                            />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="">祝日配送</label>
-                            <VueSelect
-                                id="HolidayDeliveryKbn"
-                                :vmodel=viewModel
-                                bind="祝日配送区分"
-                                uri="/Utilities/GetCodeList"
-                                :params="{ cd: 22 }"
-                                :withCode=true
-                                customStyle="{ width: 100px; }"
-                            />
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <fieldset class="holiday-info w-100">
-                                <legend class="holiday-info">休日登録</legend>
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <VueCheck v-for="dd in Weeks"
-                                            :key=dd
-                                            :id="'HolidayConfig_' + dd"
-                                            :ref="'HolidayConfig_' + dd"
-                                            :title="dd"
-                                            :vmodel=HolidayConfig
-                                            :bind="dd"
-                                            uri="/Utilities/GetCodeList"
-                                            :params="{ cd: 13 }"
-                                            :withCode=true
-                                            checkedCode="1"
-                                            customContainerStyle="border-style: groove; margin-right: 5px;"
-                                            customTitleStyle="width: 20px; justify-content: center;"
-                                            customContentStyle="width: 70px"
-                                        />
-                                    </div>
-                                </div>
-                            </fieldset>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-9">
-                            <label>顧客メモ</label>
-                            <input class="form-control p-2" type="text" :value=viewModel.備考１>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-9">
-                            <label>発信メモ</label>
-                            <input class="form-control p-2" type="text" :value=viewModel.備考２>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-9">
-                            <label>発送メモ</label>
-                            <input class="form-control p-2" type="text" :value=viewModel.備考３>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-3">
-                            <label>誕生日１</label>
-                            <input class="form-control text-right p-2" style="width: 80px;" type="text" :value=viewModel.誕生日１>
-                        </div>
-                        <div class="col-md-3">
-                            <label>誕生日２</label>
-                            <input class="form-control text-right p-2" style="width: 80px;" type="text" :value=viewModel.誕生日２>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-5">
-                            <label class="" style="width:120px !important">規定製造パターン</label>
-                            <VueSelect
-                                id="SeizoPattern"
-                                :vmodel=viewModel
-                                bind="既定製造パターン"
-                                uri="/Utilities/GetCodeList"
-                                :params="{ cd: 35 }"
-                                :withCode=true
-                                customStyle="{ width: 100px; }"
-                            />
-                        </div>
-                        <div class="col-md-5">
-                            <label class="" style="width:120px !important">新規顧客登録日</label>
-                            <DatePickerWrapper
-                                id="TorokuDate"
-                                ref="DatePicker_TorokuDate"
-                                format="YYYY年MM月DD日"
-                                dayViewHeaderFormat="YYYY年MM月"
-                                :vmodel=viewModel
-                                bind="新規登録日"
-                                :editable=true
-                            />
-                        </div>
-                    </div>
-                </fieldset>
-            </div>
-            <div class="col-md-3">右ペイン
             </div>
         </div>
-        <div class="row"><input></div>
-        <div class="row"><input></div>
-        <div class="row"><input></div>
-        <div class="row"><input></div>
-        <div class="row"><input></div>
-        <div class="row"><input></div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="row">
+                    <div class="col-md-9">
+                        <fieldset class="fuzoku-info w-100">
+                            <legend class="fuzoku-info">付属情報</legend>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label>チケット枚数</label>
+                                    <input class="form-control text-right p-2" style="width: 80px;" type="text" :value=viewModel.チケット枚数>
+                                </div>
+                                <div class="col-md-3">
+                                    <label style="width: 170px;">サービスチケット枚数</label>
+                                    <input class="form-control text-right p-2" style="width: 40px;" type="text" :value=viewModel.サービスチケット枚数>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="">受注方法</label>
+                                    <VueSelect
+                                        id="JuchuKind"
+                                        :vmodel=viewModel
+                                        bind="受注方法"
+                                        buddy="受注方法名称"
+                                        uri="/Utilities/GetCodeList"
+                                        :params="{ cd: 23 }"
+                                        :withCode=true
+                                        customStyle="{ width: 100px; }"
+                                    />
+                                </div>
+                                <div class="col-md-3">
+                                    <label>発信時間</label>
+                                    <DatePickerWrapper
+                                        id="SendTime"
+                                        ref="DatePicker_TakeoutTime"
+                                        format="HH時mm分"
+                                        dayViewHeaderFormat="YYYY年MM月"
+                                        :vmodel=viewModel
+                                        bind="発信時間"
+                                        :editable=true
+                                        customStyle="width: 80px;"
+                                    />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label class="">営業担当者</label>
+                                    <VueSelect
+                                        id="EigyoTantoCd"
+                                        :vmodel=viewModel
+                                        bind="営業担当者ＣＤ"
+                                        buddy="営業担当者名"
+                                        uri="/Utilities/GetTantoList"
+                                        :params="{ bushoCd: null }"
+                                        :withCode=true
+                                        customStyle="{ width: 150px; }"
+                                    />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="">獲得営業者</label>
+                                    <VueSelect
+                                        id="KakutokuEigyoCd"
+                                        :vmodel=viewModel
+                                        bind="獲得営業者ＣＤ"
+                                        buddy="獲得営業者名"
+                                        uri="/Utilities/GetTantoList"
+                                        :params="{ bushoCd: null }"
+                                        :withCode=true
+                                        customStyle="{ width: 150px; }"
+                                    />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="">登録担当者</label>
+                                    <VueSelect
+                                        id="TourokuTantoCd"
+                                        :vmodel=viewModel
+                                        bind="登録担当者ＣＤ"
+                                        buddy="登録担当者名"
+                                        uri="/Utilities/GetTantoList"
+                                        :params="{ bushoCd: null }"
+                                        :withCode=true
+                                        customStyle="{ width: 150px; }"
+                                    />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-9">
+                                    <label class="">受注顧客</label>
+                                    <PopupSelect
+                                        id="JuchuCustomerSelect"
+                                        ref="PopupSelect_JuchuCustomer"
+                                        :vmodel=viewModel
+                                        bind="受注得意先ＣＤ"
+                                        buddy="受注得意先名"
+                                        dataUrl="/Utilities/GetCustomerListForSelect"
+                                        :params="{ CustomerCd: null, KeyWord: JuchuCustomerKeyWord }"
+                                        :isPreload=true
+                                        title="得意先一覧"
+                                        labelCd="得意先CD"
+                                        labelCdNm="得意先名"
+                                        :showColumns='[
+                                        ]'
+                                        :popupWidth=1000
+                                        :popupHeight=600
+                                        :isShowName=true
+                                        :isModal=true
+                                        :editable=true
+                                        :reuse=true
+                                        :existsCheck=true
+                                        :inputWidth=150
+                                        :nameWidth=400
+                                        :onChangeFunc=onJuchuCustomerChanged
+                                        :isShowAutoComplete=true
+                                        :AutoCompleteFunc=JuchuCustomerAutoCompleteFunc
+                                        :AutoCompleteMinLength=1
+                                    />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label class="">味噌汁</label>
+                                    <VueSelect
+                                        id="MisoKbn"
+                                        :vmodel=viewModel
+                                        bind="味噌汁区分"
+                                        uri="/Utilities/GetCodeList"
+                                        :params="{ cd: 8 }"
+                                        :withCode=true
+                                        customStyle="{ width: 100px; }"
+                                    />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="">納品書発行</label>
+                                    <VueSelect
+                                        id="NouhinshoKbn"
+                                        :vmodel=viewModel
+                                        bind="納品書発行区分"
+                                        uri="/Utilities/GetCodeList"
+                                        :params="{ cd: 9 }"
+                                        :withCode=true
+                                        customStyle="{ width: 100px; }"
+                                    />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="">請求書敬称</label>
+                                    <VueSelect
+                                        id="NouhinshoKbn"
+                                        :vmodel=viewModel
+                                        bind="請求書敬称"
+                                        uri="/Utilities/GetCodeList"
+                                        :params="{ cd: 9 }"
+                                        :withCode=true
+                                        customStyle="{ width: 100px; }"
+                                    />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label class="">ふりかけ</label>
+                                    <VueSelect
+                                        id="FurikakeKbn"
+                                        :vmodel=viewModel
+                                        bind="ふりかけ区分"
+                                        uri="/Utilities/GetCodeList"
+                                        :params="{ cd: 8 }"
+                                        :withCode=true
+                                        customStyle="{ width: 100px; }"
+                                    />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="">空き容器回収</label>
+                                    <VueSelect
+                                        id="KaishuKbn"
+                                        :vmodel=viewModel
+                                        bind="空き容器回収区分"
+                                        uri="/Utilities/GetCodeList"
+                                        :params="{ cd: 10 }"
+                                        :withCode=true
+                                        customStyle="{ width: 100px; }"
+                                    />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="">祝日配送</label>
+                                    <VueSelect
+                                        id="HolidayDeliveryKbn"
+                                        :vmodel=viewModel
+                                        bind="祝日配送区分"
+                                        uri="/Utilities/GetCodeList"
+                                        :params="{ cd: 22 }"
+                                        :withCode=true
+                                        customStyle="{ width: 100px; }"
+                                    />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <fieldset class="holiday-info w-100">
+                                        <legend class="holiday-info">休日登録</legend>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <VueCheck v-for="dd in Weeks"
+                                                    :key=dd
+                                                    :id="'HolidayConfig_' + dd"
+                                                    :ref="'HolidayConfig_' + dd"
+                                                    :title="dd"
+                                                    :vmodel=HolidayConfig
+                                                    :bind="dd"
+                                                    uri="/Utilities/GetCodeList"
+                                                    :params="{ cd: 13 }"
+                                                    :withCode=true
+                                                    checkedCode="1"
+                                                    customContainerStyle="border-style: groove; margin-right: 5px;"
+                                                    customTitleStyle="width: 20px; justify-content: center;"
+                                                    customContentStyle="width: 70px"
+                                                />
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label>誕生日１</label>
+                                    <input class="form-control text-right p-2" type="text" :value=viewModel.誕生日１>
+                                </div>
+                                <div class="col-md-3">
+                                    <label>誕生日２</label>
+                                    <input class="form-control text-right p-2" type="text" :value=viewModel.誕生日２>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="" style="width:120px !important">規定製造パターン</label>
+                                    <VueSelect
+                                        id="SeizoPattern"
+                                        :vmodel=viewModel
+                                        bind="既定製造パターン"
+                                        uri="/Utilities/GetCodeList"
+                                        :params="{ cd: 35 }"
+                                        :withCode=true
+                                        customStyle="{ width: 100px; }"
+                                    />
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="row">
+                            <div class="col-md-11">
+                                <label style="margin-left: 20px; text-align: center;">顧客メモ</label>
+                                <textarea class="form-control p-2 memo" type="text" :value=viewModel.備考１>
+                                </textarea>
+                            </div>
+                            <div class="col-md-11">
+                                <label style="margin-left: 20px">発信メモ</label>
+                                <textarea class="form-control p-2 memo" type="text" :value=viewModel.備考２>
+                                </textarea>
+                            </div>
+                            <div class="col-md-11">
+                                <label style="margin-left: 20px">配送メモ</label>
+                                <textarea class="form-control p-2 memo" type="text" :value=viewModel.備考３>
+                                </textarea>
+                            </div>
+                            <div class="col-md-11">
+                                <label class="" style="width:120px; margin-left: 20px;">新規顧客<br>登録日</label>
+                                <DatePickerWrapper
+                                    id="TorokuDate"
+                                    ref="DatePicker_TorokuDate"
+                                    format="YYYY年MM月DD日"
+                                    dayViewHeaderFormat="YYYY年MM月"
+                                    :vmodel=viewModel
+                                    bind="新規登録日"
+                                    :editable=true
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </form>
 </template>
 
@@ -795,6 +785,9 @@ textarea {
     max-height: unset;
     line-height: 16px;
     resize: none;
+}
+.memo{
+    height: 70px;
 }
 </style>
 <style>
@@ -854,25 +847,11 @@ export default {
                 }
             },
         },
-        // "viewModel.状態区分": {
-        //     deep: true,
-        //     sync: true,
-        //     handler: function(newVal) {
-        //         var vue = this;
-        //         if (newVal == "40") {
-        //             $('[id^=StateReason_]').prop('disabled', false);
-        //             $('[id^=ShikkyakuDate_]').prop('disabled', false);
-        //         } else{
-        //             $('[id^=StateReason_]').prop('disabled', true);
-        //             $('[id^=ShikkyakuDate_]').prop('disabled', true);
-        //         }
-        //     },
-        // },
     },
     data() {
         var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "マスタメンテ > 得意先マスタメンテ > 得意先マスタメンテ詳細",
+            ScreenTitle: "得意先マスタメンテ詳細",
             noViewModel: true,
             DAI04041Grid1: null,
             BillingKeyWord: null,
@@ -923,8 +902,8 @@ export default {
             },
         });
 
-        if (!!vue.$route && !!vue.$route.query) {
-            data.viewModel = vue.$route.query;
+        if (!!vue.params || !!vue.query) {
+            data.viewModel = $.extend(true, {}, vue.params, vue.query);
         }
 
         return data;

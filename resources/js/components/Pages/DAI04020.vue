@@ -5,16 +5,22 @@
                 <label>担当者ＣＤ</label>
             </div>
             <div class="col-md-1">
-                <input type="text" class="form-control" :value="viewModel.担当者ＣＤ" @input="onTantoCdChanged">
+                <input type="text" class="form-control" :value="viewModel.担当者ＣＤ" @input="onTantoCdChanged" @keydown.enter="() => showDetail()">
             </div>
             <div class="col-md-1">
-                <label>部署</label>
+                <label style="width:90px">部署</label>
             </div>
             <div class="col-md-2">
-                <VueSelectBusho
-                    ref="VueSelectBusho"
+                <VueSelect
+                    id="BushoCd"
+                    :vmodel=viewModel
+                    bind="所属部署ＣＤ"
+                    uri="/Utilities/GetBushoList"
+                    :params="{ cds: null }"
+                    :withCode=true
                     :hasNull=true
-                    :onChangedFunc=onBushoChanged
+                    customStyle="{ width: 100px; }"
+                    :onChangedFunc=onBushoCdChanged
                 />
             </div>
             <div class="col-md-1">
@@ -61,8 +67,8 @@
             ref="DAI04020Grid1"
             dataUrl="/Utilities/GetTantoListForMaint"
             :query=this.viewModel
-            :SearchOnCreate=false
-            :SearchOnActivate=false
+            :SearchOnCreate=true
+            :SearchOnActivate=true
             :options=grid1Options
             :onBeforeCreateFunc=onBeforeCreateFunc
             :onAfterSearchFunc=onAfterSearchFunc
@@ -101,6 +107,7 @@ export default {
             viewModel: {
                 BushoCd: null,
                 BushoNm: null,
+                TantoCd: null,
                 SalesDiv: null,
                 KeyWord: null,
                 FilterMode: "AND",
@@ -188,11 +195,11 @@ export default {
             console.log("Cache Set Key1", myCache.set("key1", { value: 1 }));
             console.log("Cache Get Key1", myCache.get("key1"));
         },
-        onBushoChanged: function(code, entity) {
+        onBushoCdChanged: function(code, entity) {
             var vue = this;
 
-            //条件変更ハンドラ
-            vue.conditionChanged();
+            //フィルタ変更
+            vue.filterChanged();
         },
         onSalesDivChanged: function(code, entity) {
             var vue = this;
@@ -243,6 +250,9 @@ export default {
 
             if (!!vue.viewModel.担当者ＣＤ) {
                 rules.push({ dataIndx: "担当者ＣＤ", condition: "equal", value: vue.viewModel.担当者ＣＤ });
+            }
+            if (!!vue.viewModel.所属部署ＣＤ) {
+                rules.push({ dataIndx: "所属部署ＣＤ", condition: "equal", value: vue.viewModel.所属部署ＣＤ });
             }
             if (!!vue.viewModel.SalesDiv) {
                 rules.push({ dataIndx: "営業業務区分", condition: "equal", value: vue.viewModel.SalesDiv });
@@ -375,21 +385,33 @@ export default {
             if (!grid) return;
 
             var params;
+
+            var params;
             if (rowData) {
                 params = _.cloneDeep(rowData);
             } else {
-                var rows = grid.SelectRow().getSelection();
-                if (rows.length != 1) return;
+                if (grid.pdata.filter(v => v.担当者ＣＤ == vue.viewModel.担当者ＣＤ).length == 1) {
+                    params = _.cloneDeep(grid.pdata.find(v => v.担当者ＣＤ == vue.viewModel.担当者ＣＤ));
+                } else {
+                    var selection = grid.SelectRow().getSelection();
 
-                params = _.cloneDeep(rows[0].rowData);
+                    var rows = grid.SelectRow().getSelection();
+                    if (rows.length != 1) return;
+
+                    params = _.cloneDeep(rows[0].rowData);
+                }
             }
 
             params.IsNew = false;
 
-            //TODO: 子画面化
-            vue.$router.push({
-                path: "/DAI04/DAI04021",
-                query: params,
+            //DAI04021を子画面表示
+            PageDialog.show({
+                pgId: "DAI04021",
+                params: params,
+                isModal: true,
+                isChild: true,
+                width: 1100,
+                height: 600,
             });
         },
     }

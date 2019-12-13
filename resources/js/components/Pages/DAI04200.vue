@@ -33,7 +33,7 @@
                 <label>支店CD</label>
             </div>
             <div class="col-md-1">
-                <input type="text" class="form-control" :value="viewModel.BranchCd" @input="onBranchCdChanged">
+                <input type="text" class="form-control" :value="viewModel.BranchCd" @input="onBranchCdChanged" @keydown.enter="() => showDetail()">
             </div>
         </div>
         <div class="row">
@@ -386,21 +386,33 @@ export default {
             if (!grid) return;
 
             var params;
+
+            var params;
             if (rowData) {
                 params = _.cloneDeep(rowData);
             } else {
-                var rows = grid.SelectRow().getSelection();
-                if (rows.length != 1) return;
+                if (grid.pdata.filter(v => v.支店CD == vue.viewModel.BranchCd).length == 1) {
+                    params = _.cloneDeep(grid.pdata.find(v => v.支店CD == vue.viewModel.BranchCd));
+                } else {
+                    var selection = grid.SelectRow().getSelection();
 
-                params = _.cloneDeep(rows[0].rowData);
+                    var rows = grid.SelectRow().getSelection();
+                    if (rows.length != 1) return;
+
+                    params = _.cloneDeep(rows[0].rowData);
+                }
             }
 
             params.IsNew = false;
 
-            //TODO: 子画面化
-            vue.$router.push({
-                path: "/DAI04/DAI04201",
-                query: params,
+            //DAI04201を子画面表示
+            PageDialog.show({
+                pgId: "DAI04201",
+                params: params,
+                isModal: true,
+                isChild: true,
+                width: 1100,
+                height: 600,
             });
         },
     }

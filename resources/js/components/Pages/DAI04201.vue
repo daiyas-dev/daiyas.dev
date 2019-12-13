@@ -9,7 +9,7 @@
             <div class="col-md-1">
                 <label class="">金融機関</label>
             </div>
-            <div class="col-md-5">
+            <div class="col-md-7">
                 <PopupSelect
                     id="BankSelect"
                     ref="PopupSelect_Bank"
@@ -33,7 +33,7 @@
                     :reuse=true
                     :existsCheck=true
                     :inputWidth=60
-                    :nameWidth=150
+                    :nameWidth=235
                     :onChangeFunc=onBankChanged
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=BankAutoCompleteFunc
@@ -157,7 +157,7 @@ export default {
     data() {
         var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "マスタメンテ > 金融機関支店名称メンテ > 金融機関支店名称メンテ詳細",
+            ScreenTitle: "金融機関支店名称メンテ詳細",
             noViewModel: true,
             DAI04201Grid1: null,
             BankKeyWord: null,
@@ -205,8 +205,8 @@ export default {
             },
         });
 
-        if (!!vue.$route && !!vue.$route.query) {
-            data.viewModel = vue.$route.query;
+        if (!!vue.params || !!vue.query) {
+            data.viewModel = $.extend(true, {}, vue.params, vue.query);
         }
 
         return data;

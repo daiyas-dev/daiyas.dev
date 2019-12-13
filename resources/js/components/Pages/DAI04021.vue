@@ -54,7 +54,16 @@
         <div class="row">
             <div class="col-md-5">
                 <label>部署</label>
-                <VueSelectBusho　/>
+                <VueSelect
+                    id="BushoCd"
+                    :vmodel=viewModel
+                    bind="所属部署ＣＤ"
+                    uri="/Utilities/GetBushoList"
+                    :params="{ cds: null }"
+                    :withCode=true
+                    :hasNull=true
+                    customStyle="{ width: 100px; }"
+                />
             </div>
         </div>
         <div class="row">
@@ -169,7 +178,7 @@ export default {
     data() {
         var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "マスタメンテ > 担当者マスタメンテ > 担当者マスタメンテ詳細",
+            ScreenTitle: "担当者マスタメンテ詳細",
             noViewModel: true,
             DAI04021Grid1: null,
             grid1Options: {
@@ -215,8 +224,8 @@ export default {
             },
         });
 
-        if (!!vue.$route && !!vue.$route.query) {
-            data.viewModel = vue.$route.query;
+        if (!!vue.params || !!vue.query) {
+            data.viewModel = $.extend(true, {}, vue.params, vue.query);
         }
 
         return data;

@@ -5,7 +5,7 @@
                 <label>商品ＣＤ</label>
             </div>
             <div class="col-md-1">
-                <input type="text" class="form-control" :value="viewModel.ProductCd" @input="onProductCdChanged">
+                <input type="text" class="form-control" :value="viewModel.ProductCd" @input="onProductCdChanged" @keydown.enter="() => showDetail()">
             </div>
             <div class="col-md-2">
                 <label>商品区分</label>
@@ -373,21 +373,33 @@ export default {
             if (!grid) return;
 
             var params;
+
+            var params;
             if (rowData) {
                 params = _.cloneDeep(rowData);
             } else {
-                var rows = grid.SelectRow().getSelection();
-                if (rows.length != 1) return;
+                if (grid.pdata.filter(v => v.商品ＣＤ == vue.viewModel.ProductCd).length == 1) {
+                    params = _.cloneDeep(grid.pdata.find(v => v.商品ＣＤ == vue.viewModel.ProductCd));
+                } else {
+                    var selection = grid.SelectRow().getSelection();
 
-                params = _.cloneDeep(rows[0].rowData);
+                    var rows = grid.SelectRow().getSelection();
+                    if (rows.length != 1) return;
+
+                    params = _.cloneDeep(rows[0].rowData);
+                }
             }
 
             params.IsNew = false;
 
-            //TODO: 子画面化
-            vue.$router.push({
-                path: "/DAI04/DAI04031",
-                query: params,
+            //DAI04031を子画面表示
+            PageDialog.show({
+                pgId: "DAI04031",
+                params: params,
+                isModal: true,
+                isChild: true,
+                width: 1100,
+                height: 600,
             });
         },
     }

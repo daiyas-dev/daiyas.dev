@@ -147,7 +147,7 @@ export default {
     data() {
         var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "マスタメンテ > 消費税率マスタメンテ > 消費税率マスタメンテ詳細",
+            ScreenTitle: "消費税率マスタメンテ詳細",
             noViewModel: true,
             DAI04141Grid1: null,
             BankKeyWord: null,
@@ -195,8 +195,8 @@ export default {
             },
         });
 
-        if (!!vue.$route && !!vue.$route.query) {
-            data.viewModel = vue.$route.query;
+        if (!!vue.params || !!vue.query) {
+            data.viewModel = $.extend(true, {}, vue.params, vue.query);
         }
 
         return data;

@@ -5,7 +5,7 @@
                 <label>銀行CD</label>
             </div>
             <div class="col-md-1">
-                <input type="text" class="form-control" :value="viewModel.BankCd" @input="onBankCdChanged">
+                <input type="text" class="form-control" :value="viewModel.BankCd" @input="onBankCdChanged" @keydown.enter="() => showDetail()">
             </div>
             <div class="col-md-1">
                 <label class="w-100 text-center">キーワード</label>
@@ -317,21 +317,33 @@ export default {
             if (!grid) return;
 
             var params;
+
+            var params;
             if (rowData) {
                 params = _.cloneDeep(rowData);
             } else {
-                var rows = grid.SelectRow().getSelection();
-                if (rows.length != 1) return;
+                if (grid.pdata.filter(v => v.銀行CD == vue.viewModel.BankCd).length == 1) {
+                    params = _.cloneDeep(grid.pdata.find(v => v.銀行CD == vue.viewModel.BankCd));
+                } else {
+                    var selection = grid.SelectRow().getSelection();
 
-                params = _.cloneDeep(rows[0].rowData);
+                    var rows = grid.SelectRow().getSelection();
+                    if (rows.length != 1) return;
+
+                    params = _.cloneDeep(rows[0].rowData);
+                }
             }
 
             params.IsNew = false;
 
-            //TODO: 子画面化
-            vue.$router.push({
-                path: "/DAI04/DAI04191",
-                query: params,
+            //DAI04191を子画面表示
+            PageDialog.show({
+                pgId: "DAI04191",
+                params: params,
+                isModal: true,
+                isChild: true,
+                width: 1100,
+                height: 600,
             });
         },
     }

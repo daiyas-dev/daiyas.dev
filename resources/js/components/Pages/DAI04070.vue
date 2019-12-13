@@ -5,7 +5,7 @@
                 <label>部署CD</label>
             </div>
             <div class="col-md-1">
-                <input type="text" class="form-control" :value="viewModel.部署CD" @input="onBushoCdChanged" @keydown.enter="showDetail">
+                <input type="text" class="form-control" :value="viewModel.部署CD" @input="onBushoCdChanged" @keydown.enter="() => showDetail()">
             </div>
             <div class="col-md-1">
                 <label style="width:90px">部署グループ</label>
