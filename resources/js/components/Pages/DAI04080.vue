@@ -2,6 +2,12 @@
     <form id="this.$options.name">
         <div class="row">
             <div class="col-md-1">
+                <label>コースCD</label>
+            </div>
+            <div class="col-md-1">
+                <input type="text" class="form-control CourseCd" style="width: 80px;" :value="viewModel.CourseCd" @input="onCourseCdChanged" @keydown.enter="showDetail">
+            </div>
+            <div class="col-md-1">
                 <label>部署</label>
             </div>
             <div class="col-md-2">
@@ -11,8 +17,12 @@
                     :onChangedFunc=onBushoChanged
                 />
             </div>
-            <div class="col-md-2">
+        </div>
+        <div class="row">
+            <div class="col-md-1">
                 <label>コース区分</label>
+            </div>
+            <div class="col-md-1">
                 <VueSelect
                     id="CourseKbn"
                     ref="VueSelect_CourseKbn"
@@ -26,8 +36,10 @@
                     :onChangedFunc=onCourseKbnChanged
                 />
             </div>
-            <div class="col-md-4">
+            <div class="col-md-1">
                 <label>担当者</label>
+            </div>
+            <div class="col-md-3">
                 <PopupSelect
                     id="TantoSelect"
                     ref="PopupSelect_Tanto"
@@ -124,11 +136,6 @@ export default {
             var vue = this;
             return vue.viewModel.KojoKbn ? moment(vue.viewModel.KojoKbn, "YYYY年MM月DD日").format("YYYYMMDD") : null;
         },
-        hasSelectionRow: function() {
-            var vue = this;
-            var grid = vue.DAI04080Grid1;
-            return !!grid && !!grid.getSelectionRowData();
-        },
     },
     watch: {
     },
@@ -139,6 +146,7 @@ export default {
             noViewModel: true,
             conditionTrigger: true,
             viewModel: {
+                CourseCd: null,
                 BushoCd: null,
                 BushoNm: null,
                 CourseKbn: null,
@@ -221,10 +229,10 @@ export default {
         mountedFunc: function(vue) {
             //watcher
             vue.$watch(
-                "hasSelectionRow",
-                (newVal) => {
-                    console.log("hasSelectionRow watcher: " + newVal);
-                    vue.footerButtons.find(v => v.id == "DAI04080Grid1_Detail").disabled = !newVal;
+                "$refs.DAI04080Grid1.selectionRowCount",
+                cnt => {
+                    console.log("selectionRowCount watcher: " + cnt);
+                    vue.footerButtons.find(v => v.id == "DAI04080Grid1_Detail").disabled = cnt != 1;
                 }
             );
 
@@ -232,11 +240,17 @@ export default {
             console.log("Cache Set Key1", myCache.set("key1", { value: 1 }));
             console.log("Cache Get Key1", myCache.get("key1"));
         },
+        onCourseCdChanged: _.debounce(function(event) {
+            var vue = this;
+
+            vue.viewModel.CourseCd = event.target.value;
+
+            //フィルタ変更
+            vue.filterChanged();
+        }, 300),
         onBushoChanged: function(code, entity) {
             var vue = this;
 
-            // //条件変更ハンドラ
-            // vue.conditionChanged();
             //フィルタ変更
             vue.filterChanged();
         },
@@ -293,6 +307,9 @@ export default {
 
             var rules = [];
 
+            if (!!vue.viewModel.CourseCd) {
+                rules.push({ dataIndx: "コースＣＤ", condition: "begin", value: vue.viewModel.CourseCd });
+            }
             if (!!vue.viewModel.BushoCd) {
                 rules.push({ dataIndx: "部署ＣＤ", condition: "equal", value: vue.viewModel.BushoCd });
             }
@@ -464,10 +481,21 @@ export default {
             var grid = vue.DAI04080Grid1;
             if (!grid) return;
 
-            var row = grid.getSelectionRowData();
-            if (!row) return;
+            var params;
 
-            var params = _.cloneDeep(row);
+            if (grid.pdata.filter(v => v.コースＣＤ == vue.viewModel.CourseCd).length == 1) {
+                params = _.cloneDeep(grid.pdata.find(v => v.コースＣＤ == vue.viewModel.CourseCd));
+            }
+            if (!params) {
+                var selection = grid.SelectRow().getSelection();
+                if (selection.length == 1) {
+                    params = _.cloneDeep(selection[0].rowData);
+                } else {
+                    return;
+                }
+            }
+
+            //新規フラグ:false
             params.IsNew = false;
 
             //TODO: 子画面化

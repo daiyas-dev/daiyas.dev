@@ -1,7 +1,7 @@
 ﻿//jQuery Dialogのバグ対応及び拡張
 var dialogCustom = function(options) {
     //ログインダイアログを表示する場合は、個別ダイアログを表示しない
-    if ($("#loginDialog").is(":visible") || window.VueApp.$refs.LogonForm.isShown) {
+    if ($("#loginDialog").is(":visible") || (window.VueApp && window.VueApp.$refs.LogonForm.isShown)) {
         return;
     }
 
@@ -19,9 +19,9 @@ var dialogCustom = function(options) {
         reuse: false,
         //TODO: edge/IEのレンダリングエンジンが弱すぎるので
         //TODO: ダイアログ内のPQGridの再描画が間に合わないのでエフェクト停止
-        show: { effect: "clip", duration: 150},
-        hide: { effect: "clip", duration: 150},
-        create: function() {
+        show: { effect: "clip", duration: 300},
+        hide: { effect: "clip", duration: 200},
+        create: function () {
             var op = $(this).dialog("option");
 
             //contents
@@ -63,6 +63,7 @@ var dialogCustom = function(options) {
             {
                 text: "閉じる",
                 class: "btn btn-danger",
+                shortcut: "ESC",
                 click: function(){
                     $(this).dialog("close");
                 }
@@ -98,10 +99,61 @@ var dialogCustom = function(options) {
     var target = typeof this == "object" ? $(this) : $("<div id='jqDialog'>");
     var dlg = target.dialog(opt);
 
-    dlg.closest(".ui-dialog").on("keydown", function (ev) {
+    dlg.closest(".ui-dialog").on("keydown", function (evt) {
         if (opt.keyDownHandler) {
-            var element = this;
-            opt.keyDownHandler(target, opt, ev);
+            return opt.keyDownHandler(target, opt, evt);
+        } else {
+            var sc = $(evt.currentTarget)
+                .find(".ui-dialog-buttonpane button[shortcut]:visible:enabled")
+                .filter((i, v) => {
+                    var shortcut = $(v).attr("shortcut");
+
+                    var keys = shortcut.split(/ *, */);
+                    var match = _.some(keys, key => {
+                        var op = key
+                            .split(/ *\+ */)
+                            .filter(k => !["Shift", "Ctrl", "Alt"].includes(k))
+                            .map(k => {
+                                var conv = {
+                                    "←": "ArrowLeft",
+                                    "→": "ArrowRight",
+                                    "↑": "ArrowUp",
+                                    "↓": "ArrowDown",
+                                };
+
+                                return conv[k] || k;
+                            });
+
+                        var isShift = key.includes("Shift");
+                        var isCtrl = key.includes("Ctrl");
+                        var isAlt = key.includes("Alt");
+
+                        var alias = evt.key == "Escape" ? ["Escape", "ESC"] : [evt.key];
+
+                        var ret =
+                            (
+                                _.some(op, k => [evt.code, evt.key, evt.keyCode, evt.which].includes(k))
+                                ||
+                                _.some(op, k => [evt.code, evt.key, evt.keyCode, evt.which].includes(k.toLowerCase()))
+                                ||
+                                _.some(op, k => alias.includes(k))
+                            )
+                            && evt.shiftKey == isShift
+                            && evt.ctrlKey == isCtrl
+                            && evt.altKey == isAlt;
+
+                        return ret;
+                    });
+
+                    return match;
+                });
+
+            if (sc.length) {
+                sc.each((i, v) => $(v).click());
+                return false;
+            }
+
+            return true;
         }
     });
 
@@ -131,6 +183,7 @@ var dialogErr = function(options) {
         {
             text: "閉じる",
             class: "btn btn-danger",
+            shortcut: "ESC",
             click: function(){
                 $(this).dialog("close");
 

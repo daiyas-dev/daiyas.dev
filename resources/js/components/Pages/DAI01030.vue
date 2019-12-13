@@ -603,7 +603,7 @@ export default {
             var vue = this;
             //var input = vmodel.CustomerCd;
 
-            if (!dataList.length || !input) return [];
+            if (!dataList.length) return [];
 
             console.time("CustomerAutoCompleteFunc");
 

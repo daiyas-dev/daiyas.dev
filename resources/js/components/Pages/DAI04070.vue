@@ -5,7 +5,7 @@
                 <label>部署CD</label>
             </div>
             <div class="col-md-1">
-                <input type="text" class="form-control" :value="viewModel.部署CD" @input="onBushoCdChanged">
+                <input type="text" class="form-control" :value="viewModel.部署CD" @input="onBushoCdChanged" @keydown.enter="showDetail">
             </div>
             <div class="col-md-1">
                 <label style="width:90px">部署グループ</label>
@@ -444,21 +444,33 @@ export default {
             if (!grid) return;
 
             var params;
+
+            var params;
             if (rowData) {
                 params = _.cloneDeep(rowData);
             } else {
-                var rows = grid.SelectRow().getSelection();
-                if (rows.length != 1) return;
+                if (grid.pdata.filter(v => v.部署CD == vue.viewModel.部署CD).length == 1) {
+                    params = _.cloneDeep(grid.pdata.find(v => v.部署CD == vue.viewModel.部署CD));
+                } else {
+                    var selection = grid.SelectRow().getSelection();
 
-                params = _.cloneDeep(rows[0].rowData);
+                    var rows = grid.SelectRow().getSelection();
+                    if (rows.length != 1) return;
+
+                    params = _.cloneDeep(rows[0].rowData);
+                }
             }
 
             params.IsNew = false;
 
-            //TODO: 子画面化
-            vue.$router.push({
-                path: "/DAI04/DAI04071",
-                query: params,
+            //DAI04071を子画面表示
+            PageDialog.show({
+                pgId: "DAI04071",
+                params: params,
+                isModal: true,
+                isChild: true,
+                width: 1100,
+                height: 600,
             });
         },
     }

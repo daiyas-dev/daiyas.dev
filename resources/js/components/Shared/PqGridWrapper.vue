@@ -28,6 +28,9 @@ export default {
             isSearchOnActivate: true,
             isActivated: false,
             selectionRowCount: null,
+            isSelection: false,
+            isSelectionFirst: false,
+            isSelectionLast: false,
             CountConstraint: null,
             PopupSelect: PopupSelect,
             DatePickerWrapper: DatePickerWrapper,
@@ -493,7 +496,7 @@ export default {
                     }
 
                     //セル内PopupSelect設定の共通化
-                    if (ui.column.dataUrl && ui.column.editable) {
+                    if (ui.column.psProps) {
                         ui.column.binder = {};
                         ui.column.editor = {
                             type: "textbox",
@@ -509,10 +512,6 @@ export default {
                                     [ui.dataIndx]: ui.rowData[ui.dataIndx],
                                 };
 
-                                if (ui.column.buddy) {
-                                    ui.column.binder[ui.column.buddy] = ui.rowData[ui.column.buddy];
-                                }
-
                                 // key events?
                                 if (window.event.keyCode && !_.isNaN(window.event.key * 1)) {
                                     if (ui.column.dataType == "integer" || ui.column.dataType == "float") {
@@ -521,27 +520,31 @@ export default {
                                 }
 
                                 //create PopupSelect instance
+                                var props = _.cloneDeep(ui.column.psProps);
+                                props.id = "PopupSelect_" + ui.dataIndx + "_" + ui.rowIndx;
+                                props.ref = "PopupSelect_" + ui.dataIndx + "_" + ui.rowIndx;
+                                props.vmodel = ui.column.binder;
+                                props.bind = props.bind || ui.dataIndx;
+                                props.editable = (_.isFunction(ui.column.editable) ? ui.column.editable(ui) : ui.column.editable) || true;
+                                props.width = gridCell.width();
+
+                                if (_.isFunction(props.params)) {
+                                    props.params = props.params(vue.$parent, grid);
+                                }
+
+                                if (props.buddy) {
+                                    ui.column.binder[props.buddy] = ui.rowData[props.buddy];
+                                }
+
+                                if (props.buddies.length) {
+                                    _.keys(props.buddies).forEach(k => {
+                                        ui.column.binder[k] = ui.rowData[props.buddies[k]];
+                                    });
+                                }
+
                                 var ps = new (VueApp.createInstance(vue.PopupSelect))(
                                     {
-                                        propsData: {
-                                            id: "PopupSelect_" + ui.dataIndx + "_" + ui.rowIndx,
-                                            ref: "PopupSelect_" + ui.dataIndx + "_" + ui.rowIndx,
-                                            vmodel: ui.column.binder,
-                                            bind: ui.dataIndx,
-                                            buddy: ui.column.buddy,
-                                            dataUrl: ui.column.dataUrl,
-                                            params: ui.column.params,
-                                            title: ui.column.selectorTitle || (ui.column.title + "一覧"),
-                                            labelCd: ui.column.labelCd || (ui.column.title + "コード"),
-                                            labelCdNm: ui.column.labelCdNm || (ui.column.title + "名称"),
-                                            isGetName: ui.column.isGetName || false,
-                                            isModal: ui.column.isModal || true,
-                                            editable: (_.isFunction(ui.column.editable) ? ui.column.editable(ui) : ui.column.editable) || true,
-                                            reuse: ui.column.reuse || true,
-                                            existsCheck: ui.column.existsCheck || true,
-                                            onChangeFunc: ui.column.onChangeFunc,
-                                            width: gridCell.width(),
-                                        }
+                                        propsData: props,
                                     }
                                 );
                                 ps.$mount();
@@ -568,13 +571,13 @@ export default {
                                                     )
                                                 )
                                             ) {
-                                                vue.setCellState(grid, ui, false);
+                                                vue.setCellState(grid, ui, true);
                                                 vue.moveNextCell(grid, ui, event.shiftKey);
                                                 return false;
                                             }
                                             return true;
                                         case 13:
-                                            vue.setCellState(grid, ui, false);
+                                            vue.setCellState(grid, ui, true);
                                             vue.moveNextCell(grid, ui);
                                             return false;
                                         case 27:
@@ -596,6 +599,10 @@ export default {
                                 }, 100);
                             },
                             getData: function(ui, grid) {
+                                if (ui.column.psProps.getData) {
+                                    return ui.column.psProps.getData(ui, grid);
+                                }
+
                                 return ui.$cell.find(".target-input").val();
                             },
                         };
@@ -621,6 +628,10 @@ export default {
                                 gridCell
                                     .removeClass("ui-state-error")
                                     .tooltip("dispose");
+                            }
+
+                            if (ui.column.psProps.htmlRender) {
+                                $(ui.cell).html(ui.column.psProps.htmlRender(ui));
                             }
 
                             return ui;
@@ -669,11 +680,12 @@ export default {
                 items: []
             },
             history: function (event, ui) {
-                //console.log("grid history");
+                var grid = this;
+                console.log("grid history", ui);
 
-                //toolbarボタンの状態変更
-                $("button[undo]", this.toolbar()).button("option", { disabled: !(ui.canUndo || ui.num_undo > 0) });
-                $("button[redo]", this.toolbar()).button("option", { disabled: !(ui.canRedo || ui.num_redo > 0) });
+                //undo, redoボタンの状態変更
+                grid.widget().find(".toolbar_button.undo").prop("disabled", !(ui.canUndo || ui.num_undo > 0));
+                grid.widget().find(".toolbar_button.redo").prop("disabled", !(ui.canRedo || ui.num_redo > 0));
 
                 //PqGrid-Toolbar設定
                 this.options.vue.setToolbarState();
@@ -989,6 +1001,11 @@ export default {
                 var vue = grid.options.vue;
 
                 if (grid.options.selectionModel.type == "row") {
+                    var isSelection = grid.SelectRow().getSelection().length > 0;
+
+                    vue.isSelectionFirst = isSelection ? _.first(grid.SelectRow().getSelection()).rowIndx == 0 : false;
+                    vue.isSelectionLast = isSelection ? _.last(grid.SelectRow().getSelection()).rowIndx == grid.pdata.length - 1 : false;
+                    vue.isSelection = isSelection;
                     vue.selectionRowCount = grid.SelectRow().getSelection().length;
                     return;
                 }
@@ -1114,7 +1131,8 @@ export default {
                             return false;
                         case 109:   //"-"
                         case 189:   //"-"
-                            this.deleteRow({ rowIndx: ui.rowIndx });
+                            var rowList = grid.SelectRow().getSelection().map(v => _.pick(v, ["rowIndx"]));
+                            grid.deleteRow({ rowList: rowList });
                             return false;
                     }
                 }
@@ -2566,11 +2584,7 @@ export default {
                             icon: "fas fa-plus-square fa-lg",
                             shortcut: "Ctrl - +",
                             action: function(){
-                                this.addRow({
-                                    rowIndx: ui.rowIndx,
-                                    newRow: !!vue._onAddRowFunc ? vue._onAddRowFunc(grid, ui.rowData) : {},
-                                    checkEditable: false
-                                });
+                                vue.addRow(ui.rowIndx + 1);
                             }
                         },
                         {
@@ -2578,7 +2592,8 @@ export default {
                             icon: "fas fa-minus-square fa-lg",
                             shortcut: "Ctrl - -",
                             action: function(){
-                                this.deleteRow({ rowIndx: ui.rowIndx });
+                                var rowList = grid.SelectRow().getSelection().map(v => _.pick(v, ["rowIndx"]));
+                                grid.deleteRow({ rowList: rowList });
                             }
                         },
                     ]
@@ -2738,6 +2753,20 @@ export default {
             vue.grid.scrollY(val);
             vue.gridRight.scrollY(val);
         }, 0),
+        addRow: function(rowIndx, newRow) {
+            var vue = this;
+            var grid = vue.grid;
+
+            var newRow = newRow || (!!vue._onAddRowFunc ? vue._onAddRowFunc(grid, ui.rowData) : {});
+
+            grid.addRow({
+                rowIndx: rowIndx,
+                newRow: newRow,
+                checkEditable: false
+            });
+
+            grid.scrollRow({rowIndxPage: rowIndx});
+        },
     }
 };
 

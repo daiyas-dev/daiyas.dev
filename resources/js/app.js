@@ -54,6 +54,13 @@ Vue.use(VueRouter);
 import deparam from "jquery-deparam";
 $.deparam = deparam;
 
+import { diff, addedDiff, deletedDiff, updatedDiff, detailedDiff } from "deep-object-diff";
+window.diff = diff;
+window.addedDiff = addedDiff;
+window.deletedDiff = deletedDiff;
+window.updatedDiff = updatedDiff;
+window.detailedDiff = detailedDiff;
+
 //route定義
 import routes from "@/routes.js"
 const router = new VueRouter({
@@ -173,23 +180,56 @@ var initVueApp = () => {
 };
 
 //事前データ取得
-window.axios.all(
-    [
-        //部署マスタ
-        window.axios.post("/Utilities/GetBushoList"),
-        //担当者マスタ
-        window.axios.post("/Utilities/GetTantoList"),
-        //各種テーブル
-        window.axios.post("/Utilities/GetCodeList"),
-    ]
-).then(
-    axios.spread((...res) => {
+var loadingContents = $("<div>")
+    .append($("<div class='mb-3'>").append('<img src="/images/daiyas256.png" alt="ロゴ" style="width: 60px; height: 60px;">ダイヤスクライアント'))
+    .append($("<div>").append("<i class='fa fa-spinner fa-spin fa-lg' style='font-size: 24px; margin-right: 5px;'></i><span class='ml-1'>データ取得中…</span>"))
+    .append($("<div>").append('<progress class="w-100" value="0" max="100">'))
+    .get(0).outerHTML
+    ;
 
-        //成功時Vueアプリ生成
-        initVueApp();
+var loadingDialog = $.dialogProgress({
+    contents: loadingContents,
+    hide: { effect: "fade", duration: 1000 },
+});
+
+var watcher = res => {
+    var max = loadingDialog.find("progress").prop("max") * 1;
+    var val = loadingDialog.find("progress").prop("value") * 1;
+    val += max / targets.length;
+    loadingDialog.find("progress").prop("value", val);
+
+    return res;
+};
+
+var targets = [
+    //部署マスタ
+    window.axios.post("/Utilities/GetBushoList").then(res => watcher(res)),
+    //担当者マスタ
+    window.axios.post("/Utilities/GetTantoList").then(res => watcher(res)),
+    //各種テーブル
+    window.axios.post("/Utilities/GetCodeList").then(res => watcher(res)),
+    //金融機関マスタ
+    window.axios.post("/Utilities/GetBankList").then(res => watcher(res)),
+];
+
+window.axios.all(targets)
+.then(
+    axios.spread((...res) => {
+        loadingDialog.find("i").attr("class", "fa fa-check fa-lg");
+        loadingDialog.find("span").text("データ取得完了");
+
+        setTimeout(() => {
+            //成功時Vueアプリ生成
+            initVueApp();
+
+            loadingDialog.dialog("close");
+        }, 1000);
     })
 )
-.catch(error => {
+.catch(err => {
+    console.log(err);
+    loadingDialog.dialog("close");
+
     //完了ダイアログ
     $.dialogErr({
         title: "異常終了",

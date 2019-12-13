@@ -4,6 +4,9 @@
             <div class="col-md-1">
                 <span class="badge badge-primary w-75 ModeLabel">{{ModeLabel}}</span>
             </div>
+            <div class="col-md-3">
+                <button class="btn btn-warning" @click="toggleButtons">ボタン状態変更テスト</button>
+            </div>
         </div>
         <div class="row">
             <div class="col-md-1">
@@ -80,12 +83,11 @@
                                 bind="金融機関CD1"
                                 buddy="金融機関名称1"
                                 dataUrl="/Utilities/GetBankList"
-                                :params="{ BankCd: null, KeyWord: BankKeyWord }"
-                                :SelectorParamsFunc=BankSelectorParamsFunc
+                                :params="{ BankCd: null }"
                                 :isPreload=true
                                 title="金融機関一覧"
                                 labelCd="金融機関CD"
-                                labelCdNm="金融機関名称1"
+                                labelCdNm="金融機関名称"
                                 :showColumns='[
                                 ]'
                                 :popupWidth=600
@@ -95,9 +97,10 @@
                                 :editable=true
                                 :reuse=true
                                 :existsCheck=true
+                                :exceptCheck="[{Cd: ''}, {Cd: '0'}]"
                                 :inputWidth=95
                                 :nameWidth=235
-                                :onChangeFunc=onBankChanged
+                                :onAfterChangedFunc=onBankChanged
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=BankAutoCompleteFunc
                             />
@@ -109,7 +112,7 @@
                                 ref="PopupSelect_BankBranch1"
                                 :vmodel=viewModel
                                 bind="金融機関支店CD1"
-                                buddy="金融機関支店名"
+                                buddy="金融機関支店名1"
                                 dataUrl="/Utilities/GetBankBranchList"
                                 :params="{ BankCd: viewModel.金融機関CD1, BranchCd: null, KeyWord: BankBranchKeyWord }"
                                 :isPreload=true
@@ -129,8 +132,8 @@
                                 :existsCheck=true
                                 :inputWidth=95
                                 :nameWidth=190
-                                :ParamsChangedCheckFunc=BankBranchParamsChangedCheckFunc
-                                :onChangeFunc=onBankBranchChanged
+                                :ParamsChangedCheckFunc=BankBranch1ParamsChangedCheckFunc
+                                :onAfterChangedFunc=onBankBranchChanged
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=BankBranchAutoCompleteFunc
                             />
@@ -175,13 +178,13 @@
                                 ref="PopupSelect_Bank2"
                                 :vmodel=viewModel
                                 bind="金融機関CD2"
-                                buddy="金融機関名"
+                                buddy="金融機関名称2"
                                 dataUrl="/Utilities/GetBankList"
-                                :params="{ BankCd: null, KeyWord: BankKeyWord }"
+                                :params="{ BankCd: null }"
                                 :isPreload=true
                                 title="金融機関一覧"
                                 labelCd="金融機関CD"
-                                labelCdNm="金融機関名"
+                                labelCdNm="金融機関名称"
                                 :showColumns='[
                                 ]'
                                 :popupWidth=600
@@ -191,9 +194,10 @@
                                 :editable=true
                                 :reuse=true
                                 :existsCheck=true
+                                :exceptCheck="[{Cd: ''}, {Cd: '0'}]"
                                 :inputWidth=95
                                 :nameWidth=235
-                                :onChangeFunc=onBankChanged
+                                :onAfterChangedFunc=onBankChanged
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=BankAutoCompleteFunc
                             />
@@ -205,7 +209,7 @@
                                 ref="PopupSelect_BankBranch2"
                                 :vmodel=viewModel
                                 bind="金融機関支店CD2"
-                                buddy="金融機関支店名"
+                                buddy="金融機関支店名2"
                                 dataUrl="/Utilities/GetBankBranchList"
                                 :params="{ BankCd: viewModel.金融機関CD2, BranchCd: null, KeyWord: BankBranchKeyWord }"
                                 :isPreload=true
@@ -225,8 +229,8 @@
                                 :existsCheck=true
                                 :inputWidth=95
                                 :nameWidth=190
-                                :ParamsChangedCheckFunc=BankBranchParamsChangedCheckFunc
-                                :onChangeFunc=onBankBranchChanged
+                                :ParamsChangedCheckFunc=BankBranch2ParamsChangedCheckFunc
+                                :onAfterChangedFunc=onBankBranchChanged
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=BankBranchAutoCompleteFunc
                             />
@@ -452,12 +456,21 @@ export default {
                 }
             },
         },
+        "viewModel.金融機関支店CD1": {
+            deep: true,
+            sync: true,
+            handler: function(newVal) {
+                var vue = this;
+                if (newVal == "0" && !vue.viewModel.金融機関支店名称１) {
+                    vue.viewModel.金融機関支店CD1 = "";
+                }
+            },
+        },
         "viewModel.金融機関CD2": {
             deep: true,
             sync: true,
             handler: function(newVal) {
                 var vue = this;
-                console.log("viewModel.金融機関CD2 watch", newVal);
                 if (newVal == "0") {
                     vue.viewModel.金融機関CD2 = "";
                 }
@@ -478,7 +491,7 @@ export default {
             sync: true,
             handler: function(newVal) {
                 var vue = this;
-                if (newVal == "0") {
+                if (newVal == "0" && !vue.viewModel.金融機関支店名称２) {
                     vue.viewModel.金融機関支店CD2 = "";
                 }
             },
@@ -487,7 +500,7 @@ export default {
     data() {
         var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "マスタメンテ > 部署マスタメンテ > 部署マスタメンテ詳細",
+            ScreenTitle: "部署マスタメンテ詳細",
             noViewModel: true,
             DAI04071Grid1: null,
             BankKeyWord: null,
@@ -536,8 +549,8 @@ export default {
             },
         });
 
-        if (!!vue.$route && !!vue.$route.query) {
-            data.viewModel = vue.$route.query;
+        if (!!vue.params || !!vue.query) {
+            data.viewModel = $.extend(true, {}, vue.params, vue.query);
         }
 
         return data;
@@ -546,13 +559,15 @@ export default {
         createdFunc: function(vue) {
             vue.footerButtons.push(
                 { visible: "true", value: "クリア", id: "DAI04071_Clear", disabled: false, shortcut: "F2",
-                    onClick: function () {
+                    onClick: function (evt) {
                         //TODO: クリア
+                        console.log(vue.$attrs.id, evt.target.outerText, $(evt.target).attr("shortcut"));
                     }
                 },
                 { visible: "true", value: "削除", id: "DAI04071_Delete", disabled: false, shortcut: "F3",
-                    onClick: function () {
+                    onClick: function (evt) {
                         //TODO: 削除
+                        console.log(vue.$attrs.id, evt.target.outerText, $(evt.target).attr("shortcut"));
                     }
                 },
                 {visible: "false"},
@@ -587,17 +602,9 @@ export default {
         },
         onBankChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
             var vue = this;
-            console.log("onBankChanged", info, comp, isValid);
-            if (!isValid) {
-                vue.BankKeyWord = comp.selectValue;
-            }
         },
         onProductChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
             var vue = this;
-            console.log("onProductChanged", info, comp, isValid);
-            if (!isValid) {
-                vue.ProductKeyWord = comp.selectValue;
-            }
         },
         BankAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
@@ -631,18 +638,18 @@ export default {
 
             return list;
         },
-        BankBranchParamsChangedCheckFunc: function(newVal, oldVal) {
+        BankBranch1ParamsChangedCheckFunc: function(newVal, oldVal) {
             var vue = this;
-            var ret = !!newVal.BankCd && newVal.BankCd != 0 ;
-            console.log("BankBranchParamsChangedCheckFunc", ret);
+            var ret = !!newVal.BankCd && newVal.BankCd != 0;
+            return ret;
+        },
+        BankBranch2ParamsChangedCheckFunc: function(newVal, oldVal) {
+            var vue = this;
+            var ret = !!newVal.BankCd && newVal.BankCd != 0;
             return ret;
         },
         onBankBranchChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
             var vue = this;
-            console.log("onBankBranchChanged", info, comp, isValid);
-            if (!isValid) {
-                vue.BankBranchKeyWord = comp.selectValue;
-            }
         },
         BankBranchAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
@@ -674,7 +681,6 @@ export default {
                     return ret;
                 })
                 ;
-            console.log("BankBranchAutoCompleteFunc:" + input + " = " + list.length);
             return list;
         },
         ProductAutoCompleteFunc: function(input, dataList) {
@@ -707,8 +713,11 @@ export default {
                     return ret;
                 })
                 ;
-            console.log("ProductAutoCompleteFunc:" + input + " = " + list.length);
             return list;
+        },
+        toggleButtons: function() {
+            var vue = this;
+            vue.footerButtons.forEach(v => v["disabled"] = !v["disabled"]);
         },
     }
 }

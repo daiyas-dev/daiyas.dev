@@ -62,9 +62,9 @@ export default {
 
         if (!vue.withoutLogin) {
             vue.$root.$on("logOn", info => {
-                vue.ready = info.isLogon;
 
-                if (info.isLogOn && vue._vmodel[vue._bind] != info.user.bushoCd) {
+                if (info.isLogOn && (!vue.ready || vue._vmodel[vue._bind] != info.user.bushoCd)) {
+                    vue.ready = info.isLogon;
                     vue._vmodel[vue._bind] = info.user.bushoCd;
                     if (vue.onChangedFunc) {
                         vue.onChangedFunc(info.user.bushoCd)

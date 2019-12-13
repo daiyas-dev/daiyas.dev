@@ -165,9 +165,6 @@ button .shortcut {
             receiveShortcutKey: function(evt) {
                 var vue = this;
 
-                // console.log("receiveShortcutKey:" + evt.key);
-                // console.log(evt);
-
                 var sc = _.find(vue.shortcuts, v => {
                     var keys = v.key.split(/ *, */);
                     var match = _.some(keys, key => {
@@ -205,7 +202,9 @@ button .shortcut {
                     return match;
                 });
                 if (sc && !sc.disabled) {
-                    sc.func();
+                    if ($(".ui-widget-overlay:visible").length == 0) {
+                        sc.func();
+                    }
                     return false;
                 } else {
                     return true;

@@ -171,7 +171,7 @@ export default {
 
         //ユニークidが設定されていたら、ダイアログタイトル設定
         if (this.$parent.uniqueId) {
-            this.$root.$emit("setDialogTitle", { uniqueId: this.$parent.uniqueId,  title: this.page.ScreenTitle });
+            this.$parent.$emit("setDialogTitle", { uniqueId: this.$parent.uniqueId,  title: this.page.ScreenTitle });
         }
 
         //ViewModel設定

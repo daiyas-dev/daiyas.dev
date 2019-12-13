@@ -30,6 +30,9 @@ body {
 .ui-widget-overlay.ui-front ~ .ui-widget-overlay.ui-front {
     display: none;
 }
+.ui-widget.ui-autocomplete {
+    z-index: 3001 !important;
+}
 
 .tooltip {
     font-family: "Yu Gothic", YuGothic;
@@ -162,19 +165,30 @@ body {
 
 .ui-dialog {
     padding: 0px;
-    border: none;
+    border-color: black !important;
+    border-radius: 0px;
+}
+.ui-dialog .body-content {
+    background-color: lightgray;
 }
 .ui-dialog .ui-dialog-titlebar  {
     color: white;
     background-color: royalblue;
     border: none;
-    border-bottom-left-radius: 0px;
-    border-bottom-right-radius: 0px;
+    border-radius: 0px;
 }
 .ui-dialog .ui-dialog-buttonpane  {
+    background-color: lightgray;
+    border: none;
+    border-top: solid black 1px;
     margin-top: 0px;
     padding-top: 0px;
     padding-bottom: 0px;
+}
+.ui-dialog .ui-dialog-buttonpane button {
+    width: 100px;
+    height: auto;
+    white-space: pre;
 }
 
 /* ツールチップ */

@@ -77,7 +77,9 @@ export default {
             deep: true,
             sync: true,
             handler: function(newVal) {
-                this.$root.$emit("setFooterButtons", newVal);
+                var vue = this;
+
+                vue.setFooterButtons();
             },
         },
     },
@@ -109,7 +111,7 @@ export default {
         //Vueコンポーネント参照
         window[vue.$options.name] = vue;
 
-        vue.setFooterButtons(vue);
+        //vue.setFooterButtons(vue);
 
         //set dropzone
         $(vue.$el).parent().find(".droppable[data-url]")
@@ -224,7 +226,11 @@ export default {
             vue.resize();
 
             //画面タイトル設定
-            vue.$root.$emit("setTitle", vue.ScreenTitle);
+            if (vue.$attrs.isChild) {
+                vue.$parent.$emit("setDialogTitle", {uniqueId: vue.$attrs.uniqueId, title: vue.ScreenTitle});
+            } else {
+                vue.$root.$emit("setTitle", vue.ScreenTitle);
+            }
 
             //first focus
             $(vue.$el).find(":input:first").focus();
@@ -234,7 +240,13 @@ export default {
             //
         },
         setFooterButtons: function() {
-            this.$root.$emit("setFooterButtons", this.footerButtons);
+            var vue = this;
+
+            if (vue.$attrs.isChild) {
+                vue.$parent.$emit("setDialogButtons", {uniqueId: vue.$attrs.uniqueId, buttons: vue.footerButtons});
+            } else {
+                vue.$root.$emit("setFooterButtons", vue.footerButtons);
+            }
         },
         getLoginInfo: function() {
             return window.loginInfo || { isLogOn: false };

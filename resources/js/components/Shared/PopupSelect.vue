@@ -504,16 +504,16 @@ export default {
                         console.log(res);
 
                         return;
-                    } else if (res.CountConstraint) {
+                    } else if (!!res.CountConstraint) {
                         //件数制約違反設定
                         vue.CountConstraint = res.CountConstraint;
 
                         res = res.Data;
                     } else if (res.Data) {
-                        vue.CountConstraint = false;
+                        vue.CountConstraint = null;
                         res = res.Data;
                     } else {
-                        vue.CountConstraint = false;
+                        vue.CountConstraint = null;
                     }
 
                     //データリスト保持
@@ -607,6 +607,7 @@ export default {
                         {
                             text: "選択",
                             class: "btn btn-primary",
+                            shortcut: "Enter",
                             target: (params || {}).target,
                             click: function(gridVue, grid) {
 
@@ -783,6 +784,7 @@ export default {
 
                 if (!rowData && check) {
                     //現在の値を含むものが無い場合、エラーとする
+                    console.log("ps check error")
 
                     vue.errorMsg = vue.isShowAutoComplete && vue.autoCompleteList.length > 1
                         ? ((vue.title || (vue.label + "一覧")) + "で複数該当します")
@@ -811,7 +813,7 @@ export default {
 
                     //AutoComplete
                     if (vue.isShowAutoComplete) {
-                        $(vue.$el).find("#" + vue.id).focus();
+                        $(vue.$el).find("#" + vue.id).autocomplete("search");//.focus();
                     }
                 } else {
                     //エラー項目設定解除
@@ -893,6 +895,7 @@ export default {
                 source: (request, response) => {
                     var list = vue.getAutoCompleteList(request.term);
                     //return response(!!request.term && list.length == 1 ? [] : list);
+
                     return response(list);
                 },
                 appendTo: $("body"),    //$(vue.$el).parent(),

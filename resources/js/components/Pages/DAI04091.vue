@@ -186,7 +186,7 @@
                     :editable=true
                     :reuse=true
                     :existsCheck=true
-                    :exceptCheck='[""]'
+                    :exceptCheck="[{Cd: '新規'}]"
                     :inputWidth=90
                     :nameWidth=195
                     :onAfterChangedFunc=onMngCdChangedOthers
@@ -419,13 +419,30 @@ fieldset {
 }
 </style>
 <style>
-#Page_DAI04091 .pq-grid .pq-state-select.pq-grid-row .pq-grid-cell{
-    background: steelblue;
-    color: white;
+form[pgid="DAI04091"] .pq-grid .DAI04091_toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
-#Page_DAI04091 .pq-grid .pq-state-select.pq-grid-row .pq-grid-number-cell {
-    background: black !important;
-    color: orange;
+form[pgid="DAI04091"] .pq-grid .DAI04091_toolbar .toolbar_button {
+    width: 45px;
+    height: 30px;
+    padding: 0px;
+    padding-left: 3px;
+    padding-right: 3px;
+    margin: 0px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+form[pgid="DAI04091"] .pq-grid .DAI04091_toolbar .toolbar_button > i {
+    margin: 0px;
+}
+form[pgid="DAI04091"] .pq-grid .DAI04091_toolbar .toolbar_button > i > span {
+    font-size: 12px !important;
+}
+form[pgid="DAI04091"] .pq-grid .DAI04091_toolbar .toolbar_button.ope {
+    width: 45px;
 }
 </style>
 
@@ -441,16 +458,6 @@ export default {
         FormattedKojoKbn: function() {
             var vue = this;
             return vue.viewModel.KojoKbn ? moment(vue.viewModel.KojoKbn, "YYYY年MM月DD日").format("YYYYMMDD") : null;
-        },
-        hasSelectionRow: function() {
-            var vue = this;
-            var grid = vue.DAI04091Grid1;
-            return !!grid && !!grid.SelectRow().getSelection().length;
-        },
-        hasSelectionRowOthers: function() {
-            var vue = this;
-            var grid = vue.DAI04091Grid2;
-            return !!grid && !!grid.SelectRow().getSelection().length;
         },
         grid2Options: function() {
             var vue = this;
@@ -498,7 +505,112 @@ export default {
             grid1Options: {
                 selectionModel: { type: "row", mode: "block", row: true },
                 showHeader: true,
-                showToolbar: false,
+                showToolbar: true,
+                toolbar: {
+                    cls: "DAI04091_toolbar",
+                    items: [
+                        {
+                            name: "add",
+                            type: "button",
+                            label: "<i class='fa fa-plus fa-lg'></i>",
+                            listener: function (event) {
+                                var grid = this;
+
+                                var rowIndx = grid.SelectRow().getSelection().length == 0
+                                    ? 0
+                                    : (grid.SelectRow().getFirst() + 1);
+
+                                grid.addRow({
+                                    rowIndx: rowIndx,
+                                    newRow: {},
+                                    checkEditable: false
+                                });
+
+                                grid.scrollRow({rowIndxPage: rowIndx});
+                            },
+                            attr: 'class="toolbar_button add" title="行追加"',
+                            options: { disabled: false },
+                        },
+                        {
+                            name: "delete",
+                            type: "button",
+                            label: "<i class='fa fa-minus fa-lg'></i>",
+                            listener: function (event) {
+                                var grid = this;
+                                var rowList = grid.SelectRow().getSelection().map(v => _.pick(v, ["rowIndx"]));
+                                grid.deleteRow({ rowList: rowList });
+                            },
+                            attr: 'class="toolbar_button delete" title="行削除" delete disabled=disabled',
+                            options: { disabled: false },
+                        },
+                        {
+                            name: "first",
+                            type: "button",
+                            label: "<i class='fa fa-angle-double-up fa-lg'></i>",
+                            listener: function (event) {
+                                var grid = this;
+                                vue.moveNodesSelf(event, grid, vue);
+                            },
+                            attr: 'class="toolbar_button toFirst" title="先頭へ移動" disabled=disabled',
+                            options: { disabled: false },
+                        },
+                        {
+                            name: "upward",
+                            type: "button",
+                            label: "<i class='fa fa-angle-up fa-lg'></i>",
+                            listener: function (event) {
+                                var grid = this;
+                                vue.moveNodesSelf(event, grid, vue);
+                            },
+                            attr: 'class="toolbar_button toUpward" title="上へ移動" disabled=disabled',
+                            options: { disabled: false },
+                        },
+                        {
+                            name: "downward",
+                            type: "button",
+                            label: "<i class='fa fa-angle-down fa-lg'></i>",
+                            listener: function (event) {
+                                var grid = this;
+                                vue.moveNodesSelf(event, grid, vue);
+                            },
+                            attr: 'class="toolbar_button toDownward" title="下へ移動" disabled=disabled',
+                            options: { disabled: false },
+                        },
+                        {
+                            name: "last",
+                            type: "button",
+                            label: "<i class='fa fa-angle-double-down fa-lg'></i>",
+                            listener: function (event) {
+                                var grid = this;
+                                vue.moveNodesSelf(event, grid, vue);
+                            },
+                            attr: 'class="toolbar_button toLast" title="末尾へ移動" disabled=disabled',
+                            options: { disabled: false },
+                        },
+                        {
+                            name: "undo",
+                            type: "button",
+                            label: "<i class='fa fa-undo fa-lg'></i>",
+                            listener: function (event) {
+                                var grid = this;
+                                grid.history({ method: "undo" });
+                            },
+                            attr: 'class="toolbar_button ope undo" title="元に戻す" disabled=disabled',
+                            options: { disabled: true },
+                        },
+                        {
+                            name: "redo",
+                            type: "button",
+                            label: "<i class='fa fa-redo fa-lg'></i>",
+                            listener: function (event) {
+                                var grid = this;
+                                grid.history({ method: "redo" });
+                            },
+                            attr: 'class="toolbar_button ope redo" title="やり直し" disabled=disabled',
+                        },
+
+                    ]
+                },
                 columnBorders: true,
                 fillHandle: "",
                 numberCell: { show: true, title: "No.", resizable: false, width: 55, minWidth: 55 },
@@ -546,8 +658,10 @@ export default {
                     beforeDrop: function(evt, ui) {
                         var grid = eval("this");
 
+                        console.log("beforeDrop", evt, ui, evt.ctrlKey);
                         if (!evt.ctrlKey) {
-                            var nodes = grid.Drag().getUI().nodes;
+                            var nodes = _.cloneDeep(grid.Drag().getUI().nodes);
+                            console.log("beforeDrop deleteNodes", nodes);
                             grid.deleteNodes(nodes);
                         }
                     },
@@ -564,16 +678,51 @@ export default {
                             return true;
                         } else {
                             var nodes = dragGrid.Drag().getUI().nodes;
-                            var ret = _.intersectionBy(dragGrid.getData(), dropGrid.getData(), "得意先ＣＤ").length == 0;
+                            var ret = _.intersectionBy(nodes, dropGrid.getData(), "得意先ＣＤ").length == 0;
                             return ret;
                         }
 
                         return true;
                     },
+                    // drop: function(evt, ui) {
+                    //     console.log("drop", event, ui);
+
+                    //     var from = ui.draggable.closest(".pq-grid").pqGrid("getInstance").grid;
+                    //     var to = eval("this");
+                    //     var isSame = _.isEqual(from, to);
+
+                    //     var fromNodes = from.Drag().getUI().nodes;
+                    //     var toNodes = _.cloneDeep(fromNodes).map(v => {
+                    //         delete v.pq_ri;
+                    //         return v;
+                    //     });
+
+                    //     var moveAt = ui.rowIndx;
+                    //     var isCopy = event.ctrlKey;
+
+                    //     console.log("drop", fromNodes, toNodes);
+
+                    //     if (isSame) {
+                    //         to.moveNodes(fromNodes , moveAt);
+                    //         // to.addNodes(nodes , moveAt);
+                    //         // from.deleteNodes(nodes);
+                    //     } else {
+                    //         if (!isCopy) {
+                    //             from.deleteNodes(fromNodes);
+                    //         }
+                    //         to.addNodes(toNodes , moveAt);
+                    //     }
+                    //     to.scrollRow({rowIndxPage: moveAt + (fromNodes.length - 1)});
+                    // },
                 },
                 moveNode: ( event, ui ) => {
-                    //console.log("moveNode", ui);
-                    vue.resetData(grid);
+                    var grid = $(event.target).pqGrid("getInstance").grid;
+                    console.log("moveNode", event, ui);
+
+                    //reset pq_ri
+                    grid.pdata.forEach((v, i) => v.pq_ri = i)
+
+                    // vue.resetData(grid);
                 },
                 colModel: [
                     {
@@ -583,19 +732,25 @@ export default {
                         hidden: true,
                         key: true,
                     },
-                    {
-                        title: "得意先ＣＤ",
-                        dataIndx: "得意先ＣＤ",
-                        dataType: "integer",
-                        hidden: true,
-                        key: true,
-                    },
+                    // {
+                    //     title: "得意先ＣＤ",
+                    //     dataIndx: "得意先ＣＤ",
+                    //     dataType: "integer",
+                    //     hidden: true,
+                    //     key: true,
+                    // },
                     {
                         title: "ＳＥＱ",
                         dataIndx: "ＳＥＱ",
                         dataType: "integer",
                         hidden: true,
                         key: true,
+                    },
+                    {
+                        title: "得意先名",
+                        dataIndx: "得意先名",
+                        dataType: "string",
+                        hidden: true,
                     },
                     {
                         title: "pq_label",
@@ -605,21 +760,46 @@ export default {
                     },
                     {
                         title: "得意先",
-                        dataIndx: "Content",
+                        dataIndx: "得意先ＣＤ",
                         dataType: "string",
-                        render: ui => {
-                            var grid = eval("this");
-                            var gridVue = grid.options.vue;
-                            var ScreenVue = gridVue.$parent;
+                        key: true,
+                        psProps: {
+                            dataUrl: "/DAI04091/GetCustomerListForSelect",
+                            //params: { bushoCd: () => { var val = !!vue.viewModel ? vue.viewModel.BushoCd : null; console.log("psProps params", vue, val); return val; } },
+                            params: vue.getCustomerPsParamsInGrid,
+                            bind: "得意先ＣＤ",
+                            buddies: { "得意先名": "CdNm" },
+                            isPreload: true,
+                            title: "得意先一覧",
+                            labelCd: "得意先CD",
+                            labelCdNm: "得意先名",
+                            popupWidth: 600,
+                            popupHeight: 600,
+                            isShowName: true,
+                            isModal: true,
+                            reuse: true,
+                            existsCheck: true,
+                            inputWidth: 90,
+                            nameWidth: 195,
+                            onAfterChangedFunc: vue.onCustomerChangedInGrid,
+                            isShowAutoComplete: true,
+                            AutoCompleteFunc: vue.CustomerAutoCompleteFuncInGrid,
+                            AutoCompleteMinLength: 1,
+                            ParamsChangedCheckFunc: vue.CustomerParamsChangedCheckFuncInGrid,
+                            getData: (ui, grid) => {
+                                console.log("psprops getData", ui.$cell.find(".target-input").val());
+                                return ui.$cell.find(".target-input").val();
+                            },
+                            htmlRender: ui => {
+                                var $el = $("<div>")
+                                    .addClass("d-flex")
+                                    .append($("<div>").text(ui.rowData.得意先ＣＤ).width(60).addClass("text-right"))
+                                    .append($("<div>").text(":").addClass("pl-1").addClass("pr-1"))
+                                    .append($("<div>").text(ui.rowData.得意先名))
+                                    ;
 
-                            var $el = $("<div>")
-                                .addClass("d-flex")
-                                .append($("<div>").text(ui.rowData.得意先ＣＤ).width(60).addClass("text-right"))
-                                .append($("<div>").text(":").addClass("pl-1").addClass("pr-1"))
-                                .append($("<div>").text(ui.rowData.得意先名))
-                                ;
-
-                            return $el[0].outerHTML;
+                                return $el[0];
+                            },
                         },
                     }
                 ],
@@ -650,22 +830,23 @@ export default {
             },
         });
 
-        if (!!vue.$route && !!vue.$route.query) {
-            var targets = vue.$route.query.targets;
+        var targets;
+        if (!!vue.params || !!vue.query) {
+            targets = (vue.params || vue.query).targets;
+        }
 
-            if (!targets) return;
+        if (!targets) return data;
 
-            if (targets[0]) {
-                data.viewModel.BushoCd = targets[0].部署ＣＤ;
-                data.viewModel.CourseCd = targets[0].コースＣＤ;
-                data.viewModel.MngCd = targets[0].管理ＣＤ;
-            }
+        if (targets[0]) {
+            data.viewModel.BushoCd = targets[0].部署ＣＤ;
+            data.viewModel.CourseCd = targets[0].コースＣＤ;
+            data.viewModel.MngCd = targets[0].管理ＣＤ;
+        }
 
-            if (targets[1]) {
-                data.others.BushoCd = targets[1].部署ＣＤ;
-                data.others.CourseCd = targets[1].コースＣＤ;
-                data.others.MngCd = targets[1].管理ＣＤ;
-            }
+        if (targets[1]) {
+            data.others.BushoCd = targets[1].部署ＣＤ;
+            data.others.CourseCd = targets[1].コースＣＤ;
+            data.others.MngCd = targets[1].管理ＣＤ;
         }
 
         return data;
@@ -732,21 +913,29 @@ export default {
             $(vue.$el).find(".moveButtons .btn").on("click", event => vue.moveNodes(event, vue));
 
             //watcher
-            vue.$watch(
-                "hasSelectionRow",
-                newVal => {
-                    console.log("hasSelectionRow watch", newVal);
-                }
-            );
-            vue.$watch(
-                "hasSelectionRowOthers",
-                newVal => {
-                    console.log("hasSelectionRowOthers watch", newVal);
-                }
-            );
+            vue.$watch("$refs.DAI04091Grid1.isSelection", ret => vue.changeToolbarButtons(vue.DAI04091Grid1, vue.$refs.DAI04091Grid1));
+            vue.$watch("$refs.DAI04091Grid1.isSelectionFirst", ret => vue.changeToolbarButtons(vue.DAI04091Grid1, vue.$refs.DAI04091Grid1));
+            vue.$watch("$refs.DAI04091Grid1.isSelectionLast", ret => vue.changeToolbarButtons(vue.DAI04091Grid1, vue.$refs.DAI04091Grid1));
+            vue.$watch("$refs.DAI04091Grid2.isSelection", ret => vue.changeToolbarButtons(vue.DAI04091Grid2, vue.$refs.DAI04091Grid2));
+            vue.$watch("$refs.DAI04091Grid2.isSelectionFirst", ret => vue.changeToolbarButtons(vue.DAI04091Grid2, vue.$refs.DAI04091Grid2));
+            vue.$watch("$refs.DAI04091Grid2.isSelectionLast", ret => vue.changeToolbarButtons(vue.DAI04091Grid2, vue.$refs.DAI04091Grid2));
+        },
+        changeToolbarButtons: function(grid, gridVue) {
+            var isDisabled = !gridVue.isSelection;
+            var isFirst = gridVue.isSelectionFirst;
+            var isLast = gridVue.isSelectionLast;
+
+            grid.widget().find(".toolbar_button.delete").prop("disabled", isDisabled);
+            grid.widget().find(".toolbar_button.toFirst").prop("disabled", isDisabled || isFirst);
+            grid.widget().find(".toolbar_button.toUpward").prop("disabled", isDisabled || isFirst);
+            grid.widget().find(".toolbar_button.toDownward").prop("disabled", isDisabled || isLast);
+            grid.widget().find(".toolbar_button.toLast").prop("disabled", isDisabled || isLast);
         },
         onBushoChanged: function(code, entity) {
             var vue = this;
+
+            //得意先マスタ事前検索
+            axios.post("/DAI04091/GetCustomerListForSelect", { bushoCd: code }),
 
             //条件変更ハンドラ
             vue.conditionChanged();
@@ -765,6 +954,9 @@ export default {
         },
         onBushoChangedOthers: function(code, entity) {
             var vue = this;
+
+            //得意先マスタ事前検索
+            axios.post("/DAI04091/GetCustomerListForSelect", { bushoCd: code }),
 
             //条件変更ハンドラ
             vue.conditionChangedOthers();
@@ -957,18 +1149,16 @@ export default {
         },
         onChangeGrid: function(grid, ui, event) {
             var vue = this;
-            // console.log("DAI04091 onChangeGrid", ui, event);
+            console.log(grid.widget().prop("id") + " onChangeGrid", ui, event);
 
             var targetEvents = ["add", "delete", "addNodes", "deleteNodes"];
 
             if (targetEvents.includes(ui.source)) {
-                vue.resetData(grid);
+                // vue.resetData(grid);
             }
         },
         resetData: function(grid) {
             var vue = this;
-
-            // console.log("resetData", grid.widget().prop("id"));
 
             var rowList = grid.pdata
                 .map((v, i) => {
@@ -990,7 +1180,7 @@ export default {
                         return {
                             rowIndx: i,
                             newRow: { ＳＥＱ: i + 1, Content: content },
-                            history: false
+                            history: true
                         };
                     } else {
                         return null;
@@ -998,9 +1188,11 @@ export default {
                 })
                 .filter(v => !!v);
 
-            grid.updateRow({ rowList: rowList, history: false });
+            console.log("resetData update", rowList);
+            grid.updateRow({ rowList: rowList, history: true });
         },
         moveNodes: (event, vue) => {
+            console.log("moveNodes", event, vue);
             var grid1 = vue.DAI04091Grid1;
             var grid2 = vue.DAI04091Grid2;
 
@@ -1036,18 +1228,101 @@ export default {
 
             var isCopy = event.ctrlKey;
 
-            console.log("moveNodes", fromNodes, moveAt, isCopy);
+            console.log("moveNodes", fromNodes,toNodes);
+
             if (!isCopy) {
                 from.deleteNodes(fromNodes);
             }
             to.addNodes(toNodes , moveAt);
             to.scrollRow({rowIndxPage: moveAt + (toNodes.length - 1)});
         },
+        moveNodesSelf: (event, grid, vue) => {
+            var $btn = $(event.currentTarget);
+
+            var nodes = grid.SelectRow().getSelection().map(v => v.rowData);
+
+            var moveAt = 0;
+            if ($btn.hasClass("toFirst")) {
+                moveAt = 0;
+                grid.moveNodes(nodes, moveAt);
+            } else if ($btn.hasClass("toUpward")) {
+                grid.SelectRow().getSelection().forEach(v => {
+                    if (v.rowIndx != 0) {
+                        grid.moveNodes(v.rowData, v.rowIndx - 1);
+                        moveAt = moveAt < v.rowIndx - 1 ? moveAt : v.rowIndx - 1;
+                    }
+                });
+            } else if ($btn.hasClass("toDownward")) {
+                grid.SelectRow().getSelection().forEach(v => {
+                    if (v.rowIndx != grid.pdata.length - 1) {
+                        grid.moveNodes(v.rowData, v.rowIndx + 1);
+                        moveAt = moveAt > v.rowIndx + 1 ? moveAt : v.rowIndx + 1;
+                    }
+                });
+            } else if ($btn.hasClass("toLast")) {
+                moveAt = grid.pdata.length - 1;
+                grid.moveNodes(nodes, moveAt);
+            }
+            console.log("moveNodesSelf", nodes, moveAt);
+            to.scrollRow({rowIndxPage: moveAt});
+        },
         onMainGridResize: grid => {
 
         },
         onSubGridResize: grid => {
 
+        },
+        onCustomerChangedInGrid: function(code, entity) {
+            var vue = this;
+            console.log("onCustomerChangedInGrid", code);
+        },
+        CustomerAutoCompleteFuncInGrid: function(input, dataList, comp) {
+            var vue = this;
+
+            console.log("CustomerAutoCompleteFuncInGrid", comp.id, input, dataList);
+
+            if (!dataList.length) return [];
+
+            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
+            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
+
+            var wholeColumns = ["CdNm", "得意先名略称", "得意先名カナ"];
+
+            if ((input == comp.selectValue && comp.isUnique) || comp.isError) {
+                keyAND = keyOR = [];
+            }
+
+            var list = dataList
+                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
+                .filter(v => {
+                    return keyOR.length == 0
+                        || _.some(keyOR, k => v.Cd.startsWith(k))
+                        || _.some(keyOR, k => v.whole.includes(k))
+                })
+                .filter(v => {
+                    return keyAND.length == 0 || _.every(keyAND, k => v.whole.includes(k));
+                })
+                .map(v => {
+                    var ret = v;
+                    ret.label = v.Cd + " : " + v.CdNm;
+                    ret.value = v.Cd;
+                    ret.text = v.CdNm;
+                    return ret;
+                })
+                ;
+
+            console.log("CustomerAutoCompleteFuncInGrid", comp.id, list);
+
+            return list;
+        },
+        CustomerParamsChangedCheckFuncInGrid: function(newVal, oldVal, comp) {
+            var vue = this;
+            console.log(comp.id + " CustomerParamsChangedCheckFuncInGrid", newVal);
+            return !!newVal.bushoCd;
+        },
+        getCustomerPsParamsInGrid: (vue, grid) => {
+            return { bushoCd: !!vue.viewModel ? vue.viewModel.BushoCd : null };
         },
     }
 }

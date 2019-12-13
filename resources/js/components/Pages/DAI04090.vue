@@ -2,6 +2,12 @@
     <form id="this.$options.name">
         <div class="row">
             <div class="col-md-1">
+                <label>コースCD</label>
+            </div>
+            <div class="col-md-1">
+                <input type="text" class="form-control CourseCd" :value="viewModel.CourseCd" @input="onCourseCdChanged">
+            </div>
+            <div class="col-md-1">
                 <label>部署</label>
             </div>
             <div class="col-md-2">
@@ -11,12 +17,6 @@
                     :hasNull=true
                     :onChangedFunc=onBushoChanged
                 />
-            </div>
-            <div class="col-md-1">
-                <label>コースCD</label>
-            </div>
-            <div class="col-md-1">
-                <input type="text" class="form-control CourseCd" :value="viewModel.CourseCd" @input="onCourseCdChanged">
             </div>
             <div class="col-md-1">
             </div>
@@ -396,11 +396,15 @@ export default {
                 params.targets = _.cloneDeep(rows).map(v => _.pick(v.rowData, ["部署ＣＤ", "コースＣＤ", "管理ＣＤ"]));
             }
 
-            //TODO: 子画面化
-            vue.$router.push({
-                path: "/DAI04/DAI04091",
-                query: params,
+            //DAI04091を子画面表示
+            PageDialog.show({
+                pgId: "DAI04091",
                 params: params,
+                isModal: true,
+                isChild: true,
+                resizable: false,
+                width: 1120,
+                height: 800,
             });
         },
     }

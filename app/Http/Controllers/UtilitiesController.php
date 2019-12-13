@@ -745,7 +745,7 @@ ORDER BY
                 )"
             : "";
 
-        if ($CustomerCd) {
+        if ($CustomerCd && is_int($CustomerCd)) {
             //得意先ＣＤでの検索
             $ByCustomerSql = "
 SELECT
@@ -784,7 +784,8 @@ $WhereKeyWord
 
         $Result = DB::select($CountSql);
         $Count = $Result[0]->CNT;
-        $SelectTop = $Count > 1000 ? "TOP 1000" : "";
+        $CountMax = 1000;
+        $SelectTop = $Count > $CountMax ? "TOP 1000" : "";
 
         $sql = "
 SELECT $SelectTop
@@ -807,7 +808,7 @@ $WhereKeyWord
 
         $DataList = DB::select($sql);
 
-        return response()->json(['Data' => $DataList, 'CountConstraint' => !!$SelectTop]);
+        return response()->json(['Data' => $DataList, 'CountConstraint' => !!$SelectTop ? $CountMax : null]);
     }
 
     /**
