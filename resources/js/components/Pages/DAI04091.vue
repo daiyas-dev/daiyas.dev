@@ -54,8 +54,8 @@
                     :editable=true
                     :reuse=true
                     :existsCheck=true
-                    :inputWidth=90
-                    :nameWidth=195
+                    :inputWidth=100
+                    :nameWidth=210
                     :onAfterChangedFunc=onCourseChanged
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=CourseAutoCompleteFunc
@@ -91,8 +91,8 @@
                     :editable=true
                     :reuse=true
                     :existsCheck=true
-                    :inputWidth=90
-                    :nameWidth=195
+                    :inputWidth=100
+                    :nameWidth=210
                     :onAfterChangedFunc=onCourseChangedOthers
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=CourseAutoCompleteFunc
@@ -105,8 +105,8 @@
                 <label>担当者</label>
             </div>
             <div class="col-md-4">
-                <input class="form-control label-blue" style="width: 90px;" type="text" :value=viewModel.TantoCd readonly tabindex="-1">
-                <input class="form-control ml-1 label-blue" style="width: 260px;" type="text" :value=viewModel.TantoNm readonly tabindex="-1">
+                <input class="form-control label-blue" style="width: 100px;" type="text" :value=viewModel.TantoCd readonly tabindex="-1">
+                <input class="form-control ml-1 label-blue" style="width: 275px;" type="text" :value=viewModel.TantoNm readonly tabindex="-1">
             </div>
             <div class="col-md-2">
             </div>
@@ -114,13 +114,13 @@
                 <label class="text-left">担当者</label>
             </div>
             <div class="col-md-4">
-                <input class="form-control label-blue" style="width: 90px;" type="text" :value=others.TantoCd readonly tabindex="-1">
-                <input class="form-control ml-1 label-blue" style="width: 260px;" type="text" :value=others.TantoNm readonly tabindex="-1">
+                <input class="form-control label-blue" style="width: 100px;" type="text" :value=others.TantoCd readonly tabindex="-1">
+                <input class="form-control ml-1 label-blue" style="width: 275px;" type="text" :value=others.TantoNm readonly tabindex="-1">
             </div>
         </div>
         <div class="row">
             <div class="col-md-1">
-                <label>種別</label>
+                <label>種別/備考</label>
             </div>
             <div class="col-md-4">
                 <PopupSelect
@@ -148,8 +148,8 @@
                     :reuse=true
                     :existsCheck=true
                     :exceptCheck="[{Cd: '新規'}]"
-                    :inputWidth=90
-                    :nameWidth=195
+                    :inputWidth=100
+                    :nameWidth=210
                     :onAfterChangedFunc=onMngCdChanged
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=MngCdAutoCompleteFunc
@@ -187,8 +187,8 @@
                     :reuse=true
                     :existsCheck=true
                     :exceptCheck="[{Cd: '新規'}]"
-                    :inputWidth=90
-                    :nameWidth=195
+                    :inputWidth=100
+                    :nameWidth=210
                     :onAfterChangedFunc=onMngCdChangedOthers
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=MngCdAutoCompleteFunc
@@ -264,10 +264,9 @@
                     :options=grid1Options
                     :onAfterSearchFunc=onAfterSearchFunc
                     :onChangeFunc=onChangeGrid
-                    :isFloat=true
                     :resizeFunc=onMainGridResize
                     :isMultiRowSelectable=true
-                    classes="mt-2 mb-2"
+                    classes="mt-1 mb-1"
                 />
             </div>
             <div class="col-md-2">
@@ -369,10 +368,9 @@
                     :options=grid2Options
                     :onAfterSearchFunc=onAfterSearchFunc
                     :onChangeFunc=onChangeGrid
-                    :isFloat=true
                     :resizeFunc=onSubGridResize
                     :isMultiRowSelectable=true
-                    classes="mt-2 mb-2"
+                    classes="mt-1 mb-1"
                 />
             </div>
         </div>
@@ -618,7 +616,8 @@ export default {
                 rowHtHead: 30,
                 rowHt: 30,
                 freezeCols: 2,
-                width: 450,
+                width: "100%",
+                height: 450,
                 editable: true,
                 columnTemplate: {
                     editable: true,
@@ -946,8 +945,12 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        onMngCdChanged: function(code, entity) {
+        onMngCdChanged: function(code, entity, comp) {
             var vue = this;
+
+            var selectName = $(comp.$el).find(".select-name:visible");
+            selectName.prop("disabled", !code || !code.includes("新規"))
+                      .prop("placeholder", "備考(理由や用途)");
 
             //条件変更ハンドラ
             vue.conditionChanged();
@@ -967,8 +970,12 @@ export default {
             //条件変更ハンドラ
             vue.conditionChangedOthers();
         },
-        onMngCdChangedOthers: function(code, entity) {
+        onMngCdChangedOthers: function(code, entity, comp) {
             var vue = this;
+
+            var selectName = $(comp.$el).find(".select-name:visible");
+            selectName.prop("disabled", !code || !code.includes("新規"))
+                      .prop("placeholder", "備考(理由や用途)");
 
             //条件変更ハンドラ
             vue.conditionChangedOthers();
@@ -978,11 +985,10 @@ export default {
             var grid1 = vue.DAI04091Grid1;
 
             if (!!grid1 && vue.getLoginInfo().isLogOn) {
-                var required = !!vue.viewModel.BushoCd && !!vue.viewModel.CourseCd && !!vue.viewModel.MngCd;
+                var required = !!vue.viewModel.BushoCd && !!vue.viewModel.CourseCd && (!!vue.viewModel.MngCd && !vue.viewModel.MngCd.includes("新規"));
                 var bushoChanged = !grid1.prevPostData || grid1.prevPostData.bushoCd != vue.viewModel.BushoCd;
                 var courseChanged = !grid1.prevPostData || grid1.prevPostData.courseCd != vue.viewModel.CourseCd;
-                var mngCdChanged = !["新規基本", "新規一時"].includes(vue.viewModel.MngCd)
-                                 && (!grid1.prevPostData || grid1.prevPostData.mngCd != vue.viewModel.MngCd);
+                var mngCdChanged = !grid1.prevPostData || grid1.prevPostData.mngCd != vue.viewModel.MngCd;
 
                 if (required && (forced || bushoChanged || courseChanged || mngCdChanged)) {
                     grid1.searchData({ bushoCd: vue.viewModel.BushoCd, courseCd: vue.viewModel.CourseCd, mngCd: vue.viewModel.MngCd });
@@ -994,11 +1000,10 @@ export default {
             var grid2 = vue.DAI04091Grid2;
 
             if (!!grid2 && vue.getLoginInfo().isLogOn) {
-                var required = !!vue.others.BushoCd && !!vue.others.CourseCd && !!vue.others.MngCd;
-                var bushoChanged = !grid2.prevPostData || grid2.prevPostData.bushoCd != vue.viewModel.BushoCd;
+                var required = !!vue.others.BushoCd && !!vue.others.CourseCd && (!!vue.others.MngCd && !vue.others.MngCd.includes("新規"));
+                var bushoChanged = !grid2.prevPostData || grid2.prevPostData.bushoCd != vue.others.BushoCd;
                 var courseChanged = !grid2.prevPostData || grid2.prevPostData.courseCd != vue.others.CourseCd;
-                var mngCdChanged = !["新規基本", "新規一時"].includes(vue.others.MngCd)
-                                 && (!grid2.prevPostData || grid2.prevPostData.mngCd != vue.others.MngCd);
+                var mngCdChanged = !grid2.prevPostData || grid2.prevPostData.mngCd != vue.others.MngCd;
 
                 if (required && (forced || bushoChanged || courseChanged || mngCdChanged)) {
                     grid2.searchData({ bushoCd: vue.others.BushoCd, courseCd: vue.others.CourseCd, mngCd: vue.others.MngCd });
@@ -1094,6 +1099,7 @@ export default {
             }
 
             var list = dataList
+                .filter(v => !!v.Cd)
                 .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
                 .filter(v => {
                     return keyOR.length == 0

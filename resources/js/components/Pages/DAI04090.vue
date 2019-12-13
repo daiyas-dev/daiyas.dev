@@ -403,8 +403,8 @@ export default {
                 isModal: true,
                 isChild: true,
                 resizable: false,
-                width: 1120,
-                height: 800,
+                width: 1200,
+                height: 750,
             });
         },
     }
