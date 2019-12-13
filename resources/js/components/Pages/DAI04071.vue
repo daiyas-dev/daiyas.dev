@@ -4,9 +4,9 @@
             <div class="col-md-1">
                 <span class="badge badge-primary w-75 ModeLabel">{{ModeLabel}}</span>
             </div>
-            <div class="col-md-3">
+            <!-- <div class="col-md-3">
                 <button class="btn btn-warning" @click="toggleButtons">ボタン状態変更テスト</button>
-            </div>
+            </div> -->
         </div>
         <div class="row">
             <div class="col-md-1">
