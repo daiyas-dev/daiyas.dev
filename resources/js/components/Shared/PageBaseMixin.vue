@@ -126,6 +126,9 @@ export default {
                         },
                         params: {
                         },
+                        clickable: false,
+                        createImageThumbnails: false,
+                        previewTemplate : '<div style="display:none"></div>',
                         dictDefaultMessage: "",
                         uploadMultiple: false,
                         init: function() {
@@ -142,33 +145,9 @@ export default {
                                 console.log("drop error", file, errorMessage);
                             });
                         },
+                        addedFile: file => console.log(file),
                     }
                 );
-
-                // $(v).dropzone({
-                //     url:$(v).attr("data-url"),
-                //     paramName:'csv_file',
-                //     maxFilesize:1, //MB
-                //     addRemoveLinks:true,
-                //     thumbnailWidth:100, //px
-                //     thumbnailHeight:100, //px
-                //     uploadprogress:function(_file, _progress, _size){
-                //         _file.previewElement.querySelector("[data-dz-uploadprogress]").style.width = "" + _progress + "%";
-                //     },
-                //     success:function(_file, _return, _xml){
-                //         _file.previewElement.classList.add("dz-success");
-                //     },
-                //     error:function(_file, _error_msg){
-                //         var ref;
-                //         (ref = _file.previewElement) != null ? ref.parentNode.removeChild(_file.previewElement) : void 0;
-                //     },
-                //     removedfile:function(_file){
-                //         var ref;
-                //         (ref = _file.previewElement) != null ? ref.parentNode.removeChild(_file.previewElement) : void 0;
-                //     },
-                //     dictRemoveFile:'削除',
-                //     dictCancelUpload:'キャンセル'
-                // });
             });
 
         $(vue.$el).parents("div.body-content").removeClass("Scrollable");

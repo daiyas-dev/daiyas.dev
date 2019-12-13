@@ -30,9 +30,9 @@
             <div class="col-md-2">
                 <VueOptions
                     customLabelStyle="width: 60px; text-align: center;"
-                    id="viewKind"
+                    id="Kind"
                     :vmodel=viewModel
-                    bind="viewKind"
+                    bind="Kind"
                     :list="[
                         {code: 'week', name: '週表示', label: '週表示'},
                         {code: 'month', name: '月表示', label: '月表示'},
@@ -183,29 +183,40 @@ export default {
         FirstDay: function() {
             var vue = this;
             var date = vue.viewModel.DeliveryDate ? moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日") : moment();
-            var first = vue.viewKind == "week" ? date.day(1) : date.date(1);
+            var first = vue.viewModel.Kind == "week" ? date.day(1) : date.date(1);
             return first.format("YYYYMMDD");
         },
         TargetDays: function() {
             var vue = this;
-            var last = vue.viewKind == "week" ? moment(vue.FirstDay).add(5, "days")
+            var last = vue.viewModel.Kind == "week" ? moment(vue.FirstDay).add(5, "days")
                         : moment(vue.FirstDay).add(1, "months").add(-1, "days");
             return last.diff(moment(vue.FirstDay), "days");
         },
     },
     watch: {
-        "viewModel.CourseKbn": {
-            handler: function(newVal) {
-                console.log("CourseKbn: " + newVal);
-            }
-        },
-        viewKind: {
+        "viewModel.Kind": {
+            deep: true,
+            sync: true,
             handler: function(newVal) {
                 var vue = this;
                 var text = newVal == "week" ? "週" : "月";
                 vue.footerButtons.find(v => v.id == "DAI07010_PrevRange").value = "前の" + text;
                 vue.footerButtons.find(v => v.id == "DAI07010_NextRange").value = "次の" + text;
 
+                //条件変更ハンドラ
+                // vue.conditionChanged();
+            }
+        },
+        FirstDay: {
+            handler: function(newVal) {
+                var vue = this;
+                //条件変更ハンドラ
+                vue.conditionChanged();
+            }
+        },
+        TargetDays: {
+            handler: function(newVal) {
+                var vue = this;
                 //条件変更ハンドラ
                 vue.conditionChanged();
             }
@@ -229,8 +240,8 @@ export default {
                 TantoNm: null,
                 CourseCd: null,
                 CourseNm: null,
+                Kind: null,
             },
-            viewKind: null,
             uploadData: null,
             DAI07010Grid1: null,
             grid1Options: {
@@ -405,7 +416,7 @@ export default {
                     onClick: function () {
                         vue.viewModel.DeliveryDate =
                             moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日")
-                                .add(vue.viewKind == "week" ? -7 : -1, vue.viewKind == "week" ? "days" : "months")
+                                .add(vue.viewModel.Kind == "week" ? -7 : -1, vue.viewModel.Kind == "week" ? "days" : "months")
                                 .format("YYYY年MM月DD日");
                     }
                 },
@@ -413,7 +424,7 @@ export default {
                     onClick: function () {
                         vue.viewModel.DeliveryDate =
                             moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日")
-                                .add(vue.viewKind == "week" ? 7 : 1, vue.viewKind == "week" ? "days" : "months")
+                                .add(vue.viewModel.Kind == "week" ? 7 : 1, vue.viewModel.Kind == "week" ? "days" : "months")
                                 .format("YYYY年MM月DD日");
                     }
                 },
@@ -489,7 +500,7 @@ export default {
             );
         },
         mountedFunc: function(vue) {
-            vue.viewKind = "week";
+            vue.viewModel.Kind = "week";
             vue.viewModel.DeliveryDate = moment();
 
             vue.beforeSearchCallback(vue.DAI07010Grid1, () => vue.DAI07010Grid1.refresh());
@@ -498,14 +509,14 @@ export default {
             vue.$watch(
                 "$refs.PopupSelect_Customer.isPrevEnabled",
                 (newVal) => {
-                    console.log("isCustomerPrevEnabled watcher: " + newVal);
+                    // console.log("isCustomerPrevEnabled watcher: " + newVal);
                     vue.footerButtons.find(v => v.id == "DAI07010_PrevCustomer").disabled = !newVal;
                 }
             );
             vue.$watch(
                 "$refs.PopupSelect_Customer.isNextEnabled",
                 (newVal) => {
-                    console.log("isCustomerNextEnabled watcher: " + newVal);
+                    // console.log("isCustomerNextEnabled watcher: " + newVal);
                     vue.footerButtons.find(v => v.id == "DAI07010_NextCustomer").disabled = !newVal;
                 }
             );
@@ -627,7 +638,7 @@ export default {
                 })
                 ;
 
-            console.log("CustomerAutoCompleteFunc:" + input + " = " + list.length);
+            // console.log("CustomerAutoCompleteFunc:" + input + " = " + list.length);
             return list;
         },
         CourseParamsChangedCheckFunc: function(newVal, oldVal) {
@@ -638,7 +649,7 @@ export default {
         CustomerParamsChangedCheckFunc: function(newVal, oldVal) {
             var vue = this;
             var ret = !!newVal.bushoCd && !!newVal.courseCd && vue.isUniqueCourse(newVal.courseCd);
-            console.log("CustomerParamsChangedCheckFunc:" + ret);
+            // console.log("CustomerParamsChangedCheckFunc:" + ret);
             return ret;
         },
         isUniqueCourse: function(course) {
@@ -883,8 +894,8 @@ export default {
         },
         onCellSaveFunc: function(grid, ui, event) {
             var vue = this;
-            console.log("onCellSaveFunc");
-            console.log(ui);
+            // console.log("onCellSaveFunc");
+            // console.log(ui);
             if (ui.dataIndx == "コピー") {
                 vue.copyValues(grid, ui.rowIndx, ui.value, true);
             }
@@ -892,9 +903,9 @@ export default {
         onBeforeCellKeyDownFunc: function(grid, ui, event) {
             var vue = this;
 
-            console.log("onBeforeCellKeyDownFunc");
+            // console.log("onBeforeCellKeyDownFunc");
             if (event.key == "Delete") {
-                console.log(ui);
+                // console.log(ui);
 
                 var selections = grid.Selection()._areas;
                 var cols = grid.options.colModel.filter(c => !c.hidden && c.editable && (c.dataIndx == "コピー" || moment(c.dataIndx).isValid()));
@@ -920,7 +931,7 @@ export default {
                     });
 
                 if (rowList.length) {
-                    console.log(rowList);
+                    // console.log(rowList);
                     grid.updateRow({ rowList: rowList });
                 }
 
@@ -929,7 +940,7 @@ export default {
             return true;
         },
         setMoveNextCell: function(grid, ui, reverse) {
-            console.log("setMoveNextCell");
+            // console.log("setMoveNextCell");
 
             if (ui.dataIndx == "コピー") {
                 if (grid.getEditCell().$editor) {

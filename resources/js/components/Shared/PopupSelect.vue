@@ -705,57 +705,57 @@ export default {
             var setValue = function() {
                 try {
 
-                var rowData = vue.dataList.find(v => newVal == v[vue.isGetName ? "CdNm" : "Cd"]);
-                if (!rowData && vue.isShowAutoComplete && vue.autoCompleteList.length == 1) {
-                    rowData = vue.autoCompleteList[0];
-                }
-
-                //入力有り、かつチェック指定されている場合は、存在チェック
-                vue.isValid = checkValue(!_.isEmpty($.trim(vue.selectValue)) && vue.existsCheck);
-                vue.isUnique = !!rowData;
-
-                //選択行データに設定
-                vue.selectName = !rowData ? "" : rowData[vue.isGetName ? "Cd" : "CdNm"];
-                vue.selectRow = !rowData ? {} : rowData;
-
-                if (vue.onChangeFunc) {
-                    //変更時functionが指定されている場合は呼び出す
-                    var ret = vue.onChangeFunc($(vue.$el).find("#" + vue.id)[0], vue.selectRow, vue, noMsg, vue.isValid);
-
-                    //戻り値がfalseの場合、処理中断
-                    if (ret == false) {
-                        vue.noMsg = false;
-                        return;
+                    var rowData = vue.dataList.find(v => newVal == v[vue.isGetName ? "CdNm" : "Cd"]);
+                    if (!rowData && vue.isShowAutoComplete && vue.autoCompleteList.length == 1) {
+                        rowData = vue.autoCompleteList[0];
                     }
-                }
 
-                //bindingが指定されている場合、反映
-                if (!!vue.vmodel && !!vue.bind) {
-                    var parent = vue.$parent;
+                    //入力有り、かつチェック指定されている場合は、存在チェック
+                    vue.isValid = checkValue(!_.isEmpty($.trim(vue.selectValue)) && vue.existsCheck);
+                    vue.isUnique = !!rowData;
 
-                    if (parent) {
-                        parent.$set(vue.vmodel, vue.bind, newVal);
-                        if (vue.buddy) {
-                            parent.$set(vue.vmodel, vue.buddy, vue.selectName);
-                        }
-                        if (!!vue.buddies) {
-                            _.forIn(vue.buddies, (v, k) => parent.$set(vue.vmodel, k, vue.selectRow[v]));
-                        }
-                        parent.$forceUpdate();
-                    } else {
-                        vue.vmodel[vue.bind] = newVal;
-                        if (vue.buddy) {
-                            vue.vmodel[vue.buddy] = vue.selectName;
-                        }
-                        if (!!vue.buddies) {
-                            _.forIn(vue.buddies, (v, k) => vue.vmodel[k] = vue.selectRow[v]);
+                    //選択行データに設定
+                    vue.selectName = !rowData ? "" : rowData[vue.isGetName ? "Cd" : "CdNm"];
+                    vue.selectRow = !rowData ? {} : rowData;
+
+                    if (vue.onChangeFunc) {
+                        //変更時functionが指定されている場合は呼び出す
+                        var ret = vue.onChangeFunc($(vue.$el).find("#" + vue.id)[0], vue.selectRow, vue, noMsg, vue.isValid);
+
+                        //戻り値がfalseの場合、処理中断
+                        if (ret == false) {
+                            vue.noMsg = false;
+                            return;
                         }
                     }
-                }
 
-                if (vue.onAfterChangedFunc) {
-                    vue.onAfterChangedFunc(newVal, vue.selectRow);
-                }
+                    //bindingが指定されている場合、反映
+                    if (!!vue.vmodel && !!vue.bind) {
+                        var parent = vue.$parent;
+
+                        if (parent) {
+                            parent.$set(vue.vmodel, vue.bind, newVal);
+                            if (vue.buddy) {
+                                parent.$set(vue.vmodel, vue.buddy, vue.selectName);
+                            }
+                            if (!!vue.buddies) {
+                                _.forIn(vue.buddies, (v, k) => parent.$set(vue.vmodel, k, vue.selectRow[v]));
+                            }
+                            parent.$forceUpdate();
+                        } else {
+                            vue.vmodel[vue.bind] = newVal;
+                            if (vue.buddy) {
+                                vue.vmodel[vue.buddy] = vue.selectName;
+                            }
+                            if (!!vue.buddies) {
+                                _.forIn(vue.buddies, (v, k) => vue.vmodel[k] = vue.selectRow[v]);
+                            }
+                        }
+                    }
+
+                    if (vue.onAfterChangedFunc) {
+                        vue.onAfterChangedFunc(newVal, vue.selectRow, vue);
+                    }
 
                 } catch(ex) {
                     console.log("PopupSelect setValue Exception", ex);

@@ -1,6 +1,6 @@
 ﻿<template>
-    <div :class="[isFloat ? 'Floating' : '']">
-        <div :id="this.id"></div>
+    <div :class="['w-100', isFloat ? 'Floating' : '']">
+        <div :class="[!hasFreezeRightCols ? 'w-100' : '']" :id="this.id"></div>
         <div v-if=hasFreezeRightCols :id='this.id + "_right"' class="right-grid"></div>
     </div>
 </template>
@@ -941,7 +941,7 @@ export default {
                 //console.log("grid scrollStop");
             },
             selectChange: function(event, ui) {
-                console.log("grid selectChange");
+                // console.log("grid selectChange");
 
                 var grid = this;
                 var vue = grid.options.vue;

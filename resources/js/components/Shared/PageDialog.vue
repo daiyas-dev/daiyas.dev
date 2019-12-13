@@ -213,7 +213,7 @@ export default {
                     modal: target.isModal,
                     width: options.width || 600,
                     height: options.height || 500,
-                    resizable: options.resizable || true,
+                    resizable: options.resizable,
                     reuse: options.reuse || false,
                     buttons: buttons,
                 });
@@ -377,7 +377,7 @@ export default {
                     modal: target.isModal,
                     width: options.width || 500,
                     height: options.height || 500,
-                    resizable: options.resizable || true,
+                    resizable: options.resizable,
                     reuse: options.reuse || false,
                     buttons: buttons,
                 });
