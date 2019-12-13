@@ -440,10 +440,6 @@ export default {
             var vue = this;
             return vue.viewModel.IsNew == true ? "新規" : "修正";
         },
-        FormattedDeliveryDate: function() {
-            var vue = this;
-            return vue.viewModel.DeliveryDate ? moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
-        },
     },
     watch: {
         "viewModel.金融機関CD1": {
@@ -464,6 +460,26 @@ export default {
                 console.log("viewModel.金融機関CD2 watch", newVal);
                 if (newVal == "0") {
                     vue.viewModel.金融機関CD2 = "";
+                }
+            },
+        },
+        "viewModel.金融機関支店CD1": {
+            deep: true,
+            sync: true,
+            handler: function(newVal) {
+                var vue = this;
+                if (newVal == "0") {
+                    vue.viewModel.金融機関支店CD1 = "";
+                }
+            },
+        },
+        "viewModel.金融機関支店CD2": {
+            deep: true,
+            sync: true,
+            handler: function(newVal) {
+                var vue = this;
+                if (newVal == "0") {
+                    vue.viewModel.金融機関支店CD2 = "";
                 }
             },
         },
@@ -544,9 +560,11 @@ export default {
                     onClick: function () {
                         var params = _.cloneDeep(vue.viewModel);
 
-                        //金融機関CD: nullの0置換
+                        //金融機関CD、金融機関支店CD: nullの0置換
                         params.金融機関CD1 = params.金融機関CD1 || 0;
                         params.金融機関CD2 = params.金融機関CD2 || 0;
+                        params.金融機関支店CD1 = params.金融機関支店CD1 || 0;
+                        params.金融機関支店CD2 = params.金融機関支店CD2 || 0;
 
                         //TODO: 登録用controller method call
                         console.log("登録", params);

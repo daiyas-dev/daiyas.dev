@@ -143,10 +143,6 @@ export default {
             var vue = this;
             return vue.viewModel.IsNew == true ? "新規" : "修正";
         },
-        FormattedDeliveryDate: function() {
-            var vue = this;
-            return vue.viewModel.DeliveryDate ? moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
-        },
     },
     data() {
         var vue = this;
