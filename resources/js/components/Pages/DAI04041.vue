@@ -465,11 +465,10 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-12">
+            <fieldset class="fuzoku-info w-100">
+                <legend class="fuzoku-info">付属情報</legend>
                 <div class="row">
-                    <div class="col-md-9">
-                        <fieldset class="fuzoku-info w-100">
-                            <legend class="fuzoku-info">付属情報</legend>
+                    <div class="col-md-9 d-block">
                             <div class="row">
                                 <div class="col-md-3">
                                     <label>チケット枚数</label>
@@ -682,49 +681,49 @@
                                     </fieldset>
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="col-md-3">
-                                    <label>誕生日１</label>
-                                    <input class="form-control text-right p-2" type="text" :value=viewModel.誕生日１>
-                                </div>
-                                <div class="col-md-3">
-                                    <label>誕生日２</label>
-                                    <input class="form-control text-right p-2" type="text" :value=viewModel.誕生日２>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="" style="width:120px !important">規定製造パターン</label>
-                                    <VueSelect
-                                        id="SeizoPattern"
-                                        :vmodel=viewModel
-                                        bind="既定製造パターン"
-                                        uri="/Utilities/GetCodeList"
-                                        :params="{ cd: 35 }"
-                                        :withCode=true
-                                        customStyle="{ width: 100px; }"
-                                    />
-                                </div>
-                            </div>
-                        </fieldset>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-3 d-block">
                         <div class="row">
-                            <div class="col-md-11">
-                                <label style="margin-left: 20px; text-align: center;">顧客メモ</label>
-                                <textarea class="form-control p-2 memo" type="text" :value=viewModel.備考１>
+                            <div class="col-md-12">
+                                <label style="text-align: center;">顧客メモ</label>
+                                <textarea class="form-control mr-1 p-0 memo" type="text" :value=viewModel.備考１>
                                 </textarea>
                             </div>
-                            <div class="col-md-11">
-                                <label style="margin-left: 20px">発信メモ</label>
-                                <textarea class="form-control p-2 memo" type="text" :value=viewModel.備考２>
+                            <div class="col-md-12">
+                                <label style="">発信メモ</label>
+                                <textarea class="form-control mr-1 p-0 memo" type="text" :value=viewModel.備考２>
                                 </textarea>
                             </div>
-                            <div class="col-md-11">
-                                <label style="margin-left: 20px">配送メモ</label>
-                                <textarea class="form-control p-2 memo" type="text" :value=viewModel.備考３>
+                            <div class="col-md-12">
+                                <label style="">配送メモ</label>
+                                <textarea class="form-control mr-1 p-0 memo" type="text" :value=viewModel.備考３>
                                 </textarea>
                             </div>
-                            <div class="col-md-11">
-                                <label class="" style="width:120px; margin-left: 20px;">新規顧客<br>登録日</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2">
+                            <label>誕生日１</label>
+                            <input class="form-control p-2" type="text" :value=viewModel.誕生日１>
+                        </div>
+                        <div class="col-md-2">
+                            <label>誕生日２</label>
+                            <input class="form-control p-2" type="text" :value=viewModel.誕生日２>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="" style="width:120px !important">規定製造パターン</label>
+                            <VueSelect
+                                id="SeizoPattern"
+                                :vmodel=viewModel
+                                bind="既定製造パターン"
+                                uri="/Utilities/GetCodeList"
+                                :params="{ cd: 35 }"
+                                :withCode=true
+                                customStyle="{ width: 100px; }"
+                            />
+                        </div>
+                            <div class="col-md-4">
+                                <label class="" style="width:120px;">新規顧客登録日</label>
                                 <DatePickerWrapper
                                     id="TorokuDate"
                                     ref="DatePicker_TorokuDate"
@@ -735,10 +734,9 @@
                                     :editable=true
                                 />
                             </div>
-                        </div>
                     </div>
                 </div>
-            </div>
+            </fieldset>
         </div>
     </form>
 </template>
