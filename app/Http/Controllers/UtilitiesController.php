@@ -107,6 +107,7 @@ WHERE TABLE_NAME = '$TableName'
                 $vm->CdNm = $info->各種名称;
                 $vm->CdAbbr = $info->各種略称;
                 $vm->Sub1 = $info->サブ各種CD1;
+                $vm->Sub2 = $info->サブ各種CD2;
 
                 return $vm;
             })

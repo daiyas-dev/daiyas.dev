@@ -116,7 +116,10 @@ window.axios.interceptors.request.use(
             }
             if (key == "/Utilities/GetCodeList" && !!params.cd) {
                 //console.log("axios request extract Cache", url, params);
-                cache = cache.filter(v => v.各種CD == params.cd);
+                cache = cache.filter(v => v.各種CD == params.cd
+                    && v.サブ各種CD1 == (params.sub1 || v.サブ各種CD1)
+                    && v.サブ各種CD2 == (params.sub2 || v.サブ各種CD2)
+                );
             }
             //console.log("axios request find Cache", url, cache);
             request.cache = true;
