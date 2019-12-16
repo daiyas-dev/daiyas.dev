@@ -170,7 +170,8 @@ export default {
 
                         var code = v[component.codeName || "Cd"];
                         var name = v[component.textName || "CdNm"];
-                        var text = (component.withCode ? (code + ":") : "") + v[component.textName || "CdNm"];
+                        // var text = (component.withCode ? (code + ":") : "") + v[component.textName || "CdNm"];
+                        var text = (component.withCode ? (code + ":") : "") + ( v[component.textName || "CdNm"] == null ? "" : v[component.textName || "CdNm"]);
 
                         return {
                             code: code,
