@@ -611,7 +611,7 @@
                                         :vmodel=viewModel
                                         bind="請求書敬称"
                                         uri="/Utilities/GetCodeList"
-                                        :params="{ cd: 9 }"
+                                        :params="{ cd: 11 }"
                                         :withCode=true
                                         customStyle="{ width: 100px; }"
                                     />
@@ -703,11 +703,11 @@
                     </div>
                     <div class="row">
                         <div class="col-md-2">
-                            <label>誕生日１</label>
+                            <label style="min-width: 70px;">誕生日１</label>
                             <input class="form-control p-2" type="text" :value=viewModel.誕生日１>
                         </div>
                         <div class="col-md-2">
-                            <label>誕生日２</label>
+                            <label style="min-width: 70px;">誕生日２</label>
                             <input class="form-control p-2" type="text" :value=viewModel.誕生日２>
                         </div>
                         <div class="col-md-4">
@@ -796,6 +796,7 @@ textarea {
 
 <script>
 import PageBaseMixin from "@vcs/PageBaseMixin.vue";
+import VueSelectVue from '../Shared/VueSelect.vue';
 
 export default {
     mixins: [PageBaseMixin],
