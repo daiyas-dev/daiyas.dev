@@ -425,8 +425,10 @@ export default {
 
             //キーワード追加
             res = res.map(v => {
-                v.KeyWord = _.values(v).join(",");
-                // delete v.パスワード;
+                //v.KeyWord = _.values(v).join(",");
+                v.KeyWord = _.keys(v).filter(k => k != "修正日").map(k => v[k]).join(",");
+                //電話番号からハイフンを消してキーワードに追加
+                v.KeyWord += (!!v.電話番号１ ? ("," +  v.電話番号１.replace(/-/g,"")) : "");
                 return v;
             });
 

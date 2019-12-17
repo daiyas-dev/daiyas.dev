@@ -61,7 +61,7 @@
                     uri="/Utilities/GetBushoList"
                     :params="{ cds: null }"
                     :withCode=true
-                    :hasNull=true
+                    :hasNull=!viewModel.IsNew
                     customStyle="{ width: 100px; }"
                 />
             </div>
@@ -246,6 +246,7 @@ export default {
                 {visible: "false"},
                 { visible: "true", value: "登録", id: "DAI04071Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
+                        //TODO: 新規ではない時、所属部署が古いCDの場合どうするか
                         //TODO: 登録
                         console.log("登録");
                         return;
