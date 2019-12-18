@@ -141,14 +141,17 @@ export default {
             var vue = this;
 
             var code = $(event.target).val();
+            var entity = _.find(vue.entities, v => v.code == code);
 
-            if (vue.buddy) {
-                vue.vmodel[vue.buddy] = _.find(vue.entities, v => v.code == code).name;
+            if (!!entity && !!vue.buddy) {
+                vue.vmodel[vue.buddy] = entity.name;
             }
 
-            var isInvalid = _.find(vue.entities, v => v.code == code).invalid;
-            $(vue.$el)[isInvalid ? "addClass" : "removeClass"]("has-error");
-            vue.invalid = isInvalid
+            if (!!entity) {
+                var isInvalid = entity.invalid;
+                $(vue.$el)[isInvalid ? "addClass" : "removeClass"]("has-error");
+                vue.invalid = isInvalid;
+            }
 
             //変更時関数が指定されていれば呼出
             if (vue.onChangedFunc) {
