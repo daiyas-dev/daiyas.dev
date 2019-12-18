@@ -68,19 +68,6 @@
                                 customStyle="{ width: 200px; }"
                             />
                         </div>
-                        <div class="col-md-4">
-                            <label class="">営業担当者</label>
-                            <VueSelect
-                                id="EigyoTantoCd"
-                                :vmodel=viewModel
-                                bind="営業担当者ＣＤ"
-                                buddy="営業担当者名"
-                                uri="/Utilities/GetTantoList"
-                                :params="{ bushoCd: null }"
-                                :withCode=true
-                                customStyle="{ width: 150px; }"
-                            />
-                        </div>
                         <div class="col-md-12">
                             <label class="width:100">副食区分</label>
                             <VueSelect
@@ -91,6 +78,7 @@
                                 :params="{ bentoKbn: 1 }"
                                 :withCode=true
                                 customStyle="{ width: 200px; }"
+                                :hasNull=true
                             />
                         </div>
                         <div class="col-md-12">
@@ -103,6 +91,7 @@
                                 :params="{ bentoKbn: 2 }"
                                 :withCode=true
                                 customStyle="{ width: 200px; }"
+                                :hasNull=true
                             />
                         </div>
                         <div class="col-md-12">
@@ -110,7 +99,7 @@
                             <VueSelect
                                 id="DisplayKbn"
                                 :vmodel=viewModel
-                                bind="表示区分"
+                                bind="表示ＦＬＧ"
                                 uri="/Utilities/GetCodeList"
                                 :params="{ cd: 17 }"
                                 :withCode=true

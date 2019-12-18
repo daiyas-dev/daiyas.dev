@@ -362,6 +362,16 @@ export default {
             res = res.map(v => {
                 //v.KeyWord = _.values(v).join(",");
                 v.KeyWord = _.keys(v).filter(k => k != "修正日").map(k => v[k]).join(",");
+                //アルファベットを全角⇔半角に変換してキーワードに追加
+                v.KeyWord += (!!v.商品名 ? ("," +  Moji(v.商品名).convert('HE', 'ZE').toString()) : "");
+                v.KeyWord += (!!v.商品名 ? ("," +  Moji(v.商品名).convert('ZE', 'HE').toString()) : "");
+                v.KeyWord += (!!v.商品略称 ? ("," +  Moji(v.商品略称).convert('HE', 'ZE').toString()) : "");
+                v.KeyWord += (!!v.商品略称 ? ("," +  Moji(v.商品略称).convert('ZE', 'HE').toString()) : "");
+                //カタカナを全角⇔半角に変換してキーワードに追加
+                v.KeyWord += (!!v.商品名 ? ("," +  Moji(v.商品名).convert('HK', 'ZK').toString()) : "");
+                v.KeyWord += (!!v.商品名 ? ("," +  Moji(v.商品名).convert('ZK', 'HK').toString()) : "");
+                v.KeyWord += (!!v.商品略称 ? ("," +  Moji(v.商品略称).convert('HK', 'ZK').toString()) : "");
+                v.KeyWord += (!!v.商品略称 ? ("," +  Moji(v.商品略称).convert('ZK', 'HK').toString()) : "");
                 return v;
             });
 
