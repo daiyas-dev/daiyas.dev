@@ -56,12 +56,13 @@
                 <label>部署</label>
                 <VueSelect
                     id="BushoCd"
+                    ref="BushoCdSelect"
                     :vmodel=viewModel
                     bind="所属部署ＣＤ"
                     uri="/Utilities/GetBushoList"
                     :params="{ cds: null }"
                     :withCode=true
-                    :hasNull=!viewModel.IsNew
+                    :isShowInvalid=true
                     customStyle="{ width: 100px; }"
                 />
             </div>

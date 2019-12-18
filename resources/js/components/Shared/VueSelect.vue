@@ -26,6 +26,7 @@ export default {
             entities: [],
             CountConstraint: null,
             paramPrev: null,
+            invalid: null,
         }
     },
     props: {
@@ -46,6 +47,7 @@ export default {
         customStyle: String,
         disabled: Boolean,
         ParamsChangedCheckFunc: Function,
+        isShowInvalid: Boolean,
     },
     watch: {
         params: {
@@ -53,7 +55,7 @@ export default {
             sync: true,
             handler: function(newVal) {
                 var vue = this;
-                //console.log("VueSelect param watcher", newVal);
+                // console.log("VueSelect param watcher", newVal);
 
                 if (!_.isEqual(newVal, vue.paramsPrev, (v, o) => v == o)) {
                     if (vue.ParamsChangedCheckFunc && !vue.ParamsChangedCheckFunc(newVal, vue.paramsPrev)) {
@@ -68,11 +70,23 @@ export default {
         entities: {
             deep: true,
             handler: function(newVal) {
-                //console.log("VueSelect eintities watcher", newVal);
                 if (!this.hasNull && newVal.length && !_.find(newVal, { code: this.vmodel[this.bind]})) {
-                    this.vmodel[this.bind] = newVal[0].code;
-                    if (this.buddy) {
-                        this.vmodel[this.buddy] = newVal[0].name;
+                    // console.log("VueSelect eintities watcher invalid code", this.vmodel[this.bind]);
+                    if (this.isShowInvalid) {
+                        this.entities.unshift({
+                            code: this.vmodel[this.bind],
+                            name: null,
+                            label: this.vmodel[this.bind] + ":該当無し",
+                            invalid: true,
+                        });
+                        $(this.$el).addClass("has-error");
+                        this.invalid = true;
+                    } else {
+                        this.vmodel[this.bind] = newVal[0].code;
+                        this.invalid = newVal[0].invalid;
+                        if (this.buddy) {
+                            this.vmodel[this.buddy] = newVal[0].name;
+                        }
                     }
 
                     if (this.onChangedFunc) {
@@ -132,6 +146,10 @@ export default {
                 vue.vmodel[vue.buddy] = _.find(vue.entities, v => v.code == code).name;
             }
 
+            var isInvalid = _.find(vue.entities, v => v.code == code).invalid;
+            $(vue.$el)[isInvalid ? "addClass" : "removeClass"]("has-error");
+            vue.invalid = isInvalid
+
             //変更時関数が指定されていれば呼出
             if (vue.onChangedFunc) {
                 vue.onChangedFunc(code, vue.entities);
@@ -178,6 +196,7 @@ export default {
                             name: name,
                             label: text,
                             info: v,
+                            invalid: false,
                         };
                     });
 
