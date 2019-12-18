@@ -26,6 +26,7 @@ export default {
             entities: [],
             CountConstraint: null,
             paramPrev: null,
+            invalid: null,
         }
     },
     props: {
@@ -79,8 +80,10 @@ export default {
                             invalid: true,
                         });
                         $(this.$el).addClass("has-error");
+                        this.invalid = true;
                     } else {
                         this.vmodel[this.bind] = newVal[0].code;
+                        this.invalid = newVal[0].invalid;
                         if (this.buddy) {
                             this.vmodel[this.buddy] = newVal[0].name;
                         }
@@ -143,8 +146,9 @@ export default {
                 vue.vmodel[vue.buddy] = _.find(vue.entities, v => v.code == code).name;
             }
 
-            var invalid = _.find(vue.entities, v => v.code == code).invalid;
-            $(vue.$el)[invalid ? "addClass" : "removeClass"]("has-error");
+            var isInvalid = _.find(vue.entities, v => v.code == code).invalid;
+            $(vue.$el)[isInvalid ? "addClass" : "removeClass"]("has-error");
+            vue.invalid = isInvalid
 
             //変更時関数が指定されていれば呼出
             if (vue.onChangedFunc) {
@@ -192,6 +196,7 @@ export default {
                             name: name,
                             label: text,
                             info: v,
+                            invalid: false,
                         };
                     });
 
