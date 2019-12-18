@@ -608,10 +608,9 @@ ORDER BY
      */
     public function GetTaxListForMaint($request)
     {
-        $sql = "
-            SELECT * FROM 消費税率マスタ
-        ";
-        $TaxList = DB::select($sql);
+        $query = 消費税率マスタ::query();
+
+        $TaxList = $query->get();
 
         return response()->json($TaxList);
     }
