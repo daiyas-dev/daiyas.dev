@@ -14,7 +14,7 @@ class DAI01160Controller extends Controller
      *  ColumSerch
      */
 
-     public function ColSerch($vm)
+     public function ColSearch($vm)
      {
         $BushoCd = $vm->BushoCd;
         $sql = "SELECT
@@ -51,6 +51,7 @@ class DAI01160Controller extends Controller
         $WhereCourseStart = $CourseStart ? " AND $CourseStart <= coutbl.コースＣＤ" : "";
         $WhereCourseEnd = $CourseEnd ? " AND coutbl.コースＣＤ <= $CourseEnd" : "";
         $WhereCourseKbn = $CourseKbn ? " AND cou.コース区分 = $CourseKbn" : "";
+        $WhereDeliveryDate =  $DeliveryDate ? "AND CONVERT(varchar, chumon.注文日付, 112) = $DeliveryDate" : "";
 
         $sql = "
 WITH 単価表示商品 AS (
@@ -113,9 +114,9 @@ SELECT
 	case
 		when tokui.味噌汁区分 = 1 then 'ﾐ'
 	end みそしる
-	,tktanka.商品ＣＤ
-	,sm.商品名
-	,tktanka.単価
+	,tktanka.商品ＣＤ AS 得意先単価商品ＣＤ
+	,sm.商品名 AS 得意先単価商品名
+	,tktanka.単価 AS 得意先単価
 FROM
 コーステーブル coutbl
 	left join コースマスタ cou
@@ -125,7 +126,11 @@ FROM
 	left join 部署マスタ busyo
 		on coutbl.部署ＣＤ = busyo.部署CD
 	left join 注文データ chumon
-		on coutbl.得意先ＣＤ = chumon.得意先ＣＤ and coutbl.部署ＣＤ = chumon.部署ＣＤ and chumon.注文区分 = 0 AND CONVERT(varchar, chumon.注文日付, 112) = '20190903'AND chumon.現金個数 + chumon.掛売個数 > 0
+        on coutbl.得意先ＣＤ = chumon.得意先ＣＤ
+        and coutbl.部署ＣＤ = chumon.部署ＣＤ
+        and chumon.注文区分 = 0
+        $WhereDeliveryDate
+        AND chumon.現金個数 + chumon.掛売個数 > 0
 	left join 得意先単価マスタ tktanka
 		on tktanka.得意先ＣＤ = tokui.得意先ＣＤ AND tktanka.商品ＣＤ IN (SELECT 単価表示商品CD FROM 単価表示商品)
 	left join 商品マスタ sm
