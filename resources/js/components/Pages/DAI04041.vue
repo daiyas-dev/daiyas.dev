@@ -7,7 +7,7 @@
             <div class="col-md-2">
                 <label>得意先ＣＤ</label>
                 <input class="form-control text-right" type="text"
-                    :value=viewModel.得意先ＣＤ
+                    :value=viewModel.得意先CD
                     :readonly=!viewModel.IsNew
                     :tabindex="viewModel.IsNew ? 0 : -1"
                 >
