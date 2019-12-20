@@ -910,10 +910,8 @@ $WhereKeyWord
     public function GetCustomerListForMaint($request)
     {
         $BushoCd = $request->bushoCd ?? $request->BushoCd;
-        $CustomerCd = $request->CustomerCd;
 
         $WhereBusho = $BushoCd ? " AND TOK.部署CD=$BushoCd" : "";
-        $WhereCustomer = $CustomerCd ? " AND TOK.得意先CD=$CustomerCd" : "";
 
         $sql = "
             WITH CT_DISTINCT AS (
@@ -954,7 +952,6 @@ $WhereKeyWord
                 ON CT_DISTINCT.部署CD=TOK.部署CD AND CT_DISTINCT.得意先ＣＤ=TOK.得意先ＣＤ
             WHERE 0=0
             $WhereBusho
-            $WhereCustomer
         ";
 
         $DataList = DB::select($sql);
@@ -968,19 +965,22 @@ $WhereKeyWord
     public function GetCustomerList($request)
     {
         $BushoCd = $request->bushoCd ?? $request->BushoCd;
+        $CustomerCd = $request->CustomerCd;
 
-        $WhereBusho = $BushoCd ? " AND TM.部署ＣＤ=$BushoCd" : "";
+        $WhereBusho = $BushoCd ? " AND TM.部署CD=$BushoCd" : "";
+        $WhereCustomer = $CustomerCd ? " AND TM.得意先ＣＤ=$CustomerCd" : "";
 
         $sql = "
-SELECT
-    TM.*,
-    BM.部署名
-FROM 得意先マスタ TM
-LEFT JOIN 部署マスタ BM
-    ON TM.部署CD = BM.部署CD
-WHERE 0=0
-$WhereBusho
-        ";
+            SELECT
+                TM.*,
+                BM.部署名
+            FROM 得意先マスタ TM
+            LEFT JOIN 部署マスタ BM
+                ON TM.部署CD = BM.部署CD
+            WHERE 0=0
+            $WhereBusho
+            $WhereCustomer
+            ";
 
         $DataList = DB::select($sql);
 
