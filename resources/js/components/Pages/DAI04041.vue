@@ -1113,7 +1113,7 @@ export default {
         BankBranchParamsChangedCheckFunc: function(newVal, oldVal) {
             var vue = this;
             var ret = !!newVal.BankCd && newVal.BankCd != 0 ;
-            console.log("BankBranchParamsChangedCheckFunc", ret);
+            console.log("BankBranchParamsChangedCheckFunc", newVal, ret);
             return ret;
         },
         onBankBranchChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {

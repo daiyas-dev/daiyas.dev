@@ -1,5 +1,7 @@
 import _ from "lodash";
 window._ = _;
+//lodash isEmpty extension
+window._.isEmptyEx = v => v == undefined || (v + "").length == 0;
 
 require('./bootstrap');
 
