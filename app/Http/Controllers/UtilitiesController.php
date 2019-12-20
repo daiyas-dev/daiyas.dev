@@ -791,8 +791,8 @@ $WhereKeyWord
 
         $Result = DB::select($CountSql);
         $Count = $Result[0]->CNT;
-        $CountMax = 1000;
-        $SelectTop = $Count > $CountMax ? "TOP 1000" : "";
+        $CountMax = $request->CountMax ?? 500;
+        $SelectTop = $Count > $CountMax ? "TOP $CountMax" : "";
 
         $sql = "
 SELECT $SelectTop
@@ -815,7 +815,7 @@ $WhereKeyWord
 
         $DataList = DB::select($sql);
 
-        return response()->json(['Data' => $DataList, 'CountConstraint' => !!$SelectTop ? $CountMax : null]);
+        return response()->json(['Data' => $DataList, 'CountConstraint' => !!$SelectTop ? $CountMax : null, 'ActualCounts' => $Count ]);
     }
 
     /**

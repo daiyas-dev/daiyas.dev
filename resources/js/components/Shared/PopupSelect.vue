@@ -191,6 +191,7 @@ export default {
             isValid: false,
             isUnique: false,
             CountConstraint: null,
+            ActualCounts: null,
             searchParams: null,
             dataUrlPrev: null,
             paramsPrev: null,
@@ -484,7 +485,7 @@ export default {
                 params.selectValue = vue.selectValue;
 
                 var key = vue.selectValue + "";
-                params.Keyword = key.includes("*") ? key.replace(/\*/g, "%") : ("%" + key + "%");
+                params.KeyWord = key.includes("*") ? key.replace(/\*/g) : key;
             }
 
             vue.searchParams = _.cloneDeep(params);
@@ -509,7 +510,8 @@ export default {
                         return;
                     } else if (!!res.CountConstraint) {
                         //件数制約違反設定
-                        vue.CountConstraint = res.CountConstraint;
+                        vue.CountConstraint = res.CountConstraint * 1;
+                        vue.ActualCounts = res.ActualCounts * 1;
 
                         res = res.Data;
                     } else if (res.Data) {
@@ -873,9 +875,8 @@ export default {
                 } else {
                     //dataListが無い場合は再検索
                     var params = _.cloneDeep(vue.params) || {};
-                    params.Cd = newVal;
                     params[vue.bind] = newVal;
-                    params.Keyword = "%" + newVal + "%";
+                    params.KeyWord = newVal;
                     vue.getDataList(params, (res) => setValue());
                 }
             } else {
@@ -896,30 +897,54 @@ export default {
 
             input.autocomplete({
                 source: (request, response) => {
-                    var list = vue.getAutoCompleteList(request.term);
+                    var makeList = () => {
+                        var list = vue.getAutoCompleteList(request.term);
 
-                    var max = vue.AutoCompleteListMax || vue.AutoCompleteListMaxDefault;
-                    if (!vue.AutoCompleteNoLimit && list.length > max) {
-                        var len = list.length;
-                        list = _.slice(list, 0, max - 1);
-                        var msg = "先頭" + max + "件のみ表示しています(" + len + "件中)"
-                                + "\r\n"
-                                + "絞り込み条件を追加して下さい";
-                        $(vue.$el)
-                            .find("#" + vue.id).tooltip({
-                                animation: false,
-                                placement: "auto",
-                                trigger: "hover",
-                                title: msg,
-                                container: "body",
-                                template: '<div class="tooltip" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>'
-                            })
-                            .tooltip("show");
-                    } else {
-                        $(vue.$el).find("#" + vue.id).tooltip("dispose");
+                        var max = vue.AutoCompleteListMax || vue.AutoCompleteListMaxDefault;
+                        if (!vue.AutoCompleteNoLimit && (!!vue.CountConstraint || list.length > max)) {
+                            var len = vue.ActualCounts || list.length;
+                            list = _.slice(list, 0, max - 1);
+                            var msg = "先頭" + max + "件のみ表示しています(" + len + "件中)"
+                                    + "\r\n"
+                                    + "絞り込み条件を追加して下さい";
+                            console.log("ps constraint", vue.CountConstraint, vue.ActualCounts, vue.dataList.length, max, len);
+                            $(vue.$el)
+                                .remove("has-error")
+                                .find("#" + vue.id)
+                                .tooltip("dispose")
+                                .tooltip({
+                                    animation: false,
+                                    placement: "auto",
+                                    trigger: "hover",
+                                    title: msg,
+                                    container: "body",
+                                    template: '<div class="tooltip" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>'
+                                })
+                                .tooltip("show");
+                        } else {
+                            $(vue.$el).find("#" + vue.id).tooltip("dispose");
+                        }
+
+                        return list;
                     }
 
-                    return response(list);
+                    if (!!vue.CountConstraint) {
+                        var params = {
+                            KeyWord: request.term,
+                        };
+                        if (params.KeyWord != vue.searchParams.KeyWord) {
+                            console.log("Autocomplte New KeyWord", params.KeyWord);
+                            vue.getDataList(params, res => {
+                                // console.log("Autocomplte New KeyWord", params.KeyWord, vue.dataList.length, vue.ActualCounts);
+                                response(makeList());
+                            });
+                        } else {
+                            // console.log("Autocomplte Same KeyWord", params.KeyWord, vue.dataList.length, vue.ActualCounts);
+                            return response(makeList());
+                        }
+                    } else {
+                        return response(makeList());
+                    }
                 },
                 appendTo: $(vue.$el).closest(".ui-dialog, body"),
                 select : function(event, ui) {

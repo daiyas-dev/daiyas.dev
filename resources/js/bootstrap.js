@@ -56,11 +56,11 @@ if (token) {
 window.axios.interceptors.response.use(
     response => {
         var url = response.config.url;
-        var params = response.config.data;
+        var params = !!response.config.data ? _.omitBy(JSON.parse(response.config.data), (v, k) => _.isEmptyEx(v)) : null;
         var data = response.data;
 
-        //console.log("axios response interceptor", url, params);
-        var key = response.config.url + (!!params && !_(params).values().every(v => !v) ? ("?" + $.param(JSON.parse(params))) : "");
+        var key = response.config.url + (!!params && !_.isEmpty(params) ? ("?" + $.param(params)) : "");
+        // console.log("axios response interceptor", url, response.config.data, params, key);
 
         var all = [
             "/Utilities/GetBushoList",
@@ -79,10 +79,10 @@ window.axios.interceptors.response.use(
         }
 
         if (all.includes(url) && !params) {
-            //console.log("axios response Cached", url);
+            // console.log("axios response Cached", url, data);
             window.myCache.set(url, data, 0);
         } else {
-            //console.log("axios response Cached", key);
+            // console.log("axios response Cached", key, data);
             window.myCache.set(key, data);
         }
 
@@ -95,9 +95,10 @@ window.axios.interceptors.response.use(
 window.axios.interceptors.request.use(
     request => {
         var url = request.url;
-        var params = request.data;
+        var params = !!request.data ? _.omitBy(request.data, (v, k) => _.isEmptyEx(v)) : null;
 
-        var key = request.url + (!!params && !_(params).values().every(v => !v) ? ("?" + $.param(params)) : "");
+        var key = request.url + (!!params && !_.isEmpty(params) ? ("?" + $.param(params)) : "");
+        // console.log("axios request interceptor", url, request.data, params, key);
 
         if (!window.myCache.has(key) && url == "/Utilities/GetTantoList") {
             key = url;
@@ -127,8 +128,8 @@ window.axios.interceptors.request.use(
             request.adapter = () => {
                 return Promise.resolve({
                     data: cache,
-                    status: request.status,
-                    statusText: request.statusText,
+                    status: "304",
+                    statusText: "From Node Cache",
                     headers: request.headers,
                     config: request,
                     request: request,

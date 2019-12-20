@@ -575,7 +575,6 @@
                                         :onChangeFunc=onJuchuCustomerChanged
                                         :isShowAutoComplete=true
                                         :AutoCompleteFunc=JuchuCustomerAutoCompleteFunc
-                                        :AutoCompleteMinLength=1
                                     />
                                 </div>
                             </div>
@@ -909,15 +908,6 @@ export default {
     },
     methods: {
         createdFunc: function(vue) {
-            axios.post("/Utilities/GetCustomerList", {CustomerCd: vue.viewModel.得意先ＣＤ})
-                .then(res => {
-                    vue.viewModel = res.data;
-                })
-                .catch(err => {
-                    //TODO: エラー
-                });
-
-
             vue.footerButtons.push(
                 { visible: "true", value: "クリア", id: "DAI04041_Clear", disabled: false, shortcut: "F2",
                     onClick: function () {
@@ -1084,7 +1074,7 @@ export default {
         BankBranchParamsChangedCheckFunc: function(newVal, oldVal) {
             var vue = this;
             var ret = !!newVal.BankCd && newVal.BankCd != 0 ;
-            console.log("BankBranchParamsChangedCheckFunc", ret);
+            console.log("BankBranchParamsChangedCheckFunc", newVal, ret);
             return ret;
         },
         onBankBranchChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
