@@ -265,12 +265,12 @@ export default {
                         return;
                     } else if (resBankCols.onException) {
                         //メッセージ追加
-                        vue.$root.$emit("addMessage", "金融機関マスタ取得失敗(" + vue.page.ScreenTitle + ":" + resBankCols.message + ")");
+                        vue.$root.$emit("addMessage", "金融機関支店マスタ取得失敗(" + vue.page.ScreenTitle + ":" + resBankCols.message + ")");
 
                         //ダイアログ
                         $.dialogErr({
                             title: "異常終了",
-                            contents: "金融機関マスタの取得に失敗しました<br/>" + resBankCols.message,
+                            contents: "金融機関支店マスタの取得に失敗しました<br/>" + resBankCols.message,
                         });
 
                         return;
@@ -279,7 +279,7 @@ export default {
                         //ダイアログ
                         $.dialogErr({
                             title: "異常終了",
-                            contents: "金融機関マスタの取得に失敗しました<br/>" + resBankCols.message,
+                            contents: "金融機関支店マスタの取得に失敗しました<br/>" + resBankCols.message,
                         });
 
                         return;
@@ -328,12 +328,12 @@ export default {
             )
             .catch(error => {
                 //メッセージ追加
-                vue.$root.$emit("addMessage", "金融機関マスタ検索失敗(" + vue.ScreenTitle + ":" + error + ")");
+                vue.$root.$emit("addMessage", "金融機関支店マスタ検索失敗(" + vue.ScreenTitle + ":" + error + ")");
 
                 //ダイアログ
                 $.dialogErr({
                     title: "異常終了",
-                    contents: "金融機関マスタの検索に失敗しました<br/>",
+                    contents: "金融機関支店マスタの検索に失敗しました<br/>",
                 });
             });
         },

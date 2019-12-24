@@ -77,10 +77,6 @@
                         </div>
                     </div>
                     <div class="row">
-                        <!-- <div class="col-md-5">
-                            <label>部署</label>
-                            <VueSelectBusho　/>
-                        </div> -->
                         <div class="col-md-5">
                             <label style="width:90px">部署</label>
                             <VueSelect
@@ -970,9 +966,8 @@ export default {
                         params.金融機関CD = params.金融機関CD || 0;
                         params.金融機関支店CD = params.金融機関支店CD || 0;
 
-                        var vue = this;
-                        params.電話確認時間_時 = vue.viewModel.発信時間.slice(0,1);
-                        params.電話確認時間_分 = vue.viewModel.発信時間.slice(3,4);
+                        params.電話確認時間_時 = Number(vue.viewModel.発信時間.slice(0,2));
+                        params.電話確認時間_分 = Number(vue.viewModel.発信時間.slice(3,5));
 
                         //TODO: 登録用controller method call
                         console.log("登録", params);
