@@ -7,7 +7,7 @@
             <div class="col-md-2">
                 <label>得意先ＣＤ</label>
                 <input class="form-control text-right" type="text"
-                    :value=viewModel.得意先CD
+                    :value=viewModel.得意先ＣＤ
                     :readonly=!viewModel.IsNew
                     :tabindex="viewModel.IsNew ? 0 : -1"
                 >
@@ -44,7 +44,7 @@
                     bind="承認者ＣＤ"
                     buddy="承認者名"
                     uri="/Utilities/GetTantoList"
-                    :params="{ bushoCd: viewModel.部署CD }"
+                    :params="{ bushoCd: null }"
                     :withCode=true
                     customStyle="{ width: 150px; }"
                 />
@@ -78,8 +78,16 @@
                     </div>
                     <div class="row">
                         <div class="col-md-5">
-                            <label>部署</label>
-                            <VueSelectBusho　/>
+                            <label style="width:90px">部署</label>
+                            <VueSelect
+                                id="BushoCd"
+                                :vmodel=viewModel
+                                bind="部署CD"
+                                uri="/Utilities/GetBushoList"
+                                :params="{ cds: null }"
+                                :withCode=true
+                                customStyle="{ width: 100px; }"
+                            />
                         </div>
                         <div class="col-md-5">
                             <label class="">売掛現金区分</label>
@@ -253,7 +261,7 @@
                             <label style="min-width: 60px;">締日2</label>
                             <input class="form-control text-right p-2" style="width: 40px;" type="text" :value=viewModel.締日２>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="">支払サイト</label>
                             <VueSelect
                                 id="ShiharaiSite"
@@ -294,7 +302,7 @@
                                 :editable=true
                                 :reuse=true
                                 :existsCheck=true
-                                :inputWidth=150
+                                :inputWidth=100
                                 :nameWidth=400
                                 :onChangeFunc=onBillingChanged
                                 :isShowAutoComplete=true
@@ -326,7 +334,7 @@
                                 :withCode=true
                                 :hasNull=true
                                 customStyle="{ width: 100px; }"
-                                :disabled='viewModel.支払方法１ == "1"'
+                                :disabled='viewModel.支払方法１ != "1"'
 
                             />
                         </div>
@@ -570,12 +578,11 @@
                                         :editable=true
                                         :reuse=true
                                         :existsCheck=true
-                                        :inputWidth=150
+                                        :inputWidth=100
                                         :nameWidth=400
                                         :onChangeFunc=onJuchuCustomerChanged
                                         :isShowAutoComplete=true
                                         :AutoCompleteFunc=JuchuCustomerAutoCompleteFunc
-                                        :AutoCompleteMinLength=1
                                     />
                                 </div>
                             </div>
@@ -686,17 +693,17 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <label style="text-align: center;">顧客メモ</label>
-                                <textarea class="form-control mr-1 p-0 memo" type="text" :value=viewModel.備考１>
+                                <textarea class="form-control mr-1 p-1 memo" type="text" :value=viewModel.備考１>
                                 </textarea>
                             </div>
                             <div class="col-md-12">
                                 <label style="">発信メモ</label>
-                                <textarea class="form-control mr-1 p-0 memo" type="text" :value=viewModel.備考２>
+                                <textarea class="form-control mr-1 p-1 memo" type="text" :value=viewModel.備考２>
                                 </textarea>
                             </div>
                             <div class="col-md-12">
                                 <label style="">配送メモ</label>
-                                <textarea class="form-control mr-1 p-0 memo" type="text" :value=viewModel.備考３>
+                                <textarea class="form-control mr-1 p-1 memo" type="text" :value=viewModel.備考３>
                                 </textarea>
                             </div>
                         </div>
@@ -846,6 +853,26 @@ export default {
                 }
             },
         },
+        "viewModel.サービスチケット枚数": {
+            deep: true,
+            sync: true,
+            handler: function(newVal) {
+                var vue = this;
+                if (newVal) {
+                    vue.viewModel.サービスチケット枚数 = vue.viewModel.サービスチケット枚数.replace(/^\./, "0.") ;
+                }
+            },
+        },
+        "viewModel.電話確認時間_時": {
+            deep: true,
+            sync: true,
+            handler: function(newVal) {
+                var vue = this;
+                if (newVal) {
+                    vue.viewModel.発信時間 = ('0'+ vue.viewModel.電話確認時間_時).slice(-2) + ('00'+ vue.viewModel.電話確認時間_分).slice(-2);
+                }
+            },
+        },
     },
     data() {
         var vue = this;
@@ -909,6 +936,14 @@ export default {
     },
     methods: {
         createdFunc: function(vue) {
+            axios.post("/Utilities/GetCustomerList", {CustomerCd: vue.viewModel.得意先CD})
+                .then(res => {
+                    vue.viewModel = res.data.Data[0];
+                })
+                .catch(err => {
+                    console.log(error);
+                    //TODO: エラー
+                });
             vue.footerButtons.push(
                 { visible: "true", value: "クリア", id: "DAI04041_Clear", disabled: false, shortcut: "F2",
                     onClick: function () {
@@ -930,6 +965,9 @@ export default {
                         //金融機関CD: nullの0置換
                         params.金融機関CD = params.金融機関CD || 0;
                         params.金融機関支店CD = params.金融機関支店CD || 0;
+
+                        params.電話確認時間_時 = Number(vue.viewModel.発信時間.slice(0,2));
+                        params.電話確認時間_分 = Number(vue.viewModel.発信時間.slice(3,5));
 
                         //TODO: 登録用controller method call
                         console.log("登録", params);
@@ -1075,7 +1113,7 @@ export default {
         BankBranchParamsChangedCheckFunc: function(newVal, oldVal) {
             var vue = this;
             var ret = !!newVal.BankCd && newVal.BankCd != 0 ;
-            console.log("BankBranchParamsChangedCheckFunc", ret);
+            console.log("BankBranchParamsChangedCheckFunc", newVal, ret);
             return ret;
         },
         onBankBranchChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {

@@ -306,6 +306,11 @@ export default {
             //キーワード追加
             res = res.map(v => {
                 v.KeyWord = _.values(v).join(",");
+                //半角カタカナを全角に変換してキーワードに追加
+                v.KeyWord += (!!v.銀行名カナ ? ("," +  Moji(v.銀行名カナ).convert('HK', 'ZK').toString()) : "");
+                //英数を全角⇔半角に変換してキーワードに追加
+                v.KeyWord += (!!v.銀行名 ? ("," +  Moji(v.銀行名).convert('HE', 'ZE').toString()) : "");
+                v.KeyWord += (!!v.銀行名 ? ("," +  Moji(v.銀行名).convert('ZE', 'HE').toString()) : "");
                 return v;
             });
 

@@ -202,21 +202,24 @@ export default {
                     {
                     title: "得意先名カナ",
                     dataIndx: "得意先名カナ", dataType: "string", key: true,
-                    hidden: false,
+                    hidden: true,
+                    width: 100, minWidth: 100,
                     editable: false,
                     fixed: true,
                     },
                     {
                     title: "状態区分",
                     dataIndx: "状態区分", dataType: "string", key: true,
-                    hidden: false,
+                    hidden: true,
+                    width: 50, minWidth: 50,
                     editable: false,
                     fixed: true,
                     },
                     {
                     title: "承認日",
                     dataIndx: "承認日", dataType: "date", key: true,
-                    hidden: false,
+                    hidden: true,
+                    width: 200, minWidth: 150,
                     editable: false,
                     fixed: true,
                     },
@@ -224,7 +227,7 @@ export default {
                     title: "承認者ＣＤ",
                     dataIndx: "承認者ＣＤ", dataType: "integer", key: true,
                     width: 90, minWidth: 90, maxWidth: 90,
-                    hidden: false,
+                    hidden: true,
                     editable: false,
                     fixed: true,
                     },
@@ -232,7 +235,7 @@ export default {
                     title: "電話番号１",
                     dataIndx: "電話番号１", dataType: "string", key: true,
                     width: 120, minWidth: 120, maxWidth: 120,
-                    hidden: false,
+                    hidden: true,
                     editable: false,
                     fixed: true,
                     },
@@ -392,7 +395,7 @@ export default {
                 rules.push({ dataIndx: "状態区分", condition: "equal", value: vue.viewModel.State });
             }
             if (!!vue.viewModel.ShoninDate) {
-                rules.push({ dataIndx: "承認日", condition: "equal", value: moment(vue.viewModel.ShoninDate).format("YYYY-MM-DD HH:mm:ss.SSS") });
+                rules.push({ dataIndx: "承認日", condition: "equal", value: moment(vue.viewModel.ShoninDate,"YYYY-MM-DD").format("YYYY-MM-DD HH:mm:ss.SSS") });
             }
             if (!!vue.viewModel.ShoninCd) {
                 rules.push({ dataIndx: "承認者ＣＤ", condition: "equal", value: vue.viewModel.ShoninCd });
@@ -410,102 +413,6 @@ export default {
 
             grid.filter({ oper: "replace", mode: "AND", rules: rules });
         },
-        // onBeforeCreateFunc: function(gridOptions, callback) {
-        //     var vue = this;
-
-        //     //PqGrid表示前に必要な情報の取得
-        //     axios.all(
-        //         [
-        //             //得意先マスタのカラム情報
-        //             axios.post("/Utilities/GetColumns", { TableName: "得意先マスタ" }),
-        //          ]
-        //     ).then(
-        //         axios.spread((responseCustomerCols) => {
-        //             var resCustomerCols = responseCustomerCols.data;
-
-        //             if (resCustomerCols.onError && !!resCustomerCols.errors) {
-        //                 //メッセージリストに追加
-        //                 Object.values(resCustomerCols.errors).filter(v => v)
-        //                     .forEach(v => vue.$root.$emit("addMessage", v.replace(/(^\"|\"$)/g, "")));
-
-        //                 //ダイアログ
-        //                 $.dialogErr({ errObj: resCustomerCols });
-
-        //                 return;
-        //             } else if (resCustomerCols.onException) {
-        //                 //メッセージ追加
-        //                 vue.$root.$emit("addMessage", "得意先マスタ取得失敗(" + vue.page.ScreenTitle + ":" + resCustomerCols.message + ")");
-
-        //                 //ダイアログ
-        //                 $.dialogErr({
-        //                     title: "異常終了",
-        //                     contents: "得意先マスタの取得に失敗しました<br/>" + resCustomerCols.message,
-        //                 });
-
-        //                 return;
-        //             } else if (resCustomerCols == "") {
-        //                 //完了ダイアログ
-        //                 //ダイアログ
-        //                 $.dialogErr({
-        //                     title: "異常終了",
-        //                     contents: "得意先マスタの取得に失敗しました<br/>" + resCustomerCols.message,
-        //                 });
-
-        //                 return;
-        //             }
-
-        //             //colModel設定
-        //             gridOptions.colModel = _.sortBy(resCustomerCols, v => v.ORDINAL_POSITION * 1)
-        //                 // .filter(v => v.COLUMN_NAME != "パスワード")
-        //                 .map(v => {
-        //                     var width = !!v.COLUMN_LENGTH
-        //                         ? (v.COLUMN_LENGTH * (v.DATA_TYPE == "string" && v.COLUMN_LENGTH > 20 ? 5 : 9)) : 100;
-
-        //                     var titleWidth = Math.ceil((v.COLUMN_NAME.length + 1) / 2) * 15 + 15;
-        //                     if (width < titleWidth) {
-        //                         width = titleWidth;
-        //                     }
-
-        //                     var model = {
-        //                         title: v.COLUMN_NAME,
-        //                         dataIndx: v.COLUMN_NAME,
-        //                         dataType: v.DATA_TYPE,
-        //                         width: width,
-        //                         minWidth: width,
-        //                         dbLength: v.COLUMN_LENGTH * 1,
-        //                     };
-
-        //                     if (model.dataType == "date") {
-        //                         model.format = "yy/mm/dd";
-        //                     }
-
-        //                     return model;
-        //                 });
-
-        //             gridOptions.colModel.push(
-        //                 {
-        //                     title: "KeyWord",
-        //                     dataIndx: "KeyWord",
-        //                     dataType: "string",
-        //                     hidden: true,
-        //                 }
-        //             );
-
-        //             //callback実行
-        //             callback();
-        //         })
-        //     )
-        //     .catch(error => {
-        //         //メッセージ追加
-        //         vue.$root.$emit("addMessage", "得意先マスタ検索失敗(" + vue.ScreenTitle + ":" + error + ")");
-
-        //         //ダイアログ
-        //         $.dialogErr({
-        //             title: "異常終了",
-        //             contents: "得意先マスタの検索に失敗しました<br/>",
-        //         });
-        //     });
-        // },
         onAfterSearchFunc: function (gridVue, grid, res) {
             //列定義初期化
             grid.options.colModel = grid.options.colModel.filter(c => c.fixed);
