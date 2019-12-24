@@ -984,13 +984,17 @@ export default {
                 switch (ev.which) {
                     case 13:
                         input.autocomplete("close");
-                        var focusables = input.closest("form").find(":input:enabled:focusable").not("[tabindex=-1]");
-                        var curIdx = focusables.index(input);
-                        var nextIdx = curIdx + (ev.ctrlKey ? -1 : 1);
-                        if (!!focusables[nextIdx]) {
-                            focusables[nextIdx].focus();
+                        if (vue.onGrid) {
+                            return true;
+                        } else {
+                            var focusables = input.closest("form").find(":input:enabled:focusable").not("[tabindex=-1]");
+                            var curIdx = focusables.index(input);
+                            var nextIdx = curIdx + (ev.ctrlKey ? -1 : 1);
+                            if (!!focusables[nextIdx]) {
+                                focusables[nextIdx].focus();
+                            }
+                            return false;
                         }
-                        return false;
                     case 9:
                         input.autocomplete("close");
                         return true;
