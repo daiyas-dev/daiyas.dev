@@ -548,6 +548,7 @@ export default {
                                     }
                                 );
                                 ps.$mount();
+                                ps.onGrid = true;
                                 ps.grid = grid;
                                 ps.gridCell = gridCell;
                                 ps.ui = ui;
@@ -928,6 +929,8 @@ export default {
                 }
             },
             scroll: function (event, ui) {
+                var grid = this;
+
                 //console.log("grid scroll");
                 //スクロール中にbootstrap tooltipのゴミが残るので消去(bootstrapの処理にモレ)
                 $("body").find("[id^=tooltip]").tooltip("hide");
@@ -981,24 +984,19 @@ export default {
                 //PqGrid-Toolbar設定
                 this.options.vue.setToolbarState();
             },
-            // selectRow: function(event) {
-            //     var r = ($(event.target).text() - 1);
-
-            //     this.grid.setSelection(null);
-
-            //     //表示しているcolIndxのmax/min
-            //     var cols = this.grid.colModel.filter(c => !c.hidden).map(c => c.leftPos);
-            //     var c1 =  Math.min.apply(null, cols);
-            //     var c2 =  Math.max.apply(null, cols);
-
-            //     this.grid.Range({ r1: r, rc: 1, c1: c1, c2: c2 }).select();
-
-            //     //PqGrid-Toolbar設定
-            //     this.setToolbarState();
-            // },
             rowSelect: function(event, ui) {
                 var grid = this;
                 var vue = grid.options.vue;
+
+                //exit editor
+                var editCell = grid.getEditCell().$cell;
+                if (editCell) {
+                    var indices = grid.getCellIndices(grid.getEditCell());
+
+                    console.log("grid selectChange quit edit");
+                    vue.setCellState(grid, indices);
+                    grid.quitEditMode();
+                }
 
                 if (grid.options.selectionModel.type == "row") {
                     var isSelection = grid.SelectRow().getSelection().length > 0;

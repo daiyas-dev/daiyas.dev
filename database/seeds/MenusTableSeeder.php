@@ -2,6 +2,7 @@
 
 use Flynsarmy\CsvSeeder\CsvSeeder;
 
+setlocale(LC_ALL, 'ja_JP.UTF-8');
 class MenusTableSeeder extends CsvSeeder
 {
     public function __construct()
