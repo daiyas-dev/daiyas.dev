@@ -179,7 +179,7 @@ export default {
                             //取得結果を基にメニュー用配列の生成
                             var menus = [];
                             list
-                            .filter(v => !!(v.enabled * 1))
+                            .filter(v => !v.enabled || !!(v.enabled * 1))
                             .forEach(function(menu) {
                                 menu.target = menu.target
                                     || (menu.programId && menu.programId.trim() == "" ? "#" : null);
