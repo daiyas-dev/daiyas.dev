@@ -910,8 +910,10 @@ $WhereKeyWord
     public function GetCustomerListForMaint($request)
     {
         $BushoCd = $request->bushoCd ?? $request->BushoCd;
+        $CustomerCd = $request->CustomerCd;
 
         $WhereBusho = $BushoCd ? " AND TOK.部署CD=$BushoCd" : "";
+        $WhereCustomer = $CustomerCd ? " AND TOK.得意先ＣＤ=$CustomerCd" : "";
 
         $sql = "
             WITH CT_DISTINCT AS (
@@ -952,6 +954,7 @@ $WhereKeyWord
                 ON CT_DISTINCT.部署CD=TOK.部署CD AND CT_DISTINCT.得意先ＣＤ=TOK.得意先ＣＤ
             WHERE 0=0
             $WhereBusho
+            $WhereCustomer
         ";
 
         $DataList = DB::select($sql);

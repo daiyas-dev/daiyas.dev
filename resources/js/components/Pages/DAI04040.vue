@@ -331,8 +331,12 @@ export default {
         },
         onCustomerCdChanged: function(code, entity) {
             var vue = this;
-
+            vue.viewModel.BushoCd = null;
+            vue.viewModel.CustomerCd = event.target.value;
             vue.viewModel.得意先CD = event.target.value;
+
+            //条件変更ハンドラ
+            vue.conditionChanged();
 
             //フィルタ変更
             vue.filterChanged();
