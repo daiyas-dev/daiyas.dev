@@ -248,6 +248,7 @@ export default {
         ParamsChangedCheckFunc: Function,
         enablePrevNext: Boolean,
         SelectorParamsFunc: Function,
+        disabled: Boolean,
     },
     computed: {
         showText: function() {
@@ -280,7 +281,7 @@ export default {
         },
         isDisabled: function() {
             var vue = this;
-            return vue.isPreload ? vue.isLoading : false;
+            return vue.isPreload ? (vue.disabled || vue.isLoading) : vue.disabled;
         },
         isPrevEnabled: function() {
             var vue = this;
@@ -383,11 +384,11 @@ export default {
             }
 
             vue.dataList = null;
-            $(vue.$el).children().prop("disabled", true);
+            // $(vue.$el).children().prop("disabled", true);
 
             vue.getDataList(vue.params, (res) => {
-                $(vue.$el).children().not(".select-name").prop("disabled", false);
-                $(vue.$el).find(".select-name").prop("disabled", !vue.isNameEditable);
+                $(vue.$el).children().not(".select-name").prop("disabled", vue.isDisabled);
+                $(vue.$el).find(".select-name").prop("disabled", vue.isDisabled || !vue.isNameEditable);
                 if (vue.vmodel[vue.bind]) {
                     vue.setSelectValue(vue.vmodel[vue.bind], true);
                 }
@@ -423,11 +424,11 @@ export default {
                 }
 
                 vue.dataList = null;
-                $(vue.$el).children().prop("disabled", true);
+                // $(vue.$el).children().prop("disabled", true);
 
                 vue.getDataList(vue.params, (res) => {
-                    $(vue.$el).children().not(".select-name").prop("disabled", false);
-                    $(vue.$el).find(".select-name").prop("disabled", !vue.isNameEditable);
+                    $(vue.$el).children().not(".select-name").prop("disabled", vue.isDisabled);
+                    $(vue.$el).find(".select-name").prop("disabled", vue.isDisabled || !vue.isNameEditable);
                     if (vue.vmodel[vue.bind]) {
                         vue.setSelectValue(vue.vmodel[vue.bind], true);
                     }
@@ -984,13 +985,17 @@ export default {
                 switch (ev.which) {
                     case 13:
                         input.autocomplete("close");
-                        var focusables = input.closest("form").find(":input:enabled:focusable").not("[tabindex=-1]");
-                        var curIdx = focusables.index(input);
-                        var nextIdx = curIdx + (ev.ctrlKey ? -1 : 1);
-                        if (!!focusables[nextIdx]) {
-                            focusables[nextIdx].focus();
+                        if (vue.onGrid) {
+                            return true;
+                        } else {
+                            var focusables = input.closest("form").find(":input:enabled:focusable").not("[tabindex=-1]");
+                            var curIdx = focusables.index(input);
+                            var nextIdx = curIdx + (ev.ctrlKey ? -1 : 1);
+                            if (!!focusables[nextIdx]) {
+                                focusables[nextIdx].focus();
+                            }
+                            return false;
                         }
-                        return false;
                     case 9:
                         input.autocomplete("close");
                         return true;

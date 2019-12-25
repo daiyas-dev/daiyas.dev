@@ -20,6 +20,7 @@ class CreateMenusTable extends Migration
             $table->string('title')->nullable();
             $table->string('target')->nullable();
             $table->string('route')->nullable();
+            $table->boolean('enabled')->default(1);
         });
     }
 

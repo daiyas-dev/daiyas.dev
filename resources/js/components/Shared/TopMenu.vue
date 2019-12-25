@@ -178,7 +178,9 @@ export default {
                         if (list && list.length) {
                             //取得結果を基にメニュー用配列の生成
                             var menus = [];
-                            list.forEach(function(menu) {
+                            list
+                            .filter(v => !!(v.enabled * 1))
+                            .forEach(function(menu) {
                                 menu.target = menu.target
                                     || (menu.programId && menu.programId.trim() == "" ? "#" : null);
                                 menu.route = menu.route
