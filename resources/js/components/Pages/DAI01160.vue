@@ -66,6 +66,21 @@
                     :AutoCompleteFunc=CourseAutoCompleteFunc
                 />
             </div>
+            <div class="col-md-3">
+                <label>コース別</label>
+                <VueOptions
+                    id="courseFlg"
+                    ref="VueOptions_courseFlg"
+                    customLabelStyle="text-align: center;"
+                    :vmodel=viewModel
+                    bind="courseFlg"
+                    :list="[
+                        {code: '1', name: 'コース別', label: 'コース別'},
+                        {code: '2', name: 'コース合計', label: 'コース合計'},
+                    ]"
+                    :onChangedFunc=onKojoKbnChanged
+                />
+            </div>
         </div>
         <div class="row">
             <div class="col-md-1 offset-md-3">
