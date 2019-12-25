@@ -395,6 +395,7 @@
                                             :isShowName=true
                                             :isModal=true
                                             :editable='viewModel.支払方法１ == "4"'
+                                            :disabled='viewModel.支払方法１ != "4"'
                                             :reuse=true
                                             :existsCheck=true
                                             :inputWidth=100
@@ -427,6 +428,7 @@
                                             :isShowName=true
                                             :isModal=true
                                             :editable='viewModel.支払方法１ == "4"'
+                                            :disabled='viewModel.支払方法１ != "4"'
                                             :reuse=true
                                             :existsCheck=true
                                             :inputWidth=100

@@ -329,7 +329,7 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        onCustomerCdChanged: function(code, entity) {
+        onCustomerCdChanged: _.debounce(function(event) {
             var vue = this;
             vue.viewModel.BushoCd = null;
             vue.viewModel.CustomerCd = event.target.value;
@@ -338,9 +338,9 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
 
-            //フィルタ変更
-            vue.filterChanged();
-        },
+            // //フィルタ変更
+            // vue.filterChanged();
+         }, 300),
         onStateChanged: function(code, entity) {
             var vue = this;
 
