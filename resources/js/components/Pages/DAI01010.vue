@@ -66,6 +66,7 @@
                     :onAfterChangedFunc=onCourseStartChanged
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=CourseAutoCompleteFunc
+                    :isPreload=true
                 />
             </div>
         </div>

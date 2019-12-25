@@ -281,7 +281,7 @@ export default {
         },
         isDisabled: function() {
             var vue = this;
-            return vue.isPreload ? vue.isLoading : vue.disabled;
+            return vue.isPreload ? (vue.disabled || vue.isLoading) : vue.disabled;
         },
         isPrevEnabled: function() {
             var vue = this;
@@ -384,11 +384,11 @@ export default {
             }
 
             vue.dataList = null;
-            $(vue.$el).children().prop("disabled", true);
+            // $(vue.$el).children().prop("disabled", true);
 
             vue.getDataList(vue.params, (res) => {
-                $(vue.$el).children().not(".select-name").prop("disabled", false);
-                $(vue.$el).find(".select-name").prop("disabled", !vue.isNameEditable);
+                $(vue.$el).children().not(".select-name").prop("disabled", vue.isDisabled);
+                $(vue.$el).find(".select-name").prop("disabled", vue.isDisabled || !vue.isNameEditable);
                 if (vue.vmodel[vue.bind]) {
                     vue.setSelectValue(vue.vmodel[vue.bind], true);
                 }
@@ -424,11 +424,11 @@ export default {
                 }
 
                 vue.dataList = null;
-                $(vue.$el).children().prop("disabled", true);
+                // $(vue.$el).children().prop("disabled", true);
 
                 vue.getDataList(vue.params, (res) => {
-                    $(vue.$el).children().not(".select-name").prop("disabled", false);
-                    $(vue.$el).find(".select-name").prop("disabled", !vue.isNameEditable);
+                    $(vue.$el).children().not(".select-name").prop("disabled", vue.isDisabled);
+                    $(vue.$el).find(".select-name").prop("disabled", vue.isDisabled || !vue.isNameEditable);
                     if (vue.vmodel[vue.bind]) {
                         vue.setSelectValue(vue.vmodel[vue.bind], true);
                     }
