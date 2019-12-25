@@ -248,6 +248,7 @@ export default {
         ParamsChangedCheckFunc: Function,
         enablePrevNext: Boolean,
         SelectorParamsFunc: Function,
+        disabled: Boolean,
     },
     computed: {
         showText: function() {
@@ -280,7 +281,7 @@ export default {
         },
         isDisabled: function() {
             var vue = this;
-            return vue.isPreload ? vue.isLoading : false;
+            return vue.isPreload ? vue.isLoading : vue.disabled;
         },
         isPrevEnabled: function() {
             var vue = this;
