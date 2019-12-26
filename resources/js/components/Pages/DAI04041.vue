@@ -520,43 +520,90 @@
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-md-4">
-                                    <label class="">営業担当者</label>
-                                    <VueSelect
-                                        id="EigyoTantoCd"
+                                <div class="col-md-6">
+                                    <label>営業担当者</label>
+                                    <PopupSelect
+                                        id="EigyoTanto"
+                                        ref="PopupSelect_EigyoTanto"
                                         :vmodel=viewModel
                                         bind="営業担当者ＣＤ"
                                         buddy="営業担当者名"
-                                        uri="/Utilities/GetTantoList"
-                                        :params="{ bushoCd: null }"
-                                        :withCode=true
-                                        customStyle="{ width: 150px; }"
+                                        dataUrl="/Utilities/GetTantoList"
+                                        :params="{ bushoCd: null, KeyWord: EigyoKeyWord }"
+                                        :isPreload=true
+                                        title="営業担当者一覧"
+                                        labelCd="営業担当者ＣＤ"
+                                        labelCdNm="営業担当者名"
+                                        :showColumns='[
+                                        ]'
+                                        :isShowName=true
+                                        :isModal=true
+                                        :editable=true
+                                        :reuse=true
+                                        :existsCheck=true
+                                        :onChangeFunc=onEigyoTantoChanged
+                                        :inputWidth=80
+                                        :nameWidth=160
+                                        :isShowAutoComplete=true
+                                        :AutoCompleteFunc=EigyoTantoAutoCompleteFunc
                                     />
                                 </div>
-                                <div class="col-md-4">
-                                    <label class="">獲得営業者</label>
-                                    <VueSelect
-                                        id="KakutokuEigyoCd"
+                                <div class="col-md-6">
+                                    <label>獲得営業者</label>
+                                    <PopupSelect
+                                        id="KakutokuEigyo"
+                                        ref="PopupSelect_KakutokuEigyo"
                                         :vmodel=viewModel
                                         bind="獲得営業者ＣＤ"
                                         buddy="獲得営業者名"
-                                        uri="/Utilities/GetTantoList"
-                                        :params="{ bushoCd: null }"
-                                        :withCode=true
-                                        customStyle="{ width: 150px; }"
+                                        dataUrl="/Utilities/GetTantoList"
+                                        :params="{ bushoCd: null, KeyWord: KakutokuKeyWord }"
+                                        :isPreload=true
+                                        title="獲得営業者一覧"
+                                        labelCd="獲得営業者ＣＤ"
+                                        labelCdNm="獲得営業者名"
+                                        :showColumns='[
+                                        ]'
+                                        :isShowName=true
+                                        :isModal=true
+                                        :editable=true
+                                        :reuse=true
+                                        :existsCheck=true
+                                        :onChangeFunc=onKakutokuChanged
+                                        :inputWidth=80
+                                        :nameWidth=160
+                                        :isShowAutoComplete=true
+                                        :AutoCompleteFunc=KakutokuAutoCompleteFunc
                                     />
                                 </div>
-                                <div class="col-md-4">
-                                    <label class="">登録担当者</label>
-                                    <VueSelect
-                                        id="TourokuTantoCd"
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label>登録担当者</label>
+                                    <PopupSelect
+                                        id="TorokuTanto"
+                                        ref="PopupSelect_TorokuTanto"
                                         :vmodel=viewModel
                                         bind="登録担当者ＣＤ"
                                         buddy="登録担当者名"
-                                        uri="/Utilities/GetTantoList"
-                                        :params="{ bushoCd: null }"
-                                        :withCode=true
-                                        customStyle="{ width: 150px; }"
+                                        dataUrl="/Utilities/GetTantoList"
+                                        :params="{ bushoCd: null, KeyWord: TorokuKeyWord }"
+                                        :isPreload=true
+                                        title="登録担当者一覧"
+                                        labelCd="登録担当者ＣＤ"
+                                        labelCdNm="登録担当者名"
+                                        :showColumns='[
+                                        ]'
+                                        :isShowName=true
+                                        :isModal=true
+                                        :editable=true
+                                        :reuse=true
+                                        :existsCheck=true
+                                        :onChangeFunc=onTorokuChanged
+                                        :inputWidth=80
+                                        :nameWidth=160
+                                        :isShowAutoComplete=true
+                                        :AutoCompleteFunc=TorokuAutoCompleteFunc
                                     />
                                 </div>
                             </div>
@@ -894,6 +941,9 @@ export default {
             BankKeyWord: null,
             BankBranchKeyWord: null,
             JuchuCustomerKeyWord: null,
+            EigyoKeyWord: null,
+            KakutokuKeyWord: null,
+            TorokuKeyWord: null,
             HolidayConfig: {"日":"0","月":"0","火":"0","水":"0","木":"0","金":"0","土":"0"},
             grid1Options: {
                 selectionModel: { type: "cell", mode: "single", row: true, onTab: "nextEdit" },
@@ -1164,6 +1214,138 @@ export default {
                 })
                 ;
             console.log("BankBranchAutoCompleteFunc:" + input + " = " + list.length);
+            return list;
+        },
+        onEigyoTantoChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
+            var vue = this;
+            console.log("onEigyoTantoChanged", info, comp, isValid);
+            if (!isValid) {
+                vue.EigyoKeyWord = comp.selectValue;
+            }
+        },
+        EigyoTantoAutoCompleteFunc: function(input, dataList, comp) {
+            var vue = this;
+
+            if (!dataList.length) return [];
+
+            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
+            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
+
+            var wholeColumns = ["Cd", "CdNm", "担当者名カナ"];
+
+            if (input == comp.selectValue && comp.isUnique) {
+                keyAND = keyOR = [];
+            }
+
+            var list = dataList
+                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
+                .filter(v => {
+                    return keyOR.length == 0
+                        || _.some(keyOR, k => v.Cd.startsWith(k))
+                        || _.some(keyOR, k => v.whole.includes(k))
+                })
+                .filter(v => {
+                    return keyAND.length == 0
+                        || _.every(keyAND, k => v.whole.includes(k));
+                })
+                .map(v => {
+                    var ret = v;
+                    ret.label = v.Cd + " : " + v.CdNm + "【" + (!!v.部署 ? v.部署.部署名 : "部署無し") + "】";
+                    ret.value = v.Cd;
+                    ret.text = v.CdNm;
+                    return ret;
+                })
+                ;
+            console.log("EigyoTantoAutoCompleteFunc:" + input + " = " + list.length);
+            return list;
+        },
+        onKakutokuChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
+            var vue = this;
+            console.log("onKakutokuChanged", info, comp, isValid);
+            if (!isValid) {
+                vue.KakutokuKeyWord = comp.selectValue;
+            }
+        },
+        KakutokuAutoCompleteFunc: function(input, dataList, comp) {
+            var vue = this;
+
+            if (!dataList.length) return [];
+
+            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
+            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
+
+            var wholeColumns = ["Cd", "CdNm", "担当者名カナ"];
+
+            if (input == comp.selectValue && comp.isUnique) {
+                keyAND = keyOR = [];
+            }
+
+            var list = dataList
+                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
+                .filter(v => {
+                    return keyOR.length == 0
+                        || _.some(keyOR, k => v.Cd.startsWith(k))
+                        || _.some(keyOR, k => v.whole.includes(k))
+                })
+                .filter(v => {
+                    return keyAND.length == 0
+                        || _.every(keyAND, k => v.whole.includes(k));
+                })
+                .map(v => {
+                    var ret = v;
+                    ret.label = v.Cd + " : " + v.CdNm + "【" + (!!v.部署 ? v.部署.部署名 : "部署無し") + "】";
+                    ret.value = v.Cd;
+                    ret.text = v.CdNm;
+                    return ret;
+                })
+                ;
+            console.log("KakutokuAutoCompleteFunc:" + input + " = " + list.length);
+            return list;
+        },
+        onTorokuChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
+            var vue = this;
+            console.log("onTorokuChanged", info, comp, isValid);
+            if (!isValid) {
+                vue.TorokuKeyWord = comp.selectValue;
+            }
+        },
+        TorokuAutoCompleteFunc: function(input, dataList, comp) {
+            var vue = this;
+
+            if (!dataList.length) return [];
+
+            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
+            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
+
+            var wholeColumns = ["Cd", "CdNm", "担当者名カナ"];
+
+            if (input == comp.selectValue && comp.isUnique) {
+                keyAND = keyOR = [];
+            }
+
+            var list = dataList
+                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
+                .filter(v => {
+                    return keyOR.length == 0
+                        || _.some(keyOR, k => v.Cd.startsWith(k))
+                        || _.some(keyOR, k => v.whole.includes(k))
+                })
+                .filter(v => {
+                    return keyAND.length == 0
+                        || _.every(keyAND, k => v.whole.includes(k));
+                })
+                .map(v => {
+                    var ret = v;
+                    ret.label = v.Cd + " : " + v.CdNm + "【" + (!!v.部署 ? v.部署.部署名 : "部署無し") + "】";
+                    ret.value = v.Cd;
+                    ret.text = v.CdNm;
+                    return ret;
+                })
+                ;
+            console.log("TorokuAutoCompleteFunc:" + input + " = " + list.length);
             return list;
         },
     }
