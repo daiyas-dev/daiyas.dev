@@ -6,103 +6,79 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-2">
-                <label>担当者ＣＤ</label>
-                <input class="form-control text-right" type="text"
-                    :value=viewModel.担当者ＣＤ
-                    :readonly=!viewModel.IsNew
-                    :tabindex="viewModel.IsNew ? 0 : -1"
-                >
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-6">
-                <label class="">担当者名</label>
-                <input type="text" class="form-control" :value="viewModel.担当者名">
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-6">
-                <label class="">担当者カナ</label>
-                <input type="text" class="form-control" style="font-size: 15px !important;" :value="viewModel.担当者名カナ">
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-3">
-                <label class="">郵便番号</label>
-                <input class="form-control p-2" style="width: 90px;" type="text" :value=viewModel.郵便番号>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-10">
-                <label>住所</label>
-                <input class="form-control" type="text" :value=viewModel.住所>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-3">
-                <label class="">電話番号</label>
-                <input class="form-control p-1" style="width: 120px;" type="text" :value=viewModel.電話番号>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-3">
-                <label class="">FAX</label>
-                <input class="form-control p-1" style="width: 120px;" type="text" :value=viewModel.ＦＡＸ>
-            </div>
-        </div>
-        <div class="row">
             <div class="col-md-5">
                 <label>部署</label>
                 <VueSelect
                     id="BushoCd"
                     ref="BushoCdSelect"
                     :vmodel=viewModel
-                    bind="所属部署ＣＤ"
+                    bind="部署ＣＤ"
                     uri="/Utilities/GetBushoList"
                     :params="{ cds: null }"
                     :withCode=true
                     :isShowInvalid=true
                     customStyle="{ width: 100px; }"
+                    :disabled=true
                 />
             </div>
         </div>
         <div class="row">
             <div class="col-md-5">
-                <label>オペレータ</label>
-                <input type="checkbox" class="form-control p-1" style="width: 20px;" v-model="IsChecked">
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-3">
-                <label class="">ユーザーID</label>
-                <input class="form-control p-2" style="width: 120px;" type="text" :value=viewModel.ユーザーＩＤ>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-3">
-                <label class="">パスワード</label>
-                <input class="form-control p-2" style="width: 120px;" type="text" :value=viewModel.パスワード>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-5">
-                <label class="width:100">営業業務区分</label>
+                <label class="width:100">コース区分</label>
                 <VueSelect
-                    id="EigoKbn"
+                    id="CourseKbn"
                     :vmodel=viewModel
-                    bind="営業業務区分"
+                    bind="コース区分"
                     uri="/Utilities/GetCodeList"
-                    :params="{ cd: 46 }"
+                    :params="{ cd: 19 }"
                     :withCode=true
                     customStyle="{ width: 200px; }"
                 />
             </div>
         </div>
         <div class="row">
+            <div class="col-md-2">
+                <label>コースＣＤ</label>
+                <input class="form-control text-right" type="text"
+                    :value=viewModel.コースＣＤ
+                    :readonly=!viewModel.IsNew
+                    :tabindex="viewModel.IsNew ? 0 : -1"
+                >
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <label class="">コース名</label>
+                <input class="form-control p-2" type="text" :value=viewModel.コース名>
+            </div>
+        </div>
+        <div class="row">
             <div class="col-md-3">
-                <label class="">権限区分</label>
-                <input class="form-control p-2" style="width: 50px;" type="text" :value=viewModel.権限区分>
+                <label class="">担当者ＣＤ</label>
+                <input class="form-control p-2" style="width: 90px;" type="text" :value=viewModel.担当者ＣＤ>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3">
+                <label class="">担当者名</label>
+                <input type="text" class="form-control" :value="viewModel.担当者名">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-5">
+                <label>工場区分</label>
+                <VueOptions
+                    id="KojoKbn"
+                    ref="VueOptions_KojoKbn"
+                    customLabelStyle="text-align: center;"
+                    :vmodel=viewModel
+                    bind="工場区分"
+                    :list="[
+                        {code: '', name: '', label: '指定なし'},
+                        {code: '1', name: '工場', label: '工場'},
+                        {code: '2', name: '他支店', label: '他支店'},
+                    ]"
+                />
             </div>
         </div>
     </form>
@@ -153,7 +129,7 @@ textarea {
 }
 </style>
 <style>
-#Page_DAI04021 .CustomerSelect .select-name {
+#Page_DAI04081 .CustomerSelect .select-name {
     color: royalblue;
 }
 </style>
@@ -163,7 +139,7 @@ import PageBaseMixin from "@vcs/PageBaseMixin.vue";
 
 export default {
     mixins: [PageBaseMixin],
-    name: "DAI04021",
+    name: "DAI04081",
     components: {
     },
     computed: {
@@ -171,17 +147,13 @@ export default {
             var vue = this;
             return vue.viewModel.IsNew == true ? "新規" : "修正";
         },
-        IsChecked: function() {
-            var vue = this;
-            return vue.viewModel.オペレータ == 1 ? true : false;
-        },
     },
     data() {
         var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "担当者マスタメンテ詳細",
+            ScreenTitle: "コースマスタメンテ詳細",
             noViewModel: true,
-            DAI04021Grid1: null,
+            DAI04081Grid1: null,
             grid1Options: {
                 selectionModel: { type: "cell", mode: "single", row: true, onTab: "nextEdit" },
                 showHeader: true,
@@ -234,20 +206,19 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "クリア", id: "DAI04021_Clear", disabled: false, shortcut: "F2",
+                { visible: "true", value: "クリア", id: "DAI04081_Clear", disabled: false, shortcut: "F2",
                     onClick: function () {
                         //TODO: クリア
                     }
                 },
-                { visible: "true", value: "削除", id: "DAI04021_Delete", disabled: false, shortcut: "F3",
+                { visible: "true", value: "削除", id: "DAI04081_Delete", disabled: false, shortcut: "F3",
                     onClick: function () {
                         //TODO: 削除
                     }
                 },
                 {visible: "false"},
-                { visible: "true", value: "登録", id: "DAI04021Grid1_Save", disabled: false, shortcut: "F9",
+                { visible: "true", value: "登録", id: "DAI04081Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
-                        //TODO: 新規ではない時、所属部署が古いCDの場合どうするか
                         //TODO: 登録
                         console.log("登録");
                         return;
@@ -279,7 +250,7 @@ export default {
                         );
                     }
                 },
-                                { visible: "true", value: "CSV", id: "DAI04021_Csv", disabled: false, shortcut: "F10",
+                                { visible: "true", value: "CSV", id: "DAI04081_Csv", disabled: false, shortcut: "F10",
                     onClick: function () {
                         //TODO: CSV
                     }

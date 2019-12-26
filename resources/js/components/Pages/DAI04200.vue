@@ -341,7 +341,8 @@ export default {
 
             //キーワード追加
             res = res.map(v => {
-                v.KeyWord = _.values(v).join(",");
+                // v.KeyWord = _.values(v).join(",");
+                v.KeyWord = _.keys(v).filter(k => (k != "InitialValue") && (k != /^pq.*/)).map(k => v[k]).join(",");
                 return v;
             });
 

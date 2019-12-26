@@ -121,19 +121,19 @@
                     <div class="row">
                         <div class="col-md-3">
                             <label class="">電話番号1</label>
-                            <input class="form-control p-1" style="width: 100px;" type="text" :value=viewModel.電話番号１>
+                            <input class="form-control p-1" style="width: 100px;" type="text" :value=viewModel.電話番号１ maxlength="15">
                         </div>
                         <div class="col-md-3">
                             <label class="">電話番号2</label>
-                            <input class="form-control p-1" style="width: 100px;" type="text" :value=viewModel.電話番号２>
+                            <input class="form-control p-1" style="width: 100px;" type="text" :value=viewModel.電話番号２ maxlength="15">
                         </div>
                         <div class="col-md-3">
                             <label class="">FAX1</label>
-                            <input class="form-control p-1" style="width: 100px;" type="text" :value=viewModel.ＦＡＸ１>
+                            <input class="form-control p-1" style="width: 100px;" type="text" :value=viewModel.ＦＡＸ１ maxlength="15">
                         </div>
                         <div class="col-md-3">
                             <label class="">FAX2</label>
-                            <input class="form-control p-1" style="width: 100px;" type="text" :value=viewModel.ＦＡＸ２>
+                            <input class="form-control p-1" style="width: 100px;" type="text" :value=viewModel.ＦＡＸ２ maxlength="15">
                         </div>
                     </div>
                     <div class="row">
@@ -255,11 +255,11 @@
                         </div>
                         <div class="col-md-2">
                             <label style="min-width: 60px;">締日1</label>
-                            <input class="form-control text-right p-2" style="width: 40px;" type="text" :value=viewModel.締日１>
+                            <input class="form-control text-right p-2" style="width: 40px;" type="text" :value=viewModel.締日１ maxlength="2">
                         </div>
                         <div class="col-md-2">
                             <label style="min-width: 60px;">締日2</label>
-                            <input class="form-control text-right p-2" style="width: 40px;" type="text" :value=viewModel.締日２>
+                            <input class="form-control text-right p-2" style="width: 40px;" type="text" :value=viewModel.締日２ maxlength="2">
                         </div>
                         <div class="col-md-2">
                             <label class="">支払サイト</label>
@@ -275,7 +275,7 @@
                         </div>
                         <div class="col-md-2">
                             <label style="min-width: 60px;">支払日</label>
-                            <input class="form-control text-right p-2" style="width: 40px;" type="text" :value=viewModel.支払日>
+                            <input class="form-control text-right p-2" style="width: 40px;" type="text" :value=viewModel.支払日 maxlength="2">
                         </div>
                     </div>
                     <div class="row">
@@ -482,12 +482,14 @@
                             <div class="row">
                                 <div class="col-md-3">
                                     <label>チケット枚数</label>
-                                    <input class="form-control text-right p-2" style="width: 80px;" type="number" :value=viewModel.チケット枚数>
+                                    <input class="form-control text-right p-2" style="width: 80px;" :value=viewModel.チケット枚数
+                                        type="number" step="1" min="0" max="999"
+                                    />
                                 </div>
                                 <div class="col-md-3">
                                     <label style="width: 170px;">サービスチケット枚数</label>
-                                    <input class="form-control text-right p-2" style="width: 85px;" type="number"
-                                     :value=viewModel.サービスチケット枚数 maxlength="3" step="0.5" max="999" min="0"
+                                    <input class="form-control text-right p-2" style="width: 85px;" :value=viewModel.サービスチケット枚数
+                                        type="number" step="0.5" min="0" max="999"
                                     />
                                 </div>
                                 <div class="col-md-3">
@@ -798,7 +800,11 @@ textarea {
 .memo{
     height: 70px;
 }
-</style>
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}</style>
 <style>
 #Page_DAI04041 .CustomerSelect .select-name {
     color: royalblue;

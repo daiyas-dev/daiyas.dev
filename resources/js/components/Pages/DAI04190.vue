@@ -305,7 +305,8 @@ export default {
 
             //キーワード追加
             res = res.map(v => {
-                v.KeyWord = _.values(v).join(",");
+                // v.KeyWord = _.values(v).join(",");
+                v.KeyWord = _.keys(v).filter(k => (k != "InitialValue") && (k != /^pq.*/)).map(k => v[k]).join(",");
                 //半角カタカナを全角に変換してキーワードに追加
                 v.KeyWord += (!!v.銀行名カナ ? ("," +  Moji(v.銀行名カナ).convert('HK', 'ZK').toString()) : "");
                 //英数を全角⇔半角に変換してキーワードに追加

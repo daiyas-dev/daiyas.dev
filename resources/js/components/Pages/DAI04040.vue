@@ -429,7 +429,7 @@ export default {
                 v.KeyWord += (!!v.得意先名 ? ("," +  Moji(v.得意先名).convert('ZK', 'HK').toString()) : "");
                 v.KeyWord += (!!v.コース名 ? ("," +  Moji(v.コース名).convert('HK', 'ZK').toString()) : "");
                 v.KeyWord += (!!v.コース名 ? ("," +  Moji(v.コース名).convert('ZK', 'HK').toString()) : "");
-                //アルファベットを全角⇔半角に変換してキーワードに追加
+                //英数を全角⇔半角に変換してキーワードに追加
                 v.KeyWord += (!!v.得意先名カナ ? ("," +  Moji(v.得意先名カナ).convert('HE', 'ZE').toString()) : "");
                 v.KeyWord += (!!v.得意先名カナ ? ("," +  Moji(v.得意先名カナ).convert('ZE', 'HE').toString()) : "");
                 v.KeyWord += (!!v.得意先名 ? ("," +  Moji(v.得意先名).convert('HE', 'ZE').toString()) : "");

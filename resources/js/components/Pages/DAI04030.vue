@@ -361,8 +361,8 @@ export default {
             //キーワード追加
             res = res.map(v => {
                 //v.KeyWord = _.values(v).join(",");
-                v.KeyWord = _.keys(v).filter(k => k != "修正日").map(k => v[k]).join(",");
-                //アルファベットを全角⇔半角に変換してキーワードに追加
+                v.KeyWord = _.keys(v).filter(k => (k != "修正日" ) && (k != "InitialValue") && (k != /^pq.*/)).map(k => v[k]).join(",");
+                //英数を全角⇔半角に変換してキーワードに追加
                 v.KeyWord += (!!v.商品名 ? ("," +  Moji(v.商品名).convert('HE', 'ZE').toString()) : "");
                 v.KeyWord += (!!v.商品名 ? ("," +  Moji(v.商品名).convert('ZE', 'HE').toString()) : "");
                 v.KeyWord += (!!v.商品略称 ? ("," +  Moji(v.商品略称).convert('HE', 'ZE').toString()) : "");
