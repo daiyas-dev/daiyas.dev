@@ -1,12 +1,12 @@
 <template>
     <form id="this.$options.name">
         <div class="row">
-            <div class="col-md-1">
+            <div class="col-md-2">
                 <span class="badge badge-primary w-75 ModeLabel">{{ModeLabel}}</span>
             </div>
         </div>
         <div class="row">
-            <div class="col-md-5">
+            <div class="col-md-12">
                 <label>部署</label>
                 <VueSelect
                     id="BushoCd"
@@ -23,7 +23,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-5">
+            <div class="col-md-12">
                 <label class="width:100">コース区分</label>
                 <VueSelect
                     id="CourseKbn"
@@ -37,35 +37,53 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-2">
+            <div class="col-md-5">
                 <label>コースＣＤ</label>
-                <input class="form-control text-right" type="text"
+                <input class="form-control text-right" type="text" style="width:80px;"
                     :value=viewModel.コースＣＤ
-                    :readonly=!viewModel.IsNew
+                    :readonly=false
                     :tabindex="viewModel.IsNew ? 0 : -1"
                 >
             </div>
         </div>
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-11">
                 <label class="">コース名</label>
                 <input class="form-control p-2" type="text" :value=viewModel.コース名>
             </div>
         </div>
         <div class="row">
-            <div class="col-md-3">
-                <label class="">担当者ＣＤ</label>
-                <input class="form-control p-2" style="width: 90px;" type="text" :value=viewModel.担当者ＣＤ>
+            <div class="col-md-11">
+                <label>担当者</label>
+                <PopupSelect
+                    id="TantoSelect"
+                    ref="PopupSelect_Tanto"
+                    :vmodel=viewModel
+                    bind="担当者ＣＤ"
+                    buddy="担当者名"
+                    dataUrl="/Utilities/GetTantoList"
+                    :params="{ bushoCd: null, KeyWord: TantoKeyWord }"
+                    :isPreload=true
+                    title="担当者一覧"
+                    labelCd="担当者ＣＤ"
+                    labelCdNm="担当者名"
+                    :showColumns='[
+                    ]'
+                    :isShowName=true
+                    :isModal=true
+                    :editable=true
+                    :reuse=true
+                    :existsCheck=true
+                    :onChangeFunc=onTantoChanged
+                    :inputWidth=80
+                    :nameWidth=197
+                    :isShowAutoComplete=true
+                    :AutoCompleteFunc=TantoAutoCompleteFunc
+                />
             </div>
         </div>
         <div class="row">
-            <div class="col-md-3">
-                <label class="">担当者名</label>
-                <input type="text" class="form-control" :value="viewModel.担当者名">
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-5">
+            <div class="col-md-11">
                 <label>工場区分</label>
                 <VueOptions
                     id="KojoKbn"
@@ -154,6 +172,7 @@ export default {
             ScreenTitle: "コースマスタメンテ詳細",
             noViewModel: true,
             DAI04081Grid1: null,
+            TantoKeyWord: null,
             grid1Options: {
                 selectionModel: { type: "cell", mode: "single", row: true, onTab: "nextEdit" },
                 showHeader: true,
@@ -216,7 +235,6 @@ export default {
                         //TODO: 削除
                     }
                 },
-                {visible: "false"},
                 { visible: "true", value: "登録", id: "DAI04081Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         //TODO: 登録
@@ -250,16 +268,60 @@ export default {
                         );
                     }
                 },
-                                { visible: "true", value: "CSV", id: "DAI04081_Csv", disabled: false, shortcut: "F10",
-                    onClick: function () {
-                        //TODO: CSV
-                    }
-                },
             );
         },
         mountedFunc: function(vue) {
             $(vue.$el).parents("div.body-content").addClass("Scrollable");
         },
+        onTantoChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
+            var vue = this;
+            console.log("onTantoChanged", info, comp, isValid);
+            if (!isValid) {
+                vue.TantoKeyWord = comp.selectValue;
+            }
+        },
+        TantoAutoCompleteFunc: function(input, dataList, comp) {
+            var vue = this;
+
+            if (!dataList.length) return [];
+
+            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
+            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
+
+            var wholeColumns = ["Cd", "CdNm", "担当者名カナ"];
+
+            if (input == comp.selectValue && comp.isUnique) {
+                keyAND = keyOR = [];
+            }
+
+            var list = dataList
+                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
+                .filter(v => {
+                    return keyOR.length == 0
+                        || _.some(keyOR, k => v.Cd.startsWith(k))
+                        || _.some(keyOR, k => v.whole.includes(k))
+                })
+                .filter(v => {
+                    return keyAND.length == 0
+                        || _.every(keyAND, k => v.whole.includes(k));
+                })
+                .map(v => {
+                    var ret = v;
+                    ret.label = v.Cd + " : " + v.CdNm + "【" + (!!v.部署 ? v.部署.部署名 : "部署無し") + "】";
+                    ret.value = v.Cd;
+                    ret.text = v.CdNm;
+                    return ret;
+                })
+                ;
+            console.log("TantoAutoCompleteFunc:" + input + " = " + list.length);
+            return list;
+        },
+        // TantoSelectorParamsFunc: function(params, comp) {
+        //     params.KeyWord = null;
+        //     params.BushoCd = null;
+        //     return params;
+        // },
     }
 }
 </script>

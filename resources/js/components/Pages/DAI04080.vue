@@ -197,7 +197,7 @@ export default {
                         vue.conditionChanged();
                     }
                 },
-                { visible: "true", value: "ダウンロード", id: "DAI04080_Download", disabled: false, shortcut: "F7",
+                { visible: "true", value: "CSV", id: "DAI04080_Download", disabled: false, shortcut: "F7",
                     onClick: function () {
                         //TODO: ダウンロード
                     }
@@ -499,8 +499,8 @@ export default {
                 params: params,
                 isModal: true,
                 isChild: true,
-                width: 1100,
-                height: 600,
+                width: 550,
+                height: 380,
             });
         },
         TantoAutoCompleteFunc: function(input, dataList, comp) {
@@ -512,7 +512,7 @@ export default {
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 
-            var wholeColumns = ["担当者名", "部署.部署名"];
+            var wholeColumns = ["担当者名", "部署.部署名", "担当者名カナ"];
 
             if (input == comp.selectValue && comp.isUnique) {
                 keyAND = keyOR = [];
