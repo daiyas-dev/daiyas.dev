@@ -20,7 +20,6 @@
                     :editable=true
                     :reuse=true
                     :existsCheck=true
-                    :exceptCheck="[{ Cd: 0 }]"
                     :inputWidth=100
                     :nameWidth=300
                     :isShowAutoComplete=true
@@ -61,7 +60,7 @@
         <PqGridWrapper
             id="DAI04200Grid1"
             ref="DAI04200Grid1"
-            dataUrl="/Utilities/GetBankBranchList"
+            dataUrl="/Utilities/GetBankBranchListForMaint"
             :query=this.viewModel
             :SearchOnCreate=false
             :SearchOnActivate=false
@@ -207,7 +206,7 @@ export default {
             console.log("DAI04200 conditionChanged", vue.getLoginInfo().isLogOn);
 
             if (!!grid && vue.getLoginInfo().isLogOn) {
-                var params = $.extend(true, {}, vue.viewModel);
+                var params = {BankCd : vue.viewModel.BankCd};
                 grid.searchData(params, false);
             }
         },

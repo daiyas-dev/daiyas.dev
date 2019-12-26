@@ -427,7 +427,7 @@
                                             :popupHeight=600
                                             :isShowName=true
                                             :isModal=true
-                                            :editable='viewModel.支払方法１ == "4"'
+                                            :editable='viewModel.金融機関CD ? viewModel.支払方法１ == "4" : false'
                                             :disabled='viewModel.支払方法１ != "4"'
                                             :reuse=true
                                             :existsCheck=true
@@ -482,11 +482,13 @@
                             <div class="row">
                                 <div class="col-md-3">
                                     <label>チケット枚数</label>
-                                    <input class="form-control text-right p-2" style="width: 80px;" type="text" :value=viewModel.チケット枚数>
+                                    <input class="form-control text-right p-2" style="width: 80px;" type="number" :value=viewModel.チケット枚数>
                                 </div>
                                 <div class="col-md-3">
                                     <label style="width: 170px;">サービスチケット枚数</label>
-                                    <input class="form-control text-right p-2" style="width: 40px;" type="text" :value=viewModel.サービスチケット枚数>
+                                    <input class="form-control text-right p-2" style="width: 85px;" type="number"
+                                     :value=viewModel.サービスチケット枚数 maxlength="3" step="0.5" max="999" min="0"
+                                    />
                                 </div>
                                 <div class="col-md-3">
                                     <label class="">受注方法</label>
