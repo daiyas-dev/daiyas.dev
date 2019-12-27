@@ -5,7 +5,7 @@
                 <label>得意先ＣＤ</label>
             </div>
             <div class="col-md-1">
-                <input type="text" class="form-control" :value="viewModel.得意先CD" @input="onCustomerCdChanged" @keydown.enter="() => showDetail()">
+                <input type="text" class="form-control" v-model="viewModel.CustomerCd" @input="onCustomerCdChanged" @keydown.enter="() => showDetailByCd()">
             </div>
             <div class="col-md-1">
                 <label>部署</label>
@@ -329,14 +329,12 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        onCustomerCdChanged: function(code, entity) {
+        onCustomerCdChanged: function(code, entities) {
             var vue = this;
-
-            vue.viewModel.得意先CD = event.target.value;
 
             //フィルタ変更
             vue.filterChanged();
-        },
+         },
         onStateChanged: function(code, entity) {
             var vue = this;
 
@@ -370,7 +368,7 @@ export default {
             console.log("DAI04040 conditionChanged", vue.getLoginInfo().isLogOn);
 
             if (!!grid && vue.getLoginInfo().isLogOn) {
-                var params = $.extend(true, {}, vue.viewModel);
+                var params = {BushoCd: vue.viewModel.BushoCd};
                 grid.searchData(params, false);
             }
         },
@@ -388,8 +386,8 @@ export default {
 
             var rules = [];
 
-            if (!!vue.viewModel.得意先CD) {
-                rules.push({ dataIndx: "得意先CD", condition: "equal", value: vue.viewModel.得意先CD });
+            if (!!vue.viewModel.CustomerCd) {
+                rules.push({ dataIndx: "得意先CD", condition: "equal", value: vue.viewModel.CustomerCd});
             }
             if (!!vue.viewModel.State) {
                 rules.push({ dataIndx: "状態区分", condition: "equal", value: vue.viewModel.State });
@@ -421,8 +419,8 @@ export default {
 
             //キーワード追加
             res = res.map(v => {
-                //v.KeyWord = _.values(v).join(",");
-                v.KeyWord = _.keys(v).filter(k => k != "修正日").map(k => v[k]).join(",");
+                // v.KeyWord = _.values(v).join(",");
+                v.KeyWord = _.keys(v).filter(k => (k != "修正日" ) && (k != "InitialValue") && (k != /^pq.*/)).map(k => v[k]).join(",");
                 //電話番号からハイフンを消してキーワードに追加
                 v.KeyWord += (!!v.電話番号１ ? ("," +  v.電話番号１.replace(/-/g,"")) : "");
                 //カタカナを全角⇔半角に変換してキーワードに追加
@@ -431,7 +429,7 @@ export default {
                 v.KeyWord += (!!v.得意先名 ? ("," +  Moji(v.得意先名).convert('ZK', 'HK').toString()) : "");
                 v.KeyWord += (!!v.コース名 ? ("," +  Moji(v.コース名).convert('HK', 'ZK').toString()) : "");
                 v.KeyWord += (!!v.コース名 ? ("," +  Moji(v.コース名).convert('ZK', 'HK').toString()) : "");
-                //アルファベットを全角⇔半角に変換してキーワードに追加
+                //英数を全角⇔半角に変換してキーワードに追加
                 v.KeyWord += (!!v.得意先名カナ ? ("," +  Moji(v.得意先名カナ).convert('HE', 'ZE').toString()) : "");
                 v.KeyWord += (!!v.得意先名カナ ? ("," +  Moji(v.得意先名カナ).convert('ZE', 'HE').toString()) : "");
                 v.KeyWord += (!!v.得意先名 ? ("," +  Moji(v.得意先名).convert('HE', 'ZE').toString()) : "");
@@ -454,8 +452,8 @@ export default {
             if (rowData) {
                 params = _.cloneDeep(rowData);
             } else {
-                if (grid.pdata.filter(v => v.得意先ＣＤ == vue.viewModel.得意先ＣＤ).length == 1) {
-                    params = _.cloneDeep(grid.pdata.find(v => v.得意先ＣＤ == vue.viewModel.得意先ＣＤ));
+                if (grid.pdata.filter(v => v.得意先CD == vue.viewModel.CustomerCd).length == 1) {
+                    params = _.cloneDeep(grid.pdata.find(v => v.得意先CD == vue.viewModel.CustomerCd));
                 } else {
                     var selection = grid.SelectRow().getSelection();
 
@@ -477,6 +475,46 @@ export default {
                 width: 1200,
                 height: 700,
             });
+        },
+        showDetailByCd: function() {
+            var vue = this;
+            var grid = vue.DAI04040Grid1;
+            if (!grid) return;
+
+            var cd = vue.viewModel.CustomerCd;
+            if (!cd) return;
+
+            if (grid.pdata.filter(v => v.得意先CD == vue.viewModel.CustomerCd).length == 1) {
+                vue.showDetail();
+            } else {
+                if (!!grid && vue.getLoginInfo().isLogOn) {
+                    var params = {CustomerCd: cd};
+                    // grid.searchData(params, false, null, () => vue.showDetail());
+                    axios.post(grid.options.dataModel.url, params)
+                        .then(res => {
+                            if (res.data.Data.length == 1) {
+                                //DAI04041を子画面表示
+                                PageDialog.show({
+                                    pgId: "DAI04041",
+                                    params: res.data.Data[0],
+                                    isModal: true,
+                                    isChild: true,
+                                    width: 1200,
+                                    height: 700,
+                                });
+
+                                //部署変更
+                                vue.viewModel.BushoCd = res.data.Data[0].部署CD;
+                                //再建策
+                                vue.conditionChanged();
+                            }
+                        })
+                        .catch(err => {
+                            console.log(err);
+                            //TODO: エラー
+                        })
+                }
+            }
         },
     }
 }

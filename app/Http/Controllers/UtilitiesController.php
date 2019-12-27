@@ -880,28 +880,44 @@ $WhereKeyWord
      */
     public function GetBankListForMaint($request)
     {
-        $cds = $request->bankCd;
+        $query = 金融機関名称::query();
 
-        $query = 金融機関名称::query()
-            ->when(
-                $cds,
-                function ($q) use ($cds) {
-                    return $q->whereIn('銀行CD', $cds);
-                });
-
-        $BankCdList = collect($query->get())
-            ->map(function ($BankCd) {
-                $vm = (object) $BankCd;
-
-                //一覧用項目追加
-                $vm->BankCd = $BankCd->銀行CD;
-                $vm->BankNm = $BankCd->銀行名;
-
+        $BankList = collect($query->get())
+            ->map(function ($Bank) {
+                $vm = (object) $Bank;
                 return $vm;
             })
             ->values();
 
-        return response()->json($BankCdList);
+        return response()->json($BankList);
+    }
+
+    /**
+     * GetBankBranchListForMaint
+     */
+    public function GetBankBranchListForMaint($request)
+    {
+        $BankCd = $request->BankCd;
+
+        if (!is_numeric($BankCd)) {
+            return [];
+        }
+
+        $query = 金融機関支店名称::query()
+            ->when(
+                $BankCd,
+                function ($q) use ($BankCd) {
+                    return $q->where('銀行CD', $BankCd);
+                });
+
+        $BankBranchList = collect($query->get())
+            ->map(function ($BankBranch) {
+                $vm = (object) $BankBranch;
+                return $vm;
+            })
+            ->values();
+
+        return response()->json($BankBranchList);
     }
 
     /**
@@ -910,8 +926,10 @@ $WhereKeyWord
     public function GetCustomerListForMaint($request)
     {
         $BushoCd = $request->bushoCd ?? $request->BushoCd;
+        $CustomerCd = $request->CustomerCd;
 
         $WhereBusho = $BushoCd ? " AND TOK.部署CD=$BushoCd" : "";
+        $WhereCustomer = $CustomerCd ? " AND TOK.得意先ＣＤ=$CustomerCd" : "";
 
         $sql = "
             WITH CT_DISTINCT AS (
@@ -952,6 +970,7 @@ $WhereKeyWord
                 ON CT_DISTINCT.部署CD=TOK.部署CD AND CT_DISTINCT.得意先ＣＤ=TOK.得意先ＣＤ
             WHERE 0=0
             $WhereBusho
+            $WhereCustomer
         ";
 
         $DataList = DB::select($sql);

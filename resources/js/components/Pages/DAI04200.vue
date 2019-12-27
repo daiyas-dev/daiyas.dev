@@ -20,7 +20,6 @@
                     :editable=true
                     :reuse=true
                     :existsCheck=true
-                    :exceptCheck="[{ Cd: 0 }]"
                     :inputWidth=100
                     :nameWidth=300
                     :isShowAutoComplete=true
@@ -61,7 +60,7 @@
         <PqGridWrapper
             id="DAI04200Grid1"
             ref="DAI04200Grid1"
-            dataUrl="/Utilities/GetBankBranchList"
+            dataUrl="/Utilities/GetBankBranchListForMaint"
             :query=this.viewModel
             :SearchOnCreate=false
             :SearchOnActivate=false
@@ -207,7 +206,7 @@ export default {
             console.log("DAI04200 conditionChanged", vue.getLoginInfo().isLogOn);
 
             if (!!grid && vue.getLoginInfo().isLogOn) {
-                var params = $.extend(true, {}, vue.viewModel);
+                var params = {BankCd : vue.viewModel.BankCd};
                 grid.searchData(params, false);
             }
         },
@@ -342,7 +341,8 @@ export default {
 
             //キーワード追加
             res = res.map(v => {
-                v.KeyWord = _.values(v).join(",");
+                // v.KeyWord = _.values(v).join(",");
+                v.KeyWord = _.keys(v).filter(k => (k != "InitialValue") && (k != /^pq.*/)).map(k => v[k]).join(",");
                 return v;
             });
 
