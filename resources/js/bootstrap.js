@@ -74,7 +74,7 @@ window.axios.interceptors.response.use(
             "/Account/Logout",
         ];
 
-        if (excepts.includes(url)) {
+        if (excepts.includes(url) || (!!params && !!params.noCache)) {
             return response;
         }
 
@@ -99,6 +99,10 @@ window.axios.interceptors.request.use(
 
         var key = request.url + (!!params && !_.isEmpty(params) ? ("?" + $.param(params)) : "");
         // console.log("axios request interceptor", url, request.data, params, key);
+
+        if (!!params && !!params.noCache) {
+            return request;
+        }
 
         if (!window.myCache.has(key) && url == "/Utilities/GetTantoList") {
             key = url;
