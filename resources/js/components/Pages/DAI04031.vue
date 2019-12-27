@@ -1,12 +1,12 @@
 <template>
     <form id="this.$options.name">
         <div class="row">
-            <div class="col-md-1">
+            <div class="col-md-2">
                 <span class="badge badge-primary w-75 ModeLabel">{{ModeLabel}}</span>
             </div>
         </div>
         <div class="row">
-            <div class="col-md-2">
+            <div class="col-md-4">
                 <label>商品ＣＤ</label>
                 <input class="form-control text-right" type="text"
                     :value=viewModel.商品ＣＤ
@@ -16,7 +16,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-9">
+            <div class="col-md-12">
                 <fieldset class="kouza-info w-100">
                     <legend class="kouza-info">商品詳細</legend>
                     <div class="row">
@@ -263,7 +263,6 @@ export default {
                         //TODO: 削除
                     }
                 },
-                {visible: "false"},
                 { visible: "true", value: "登録", id: "DAI04031Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         //TODO: 登録
@@ -295,11 +294,6 @@ export default {
                                 // },
                             }
                         );
-                    }
-                },
-                                { visible: "true", value: "CSV", id: "DAI04031_Csv", disabled: false, shortcut: "F10",
-                    onClick: function () {
-                        //TODO: CSV
                     }
                 },
             );

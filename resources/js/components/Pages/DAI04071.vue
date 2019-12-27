@@ -37,7 +37,7 @@
             <div class="col-md-1">
                 <label class="">会社名称</label>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-8">
                 <input type="text" class="form-control" :value="viewModel.会社名称">
             </div>
         </div>
@@ -51,7 +51,7 @@
             <div class="col-md-1">
                 <label>住所</label>
             </div>
-            <div class="col-md-5">
+            <div class="col-md-7">
                 <input class="form-control" type="text" :value=viewModel.住所>
             </div>
         </div>
@@ -264,7 +264,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-9">
+            <div class="col-md-8">
                 <fieldset class="kouza-info w-100">
                     <legend class="kouza-info">モバイル連携情報</legend>
                     <div class="row">
@@ -343,7 +343,7 @@
                     </div>
                 </fieldset>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="row">
                     <div class="col-md-12">
                         <label class="groupFactory">部署グループ</label>
@@ -583,11 +583,6 @@ export default {
 
                         //TODO: 登録用controller method call
                         console.log("登録", params);
-                    }
-                },
-                { visible: "true", value: "CSV", id: "DAI04071_Csv", disabled: false, shortcut: "F10",
-                    onClick: function () {
-                        //TODO: CSV
                     }
                 },
             );

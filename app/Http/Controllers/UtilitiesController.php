@@ -16,6 +16,7 @@ use App\Models\部署マスタ;
 use App\Models\金融機関名称;
 use App\Models\金融機関支店名称;
 use App\Models\消費税率マスタ;
+use App\Models\得意先履歴テーブル;
 use Illuminate\Http\Request;
 use DB;
 
@@ -978,7 +979,7 @@ $WhereKeyWord
         return response()->json(['Data'=>$DataList, 'CountConstraint'=> false]);
     }
 
-        /**
+    /**
      * GetCustomerList
      */
     public function GetCustomerList($request)
@@ -999,6 +1000,54 @@ $WhereKeyWord
             WHERE 0=0
             $WhereBusho
             $WhereCustomer
+            ";
+
+        $DataList = DB::select($sql);
+
+        return response()->json(['Data'=>$DataList, 'CountConstraint'=> false]);
+    }
+
+    /**
+     * GetCustomerHistoryList
+     */
+    public function GetCustomerHistoryList($request)
+    {
+        $CustomerCd = $request->CustomerCd;
+
+        $WhereCustomer = $CustomerCd ? " AND 得意先ＣＤ=$CustomerCd" : "";
+
+        $sql = "
+        SELECT
+        Q_状態区分.状態区分 AS 状態,
+        CONVERT(VARCHAR(30), MAIN.承認日, 111) AS 承認日,
+        Q_承認者.担当者名                      AS 承認者,
+        Q_状態理由区分.状態理由,
+        CONVERT(VARCHAR(30), MAIN.失客日, 111) AS 失客日,
+        Q_営業担当者.担当者名                  AS 営業担当者,
+        CONVERT(VARCHAR(30), MAIN.登録日, 111) AS 処理日,
+        Q_登録担当者.担当者名                  AS 登録担当者
+
+    FROM 得意先履歴テーブル
+
+    MAIN LEFT OUTER JOIN
+        (SELECT 行NO, 各種略称 AS 状態区分 FROM 各種テーブル WHERE 各種CD = 12) AS Q_状態区分
+    ON MAIN.状態区分       = Q_状態区分.行NO
+
+    LEFT OUTER JOIN (SELECT 行NO, 各種略称 AS 状態理由 FROM 各種テーブル WHERE 各種CD = 36) AS Q_状態理由区分
+    ON MAIN.失客理由       = Q_状態理由区分.行NO
+
+    LEFT OUTER JOIN (SELECT 担当者CD, 担当者名 FROM 担当者マスタ) AS Q_承認者
+    ON MAIN.承認者ＣＤ     = Q_承認者.担当者CD
+
+    LEFT OUTER JOIN (SELECT 担当者CD, 担当者名 FROM 担当者マスタ) AS Q_営業担当者
+    ON MAIN.営業担当者ＣＤ = Q_営業担当者.担当者CD
+
+    LEFT OUTER JOIN (SELECT 担当者CD, 担当者名 FROM 担当者マスタ) AS Q_登録担当者
+    ON MAIN.変更者ＣＤ     = Q_登録担当者.担当者CD
+
+    WHERE 0=0
+    $WhereCustomer
+    ORDER BY 得意先CD, 得意先履歴ID
             ";
 
         $DataList = DB::select($sql);

@@ -482,13 +482,13 @@
                             <div class="row">
                                 <div class="col-md-3">
                                     <label>チケット枚数</label>
-                                    <input class="form-control text-right p-2" style="width: 80px;" :value=viewModel.チケット枚数
+                                    <input class="form-control text-right p-2" style="width: 60px;" :value=viewModel.チケット枚数
                                         type="number" step="1" min="0" max="999"
                                     />
                                 </div>
                                 <div class="col-md-3">
                                     <label style="width: 170px;">サービスチケット枚数</label>
-                                    <input class="form-control text-right p-2" style="width: 85px;" :value=viewModel.サービスチケット枚数
+                                    <input class="form-control text-right p-2" style="width: 60px;" :value=viewModel.サービスチケット枚数
                                         type="number" step="0.5" min="0" max="999"
                                     />
                                 </div>
@@ -1016,8 +1016,6 @@ export default {
                     }
                 },
                 {visible: "false"},
-                {visible: "false"},
-                {visible: "false"},
               　{ visible: "true", value: "登録", id: "DAI04041Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         var params = _.cloneDeep(vue.viewModel);
@@ -1031,11 +1029,6 @@ export default {
 
                         //TODO: 登録用controller method call
                         console.log("登録", params);
-                    }
-                },
-                { visible: "true", value: "CSV", id: "DAI04041_Csv", disabled: false, shortcut: "F7",
-                    onClick: function () {
-                        //TODO: CSV
                     }
                 },
             );
