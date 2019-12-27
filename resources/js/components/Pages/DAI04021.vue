@@ -1,12 +1,12 @@
 <template>
     <form id="this.$options.name">
         <div class="row">
-            <div class="col-md-1">
+            <div class="col-md-2">
                 <span class="badge badge-primary w-75 ModeLabel">{{ModeLabel}}</span>
             </div>
         </div>
         <div class="row">
-            <div class="col-md-2">
+            <div class="col-md-4">
                 <label>担当者ＣＤ</label>
                 <input class="form-control text-right" type="text"
                     :value=viewModel.担当者ＣＤ
@@ -16,43 +16,43 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-8">
                 <label class="">担当者名</label>
                 <input type="text" class="form-control" :value="viewModel.担当者名">
             </div>
         </div>
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-8">
                 <label class="">担当者カナ</label>
                 <input type="text" class="form-control" style="font-size: 15px !important;" :value="viewModel.担当者名カナ">
             </div>
         </div>
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-6">
                 <label class="">郵便番号</label>
                 <input class="form-control p-2" style="width: 90px;" type="text" :value=viewModel.郵便番号>
             </div>
         </div>
         <div class="row">
-            <div class="col-md-10">
+            <div class="col-md-12">
                 <label>住所</label>
                 <input class="form-control" type="text" :value=viewModel.住所>
             </div>
         </div>
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-6">
                 <label class="">電話番号</label>
                 <input class="form-control p-1" style="width: 120px;" type="text" :value=viewModel.電話番号>
             </div>
         </div>
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-6">
                 <label class="">FAX</label>
                 <input class="form-control p-1" style="width: 120px;" type="text" :value=viewModel.ＦＡＸ>
             </div>
         </div>
         <div class="row">
-            <div class="col-md-5">
+            <div class="col-md-8">
                 <label>部署</label>
                 <VueSelect
                     id="BushoCd"
@@ -74,19 +74,19 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-8">
                 <label class="">ユーザーID</label>
                 <input class="form-control p-2" style="width: 120px;" type="text" :value=viewModel.ユーザーＩＤ>
             </div>
         </div>
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-8">
                 <label class="">パスワード</label>
                 <input class="form-control p-2" style="width: 120px;" type="text" :value=viewModel.パスワード>
             </div>
         </div>
         <div class="row">
-            <div class="col-md-5">
+            <div class="col-md-8">
                 <label class="width:100">営業業務区分</label>
                 <VueSelect
                     id="EigoKbn"
@@ -100,7 +100,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <label class="">権限区分</label>
                 <input class="form-control p-2" style="width: 50px;" type="text" :value=viewModel.権限区分>
             </div>
@@ -277,11 +277,6 @@ export default {
                                 // },
                             }
                         );
-                    }
-                },
-                                { visible: "true", value: "CSV", id: "DAI04021_Csv", disabled: false, shortcut: "F10",
-                    onClick: function () {
-                        //TODO: CSV
                     }
                 },
             );

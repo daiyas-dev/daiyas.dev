@@ -163,7 +163,7 @@ export default {
                         vue.conditionChanged();
                     }
                 },
-                { visible: "true", value: "ダウンロード", id: "DAI04020_Download", disabled: false, shortcut: "F7",
+                { visible: "true", value: "CSV", id: "DAI04020_Download", disabled: false, shortcut: "F7",
                     onClick: function () {
                         //TODO: ダウンロード
                     }
@@ -411,7 +411,7 @@ export default {
                 params: params,
                 isModal: true,
                 isChild: true,
-                width: 1100,
+                width: 600,
                 height: 600,
             });
         },
