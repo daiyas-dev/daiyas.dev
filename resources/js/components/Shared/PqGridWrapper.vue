@@ -2649,8 +2649,8 @@ export default {
                 var printWidth = paperWidthSet[grid.options.printSize || "A4"][grid.options.printDirection || "portrait"] + 150;  //with margin
 
                 var printOptions = {
-                    printable: json,
-                    type: "json",
+                    printable: grid.options.printable || json,
+                    type: grid.options.printType || "json",
                     properties: grid.options.colModel
                                     .filter(c => !c.hidden)
                                     .map(c => {

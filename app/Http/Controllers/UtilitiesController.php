@@ -1585,6 +1585,31 @@ ORDER BY
     }
 
     /**
+     * GetCourseKbnFromDate
+     */
+    public function GetCourseKbnFromDate($request) {
+        $TargetDate = $request->TargetDate;
+
+        $sql = "
+            SELECT
+                '$TargetDate' AS 対象日付,
+                CASE
+                    WHEN (SELECT 対象日付 FROM 祝日マスタ WHERE 対象日付 = '$TargetDate') IS NOT NULL THEN 4
+                    ELSE
+                        CASE DATEPART(WEEKDAY, '$TargetDate')
+                            WHEN 1 THEN 3
+                            WHEN 7 THEN 2
+                            ELSE 1
+                        END
+                END AS コース区分
+        ";
+
+        $Result = DB::select($sql);
+
+        return response()->json($Result[0]);
+    }
+
+    /**
      * Push
      */
     public function Push($request)
