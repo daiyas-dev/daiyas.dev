@@ -293,6 +293,7 @@
                                 :editable=true
                                 :reuse=true
                                 :existsCheck=true
+                                :exceptCheck="[{Cd: ''}, {Cd: '0'}]"
                                 :inputWidth=95
                                 :nameWidth=235
                                 :onChangeFunc=onProductChanged
@@ -327,6 +328,7 @@
                                 :editable=true
                                 :reuse=true
                                 :existsCheck=true
+                                :exceptCheck="[{Cd: ''}, {Cd: '0'}]"
                                 :inputWidth=95
                                 :nameWidth=235
                                 :onChangeFunc=onProductChanged

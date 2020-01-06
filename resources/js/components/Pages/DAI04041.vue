@@ -43,7 +43,7 @@
                     :vmodel=viewModel
                     bind="承認者ＣＤ"
                     buddy="承認者名"
-                    uri="/Utilities/GetTantoList"
+                    uri="/Utilities/GetTantoListForSelect"
                     :params="{ bushoCd: null }"
                     :withCode=true
                     customStyle="{ width: 150px; }"
@@ -302,6 +302,7 @@
                                 :editable=true
                                 :reuse=true
                                 :existsCheck=true
+                                :exceptCheck="[{Cd: ''}, {Cd: '0'}]"
                                 :inputWidth=100
                                 :nameWidth=400
                                 :onChangeFunc=onBillingChanged
@@ -528,7 +529,7 @@
                                         :vmodel=viewModel
                                         bind="営業担当者ＣＤ"
                                         buddy="営業担当者名"
-                                        dataUrl="/Utilities/GetTantoList"
+                                        dataUrl="/Utilities/GetTantoListForSelect"
                                         :params="{ bushoCd: null, KeyWord: EigyoKeyWord }"
                                         :isPreload=true
                                         title="営業担当者一覧"
@@ -556,7 +557,7 @@
                                         :vmodel=viewModel
                                         bind="獲得営業者ＣＤ"
                                         buddy="獲得営業者名"
-                                        dataUrl="/Utilities/GetTantoList"
+                                        dataUrl="/Utilities/GetTantoListForSelect"
                                         :params="{ bushoCd: null, KeyWord: KakutokuKeyWord }"
                                         :isPreload=true
                                         title="獲得営業者一覧"
@@ -586,7 +587,7 @@
                                         :vmodel=viewModel
                                         bind="登録担当者ＣＤ"
                                         buddy="登録担当者名"
-                                        dataUrl="/Utilities/GetTantoList"
+                                        dataUrl="/Utilities/GetTantoListForSelect"
                                         :params="{ bushoCd: null, KeyWord: TorokuKeyWord }"
                                         :isPreload=true
                                         title="登録担当者一覧"
@@ -631,6 +632,7 @@
                                         :editable=true
                                         :reuse=true
                                         :existsCheck=true
+                                        :exceptCheck="[{Cd: ''}, {Cd: '0'}]"
                                         :inputWidth=100
                                         :nameWidth=400
                                         :onChangeFunc=onJuchuCustomerChanged
@@ -1016,6 +1018,18 @@ export default {
                     }
                 },
                 {visible: "false"},
+                { visible: "true", value: "履歴表示", id: "DAI04040_History", disabled: false, shortcut: "F5",
+                    onClick: function () {
+                        vue.showHistory();
+                    }
+                },
+                { visible: "true", value: "分配先登録", id: "DAI04040_Bunpaisaki", disabled: false, shortcut: "F6",
+                    onClick: function () {
+                        //TODO:登録や削除
+                        vue.showBunpaisaki();
+                    }
+                },
+                {visible: "false"},
               　{ visible: "true", value: "登録", id: "DAI04041Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         var params = _.cloneDeep(vue.viewModel);
@@ -1340,6 +1354,54 @@ export default {
                 ;
             console.log("TorokuAutoCompleteFunc:" + input + " = " + list.length);
             return list;
+        },
+        showHistory: function() {
+            var vue = this;
+
+            vue.showColumns = [
+                    { title: "状態", dataIndx: "状態", dataType: "string", width: 80, maxWidth: 80, minWidth: 80, colIndx: 0 },
+                    { title: "承認日", dataIndx: "承認日", dataType: "string", width: 90, maxWidth: 90, minWidth: 90, colIndx: 1 },
+                    { title: "承認者", dataIndx: "承認者", dataType: "string", width: 100, maxWidth: 120, minWidth: 100, colIndx: 2 },
+                    { title: "状態理由", dataIndx: "状態理由", dataType: "string", width: 150, maxWidth: 250, minWidth: 150, colIndx: 3 },
+                    { title: "失客日", dataIndx: "失客日", dataType: "string", width: 90, maxWidth: 90, minWidth: 90, colIndx: 4 },
+                    { title: "営業担当者", dataIndx: "営業担当者", dataType: "string", width: 100, maxWidth: 120, minWidth: 100, colIndx: 5 },
+                    { title: "処理日", dataIndx: "処理日", dataType: "string", width: 90, maxWidth: 90, minWidth: 90, colIndx: 6 },
+                    { title: "登録担当者", dataIndx: "登録担当者", dataType: "string", width: 100, maxWidth: 120, minWidth: 100, colIndx: 7 },
+                    { title: "Cd", dataIndx: "Cd", dataType: "string", hidden: true, colIndx: 8 },
+                    { title: "CdNm", dataIndx: "CdNm", dataType: "string", hidden: true, colIndx: 9 },
+            ];
+
+            PageDialog.showSelector({
+                dataUrl: "/Utilities/GetCustomerHistoryList",
+                params: {CustomerCd : vue.viewModel.得意先ＣＤ},
+                title: "得意先履歴一覧 ： " + vue.viewModel.得意先名,
+                isModal: true,
+                showColumns: vue.showColumns,
+                width: 1000,
+                height: 500,
+                reuse: true,
+            });
+        },
+        showBunpaisaki: function() {
+            var vue = this;
+
+            vue.showColumns = [
+                    { title: "得意先CD", dataIndx: "得意先ＣＤ", dataType: "string", width: 80, maxWidth: 80, minWidth: 80, colIndx: 0 },
+                    { title: "得意先名", dataIndx: "得意先名", dataType: "string", width: 400, maxWidth: 400, minWidth: 350, colIndx: 1 },
+                    { title: "Cd", dataIndx: "Cd", dataType: "string", hidden: true, colIndx: 2 },
+                    { title: "CdNm", dataIndx: "CdNm", dataType: "string", hidden: true, colIndx: 3 }
+            ];
+
+            PageDialog.showSelector({
+                dataUrl: "/Utilities/GetBunpaisakiList",
+                params: {CustomerCd : vue.viewModel.得意先ＣＤ, BushoCd: vue.viewModel.部署CD},
+                title: "分配得意先入力 ： " + vue.viewModel.得意先名,
+                isModal: true,
+                showColumns: vue.showColumns,
+                width: 600,
+                height: 500,
+                reuse: true,
+            });
         },
     }
 }
