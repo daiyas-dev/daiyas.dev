@@ -4,11 +4,12 @@
             <div class="col-md-1">
                 <label>部署</label>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <VueSelect
                     id="Busho"
                     :vmodel=viewModel
                     bind="BushoCd"
+                    buddy="BushoNm"
                     uri="/Utilities/GetBushoList"
                     :withCode=true
                     style="width:200px"
@@ -33,7 +34,7 @@
             <div class="col-md-1">
                 <label>コース区分</label>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-1">
                 <VueSelect
                     id="CourseKbn"
                     :vmodel=viewModel
@@ -52,7 +53,7 @@
             dataUrl="/DAI01060/Search"
             :query=this.searchParams
             :options=this.grid1Options
-            :SearchOnCreate=true
+            :SearchOnCreate=false
             :SearchOnActivate=true
             :onAfterSearchFunc=this.onAfterSearchFunc
             :resizeFunc=this.gridResizeFunc
@@ -108,6 +109,7 @@ export default {
             noViewModel: true,
             viewModel: {
                 BushoCd: null,
+                BushoNm: null,
                 TargetDate: null,
                 CourseKbn: null,
             },
@@ -176,7 +178,9 @@ export default {
                             if (ui.rowData.summaryRow) {
                                 return { text: ui.rowData.コース名 };
                             } else {
-                                ui.style.push("align-items: flex-start;");
+                                if (!ui.Export) {
+                                    ui.style.push("align-items: flex-start;");
+                                }
                                 return { text: ui.rowData.コースＣＤ + "<br>" + ui.rowData.コース名 };
                             }
                         },
@@ -255,12 +259,12 @@ export default {
             vue.footerButtons.push(
                 { visible: "true", value: "検索", id: "DAI01060Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
-                        console.log("F5");
-                        vue.conditionChanged();
+                        vue.conditionChanged(null, true);
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI01020Grid1_Printout", disabled: false, shortcut: "F6",
+                { visible: "true", value: "印刷", id: "DAI01060Grid1_Printout", disabled: false, shortcut: "F6",
                     onClick: function () {
+                        vue.DAI01060Grid1.print(vue.setPrintOptions);
                     }
                 }
             );
@@ -268,6 +272,8 @@ export default {
         mountedFunc: function(vue) {
             vue.viewModel.TargetDate = moment();
 
+            //TODO:
+            return;
             if (!!vue.CheckInterVal) clearInterval(vue.CheckInterVal);
             vue.CheckInterVal = setInterval(() => {
                 //更新チェック
@@ -321,8 +327,25 @@ export default {
         onTargetDateChanged: function(code, entity) {
             var vue = this;
 
-            //条件変更ハンドラ
-            vue.conditionChanged();
+            //コース区分変更
+            axios.post(
+                "/Utilities/GetCourseKbnFromDate",
+                {TargetDate: moment(vue.viewModel.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD")}
+            )
+                .then(res => {
+                    console.log(res);
+                    vue.viewModel.CourseKbn = res.data.コース区分;
+
+                    //条件変更ハンドラ
+                    vue.conditionChanged();
+                })
+                .catch(err => {
+                    console.log(err);
+                    $.dialogErr({
+                        title: "異常終了",
+                        contents: "祝日マスタの検索に失敗しました<br/>",
+                    });
+                });
         },
         onCourseKbnChanged: function(code, entity) {
             var vue = this;
@@ -330,9 +353,11 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        conditionChanged: function(callback) {
+        conditionChanged: function(callback, force) {
             var vue = this;
             var grid = vue.DAI01060Grid1;
+
+            console.log("conditionChanged", vue.viewModel);
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.BushoCd || !vue.viewModel.TargetDate || !vue.viewModel.CourseKbn) return;
@@ -342,6 +367,8 @@ export default {
             var params = $.extend(true, {}, vue.viewModel);
             //日付を"YYYYMMDD"形式に編集
             params.TargetDate = params.TargetDate ? moment(params.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
+            //TODO:
+            params.TargetDate = "20190904";
             //キャッシュ無効
             params.noCache = true;
 
@@ -351,7 +378,7 @@ export default {
             axios.post("/DAI01060/UpdateCheck", checkParams)
                 .then(res => {
                     grid.hideLoading();
-                    if (res.data.最新修正日時 != vue.CheckDate) {
+                    if (!!force || res.data.最新修正日時 != vue.CheckDate) {
                         vue.CheckDate = res.data.最新修正日時;
                         grid.searchData(params, false, null, callback);
                     }
@@ -404,20 +431,136 @@ export default {
                     pos += v.length;
                 });
 
-            // grid.options.mergeCells = _.flattenDeep(res.filter((r, i) => !(i % 2))
-            //     .map((r, i) => {
-            //         var checkedCol = grid.options.colModel.filter(c => c.dataIndx == "Checked")[0];
-            //         var checkStateCol = grid.options.colModel.filter(c => c.dataIndx == "CheckState")[0];
-            //         return [
-            //             { r1: i * 2, c1: 0, rc: 2, cc: 1 },
-            //             { r1: i * 2, c1: 1, rc: 2, cc: 1 },
-            //             { r1: i * 2, c1: checkedCol.leftPos, rc: 2, cc: 1 },
-            //             { r1: i * 2, c1: checkStateCol.leftPos, rc: 2, cc: 1 },
-            //         ];
-            //     })
-            // );
-
             return res;
+        },
+        setPrintOptions: function(grid) {
+            var vue = this;
+
+            //PqGrid Print options
+            grid.options.type = "raw-html";
+
+            var styles = $(grid.exportData({ format: "htm", render: true }))[2];
+            var contents = $("<div>").addClass("grid-contents").append($(grid.exportData({ format: "htm", render: true }))[3]);
+
+            var printable = $("<html>")
+                .append(
+                    $("<head>")
+                        .append(
+                            `
+                                <style>
+                                    .header-table {
+
+                                    }
+                                    .header-table th {
+                                        font-family: "MS UI Gothic";
+                                        font-size: 10pt;
+                                        font-weight: normal !important;
+                                        border: solid 1px black !important;
+                                        white-space: nowrap;
+                                        overflow: hidden;
+                                        margin: 0px;
+                                        padding-left: 3px;
+                                        padding-right: 3px;
+                                    }
+                                    .header-table tr:last-child th{
+                                        border-bottom-width: 0px !important;
+                                    }
+                                    .grid-contents tr th:nth-child(1) {
+                                        width: 15%;
+                                    }
+                                    .grid-contents tr th:nth-child(2) {
+                                        width: 5%;
+                                    }
+                                    .grid-contents tr th:nth-child(7),
+                                    .grid-contents tr th:nth-child(9)
+                                    {
+                                        width: 25%;
+                                    }
+                                    .grid-contents tr th:nth-child(n+3):nth-child(-n+6),
+                                    .grid-contents tr th:nth-child(8),
+                                    .grid-contents tr th:nth-child(10)
+                                    {
+                                        width: 5%;
+                                        text-align: center;
+                                    }
+                                    .grid-contents tr td:nth-child(1) {
+                                        vertical-align: top;
+                                    }
+                                </style>
+                            `
+                        )
+                        .append(styles)
+                )
+                .append(
+                    $("<body>")
+                        .append(
+                            `
+                                <h3 style="text-align: center; margin: 0px; margin-bottom: 10px;">* * 移動表 * *</h3>
+                                <table style="border-collapse: collapse; width: 100%;" class="header-table">
+                                    <colgroup>
+                                            <col style="width:4.58%;"></col>
+                                            <col style="width:4.60%;"></col>
+                                            <col style="width:9.00%;"></col>
+                                            <col style="width:5.45%;"></col>
+                                            <col style="width:5.45%;"></col>
+                                            <col style="width:5.45%;"></col>
+                                            <col style="width:5.45%;"></col>
+                                            <col style="width:5.45%;"></col>
+                                            <col style="width:5.45%;"></col>
+                                            <col style="width:5.45%;"></col>
+                                            <col style="width:5.45%;"></col>
+                                            <col style="width:5.45%;"></col>
+                                            <col style="width:5.45%;"></col>
+                                            <col style="width:5.45%;"></col>
+                                            <col style="width:5.45%;"></col>
+                                            <col style="width:5.45%;"></col>
+                                            <col style="width:5.45%;"></col>
+                                            <col style="width:5.45%;"></col>
+                                    </colgroup>
+                                    <thead>
+                                        <tr>
+                                            <th>日付</th>
+                                            <th colspan="3">${vue.viewModel.TargetDate}</th>
+                                            <th colspan="8" style="border-top-width: 0px !important;"></th>
+                                            <th colspan="4">${moment().format("YYYY年MM月DD日 HH:mm:ss")}</th>
+                                            <th>PAGE</th>
+                                            <th>1</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            `
+                        )
+                        .append(contents)
+                );
+
+            grid.options.printType = "raw-html";
+            grid.options.printable = printable.prop("outerHTML");
+            console.log(printable);
+
+            // grid.options.printStyles =
+            //     `
+            //         tr td:nth-child(1) {
+            //             font-size: 9pt;
+            //         }
+            //         tr td:nth-child(n+3) {
+            //             text-align: right;
+            //         }
+            //         tr td:nth-child(n+4) {
+            //             text-align: right;
+            //         }
+            //         tr td:nth-child(n+5) {
+            //             text-align: right;
+            //         }
+            //         tr td:nth-child(n+6) {
+            //             text-align: right;
+            //         }
+            //         tr td:nth-child(n+8) {
+            //             text-align: right;
+            //         }
+            //         tr td:nth-child(n+10) {
+            //             text-align: right;
+            //         }
+            //     `;
         },
     }
 }

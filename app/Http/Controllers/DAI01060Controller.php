@@ -23,7 +23,7 @@ class DAI01060Controller extends Controller
 
         $sql = "
 DECLARE @日付WK              DATETIME
-set @日付WK  = CONVERT(datetime, '20190904', 120);
+set @日付WK  = CONVERT(datetime, '$TargetDate', $BushoCd);
 
 WITH TAISHO_SHOHIN AS (
 SELECT
@@ -80,7 +80,7 @@ MOBILE_HANBAI AS(
     LEFT OUTER JOIN 商品マスタ SHO_MST ON
       SHO_SHU.主食ＣＤ = SHO_MST.商品ＣＤ
   WHERE
-    SHO_SHU.部署ＣＤ = 101
+    SHO_SHU.部署ＣＤ = $BushoCd
     AND SHO_SHU.日付 = @日付WK
     AND SHO_SHU.主食ＣＤ != 0
     AND (SHO_SHU.実績数 != 0 OR SHO_SHU.注文数 != 0 OR SHO_SHU.見込数 != 0)
@@ -102,7 +102,7 @@ MOBILE_HANBAI AS(
     LEFT OUTER JOIN 商品マスタ SHO_MST ON
       SHO_FUKU.副食ＣＤ = SHO_MST.商品ＣＤ
   WHERE
-    SHO_FUKU.部署ＣＤ = 101
+    SHO_FUKU.部署ＣＤ = $BushoCd
     AND SHO_FUKU.日付 = @日付WK
     AND SHO_FUKU.副食ＣＤ != 0
     AND (SHO_FUKU.実績数 != 0 OR SHO_FUKU.注文数 != 0 OR SHO_FUKU.見込数 != 0)
@@ -116,7 +116,7 @@ MOBILE_HANBAI AS(
       FROM
         モバイル_販売入力 T1
       WHERE
-        T1.部署ＣＤ = 101
+        T1.部署ＣＤ = $BushoCd
         AND T1.日付 = @日付WK
       GROUP BY
         T1.部署ＣＤ
@@ -290,7 +290,7 @@ FROM (
         COU.部署ＣＤ = MOB_IDO_WATASHI.部署ＣＤ
         AND COU.コースＣＤ = MOB_IDO_WATASHI.コースＣＤ
         AND TSHO.商品ＣＤ = MOB_IDO_WATASHI.商品ＣＤ
-  WHERE  COU.部署ＣＤ = 101 AND COU.コース区分 = 1
+  WHERE  COU.部署ＣＤ = $BushoCd AND COU.コース区分 = $CourseKbn
 
 ) MAIN
 ORDER BY
