@@ -38,7 +38,7 @@
                     :params="{ cd: 20 }"
                     codeName="サブ各種CD1"
                     :withCode=true
-                    :hasNull=true
+                    :hasNull=false
                     customStyle="{ width: 100px; }"
                 />
             </div>
@@ -67,7 +67,7 @@
                     uri="/Utilities/GetCodeList"
                     :params="{ cd: 21 }"
                     :withCode=true
-                    :hasNull=true
+                    :hasNull=false
                     customStyle="{ width: 100px; }"
                 />
             </div>

@@ -357,6 +357,7 @@
                             :params="{ cd: 18 }"
                             :withCode=true
                             customStyle="{ width: 100px; }"
+                            :hasNull=true
                         />
                     </div>
                     <div class="col-md-12">
