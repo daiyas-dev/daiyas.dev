@@ -238,28 +238,27 @@ export default {
                         dataType: "string",
                         key: true,
                         psProps: {
-                            dataUrl: "/DAI04042/GetCustomerListForSelect",
+                            dataUrl: "/Utilities/GetCustomerListForSelect",
                             //params: { bushoCd: () => { var val = !!vue.viewModel ? vue.viewModel.BushoCd : null; console.log("psProps params", vue, val); return val; } },
                             params: vue.getCustomerPsParamsInGrid,
                             bind: "得意先ＣＤ",
                             buddies: { "得意先名": "CdNm" },
                             isPreload: true,
                             title: "得意先一覧",
-                            labelCd: "得意先ＣＤ",
+                            labelCd: "得意先CD",
                             labelCdNm: "得意先名",
                             popupWidth: 600,
                             popupHeight: 600,
                             isShowName: true,
                             isModal: true,
+                            editable: true,
                             reuse: true,
                             existsCheck: true,
                             inputWidth: 90,
-                            nameWidth: 195,
-                            onAfterChangedFunc: vue.onCustomerChangedInGrid,
+                            nameWidth: 280,
                             isShowAutoComplete: true,
                             AutoCompleteFunc: vue.CustomerAutoCompleteFuncInGrid,
                             AutoCompleteMinLength: 1,
-                            ParamsChangedCheckFunc: vue.CustomerParamsChangedCheckFuncInGrid,
                             getData: (ui, grid) => {
                                 console.log("psprops getData", ui.$cell.find(".target-input").val());
                                 return ui.$cell.find(".target-input").val();
@@ -379,10 +378,6 @@ export default {
         },
         onMainGridResize: grid => {
         },
-        onCustomerChangedInGrid: function(code, entity) {
-            var vue = this;
-            console.log("onCustomerChangedInGrid", code);
-        },
         CustomerAutoCompleteFuncInGrid: function(input, dataList, comp) {
             var vue = this;
 
@@ -422,11 +417,6 @@ export default {
             console.log("CustomerAutoCompleteFuncInGrid", comp.id, list);
 
             return list;
-        },
-        CustomerParamsChangedCheckFuncInGrid: function(newVal, oldVal, comp) {
-            var vue = this;
-            console.log(comp.id + " CustomerParamsChangedCheckFuncInGrid", newVal);
-            return !!newVal.bushoCd;
         },
         getCustomerPsParamsInGrid: (vue, grid) => {
             return { bushoCd: !!vue.viewModel ? vue.viewModel.BushoCd : null };
