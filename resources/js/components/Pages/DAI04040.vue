@@ -5,7 +5,7 @@
                 <label>得意先ＣＤ</label>
             </div>
             <div class="col-md-1">
-                <input type="text" class="form-control" :value="viewModel.得意先CD" @input="onCustomerCdChanged" @keydown.enter="() => showDetail()">
+                <input type="text" class="form-control" v-model="viewModel.CustomerCd" @input="onCustomerCdChanged" @keydown.enter="() => showDetailByCd()">
             </div>
             <div class="col-md-1">
                 <label>部署</label>
@@ -57,7 +57,7 @@
                     bind="ShoninCd"
                     buddy="ShoninNm"
                     dataUrl="/Utilities/GetTantoList"
-                    :params="{ bushoCd: viewModel.BushoCd }"
+                    :params="{ bushoCd: null }"
                     title="承認者一覧"
                     labelCd="承認者CD"
                     labelCdNm="承認者名"
@@ -72,6 +72,7 @@
                     :inputWidth=80
                     :nameWidth=150
                     :isShowAutoComplete=true
+                    :AutoCompleteFunc=ShoninAutoCompleteFunc
                 />
             </div>
             <div class="col-md-1">
@@ -284,14 +285,18 @@ export default {
                 },
                 {visible: "false"},
                 {visible: "false"},
-                {visible: "false"},
-                {visible: "false"},
+                { visible: "true", value: "履歴表示", id: "DAI04040_History", disabled: false, shortcut: "F4",
+                    onClick: function () {
+                        //TODO:F5を履歴表示に使うか検索に使うか？現行はF5は履歴表示。
+                        vue.historyDis();
+                    }
+                },
                 { visible: "true", value: "検索", id: "DAI04040_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
                         vue.conditionChanged();
                     }
                 },
-                { visible: "true", value: "ダウンロード", id: "DAI04040_Download", disabled: false, shortcut: "F7",
+                { visible: "true", value: "CSV", id: "DAI04040_Download", disabled: false, shortcut: "F7",
                     onClick: function () {
                         //TODO: ダウンロード
                     }
@@ -329,14 +334,12 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        onCustomerCdChanged: function(code, entity) {
+        onCustomerCdChanged: function(code, entities) {
             var vue = this;
-
-            vue.viewModel.得意先CD = event.target.value;
 
             //フィルタ変更
             vue.filterChanged();
-        },
+         },
         onStateChanged: function(code, entity) {
             var vue = this;
 
@@ -370,7 +373,7 @@ export default {
             console.log("DAI04040 conditionChanged", vue.getLoginInfo().isLogOn);
 
             if (!!grid && vue.getLoginInfo().isLogOn) {
-                var params = $.extend(true, {}, vue.viewModel);
+                var params = {BushoCd: vue.viewModel.BushoCd};
                 grid.searchData(params, false);
             }
         },
@@ -388,8 +391,8 @@ export default {
 
             var rules = [];
 
-            if (!!vue.viewModel.得意先CD) {
-                rules.push({ dataIndx: "得意先CD", condition: "equal", value: vue.viewModel.得意先CD });
+            if (!!vue.viewModel.CustomerCd) {
+                rules.push({ dataIndx: "得意先CD", condition: "equal", value: vue.viewModel.CustomerCd});
             }
             if (!!vue.viewModel.State) {
                 rules.push({ dataIndx: "状態区分", condition: "equal", value: vue.viewModel.State });
@@ -421,8 +424,8 @@ export default {
 
             //キーワード追加
             res = res.map(v => {
-                //v.KeyWord = _.values(v).join(",");
-                v.KeyWord = _.keys(v).filter(k => k != "修正日").map(k => v[k]).join(",");
+                // v.KeyWord = _.values(v).join(",");
+                v.KeyWord = _.keys(v).filter(k => (k != "修正日" ) && (k != "InitialValue") && (k != /^pq.*/)).map(k => v[k]).join(",");
                 //電話番号からハイフンを消してキーワードに追加
                 v.KeyWord += (!!v.電話番号１ ? ("," +  v.電話番号１.replace(/-/g,"")) : "");
                 //カタカナを全角⇔半角に変換してキーワードに追加
@@ -431,7 +434,7 @@ export default {
                 v.KeyWord += (!!v.得意先名 ? ("," +  Moji(v.得意先名).convert('ZK', 'HK').toString()) : "");
                 v.KeyWord += (!!v.コース名 ? ("," +  Moji(v.コース名).convert('HK', 'ZK').toString()) : "");
                 v.KeyWord += (!!v.コース名 ? ("," +  Moji(v.コース名).convert('ZK', 'HK').toString()) : "");
-                //アルファベットを全角⇔半角に変換してキーワードに追加
+                //英数を全角⇔半角に変換してキーワードに追加
                 v.KeyWord += (!!v.得意先名カナ ? ("," +  Moji(v.得意先名カナ).convert('HE', 'ZE').toString()) : "");
                 v.KeyWord += (!!v.得意先名カナ ? ("," +  Moji(v.得意先名カナ).convert('ZE', 'HE').toString()) : "");
                 v.KeyWord += (!!v.得意先名 ? ("," +  Moji(v.得意先名).convert('HE', 'ZE').toString()) : "");
@@ -454,8 +457,8 @@ export default {
             if (rowData) {
                 params = _.cloneDeep(rowData);
             } else {
-                if (grid.pdata.filter(v => v.得意先ＣＤ == vue.viewModel.得意先ＣＤ).length == 1) {
-                    params = _.cloneDeep(grid.pdata.find(v => v.得意先ＣＤ == vue.viewModel.得意先ＣＤ));
+                if (grid.pdata.filter(v => v.得意先CD == vue.viewModel.CustomerCd).length == 1) {
+                    params = _.cloneDeep(grid.pdata.find(v => v.得意先CD == vue.viewModel.CustomerCd));
                 } else {
                     var selection = grid.SelectRow().getSelection();
 
@@ -476,6 +479,116 @@ export default {
                 isChild: true,
                 width: 1200,
                 height: 700,
+            });
+        },
+        showDetailByCd: function() {
+            var vue = this;
+            var grid = vue.DAI04040Grid1;
+            if (!grid) return;
+
+            var cd = vue.viewModel.CustomerCd;
+            if (!cd) return;
+
+            if (grid.pdata.filter(v => v.得意先CD == vue.viewModel.CustomerCd).length == 1) {
+                vue.showDetail();
+            } else {
+                if (!!grid && vue.getLoginInfo().isLogOn) {
+                    var params = {CustomerCd: cd};
+                    // grid.searchData(params, false, null, () => vue.showDetail());
+                    axios.post(grid.options.dataModel.url, params)
+                        .then(res => {
+                            if (res.data.Data.length == 1) {
+                                //DAI04041を子画面表示
+                                PageDialog.show({
+                                    pgId: "DAI04041",
+                                    params: res.data.Data[0],
+                                    isModal: true,
+                                    isChild: true,
+                                    width: 1200,
+                                    height: 700,
+                                });
+
+                                //部署変更
+                                vue.viewModel.BushoCd = res.data.Data[0].部署CD;
+                                //再建策
+                                vue.conditionChanged();
+                            }
+                        })
+                        .catch(err => {
+                            console.log(err);
+                            //TODO: エラー
+                        })
+                }
+            }
+        },
+        ShoninAutoCompleteFunc: function(input, dataList, comp) {
+            var vue = this;
+
+            if (!dataList.length) return [];
+
+            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
+            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
+
+            var wholeColumns = ["担当者名", "部署.部署名", "担当者名カナ"];
+
+            if (input == comp.selectValue && comp.isUnique) {
+                keyAND = keyOR = [];
+            }
+
+            var list = dataList
+                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
+                .filter(v => {
+                    return keyOR.length == 0
+                        || _.some(keyOR, k => v.担当者ＣＤ.startsWith(k))
+                        || _.some(keyOR, k => v.whole.includes(k))
+                })
+                .filter(v => {
+                    return keyAND.length == 0 || _.every(keyAND, k => v.whole.includes(k));
+                })
+                .map(v => {
+                    var ret = v;
+                    ret.label = v.担当者ＣＤ + " : " + v.担当者名 + "【" + (!!v.部署 ? v.部署.部署名 : "部署無し") + "】";
+                    ret.value = v.担当者ＣＤ;
+                    ret.text = v.担当者名;
+                    return ret;
+                })
+                ;
+
+            return list;
+        },
+        historyDis: function() {
+            var vue = this;
+            var grid = vue.DAI04040Grid1;
+            if(!grid) return;
+            var param;
+            var selection = grid.SelectRow().getSelection();
+
+            //TODO:西山:paramに選択中の行の得意先CDを入れたい
+            param = selection[0].rowData.得意先CD
+
+            vue.showColumns = [
+                    { title: "状態", dataIndx: "状態", dataType: "string", width: 100, maxWidth: 100, minWidth: 100, colIndx: 0 },
+                    { title: "承認日", dataIndx: "承認日", dataType: "string", width: 90, maxWidth: 90, minWidth: 90, colIndx: 1 },
+                    { title: "承認者", dataIndx: "承認者", dataType: "string", width: 120, maxWidth: 120, minWidth: 120, colIndx: 2 },
+                     { title: "状態理由", dataIndx: "状態理由", dataType: "string", width: 150, maxWidth: 250, minWidth: 150, colIndx: 3 },
+                     { title: "失客日", dataIndx: "失客日", dataType: "string", width: 90, maxWidth: 90, minWidth: 90, colIndx: 4 },
+                     { title: "営業担当者", dataIndx: "営業担当者", dataType: "string", width: 120, maxWidth: 120, minWidth: 120, colIndx: 5 },
+                     { title: "処理日", dataIndx: "処理日", dataType: "string", width: 90, maxWidth: 90, minWidth: 90, colIndx: 6 },
+                     { title: "登録担当者", dataIndx: "登録担当者", dataType: "string", width: 120, maxWidth: 120, minWidth: 120, colIndx: 7 },
+                     { title: "Cd", dataIndx: "Cd", dataType: "string", hidden: true, colIndx: 8 },
+                     { title: "CdNm", dataIndx: "CdNm", dataType: "string", hidden: true, colIndx: 9 },
+            ];
+
+            PageDialog.showSelector({
+                dataUrl: "/Utilities/GetCustomerHistoryList",
+                params: {CustomerCd : param},
+                title: "得意先履歴一覧",
+                isModal: true,
+                showColumns: vue.showColumns,
+                width: 1100,
+                height: 500,
+                reuse: true,
             });
         },
     }

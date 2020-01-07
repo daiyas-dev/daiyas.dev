@@ -710,9 +710,12 @@ export default {
 
                 //title
                 if (!!grid.options.filterModel && !!grid.options.filterModel.rules && !!grid.options.filterModel.rules.length) {
-                    grid.options.title = "件数: " + grid.pdata.length + " / " + grid.getData().length + " [フィルタ中]";
+                    grid.options.title = "件数: " + grid.pdata.filter(v => v.pq_level == undefined).length + " / " + grid.getData().length + " [フィルタ中]";
                 } else {
                     grid.options.title = "件数: " + grid.getData().length;
+                }
+                if (vue.setCustomTitle) {
+                    grid.options.title = vue.setCustomTitle();
                 }
                 grid._refreshTitle();
 
@@ -786,76 +789,76 @@ export default {
                 //Bootstrap tooltip設定
                 //refreshイベントのタイミングではレンダリングが完了していない(PqGridが見栄えの為か、timerを生成して実行しているため)
                 //そのため、この設定もtimerを用いて実施
-                setTimeout(function() {
-                    var selector = "#" + id + " .pq-grid-cell:not(.ui-error-state)";
-                    var isDialog = vue.isDialog;
+                // setTimeout(function() {
+                //     var selector = "#" + id + " .pq-grid-cell:not(.ui-error-state)";
+                //     var isDialog = vue.isDialog;
 
-                    var checkOverflow = (cell, target) => {
-                        //justify-contentを保持
-                        var justify = $(cell).css("justify-content");
+                //     var checkOverflow = (cell, target) => {
+                //         //justify-contentを保持
+                //         var justify = $(cell).css("justify-content");
 
-                        //offset/scrollのwidth/height取得
-                        var offsetWidth = cell.offsetWidth;
-                        var scrollWidth = cell.scrollWidth;
-                        var offsetHeight = cell.offsetHeight;
-                        var scrollHeight = cell.scrollHeight;
+                //         //offset/scrollのwidth/height取得
+                //         var offsetWidth = cell.offsetWidth;
+                //         var scrollWidth = cell.scrollWidth;
+                //         var offsetHeight = cell.offsetHeight;
+                //         var scrollHeight = cell.scrollHeight;
 
-                        if (!$(cell).css("display").includes("flex")) {
-                            //clone生成
-                            var clone = $(cell).clone();
+                //         if (!$(cell).css("display").includes("flex")) {
+                //             //clone生成
+                //             var clone = $(cell).clone();
 
-                            //justify-contentをflex-startに変更
-                            clone.css("justify-content", "flex-start");
+                //             //justify-contentをflex-startに変更
+                //             clone.css("justify-content", "flex-start");
 
-                            //offset/scrollのwidth/height再取得
-                            offsetWidth = clone[0].offsetWidth;
-                            scrollWidth = clone[0].scrollWidth;
-                            offsetHeight = clone[0].offsetHeight;
-                            scrollHeight = clone[0].scrollHeight;
-                        }
+                //             //offset/scrollのwidth/height再取得
+                //             offsetWidth = clone[0].offsetWidth;
+                //             scrollWidth = clone[0].scrollWidth;
+                //             offsetHeight = clone[0].offsetHeight;
+                //             scrollHeight = clone[0].scrollHeight;
+                //         }
 
-                        var title = $(target).attr("title") || $(target).text().replace(/(, )+$/, "").replace(/, /g, "<br>");
+                //         var title = $(target).attr("title") || $(target).text().replace(/(, )+$/, "").replace(/, /g, "<br>");
 
-                        return (offsetWidth < scrollWidth || offsetHeight < scrollHeight)  && !!title ? title : "";
-                    };
+                //         return (offsetWidth < scrollWidth || offsetHeight < scrollHeight)  && !!title ? title : "";
+                //     };
 
-                    $("*").tooltip("hide");
-                    $(selector)
-                        .tooltip({
-                            container: "body",
-                            animation: false,
-                            template: '<div class="tooltip text-overflow" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>',
-                            placement: "auto",
-                            trigger: "hover",
-                            title: function() {
-                                var cell = this;
+                //     $("*").tooltip("hide");
+                //     $(selector)
+                //         .tooltip({
+                //             container: "body",
+                //             animation: false,
+                //             template: '<div class="tooltip text-overflow" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>',
+                //             placement: "auto",
+                //             trigger: "hover",
+                //             title: function() {
+                //                 var cell = this;
 
-                                //改行以外のchildrenが存在する場合、その要素を対象
-                                var children = $(cell).children().filter((i,v) => v.tagName != "BR");
+                //                 //改行以外のchildrenが存在する場合、その要素を対象
+                //                 var children = $(cell).children().filter((i,v) => v.tagName != "BR");
 
-                                if (children.length > 0) {
-                                    children.each((i, v) => {
-                                        var title = checkOverflow(cell, v);
-                                        if (!!title) {
-                                            //個別にツールチップ設定
-                                            $(v).tooltip({
-                                                container: "body",
-                                                animation: false,
-                                                placement: "auto",
-                                                trigger: "hover",
-                                                html: true,
-                                                title: title,
-                                            });
-                                        }
-                                    });
+                //                 if (children.length > 0) {
+                //                     children.each((i, v) => {
+                //                         var title = checkOverflow(cell, v);
+                //                         if (!!title) {
+                //                             //個別にツールチップ設定
+                //                             $(v).tooltip({
+                //                                 container: "body",
+                //                                 animation: false,
+                //                                 placement: "auto",
+                //                                 trigger: "hover",
+                //                                 html: true,
+                //                                 title: title,
+                //                             });
+                //                         }
+                //                     });
 
-                                    return "";
-                                } else {
-                                    return checkOverflow(cell, cell);
-                                }
-                            },
-                        });
-                }, 100);
+                //                     return "";
+                //                 } else {
+                //                     return checkOverflow(cell, cell);
+                //                 }
+                //             },
+                //         });
+                // }, 100);
 
                 //dirty row number cell highlight
                 // setTimeout(() => {
@@ -1354,14 +1357,14 @@ export default {
                 $.extend(true, pqGridObj, this.options);
 
                 //共通カラムを導入
-                pqGridObj.colModel.push({ title: "自動生成PK", dataType: "integer", dataIndx: "PK", editable: false, hidden: true });
-                pqGridObj.colModel.push({ title: "プラント", dataType: "string", dataIndx: "Plant", editable: false, hidden: true });
-                pqGridObj.colModel.push({ title: "作成日", dataType: "string", dataIndx: "CreateDate", editable: false, hidden: true });
-                pqGridObj.colModel.push({ title: "作成者", dataType: "string", dataIndx: "CreateUser", editable: false, hidden: true });
-                pqGridObj.colModel.push({ title: "更新日", dataType: "string", dataIndx: "UpdateDate", editable: false, hidden: true });
-                pqGridObj.colModel.push({ title: "更新者", dataType: "string", dataIndx: "UpdateUser", editable: false, hidden: true });
-                pqGridObj.colModel.push({ title: "削除日時", dataType: "date", dataIndx: "DeleteDate", editable: false, hidden: true });
-                pqGridObj.colModel.push({ title: "Ver.No.", dataType: "integer", dataIndx: "VersionNo", editable: false, hidden: true });
+                // pqGridObj.colModel.push({ title: "自動生成PK", dataType: "integer", dataIndx: "PK", editable: false, hidden: true });
+                // pqGridObj.colModel.push({ title: "プラント", dataType: "string", dataIndx: "Plant", editable: false, hidden: true });
+                // pqGridObj.colModel.push({ title: "作成日", dataType: "string", dataIndx: "CreateDate", editable: false, hidden: true });
+                // pqGridObj.colModel.push({ title: "作成者", dataType: "string", dataIndx: "CreateUser", editable: false, hidden: true });
+                // pqGridObj.colModel.push({ title: "更新日", dataType: "string", dataIndx: "UpdateDate", editable: false, hidden: true });
+                // pqGridObj.colModel.push({ title: "更新者", dataType: "string", dataIndx: "UpdateUser", editable: false, hidden: true });
+                // pqGridObj.colModel.push({ title: "削除日時", dataType: "date", dataIndx: "DeleteDate", editable: false, hidden: true });
+                // pqGridObj.colModel.push({ title: "Ver.No.", dataType: "integer", dataIndx: "VersionNo", editable: false, hidden: true });
 
                 //PqGridの変更検知のdeleteがバグっているので検索時の値を保持する項目を追加(検索時の値ではなく、削除時の値でdeleteListに格納される)
                 pqGridObj.colModel.push(
@@ -1397,6 +1400,30 @@ export default {
                 //PqGrid参照設定
                 if (!this.grid) return;
                 this.$parent.$data[this.id] = this.grid;
+
+                //bootstrap tooltip
+                $(document)
+                    .on("mouseleave", ".pq-grid-cell:not(.ui-error-state):visible", event => $(event.target).tooltip("hide"))
+                    .on("mouseenter", ".pq-grid-cell:not(.ui-error-state):visible",
+                        event => {
+                            var $ele = $(event.target);
+
+                            var title = $ele.attr("title") || $ele.text().replace(/(, )+$/, "").replace(/, /g, "<br>");
+
+                            $("*").tooltip("hide");
+                            if (!!title && _.trim(title) != "") {
+                                $ele.tooltip({
+                                    container: "body",
+                                    animation: false,
+                                    template: '<div class="tooltip text-overflow" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>',
+                                    placement: "auto",
+                                    trigger: "hover",
+                                    title: title,
+                                })
+                                .tooltip("show")
+                                ;
+                            }
+                        });
 
                 //colModelのeditableの設定より、PqGridのclassに入力可不可設定
                 var cfg = pqGridObj.columnTemplate.editable ? "editable" : "readonly";
@@ -2622,8 +2649,8 @@ export default {
                 var printWidth = paperWidthSet[grid.options.printSize || "A4"][grid.options.printDirection || "portrait"] + 150;  //with margin
 
                 var printOptions = {
-                    printable: json,
-                    type: "json",
+                    printable: grid.options.printable || json,
+                    type: grid.options.printType || "json",
                     properties: grid.options.colModel
                                     .filter(c => !c.hidden)
                                     .map(c => {

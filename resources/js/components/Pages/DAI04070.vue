@@ -148,7 +148,7 @@ export default {
                         vue.conditionChanged();
                     }
                 },
-                { visible: "true", value: "ダウンロード", id: "DAI04070_Download", disabled: false, shortcut: "F7",
+                { visible: "true", value: "CSV", id: "DAI04070_Download", disabled: false, shortcut: "F7",
                     onClick: function () {
                         //TODO: ダウンロード
                     }
@@ -433,7 +433,7 @@ export default {
             //キーワード追加
             res = res.map(v => {
                 //v.KeyWord = _.values(v).join(",");
-                v.KeyWord = _.keys(v).filter(k => k != "修正日").map(k => v[k]).join(",");
+                v.KeyWord = _.keys(v).filter(k => (k != "修正日" ) && (k != "InitialValue") && (k != /^pq.*/)).map(k => v[k]).join(",");
                 //半角カタカナを全角に変換してキーワードに追加
                 v.KeyWord += (!!v.部署名カナ ? ("," +  Moji(v.部署名カナ).convert('HK', 'ZK').toString()) : "");
                 return v;
@@ -472,7 +472,7 @@ export default {
                 params: params,
                 isModal: true,
                 isChild: true,
-                width: 1100,
+                width: 1080,
                 height: 600,
             });
         },

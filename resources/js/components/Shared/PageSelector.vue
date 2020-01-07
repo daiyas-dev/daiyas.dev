@@ -61,8 +61,10 @@ import DAI01010 from "@vcp/DAI01010.vue";
 import DAI01020 from "@vcp/DAI01020.vue";
 import DAI01030 from "@vcp/DAI01030.vue";
 import DAI01040 from "@vcp/DAI01040.vue";
+import DAI01060 from "@vcp/DAI01060.vue";
 import DAI01160 from "@vcp/DAI01160.vue";
 import DAI01170 from "@vcp/DAI01170.vue";
+import DAI01220 from "@vcp/DAI01220.vue";
 
 import DAI04020 from "@vcp/DAI04020.vue";
 import DAI04021 from "@vcp/DAI04021.vue";
@@ -73,6 +75,7 @@ import DAI04041 from "@vcp/DAI04041.vue";
 import DAI04070 from "@vcp/DAI04070.vue";
 import DAI04071 from "@vcp/DAI04071.vue";
 import DAI04080 from "@vcp/DAI04080.vue";
+import DAI04081 from "@vcp/DAI04081.vue";
 import DAI04090 from "@vcp/DAI04090.vue";
 import DAI04091 from "@vcp/DAI04091.vue";
 import DAI04130 from "@vcp/DAI04130.vue";
@@ -136,8 +139,10 @@ export default {
         DAI01020,
         DAI01030,
         DAI01040,
+        DAI01060,
         DAI01160,
         DAI01170,
+        DAI01220,
         DAI04020,
         DAI04021,
         DAI04030,
@@ -147,6 +152,7 @@ export default {
         DAI04070,
         DAI04071,
         DAI04080,
+        DAI04081,
         DAI04090,
         DAI04091,
         DAI04130,

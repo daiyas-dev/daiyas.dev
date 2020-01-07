@@ -323,7 +323,7 @@ export default {
             //キーワード追加
             res = res.map(v => {
                 //v.KeyWord = _.values(v).join(",");
-                v.KeyWord = _.keys(v).filter(k => k != "修正日").map(k => v[k]).join(",");
+                v.KeyWord = _.keys(v).filter(k => (k != "修正日" ) && (k != "InitialValue") && (k != /^pq.*/)).map(k => v[k]).join(",");
                 //半角カタカナを全角に変換してキーワードに追加
                 v.KeyWord += (!!v.消費税名称 ? ("," +  Moji(v.消費税名称).convert('HK', 'ZK').toString()) : "");
                 //半角英数を全角に変換してキーワードに追加

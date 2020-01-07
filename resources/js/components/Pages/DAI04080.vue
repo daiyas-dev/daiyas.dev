@@ -2,12 +2,6 @@
     <form id="this.$options.name">
         <div class="row">
             <div class="col-md-1">
-                <label>コースCD</label>
-            </div>
-            <div class="col-md-1">
-                <input type="text" class="form-control CourseCd" style="width: 80px;" :value="viewModel.CourseCd" @input="onCourseCdChanged" @keydown.enter="showDetail">
-            </div>
-            <div class="col-md-1">
                 <label>部署</label>
             </div>
             <div class="col-md-2">
@@ -17,8 +11,6 @@
                     :onChangedFunc=onBushoChanged
                 />
             </div>
-        </div>
-        <div class="row">
             <div class="col-md-1">
                 <label>コース区分</label>
             </div>
@@ -153,7 +145,6 @@ export default {
                 KojoKbn: null,
                 TantoCd: null,
                 TantoNm: null,
-                KojoKbn: null,
                 KeyWord: null,
                 FilterMode: "AND",
             },
@@ -186,7 +177,7 @@ export default {
                 colModel: [
                 ],
                 rowDblClick: function (event, ui) {
-                    vue.showDetail();
+                    vue.showDetail(ui.rowData);
                 },
             },
         });
@@ -206,7 +197,7 @@ export default {
                         vue.conditionChanged();
                     }
                 },
-                { visible: "true", value: "ダウンロード", id: "DAI04080_Download", disabled: false, shortcut: "F7",
+                { visible: "true", value: "CSV", id: "DAI04080_Download", disabled: false, shortcut: "F7",
                     onClick: function () {
                         //TODO: ダウンロード
                     }
@@ -240,19 +231,13 @@ export default {
             console.log("Cache Set Key1", myCache.set("key1", { value: 1 }));
             console.log("Cache Get Key1", myCache.get("key1"));
         },
-        onCourseCdChanged: _.debounce(function(event) {
-            var vue = this;
-
-            vue.viewModel.CourseCd = event.target.value;
-
-            //フィルタ変更
-            vue.filterChanged();
-        }, 300),
         onBushoChanged: function(code, entity) {
             var vue = this;
+            // //フィルタ変更
+            // vue.filterChanged();
 
-            //フィルタ変更
-            vue.filterChanged();
+            //条件変更ハンドラ
+            vue.conditionChanged();
         },
         onCourseKbnChanged: function(code, entity) {
             var vue = this;
@@ -287,7 +272,8 @@ export default {
             console.log("DAI04080 conditionChanged", vue.getLoginInfo().isLogOn);
 
             if (!!grid && vue.getLoginInfo().isLogOn) {
-                var params = $.extend(true, {}, vue.viewModel);
+                // var params = $.extend(true, {}, vue.viewModel);
+                var params = {bushoCd : vue.viewModel.BushoCd};
                 grid.searchData(params, false);
             }
         },
@@ -307,12 +293,12 @@ export default {
 
             var rules = [];
 
-            if (!!vue.viewModel.CourseCd) {
-                rules.push({ dataIndx: "コースＣＤ", condition: "begin", value: vue.viewModel.CourseCd });
-            }
-            if (!!vue.viewModel.BushoCd) {
-                rules.push({ dataIndx: "部署ＣＤ", condition: "equal", value: vue.viewModel.BushoCd });
-            }
+            // if (!!vue.viewModel.CourseCd) {
+            //     rules.push({ dataIndx: "コースＣＤ", condition: "begin", value: vue.viewModel.CourseCd });
+            // }
+            // if (!!vue.viewModel.BushoCd) {
+            //     rules.push({ dataIndx: "部署ＣＤ", condition: "equal", value: vue.viewModel.BushoCd });
+            // }
             if (!!vue.viewModel.CourseKbn) {
                 rules.push({ dataIndx: "コース区分", condition: "equal", value: vue.viewModel.CourseKbn });
             }
@@ -466,8 +452,13 @@ export default {
 
             //キーワード追加
             res = res.map(v => {
-                v.KeyWord = _.values(v).join(",");
-                // delete v.パスワード;
+                // v.KeyWord = _.values(v).join(",");
+                v.KeyWord = _.keys(v).filter(k => (k != "修正日") && (k != "修正担当者ＣＤ") && (k != "担当者") && (k != "InitialValue") && (k != /^pq.*/)).map(k => v[k]).join(",");
+                //英数を全角⇔半角に変換してキーワードに追加
+                v.KeyWord += (!!v.コース名 ? ("," +  Moji(v.コース名).convert('HE', 'ZE').toString()) : "");
+                v.KeyWord += (!!v.コース名 ? ("," +  Moji(v.コース名).convert('ZE', 'HE').toString()) : "");
+                v.KeyWord += (!!v.担当者名 ? ("," +  Moji(v.担当者名).convert('HE', 'ZE').toString()) : "");
+                v.KeyWord += (!!v.担当者名 ? ("," +  Moji(v.担当者名).convert('ZE', 'HE').toString()) : "");
                 return v;
             });
 
@@ -476,32 +467,40 @@ export default {
 
             return res;
         },
-        showDetail: function() {
+        showDetail: function(rowData) {
             var vue = this;
             var grid = vue.DAI04080Grid1;
             if (!grid) return;
 
             var params;
 
-            if (grid.pdata.filter(v => v.コースＣＤ == vue.viewModel.CourseCd).length == 1) {
-                params = _.cloneDeep(grid.pdata.find(v => v.コースＣＤ == vue.viewModel.CourseCd));
-            }
-            if (!params) {
-                var selection = grid.SelectRow().getSelection();
-                if (selection.length == 1) {
-                    params = _.cloneDeep(selection[0].rowData);
+            var params;
+            if (rowData) {
+                params = _.cloneDeep(rowData);
+            } else {
+                if (grid.pdata.filter(v => v.コースＣＤ == vue.viewModel.コースＣＤ).length == 1) {
+                    params = _.cloneDeep(grid.pdata.find(v => v.コースＣＤ == vue.viewModel.コースＣＤ));
                 } else {
-                    return;
+                    var selection = grid.SelectRow().getSelection();
+
+                    var rows = grid.SelectRow().getSelection();
+                    if (rows.length != 1) return;
+
+                    params = _.cloneDeep(rows[0].rowData);
                 }
             }
 
             //新規フラグ:false
             params.IsNew = false;
 
-            //TODO: 子画面化
-            vue.$router.push({
-                path: "/DAI04/DAI04041",
-                query: params,
+            //DAI04081を子画面表示
+            PageDialog.show({
+                pgId: "DAI04081",
+                params: params,
+                isModal: true,
+                isChild: true,
+                width: 550,
+                height: 380,
             });
         },
         TantoAutoCompleteFunc: function(input, dataList, comp) {
@@ -513,7 +512,7 @@ export default {
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 
-            var wholeColumns = ["担当者名", "部署.部署名"];
+            var wholeColumns = ["担当者名", "部署.部署名", "担当者名カナ"];
 
             if (input == comp.selectValue && comp.isUnique) {
                 keyAND = keyOR = [];

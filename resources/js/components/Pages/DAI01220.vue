@@ -10,38 +10,99 @@
                 />
             </div>
             <div class="col-md-1">
-                <label>出力日付</label>
+                <label>配送日付</label>
             </div>
             <div class="col-md-2">
                 <DatePickerWrapper
-                    id="DateStart"
+                    id="DeliveryDate"
                     ref="DatePicker_Date"
                     format="YYYY年MM月DD日"
                     dayViewHeaderFormat="YYYY年MM月"
                     :vmodel=viewModel
-                    bind="DateStart"
+                    bind="DeliveryDate"
                     :editable=true
-                    :onChangedFunc=onDateChanged
+                    :onChangedFunc=onDeliveryDateChanged
                 />
             </div>
-            ～
+        </div>
+        <div class="row">
+            <div class="col-md-1">
+                <label>コース区分</label>
+            </div>
             <div class="col-md-2">
-                <DatePickerWrapper
-                    id="DateEnd"
-                    ref="DatePicker_Date"
-                    format="YYYY年MM月DD日"
-                    dayViewHeaderFormat="YYYY年MM月"
+                <VueSelect
+                    id="CourseKbn"
                     :vmodel=viewModel
-                    bind="DateEnd"
+                    bind="CourseKbn"
+                    uri="/Utilities/GetCodeList"
+                    :params="{ cd: 19 }"
+                    :withCode=true
+                    :hasNull=false
+                    :onChangedFunc=onCourseKbnChanged
+                />
+            </div>
+            <div class="col-md-1">
+                <label>コース開始</label>
+            </div>
+            <div class="col-md-5">
+                <PopupSelect
+                    id="CourseStart"
+                    ref="PopupSelect_CourseStart"
+                    :vmodel=viewModel
+                    bind="CourseStart"
+                    dataUrl="/Utilities/GetCourseList"
+                    :params='{ bushoCd: viewModel.BushoCd, courseKbn: viewModel.CourseKbn }'
+                    title="コース一覧"
+                    labelCd="コースCD"
+                    labelCdNm="コース名"
+                    :isShowName=true
+                    :isModal=true
                     :editable=true
-                    :onChangedFunc=onDateChanged
+                    :reuse=true
+                    :existsCheck=true
+                    :exceptCheck="[{ Cd: 0 }]"
+                    :inputWidth=100
+                    :nameWidth=300
+                    :onAfterChangedFunc=onCourseStartChanged
+                    :isShowAutoComplete=true
+                    :AutoCompleteFunc=CourseAutoCompleteFunc
+                    :isPreload=true
+                />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1 offset-md-3">
+                <label>コース終了</label>
+            </div>
+            <div class="col-md-5">
+                <PopupSelect
+                    id="CourseEnd"
+                    ref="PopupSelect_CourseEnd"
+                    :vmodel=viewModel
+                    bind="CourseEnd"
+                    dataUrl="/Utilities/GetCourseList"
+                    :params='{ bushoCd: viewModel.BushoCd, courseKbn: viewModel.CourseKbn }'
+                    title="コース一覧"
+                    labelCd="コースCD"
+                    labelCdNm="コース名"
+                    :isShowName=true
+                    :isModal=true
+                    :editable=true
+                    :reuse=true
+                    :existsCheck=true
+                    :exceptCheck="[{ Cd: 9999 }]"
+                    :inputWidth=100
+                    :nameWidth=300
+                    :onAfterChangedFunc=onCourseEndChanged
+                    :isShowAutoComplete=true
+                    :AutoCompleteFunc=CourseAutoCompleteFunc
                 />
             </div>
         </div>
         <PqGridWrapper
-            id="DAI01170Grid1"
-            ref="DAI01170Grid1"
-            dataUrl="/DAI01170/Search"
+            id="DAI01220Grid1"
+            ref="DAI01220Grid1"
+            dataUrl="/DAI01220/Search"
             :query=this.viewModel
             :SearchOnCreate=false
             :SearchOnActivate=false
@@ -52,17 +113,17 @@
 </template>
 
 <style>
-#DAI01170Grid1 .pq-group-toggle-none {
+#DAI01220Grid1 .pq-group-toggle-none {
     display: none !important;
 }
-#DAI01170Grid1 .pq-td-div {
+#DAI01220Grid1 .pq-td-div {
     display: flex;
     line-height: 13px !important;
     justify-content: center;
     align-items: center;
     height: 50px;
 }
-#DAI01170Grid1 .pq-td-div span {
+#DAI01220Grid1 .pq-td-div span {
     line-height: inherit;
     text-align: center;
 }
@@ -76,7 +137,7 @@ import PageBaseMixin from "@vcs/PageBaseMixin.vue";
 
 export default {
     mixins: [PageBaseMixin],
-    name: "DAI01170",
+    name: "DAI01220",
     components: {
     },
     props: {
@@ -87,14 +148,17 @@ export default {
     },
     data() {
         return $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "日時処理 > 売上月計日計表",
+            ScreenTitle: "日時処理 > 持出数一覧表",
             noViewModel: true,
             viewModel: {
                 BushoCd: null,
-                DateStart: null,
-                DateEnd: null,
+                BushoNm: null,
+                DeliveryDate: null,
+                CourseKbn: null,
+                CourseStart: null,
+                CourseEnd: null,
             },
-            DAI01170Grid1: null,
+            DAI01220Grid1: null,
             grid1Options: {
                 selectionModel: { type: "cell", mode: "single", row: true },
                 showHeader: true,
@@ -134,11 +198,26 @@ export default {
                 ],
                 colModel: [
                     {
-                        title: "日付",
-                        dataIndx: "日付", dataType: "string", key: true,
+                        title: "コースＣＤ",
+                        dataIndx: "コースＣＤ", dataType: "string", key: true,
                         hidden: true,
                         editable: false,
                         fixed: true,
+                    },
+                    {
+                        title: "コース名",
+                        dataIndx: "コース名", dataType: "string", key: true,
+                        width: 200, minWidth: 200,
+                        editable: false,
+                        fixed: true,
+                        render: ui => {
+                            if (ui.rowData.pq_grandsummary) {
+                                //集計行
+                                ui.rowData["コース名"] = "合計";
+                                return { text: "合計" };
+                            }
+                            return ui;
+                        },
                     },
                 ],
                 printSize: "A4",    //TODO: deprecated
@@ -154,16 +233,16 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "検索", id: "DAI01170Grid1_Search", disabled: false, shortcut: "F5",
+                { visible: "true", value: "検索", id: "DAI01220Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
                         vue.conditionChanged();
                     }
                 },
-                { visible: "true", value: "CSV出力", id: "DAI01020Grid1_Csvout", disabled: false, shortcut: "F6",
+                { visible: "true", value: "印刷", id: "DAI01020Grid1_Printout", disabled: false, shortcut: "F6",
                     onClick: function () {
-                        vue.DAI01170Grid1.print(vue.setPrintOptions);
+                        vue.DAI01220Grid1.print(vue.setPrintOptions);
                         //TODO: 検索 + 印刷とするか？
-                        //vue.conditionChanged(() => vue.DAI01170Grid1.print(vue.setPrintOptions));
+                        //vue.conditionChanged(() => vue.DAI01220Grid1.print(vue.setPrintOptions));
                     }
                 }
             );
@@ -279,12 +358,12 @@ export default {
         },
         conditionChanged: _.debounce(function(callback) {
             var vue = this;
-            var grid = vue.DAI01170Grid1;
+            var grid = vue.DAI01220Grid1;
 
             //PqGrid読込待ち
             new Promise((resolve, reject) => {
                 var timer = setInterval(function () {
-                    grid = vue.DAI01170Grid1;
+                    grid = vue.DAI01220Grid1;
                     if (!!grid && vue.getLoginInfo().isLogOn) {
                         clearInterval(timer);
                         return resolve(grid);
@@ -306,7 +385,7 @@ export default {
         }, 300),
         filterChanged: function() {
             var vue = this;
-            var grid = vue.DAI01170Grid1;
+            var grid = vue.DAI01220Grid1;
 
             if (!grid) return;
 
