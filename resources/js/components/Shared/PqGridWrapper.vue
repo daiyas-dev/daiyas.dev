@@ -2703,6 +2703,14 @@ export default {
                 printJS(printOptions);
 
             } else {
+                var colModel = _.cloneDeep(grid.options.colModel);
+
+                grid.options.colModel.forEach(v => {
+                    if (v.hiddenOnExport != undefined) {
+                        v.hidden = v.hiddenOnExport;
+                    }
+                });
+
                 var blob = grid.exportData({ format: format, sheetName: vue.$parent.ScreenTitle });
                 if (typeof blob === "string") {
                     blob = new Blob([blob]);
@@ -2713,6 +2721,10 @@ export default {
                             + "." + format.toLowerCase();
 
                 saveAs(blob, fileName);
+
+                grid.options.colModel = colModel;
+                grid.refreshCM();
+                grid.refresh();
             }
         },
         addEmptyRow: function(vue, grid, forced) {

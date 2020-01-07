@@ -436,132 +436,153 @@ export default {
         setPrintOptions: function(grid) {
             var vue = this;
 
+            //TODO: direct data use instead of grid.ExportData
+            // var outputCols = grid.options.colModel.filter(v => v.hiddenOnExport != undefined ? !v.hiddenOnExport : !v.hidden);
+
+            // var $tableHeader = $("<tr>").append(
+            //     outputCols.map(v => "<th>" + v.title + "</th>").join("")
+            // ).get(0);
+
+            // var $tableDataRows = grid.pdata.map(v => $("<tr>").append(outputCols.map(c => "<td>" + v[c.dataIndx] + "</td>").join("")).get(0));
+
+            // if (!!grid.options.summaryData) {
+            //     $tableDataRows.concat(grid.options.summaryData.map(v => $("<tr>").append(outputCols.map(c => "<td>" + v[c.dataIndx] + "</td>").join("")).get(0)));
+            // }
+
             //PqGrid Print options
             grid.options.type = "raw-html";
 
-            var styles = $(grid.exportData({ format: "htm", render: true }))[2];
-            var contents = $("<div>").addClass("grid-contents").append($(grid.exportData({ format: "htm", render: true }))[3]);
+            var table = $($(grid.exportData({ format: "htm", render: true }))[3]);
+            var tableHeaders = table.find("tr").filter((i, v) => !!$(v).find("th").length);
+            var tableBodies = table.find("tr").filter((i, v) => !!$(v).find("td").length);
 
-            var printable = $("<html>")
-                .append(
-                    $("<head>")
-                        .append(
-                            `
+            //optional
+            var courseNm;
+            tableBodies.map((i, v) => {
+                var row = $(v);
+                courseNm = row.find("td[colspan]").text() || courseNm;
+                if (row.find("td").length != tableHeaders.find("th").length) {
+                    row.prepend($("<td>").text(courseNm).hide());
+                }
+                return row.get(0);
+            });
+
+            //optional
+            var contents = [];
+            _(tableBodies)
+                .groupBy(v => $(v).find("td:first").text())
+                .values()
+                .reduce((a, v, k) => {
+                    if (!_.isEmpty(a) && a.find(".data-table tr").length + v.length > 45) {
+                        contents.push(_.cloneDeep(a));
+                        a = {};
+                    }
+
+                    if (_.isEmpty(a)) {
+                        var pageHeader = `
+                                            <div class="title">
+                                                <h3>* * * 移動表 * * *</h3>
+                                            </div>
+                                            <table class="header-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width: 5%;">日付</th>
+                                                        <th style="width: 15%;">${vue.viewModel.TargetDate}</th>
+                                                        <th style="width: 52%; border-top-width: 0px !important;"> </th>
+                                                        <th style="width: 16%;">${moment().format("YYYY年MM月DD日 HH:mm:ss")}</th>
+                                                        <th style="width: 6%;">PAGE</th>
+                                                        <th style="width: 6%;">${contents.length + 1}</th>
+                                                    </tr>
+                                                </thead>
+                                            </table>
+                                        `;
+
+                        a = $("<div>")
+                            .append(pageHeader)
+                            .append($("<table>").addClass("data-table").append(tableHeaders));
+                    }
+
+                    a.find(".data-table").append(v);
+
+                    return a;
+                }, {});
+
+            var styles =  `
                                 <style>
-                                    .header-table {
-
+                                    .grid-contents .title {
+                                        width: 100%;
+                                        display: inline-flex;
+                                        justify-content: center;
+                                        margin-bottom: 10px;
                                     }
-                                    .header-table th {
-                                        font-family: "MS UI Gothic";
-                                        font-size: 10pt;
-                                        font-weight: normal !important;
-                                        border: solid 1px black !important;
-                                        white-space: nowrap;
-                                        overflow: hidden;
+                                    .grid-contents .title h3 {
+                                        text-align: center;
+                                        border: solid 1px black;
+                                        border-radius: 4px;
+                                        background-color: grey;
                                         margin: 0px;
+                                        padding-left: 30px;
+                                        padding-right: 30px;
+                                    }
+                                    .grid-contents table {
+                                        width: 100%;
+                                        border-collapse:collapse;
+                                    }
+                                    .grid-contents .header-table tr th {
+                                        border-bottom: 0px;
+                                    }
+                                    .grid-contents tr th,
+                                    .grid-contents tr td
+                                    {
+                                        height: 12px !important;
+                                        font-family: "MS UI Gothic" !important;
+                                        font-size: 9pt !important;
+                                        font-weight: normal !important;
+                                        line-height: normal !important;
+                                        border: solid 1px black;
+                                        margin: 0px;
+                                        padding: 0px;
+                                        padding-top: 1px;
+                                        padding-bottom: 1px;
                                         padding-left: 3px;
                                         padding-right: 3px;
                                     }
-                                    .header-table tr:last-child th{
-                                        border-bottom-width: 0px !important;
+                                    .grid-contents tr td {
+                                        border-top-width: 0px;
+                                        border-bottom-width: 0px;
                                     }
                                     .grid-contents tr th:nth-child(1) {
-                                        width: 15%;
+                                        width: 14%;
                                     }
                                     .grid-contents tr th:nth-child(2) {
-                                        width: 5%;
+                                        width: 6%;
                                     }
                                     .grid-contents tr th:nth-child(7),
                                     .grid-contents tr th:nth-child(9)
                                     {
-                                        width: 25%;
+                                        width: 22%;
                                     }
                                     .grid-contents tr th:nth-child(n+3):nth-child(-n+6),
                                     .grid-contents tr th:nth-child(8),
                                     .grid-contents tr th:nth-child(10)
                                     {
-                                        width: 5%;
+                                        width: 6%;
                                         text-align: center;
                                     }
                                     .grid-contents tr td:nth-child(1) {
                                         vertical-align: top;
                                     }
                                 </style>
-                            `
-                        )
-                        .append(styles)
-                )
-                .append(
-                    $("<body>")
-                        .append(
-                            `
-                                <h3 style="text-align: center; margin: 0px; margin-bottom: 10px;">* * 移動表 * *</h3>
-                                <table style="border-collapse: collapse; width: 100%;" class="header-table">
-                                    <colgroup>
-                                            <col style="width:4.58%;"></col>
-                                            <col style="width:4.60%;"></col>
-                                            <col style="width:9.00%;"></col>
-                                            <col style="width:5.45%;"></col>
-                                            <col style="width:5.45%;"></col>
-                                            <col style="width:5.45%;"></col>
-                                            <col style="width:5.45%;"></col>
-                                            <col style="width:5.45%;"></col>
-                                            <col style="width:5.45%;"></col>
-                                            <col style="width:5.45%;"></col>
-                                            <col style="width:5.45%;"></col>
-                                            <col style="width:5.45%;"></col>
-                                            <col style="width:5.45%;"></col>
-                                            <col style="width:5.45%;"></col>
-                                            <col style="width:5.45%;"></col>
-                                            <col style="width:5.45%;"></col>
-                                            <col style="width:5.45%;"></col>
-                                            <col style="width:5.45%;"></col>
-                                    </colgroup>
-                                    <thead>
-                                        <tr>
-                                            <th>日付</th>
-                                            <th colspan="3">${vue.viewModel.TargetDate}</th>
-                                            <th colspan="8" style="border-top-width: 0px !important;"></th>
-                                            <th colspan="4">${moment().format("YYYY年MM月DD日 HH:mm:ss")}</th>
-                                            <th>PAGE</th>
-                                            <th>1</th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                            `
-                        )
-                        .append(contents)
-                );
+                            `;
+
+            var printable = $("<html>")
+                .append($("<head>").append(styles))
+                .append($("<body>").append($("<div>").addClass("grid-contents").append(contents)));
 
             grid.options.printType = "raw-html";
             grid.options.printable = printable.prop("outerHTML");
-            console.log(printable);
-
-            // grid.options.printStyles =
-            //     `
-            //         tr td:nth-child(1) {
-            //             font-size: 9pt;
-            //         }
-            //         tr td:nth-child(n+3) {
-            //             text-align: right;
-            //         }
-            //         tr td:nth-child(n+4) {
-            //             text-align: right;
-            //         }
-            //         tr td:nth-child(n+5) {
-            //             text-align: right;
-            //         }
-            //         tr td:nth-child(n+6) {
-            //             text-align: right;
-            //         }
-            //         tr td:nth-child(n+8) {
-            //             text-align: right;
-            //         }
-            //         tr td:nth-child(n+10) {
-            //             text-align: right;
-            //         }
-            //     `;
-        },
+            console.log(grid.options.printable);
+       },
     }
 }
 </script>
