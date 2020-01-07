@@ -19,6 +19,7 @@ use App\Models\消費税率マスタ;
 use App\Models\得意先履歴テーブル;
 use Illuminate\Http\Request;
 use DB;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 
 class UtilitiesController extends Controller
 {

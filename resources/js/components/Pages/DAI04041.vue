@@ -1409,7 +1409,7 @@ export default {
             //DAI04042を子画面表示
             PageDialog.show({
                 pgId: "DAI04042",
-                params: {CustomerCd : vue.viewModel.得意先ＣＤ, BushoCd: vue.viewModel.部署CD},
+                params: {CustomerCd: vue.viewModel.得意先ＣＤ, BushoCd: vue.viewModel.部署CD},
                 isModal: true,
                 isChild: true,
                 resizable: false,

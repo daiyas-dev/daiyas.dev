@@ -101,14 +101,6 @@ export default {
             var vue = this;
             return vue.viewModel.KojoKbn ? moment(vue.viewModel.KojoKbn, "YYYY年MM月DD日").format("YYYYMMDD") : null;
         },
-        // grid2Options: function() {
-        //     var vue = this;
-        //     var options = _.cloneDeep(vue.grid1Options);
-        //     // options.editable = false;
-        //     // options.columnTemplate.editable = false;
-        //     // options.dropModel.on = false;
-        //     return options;
-        // },
     },
     watch: {
     },
@@ -330,14 +322,9 @@ export default {
                     }
                 },
                 {visible: "false"},
-                { visible: "true", value: "再検索(両方)", id: "DAI04042_SearchBoth", disabled: false, shortcut: "F9",
+                { visible: "true", value: "登録", id: "DAI04042_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
-                        vue.conditionChangedBoth(true);
-                    }
-                },
-                { visible: "true", value: "保存(両方)", id: "DAI04042_SaveBoth", disabled: false, shortcut: "F10",
-                    onClick: function () {
-                        vue.saveCourseBoth();
+                        vue.saveBunpaisaki();
                     }
                 },
             );
@@ -359,21 +346,7 @@ export default {
                 }
             }
         },
-        conditionChangedBoth: function(forced) {
-            var vue = this;
-
-            Promise.all([
-                new Promise((resolve, reject ) => resolve()).then(() => vue.conditionChanged(true)),
-            ])
-            .then(() => {
-                //TODO: message?
-            })
-            .catch(err => {
-                console.log(vue.id + " conditionChangedBoth", err);
-            })
-            ;
-        },
-        saveCourse: function() {
+        saveBunpaisaki: function() {
             var vue = this;
             var grid1 = vue.DAI04042Grid1;
 
@@ -384,113 +357,6 @@ export default {
                 }
             );
 
-        },
-        CourseAutoCompleteFunc: function(input, dataList, comp) {
-            var vue = this;
-
-            // console.log("CourseAutoCompleteFunc", comp.id, dataList);
-
-            if (!dataList.length) return [];
-
-            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
-            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
-            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
-
-            var wholeColumns = ["コース名", "担当者名"];
-
-            if ((input == comp.selectValue && comp.isUnique) || comp.isError) {
-                keyAND = keyOR = [];
-            }
-
-            var list = dataList
-                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
-                .filter(v => {
-                    return keyOR.length == 0
-                        || _.some(keyOR, k => v.コースＣＤ.startsWith(k))
-                        || _.some(keyOR, k => v.whole.includes(k))
-                })
-                .filter(v => {
-                    return keyAND.length == 0 || _.every(keyAND, k => v.whole.includes(k));
-                })
-                .map(v => {
-                    var ret = v;
-                    ret.label = v.コースＣＤ + " : " + v.コース名 + "【" + v.担当者名 + "】";
-                    ret.value = v.コースＣＤ;
-                    ret.text = v.コース名;
-                    return ret;
-                })
-                ;
-
-            // console.log("CourseAutoCompleteFunc", comp.id, list);
-
-            return list;
-        },
-        CourseParamsChangedCheckFunc: function(newVal, oldVal, comp) {
-            var vue = this;
-            // console.log(comp.id + " CourseParamsChangedCheckFunc", newVal);
-            return !!newVal.bushoCd;
-        },
-        MngCdAutoCompleteFunc: function(input, dataList, comp) {
-            var vue = this;
-            // console.log("MngCdAutoCompleteFunc", input, dataList, comp);
-
-            if (!dataList.length) return [];
-
-            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
-            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
-            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
-
-            var wholeColumns = ["種別", "適用開始日", "適用終了日", "備考"];
-
-            if ((input == comp.selectValue && comp.isUnique) || comp.isError) {
-                keyAND = keyOR = [];
-            }
-
-            var list = dataList
-                .filter(v => !!v.Cd)
-                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
-                .filter(v => {
-                    return keyOR.length == 0
-                        || _.some(keyOR, k => v.コースＣＤ.startsWith(k))
-                        || _.some(keyOR, k => v.whole.includes(k))
-                })
-                .filter(v => {
-                    return keyAND.length == 0 || _.every(keyAND, k => v.whole.includes(k));
-                })
-                .map(v => {
-                    var ret = v;
-                    ret.label = v.種別
-                              + (!!v.一時フラグ || !!v.備考 ? " : " : "")
-                              + (!!v.適用開始日 && !!v.適用終了日 ? (v.適用開始日 + " ～ " + v.適用終了日) : "")
-                              + (!!v.備考 ? ("(" + v.備考 + ")") : "");
-                    ret.value = v.管理ＣＤ || "";
-                    ret.text = v.種別 + (!!v.備考 ? ("(" + v.備考 + ")") : "");
-                    return ret;
-                })
-                ;
-
-            // //新規(一時)用
-            // list.unshift({
-            //     label: "新規(一時)",
-            //     value: "",
-            //     text: "新規(一時)",
-            // });
-
-            // //新規(基本)用
-            // if (!list.some(v => v.一時フラグ == "0")) {
-            //     list.unshift({
-            //         label: "新規(基本)",
-            //         value: "",
-            //         text: "新規(基本)",
-            //     });
-            // }
-
-            return list;
-        },
-        MngCdParamsChangedCheckFunc: function(newVal, oldVal, comp) {
-            var vue = this;
-            // console.log("MngCdParamsChangedCheckFunc", newVal, oldVal, comp);
-            return !!newVal.BushoCd && newVal.CourseCd;
         },
         onAfterSearchFunc: function (gridVue, grid, res) {
             var vue = this;
@@ -505,126 +371,13 @@ export default {
             var vue = this;
             console.log(grid.widget().prop("id") + " onChangeGrid", ui, event);
 
-            var targetEvents = ["add", "delete", "addNodes", "deleteNodes"];
+            var targetEvents = ["add", "addNodes", "deleteNodes"];
 
             if (targetEvents.includes(ui.source)) {
                 // vue.resetData(grid);
             }
         },
-        resetData: function(grid) {
-            var vue = this;
-
-            var rowList = grid.pdata
-                .map((v, i) => {
-                    var rowData = _.cloneDeep(v);
-
-                    if (v.ＳＥＱ != i + 1) {
-                        rowData.ＳＥＱ = i + 1;
-                    }
-                    if (v.コースＣＤ != grid.prevPostData.courseCd) {
-                        rowData.コースＣＤ = grid.prevPostData.courseCd;
-                    }
-
-                    var content =  _.keys(rowData)
-                        .filter(k => !k.startsWith("pq") && k != "Content" && k != "InitialValue")
-                        .map(k => rowData[k])
-                        .join(",");
-
-                    if (v.Content != content) {
-                        return {
-                            rowIndx: i,
-                            newRow: { ＳＥＱ: i + 1, Content: content },
-                            history: true
-                        };
-                    } else {
-                        return null;
-                    }
-                })
-                .filter(v => !!v);
-
-            console.log("resetData update", rowList);
-            grid.updateRow({ rowList: rowList, history: true });
-        },
-        moveNodes: (event, vue) => {
-            console.log("moveNodes", event, vue);
-            var grid1 = vue.DAI04042Grid1;
-            var grid2 = vue.DAI04042Grid2;
-
-            var $btn = $(event.currentTarget);
-
-            var isSelection = $btn.closest(".moveSelection").length == 1;
-
-            var toRight = $btn.hasClass("toRight");
-            var from = toRight ? grid1 : grid2;
-            var to = toRight ? grid2 : grid1;
-
-            if (!isSelection) {
-                from.SelectRow().selectAll();
-            }
-
-            var fromNodes = from.SelectRow().getSelection().length > 0
-                ? from.SelectRow().getSelection().map(v => v.rowData)
-                : [];
-
-            if (!fromNodes.length) return;
-            var toNodes = _.cloneDeep(fromNodes).map(v => {
-                delete v.pq_ri;
-                return v;
-            });
-
-            var moveAt = $btn.closest(".moveFirst").length
-                ? 0
-                : $btn.closest(".moveLast").length
-                    ? to.getData().length
-                    : to.SelectRow().getSelection().length
-                        ? (_.last(to.SelectRow().getSelection()).rowIndx + 1)
-                        : 0;
-
-            var isCopy = event.ctrlKey;
-
-            console.log("moveNodes", fromNodes,toNodes);
-
-            if (!isCopy) {
-                from.deleteNodes(fromNodes);
-            }
-            to.addNodes(toNodes , moveAt);
-            to.scrollRow({rowIndxPage: moveAt + (toNodes.length - 1)});
-        },
-        moveNodesSelf: (event, grid, vue) => {
-            var $btn = $(event.currentTarget);
-
-            var nodes = grid.SelectRow().getSelection().map(v => v.rowData);
-
-            var moveAt = 0;
-            if ($btn.hasClass("toFirst")) {
-                moveAt = 0;
-                grid.moveNodes(nodes, moveAt);
-            } else if ($btn.hasClass("toUpward")) {
-                grid.SelectRow().getSelection().forEach(v => {
-                    if (v.rowIndx != 0) {
-                        grid.moveNodes(v.rowData, v.rowIndx - 1);
-                        moveAt = moveAt < v.rowIndx - 1 ? moveAt : v.rowIndx - 1;
-                    }
-                });
-            } else if ($btn.hasClass("toDownward")) {
-                grid.SelectRow().getSelection().forEach(v => {
-                    if (v.rowIndx != grid.pdata.length - 1) {
-                        grid.moveNodes(v.rowData, v.rowIndx + 1);
-                        moveAt = moveAt > v.rowIndx + 1 ? moveAt : v.rowIndx + 1;
-                    }
-                });
-            } else if ($btn.hasClass("toLast")) {
-                moveAt = grid.pdata.length - 1;
-                grid.moveNodes(nodes, moveAt);
-            }
-            console.log("moveNodesSelf", nodes, moveAt);
-            to.scrollRow({rowIndxPage: moveAt});
-        },
         onMainGridResize: grid => {
-
-        },
-        onSubGridResize: grid => {
-
         },
         onCustomerChangedInGrid: function(code, entity) {
             var vue = this;
