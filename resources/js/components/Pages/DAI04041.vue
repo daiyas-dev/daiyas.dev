@@ -1382,25 +1382,39 @@ export default {
                 reuse: true,
             });
         },
+        // showBunpaisaki: function() {
+        //     var vue = this;
+
+        //     vue.showColumns = [
+        //             { title: "得意先CD", dataIndx: "得意先ＣＤ", dataType: "string", width: 80, maxWidth: 80, minWidth: 80, colIndx: 0 },
+        //             { title: "得意先名", dataIndx: "得意先名", dataType: "string", width: 400, maxWidth: 400, minWidth: 350, colIndx: 1 },
+        //             { title: "Cd", dataIndx: "Cd", dataType: "string", hidden: true, colIndx: 2 },
+        //             { title: "CdNm", dataIndx: "CdNm", dataType: "string", hidden: true, colIndx: 3 }
+        //     ];
+
+        //     PageDialog.showSelector({
+        //         dataUrl: "/Utilities/GetBunpaisakiList",
+        //         params: {CustomerCd : vue.viewModel.得意先ＣＤ, BushoCd: vue.viewModel.部署CD},
+        //         title: "分配得意先入力 ： " + vue.viewModel.得意先名,
+        //         isModal: true,
+        //         showColumns: vue.showColumns,
+        //         width: 600,
+        //         height: 500,
+        //         reuse: true,
+        //     });
+        // },
         showBunpaisaki: function() {
             var vue = this;
 
-            vue.showColumns = [
-                    { title: "得意先CD", dataIndx: "得意先ＣＤ", dataType: "string", width: 80, maxWidth: 80, minWidth: 80, colIndx: 0 },
-                    { title: "得意先名", dataIndx: "得意先名", dataType: "string", width: 400, maxWidth: 400, minWidth: 350, colIndx: 1 },
-                    { title: "Cd", dataIndx: "Cd", dataType: "string", hidden: true, colIndx: 2 },
-                    { title: "CdNm", dataIndx: "CdNm", dataType: "string", hidden: true, colIndx: 3 }
-            ];
-
-            PageDialog.showSelector({
-                dataUrl: "/Utilities/GetBunpaisakiList",
+            //DAI04042を子画面表示
+            PageDialog.show({
+                pgId: "DAI04042",
                 params: {CustomerCd : vue.viewModel.得意先ＣＤ, BushoCd: vue.viewModel.部署CD},
-                title: "分配得意先入力 ： " + vue.viewModel.得意先名,
                 isModal: true,
-                showColumns: vue.showColumns,
+                isChild: true,
+                resizable: false,
                 width: 600,
-                height: 500,
-                reuse: true,
+                height: 600,
             });
         },
     }

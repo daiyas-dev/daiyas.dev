@@ -595,31 +595,51 @@ export default {
                 reuse: true,
             });
         },
-        showBunpaisaki: function() {
+        // showBunpaisaki: function() {
+        //     var vue = this;
+        //     var grid = vue.DAI04040Grid1;
+        //     if(!grid) return;
+        //     var param;
+        //     var selection = grid.SelectRow().getSelection();
+
+        //     param = selection[0].rowData
+
+        //     vue.showColumns = [
+        //             { title: "得意先CD", dataIndx: "得意先ＣＤ", dataType: "string", width: 80, maxWidth: 80, minWidth: 80, colIndx: 0 },
+        //             { title: "得意先名", dataIndx: "得意先名", dataType: "string", width: 400, maxWidth: 400, minWidth: 350, colIndx: 1 },
+        //             { title: "Cd", dataIndx: "Cd", dataType: "string", hidden: true, colIndx: 2 },
+        //             { title: "CdNm", dataIndx: "CdNm", dataType: "string", hidden: true, colIndx: 3 }
+        //     ];
+
+        //     PageDialog.showSelector({
+        //         dataUrl: "/Utilities/GetBunpaisakiList",
+        //         params: {CustomerCd : param.得意先CD, BushoCd: param.部署CD},
+        //         title: "分配得意先入力 ： " + selection[0].rowData.得意先名,
+        //         isModal: true,
+        //         showColumns: vue.showColumns,
+        //         width: 600,
+        //         height: 500,
+        //         reuse: true,
+        //     });
+        // },
+        showBunpaisaki: function(rowData) {
             var vue = this;
             var grid = vue.DAI04040Grid1;
             if(!grid) return;
-            var param;
+            var params;
             var selection = grid.SelectRow().getSelection();
 
-            param = selection[0].rowData
+            params = selection[0].rowData
 
-            vue.showColumns = [
-                    { title: "得意先CD", dataIndx: "得意先ＣＤ", dataType: "string", width: 80, maxWidth: 80, minWidth: 80, colIndx: 0 },
-                    { title: "得意先名", dataIndx: "得意先名", dataType: "string", width: 400, maxWidth: 400, minWidth: 350, colIndx: 1 },
-                    { title: "Cd", dataIndx: "Cd", dataType: "string", hidden: true, colIndx: 2 },
-                    { title: "CdNm", dataIndx: "CdNm", dataType: "string", hidden: true, colIndx: 3 }
-            ];
-
-            PageDialog.showSelector({
-                dataUrl: "/Utilities/GetBunpaisakiList",
-                params: {CustomerCd : param.得意先CD, BushoCd: param.部署CD},
-                title: "分配得意先入力 ： " + selection[0].rowData.得意先名,
+            //DAI04042を子画面表示
+            PageDialog.show({
+                pgId: "DAI04042",
+                params: params,
                 isModal: true,
-                showColumns: vue.showColumns,
+                isChild: true,
+                resizable: false,
                 width: 600,
-                height: 500,
-                reuse: true,
+                height: 600,
             });
         },
     }
