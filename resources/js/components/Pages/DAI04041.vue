@@ -333,7 +333,7 @@
                                 uri="/Utilities/GetCodeList"
                                 :params="{ cd: 6, sub1: 2 }"
                                 :withCode=true
-                                :hasNull=true
+                                :hasNull=false
                                 customStyle="{ width: 100px; }"
                                 :disabled='viewModel.支払方法１ != "1"'
 
@@ -455,7 +455,7 @@
                                             uri="/Utilities/GetCodeList"
                                             :params="{ cd: 7 }"
                                             :withCode=true
-                                            :hasNull=true
+                                            :hasNull=false
                                             customStyle="{ width: 100px; }"
                                             :disabled='viewModel.支払方法１ != "4"'
                                         />
@@ -1409,7 +1409,7 @@ export default {
             //DAI04042を子画面表示
             PageDialog.show({
                 pgId: "DAI04042",
-                params: {CustomerCd: vue.viewModel.得意先ＣＤ, BushoCd: vue.viewModel.部署CD},
+                params: { 得意先CD: vue.viewModel.得意先ＣＤ, 部署CD: vue.viewModel.部署CD},
                 isModal: true,
                 isChild: true,
                 resizable: false,
