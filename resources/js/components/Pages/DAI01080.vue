@@ -10,7 +10,7 @@
                 />
             </div>
             <div class="col-md-1">
-                <label>配送日付</label>
+                <label>配送日</label>
             </div>
             <div class="col-md-2">
                 <DatePickerWrapper
@@ -27,12 +27,12 @@
         </div>
         <div class="row">
             <div class="col-md-1">
-                <label>コース開始</label>
+                <label>コースCD</label>
             </div>
             <div class="col-md-5">
                 <PopupSelect
-                    id="CourseStart"
-                    ref="PopupSelect_CourseStart"
+                    id="Course"
+                    ref="PopupSelect_Course"
                     :vmodel=viewModel
                     bind="CourseStart"
                     dataUrl="/Utilities/GetCourseList"
@@ -48,88 +48,12 @@
                     :exceptCheck="[{ Cd: 0 }]"
                     :inputWidth=100
                     :nameWidth=300
-                    :onAfterChangedFunc=onCourseStartChanged
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=CourseAutoCompleteFunc
                 />
             </div>
         </div>
-        <div class="row">
-            <div class="col-md-1">
-                <label>コース終了</label>
-            </div>
-            <div class="col-md-5">
-                <PopupSelect
-                    id="CourseEnd"
-                    ref="PopupSelect_CourseEnd"
-                    :vmodel=viewModel
-                    bind="CourseEnd"
-                    dataUrl="/Utilities/GetCourseList"
-                    :params='{ bushoCd: viewModel.BushoCd, courseKbn: viewModel.CourseKbn }'
-                    title="コース一覧"
-                    labelCd="コースCD"
-                    labelCdNm="コース名"
-                    :isShowName=true
-                    :isModal=true
-                    :editable=true
-                    :reuse=true
-                    :existsCheck=true
-                    :exceptCheck="[{ Cd: 9999 }]"
-                    :inputWidth=100
-                    :nameWidth=300
-                    :onAfterChangedFunc=onCourseEndChanged
-                    :isShowAutoComplete=true
-                    :AutoCompleteFunc=CourseAutoCompleteFunc
-                />
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-3">
-                <label>コース別</label>
-                <VueOptions
-                    id="SummaryKind"
-                    ref="VueOptions_SummaryKind"
-                    customLabelStyle="text-align: center;"
-                    :vmodel=viewModel
-                    bind="SummaryKind"
-                    :list="[
-                        {code: '1', name: 'コース別', label: 'コース別'},
-                        {code: '2', name: 'コース合計', label: 'コース合計'},
-                    ]"
-                    :onChangedFunc=onSummaryKindChanged
-                />
-            </div>
-            <div class="col-md-2">
-                <VueCheck
-                    id="VueCheck_IncludeJuchu"
-                    ref="VueCheck_IncludeJuchu"
-                    :vmodel=viewModel
-                    bind="IsIncludeJuchu"
-                    checkedCode="1"
-                    customContainerStyle="border: none;"
-                    :list="[
-                        {code: '0', name: '含まない', label: '受注情報含まない'},
-                        {code: '1', name: '含む', label: '受注情報含む'},
-                    ]"
-                    :onChangedFunc=onIncludeJuchuChanged
-                />
-            </div>
-            <div class="col-md-2">
-                <VueCheck
-                    id="VueCheck_BikoOutput"
-                    ref="VueCheck_BikoOutput"
-                    :vmodel=viewModel
-                    bind="IsBikoOutput"
-                    checkedCode="1"
-                    customContainerStyle="border: none;"
-                    :list="[
-                        {code: '0', name: 'しない', label: '備考出力しない'},
-                        {code: '1', name: 'する', label: '備考出力する'},
-                    ]"
-                    :onChangedFunc=onBikoOutputChanged
-                />
-            </div>
-        </div>
+
         <PqGridWrapper
             id="DAI01080Grid1"
             ref="DAI01080Grid1"
@@ -171,20 +95,12 @@ export default {
     },
     data() {
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "日時処理 > 配送集計表",
+            ScreenTitle: "日時処理 > 配送予定入力",
             noViewModel: true,
             viewModel: {
                 BushoCd: null,
-                BushoNm: null,
                 DeliveryDate: null,
-                SummaryKind: null,
-                IsIncludeJuchu: "1",
-                IsBikoOutput: "0",
-                CourseKbn: null,
                 CourseStart: null,
-                CourseEnd: null,
-                ColHeader : [],
-                dd: null,
             },
             DAI01080Grid1: null,
             grid1Options: {
@@ -192,12 +108,11 @@ export default {
                 showHeader: true,
                 showToolbar: false,
                 columnBorders: true,
+                rowHt: 25,
+                rowHtSum: 25,
                 fillHandle: "",
                 numberCell: { show: true, title: "No.", resizable: false, width: 35, },
                 autoRow: false,
-                rowHtHead: 50,
-                rowHt: 35,
-                freezeCols: 5,
                 editable: false,
                 columnTemplate: {
                     editable: false,
@@ -211,25 +126,17 @@ export default {
                     hideRows: false,
                 },
                 sortModel: {
-                    on: true,
                     cancel: false,
                     type: "remote",
+                    sorter:[ { dataIndx: "ＳＥＱ", dir: "up" } ]
                 },
                 groupModel: {
-                    on: true,
-                    header: false,
-                    grandSummary: true,
-                    indent: 20,
-                    dataIndx: ["GroupKey"],
-                    showSummary: [true],
-                    collapsed: [false],
-                    summaryInTitleRow: "collapsed",
                 },
                 summaryData: [
                 ],
                 formulas:[
                     [
-                        "顧客名",
+                        "CustumerName",
                         function(rowData){
                             return _.padStart(rowData.得意先ＣＤ, 6, "0") + " " + rowData.得意先名;
                         }
@@ -243,63 +150,16 @@ export default {
                         fixed: true,
                     },
                     {
-                        title: "コースＣＤ",
-                        dataIndx: "コースＣＤ", dataType: "integer",
-                        hidden: true,
+                        title: "得意先",
+                        dataIndx: "CustumerName", dataType: "string",
+                        width: 200, maxWidth: 200, minWidth: 200,
                         fixed: true,
                     },
                     {
-                        title: "順",
-                        dataIndx: "順", dataType: "integer",
-                        width: 35, minWidth: 35, maxWidth: 35,
+                        title: "製造パターン",
+                        dataIndx: "製造パターン", dataType: "string",
+                        width: 200, maxWidth: 200, minWidth: 200,
                         fixed: true,
-                    },
-                    {
-                        title: "顧客",
-                        dataIndx: "顧客名", dataType: "string",
-                        width: 200, minWidth: 200, maxWidth: 200,
-                        fixed: true,
-                    },
-                    {
-                        title: "T",
-                        dataIndx: "受注方法表示", dataType: "string",
-                        align : "center",
-                        width: 35, minWidth: 35, maxWidth: 35,
-                        fixed: true,
-                    },
-                    {
-                        title: "電話番号",
-                        dataIndx: "電話番号", dataType: "string",
-                        align : "center",
-                        width: 125, minWidth: 125, maxWidth: 125,
-                        fixed: true,
-                        render: ui => {
-                            if (!!ui.rowData.pq_grandsummary) {
-                                //総計行
-                                ui.rowData["電話番号"] = "総計";
-                                return { text: "総計" };
-                            }
-                            if (!!ui.rowData.pq_gsummary) {
-                                //小計行
-                                ui.rowData["電話番号"] = "コース計";
-                                return { text: "コース計" };
-                            }
-                            return ui;
-                        },
-                    },
-                    {
-                        title: "配送コース名",
-                        dataIndx: "配送コース名", dataType: "string",
-                        width: 200, minWidth: 200, maxWidth: 200,
-                        fixed: true,
-                        render: ui => {
-                            if (!!ui.rowData.pq_gid) {
-                                //グループ行
-                                ui.rowData["配送コース名"] = ui.rowData.pq_gid;
-                                return { text: ui.rowData.pq_gid };
-                            }
-                            return ui;
-                        },
                     },
                 ],
                 printSize: "A4",    //TODO: deprecated
@@ -445,27 +305,14 @@ export default {
                 axios.post("/DAI01080/ColSearch", { BushoCd: vue.viewModel.BushoCd })
                     .then(response => {
                         var res = _.cloneDeep(response.data);
-                        var cd2eq0 = res.filter(v => v.サブ各種CD2 == "0");
-                        var cd2eq1 = res.filter(v => v.サブ各種CD2 == "1");
 
-                        //サブ各種CD2=0が15件, サブ各種CD2=1が4件に満たない場合を考慮して補完/カット
-                        var filler = {
-                            各種略称: "",
-                            サブ各種CD1: "",
-                            サブ各種CD2: "",
-                        };
-                        cd2eq0 = _.assign(_.fill(new Array(15), filler), cd2eq0).slice(0, 15);
-                        cd2eq1 = _.assign(_.fill(new Array(4), filler), cd2eq1).slice(0, 4);
-
-                        var newCols = grid.options.colModel
+                         var newCols = grid.options.colModel
                             .filter(v => !!v.fixed)
                             .concat(
-                                cd2eq0.map((v, i) => {
+                                res.map((v, i) => {
                                     return {
-                                        title: v.各種略称,
-                                        dataIndx: "商品_" + v.サブ各種CD1,
-                                        sub1: v.サブ各種CD1,
-                                        sub2: v.サブ各種CD2,
+                                        title: v.商品略称,
+                                        dataIndx: "商品_" + v.商品ＣＤ,
                                         dataType: "integer",
                                         format: "#,###",
                                         width: 50, maxWidth: 50, minWidth: 50,
@@ -476,131 +323,10 @@ export default {
                                             }
                                             return ui;
                                         },
-                                        summary: {
-                                            type: "TotalInt",
-                                        },
-                                        cd2eq0Idx: i,
                                         custom: true,
                                     };
                                 })
                             )
-                            .concat(
-                                cd2eq1.map((v, i) => {
-                                    return {
-                                        title: v.各種略称,
-                                        dataIndx: "単価_" + v.サブ各種CD1,
-                                        sub1: v.サブ各種CD1,
-                                        sub2: v.サブ各種CD2,
-                                        dataType: "integer",
-                                        format: "#,###",
-                                        width: 50, maxWidth: 50, minWidth: 50,
-                                        render: ui => {
-                                            // hide zero
-                                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
-                                                return { text: "" };
-                                            }
-                                            return ui;
-                                        },
-                                        cd2eq1Idx: i,
-                                        custom: true,
-                                    };
-                                })
-                            );
-
-                        //他追加
-                        newCols.splice(
-                            newCols.findIndex(c => c.sub2=="1"),
-                            0,
-                            {
-                                title: "他",
-                                dataIndx: "他",
-                                dataType: "integer",
-                                format: "#,###",
-                                width: 50, maxWidth: 50, minWidth: 50,
-                                render: ui => {
-                                    // hide zero
-                                    if (ui.rowData[ui.dataIndx] * 1 == 0) {
-                                        return { text: "" };
-                                    }
-                                    return ui;
-                                },
-                                summary: {
-                                    type: "TotalInt",
-                                },
-                            }
-                        );
-
-                        //締追加
-                        newCols.splice(
-                            newCols.findIndex(c => c.sub2=="1"),
-                            0,
-                            {
-                                title: "締",
-                                dataIndx: "締方法",
-                                dataType: "string",
-                                width: 50, maxWidth: 50, minWidth: 50,
-                            }
-                        );
-
-                        //ﾐ,ﾌ追加
-                        newCols.push(
-                            {
-                                title: "ﾐ",
-                                dataIndx: "みそしる",
-                                dataType: "string",
-                                width: 50, maxWidth: 50, minWidth: 50,
-                            }
-                        );
-                        newCols.push(
-                            {
-                                title: "ﾌ",
-                                dataIndx: "ふりかけ",
-                                dataType: "string",
-                                width: 50, maxWidth: 50, minWidth: 50,
-                            }
-                        );
-
-                        //合計
-                        newCols.push(
-                            {
-                                title: "合計",
-                                dataIndx: "合計個数",
-                                dataType: "integer",
-                                format: "#,###",
-                                width: 100, maxWidth: 100, minWidth: 100,
-                                summary: {
-                                    type: "TotalInt",
-                                },
-                            }
-                        );
-                        newCols.push(
-                            {
-                                title: "合計",
-                                dataIndx: "合計金額",
-                                dataType: "integer",
-                                format: "#,###",
-                                width: 100, maxWidth: 100, minWidth: 100,
-                                render: ui => {
-                                    // hide zero
-                                    if (ui.rowData[ui.dataIndx] * 1 == 0) {
-                                        return { text: "" };
-                                    }
-                                    return ui;
-                                },
-                                summary: {
-                                    type: "TotalInt",
-                                },
-                            }
-                        );
-                        //備考
-                        newCols.push(
-                            {
-                                title: "備考",
-                                dataIndx: "備考",
-                                dataType: "string",
-                                width: 200, minWidth: 200,
-                            }
-                        );
 
                         //条件別列変更
                         vue.changeColVisible(newCols);
@@ -622,22 +348,7 @@ export default {
                 });
             });
         },
-        onSummaryKindChanged: function(code, entities) {
-            var vue = this;
-            var grid = vue.DAI01080Grid1;
 
-            //条件別列変更
-            vue.changeColVisible();
-
-            //集計変更
-            grid.Group()[vue.viewModel.SummaryKind == "1" ? "expandAll" : "collapseAll"]();
-        },
-        onBikoOutputChanged: function(code, entities) {
-            var vue = this;
-
-            //条件別列変更
-            vue.changeColVisible();
-        },
         changeColVisible: function(colModel) {
             var vue = this;
             var grid = vue.DAI01080Grid1;
@@ -708,19 +419,8 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        onIncludeJuchuChanged: function(code, entity) {
-            var vue = this;
 
-            //条件変更ハンドラ
-            vue.conditionChanged();
-        },
-        onCourseStartChanged: function(code, entity) {
-            var vue = this;
-
-            //フィルタ変更ハンドラ
-            vue.filterChanged();
-        },
-        onCourseEndChanged: function(code, entity) {
+        onCourseChanged: function(code, entity) {
             var vue = this;
 
             //フィルタ変更ハンドラ
@@ -767,6 +467,8 @@ export default {
             grid.filter({ oper: "replace", mode: "AND", rules: rules });
         },
         onAfterSearchFunc: function (grieVue, grid, res) {
+            console.log("01170 onAfterSearchFunc", res);
+
             var vue = this;
 
             //集計
@@ -779,24 +481,16 @@ export default {
                             _.sortBy(r, ["得意先名"]),
                             (acc, v, j) => {
                                 acc = _.isEmpty(acc) ? v : acc;
-                                if (v.個数 * 1 > 0) {
-                                    acc["商品_" + v.商品ＣＤ] = (acc["商品_" + v.商品ＣＤ] || 0) + v.個数 * 1;
-                                    acc["合計個数"] = (acc["合計個数"] || 0) + v.個数 * 1;
+                                if (v.見込数 * 1 > 0) {
+                                    acc["商品_" + v.商品ＣＤ] = (acc["商品_" + v.商品ＣＤ] || 0) + v.見込数 * 1;
+                                    acc["合計個数"] = (acc["合計個数"] || 0) + v.見込数 * 1;
+                                     if (v.注文数 * 1 > 0) {
+                                        acc["合計個数"]  = 0;
+                                     }
                                 }
-
-                                if (!!v.得意先単価JSON) {
-                                    var vals = JSON.parse(v.得意先単価JSON);
-                                    _.keys(vals).forEach(k => {
-                                        acc["単価_" + k] = vals[k];
-                                    });
-                                }
-
-                                if (!grid.options.colModel.some(c => c.sub1 == v.商品ＣＤ) && v.個数 * 1 > 0) {
-                                    acc["他"] = (acc["他"] || 0) + v.個数 * 1;
-                                }
-
-                                if (v.金額 * 1 > 0) {
-                                    acc["合計金額"] = (acc["合計金額"] || 0) + v.金額 * 1;
+                                if (v.注文数 * 1 > 0) {
+                                    acc["商品_" + v.商品ＣＤ] = (acc["商品_" + v.商品ＣＤ] || 0) + v.注文数 * 1;
+                                    acc["合計個数"] = (acc["合計個数"] || 0) + v.注文数 * 1;
                                 }
 
                                 return acc;
@@ -811,7 +505,7 @@ export default {
 
                 })
 
-            groupings = _(groupings).sortBy(v => v.順 * 1).sortBy(v => v.コースＣＤ * 1).value();
+            groupings = _(groupings).sortBy(v => v.ＳＥＱ * 1).sortBy(v => v.コースＣＤ * 1).value();
 
             return groupings;
         },
