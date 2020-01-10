@@ -63,7 +63,7 @@ fieldset {
 <style>
 form[pgid="DAI04042"] .pq-grid .DAI04042_toolbar {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
 }
 form[pgid="DAI04042"] .pq-grid .DAI04042_toolbar .toolbar_button {
@@ -163,7 +163,7 @@ export default {
                                 var rowList = grid.SelectRow().getSelection().map(v => _.pick(v, ["rowIndx"]));
                                 grid.deleteRow({ rowList: rowList });
                             },
-                            attr: 'class="toolbar_button delete" title="行削除" delete disabled=disabled',
+                            attr: 'class="toolbar_button delete" title="行削除" delete ',
                             options: { disabled: false },
                         },
                     ]
@@ -191,57 +191,6 @@ export default {
                     header: false,
                     menuIcon: false,
                     hideRows: false,
-                },
-                dragModel: {
-                    on: true,
-                    diHelper: ["pq_label"],
-                    cssHelper: {
-                        opacity: 0.8,
-                        position:"absolute",
-                        height: 25,
-                        width: "auto",
-                        overflow: "hidden",
-                        background: "white",
-                        border: "1px groove",
-                        boxShadow:"4px 4px 2px gray",
-                        zIndex: 4001,
-                    },
-                    dragNodes: (rd, evt) => {
-                        var grid = eval("this");
-                        var target = grid.SelectRow().getSelection().map(v => v.rowData);
-                        target = target.length && target.includes(rd) ? target : [rd];
-                        //target = _.cloneDeep(target).map(v => _.omitBy(v, (v, k) => k.startsWith("pq") || k == "InitialValue"));
-                        return target;
-                    },
-                    beforeDrop: function(evt, ui) {
-                        var grid = eval("this");
-
-                        console.log("beforeDrop", evt, ui, evt.ctrlKey);
-                        if (!evt.ctrlKey) {
-                            var nodes = _.cloneDeep(grid.Drag().getUI().nodes);
-                            console.log("beforeDrop deleteNodes", nodes);
-                            grid.deleteNodes(nodes);
-                        }
-                    },
-                },
-                dropModel: {
-                    on: true,
-                    isDroppable: function(evt, ui) {
-                        var grid = eval("this");
-
-                        var dragGrid = $(evt.target).closest(".pq-grid").pqGrid("getInstance").grid;
-                        var dropGrid = ui.$cell.closest(".pq-grid").pqGrid("getInstance").grid;
-
-                        if (dragGrid.widget().prop("id") == dropGrid.widget().prop("id")) {
-                            return true;
-                        } else {
-                            var nodes = dragGrid.Drag().getUI().nodes;
-                            var ret = _.intersectionBy(nodes, dropGrid.getData(), "得意先ＣＤ").length == 0;
-                            return ret;
-                        }
-
-                        return true;
-                    },
                 },
                 colModel: [
                     {
@@ -287,6 +236,12 @@ export default {
                             },
                         },
                     },
+                    {
+                        title: "得意先名",
+                        dataIndx: "得意先名",
+                        dataType: "string",
+                        hidden: true,
+                    },
                 ],
                 formulas: [
                     [
@@ -329,17 +284,31 @@ export default {
             vue.footerButtons.push(
                 { visible: "true", value: "行追加", id: "DAI04042_AddRow", disabled: false, shortcut: "F2",
                     onClick: function () {
-                        //TODO: 追加
+                        var grid = DAI04042Grid1;
+                        var rowIndx = grid.SelectRow().getSelection().length == 0
+                            ? 0
+                            : (grid.SelectRow().getFirst() + 1);
+
+                        grid.addRow({
+                            rowIndx: rowIndx,
+                            newRow: {},
+                            checkEditable: false
+                        });
+
+                        grid.scrollRow({rowIndxPage: rowIndx});
                     }
                 },
                 { visible: "true", value: "行削除", id: "DAI04042_DeleteRow", disabled: false, shortcut: "F3",
                     onClick: function () {
-                        //TODO: 削除
+                        var grid = DAI04042Grid1;
+                        var rowList = grid.SelectRow().getSelection().map(v => _.pick(v, ["rowIndx"]));
+                        grid.deleteRow({ rowList: rowList });
                     }
                 },
                 {visible: "false"},
                 { visible: "true", value: "登録", id: "DAI04042_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
+                        //TODO:登録
                         vue.saveBunpaisaki();
                     }
                 },
