@@ -334,11 +334,12 @@ export default {
         saveBunpaisaki: function() {
             var vue = this;
             var grid1 = vue.DAI04042Grid1;
+            var BunpaisakiList = grid1.得意先ＣＤ
 
             grid.saveData(
                 {
-                    uri: "/DAI04042/Save",
-                    params: { targets: targets },
+                    uri: "/DAI04042/UpdateBunpaisakiList",
+                    params: { CustomerCd: DAI04042.params.得意先CD, BunpaisakiList: BunpaisakiList },
                 }
             );
 
