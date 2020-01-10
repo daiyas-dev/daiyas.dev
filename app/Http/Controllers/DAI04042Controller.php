@@ -14,15 +14,15 @@ class DAI04042Controller extends Controller
      */
     public function DeleteBunpaisakiList($request)
     {
-        $CustomerCd = $request->CustomerCd;
-        if (!$CustomerCd) {
+        $BpCutomerCd = $request->Bunpaisaki;
+        if (!$BpCutomerCd) {
             return [];
         }
 
         $sql = "
             UPDATE 得意先マスタ
             SET 受注得意先ＣＤ = null
-            WHERE 受注得意先ＣＤ=$CustomerCd
+            WHERE 得意先ＣＤ=$BpCutomerCd
 
         ";
 
@@ -37,17 +37,17 @@ class DAI04042Controller extends Controller
     public function UpdateBunpaisakiList($request)
     {
         $CustomerCd = $request->CustomerCd;
-        $BunpaisakiList = $request->BunpaisakiList;
-        $BunpaisakiList = implode(",", $BunpaisakiList);
+        $BpCutomerCd = $request->Bunpaisaki;
+        $BpCdList = implode(",", $BpCutomerCd);
 
-        if (!$BunpaisakiList) {
+        if (!$BpCdList) {
             return [];
         }
 
         $sql = "
             UPDATE 得意先マスタ
             SET 受注得意先ＣＤ = $CustomerCd
-            WHERE 得意先ＣＤ in ($BunpaisakiList)
+            WHERE 得意先ＣＤ in ($BpCdList)
         ";
 
         $Result = DB::update($sql);
