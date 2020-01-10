@@ -46,7 +46,6 @@
             :SearchOnCreate=false
             :SearchOnActivate=false
             :options=this.grid1Options
-            :onAfterSearchFunc=this.onAfterSearchFunc
         />
     </form>
 </template>
@@ -103,8 +102,6 @@ export default {
                 fillHandle: "",
                 numberCell: { show: true, title: "No.", resizable: false, },
                 autoRow: false,
-                rowHtHead: 50,
-                rowHt: 35,
                 freezeCols: 1,
                 editable: false,
                 columnTemplate: {
@@ -129,17 +126,155 @@ export default {
                     grandSummary: true,
                 },
                 summaryData: [
+                    { 日付:'合計', summaryRow: true, pq_fn:{TotalNum:'sum(B:B)', TotalPrice:'sum(C:C)'}},
                 ],
                 formulas: [
+                    [
+                        "TotalNum",function(rowData){
+                            return rowData.現金個数*1 + rowData.売掛個数*1　+ rowData.チケット個数*1
+                        }
+                    ],
+                    [
+                        "TotalPrice",function(rowData){
+                            return rowData.現金金額*1 + rowData.売掛金額*1　+ rowData.チケット金額*1
+                        }
+                    ]
                 ],
                 colModel: [
                     {
-                        title: "日付",
-                        dataIndx: "日付", dataType: "string", key: true,
-                        hidden: true,
+                        title: "部署ＣＤ",
+                        dataIndx: "部署ＣＤ", dataType: "string", key: true,
+                        hidden: ui => !ui.Export,
                         editable: false,
                         fixed: true,
                     },
+                    {
+                        title: "部署名",
+                        dataIndx: "部署名", dataType: "string", key: true,
+                        hidden: ui => !ui.Export,
+                        editable: false,
+                        fixed: true,
+                    },
+                    {
+                        title: "日付",
+                        dataIndx: "日付", dataType: "date", key: true, format: "yy/mm/dd",
+                        hidden: false,
+                        editable: false,
+                        fixed: true,
+                        render: ui => {
+                            if (ui.rowData.pq_grandsummary) {
+                                //集計行
+                                ui.rowData["日付"] = "合計";
+                                return { text: "合計" };
+                            }
+                            return ui;
+                        },
+                    },
+                    {
+                        title: "合計",
+                        dataIndx: "合計",
+                        colModel: [
+                        {
+                                title: "個数",
+                                dataIndx: "TotalNum", dataType: "integer", key: true, format: "#,###",
+                                hidden: false,
+                                editable: false,
+                                fixed: true,
+                                summary: {
+                                        type: "TotalInt",
+                                    },
+                        },
+                        {
+                            title: "金額",
+                            dataIndx: "TotalPrice", dataType: "integer", key: true, format: "#,###",
+                            hidden: false,
+                            editable: false,
+                            fixed: true,
+                            summary: {
+                                    type: "TotalInt",
+                                },
+                        },
+                        ],
+                    },
+
+                    {
+                        title: "現金売上",
+                        dataIndx: "現金売上",
+                        colModel: [
+                        {
+                            title: "個数",
+                            dataIndx: "現金個数", dataType: "integer", key: true, format: "#,###",
+                            hidden: false,
+                            editable: false,
+                            fixed: true,
+                            summary: {
+                                    type: "TotalInt",
+                                },
+                        },
+                        {
+                                title: "金額",
+                                dataIndx: "現金金額", dataType: "integer", key: true, format: "#,###",
+                                hidden: false,
+                                editable: false,
+                                fixed: true,
+                                summary: {
+                                        type: "TotalInt",
+                                    },
+                        },
+                        ],
+                    },
+                    {
+                        title: "売掛売上",
+                        dataIndx: "売掛売上",
+                        colModel: [
+                        {
+                                title: "個数",
+                                dataIndx: "売掛個数", dataType: "integer", key: true, format: "#,###",
+                                hidden: false,
+                                editable: false,
+                                fixed: true,
+                                summary: {
+                                        type: "TotalInt",
+                                    },
+                            },
+                        {
+                            title: "金額",
+                            dataIndx: "売掛金額", dataType: "integer", key: true, format: "#,###",
+                            hidden: false,
+                            editable: false,
+                            fixed: true,
+                            summary: {
+                                    type: "TotalInt",
+                                },
+                        },
+                        ],
+                    },
+                    {
+                        title: "チケット売上",
+                        dataIndx: "チケット売上",
+                        colModel: [
+                        {
+                            title: "個数",
+                            dataIndx: "チケット個数", dataType: "integer", key: true, format: "#,###",
+                            hidden: false,
+                            editable: false,
+                            fixed: true,
+                            summary: {
+                                    type: "TotalInt",
+                                },
+                        },
+                        {
+                            title: "金額",
+                            dataIndx: "チケット金額", dataType: "integer", key: true, format: "#,###",
+                            hidden: false,
+                            editable: false,
+                            fixed: true,
+                            summary: {
+                                    type: "TotalInt",
+                                },
+                        },
+                        ],
+                    }
                 ],
                 printSize: "A4",    //TODO: deprecated
                 printDirection: "portrait", //"landscape"   //TODO: deprecated
@@ -159,18 +294,26 @@ export default {
                         vue.conditionChanged();
                     }
                 },
-                { visible: "true", value: "CSV出力", id: "DAI01020Grid1_Csvout", disabled: false, shortcut: "F6",
+                { visible: "true", value: "印刷", id: "DAI01020Grid1_Printout", disabled: false, shortcut: "F6",
                     onClick: function () {
                         vue.DAI01170Grid1.print(vue.setPrintOptions);
-                        //TODO: 検索 + 印刷とするか？
-                        //vue.conditionChanged(() => vue.DAI01170Grid1.print(vue.setPrintOptions));
+                        //TODO: 印刷の追加
+
+                    }
+                },
+                { visible: "true", value: "CSV出力", id: "DAI01020Grid1_Csvout", disabled: false, shortcut: "F7",
+                    onClick: function () {
+                        vue.DAI01170Grid1.print(vue.setPrintOptions);
+                        //TODO: ＣＳＶ出力追加
+
                     }
                 }
             );
         },
         mountedFunc: function(vue) {
             //配送日付の初期値 -> 当日
-            vue.viewModel.DeliveryDate = moment();
+            vue.viewModel.DateStart = moment();
+            vue.viewModel.DateEnd = moment();
         },
         setPrintOptions: function(grid) {
             var vue = this;
@@ -197,8 +340,9 @@ export default {
                             border-bottom-width: 0px !important;
                         }
                     </style>
-                    <h3 style="text-align: center; margin: 0px; margin-bottom: 10px;">* * 持ち出し数一覧表 * *</h3>
-                    <table style="border-collapse: collapse; width: 100%;" class="header-table">
+                    <h3 style="text-align: center; margin: 0px; margin-bottom: 10px;">* * 売上日計月計表 * *</h3>
+                    <div style="text-align: center; >対象期間( ${vue.viewModel.DateStart} ~ ${vue.viewModel.DateEnd})</div>
+                    <!--<table style="border-collapse: collapse; width: 100%;" class="header-table">
                         <colgroup>
                                 <col style="width:4.58%;"></col>
                                 <col style="width:4.60%;"></col>
@@ -221,10 +365,6 @@ export default {
                         </colgroup>
                         <thead>
                             <tr>
-                                <th>日付</th>
-                                <th colspan="5">${moment().format("YYYY年MM月DD日 dddd")}</th>
-                            </tr>
-                            <tr>
                                 <th>部署</th>
                                 <th>${vue.viewModel.BushoCd}</th>
                                 <th colspan="4">${vue.viewModel.BushoNm}</th>
@@ -235,7 +375,7 @@ export default {
                                 <th>1</th>
                             </tr>
                         </thead>
-                    </table>
+                    </table>-->
                 `;
             grid.options.printStyles =
                 `
@@ -253,30 +393,13 @@ export default {
             //検索条件変更
             vue.conditionChanged();
         },
-        onDeliveryDateChanged: function(code, entity) {
+        onDateChanged: function(code, entity) {
             var vue = this;
 
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        onCourseKbnChanged: function(code, entity) {
-            var vue = this;
 
-            //条件変更ハンドラ
-            vue.conditionChanged();
-        },
-        onCourseStartChanged: function(code, entity) {
-            var vue = this;
-
-            //フィルタ変更ハンドラ
-            vue.filterChanged();
-        },
-        onCourseEndChanged: function(code, entity) {
-            var vue = this;
-
-            //フィルタ変更ハンドラ
-            vue.filterChanged();
-        },
         conditionChanged: _.debounce(function(callback) {
             var vue = this;
             var grid = vue.DAI01170Grid1;
@@ -294,12 +417,9 @@ export default {
             .then((grid) => {
                 var params = $.extend(true, {}, vue.viewModel);
 
-                //配送日を"YYYYMMDD"形式に編集
-                params.DeliveryDate = params.DeliveryDate ? moment(params.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
-
-                //コース開始/終了はフィルタするので除外
-                delete params.CourseStart;
-                delete params.CourseEnd;
+                //日付区間を"YYYYMMDD"形式に編集
+                params.DateStart = params.DateStart ? moment(params.DateStart, "YYYY年MM月DD日").format("YYYYMMDD") : null;
+                params.DateEnd = params.DateEnd ? moment(params.DateEnd, "YYYY年MM月DD日").format("YYYYMMDD") : null;
 
                 grid.searchData(params, false, null, callback);
             });
@@ -361,21 +481,6 @@ export default {
                 };
             }));
 
-            //不足分を空列追加
-            grid.options.colModel = grid.options.colModel
-                .concat(
-                    _.range(16 - grid.options.colModel.filter(c => !c.hidden).length)
-                        .map(v => {
-                            return {
-                                title: "",
-                                dataIndx: "empty",
-                                dataType: "integer",
-                                format: "#,###",
-                                width: 60, maxWidth: 60, minWidth: 60,
-                                editable: false,
-                            };
-                        })
-                );
 
             //列定義更新
             grid.refreshCM();
