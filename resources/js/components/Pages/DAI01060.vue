@@ -460,9 +460,12 @@ export default {
             var courseNm;
             tableBodies.map((i, v) => {
                 var row = $(v);
-                courseNm = row.find("td[colspan]").text() || courseNm;
+                courseNm = row.find("td[rowspan]").text() || row.find("td").filter((idx, e) => $(e).text().includes("合計")).text() || courseNm;
                 if (row.find("td").length != tableHeaders.find("th").length) {
                     row.prepend($("<td>").text(courseNm).hide());
+                }
+                if (!row.find("td:first").text()) {
+                    row.find("td:first").text(courseNm).hide();
                 }
                 return row.get(0);
             });
@@ -472,9 +475,15 @@ export default {
             _(tableBodies)
                 .groupBy(v => $(v).find("td:first").text())
                 .values()
-                .reduce((a, v, k) => {
+                .reduce((a, v, i, o) => {
+                    if (!$(v[0]).find("td:first").attr("rowspan")) {
+                        $(v[0]).find("td:first").attr("rowspan", v.length).css("border-bottom-width", "1px");
+                    }
+
                     if (!_.isEmpty(a) && a.find(".data-table tr").length + v.length > 45) {
-                        contents.push(_.cloneDeep(a));
+                        var page = _.cloneDeep(a);
+                        page.find("tr:last td").css("border-bottom-width", "1px");
+                        contents.push(page);
                         a = {};
                     }
 
@@ -497,12 +506,26 @@ export default {
                                             </table>
                                         `;
 
-                        a = $("<div>")
+                        a = $("<div>").css("page-break-before", "always")
                             .append(pageHeader)
-                            .append($("<table>").addClass("data-table").append(tableHeaders));
+                            .append($("<table>").addClass("data-table").append(tableHeaders.prop("outerHTML")));
                     }
 
+                    v.forEach(r => {
+                        if (v.indexOf(r) == 0) {
+                            $(r).find("td[colspan]").css("border-bottom-width", "1px");
+                        }
+                        if (v.indexOf(r) == v.length - 1) {
+                            $(r).find("td").css("border-bottom-width", "1px");
+                        }
+                    })
                     a.find(".data-table").append(v);
+
+                    if (_.last(o) == v) {
+                        var page = _.cloneDeep(a);
+                        page.find("tr:last td").css("border-bottom-width", "1px");
+                        contents.push(page);
+                    }
 
                     return a;
                 }, {});

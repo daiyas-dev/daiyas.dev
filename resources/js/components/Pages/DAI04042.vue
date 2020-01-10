@@ -14,6 +14,7 @@
                     :onChangeFunc=onChangeGrid
                     :resizeFunc=onMainGridResize
                     :isMultiRowSelectable=true
+                    :autoToolTipDisabled=true
                     classes="mt-1 mb-1"
                 />
             </div>

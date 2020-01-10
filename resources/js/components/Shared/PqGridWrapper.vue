@@ -100,6 +100,7 @@ export default {
         isFloat: Boolean,
         isMultiRowSelectable: Boolean,
         maxRowSelectCount: Number,
+        autoToolTipDisabled:Boolean,
     },
     computed: {
         isDialog: function() {
@@ -557,8 +558,8 @@ export default {
                                 //editor element
                                 var element = $(ps.$el);
                                 ui.rowData.pq_inputErrors = ui.rowData.pq_inputErrors || {};
-                                element.on("keydown", (event) => {
-                                    console.log("ps keydown:" + event.which);
+                                element.on("keyup", (event) => {
+                                    console.log("ps keyup:" + event.which, element.find("input").val());
                                     switch (event.which) {
                                         case 9:
                                             if (
@@ -621,7 +622,7 @@ export default {
                                         animation: false,
                                         placement: "auto",
                                         trigger: "hover",
-                                        title: ui.rowData.pq_inputErrors[ui.dataIndx],
+                                        title: "入力内容が正しくありません",
                                         container: "body",
                                         template: '<div class="tooltip has-error" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>'
                                     });
@@ -1402,28 +1403,32 @@ export default {
                 this.$parent.$data[this.id] = this.grid;
 
                 //bootstrap tooltip
-                $(document)
-                    .on("mouseleave", ".pq-grid-cell:not(.ui-error-state):visible", event => $(event.target).tooltip("hide"))
-                    .on("mouseenter", ".pq-grid-cell:not(.ui-error-state):visible",
-                        event => {
-                            var $ele = $(event.target);
+                if (!vue.autoToolTipDisabled) {
+                    $(document)
+                        .on("mouseleave", ".pq-grid-cell:not(.ui-error-state):visible", event => $(event.target).tooltip("hide"))
+                        .on("mouseenter", ".pq-grid-cell:not(.ui-error-state):visible",
+                            event => {
+                                var $ele = $(event.target);
+                                if (!$ele.hasClass("pq-grid-cell")) return true;
 
-                            var title = $ele.attr("title") || $ele.text().replace(/(, )+$/, "").replace(/, /g, "<br>");
+                                var title = $ele.attr("title") || $ele.text().replace(/(, )+$/, "").replace(/, /g, "<br>");
 
-                            $("*").tooltip("hide");
-                            if (!!title && _.trim(title) != "") {
-                                $ele.tooltip({
-                                    container: "body",
-                                    animation: false,
-                                    template: '<div class="tooltip text-overflow" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>',
-                                    placement: "auto",
-                                    trigger: "hover",
-                                    title: title,
-                                })
-                                .tooltip("show")
-                                ;
-                            }
-                        });
+                                $("*").tooltip("hide");
+                                if (!!title && _.trim(title) != "") {
+                                    $ele.tooltip({
+                                        container: "body",
+                                        animation: false,
+                                        template: '<div class="tooltip text-overflow" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>',
+                                        placement: "auto",
+                                        trigger: "hover",
+                                        title: title,
+                                    })
+                                    .tooltip("show")
+                                    ;
+                                }
+                                return false;
+                            });
+                }
 
                 //colModelのeditableの設定より、PqGridのclassに入力可不可設定
                 var cfg = pqGridObj.columnTemplate.editable ? "editable" : "readonly";
@@ -2881,9 +2886,10 @@ export default {
     }
     .pq-grid-cell + .tooltip .tooltip-inner {
         width: auto;
+        display: inline-flex;
     }
     .tooltip.text-overflow {
-        max-width: 30vw !important;
+        /* max-width: 30vw !important; */
     }
     /* エラーセル ツールチップ */
     .pq-grid-cell.ui-state-error + .tooltip .tooltip-inner {
