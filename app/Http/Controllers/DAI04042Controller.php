@@ -9,6 +9,27 @@ use Illuminate\Support\Carbon;
 
 class DAI04042Controller extends Controller
 {
+    /**
+     * DeleteBunpaisakiList
+     */
+    public function DeleteBunpaisakiList($request)
+    {
+        $CustomerCd = $request->CustomerCd;
+        if (!$CustomerCd) {
+            return [];
+        }
+
+        $sql = "
+            UPDATE 得意先マスタ
+            SET 受注得意先ＣＤ = null
+            WHERE 受注得意先ＣＤ=$CustomerCd
+
+        ";
+
+        $Result = DB::update($sql);
+
+        return response()->json($Result);
+    }
 
     /**
      * UpdateBunpaisakiList
@@ -17,25 +38,20 @@ class DAI04042Controller extends Controller
     {
         $CustomerCd = $request->CustomerCd;
         $BunpaisakiList = $request->BunpaisakiList;
+        $BunpaisakiList = implode(",", $BunpaisakiList);
 
-        if (!$CustomerCd) return [];
+        if (!$BunpaisakiList) {
+            return [];
+        }
 
         $sql = "
+            UPDATE 得意先マスタ
+            SET 受注得意先ＣＤ = $CustomerCd
+            WHERE 得意先ＣＤ in ($BunpaisakiList)
         ";
 
-        // $sql = "
-        //     UPDATE 得意先マスタ
-        //     SET 受注得意先ＣＤ = null
-        //     WHERE 受注得意先ＣＤ=$CustomerCd
+        $Result = DB::update($sql);
 
-        //     UPDATE 得意先マスタ
-        //     SET 受注得意先ＣＤ = $CustomerCd
-        //     WHERE 得意先ＣＤ in ($BunpaisakiList)
-
-        // ";
-
-            $Result = DB::select($sql);
-
-            return response()->json($Result);
-        }
+        return response()->json($Result);
     }
+}

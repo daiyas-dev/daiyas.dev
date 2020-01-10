@@ -138,19 +138,7 @@ export default {
                             type: "button",
                             label: "<i class='fa fa-plus fa-lg'></i>",
                             listener: function (event) {
-                                var grid = this;
-
-                                var rowIndx = grid.SelectRow().getSelection().length == 0
-                                    ? 0
-                                    : (grid.SelectRow().getFirst() + 1);
-
-                                grid.addRow({
-                                    rowIndx: rowIndx,
-                                    newRow: {},
-                                    checkEditable: false
-                                });
-
-                                grid.scrollRow({rowIndxPage: rowIndx});
+                                vue.addRowFunc();
                             },
                             attr: 'class="toolbar_button add" title="行追加"',
                             options: { disabled: false },
@@ -160,9 +148,7 @@ export default {
                             type: "button",
                             label: "<i class='fa fa-minus fa-lg'></i>",
                             listener: function (event) {
-                                var grid = this;
-                                var rowList = grid.SelectRow().getSelection().map(v => _.pick(v, ["rowIndx"]));
-                                grid.deleteRow({ rowList: rowList });
+                                vue.deleteRowFunc();
                             },
                             attr: 'class="toolbar_button delete" title="行削除" delete ',
                             options: { disabled: false },
@@ -285,32 +271,24 @@ export default {
             vue.footerButtons.push(
                 { visible: "true", value: "行追加", id: "DAI04042_AddRow", disabled: false, shortcut: "F2",
                     onClick: function () {
-                        var grid = DAI04042Grid1;
-                        var rowIndx = grid.SelectRow().getSelection().length == 0
-                            ? 0
-                            : (grid.SelectRow().getFirst() + 1);
-
-                        grid.addRow({
-                            rowIndx: rowIndx,
-                            newRow: {},
-                            checkEditable: false
-                        });
-
-                        grid.scrollRow({rowIndxPage: rowIndx});
+                        vue.addRowFunc();
                     }
                 },
                 { visible: "true", value: "行削除", id: "DAI04042_DeleteRow", disabled: false, shortcut: "F3",
                     onClick: function () {
-                        var grid = DAI04042Grid1;
-                        var rowList = grid.SelectRow().getSelection().map(v => _.pick(v, ["rowIndx"]));
-                        grid.deleteRow({ rowList: rowList });
+                        vue.deleteRowFunc();
                     }
                 },
                 {visible: "false"},
                 { visible: "true", value: "登録", id: "DAI04042_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         //TODO:登録
-                        vue.saveBunpaisaki();
+
+                        if(grid.widget().find(".has-error").length > 0 || grid.widget().find(".state-error").length > 0){
+                            console.log("入力値エラー有り");
+                        }else{
+                            vue.saveBunpaisaki();
+                        }
                     }
                 },
             );
@@ -334,8 +312,8 @@ export default {
         },
         saveBunpaisaki: function() {
             var vue = this;
-            var grid1 = vue.DAI04042Grid1;
-            var BunpaisakiList = grid1.得意先ＣＤ
+            var grid = vue.DAI04042Grid1;
+            var BunpaisakiList = grid.pdata.map((v,i) => v.得意先ＣＤ);
 
             grid.saveData(
                 {
@@ -408,6 +386,31 @@ export default {
         },
         getCustomerPsParamsInGrid: (vue, grid) => {
             return { bushoCd: !!vue.viewModel ? vue.viewModel.BushoCd : null };
+        },
+        addRowFunc: function() {
+            var grid = DAI04042Grid1;
+            var rowIndx = grid.SelectRow().getSelection().length == 0
+                ? 0
+                : (grid.SelectRow().getFirst() + 1);
+
+            grid.addRow({
+                rowIndx: rowIndx,
+                newRow: {},
+                checkEditable: false
+            });
+
+            grid.scrollRow({rowIndxPage: rowIndx});
+
+        },
+        deleteRowFunc: function() {
+            var vue = this;
+            var grid = vue.DAI04042Grid1;
+            var BunpaisakiList = grid.pdata.map((v,i) => v.得意先ＣＤ);
+
+            axios.post("/DAI04042/DeleteBunpaisakiList",{ CustomerCd: DAI04042.params.得意先CD, BunpaisakiList: BunpaisakiList });
+
+            var rowList = grid.SelectRow().getSelection().map(v => _.pick(v, ["rowIndx"]));
+            grid.deleteRow({ rowList: rowList });
         },
     }
 }
