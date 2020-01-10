@@ -153,7 +153,19 @@ export default {
                             },
                             attr: 'class="toolbar_button add" title="行追加"',
                             options: { disabled: false },
-                        }
+                        },
+                        {
+                            name: "delete",
+                            type: "button",
+                            label: "<i class='fa fa-minus fa-lg'></i>",
+                            listener: function (event) {
+                                var grid = this;
+                                var rowList = grid.SelectRow().getSelection().map(v => _.pick(v, ["rowIndx"]));
+                                grid.deleteRow({ rowList: rowList });
+                            },
+                            attr: 'class="toolbar_button delete" title="行削除" delete disabled=disabled',
+                            options: { disabled: false },
+                        },
                     ]
                 },
                 columnBorders: true,
@@ -315,7 +327,12 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "削除", id: "DAI04042_Delete", disabled: false, shortcut: "F3",
+                { visible: "true", value: "行追加", id: "DAI04042_AddRow", disabled: false, shortcut: "F2",
+                    onClick: function () {
+                        //TODO: 追加
+                    }
+                },
+                { visible: "true", value: "行削除", id: "DAI04042_DeleteRow", disabled: false, shortcut: "F3",
                     onClick: function () {
                         //TODO: 削除
                     }
