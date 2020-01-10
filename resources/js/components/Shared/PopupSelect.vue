@@ -523,7 +523,9 @@ export default {
                     }
 
                     //データリスト保持
-                    vue.dataList = res;
+                    if (!!res.length) {
+                        vue.dataList = res;
+                    }
                     // console.log(vue.id + " get dataList");
                     // console.log(vue.dataList);
 
@@ -674,6 +676,7 @@ export default {
         },
         setSelectValue: function(newVal, noMsg, isDebounce) {
             var vue = this;
+            console.log("ps setSelectValue", newVal);
 
             if (isDebounce != false) {
                 vue.setSelectValueByDebounce(newVal, noMsg);
@@ -685,7 +688,7 @@ export default {
             var vue = this;
 
             vue.execSetSelectValue(newVal, noMsg, true);
-        }, 100),
+        }, 50),
         execSetSelectValue: function(newVal, noMsg, isDebounce) {
             var vue = this;
 
@@ -787,12 +790,13 @@ export default {
                 if (!rowData && vue.isShowAutoComplete && vue.autoCompleteList.length == 1) {
                     rowData = vue.autoCompleteList[0];
                 }
+                console.log("ps check", newVal, vue.dataList);
 
                 if (!rowData && check) {
                     //現在の値を含むものが無い場合、エラーとする
-                    console.log("ps check error")
+                    console.log("ps check error", newVal, vue.dataList);
 
-                    vue.errorMsg = vue.isShowAutoComplete && vue.autoCompleteList.length > 1
+                    vue.errorMsg = vue.isShowAutoComplete && !!rowData && vue.autoCompleteList.length > 1
                         ? ((vue.title || (vue.label + "一覧")) + "で複数該当します")
                         : ((vue.title || (vue.label + "一覧")) + "に存在しません");
 

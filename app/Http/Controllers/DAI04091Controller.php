@@ -32,5 +32,5 @@ WHERE TM.部署ＣＤ=$BushoCd
             $Result = DB::select($sql);
 
             return response()->json($Result);
-        }
     }
+}

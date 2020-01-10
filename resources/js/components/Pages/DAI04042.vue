@@ -186,8 +186,7 @@ export default {
                         dataType: "string",
                         key: true,
                         psProps: {
-                            dataUrl: "/Utilities/GetCustomerListForSelect",
-                            //params: { bushoCd: () => { var val = !!vue.viewModel ? vue.viewModel.BushoCd : null; console.log("psProps params", vue, val); return val; } },
+                            dataUrl: "/DAI04042/GetCustomerListForSelect",
                             params: vue.getCustomerPsParamsInGrid,
                             bind: "得意先ＣＤ",
                             buddies: { "得意先名": "CdNm" },
@@ -199,7 +198,6 @@ export default {
                             popupHeight: 600,
                             isShowName: true,
                             isModal: true,
-                            editable: true,
                             reuse: true,
                             existsCheck: true,
                             inputWidth: 90,
@@ -259,6 +257,7 @@ export default {
 
         var targets;
         if (!!vue.params || !!vue.query) {
+            data.viewModel.BushoCd
             targets = (vue.params || vue.query).targets;
         }
 
@@ -347,7 +346,7 @@ export default {
         CustomerAutoCompleteFuncInGrid: function(input, dataList, comp) {
             var vue = this;
 
-            console.log("CustomerAutoCompleteFuncInGrid", comp.id, input, dataList);
+            // console.log("CustomerAutoCompleteFuncInGrid", comp.id, input, dataList);
 
             if (!dataList.length) return [];
 
@@ -380,12 +379,12 @@ export default {
                 })
                 ;
 
-            console.log("CustomerAutoCompleteFuncInGrid", comp.id, list);
+            // console.log("CustomerAutoCompleteFuncInGrid", comp.id, list);
 
             return list;
         },
         getCustomerPsParamsInGrid: (vue, grid) => {
-            return { bushoCd: !!vue.viewModel ? vue.viewModel.BushoCd : null };
+            return { BushoCd: !!vue.params ? vue.params.部署CD : null };
         },
         addRowFunc: function() {
             var grid = DAI04042Grid1;

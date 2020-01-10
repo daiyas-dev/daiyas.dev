@@ -555,6 +555,8 @@ export default {
                                 ps.ui = ui;
                                 ps.rowData = ui.rowData;
 
+                                ui.ps = ps;
+
                                 //editor element
                                 var element = $(ps.$el);
                                 ui.rowData.pq_inputErrors = ui.rowData.pq_inputErrors || {};
@@ -2351,9 +2353,10 @@ export default {
         },
         setCellState: function(grid, ui, onHistory) {
             var $cell = grid.getEditCell().$cell;
+
             if ($cell.find(".has-error").length > 0) {
-                var title = $cell.find(".target-input").data("bs.tooltip").config.title;
-                ui.rowData.pq_inputErrors[ui.dataIndx] = title;
+                var tooltip = $cell.find(".target-input").data("bs.tooltip");
+                ui.rowData.pq_inputErrors[ui.dataIndx] = !!tooltip ? tooltip.config.title : "入力内容が正しくありません";
             } else {
                 if (!!ui.rowData.pq_inputErrors && !!ui.rowData.pq_inputErrors[ui.dataIndx]) {
                     delete ui.rowData.pq_inputErrors[ui.dataIndx];
@@ -2421,7 +2424,9 @@ export default {
                     if (rows) {
                         return moveNext();
                     } else {
-                        return true;
+                        if (editor) {
+                            grid.quitEditMode();
+                        }
                     }
                 }
 
