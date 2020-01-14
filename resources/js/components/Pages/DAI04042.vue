@@ -281,15 +281,11 @@ export default {
                 {visible: "false"},
                 { visible: "true", value: "登録", id: "DAI04042_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
-                        //TODO:登録　入力値エラーの有無確認
+
+                        if((grid.widget().find(".has-error").length == 0 ) && (grid.widget().find(".ui-state-error").length == 0 )){
+                            // console.log("入力値エラーなし、登録可");
                             vue.saveBunpaisaki();
-
-                        // if((grid.widget().find(".has-error").length = 0 ) && (grid.widget().find(".ui-state-error").length = 0 ) ){
-                        //     console.log("入力値エラーなし！登録可");
-                        // }else{
-                        //     console.log("入力値エラー有り");
-                        // }
-
+                        }
                     }
                 },
             );
@@ -314,16 +310,20 @@ export default {
         saveBunpaisaki: function() {
             var vue = this;
             var grid = vue.DAI04042Grid1;
-            var BunpaisakiList = grid.pdata.map((v,i) => v.得意先ＣＤ);
+            var bunpaisakiList = grid.pdata.map((v,i) => v.得意先ＣＤ);
 
-            //TODO:空行がある場合の処理
+            var params = { CustomerCd: DAI04042.params.得意先CD, Bunpaisaki: bunpaisakiList }
+            params.noCache = true;
 
-            grid.saveData(
-                {
-                    uri: "/DAI04042/UpdateBunpaisakiList",
-                    params: { CustomerCd: DAI04042.params.得意先CD, Bunpaisaki: BunpaisakiList },
-                }
-            );
+            axios.post("/DAI04042/UpdateBunpaisakiList", params)
+            .then(res => {
+                console.log("登録成功");
+                grid.searchData({ CustomerCd: vue.params.得意先CD, BushoCd: vue.params.部署CD });
+            })
+            .catch(err => {
+                console.log(error);
+                //TODO: エラー
+            });
 
         },
         onAfterSearchFunc: function (gridVue, grid, res) {
@@ -409,17 +409,32 @@ export default {
             var vue = this;
             var grid = vue.DAI04042Grid1;
 
+            //選択行なし
             if(!grid.SelectRow().getSelection().length){
+                return;
+            }
+
+            //選択行にエラーがあれば、DB更新せずに行削除
+            if(!!grid.SelectRow().getSelection()[0].rowData.pq_inputErrors.得意先ＣＤ){
+                var rowList = grid.SelectRow().getSelection().map(v => _.pick(v, ["rowIndx"]));
+                grid.deleteRow({ rowList: rowList });
                 return;
             }
 
             //選択中の得意先CDの受注得意先をnullで更新
             var BunpaisakiCd = grid.SelectRow().getSelection()[0].rowData.得意先ＣＤ;
-            axios.post("/DAI04042/DeleteBunpaisakiList",{ CustomerCd: DAI04042.params.得意先CD, Bunpaisaki: BunpaisakiCd });
+            var params = { CustomerCd: DAI04042.params.得意先CD, Bunpaisaki: BunpaisakiCd };
+            params.noCache = true;
 
-
-            var rowList = grid.SelectRow().getSelection().map(v => _.pick(v, ["rowIndx"]));
-            grid.deleteRow({ rowList: rowList });
+            axios.post("/DAI04042/DeleteBunpaisakiList", params)
+            .then(res => {
+                var rowList = grid.SelectRow().getSelection().map(v => _.pick(v, ["rowIndx"]));
+                grid.deleteRow({ rowList: rowList });
+            })
+            .catch(err => {
+                console.log(error);
+                //TODO: エラー
+            });
         },
     }
 }

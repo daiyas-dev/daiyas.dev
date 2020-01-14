@@ -15,7 +15,7 @@ class DAI04042Controller extends Controller
      */
     public function GetCustomerListForSelect($request)
     {
-        $BushoCd = $request->bushoCd ?? $request->BushoCd;
+        // $BushoCd = $request->bushoCd ?? $request->BushoCd;
 
         // if (!$BushoCd) return [];
 
@@ -62,7 +62,9 @@ FROM 得意先マスタ TM
     {
         $CustomerCd = $request->CustomerCd;
         $BpCutomerCd = $request->Bunpaisaki;
-        $BpCdList = implode(",", $BpCutomerCd);
+        $List = implode(",", $BpCutomerCd);
+        $List = preg_replace("/^,+|,+$/", "", $List);
+        $BpCdList = preg_replace("/,,+/", ",", $List);
 
         if (!$BpCdList) {
             return [];
