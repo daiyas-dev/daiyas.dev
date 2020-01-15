@@ -62,9 +62,7 @@ FROM 得意先マスタ TM
     {
         $CustomerCd = $request->CustomerCd;
         $BpCutomerCd = $request->Bunpaisaki;
-        $List = implode(",", $BpCutomerCd);
-        $List = preg_replace("/^,+|,+$/", "", $List);
-        $BpCdList = preg_replace("/,,+/", ",", $List);
+        $BpCdList = implode(",", $BpCutomerCd);
 
         if (!$BpCdList) {
             return [];

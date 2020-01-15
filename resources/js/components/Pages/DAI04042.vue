@@ -283,8 +283,12 @@ export default {
                     onClick: function () {
 
                         if((grid.widget().find(".has-error").length == 0 ) && (grid.widget().find(".ui-state-error").length == 0 )){
-                            // console.log("入力値エラーなし、登録可");
                             vue.saveBunpaisaki();
+                        }else{
+                            $.dialogErr({
+                                title: "入力値エラー",
+                                contents: "登録できません。",
+                            })
                         }
                     }
                 },
@@ -310,15 +314,13 @@ export default {
         saveBunpaisaki: function() {
             var vue = this;
             var grid = vue.DAI04042Grid1;
-            var bunpaisakiList = grid.pdata.map((v,i) => v.得意先ＣＤ);
-
+            //空行はparamsからを除く
+            var bunpaisakiList = grid.pdata.filter(v => !!v.得意先ＣＤ).map((v,i) => v.得意先ＣＤ);
             var params = { CustomerCd: DAI04042.params.得意先CD, Bunpaisaki: bunpaisakiList }
             params.noCache = true;
 
             axios.post("/DAI04042/UpdateBunpaisakiList", params)
             .then(res => {
-                console.log("登録成功");
-                grid.searchData({ CustomerCd: vue.params.得意先CD, BushoCd: vue.params.部署CD });
             })
             .catch(err => {
                 console.log(error);
@@ -338,12 +340,9 @@ export default {
         onChangeGrid: function(grid, ui, event) {
             var vue = this;
             console.log(grid.widget().prop("id") + " onChangeGrid", ui, event);
+            //行削除ボタン制御
+            $("button.delete,[shortcut=F3]").prop("disabled", (grid.widget().find(".has-error").length == 0 ) && (grid.widget().find(".ui-state-error").length == 0 ) ? false : true);
 
-            var targetEvents = ["add", "addNodes", "deleteNodes"];
-
-            if (targetEvents.includes(ui.source)) {
-                // vue.resetData(grid);
-            }
         },
         onMainGridResize: grid => {
         },
@@ -411,13 +410,6 @@ export default {
 
             //選択行なし
             if(!grid.SelectRow().getSelection().length){
-                return;
-            }
-
-            //選択行にエラーがあれば、DB更新せずに行削除
-            if(!!grid.SelectRow().getSelection()[0].rowData.pq_inputErrors.得意先ＣＤ){
-                var rowList = grid.SelectRow().getSelection().map(v => _.pick(v, ["rowIndx"]));
-                grid.deleteRow({ rowList: rowList });
                 return;
             }
 

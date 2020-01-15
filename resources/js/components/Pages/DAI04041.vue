@@ -1025,7 +1025,6 @@ export default {
                 },
                 { visible: "true", value: "分配先登録", id: "DAI04040_Bunpaisaki", disabled: false, shortcut: "F6",
                     onClick: function () {
-                        //TODO:登録や削除
                         vue.showBunpaisaki();
                     }
                 },
@@ -1371,10 +1370,21 @@ export default {
                     { title: "CdNm", dataIndx: "CdNm", dataType: "string", hidden: true, colIndx: 9 },
             ];
 
+            //修正はparamsから、新規はviewmodelから、両方空なら表示不可とする
+            var cds = !!vue.params.得意先CD ? vue.params.得意先CD : (!!vue.viewModel.得意先ＣＤ ? vue.viewModel.得意先ＣＤ : "");
+
+            if(!cds){
+                $.dialogErr({
+                    title: "履歴表示不可",
+                    contents: "得意先CDがありません。",
+                })
+                return;
+            }
+
             PageDialog.showSelector({
                 dataUrl: "/Utilities/GetCustomerHistoryList",
-                params: {CustomerCd : vue.viewModel.得意先ＣＤ},
-                title: "得意先履歴一覧 ： " + vue.viewModel.得意先名,
+                params: {CustomerCd : cds },
+                title: "得意先履歴一覧" + "【" + vue.viewModel.得意先CD + "：" + vue.viewModel.得意先名 + "】",
                 isModal: true,
                 showColumns: vue.showColumns,
                 width: 1000,
@@ -1384,11 +1394,31 @@ export default {
         },
         showBunpaisaki: function() {
             var vue = this;
+            var cds;
+
+            //修正はparamsから、新規はviewmodelから、両方空なら登録不可とする
+            if (!!vue.params.得意先CD) {
+                cds = { 得意先CD: vue.params.得意先CD, 部署CD: vue.params.部署CD };
+            } else{
+                if(!!vue.viewModel.得意先ＣＤ) {
+                    cds = { 得意先CD: vue.viewModel.得意先ＣＤ, 部署CD: vue.viewModel.部署CD };
+                } else{
+                    cds = "";
+                }
+            }
+
+            if(!cds){
+                $.dialogErr({
+                    title: "分配先登録不可",
+                    contents: "得意先CDがありません。",
+                })
+                return;
+            }
 
             //DAI04042を子画面表示
             PageDialog.show({
                 pgId: "DAI04042",
-                params: { 得意先CD: vue.viewModel.得意先ＣＤ, 部署CD: vue.viewModel.部署CD},
+                params: cds,
                 isModal: true,
                 isChild: true,
                 resizable: false,
