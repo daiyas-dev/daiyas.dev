@@ -998,15 +998,23 @@ export default {
     },
     methods: {
         createdFunc: function(vue) {
-            axios.post("/Utilities/GetCustomerList", {CustomerCd: vue.viewModel.得意先CD})
-                .then(res => {
-                    vue.viewModel = res.data.Data[0];
-                })
-                .catch(err => {
-                    console.log(error);
-                    //TODO: エラー
-                });
+            if(this.params.IsNew == false){
+                axios.post("/Utilities/GetCustomerList", {CustomerCd: vue.viewModel.得意先CD})
+                    .then(res => {
+                        vue.viewModel = res.data.Data[0];
+                    })
+                    .catch(err => {
+                        console.log(error);
+                        //TODO: エラー
+                    }
+                );
+            }
             vue.footerButtons.push(
+                { visible: "true", value: "空No検索", id: "DAI04041_SearchNo", disabled: false, shortcut: "F1",
+                    onClick: function () {
+                        //TODO: 空いている得意先ＣＤを検索する
+                    }
+                },
                 { visible: "true", value: "クリア", id: "DAI04041_Clear", disabled: false, shortcut: "F2",
                     onClick: function () {
                         //TODO: クリア
@@ -1031,14 +1039,21 @@ export default {
                 {visible: "false"},
               　{ visible: "true", value: "登録", id: "DAI04041Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
+                        if(!vue.viewModel.得意先ＣＤ){
+                            $.dialogErr({
+                                title: "登録不可",
+                                contents: "得意先CDを入力して下さい",
+                            })
+                            return;
+                        }
                         var params = _.cloneDeep(vue.viewModel);
 
                         //金融機関CD: nullの0置換
                         params.金融機関CD = params.金融機関CD || 0;
                         params.金融機関支店CD = params.金融機関支店CD || 0;
 
-                        params.電話確認時間_時 = Number(vue.viewModel.発信時間.slice(0,2));
-                        params.電話確認時間_分 = Number(vue.viewModel.発信時間.slice(3,5));
+                        params.電話確認時間_時 = Number(vue.$refs.DatePicker_TakeoutTime.vmodel.発信時間.slice(0,2));
+                        params.電話確認時間_分 = Number(vue.$refs.DatePicker_TakeoutTime.vmodel.発信時間.slice(3,5));
 
                         //TODO: 登録用controller method call
                         console.log("登録", params);

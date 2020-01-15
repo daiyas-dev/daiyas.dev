@@ -312,6 +312,7 @@ export default {
                 { visible: "true", value: "新規登録", id: "DAI04040Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         //TODO: 登録
+                        vue.showNewDetail();
                     }
                 }
             );
@@ -524,6 +525,20 @@ export default {
                         })
                 }
             }
+        },
+        showNewDetail: function(rowData) {
+
+            var params = { IsNew: true}
+
+            //DAI04041を子画面表示
+            PageDialog.show({
+                pgId: "DAI04041",
+                params: params,
+                isModal: true,
+                isChild: true,
+                width: 1200,
+                height: 700,
+            });
         },
         ShoninAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
