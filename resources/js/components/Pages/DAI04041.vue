@@ -7,7 +7,7 @@
             <div class="col-md-2">
                 <label>得意先ＣＤ</label>
                 <input class="form-control text-right" type="text"
-                    :value=viewModel.得意先ＣＤ
+                    v-model=viewModel.得意先ＣＤ
                     :readonly=!viewModel.IsNew
                     :tabindex="viewModel.IsNew ? 0 : -1"
                 >
@@ -57,17 +57,17 @@
                     <div class="row">
                         <div class="col-md-10">
                             <label class="">得意先名</label>
-                            <input type="text" class="form-control" :value="viewModel.得意先名">
+                            <input type="text" class="form-control" v-model="viewModel.得意先名">
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
                             <label class="">得意先名カナ</label>
-                            <input type="text" class="form-control" style="font-size: 15px !important;" :value="viewModel.得意先名カナ">
+                            <input type="text" class="form-control" style="font-size: 15px !important;" v-model="viewModel.得意先名カナ">
                         </div>
                         <div class="col-md-6">
                             <label class="">得意先名略称</label>
-                            <input type="text" class="form-control" :value="viewModel.得意先名略称">
+                            <input type="text" class="form-control" v-model="viewModel.得意先名略称">
                         </div>
                     </div>
                     <div class="row">
@@ -105,35 +105,35 @@
                     <div class="row">
                         <div class="col-md-3">
                             <label class="">郵便番号</label>
-                            <input class="form-control p-2" style="width: 90px;" type="text" :value=viewModel.郵便番号>
+                            <input class="form-control p-2" style="width: 90px;" type="text" v-model=viewModel.郵便番号>
                         </div>
                         <div class="col-md-9">
                             <label>住所</label>
-                            <input class="form-control" type="text" :value=viewModel.住所１>
+                            <input class="form-control" type="text" v-model=viewModel.住所１>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-9 offset-md-3">
                             <label></label>
-                            <input class="form-control" type="text" :value=viewModel.住所２>
+                            <input class="form-control" type="text" v-model=viewModel.住所２>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-3">
                             <label class="">電話番号1</label>
-                            <input class="form-control p-1" style="width: 100px;" type="text" :value=viewModel.電話番号１ maxlength="15">
+                            <input class="form-control p-1" style="width: 100px;" type="text" v-model=viewModel.電話番号１ maxlength="15">
                         </div>
                         <div class="col-md-3">
                             <label class="">電話番号2</label>
-                            <input class="form-control p-1" style="width: 100px;" type="text" :value=viewModel.電話番号２ maxlength="15">
+                            <input class="form-control p-1" style="width: 100px;" type="text" v-model=viewModel.電話番号２ maxlength="15">
                         </div>
                         <div class="col-md-3">
                             <label class="">FAX1</label>
-                            <input class="form-control p-1" style="width: 100px;" type="text" :value=viewModel.ＦＡＸ１ maxlength="15">
+                            <input class="form-control p-1" style="width: 100px;" type="text" v-model=viewModel.ＦＡＸ１ maxlength="15">
                         </div>
                         <div class="col-md-3">
                             <label class="">FAX2</label>
-                            <input class="form-control p-1" style="width: 100px;" type="text" :value=viewModel.ＦＡＸ２ maxlength="15">
+                            <input class="form-control p-1" style="width: 100px;" type="text" v-model=viewModel.ＦＡＸ２ maxlength="15">
                         </div>
                     </div>
                     <div class="row">
@@ -170,35 +170,35 @@
                                 <div class="row">
                                     <div class="col-md-3">
                                         <label class="">郵便番号</label>
-                                        <input class="form-control p-2" style="width: 90px;" type="text" :value=viewModel.お届け先郵便番号>
+                                        <input class="form-control p-2" style="width: 90px;" type="text" v-model=viewModel.お届け先郵便番号>
                                     </div>
                                     <div class="col-md-9">
                                         <label>住所</label>
-                                        <input class="form-control" type="text" :value=viewModel.お届け先住所１>
+                                        <input class="form-control" type="text" v-model=viewModel.お届け先住所１>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-9 offset-md-3">
                                         <label></label>
-                                        <input class="form-control" type="text" :value=viewModel.お届け先住所２>
+                                        <input class="form-control" type="text" v-model=viewModel.お届け先住所２>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-3">
                                         <label class="">電話番号1</label>
-                                        <input class="form-control p-1" style="width: 100px;" type="text" :value=viewModel.お届け先電話番号１>
+                                        <input class="form-control p-1" style="width: 100px;" type="text" v-model=viewModel.お届け先電話番号１>
                                     </div>
                                     <div class="col-md-3">
                                         <label class="">電話番号2</label>
-                                        <input class="form-control p-1" style="width: 100px;" type="text" :value=viewModel.お届け先電話番号２>
+                                        <input class="form-control p-1" style="width: 100px;" type="text" v-model=viewModel.お届け先電話番号２>
                                     </div>
                                     <div class="col-md-3">
                                         <label class="">FAX1</label>
-                                        <input class="form-control p-1" style="width: 100px;" type="text" :value=viewModel.お届け先ＦＡＸ１>
+                                        <input class="form-control p-1" style="width: 100px;" type="text" v-model=viewModel.お届け先ＦＡＸ１>
                                     </div>
                                     <div class="col-md-3">
                                         <label class="">FAX2</label>
-                                        <input class="form-control p-1" style="width: 100px;" type="text" :value=viewModel.お届け先ＦＡＸ２>
+                                        <input class="form-control p-1" style="width: 100px;" type="text" v-model=viewModel.お届け先ＦＡＸ２>
                                     </div>
                                 </div>
                             </fieldset>
@@ -255,11 +255,11 @@
                         </div>
                         <div class="col-md-2">
                             <label style="min-width: 60px;">締日1</label>
-                            <input class="form-control text-right p-2" style="width: 40px;" type="text" :value=viewModel.締日１ maxlength="2">
+                            <input class="form-control text-right p-2" style="width: 40px;" type="text" v-model=viewModel.締日１ maxlength="2">
                         </div>
                         <div class="col-md-2">
                             <label style="min-width: 60px;">締日2</label>
-                            <input class="form-control text-right p-2" style="width: 40px;" type="text" :value=viewModel.締日２ maxlength="2">
+                            <input class="form-control text-right p-2" style="width: 40px;" type="text" v-model=viewModel.締日２ maxlength="2">
                         </div>
                         <div class="col-md-2">
                             <label class="">支払サイト</label>
@@ -275,7 +275,7 @@
                         </div>
                         <div class="col-md-2">
                             <label style="min-width: 60px;">支払日</label>
-                            <input class="form-control text-right p-2" style="width: 40px;" type="text" :value=viewModel.支払日 maxlength="2">
+                            <input class="form-control text-right p-2" style="width: 40px;" type="text" v-model=viewModel.支払日 maxlength="2">
                         </div>
                     </div>
                     <div class="row">
@@ -366,7 +366,7 @@
                         </div>
                         <div class="col-md-3">
                             <label>集金手数料</label>
-                            <input class="form-control text-right" type="text" :value=viewModel.集金手数料 :disabled='viewModel.支払方法１ != "4"'>
+                            <input class="form-control text-right" type="tel" maxlength="5" v-model=viewModel.集金手数料 :disabled='viewModel.支払方法１ != "4"'>
                         </div>
                     </div>
                     <div class="row">
@@ -444,7 +444,7 @@
                                 <div class="row">
                                     <div class="col-md-3">
                                         <label>記号番号</label>
-                                        <input class="form-control p-1" style="min-width: 125px;" type="text" :value=viewModel.記号番号 :disabled='viewModel.支払方法１ != "4"'>
+                                        <input class="form-control p-1" style="min-width: 125px;" type="text" v-model=viewModel.記号番号 :disabled='viewModel.支払方法１ != "4"'>
                                     </div>
                                     <div class="col-md-3">
                                         <label class="">口座種別</label>
@@ -462,11 +462,11 @@
                                     </div>
                                     <div class="col-md-3">
                                         <label>口座番号</label>
-                                        <input class="form-control p-1" style="min-width: 125px;" type="text" :value=viewModel.口座番号 :disabled='viewModel.支払方法１ != "4"'>
+                                        <input class="form-control p-1" style="min-width: 125px;" type="text" v-model=viewModel.口座番号 :disabled='viewModel.支払方法１ != "4"'>
                                     </div>
                                     <div class="col-md-3">
                                         <label class="">口座名義人</label>
-                                        <input class="form-control" type="text" style="font-size: 15px !important;" :value=viewModel.口座名義人 :disabled='viewModel.支払方法１ != "4"'>
+                                        <input class="form-control" type="text" style="font-size: 15px !important;" v-model=viewModel.口座名義人 :disabled='viewModel.支払方法１ != "4"'>
                                     </div>
                                 </div>
                             </fieldset>
@@ -483,13 +483,13 @@
                             <div class="row">
                                 <div class="col-md-3">
                                     <label>チケット枚数</label>
-                                    <input class="form-control text-right p-2" style="width: 60px;" :value=viewModel.チケット枚数
+                                    <input class="form-control text-right p-2" style="width: 60px;" v-model=viewModel.チケット枚数
                                         type="number" step="1" min="0" max="999"
                                     />
                                 </div>
                                 <div class="col-md-3">
                                     <label style="width: 170px;">サービスチケット枚数</label>
-                                    <input class="form-control text-right p-2" style="width: 60px;" :value=viewModel.サービスチケット枚数
+                                    <input class="form-control text-right p-2" style="width: 60px;" v-model=viewModel.サービスチケット枚数
                                         type="number" step="0.5" min="0" max="999"
                                     />
                                 </div>
@@ -748,17 +748,17 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <label style="text-align: center;">顧客メモ</label>
-                                <textarea class="form-control mr-1 p-1 memo" type="text" :value=viewModel.備考１>
+                                <textarea class="form-control mr-1 p-1 memo" type="text" v-model=viewModel.備考１>
                                 </textarea>
                             </div>
                             <div class="col-md-12">
                                 <label style="">発信メモ</label>
-                                <textarea class="form-control mr-1 p-1 memo" type="text" :value=viewModel.備考２>
+                                <textarea class="form-control mr-1 p-1 memo" type="text" v-model=viewModel.備考２>
                                 </textarea>
                             </div>
                             <div class="col-md-12">
                                 <label style="">配送メモ</label>
-                                <textarea class="form-control mr-1 p-1 memo" type="text" :value=viewModel.備考３>
+                                <textarea class="form-control mr-1 p-1 memo" type="text" v-model=viewModel.備考３>
                                 </textarea>
                             </div>
                         </div>
@@ -766,11 +766,11 @@
                     <div class="row">
                         <div class="col-md-2">
                             <label style="min-width: 70px;">誕生日１</label>
-                            <input class="form-control p-2" type="text" :value=viewModel.誕生日１>
+                            <input class="form-control p-2" type="text" v-model=viewModel.誕生日１>
                         </div>
                         <div class="col-md-2">
                             <label style="min-width: 70px;">誕生日２</label>
-                            <input class="form-control p-2" type="text" :value=viewModel.誕生日２>
+                            <input class="form-control p-2" type="text" v-model=viewModel.誕生日２>
                         </div>
                         <div class="col-md-4">
                             <label class="" style="width:120px !important">規定製造パターン</label>
@@ -1052,10 +1052,38 @@ export default {
                         params.金融機関CD = params.金融機関CD || 0;
                         params.金融機関支店CD = params.金融機関支店CD || 0;
 
-                        params.電話確認時間_時 = Number(vue.$refs.DatePicker_TakeoutTime.vmodel.発信時間.slice(0,2));
-                        params.電話確認時間_分 = Number(vue.$refs.DatePicker_TakeoutTime.vmodel.発信時間.slice(3,5));
+                        if(!!vue.$refs.DatePicker_TakeoutTime.vmodel.発信時間){
+                            params.電話確認時間_時 = Number(vue.$refs.DatePicker_TakeoutTime.vmodel.発信時間.slice(0,2));
+                            params.電話確認時間_分 = Number(vue.$refs.DatePicker_TakeoutTime.vmodel.発信時間.slice(3,5));
+                        }
+
+                        //TODO:おためし:保存用データに不要なもの削除
+                        delete params.部署名;
+                        delete params.請求先名;
+                        delete params.受注得意先名;
+                        delete params.承認者名;
+                        delete params.受注方法名称;
+                        delete params.金融機関名;
+                        delete params.金融機関支店名;
+                        delete params.営業担当者名;
+                        delete params.獲得営業者名;
+                        delete params.登録担当者名;
+                        delete params.発信時間;
+
+                        //TODO:保存用日付書式
+                        params.承認日 = !!params.承認日 ? moment(vue.viewModel.承認日,"YYYY-MM-DD").format("YYYY-MM-DD HH:mm:ss.SSS") : "";
+                        params.失客日 = !!params.失客日 ? moment(vue.viewModel.失客日,"YYYY-MM-DD").format("YYYY-MM-DD HH:mm:ss.SSS") : "";
+                        params.新規登録日 = !!params.新規登録日 ? moment(vue.viewModel.新規登録日,"YYYY-MM-DD").format("YYYY-MM-DD HH:mm:ss.SSS") : "";
 
                         //TODO: 登録用controller method call
+                        axios.post("/DAI04041/Save", params)
+                            .then(res => {
+                            })
+                            .catch(err => {
+                                console.log(error);
+                                //TODO: エラー
+                            }
+                        );
                         console.log("登録", params);
                     }
                 },
@@ -1399,7 +1427,7 @@ export default {
             PageDialog.showSelector({
                 dataUrl: "/Utilities/GetCustomerHistoryList",
                 params: {CustomerCd : cds },
-                title: "得意先履歴一覧" + "【" + vue.viewModel.得意先CD + "：" + vue.viewModel.得意先名 + "】",
+                title: "得意先履歴一覧" + "【" + vue.viewModel.得意先ＣＤ + "：" + (!!vue.viewModel.得意先名 ? vue.viewModel.得意先名 : "") + "】",
                 isModal: true,
                 showColumns: vue.showColumns,
                 width: 1000,
