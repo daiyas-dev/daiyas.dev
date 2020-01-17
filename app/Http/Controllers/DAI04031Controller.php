@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\担当者マスタ;
+use App\Models\商品マスタ;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
 use Illuminate\Support\Carbon;
 
-class DAI04021Controller extends Controller
+class DAI04031Controller extends Controller
 {
     /**
      * Save
@@ -17,17 +17,17 @@ class DAI04021Controller extends Controller
     {
         $params = $request->all();
 
-        $model = new 担当者マスタ();
+        $model = new 商品マスタ();
         $model->fill($params);
 
         $data = collect($model)->all();
 
         // トランザクション開始
         DB::transaction(function() use ($params, $data) {
-            $TantoCd = $params['担当者ＣＤ'];
+            $ProductCd = $params['商品ＣＤ'];
 
-            DB::table('担当者マスタ')->updateOrInsert(
-                ['担当者ＣＤ' => $TantoCd],
+            DB::table('商品マスタ')->updateOrInsert(
+                ['商品ＣＤ' => $ProductCd],
                 $data
             );
         });

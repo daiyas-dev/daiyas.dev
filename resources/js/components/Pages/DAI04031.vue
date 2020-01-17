@@ -9,7 +9,7 @@
             <div class="col-md-4">
                 <label>商品ＣＤ</label>
                 <input class="form-control text-right" type="text"
-                    :value=viewModel.商品ＣＤ
+                    v-model=viewModel.商品ＣＤ
                     :readonly=!viewModel.IsNew
                     :tabindex="viewModel.IsNew ? 0 : -1"
                 >
@@ -34,11 +34,11 @@
                         </div>
                         <div class="col-md-12">
                             <label class="">商品名</label>
-                            <input type="text" class="form-control" :value="viewModel.商品名">
+                            <input type="text" class="form-control" v-model="viewModel.商品名">
                         </div>
                         <div class="col-md-12">
                             <label class="">商品略称</label>
-                            <input type="text" class="form-control" style="width:400px" :value="viewModel.商品略称">
+                            <input type="text" class="form-control" style="width:400px" v-model="viewModel.商品略称">
                         </div>
                         <div class="col-md-12">
                             <label class="width:100">商品区分</label>
@@ -54,7 +54,7 @@
                         </div>
                         <div class="col-md-12">
                             <label class="">売価単価</label>
-                            <input class="form-control p-2 text-right" style="width: 90px;" type="text" :value=viewModel.売価単価>
+                            <input class="form-control p-2 text-right" style="width: 90px;" type="text" v-model=viewModel.売価単価>
                         </div>
                         <div class="col-md-12">
                             <label class="width:100">弁当区分</label>
@@ -108,7 +108,7 @@
                         </div>
                         <div class="col-md-12">
                             <label>部数単位</label>
-                            <input class="form-control text-right" style="width:50px" type="text" :value=viewModel.部数単位>
+                            <input class="form-control text-right" style="width:50px" type="text" v-model=viewModel.部数単位>
                         </div>
                         <div class="col-md-12">
                             <label class="width:100">食事区分</label>
@@ -266,34 +266,32 @@ export default {
                 { visible: "true", value: "登録", id: "DAI04031Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         //TODO: 登録
-                        console.log("登録");
-                        return;
+                        if(!vue.viewModel.商品ＣＤ){
+                            $.dialogErr({
+                                title: "登録不可",
+                                contents: "商品CDを入力して下さい",
+                            })
+                            return;
+                        }
+                        var params = _.cloneDeep(vue.viewModel);
 
-                        //var targets = $.extend(true, {}, grid.createSaveParams());
-                        var targets = grid.getCellsByClass({cls: "pq-cell-dirty"})
-                            .map(v => {
-                                return {
-                                    "部署CD": v.rowData["部署CD"],
-                                    "コースＣＤ": v.rowData["コースＣＤ"],
-                                    "商品CD": v.dataIndx,
-                                    "個数": v.rowData[v.dataIndx],
-                                    "対象日付": v.rowData["対象日付"],
-                                };
-                            });
-                        var conditions = $.extend(true, {}, vue.viewModel);
+                        params.修正担当者ＣＤ = params.userId;
+                        params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
 
-                        vue.DAI01020Grid1.saveData(
-                            {
-                                uri: "/DAI01020/Save",
-                                params: { targets: targets },
-                                //optional: { conditions: conditions },
-                                // done: {
-                                //     callback: (gridVue, grid, res) => {
-                                //         vue.DAI01020Grid1.searchData(params);
-                                //     },
-                                // },
+
+                        //TODO:必須入力チェック　項目が多い
+                        //TODO:入力欄なしだが、0をいれている項目あり
+
+                        //TODO: 登録用controller method call
+                        axios.post("/DAI04031/Save", params)
+                            .then(res => {
+                            })
+                            .catch(err => {
+                                console.log(error);
+                                //TODO: エラー
                             }
                         );
+                        console.log("登録", params);
                     }
                 },
             );
