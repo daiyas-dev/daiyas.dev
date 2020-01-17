@@ -444,7 +444,7 @@
                                 <div class="row">
                                     <div class="col-md-3">
                                         <label>記号番号</label>
-                                        <input class="form-control p-1" style="min-width: 125px;" type="text" v-model=viewModel.記号番号 :disabled='viewModel.支払方法１ != "4"'>
+                                        <input class="form-control p-1" style="min-width: 125px;" type="text" maxlength="14" v-model=viewModel.記号番号 :disabled='viewModel.支払方法１ != "4"'>
                                     </div>
                                     <div class="col-md-3">
                                         <label class="">口座種別</label>
@@ -462,7 +462,7 @@
                                     </div>
                                     <div class="col-md-3">
                                         <label>口座番号</label>
-                                        <input class="form-control p-1" style="min-width: 125px;" type="text" v-model=viewModel.口座番号 :disabled='viewModel.支払方法１ != "4"'>
+                                        <input class="form-control p-1" style="min-width: 125px;" type="tel" maxlength="7" v-model=viewModel.口座番号 :disabled='viewModel.支払方法１ != "4"'>
                                     </div>
                                     <div class="col-md-3">
                                         <label class="">口座名義人</label>
@@ -998,7 +998,7 @@ export default {
     },
     methods: {
         createdFunc: function(vue) {
-            if(this.params.IsNew == false){
+            if(this.params.IsNew == false || !this.params.IsNew){
                 axios.post("/Utilities/GetCustomerList", {CustomerCd: vue.viewModel.得意先CD})
                     .then(res => {
                         vue.viewModel = res.data.Data[0];
@@ -1058,22 +1058,24 @@ export default {
                         }
 
                         //TODO:おためし:保存用データに不要なもの削除
-                        delete params.部署名;
-                        delete params.請求先名;
-                        delete params.受注得意先名;
-                        delete params.承認者名;
-                        delete params.受注方法名称;
-                        delete params.金融機関名;
-                        delete params.金融機関支店名;
-                        delete params.営業担当者名;
-                        delete params.獲得営業者名;
-                        delete params.登録担当者名;
-                        delete params.発信時間;
+                        // delete params.部署名;
+                        // delete params.請求先名;
+                        // delete params.受注得意先名;
+                        // delete params.承認者名;
+                        // delete params.受注方法名称;
+                        // delete params.金融機関名;
+                        // delete params.金融機関支店名;
+                        // delete params.営業担当者名;
+                        // delete params.獲得営業者名;
+                        // delete params.登録担当者名;
+                        // delete params.発信時間;
 
                         //TODO:保存用日付書式
                         params.承認日 = !!params.承認日 ? moment(vue.viewModel.承認日,"YYYY-MM-DD").format("YYYY-MM-DD HH:mm:ss.SSS") : "";
-                        params.失客日 = !!params.失客日 ? moment(vue.viewModel.失客日,"YYYY-MM-DD").format("YYYY-MM-DD HH:mm:ss.SSS") : "";
+                        params.失客日 = !!params.失客日 ? moment(vue.viewModel.失客日,"YYYY-MM-DD").format("YYYYMMDD") : "";
                         params.新規登録日 = !!params.新規登録日 ? moment(vue.viewModel.新規登録日,"YYYY-MM-DD").format("YYYY-MM-DD HH:mm:ss.SSS") : "";
+
+                        //TODO:修正日と修正担当者のデータ
 
                         //TODO: 登録用controller method call
                         axios.post("/DAI04041/Save", params)

@@ -457,8 +457,6 @@ export default {
             if (!grid) return;
 
             var params;
-
-            var params;
             if (rowData) {
                 params = _.cloneDeep(rowData);
             } else {

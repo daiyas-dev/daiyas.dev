@@ -177,6 +177,7 @@ export default {
                 { visible: "true", value: "新規登録", id: "DAI04020Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         //TODO: 登録
+                        vue.showNewDetail();
                     }
                 }
             );
@@ -386,8 +387,6 @@ export default {
             if (!grid) return;
 
             var params;
-
-            var params;
             if (rowData) {
                 params = _.cloneDeep(rowData);
             } else {
@@ -404,6 +403,20 @@ export default {
             }
 
             params.IsNew = false;
+
+            //DAI04021を子画面表示
+            PageDialog.show({
+                pgId: "DAI04021",
+                params: params,
+                isModal: true,
+                isChild: true,
+                width: 600,
+                height: 600,
+            });
+        },
+        showNewDetail: function(rowData) {
+
+            var params = { IsNew: true}
 
             //DAI04021を子画面表示
             PageDialog.show({

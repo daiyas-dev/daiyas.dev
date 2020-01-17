@@ -9,7 +9,7 @@
             <div class="col-md-4">
                 <label>担当者ＣＤ</label>
                 <input class="form-control text-right" type="text"
-                    :value=viewModel.担当者ＣＤ
+                    v-model=viewModel.担当者ＣＤ
                     :readonly=!viewModel.IsNew
                     :tabindex="viewModel.IsNew ? 0 : -1"
                 >
@@ -18,37 +18,37 @@
         <div class="row">
             <div class="col-md-8">
                 <label class="">担当者名</label>
-                <input type="text" class="form-control" :value="viewModel.担当者名">
+                <input type="text" class="form-control" v-model="viewModel.担当者名">
             </div>
         </div>
         <div class="row">
             <div class="col-md-8">
                 <label class="">担当者カナ</label>
-                <input type="text" class="form-control" style="font-size: 15px !important;" :value="viewModel.担当者名カナ">
+                <input type="text" class="form-control" style="font-size: 15px !important;" v-model="viewModel.担当者名カナ">
             </div>
         </div>
         <div class="row">
             <div class="col-md-6">
                 <label class="">郵便番号</label>
-                <input class="form-control p-2" style="width: 90px;" type="text" :value=viewModel.郵便番号>
+                <input class="form-control p-2" style="width: 90px;" type="tel" maxlength="8" v-model=viewModel.郵便番号>
             </div>
         </div>
         <div class="row">
             <div class="col-md-12">
-                <label>住所</label>
-                <input class="form-control" type="text" :value=viewModel.住所>
+                <label>住所１</label>
+                <input class="form-control" type="text" v-model=viewModel.住所>
             </div>
         </div>
         <div class="row">
             <div class="col-md-6">
                 <label class="">電話番号</label>
-                <input class="form-control p-1" style="width: 120px;" type="text" :value=viewModel.電話番号>
+                <input class="form-control p-1" style="width: 120px;" type="text" v-model=viewModel.電話番号>
             </div>
         </div>
         <div class="row">
             <div class="col-md-6">
                 <label class="">FAX</label>
-                <input class="form-control p-1" style="width: 120px;" type="text" :value=viewModel.ＦＡＸ>
+                <input class="form-control p-1" style="width: 120px;" type="text" v-model=viewModel.ＦＡＸ>
             </div>
         </div>
         <div class="row">
@@ -70,19 +70,19 @@
         <div class="row">
             <div class="col-md-5">
                 <label>オペレータ</label>
-                <input type="checkbox" class="form-control p-1" style="width: 20px;" v-model="IsChecked">
+                <input type="checkbox" class="form-control p-1" style="width: 20px;" v-model=viewModel.オペレータ>
             </div>
         </div>
         <div class="row">
             <div class="col-md-8">
                 <label class="">ユーザーID</label>
-                <input class="form-control p-2" style="width: 120px;" type="text" :value=viewModel.ユーザーＩＤ>
+                <input class="form-control p-2" style="width: 120px;" type="text" v-model=viewModel.ユーザーＩＤ>
             </div>
         </div>
         <div class="row">
             <div class="col-md-8">
                 <label class="">パスワード</label>
-                <input class="form-control p-2" style="width: 120px;" type="text" :value=viewModel.パスワード>
+                <input class="form-control p-2" style="width: 120px;" type="text" v-model=viewModel.パスワード>
             </div>
         </div>
         <div class="row">
@@ -102,7 +102,7 @@
         <div class="row">
             <div class="col-md-4">
                 <label class="">権限区分</label>
-                <input class="form-control p-2" style="width: 50px;" type="text" :value=viewModel.権限区分>
+                <input class="form-control p-2" style="width: 50px;" type="text" v-model=viewModel.権限区分>
             </div>
         </div>
     </form>
@@ -170,10 +170,6 @@ export default {
         ModeLabel: function() {
             var vue = this;
             return vue.viewModel.IsNew == true ? "新規" : "修正";
-        },
-        IsChecked: function() {
-            var vue = this;
-            return vue.viewModel.オペレータ == 1 ? true : false;
         },
     },
     data() {
@@ -249,34 +245,39 @@ export default {
                     onClick: function () {
                         //TODO: 新規ではない時、所属部署が古いCDの場合どうするか
                         //TODO: 登録
-                        console.log("登録");
-                        return;
 
-                        //var targets = $.extend(true, {}, grid.createSaveParams());
-                        var targets = grid.getCellsByClass({cls: "pq-cell-dirty"})
-                            .map(v => {
-                                return {
-                                    "部署CD": v.rowData["部署CD"],
-                                    "コースＣＤ": v.rowData["コースＣＤ"],
-                                    "商品CD": v.dataIndx,
-                                    "個数": v.rowData[v.dataIndx],
-                                    "対象日付": v.rowData["対象日付"],
-                                };
-                            });
-                        var conditions = $.extend(true, {}, vue.viewModel);
+                        if(!vue.viewModel.担当者ＣＤ){
+                            $.dialogErr({
+                                title: "登録不可",
+                                contents: "担当者CDを入力して下さい",
+                            })
+                            return;
+                        }
+                        if(!vue.viewModel.担当者名 || !vue.viewModel.所属部署ＣＤ){
+                            $.dialogErr({
+                                title: "登録不可",
+                                contents: "担当者名・部署CDを入力して下さい",
+                            })
+                            return;
+                        }
+                        var params = _.cloneDeep(vue.viewModel);
 
-                        vue.DAI01020Grid1.saveData(
-                            {
-                                uri: "/DAI01020/Save",
-                                params: { targets: targets },
-                                //optional: { conditions: conditions },
-                                // done: {
-                                //     callback: (gridVue, grid, res) => {
-                                //         vue.DAI01020Grid1.searchData(params);
-                                //     },
-                                // },
+                        params.修正担当者ＣＤ = params.userId;
+                        params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
+
+                        //チェックボックス
+                        params.オペレータ = params.オペレータ ? 1 : 0;
+
+                        //TODO: 登録用controller method call
+                        axios.post("/DAI04021/Save", params)
+                            .then(res => {
+                            })
+                            .catch(err => {
+                                console.log(error);
+                                //TODO: エラー
                             }
                         );
+                        console.log("登録", params);
                     }
                 },
             );
