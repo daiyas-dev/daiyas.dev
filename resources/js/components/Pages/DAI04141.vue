@@ -1,34 +1,35 @@
 <template>
     <form id="this.$options.name">
         <div class="row">
-            <div class="col-md-1">
+            <div class="col-md-2">
                 <span class="badge badge-primary w-75 ModeLabel">{{ModeLabel}}</span>
             </div>
         </div>
         <div class="row">
-            <div class="col-md-2">
+            <div class="col-md-4">
                 <label>税区分</label>
                 <input class="form-control text-right" type="text"
-                    :value=viewModel.税区分
+                    id="TaxKbn"
+                    v-model=viewModel.税区分
                     :readonly=!viewModel.IsNew
                     :tabindex="viewModel.IsNew ? 0 : -1"
                 >
             </div>
         </div>
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-12">
                 <label class="">消費税名称</label>
-                <input type="text" class="form-control" :value="viewModel.消費税名称">
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-2">
-                <label class="">消費税率</label>
-                <input type="text" class="form-control text-right" style="" :value="viewModel.消費税率">
+                <input type="text" id="TaxName" class="form-control" v-model="viewModel.消費税名称">
             </div>
         </div>
         <div class="row">
             <div class="col-md-4">
+                <label class="">消費税率</label>
+                <input type="text" class="form-control text-right" v-model="viewModel.消費税率">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
                 <label>内外区分</label>
                 <VueSelect
                     id="NaigaiKbn"
@@ -44,12 +45,13 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-12">
                 <label>適用年月</label>
+                <!-- TODO:DatePickerが子画面からはみ出る -->
                 <DatePickerWrapper
                     id="TekiyoDate"
                     ref="DatePicker_Date"
-                    format="YYYY年MM月"
+                    format="YYYY年MM月DD日"
                     dayViewHeaderFormat="YYYY年MM月"
                     :vmodel=viewModel
                     bind="適用年月"
@@ -58,7 +60,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-12">
                 <label class="">現在利用</label>
                 <VueSelect
                     id="RiyoFlg"
@@ -212,48 +214,57 @@ export default {
                         //TODO: 削除
                     }
                 },
-                {visible: "false"},
-                { visible: "true", value: "CSV", id: "DAI04141_Csv", disabled: false, shortcut: "F7",
-                    onClick: function () {
-                        //TODO: CSV
-                    }
-                },
                 { visible: "true", value: "登録", id: "DAI04141Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         //TODO: 登録
-                        console.log("登録");
-                        return;
+                        if(!vue.viewModel.税区分 || !vue.viewModel.消費税名称){
+                            $.dialogErr({
+                                title: "登録不可",
+                                contents: [
+                                    !vue.viewModel.税区分 ? "税区分が入力されていません。<br/>" : "",
+                                    !vue.viewModel.消費税名称 ? "消費税名称が入力されていません。" : ""
+                                ]
+                            })
+                            if(!vue.viewModel.税区分){
+                                $(vue.$el).find("#TaxKbn").addClass("has-error");
+                            }else{
+                                $(vue.$el).find("#TaxKbn").removeClass("has-error");
+                            }
+                            if(!vue.viewModel.消費税名称){
+                                $(vue.$el).find("#TaxName").addClass("has-error");
+                            }else{
+                                $(vue.$el).find("#TaxName").removeClass("has-error");
+                            }
+                            return;
+                        }
 
-                        //var targets = $.extend(true, {}, grid.createSaveParams());
-                        var targets = grid.getCellsByClass({cls: "pq-cell-dirty"})
-                            .map(v => {
-                                return {
-                                    "部署CD": v.rowData["部署CD"],
-                                    "コースＣＤ": v.rowData["コースＣＤ"],
-                                    "商品CD": v.dataIndx,
-                                    "個数": v.rowData[v.dataIndx],
-                                    "対象日付": v.rowData["対象日付"],
-                                };
-                            });
-                        var conditions = $.extend(true, {}, vue.viewModel);
+                        var params = _.cloneDeep(vue.viewModel);
 
-                        vue.DAI01020Grid1.saveData(
-                            {
-                                uri: "/DAI01020/Save",
-                                params: { targets: targets },
-                                //optional: { conditions: conditions },
-                                // done: {
-                                //     callback: (gridVue, grid, res) => {
-                                //         vue.DAI01020Grid1.searchData(params);
-                                //     },
-                                // },
+                        params.消費税名称 = !!params.消費税名称 ? params.消費税名称 : '';
+                        params.消費税率 = !!params.消費税率 ? params.消費税率 : 0;
+                        params.適用年月 = !!params.適用年月 ? moment(vue.viewModel.適用年月,"YYYY-MM-DD").format("YYYY-MM-DD") : "";
+                        params.修正担当者ＣＤ = params.userId;
+                        params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
+
+                        //TODO: 登録用controller method call
+                        axios.post("/DAI04141/Save", params)
+                            .then(res => {
+                                $(vue.$el).find(".has-error").removeClass("has-error");
+                            })
+                            .catch(err => {
+                                console.log(error);
+                                //TODO: エラー
                             }
                         );
+                        console.log("登録", params);
                     }
                 },
             );
         },
         mountedFunc: function(vue) {
+            //適用年月の初期値 -> 当日
+            vue.viewModel.適用年月 = moment();
+
             $(vue.$el).parents("div.body-content").addClass("Scrollable");
         },
     }

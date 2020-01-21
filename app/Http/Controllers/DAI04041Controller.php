@@ -43,7 +43,7 @@ class DAI04041Controller extends Controller
             //     DB::table('得意先マスタ')->update($updateData);
             // }
 
-        });
+        // });
 
 
         return response()->json([
