@@ -212,6 +212,7 @@ export default {
                 { visible: "true", value: "新規登録", id: "DAI04080Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         //TODO: 登録
+                        vue.showNewDetail();
                     }
                 },
                 {visible: "false"},
@@ -538,6 +539,22 @@ export default {
                 ;
 
             return list;
+        },
+        showNewDetail: function(rowData) {
+
+            var params = { IsNew: true}
+
+            //TODO：一覧で表示中の部署ＣＤを渡すか？
+
+            //DAI04081を子画面表示
+            PageDialog.show({
+                pgId: "DAI04081",
+                params: params,
+                isModal: true,
+                isChild: true,
+                width: 550,
+                height: 380,
+            });
         },
     }
 }
