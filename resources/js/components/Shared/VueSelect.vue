@@ -2,7 +2,7 @@
 <template>
     <div :style="_style" class="form-group d-inline-flex align-items-center VueSelect" :data-tip="isExists ? null : '選択可能な一覧がありません'">
         <label v-if="title" class="" :for="_id">{{title}}</label>
-        <select class="form-control" :id="_id" v-model="vmodel[bind]" @change="onChanged"
+        <select class="form-control" :class="id" :id="_id" v-model="vmodel[bind]" @change="onChanged"
             :disabled=disabled
             style="font-size: 15px; padding-top: 2px; padding-left: 2px; padding-bottom: 2px;">
             <option v-show="hasNull" value=""></option>
