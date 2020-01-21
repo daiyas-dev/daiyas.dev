@@ -40,7 +40,7 @@
             <div class="col-md-5">
                 <label>コースＣＤ</label>
                 <input class="form-control text-right" type="text" style="width:80px;"
-                    :value=viewModel.コースＣＤ
+                    v-model=viewModel.コースＣＤ
                     :readonly=false
                     :tabindex="viewModel.IsNew ? 0 : -1"
                 >
@@ -49,7 +49,7 @@
         <div class="row">
             <div class="col-md-11">
                 <label class="">コース名</label>
-                <input class="form-control p-2" type="text" :value=viewModel.コース名>
+                <input class="form-control p-2" type="text" v-model=viewModel.コース名>
             </div>
         </div>
         <div class="row">
@@ -238,34 +238,47 @@ export default {
                 { visible: "true", value: "登録", id: "DAI04081Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         //TODO: 登録
-                        console.log("登録");
-                        return;
 
-                        //var targets = $.extend(true, {}, grid.createSaveParams());
-                        var targets = grid.getCellsByClass({cls: "pq-cell-dirty"})
-                            .map(v => {
-                                return {
-                                    "部署CD": v.rowData["部署CD"],
-                                    "コースＣＤ": v.rowData["コースＣＤ"],
-                                    "商品CD": v.dataIndx,
-                                    "個数": v.rowData[v.dataIndx],
-                                    "対象日付": v.rowData["対象日付"],
-                                };
-                            });
-                        var conditions = $.extend(true, {}, vue.viewModel);
+                        if(!vue.viewModel.コース区分){
+                            $.dialogErr({
+                                title: "登録不可",
+                                contents: "コース区分が未設定です",
+                            })
+                            return;
+                        }
+                        if(!vue.viewModel.コースＣＤ){
+                            $.dialogErr({
+                                title: "登録不可",
+                                contents: "コースCDが未設定です",
+                            })
+                            return;
+                        }
+                        if(!vue.viewModel.コース名){
+                            $.dialogErr({
+                                title: "登録不可",
+                                contents: "コース名が未設定です",
+                            })
+                            return;
+                        }
 
-                        vue.DAI01020Grid1.saveData(
-                            {
-                                uri: "/DAI01020/Save",
-                                params: { targets: targets },
-                                //optional: { conditions: conditions },
-                                // done: {
-                                //     callback: (gridVue, grid, res) => {
-                                //         vue.DAI01020Grid1.searchData(params);
-                                //     },
-                                // },
+                        var params = _.cloneDeep(vue.viewModel);
+
+                        params.修正担当者ＣＤ = params.userId;
+                        params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
+
+                        //TODO:ラジオボタン
+                        //TODO:必須入力項目
+
+                        //TODO: 登録用controller method call
+                        axios.post("/DAI04081/Save", params)
+                            .then(res => {
+                            })
+                            .catch(err => {
+                                console.log(error);
+                                //TODO: エラー
                             }
                         );
+                        console.log("登録", params);
                     }
                 },
             );

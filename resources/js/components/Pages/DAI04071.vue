@@ -14,7 +14,7 @@
             </div>
             <div class="col-md-1">
                 <input class="form-control text-right" type="text"
-                    :value=viewModel.部署CD
+                    v-model=viewModel.部署CD
                     :readonly=!viewModel.IsNew
                     :tabindex="viewModel.IsNew ? 0 : -1"
                 >
@@ -24,13 +24,13 @@
                 <label class="">部署名</label>
             </div>
             <div class="col-md-2">
-                <input type="text" class="form-control" :value="viewModel.部署名">
+                <input type="text" class="form-control" v-model="viewModel.部署名">
             </div>
             <div class="col-md-1">
                 <label class="">部署名カナ</label>
             </div>
             <div class="col-md-2">
-                <input type="text" class="form-control" style="font-size: 15px !important;" :value="viewModel.部署名カナ">
+                <input type="text" class="form-control" style="font-size: 15px !important;" v-model="viewModel.部署名カナ">
             </div>
         </div>
         <div class="row">
@@ -38,7 +38,7 @@
                 <label class="">会社名称</label>
             </div>
             <div class="col-md-8">
-                <input type="text" class="form-control" :value="viewModel.会社名称">
+                <input type="text" class="form-control" v-model="viewModel.会社名称">
             </div>
         </div>
         <div class="row">
@@ -46,13 +46,13 @@
                 <label class="">郵便番号</label>
             </div>
             <div class="col-md-2">
-                <input class="form-control p-2" style="width: 90px;" type="text" :value=viewModel.郵便番号>
+                <input class="form-control p-2" style="width: 90px;" type="text" v-model=viewModel.郵便番号>
             </div>
             <div class="col-md-1">
                 <label>住所</label>
             </div>
             <div class="col-md-7">
-                <input class="form-control" type="text" :value=viewModel.住所>
+                <input class="form-control" type="text" v-model=viewModel.住所>
             </div>
         </div>
         <div class="row">
@@ -60,13 +60,13 @@
                 <label class="">電話番号</label>
             </div>
             <div class="col-md-2">
-                <input class="form-control p-1" style="width: 120px;" type="text" :value=viewModel.電話番号>
+                <input class="form-control p-1" style="width: 120px;" type="text" v-model=viewModel.電話番号>
             </div>
             <div class="col-md-1">
                 <label class="">FAX</label>
             </div>
             <div class="col-md-1">
-                <input class="form-control p-1" style="width: 120px;" type="text" :value=viewModel.FAX>
+                <input class="form-control p-1" style="width: 120px;" type="text" v-model=viewModel.FAX>
             </div>
         </div>
         <div class="row">
@@ -155,12 +155,12 @@
                         </div>
                         <div class="col-md-3">
                             <label>口座番号</label>
-                            <input class="form-control p-1" style="min-width: 125px;" type="text" :value=viewModel.口座番号1>
+                            <input class="form-control p-1" style="min-width: 125px;" type="text" v-model=viewModel.口座番号1>
                         </div>
                         <div class="col-md-1" />
                         <div class="col-md-5">
                             <label class="">口座名義人</label>
-                            <input class="form-control" type="text" style="font-size: 15px !important;" :value=viewModel.口座名義人1>
+                            <input class="form-control" type="text" style="font-size: 15px !important;" v-model=viewModel.口座名義人1>
                         </div>
                     </div>
                 </fieldset>
@@ -252,12 +252,12 @@
                         </div>
                         <div class="col-md-3">
                             <label>口座番号</label>
-                            <input class="form-control p-1" style="min-width: 125px;" type="text" :value=viewModel.口座番号2>
+                            <input class="form-control p-1" style="min-width: 125px;" type="text" v-model=viewModel.口座番号2>
                         </div>
                         <div class="col-md-1" />
                         <div class="col-md-5">
                             <label class="">口座名義人</label>
-                            <input class="form-control" type="text" style="font-size: 15px !important;" :value=viewModel.口座名義人2>
+                            <input class="form-control" type="text" style="font-size: 15px !important;" v-model=viewModel.口座名義人2>
                         </div>
                     </div>
                 </fieldset>
@@ -340,7 +340,7 @@
                     <div class="row">
                         <div class="col-md-12">
                             <label>メッセージ</label>
-                            <input class="form-control p-1" style="min-width: 125px;" type="text" :value=viewModel.モバイル_メッセージ>
+                            <input class="form-control p-1" style="min-width: 125px;" type="text" v-model=viewModel.モバイル_メッセージ>
                         </div>
                     </div>
                 </fieldset>
@@ -576,6 +576,21 @@ export default {
                 {visible: "false"},
                 { visible: "true", value: "登録", id: "DAI04071Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
+                        if(!vue.viewModel.部署CD){
+                            $.dialogErr({
+                                title: "登録不可",
+                                contents: "部署CDを入力して下さい",
+                            })
+                            return;
+                        }
+                        if(!vue.viewModel.部署名){
+                            $.dialogErr({
+                                title: "登録不可",
+                                contents: "部署名を入力して下さい",
+                            })
+                            return;
+                        }
+
                         var params = _.cloneDeep(vue.viewModel);
 
                         //金融機関CD、金融機関支店CD: nullの0置換
@@ -584,7 +599,18 @@ export default {
                         params.金融機関支店CD1 = params.金融機関支店CD1 || 0;
                         params.金融機関支店CD2 = params.金融機関支店CD2 || 0;
 
+                        params.修正担当者ＣＤ = params.userId;
+                        params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
+
                         //TODO: 登録用controller method call
+                        axios.post("/DAI04071/Save", params)
+                            .then(res => {
+                            })
+                            .catch(err => {
+                                console.log(error);
+                                //TODO: エラー
+                            }
+                        );
                         console.log("登録", params);
                     }
                 },
