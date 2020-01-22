@@ -10,7 +10,7 @@
                 <label>銀行ＣＤ</label>
                 <input class="form-control text-right" type="text"
                     id="BankCd"
-                    :value=viewModel.銀行CD
+                    v-model=viewModel.銀行CD
                     :readonly=!viewModel.IsNew
                     :tabindex="viewModel.IsNew ? 0 : -1"
                 >
@@ -19,7 +19,7 @@
         <div class="row">
             <div class="col-md-12">
                 <label class="">銀行名</label>
-                <input type="text" class="form-control" :value="viewModel.銀行名">
+                <input type="text" class="form-control" v-model="viewModel.銀行名">
             </div>
         </div>
         <div class="row">
@@ -220,6 +220,27 @@ export default {
                             $(vue.$el).find("#BankCd").addClass("has-error");
                             return;
                         }
+                        //TODO:下記作業途中
+                        if(!vue.viewModel.銀行CD || !vue.viewModel.銀行名){
+                            $.dialogErr({
+                                title: "登録不可",
+                                contents: [
+                                    !vue.viewModel.銀行CD ? "銀行CDが入力されていません。<br/>" : "",
+                                    !vue.viewModel.銀行名 ? "銀行名が入力されていません。" : ""
+                                ]
+                            })
+                            if(!vue.viewModel.銀行CD){
+                                $(vue.$el).find("#BankCd").addClass("has-error");
+                            }else{
+                                $(vue.$el).find("#BankCd").removeClass("has-error");
+                            }
+                            if(!vue.viewModel.銀行名){
+                                $(vue.$el).find("#TaxName").addClass("has-error");
+                            }else{
+                                $(vue.$el).find("#TaxName").removeClass("has-error");
+                            }
+                            return;
+                        }
 
                         var params = _.cloneDeep(vue.viewModel);
 
@@ -227,12 +248,13 @@ export default {
                         params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
 
                         //チェックボックス
-                        params.郵便フラグ = params.郵便フラグ ? 1 : 0;
-                        // params.無効フラグ = params.無効フラグ ? 1 : 0;
+                        params.郵便フラグ = !!params.郵便フラグ ? params.郵便フラグ : 0;
+                        // params.無効フラグ = !!params.無効フラグ ? params.無効フラグ : 0;
 
                         //TODO: 登録用controller method call
                         axios.post("/DAI04191/Save", params)
                             .then(res => {
+                                $(vue.$el).find(".has-error").removeClass("has-error");
                             })
                             .catch(err => {
                                 console.log(error);

@@ -6,13 +6,14 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-5">
                 <label>税区分</label>
                 <input class="form-control text-right" type="text"
                     id="TaxKbn"
                     v-model=viewModel.税区分
                     :readonly=!viewModel.IsNew
                     :tabindex="viewModel.IsNew ? 0 : -1"
+                    @change="onTaxKbnChanged"
                 >
             </div>
         </div>
@@ -23,7 +24,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-5">
                 <label class="">消費税率</label>
                 <input type="text" class="form-control text-right" v-model="viewModel.消費税率">
             </div>
@@ -134,6 +135,7 @@ textarea {
 
 <script>
 import PageBaseMixin from "@vcs/PageBaseMixin.vue";
+import DAI04140Vue from './DAI04140.vue';
 
 export default {
     mixins: [PageBaseMixin],
@@ -207,22 +209,60 @@ export default {
                 { visible: "true", value: "クリア", id: "DAI04141_Clear", disabled: false, shortcut: "F2",
                     onClick: function () {
                         //TODO: クリア
+                        vue.clearFunc();
                     }
                 },
                 { visible: "true", value: "削除", id: "DAI04141_Delete", disabled: false, shortcut: "F3",
                     onClick: function () {
                         //TODO: 削除
+                        var cd = vue.viewModel.税区分;
+                        if(!cd) return;
+
+                        var params = {TaxCd: cd};
+                        params.noCache = true;
+
+                        $.dialogConfirm({
+                            title: "マスタ削除確認",
+                            contents: "マスタを削除します。",
+                            buttons:[
+                                {
+                                    text: "はい",
+                                    class: "btn btn-primary",
+                                    click: function(){
+                                        axios.post("/DAI04141/Delete", params)
+                                            .then(res => {
+                                                DAI04140.conditionChanged();
+                                                $(this).dialog("close");
+                                                vue.clearFunc();
+                                            })
+                                            .catch(err => {
+                                                console.log(error);
+                                                //TODO: エラー
+                                            }
+                                        );
+                                    }
+                                },
+                                {
+                                    text: "いいえ",
+                                    class: "btn btn-danger",
+                                    click: function(){
+                                        $(this).dialog("close");
+                                    }
+                                },
+                            ],
+                        });
                     }
                 },
                 { visible: "true", value: "登録", id: "DAI04141Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         //TODO: 登録
-                        if(!vue.viewModel.税区分 || !vue.viewModel.消費税名称){
+                        if(!vue.viewModel.税区分 || !vue.viewModel.消費税名称 || !vue.viewModel.適用年月){
                             $.dialogErr({
                                 title: "登録不可",
                                 contents: [
                                     !vue.viewModel.税区分 ? "税区分が入力されていません。<br/>" : "",
-                                    !vue.viewModel.消費税名称 ? "消費税名称が入力されていません。" : ""
+                                    !vue.viewModel.消費税名称 ? "消費税名称が入力されていません。<br/>" : "",
+                                    !vue.viewModel.適用年月 ? "適用年月が入力されていません。" : ""
                                 ]
                             })
                             if(!vue.viewModel.税区分){
@@ -235,6 +275,11 @@ export default {
                             }else{
                                 $(vue.$el).find("#TaxName").removeClass("has-error");
                             }
+                            if(!vue.viewModel.適用年月){
+                                $(vue.$el).find(".TekiyoDate").addClass("has-error");
+                            }else{
+                                $(vue.$el).find(".TekiyoDate").removeClass("has-error");
+                            }
                             return;
                         }
 
@@ -246,10 +291,13 @@ export default {
                         params.修正担当者ＣＤ = params.userId;
                         params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
 
+                        $(vue.$el).find(".has-error").removeClass("has-error");
+
                         //TODO: 登録用controller method call
                         axios.post("/DAI04141/Save", params)
                             .then(res => {
-                                $(vue.$el).find(".has-error").removeClass("has-error");
+                                vue.viewModel = res.data.model;
+                                DAI04140.conditionChanged();
                             })
                             .catch(err => {
                                 console.log(error);
@@ -260,12 +308,69 @@ export default {
                     }
                 },
             );
+
+            //適用年月の初期値 -> 当日
+            vue.viewModel.適用年月 = !!vue.params.適用年月 ? vue.params.適用年月 : moment().format("YYYY-MM-DD HH:mm:ss.SSS");
         },
         mountedFunc: function(vue) {
-            //適用年月の初期値 -> 当日
-            vue.viewModel.適用年月 = moment();
 
             $(vue.$el).parents("div.body-content").addClass("Scrollable");
+        },
+        onTaxKbnChanged: function(code, entities) {
+            var vue = this;
+            vue.searchByTaxKbn();
+         },
+        searchByTaxKbn: function() {
+            var vue = this;
+            var cd = vue.viewModel.税区分;
+            if (!cd) return;
+
+            var params = {TaxCd: cd};
+            axios.post("/DAI04141/GetTaxListForDetail", params)
+                .then(res => {
+                    if (res.data.length == 1) {
+                        $.dialogConfirm({
+                            title: "マスタ編集確認",
+                            contents: "マスタを編集しますか？",
+                            buttons:[
+                                {
+                                    text: "はい",
+                                    class: "btn btn-primary",
+                                    click: function(){
+                                        vue.viewModel = res.data[0];
+                                        $(this).dialog("close");
+                                    }
+                                },
+                                {
+                                    text: "いいえ",
+                                    class: "btn btn-danger",
+                                    click: function(){
+                                        vue.viewModel.税区分 = "";
+                                        $(this).dialog("close");
+                                    }
+                                },
+                            ],
+                        });
+                        $("[shortcut='F3']").prop("disabled", false);
+                    }else{
+                        //TODO:削除ボタン
+                        $("[shortcut='F3']").prop("disabled", true);
+                        return;
+                    }
+                })
+                .catch(err => {
+                    console.log(err);
+                    //TODO: エラー
+                }
+            )
+        },
+        clearFunc: function(){
+            var vue = this;
+
+            _.keys(DAI04141.viewModel).forEach(k => DAI04141.viewModel[k] = null);
+            vue.viewModel.適用年月 = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
+            vue.viewModel.IsNew = true;
+
         },
     }
 }

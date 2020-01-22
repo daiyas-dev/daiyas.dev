@@ -32,9 +32,51 @@ class DAI04141Controller extends Controller
             );
         });
 
+        $savedData = array_merge(['税区分' => $params['税区分']], $data);
+
+        return response()->json([
+            'result' => true,
+            'model' => $savedData,
+        ]);
+    }
+
+    /**
+     * Delete
+     */
+    public function Delete($request)
+    {
+        $TaxCd = $request->TaxCd;
+
+        // トランザクション開始
+        DB::transaction(function() use ($TaxCd) {
+
+            DB::table('消費税率マスタ')->where('税区分', '=', $TaxCd)->delete();
+
+        });
+
+
         return response()->json([
             'result' => true,
         ]);
+    }
+
+    /**
+     * GetTaxListForDetail
+     */
+    public function GetTaxListForDetail($request)
+    {
+        $TaxCd = $request->TaxCd;
+        $query = 消費税率マスタ::query()
+            ->when(
+                $TaxCd,
+                function($q) use ($TaxCd){
+                    return $q->where('税区分', $TaxCd);
+                }
+            );
+
+        $TaxList = $query->get();
+
+        return response()->json($TaxList);
     }
 
 }

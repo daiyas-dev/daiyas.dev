@@ -34,6 +34,7 @@ class DAI04021Controller extends Controller
 
         return response()->json([
             'result' => true,
+            'model' => $data,
         ]);
     }
 
