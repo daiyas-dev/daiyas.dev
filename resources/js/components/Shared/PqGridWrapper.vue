@@ -212,6 +212,7 @@ export default {
             hrap: false,
             rowHt: 33,
             rowHtSum: 33,
+            printOptions: {},
             animModel: {
                 on: true
             },
@@ -2652,15 +2653,9 @@ export default {
 
                 var colWidthSum = _.sumBy(grid.options.colModel.filter(c => !c.hidden), c => c.minWidth || c.width);
 
-                var paperWidthSet = {
-                    A4: { portrait: 595, landscape: 847 },
-                    A3: { portrait: 842, landscape: 1191 },
-                };
-                var printWidth = paperWidthSet[grid.options.printSize || "A4"][grid.options.printDirection || "portrait"] + 150;  //with margin
-
                 var printOptions = {
-                    printable: grid.options.printable || json,
-                    type: grid.options.printType || "json",
+                    type: grid.options.printOptions.printType || "json",
+                    printable: grid.options.printOptions.printable || json,
                     properties: grid.options.colModel
                                     .filter(c => !c.hidden)
                                     .map(c => {
@@ -2675,7 +2670,6 @@ export default {
                                 table-layout: fixed;
                                 margin-left: 0px !important;
                                 margin-right: 0px !important;
-                                //width: ${printWidth}px !important;
                                 width: 100% !important;
                             }
                             th, td {
@@ -2698,16 +2692,16 @@ export default {
                             `,
                 };
 
-                if (grid.options.printHeader) printOptions.header = grid.options.printHeader;
-                if (grid.options.printHeaderStyle) printOptions.headerStyle = grid.options.printHeaderStyle;
-                if (grid.options.printGridHeaderStyle) printOptions.gridHeaderStyle = grid.options.printGridHeaderStyle;
-                if (grid.options.printGridStyle) {
-                    printOptions.gridStyle = grid.options.printGridStyle;
+                if (grid.options.printOptions.printHeader) printOptions.header = grid.options.printOptions.printHeader;
+                if (grid.options.printOptions.printHeaderStyle) printOptions.headerStyle = grid.options.printOptions.printHeaderStyle;
+                if (grid.options.printOptions.printGridHeaderStyle) printOptions.gridHeaderStyle = grid.options.printOptions.printGridHeaderStyle;
+                if (grid.options.printOptions.printGridStyle) {
+                    printOptions.gridStyle = grid.options.printOptions.printGridStyle;
                 } else {
                     printOptions.gridStyle = 'border: 1px solid black;';
                 }
-                if (grid.options.printStyles) {
-                    printOptions.style += grid.options.printStyles;
+                if (grid.options.printOptions.printStyles) {
+                    printOptions.style += grid.options.printOptions.printStyles;
                 }
 
                 printJS(printOptions);

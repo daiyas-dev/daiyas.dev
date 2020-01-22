@@ -66,6 +66,7 @@ export default {
                 if (info.isLogOn && (!vue.ready || vue._vmodel[vue._bind] != info.user.bushoCd)) {
                     vue.ready = info.isLogOn;
                     vue._vmodel[vue._bind] = info.user.bushoCd;
+                    vue._vmodel[vue._buddy] = info.user.bushoNm;
                     if (vue.onChangedFunc) {
                         vue.onChangedFunc(info.user.bushoCd)
                     }
@@ -84,6 +85,7 @@ export default {
             vue.ready = true;
             if (vue._vmodel[vue._bind] != window.loginInfo.bushoCd) {
                 vue._vmodel[vue._bind] = window.loginInfo.bushoCd;
+                vue._vmodel[vue._buddy] = window.loginInfo.bushoNm;
                 if (vue.onChangedFunc) {
                 vue.onChangedFunc(window.loginInfo.bushoCd)
                 }

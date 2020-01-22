@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script>
+    window.$ = window.jQuery = require("jquery");
+    const ipcRenderer = require("electron").ipcRenderer;
+
+
+    ipcRenderer.on("Print_Set", (event, content) => {
+        document.body.innerHTML = content;
+        ipcRenderer.send("Print_Ready");
+    });
+</script>
+</head>
+<body>
+</body>
+</html>

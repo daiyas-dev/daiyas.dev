@@ -24,7 +24,7 @@ window.Decimal = Decimal;
 import Algebra from "algebra.js";
 window.Algebra = Algebra;
 
-import printJS from "print-js";
+import printJS from "./print.js";
 window.printJS = printJS;
 
 window.Dropzone = require("dropzone");

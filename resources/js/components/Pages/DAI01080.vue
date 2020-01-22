@@ -162,13 +162,6 @@ export default {
                         fixed: true,
                     },
                 ],
-                printSize: "A4",    //TODO: deprecated
-                printDirection: "portrait", //"landscape"   //TODO: deprecated
-                printHeader: null,
-                printHeaderStyle: null,
-                printGridHeaderStyle: null,
-                printGridStyle: null,
-                printStyles: null,
             },
         });
 
@@ -208,7 +201,7 @@ export default {
             var vue = this;
 
             //PqGrid Print options
-            grid.options.printHeader =
+            grid.options.printOptions.printHeader =
                 `
                     <style>
                         .header-table {
@@ -269,7 +262,7 @@ export default {
                         </thead>
                     </table>
                 `;
-            grid.options.printStyles =
+            grid.options.printOptions.printStyles =
                 `
                     tr td:nth-child(1) {
                         font-size: 9pt;

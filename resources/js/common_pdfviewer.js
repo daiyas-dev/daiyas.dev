@@ -136,36 +136,36 @@ var showPdfViewer = function (url, params, filename, options, opened_callback, c
 $.extend({ "showPdfViewer": showPdfViewer });
 
 //print.jsでの直接印刷(chrome & safari => Working, IE, Edge => Not Working)
-var printPdf = function (url, params, filename, options, opened_callback, closed_callback) {
-    //実行中ダイアログ
-    var printingDlg;
+// var printPdf = function (url, params, filename, options, opened_callback, closed_callback) {
+//     //実行中ダイアログ
+//     var printingDlg;
 
-    printJS({
-        printable: url + (params ? "?" + $.param(params) : ""),
-        showModal: false,
-        onLoadingStart: () => {
-            //実行中ダイアログ
-            printingDlg = $.dialogProgress({
-                contents: "<i class='fa fa-spinner fa-spin' style='font-size: 24px; margin-right: 5px;'></i> 印刷準備中…",
-            });
-        },
-        onLoadingEnd: () => {
-            printingDlg.dialog("close");
-        },
-        onError: error => {
-            printingDlg.dialog("close");
+//     printJS({
+//         printable: url + (params ? "?" + $.param(params) : ""),
+//         showModal: false,
+//         onLoadingStart: () => {
+//             //実行中ダイアログ
+//             printingDlg = $.dialogProgress({
+//                 contents: "<i class='fa fa-spinner fa-spin' style='font-size: 24px; margin-right: 5px;'></i> 印刷準備中…",
+//             });
+//         },
+//         onLoadingEnd: () => {
+//             printingDlg.dialog("close");
+//         },
+//         onError: error => {
+//             printingDlg.dialog("close");
 
-            //失敗ダイアログ
-            $.dialogErr({
-                title: "印刷準備失敗",
-                contents: "印刷準備に失敗しました" + "<br/>" + error.message,
-            });
-        },
-    });
-};
+//             //失敗ダイアログ
+//             $.dialogErr({
+//                 title: "印刷準備失敗",
+//                 contents: "印刷準備に失敗しました" + "<br/>" + error.message,
+//             });
+//         },
+//     });
+// };
 
-//jQueryのfunctionとして追加
-$.extend({ "printPdf": printPdf });
+// //jQueryのfunctionとして追加
+// $.extend({ "printPdf": printPdf });
 
 //複数PDF結合表示
 var showPdfViewerWithMerge = function(reports, params) {
@@ -211,7 +211,7 @@ var showPdfViewerWithMerge = function(reports, params) {
 
             //表示用iframe
             var preview = $("<iframe>")
-                .attr("src", "/Scripts/pdfjs-1.10.100-dist/web/viewer.html" + "?file=" + objectUrl + "#zoom=page-width")
+                .attr("src", "/js/pdfjs-2.1.266-dist/web/viewer.html" + "?file=" + objectUrl + "#zoom=page-width")
                 .css("width", "100%")
                 .css("height", "60vh")
                 ;
@@ -281,7 +281,7 @@ var showPdfViewerByContents = function(contents) {
 
     //表示用iframe
     var preview = $("<iframe>")
-        .attr("src", "/Scripts/pdfjs-1.10.100-dist/web/viewer.html" + "?file=" + objectUrl + "#zoom=page-width")
+        .attr("src", "/js/pdfjs-2.1.266-dist/web/viewer.html" + "?file=" + objectUrl + "#zoom=page-width")
         .css("width", "100%")
         .css("height", "60vh")
         ;
@@ -313,7 +313,8 @@ var showPdfViewerByContents = function(contents) {
             buttons:[
                 {
                     text: "閉じる",
-                    click: function(){
+                    click: function () {
+                        URL.revokeObjectURL(objectUrl);
                         $(this).dialog("close");
                     }
                 },
@@ -330,7 +331,7 @@ $.extend({ "showPdfViewerByContents": showPdfViewerByContents });
 //画面のハードコピーをPDF化
 import html2canvas from "html2canvas";
 import jspdf from "jspdf";
-import printJS from "print-js";
+// import printJS from "print-js";
 
 var getScreenPdf = function(target) {
 

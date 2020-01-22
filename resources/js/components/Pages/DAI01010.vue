@@ -71,7 +71,9 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-1 offset-md-3">
+            <div class="col-md-3">
+            </div>
+            <div class="col-md-1">
                 <label>コース終了</label>
             </div>
             <div class="col-md-5">
@@ -220,13 +222,6 @@ export default {
                         },
                     },
                 ],
-                printSize: "A4",    //TODO: deprecated
-                printDirection: "portrait", //"landscape"   //TODO: deprecated
-                printHeader: null,
-                printHeaderStyle: null,
-                printGridHeaderStyle: null,
-                printGridStyle: null,
-                printStyles: null,
             },
         });
     },
@@ -241,8 +236,6 @@ export default {
                 { visible: "true", value: "印刷", id: "DAI01020Grid1_Printout", disabled: false, shortcut: "F6",
                     onClick: function () {
                         vue.DAI01010Grid1.print(vue.setPrintOptions);
-                        //TODO: 検索 + 印刷とするか？
-                        //vue.conditionChanged(() => vue.DAI01010Grid1.print(vue.setPrintOptions));
                     }
                 }
             );
@@ -250,81 +243,6 @@ export default {
         mountedFunc: function(vue) {
             //配送日付の初期値 -> 当日
             vue.viewModel.DeliveryDate = moment();
-        },
-        setPrintOptions: function(grid) {
-            var vue = this;
-
-            //PqGrid Print options
-            grid.options.printHeader =
-                `
-                    <style>
-                        .header-table {
-
-                        }
-                        .header-table th {
-                            font-family: "MS UI Gothic";
-                            font-size: 10pt;
-                            font-weight: normal !important;
-                            border: solid 1px black !important;
-                            white-space: nowrap;
-                            overflow: hidden;
-                            margin: 0px;
-                            padding-left: 3px;
-                            padding-right: 3px;
-                        }
-                        .header-table tr:last-child th{
-                            border-bottom-width: 0px !important;
-                        }
-                    </style>
-                    <h3 style="text-align: center; margin: 0px; margin-bottom: 10px;">* * 持ち出し数一覧表 * *</h3>
-                    <table style="border-collapse: collapse; width: 100%;" class="header-table">
-                        <colgroup>
-                                <col style="width:4.58%;"></col>
-                                <col style="width:4.60%;"></col>
-                                <col style="width:9.00%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                        </colgroup>
-                        <thead>
-                            <tr>
-                                <th>日付</th>
-                                <th colspan="5">${moment().format("YYYY年MM月DD日 dddd")}</th>
-                            </tr>
-                            <tr>
-                                <th>部署</th>
-                                <th>${vue.viewModel.BushoCd}</th>
-                                <th colspan="4">${vue.viewModel.BushoNm}</th>
-                                <th colspan="6" style="border-top-width: 0px !important;"></th>
-                                <th colspan="2">作成日</th>
-                                <th colspan="2">${moment().format("YYYY/MM/DD")}</th>
-                                <th>PAGE</th>
-                                <th>1</th>
-                            </tr>
-                        </thead>
-                    </table>
-                `;
-            grid.options.printStyles =
-                `
-                    tr td:nth-child(1) {
-                        font-size: 9pt;
-                    }
-                    tr td:nth-child(n+2) {
-                        text-align: right;
-                    }
-                `;
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
@@ -356,33 +274,24 @@ export default {
             //フィルタ変更ハンドラ
             vue.filterChanged();
         },
-        conditionChanged: _.debounce(function(callback) {
+        conditionChanged: function(callback) {
             var vue = this;
             var grid = vue.DAI01010Grid1;
 
-            //PqGrid読込待ち
-            new Promise((resolve, reject) => {
-                var timer = setInterval(function () {
-                    grid = vue.DAI01010Grid1;
-                    if (!!grid && vue.getLoginInfo().isLogOn) {
-                        clearInterval(timer);
-                        return resolve(grid);
-                    }
-                }, 500);
-            })
-            .then((grid) => {
-                var params = $.extend(true, {}, vue.viewModel);
+            if (!grid || !vue.getLoginInfo().isLogOn) return;
+            if (!vue.viewModel.BushoCd || !vue.viewModel.DeliveryDate || !vue.viewModel.CourseKbn) return;
 
-                //配送日を"YYYYMMDD"形式に編集
-                params.DeliveryDate = params.DeliveryDate ? moment(params.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
+            var params = $.extend(true, {}, vue.viewModel);
 
-                //コース開始/終了はフィルタするので除外
-                delete params.CourseStart;
-                delete params.CourseEnd;
+            //配送日を"YYYYMMDD"形式に編集
+            params.DeliveryDate = params.DeliveryDate ? moment(params.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
 
-                grid.searchData(params, false, null, callback);
-            });
-        }, 300),
+            //コース開始/終了はフィルタするので除外
+            delete params.CourseStart;
+            delete params.CourseEnd;
+
+            grid.searchData(params, false, null, callback);
+        },
         filterChanged: function() {
             var vue = this;
             var grid = vue.DAI01010Grid1;
@@ -517,6 +426,152 @@ export default {
                 ;
 
             return list;
+        },
+        setPrintOptions: function(grid) {
+            var vue = this;
+
+            //PqGrid Print options
+            grid.options.printOptions.printType = "raw-html";
+            grid.options.printOptions.printStyles = "@media print { @page { size: A4; } }";
+
+            var table = $($(grid.exportData({ format: "htm", render: true }))[3]);
+            var tableHeaders = table.find("tr").filter((i, v) => !!$(v).find("th").length);
+            var tableBodies = table.find("tr").filter((i, v) => !!$(v).find("td").length);
+
+            //optional: generate contents for multipages
+            var contents = [];
+            var maxRowsPerPage = 35;
+            _(tableBodies)
+                .groupBy(v => $(v).find("td:first").text())
+                .values()
+                .reduce((a, v, i, o) => {
+                    if (!_.isEmpty(a) && a.find(".data-table tr").length + v.length > maxRowsPerPage) {
+                        var page = _.cloneDeep(a);
+                        page.find("tr:last td").css("border-bottom-width", "1px");
+                        contents.push(page);
+                        a = {};
+                    }
+
+                    if (_.isEmpty(a)) {
+                        var pageHeader = `
+                                            <div class="title">
+                                                <h3>* * 持ち出し数一覧表 * *</h3>
+                                            </div>
+                                            <table class="header-table">
+                                                <colgroup>
+                                                        <col style="width:5.0%;"></col>
+                                                        <col style="width:5.0%;"></col>
+                                                        <col style="width:7.5%;"></col>
+                                                        <col style="width:5.5%;"></col>
+                                                        <col style="width:5.5%;"></col>
+                                                        <col style="width:5.5%;"></col>
+                                                        <col style="width:5.5%;"></col>
+                                                        <col style="width:5.5%;"></col>
+                                                        <col style="width:5.5%;"></col>
+                                                        <col style="width:5.5%;"></col>
+                                                        <col style="width:5.5%;"></col>
+                                                        <col style="width:5.5%;"></col>
+                                                        <col style="width:5.5%;"></col>
+                                                        <col style="width:5.5%;"></col>
+                                                        <col style="width:5.5%;"></col>
+                                                        <col style="width:5.5%;"></col>
+                                                        <col style="width:5.5%;"></col>
+                                                        <col style="width:5.5%;"></col>
+                                                </colgroup>
+                                                <thead>
+                                                    <tr>
+                                                        <th>日付</th>
+                                                        <th colspan="5">${moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYY年MM月DD日 dddd")}</th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>部署</th>
+                                                        <th>${vue.viewModel.BushoCd}</th>
+                                                        <th colspan="4">${vue.viewModel.BushoNm}</th>
+                                                        <th colspan="6" style="border-top-width: 0px !important;"></th>
+                                                        <th colspan="2">作成日</th>
+                                                        <th colspan="2">${moment().format("YYYY/MM/DD")}</th>
+                                                        <th>PAGE</th>
+                                                        <th>${contents.length + 1}</th>
+                                                    </tr>
+                                                </thead>
+                                            </table>
+                                        `;
+
+                        a = $("<div>").css("page-break-before", "always")
+                            .append(pageHeader)
+                            .append($("<table>").addClass("data-table").append(tableHeaders.prop("outerHTML")));
+                    }
+
+                    a.find(".data-table").append(v);
+
+                    if (_.last(o) == v) {
+                        var page = _.cloneDeep(a);
+                        page.find("tr:last td").css("border-bottom-width", "1px");
+                        contents.push(page);
+                    }
+
+                    return a;
+                }, {});
+
+            var styles =  `
+                                <style>
+                                    .grid-contents .title {
+                                        width: 100%;
+                                        display: inline-flex;
+                                        justify-content: center;
+                                        margin-bottom: 10px;
+                                    }
+                                    .grid-contents .title h3 {
+                                        text-align: center;
+                                        border: solid 1px black;
+                                        border-radius: 4px;
+                                        background-color: grey;
+                                        margin: 0px;
+                                        padding-left: 30px;
+                                        padding-right: 30px;
+                                    }
+                                    .grid-contents table {
+                                        width: 100%;
+                                        border-collapse:collapse;
+                                    }
+                                    .grid-contents .header-table tr th {
+                                        border-bottom: 0px;
+                                    }
+                                    .grid-contents tr th,
+                                    .grid-contents tr td
+                                    {
+                                        font-family: "MS UI Gothic" !important;
+                                        font-weight: normal !important;
+                                        line-height: normal !important;
+                                        border: solid 1px black;
+                                        margin: 0px;
+                                        padding: 0px;
+                                        padding-top: 1px;
+                                        padding-bottom: 1px;
+                                        padding-left: 3px;
+                                        padding-right: 3px;
+                                    }
+                                    .grid-contents tr th:nth-child(1) {
+                                        width: 17.5%;
+                                    }
+                                    .grid-contents tr th:nth-child(n+2) {
+                                        width: 5.5%;
+                                        text-align: center;
+                                    }
+                                    .grid-contents tr td:nth-child(1) {
+                                        font-size: 9pt !important;
+                                    }
+                                    .grid-contents tr td:nth-child(n+2) {
+                                        text-align: right;
+                                    }
+                                </style>
+                            `;
+
+            var printable = $("<html>")
+                .append($("<head>").append(styles))
+                .append($("<body>").append($("<div>").addClass("grid-contents").append(contents)));
+
+            grid.options.printOptions.printable = printable.prop("outerHTML");
         },
     }
 }

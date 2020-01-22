@@ -220,13 +220,6 @@ export default {
                         },
                     },
                 ],
-                printSize: "A4",    //TODO: deprecated
-                printDirection: "portrait", //"landscape"   //TODO: deprecated
-                printHeader: null,
-                printHeaderStyle: null,
-                printGridHeaderStyle: null,
-                printGridStyle: null,
-                printStyles: null,
             },
         });
     },

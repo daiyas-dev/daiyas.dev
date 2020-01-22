@@ -436,27 +436,15 @@ export default {
         setPrintOptions: function(grid) {
             var vue = this;
 
-            //TODO: direct data use instead of grid.ExportData
-            // var outputCols = grid.options.colModel.filter(v => v.hiddenOnExport != undefined ? !v.hiddenOnExport : !v.hidden);
-
-            // var $tableHeader = $("<tr>").append(
-            //     outputCols.map(v => "<th>" + v.title + "</th>").join("")
-            // ).get(0);
-
-            // var $tableDataRows = grid.pdata.map(v => $("<tr>").append(outputCols.map(c => "<td>" + v[c.dataIndx] + "</td>").join("")).get(0));
-
-            // if (!!grid.options.summaryData) {
-            //     $tableDataRows.concat(grid.options.summaryData.map(v => $("<tr>").append(outputCols.map(c => "<td>" + v[c.dataIndx] + "</td>").join("")).get(0)));
-            // }
-
             //PqGrid Print options
-            grid.options.type = "raw-html";
+            grid.options.printOptions.printType = "raw-html";
+            grid.options.printOptions.printStyles = "@media print { @page { size: A4 landscape; } }";
 
             var table = $($(grid.exportData({ format: "htm", render: true }))[3]);
             var tableHeaders = table.find("tr").filter((i, v) => !!$(v).find("th").length);
             var tableBodies = table.find("tr").filter((i, v) => !!$(v).find("td").length);
 
-            //optional
+            //optional: multiple summary rows
             var courseNm;
             tableBodies.map((i, v) => {
                 var row = $(v);
@@ -470,8 +458,9 @@ export default {
                 return row.get(0);
             });
 
-            //optional
+            //optional: generate contents for multipages
             var contents = [];
+            var maxRowsPerPage = 45;
             _(tableBodies)
                 .groupBy(v => $(v).find("td:first").text())
                 .values()
@@ -480,7 +469,7 @@ export default {
                         $(v[0]).find("td:first").attr("rowspan", v.length).css("border-bottom-width", "1px");
                     }
 
-                    if (!_.isEmpty(a) && a.find(".data-table tr").length + v.length > 45) {
+                    if (!_.isEmpty(a) && a.find(".data-table tr").length + v.length > maxRowsPerPage) {
                         var page = _.cloneDeep(a);
                         page.find("tr:last td").css("border-bottom-width", "1px");
                         contents.push(page);
@@ -508,7 +497,9 @@ export default {
 
                         a = $("<div>").css("page-break-before", "always")
                             .append(pageHeader)
-                            .append($("<table>").addClass("data-table").append(tableHeaders.prop("outerHTML")));
+                            .append($("<table>").addClass("data-table").append(tableHeaders.prop("outerHTML")))
+                            .append("<br/>")
+                            ;
                     }
 
                     v.forEach(r => {
@@ -602,10 +593,10 @@ export default {
                 .append($("<head>").append(styles))
                 .append($("<body>").append($("<div>").addClass("grid-contents").append(contents)));
 
-            grid.options.printType = "raw-html";
-            grid.options.printable = printable.prop("outerHTML");
+            grid.options.printOptions.printable = printable.prop("outerHTML");
+
             console.log(grid.options.printable);
-       },
+        },
     }
 }
 </script>

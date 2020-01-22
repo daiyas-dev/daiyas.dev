@@ -10,14 +10,16 @@
   "license": "MIT",
   "devDependencies": {
     "devtron": "^1.4.0",
-    "electron": "^6.0.12",
+    "electron": "^7.1.9",
     "electron-builder": "^21.2.0",
     "electron-rebuild": "^1.8.2"
   },
   "dependencies": {
     "dgram": "^1.0.1",
     "electron-log": "^3.0.9",
-    "electron-updater": "^4.2.0"
+    "electron-updater": "^4.2.0",
+    "jquery": "^3.4.1",
+    "rimraf": "^3.0.0"
   },
   "build": {
     "productName": "DaiyasClient",

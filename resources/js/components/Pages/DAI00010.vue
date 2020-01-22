@@ -1,11 +1,15 @@
 ﻿<template>
     <form id="this.$options.name">
-        <p><a href="./client/win/DaiyasClientSetup.exe" download="ダイヤスクライアントセットアップ.exe">CTI連携用クライアントのダウンロード</a></p>
-        <p><a href="#">受電</a></p><input typete="text" class="telno">
-
-        <br>
-        <button @click="setMenus">パネル更新</button>
-        <div class="row">
+        <div class="row" style="display: flex; align-items: baseline;">
+            <div class="col-md-3">
+                <p><a href="./client/win/DaiyasClientSetup.exe" download="ダイヤスクライアントセットアップ.exe">CTI連携用クライアントのダウンロード</a></p>
+            </div>
+            <div class="col-md-3">
+                <label>受電</label>
+                <input type="text" class="form-control telno">
+            </div>
+        </div>
+        <div class="row menu-panel">
             <div class="col-md-2 d-flex align-items-stretch justify-content-center" style="border: groove;">
                 <div class="btn-group-vertical d-flex" role="group">
                     <template v-for="(menu, idx) in menus">
@@ -47,11 +51,11 @@
                                  role="tabpanel"
                             >
                                 <template v-if="menu.submenus">
-                                    <template v-for="(submenu, idx) in menu.submenus">
+                                    <template v-for="submenu in menu.submenus">
                                         <button
                                             type="button"
                                             :key=submenu.programId
-                                            @click="$router.push(submenu.route)">{{submenu.title}}</button>
+                                            @click="clickMenuBtn">{{submenu.title}}</button>
                                     </template>
                                 </template>
                             </div>
@@ -64,13 +68,25 @@
 </template>
 
 <style scoped>
+.menu-panel {
+    height: calc(100vh - 200px);
+}
 .side-btn {
     width: 150px !important;
 }
+.tab-container {
+    width: 100%;
+    height: calc(100vh - 200px);
+}
+.tab-container .nav-tabs {
+    display: none;
+}
 .tab-content {
+    height: calc(100% - 0px);
     background-color: white;
     border: groove;
     border: none;
+    padding: 5px;
 }
 </style>
 
@@ -136,6 +152,13 @@ export default {
         },
         setCurrentPage: function() {
 
+        },
+        selectMenu: function() {
+            console.log("click")
+        },
+        clickMenuBtn: function() {
+            console.log("click");
+            //$router.push(submenu.route);
         },
     }
 }

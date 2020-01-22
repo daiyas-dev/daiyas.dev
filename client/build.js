@@ -1,6 +1,7 @@
 
 const builder = require("electron-builder");
 const fs = require("fs");
+const rimraf = require("rimraf");
 const package = require("./package.json");
 
 builder.build(
@@ -71,6 +72,8 @@ builder.build(
                 }
                 else {
                     console.log("exe copy done");
+                    //delete unpacked files
+                    rimraf("./build/win-unpacked", () => console.log("unpacked files deleted"));
                 }
             }
         );
