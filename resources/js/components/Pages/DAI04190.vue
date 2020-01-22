@@ -120,6 +120,11 @@ export default {
                         vue.conditionChanged();
                     }
                 },
+                { visible: "true", value: "CSV", id: "DAI04190_Download", disabled: false, shortcut: "F7",
+                    onClick: function () {
+                        //TODO: ダウンロード
+                    }
+                },
                 {visible: "false"},
                 { visible: "true", value: "詳細", id: "DAI04190Grid1_Detail", disabled: true, shortcut: "F8",
                     onClick: function () {
@@ -128,7 +133,7 @@ export default {
                 },
                 { visible: "true", value: "新規登録", id: "DAI04190Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
-                        //TODO: 登録
+                        vue.showNewDetail();
                     }
                 }
             );
@@ -348,8 +353,22 @@ export default {
                 params: params,
                 isModal: true,
                 isChild: true,
-                width: 1100,
-                height: 600,
+                width: 500,
+                height: 330,
+            });
+        },
+        showNewDetail: function(rowData) {
+
+            var params = { IsNew: true}
+
+            //DAI04191を子画面表示
+            PageDialog.show({
+                pgId: "DAI04191",
+                params: params,
+                isModal: true,
+                isChild: true,
+                width: 500,
+                height: 330,
             });
         },
     }

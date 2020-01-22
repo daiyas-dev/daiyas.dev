@@ -1,16 +1,15 @@
 <template>
     <form id="this.$options.name">
         <div class="row">
-            <div class="col-md-1">
+            <div class="col-md-2">
                 <span class="badge badge-primary w-75 ModeLabel">{{ModeLabel}}</span>
             </div>
         </div>
         <div class="row">
-            <div class="col-md-1">
+            <div class="col-md-4">
                 <label>銀行ＣＤ</label>
-            </div>
-            <div class="col-md-1">
                 <input class="form-control text-right" type="text"
+                    id="BankCd"
                     :value=viewModel.銀行CD
                     :readonly=!viewModel.IsNew
                     :tabindex="viewModel.IsNew ? 0 : -1"
@@ -18,35 +17,38 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-1">
+            <div class="col-md-12">
                 <label class="">銀行名</label>
-            </div>
-            <div class="col-md-3">
                 <input type="text" class="form-control" :value="viewModel.銀行名">
             </div>
         </div>
         <div class="row">
-            <div class="col-md-1">
+            <div class="col-md-12">
                 <label class="">銀行名カナ</label>
-            </div>
-            <div class="col-md-3">
-                <input type="text" class="form-control" style="" :value="viewModel.銀行名カナ">
+                <input type="text" class="form-control" style="" v-model="viewModel.銀行名カナ">
             </div>
         </div>
         <div class="row">
-            <div class="col-md-1">
+            <div class="col-md-12">
                 <label>郵便フラグ</label>
-            </div>
-            <div class="col-md-1">
-                <input type="checkbox" class="form-control p-1" style="width: 20px;" v-model="IsChecked">
+                <VueCheck
+                    bind="郵便フラグ"
+                    :vmodel=viewModel
+                    checkedCode="1"
+                    customContainerStyle="border-style: none;"
+                />
             </div>
         </div>
         <div class="row">
-            <div class="col-md-1">
+            <div class="col-md-12">
                 <label>無効フラグ</label>
-            </div>
-            <div class="col-md-1">
-                <input type="checkbox" class="form-control p-1" style="width: 20px;" v-model="IsUnavailable" disabled="true">
+                <VueCheck
+                    bind="無効フラグ"
+                    :vmodel=viewModel
+                    checkedCode="1"
+                    customContainerStyle="border-style: none;"
+                    :disabled=true
+                />
             </div>
         </div>
     </form>
@@ -120,22 +122,35 @@ export default {
             var vue = this;
             return vue.viewModel.IsNew == true ? "新規" : "修正";
         },
-        IsChecked: function() {
-            var vue = this;
-            return vue.viewModel.郵便フラグ == 1 ? true : false;
-        },
-        IsUnavailable: function() {
-            var vue = this;
-            // TODO:
-            // return vue.viewModel.無効フラグ == 1 ? true : false;
-        },
+        // IsChecked: function() {
+        //     var vue = this;
+        //     return vue.viewModel.郵便フラグ == 1 ? true : false;
+        // },
+        // IsUnavailable: function() {
+        //     var vue = this;
+        //     // TODO:
+        //     // return vue.viewModel.無効フラグ == 1 ? true : false;
+        // },
     },
+    // watch: {
+    //     "IsChecked": {
+    //         deep: true,
+    //         sync: true,
+    //         handler: function(newVal) {
+    //             var vue = this;
+    //             if (!!newVal) {
+    //                 vue.viewModel.郵便フラグ = newVal ? 1: 0;
+    //             }
+    //         },
+    //     },
+    // },
     data() {
         var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "金融機関名称メンテ詳細",
             noViewModel: true,
             DAI04191Grid1: null,
+            IsChecked: null,
             grid1Options: {
                 selectionModel: { type: "cell", mode: "single", row: true, onTab: "nextEdit" },
                 showHeader: true,
@@ -194,43 +209,37 @@ export default {
                     }
                 },
                 {visible: "false"},
-                {visible: "false"},
-                { visible: "true", value: "CSV", id: "DAI04191_Csv", disabled: false, shortcut: "F7",
-                    onClick: function () {
-                        //TODO: CSV
-                    }
-                },
                 { visible: "true", value: "登録", id: "DAI04191Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         //TODO: 登録
-                        console.log("登録");
-                        return;
+                        if(!vue.viewModel.銀行CD){
+                            $.dialogErr({
+                                title: "登録不可",
+                                contents: "銀行CDが入力されていません",
+                            })
+                            $(vue.$el).find("#BankCd").addClass("has-error");
+                            return;
+                        }
 
-                        //var targets = $.extend(true, {}, grid.createSaveParams());
-                        var targets = grid.getCellsByClass({cls: "pq-cell-dirty"})
-                            .map(v => {
-                                return {
-                                    "部署CD": v.rowData["部署CD"],
-                                    "コースＣＤ": v.rowData["コースＣＤ"],
-                                    "商品CD": v.dataIndx,
-                                    "個数": v.rowData[v.dataIndx],
-                                    "対象日付": v.rowData["対象日付"],
-                                };
-                            });
-                        var conditions = $.extend(true, {}, vue.viewModel);
+                        var params = _.cloneDeep(vue.viewModel);
 
-                        vue.DAI01020Grid1.saveData(
-                            {
-                                uri: "/DAI01020/Save",
-                                params: { targets: targets },
-                                //optional: { conditions: conditions },
-                                // done: {
-                                //     callback: (gridVue, grid, res) => {
-                                //         vue.DAI01020Grid1.searchData(params);
-                                //     },
-                                // },
+                        params.修正担当者ＣＤ = params.userId;
+                        params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
+
+                        //チェックボックス
+                        params.郵便フラグ = params.郵便フラグ ? 1 : 0;
+                        // params.無効フラグ = params.無効フラグ ? 1 : 0;
+
+                        //TODO: 登録用controller method call
+                        axios.post("/DAI04191/Save", params)
+                            .then(res => {
+                            })
+                            .catch(err => {
+                                console.log(error);
+                                //TODO: エラー
                             }
                         );
+                        console.log("登録", params);
                     }
                 },
             );

@@ -70,7 +70,12 @@
         <div class="row">
             <div class="col-md-5">
                 <label>オペレータ</label>
-                <input type="checkbox" class="form-control p-1" style="width: 20px;" v-model=viewModel.オペレータ>
+                <VueCheck
+                    bind="オペレータ"
+                    :vmodel=viewModel
+                    checkedCode="1"
+                    customContainerStyle="border-style: none;"
+                />
             </div>
         </div>
         <div class="row">
