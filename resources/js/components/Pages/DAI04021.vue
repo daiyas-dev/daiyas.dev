@@ -14,7 +14,7 @@
                     :readonly=!viewModel.IsNew
                     :tabindex="viewModel.IsNew ? 0 : -1"
                     maxlength="6"
-                    pattern="^[0-9]+$"
+                    v-int
                 >
             </div>
         </div>
