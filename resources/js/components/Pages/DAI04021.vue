@@ -13,6 +13,7 @@
                     v-model=viewModel.担当者ＣＤ
                     :readonly=!viewModel.IsNew
                     :tabindex="viewModel.IsNew ? 0 : -1"
+                    @change="onTantoCdChanged"
                     maxlength="6"
                     v-int
                 >
@@ -39,7 +40,7 @@
         <div class="row">
             <div class="col-md-6">
                 <label class="">郵便番号</label>
-                <input class="form-control p-2" style="width: 90px;" type="tel"
+                <input class="form-control" style="width: 90px;" type="tel"
                     v-model=viewModel.郵便番号
                     maxlength="8"
                     >
@@ -54,7 +55,7 @@
         <div class="row">
             <div class="col-md-6">
                 <label class="">電話番号</label>
-                <input class="form-control p-1" style="width: 130px;" type="tel"
+                <input class="form-control" style="width: 130px;" type="tel"
                     v-model=viewModel.電話番号
                     maxlength="14"
                 >
@@ -63,7 +64,7 @@
         <div class="row">
             <div class="col-md-6">
                 <label class="">FAX</label>
-                <input class="form-control p-1" style="width: 130px;" type="tel"
+                <input class="form-control" style="width: 130px;" type="tel"
                     v-model=viewModel.ＦＡＸ
                     maxlength="14"
                     >
@@ -130,9 +131,10 @@
         <div class="row">
             <div class="col-md-4">
                 <label class="">権限区分</label>
-                <input class="form-control p-2" style="width: 50px;" type="number"
+                <input class="form-control p-2" style="width: 50px;" type="text"
                     v-model=viewModel.権限区分
                     maxlength="2"
+                    v-int
                 >
             </div>
         </div>
@@ -367,7 +369,6 @@ export default {
                             })
                             .catch(err => {
                                 console.log(error);
-                                //TODO: エラー
                             }
                         );
                         console.log("登録", params);
@@ -377,6 +378,61 @@ export default {
         },
         mountedFunc: function(vue) {
             $(vue.$el).parents("div.body-content").addClass("Scrollable");
+        },
+        onTantoCdChanged: function(code, entities) {
+            var vue = this;
+
+            vue.searchByTantoCd();
+        },
+        searchByTantoCd: function() {
+            var vue = this;
+            var cd = vue.viewModel.担当者ＣＤ;
+            if (!cd) return;
+
+            var params = {TantoCd: cd};
+            params.noCache = true;
+
+            axios.post("/Utilities/GetTantoListForMaint", params)
+                .then(res => {
+                    if (res.data.length == 1) {
+                        $.dialogConfirm({
+                            title: "マスタ編集確認",
+                            contents: "マスタを編集しますか？",
+                            buttons:[
+                                {
+                                    text: "はい",
+                                    class: "btn btn-primary",
+                                    click: function(){
+
+                                        //TODO:所属部署エラーがある場合
+                                        $(vue.$el).find(".has-error").removeClass("has-error");
+
+                                        vue.viewModel = res.data[0];
+                                        $(this).dialog("close");
+                                    }
+                                },
+                                {
+                                    text: "いいえ",
+                                    class: "btn btn-danger",
+                                    click: function(){
+                                        vue.viewModel.担当者ＣＤ = "";
+                                        $(this).dialog("close");
+                                    }
+                                },
+                            ],
+                        });
+                        $("[shortcut='F3']").prop("disabled", false);
+                    }else{
+                        //TODO:削除ボタン
+                        $("[shortcut='F3']").prop("disabled", true);
+                        return;
+                    }
+                })
+                .catch(err => {
+                    console.log(err);
+                    //TODO: エラー
+                }
+            )
         },
         clearDetail: function(){
             var vue = this;

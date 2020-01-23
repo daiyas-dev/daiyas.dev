@@ -8,14 +8,14 @@
         <div class="row">
             <div class="col-md-5">
                 <label>税区分</label>
-                <input class="form-control text-right" type="number"
+                <input class="form-control text-right" type="text"
                     id="TaxKbn"
                     v-model=viewModel.税区分
                     :readonly=!viewModel.IsNew
                     :tabindex="viewModel.IsNew ? 0 : -1"
                     @change="onTaxKbnChanged"
                     maxlength="6"
-                    name="税区分"
+                    v-int
                 >
             </div>
         </div>
@@ -28,10 +28,9 @@
         <div class="row">
             <div class="col-md-5">
                 <label class="">消費税率</label>
-                <input type="number" class="form-control text-right" v-model="viewModel.消費税率"
+                <input type="text" class="form-control text-right" v-model="viewModel.消費税率"
                     maxlength="3"
-                    name="消費税率"
-                    @input="sliceMaxLength"
+                    v-int
                 >
             </div>
         </div>
@@ -332,11 +331,6 @@ export default {
         onTaxKbnChanged: function(code, entities) {
             var vue = this;
 
-            //入力制限
-            var name = code.currentTarget.name
-            var val = code.currentTarget._value.replace(/\..*/, "")
-            this.viewModel[name]= val.slice(0, code.currentTarget.maxLength)
-
             vue.searchByTaxKbn();
         },
         searchByTaxKbn: function() {
@@ -394,19 +388,6 @@ export default {
             vue.viewModel.userId = vue.query.userId;
 
         },
-        sliceMaxLength: _.debounce(function(event) {
-            var val = event.target.value;
-            var name = event.target.name;
-
-            if(!!val){
-                var name = event.target.name
-                this.viewModel[name]= val.replace(/\.|\+/, "").slice(0, event.target.maxLength)
-
-            }else{
-                this.viewModel[name] = "";
-            }
-
-        }, 300),
     }
 }
 </script>

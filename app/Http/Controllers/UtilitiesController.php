@@ -367,7 +367,7 @@ $WhereKeyWord
             ->when(
                 $TantoCd,
                 function ($q) use ($TantoCd) {
-                    return $q->where('担当ＣＤ', $TantoCd);
+                    return $q->where('担当者ＣＤ', $TantoCd);
                 }
             );
 
