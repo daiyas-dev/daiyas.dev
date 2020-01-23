@@ -953,10 +953,18 @@ export default {
                 },
                 appendTo: $(vue.$el).closest(".ui-dialog, body"),
                 select : function(event, ui) {
-                    // console.log("autocomplete select:" + input.val());
+                    console.log("autocomplete select:" + input.val());
                     //選択した値を設定
                     vue.selectRow = ui.item;
                     vue.execSetSelectValue(ui.item.value, true, false);
+
+                    if (!!vue.onGrid && !!vue.grid) {
+                        $(vue.$el).trigger($.Event("keyup", {
+                            keyCode: 9,
+                            which: 9,
+                            isOnce: true,
+                        }));
+                    }
 
                     return false;
                 },

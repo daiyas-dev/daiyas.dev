@@ -13,13 +13,13 @@ use Illuminate\Support\Facades\DB as IlluminateDB;
 class DAI01060Controller extends Controller
 {
     /**
-     * Search
+     * GetDataList
      */
-    public function Search($vm)
+    public function GetDataList($request)
     {
-        $BushoCd = $vm->BushoCd;
-        $TargetDate = $vm->TargetDate;
-        $CourseKbn = $vm->CourseKbn;
+        $BushoCd = $request->BushoCd;
+        $TargetDate = $request->TargetDate;
+        $CourseKbn = $request->CourseKbn;
 
         $sql = "
 DECLARE @日付WK              DATETIME
@@ -298,29 +298,60 @@ ORDER BY
         ";
 
         $DataList = DB::select($sql);
+        return $DataList;
+    }
 
-        return response()->json($DataList);
+    /**
+     * Search
+     */
+    public function Search($request) {
+        return response()->json($this->GetDataList($request));
     }
 
     /**
      * UpdateCheck
      */
-    public function UpdateCheck($vm)
+    public function UpdateCheck($request)
     {
-        $BushoCd = $vm->BushoCd;
-        $TargetDate = $vm->TargetDate;
+        $BushoCd = $request->BushoCd;
+        $TargetDate = $request->TargetDate;
+        $UpdateDate = $request->UpdateDate;
 
         $sql = "
 SELECT
-	MAX(修正日) AS 最新修正日時
-FROM モバイル_移動入力
-WHERE
-	部署ＣＤ= $BushoCd
-AND	日付 = '$TargetDate'
+	MAX(最新修正日時) AS 最新修正日時
+FROM
+(
+	SELECT
+		MAX(修正日) AS 最新修正日時
+	FROM モバイル_持ち出し入力
+	WHERE
+    	部署ＣＤ= $BushoCd
+	AND	持ち出し日付 = '$TargetDate'
+	UNION
+	SELECT
+		MAX(修正日) AS 最新修正日時
+	FROM モバイル_販売入力
+	WHERE
+	    部署ＣＤ= $BushoCd
+	AND	日付 = '$TargetDate'
+	UNION
+	SELECT
+		MAX(修正日) AS 最新修正日時
+	FROM モバイル_移動入力
+	WHERE
+    	部署ＣＤ= $BushoCd
+	AND	日付 = '$TargetDate'
+) MOBILE
         ";
 
         $Result = DB::selectOne($sql);
 
-        return response()->json($Result);
+        if (!!$UpdateDate && $Result->最新修正日時 != $UpdateDate) {
+            $Result->list = $this->GetDataList($request);
+            return response()->json($Result);
+        } else {
+            return response()->json($Result);
+        }
     }
 }

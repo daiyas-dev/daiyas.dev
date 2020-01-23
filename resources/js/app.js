@@ -35,6 +35,33 @@ window.Moji = require("moji");
 import onlyInt from "vue-input-only-number";
 Vue.use(onlyInt);
 
+//string byte size directive
+Vue.directive("maxBytes", {
+    inserted(el, binding) {
+        el.oninput = event => {
+            var ret = event.target.value.split("")
+                .reduce(
+                    (a, c) => {
+                        var b = encodeURIComponent(c).length > 1 ? 2 : 1;
+
+                        if (a.bytes + b <= binding.value) {
+                            a.str += c;
+                            a.bytes += b;
+                        } else {
+                            a.bytes = binding.value;
+                        }
+
+                        console.log("maxByte reduce", c, a);
+                        return a;
+                    },
+                    { str: "", bytes: 0}
+                );
+            console.log("maxByte ret", ret);
+            el.value = ret.str;
+        };
+    }
+});
+
 import LogonForm from "@vcs/LogonForm.vue";
 import TopMenu      from "@vcs/TopMenu.vue";
 import PageDialog   from "@vcs/PageDialog.vue";

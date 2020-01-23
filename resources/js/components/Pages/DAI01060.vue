@@ -3,6 +3,7 @@
         <div class="row">
             <div class="col-md-1">
                 <label>部署</label>
+                <input type="text" v-model=viewModel.BushoCd v-maxBytes=3>
             </div>
             <div class="col-md-2">
                 <VueSelect
@@ -54,9 +55,10 @@
             :query=this.searchParams
             :options=this.grid1Options
             :SearchOnCreate=false
-            :SearchOnActivate=true
+            :SearchOnActivate=false
             :onAfterSearchFunc=this.onAfterSearchFunc
             :resizeFunc=this.gridResizeFunc
+            :onCellKeyDownFunc=onCellKeyDownFunc
         />
     </form>
 </template>
@@ -67,6 +69,14 @@
     font-weight: bold;
     color: black;
     background-color: white !important;
+}
+#DAI01060Grid1 .pq-grid-row:nth-child(even) .pq-grid-cell.pq-merge-cell {
+    background: white;
+    color: initial;
+}
+#DAI01060Grid1 .pq-grid-row:nth-child(odd) .pq-grid-cell.pq-merge-cell {
+    background: #e6f4ff;
+    color: initial;
 }
 
 label{
@@ -104,6 +114,8 @@ export default {
     watch: {
     },
     data() {
+        var vue = this;
+
         return $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "日時処理 > 移動入力",
             noViewModel: true,
@@ -112,13 +124,13 @@ export default {
                 BushoNm: null,
                 TargetDate: null,
                 CourseKbn: null,
+                UpdateDate: null,
             },
-            CheckDate: null,
             CheckInterVal: null,
             DAI01060Grid1: null,
             ProductList: [],
             grid1Options: {
-                selectionModel: { type: "cell", mode: "range", row: true },
+                selectionModel: { type: "row", mode: "single", row: true },
                 numberCell: { show: false },
                 showTitle: false,
                 autoRow: false,
@@ -251,6 +263,9 @@ export default {
                         width: 70, maxWidth: 70, minWidth: 70,
                     },
                 ],
+                rowDblClick: function (event, ui) {
+                    vue.showDetail(ui.rowData);
+                },
             },
         });
     },
@@ -262,6 +277,13 @@ export default {
                         vue.conditionChanged(null, true);
                     }
                 },
+                {visible: "false"},
+                { visible: "true", value: "明細入力", id: "DAI01060Grid1_Detail", disabled: true, shortcut: "Enter",
+                    onClick: function () {
+                        vue.showDetail();
+                    }
+                },
+                {visible: "false"},
                 { visible: "true", value: "印刷", id: "DAI01060Grid1_Printout", disabled: false, shortcut: "F6",
                     onClick: function () {
                         vue.DAI01060Grid1.print(vue.setPrintOptions);
@@ -270,13 +292,26 @@ export default {
             );
         },
         mountedFunc: function(vue) {
-            vue.viewModel.TargetDate = moment();
+            // vue.viewModel.TargetDate = moment();
+            vue.viewModel.TargetDate = moment("2019/09/04");    //TODO: debug
+
+            var grid = vue.DAI01060Grid1;
+
+            //watcher
+            vue.$watch(
+                "$refs.DAI01060Grid1.selectionRowCount",
+                cnt => {
+                    vue.footerButtons.find(v => v.id == "DAI01060Grid1_Detail").disabled = cnt == 0 || cnt > 1;
+                }
+            );
 
             //TODO:
             return;
             if (!!vue.CheckInterVal) clearInterval(vue.CheckInterVal);
             vue.CheckInterVal = setInterval(() => {
                 //更新チェック
+                if (!grid.getData().length) return;
+
                 var params = $.extend(true, {}, vue.viewModel);
                 //日付を"YYYYMMDD"形式に編集
                 params.TargetDate = params.TargetDate ? moment(params.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
@@ -285,20 +320,28 @@ export default {
                 checkParams.noCache = true;
                 axios.post("/DAI01060/UpdateCheck", checkParams)
                     .then(res => {
-                        if (res.data.最新修正日時 != vue.CheckDate) {
-                            vue.CheckDate = res.data.最新修正日時;
-                            grid.searchData(params);
-                            // axios.post("/DAI01060/UpdateCheck", params)
-                            //     .then(res => {
-                            //         grid.hideLoading();
-                            //         if (res.data.最新修正日時 != vue.CheckDate) {
-                            //             vue.CheckDate = res.data.最新修正日時;
-                            //             grid.searchData(params, false, null, callback);
-                            //         }
-                            //     })
-                            //     .catch(err => {
-                            //         console.log(err);
-                            //     });
+                        if (res.data.最新修正日時 != vue.viewModel.UpdateDate) {
+                            vue.viewModel.UpdateDate = res.data.最新修正日時;
+
+                            var prev = _.cloneDeep(grid.getData())
+                                .map(v => {
+                                    delete v.InitialValue;
+                                    delete v.pq_ri;
+                                    return v;
+                                });
+
+                            var dl = diff(prev, res.data.list);
+                            console.log("detect update", dl);
+
+                            grid.options.dataModel.data = res.data.list;
+                            grid.refreshView();
+
+                            _.forIn(dl, (rowData, rowIndx) => {
+                                _.forIn(rowData, (value, dataIndx) => {
+                                    console.log("blinkCell", rowIndx, dataIndx);
+                                    grid.blinkCell(rowIndx, dataIndx);
+                                });
+                            });
                         }
                     })
                     .catch(err => {
@@ -367,8 +410,6 @@ export default {
             var params = $.extend(true, {}, vue.viewModel);
             //日付を"YYYYMMDD"形式に編集
             params.TargetDate = params.TargetDate ? moment(params.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
-            //TODO:
-            params.TargetDate = "20190904";
             //キャッシュ無効
             params.noCache = true;
 
@@ -378,8 +419,8 @@ export default {
             axios.post("/DAI01060/UpdateCheck", checkParams)
                 .then(res => {
                     grid.hideLoading();
-                    if (!!force || res.data.最新修正日時 != vue.CheckDate) {
-                        vue.CheckDate = res.data.最新修正日時;
+                    if (!!force || res.data.最新修正日時 != vue.viewModel.UpdateDate) {
+                        vue.viewModel.UpdateDate = res.data.最新修正日時;
                         grid.searchData(params, false, null, callback);
                     }
                 })
@@ -596,6 +637,79 @@ export default {
             grid.options.printOptions.printable = printable.prop("outerHTML");
 
             console.log(grid.options.printable);
+        },
+        onCellKeyDownFunc: function(grid, ui, event) {
+            var vue = this;
+
+            switch (event.key) {
+                case "Enter":
+                    vue.showDetail();
+                    return false;
+                case "ArrowUp":
+                    if (ui.rowIndx > 0) {
+                        grid.setSelection(null);
+                        grid.setSelection({rowIndx: ui.rowIndx - 1});
+                    }
+                    return false;
+                case "ArrowDown":
+                    if (ui.rowIndx < grid.getData().length - 1) {
+                        grid.setSelection(null);
+                        grid.setSelection({rowIndx: ui.rowIndx + 1});
+                    }
+                    return false;
+                default:
+                    return true;
+            }
+        },
+        showDetail: function(rowData) {
+            var vue = this;
+            var grid = vue.DAI01060Grid1;
+            if (!grid) return;
+
+            var params;
+
+            if (!rowData) {
+                var selection = grid.SelectRow().getSelection();
+
+                var rows = grid.SelectRow().getSelection();
+                if (rows.length != 1) return;
+
+                rowData = _.cloneDeep(rows[0].rowData);
+            }
+
+            var params = {
+                BushoCd: vue.viewModel.BushoCd,
+                BushoNm: vue.viewModel.BushoNm,
+                TargetDate: moment(vue.viewModel.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD"),
+                CourseKbn: vue.viewModel.CourseKbn,
+                CourseCd: rowData.コースＣＤ,
+                CourseNm: rowData.コース名,
+            };
+
+            PageDialog.show({
+                pgId: "DAI01061",
+                params: params,
+                isModal: true,
+                isChild: true,
+                width: 800,
+                height: 750,
+                onBeforeClose: (event, ui) => {
+                    console.log("onBeforeClose", event, ui);
+
+                    var dlg = $(event.target);
+                    var editting = dlg.find(".pq-grid")
+                        .map((i, v) => $(v).pqGrid("getInstance").grid)
+                        .get()
+                        .some(g => !_.isEmpty(g.getEditCell()));
+                    var isEscOnEditor = !!window.event && window.event.key == "Escape"
+                        && (
+                            $(window.event.target).hasClass("target-input") ||
+                            $(window.event.target).hasClass("pq-cell-editor")
+                        );
+
+                    return !editting && !isEscOnEditor;
+                }
+            });
         },
     }
 }

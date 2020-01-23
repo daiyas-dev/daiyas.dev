@@ -216,6 +216,7 @@ export default {
                     resizable: options.resizable,
                     reuse: options.reuse || false,
                     buttons: buttons,
+                    beforeClose: options.onBeforeClose || null,
                 });
 
                 //画面IDの編集
@@ -380,6 +381,7 @@ export default {
                     resizable: options.resizable,
                     reuse: options.reuse || false,
                     buttons: buttons,
+                    beforeClose: options.onBeforeClose || null,
                 });
 
                 //画面IDの指定

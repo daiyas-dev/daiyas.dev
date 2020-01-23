@@ -729,9 +729,9 @@ ORDER BY
      */
     public function GetCourseList($request)
     {
-        $BushoCd = $request->bushoCd;
-        $CourseCd = $request->courseCd;
-        $CourseKbn = $request->courseKbn;
+        $BushoCd = $request->bushoCd ?? $request->BushoCd;
+        $CourseCd = $request->courseCd ?? $request->CourseCd;
+        $CourseKbn = $request->courseKbn ?? $request->CourseKbn;
 
         $query = コースマスタ::with(['担当者'])
             ->when(

@@ -515,7 +515,7 @@ export default {
                                 };
 
                                 // key events?
-                                if (window.event.keyCode && !_.isNaN(window.event.key * 1)) {
+                                if (!!window.event && !!window.event.keyCode && !_.isNaN(window.event.key * 1)) {
                                     if (ui.column.dataType == "integer" || ui.column.dataType == "float") {
                                         ui.column.binder[ui.dataIndx] = window.event.key;
                                     }
@@ -582,6 +582,7 @@ export default {
                                             }
                                             return true;
                                         case 13:
+                                            console.log("ps keyup", event.which);
                                             vue.setCellState(grid, ui, true);
                                             vue.moveNextCell(grid, ui);
                                             return false;
@@ -599,9 +600,22 @@ export default {
                                 //セルに格納
                                 editCell.append(element);
                                 element.show();
-                                setTimeout(() => {
-                                    element.find(".target-input").focus()
-                                }, 100);
+
+                                //入力inputにfocus
+                                var input = element.find(".target-input");
+                                new Promise((resolve, reject) => {
+                                    var timer = setInterval(function() {
+                                        if (input.is(":enabled")) {
+                                            //interval解除
+                                            clearInterval(timer);
+
+                                            return resolve();
+                                        }
+                                    }, 100);
+                                })
+                                .then(() => {
+                                    input.focus();
+                                });
                             },
                             getData: function(ui, grid) {
                                 if (ui.column.psProps.getData) {
@@ -1104,6 +1118,8 @@ export default {
                             cell.find(":checkbox")[0].click();
                         } else if (ui.column.editable) {
                             grid.editCell({rowIndx: ui.rowIndx, dataIndx: ui.dataIndx});
+                        } else {
+                            return true;
                         }
 
                         return false;
@@ -2028,6 +2044,33 @@ export default {
 
                     vue.exportData("", true);
                 };
+
+                //blink
+                this.grid.blinkCell = function(rowIndx, dataIndx) {
+                    var grid = this;
+                    var vue = grid.options.vue;
+
+                    var $cell = grid.getCell({ rowIndx: rowIndx, dataIndx: dataIndx });
+
+                    console.log("add blink")
+                    $cell.addClass("blinking")
+                        .delay(3000)
+                        .queue(next => {
+                            console.log("remove blink")
+                            $cell.removeClass("blinking");
+                            next();
+                        })
+                };
+                this.grid.blinkRow = function(rowIndx) {
+                    var grid = this;
+                    var vue = grid.options.vue;
+
+                    var $row = grid.getRow({ rowIndx: rowIndx });
+
+                    $row.removeClass("blinking");
+                    $row.addClass("blinking");
+                };
+
 
                 this.grid.options.loading = false;
 
@@ -3069,6 +3112,21 @@ export default {
         font-family: "Font Awesome 5 Free";
         content: "\f7a5";
         cursor: grab !important;
+    }
+
+    .blinking {
+        animation: blink-animation 1s infinite;
+    }
+
+    @-webkit-keyframes blink-animation {
+        0%, 49% {
+            background-color: rgb(117,209,63);
+            border: 3px solid #e50000;
+        }
+        50%, 100% {
+            background-color: #e50000;
+            border: 3px solid rgb(117,209,63);
+        }
     }
 </style>
 
