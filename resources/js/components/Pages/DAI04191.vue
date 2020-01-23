@@ -19,7 +19,7 @@
         <div class="row">
             <div class="col-md-12">
                 <label class="">銀行名</label>
-                <input type="text" class="form-control" v-model="viewModel.銀行名">
+                <input type="text" class="form-control" v-model="viewModel.銀行名" id="BankName">
             </div>
         </div>
         <div class="row">
@@ -122,28 +122,7 @@ export default {
             var vue = this;
             return vue.viewModel.IsNew == true ? "新規" : "修正";
         },
-        // IsChecked: function() {
-        //     var vue = this;
-        //     return vue.viewModel.郵便フラグ == 1 ? true : false;
-        // },
-        // IsUnavailable: function() {
-        //     var vue = this;
-        //     // TODO:
-        //     // return vue.viewModel.無効フラグ == 1 ? true : false;
-        // },
     },
-    // watch: {
-    //     "IsChecked": {
-    //         deep: true,
-    //         sync: true,
-    //         handler: function(newVal) {
-    //             var vue = this;
-    //             if (!!newVal) {
-    //                 vue.viewModel.郵便フラグ = newVal ? 1: 0;
-    //             }
-    //         },
-    //     },
-    // },
     data() {
         var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {
@@ -235,9 +214,9 @@ export default {
                                 $(vue.$el).find("#BankCd").removeClass("has-error");
                             }
                             if(!vue.viewModel.銀行名){
-                                $(vue.$el).find("#TaxName").addClass("has-error");
+                                $(vue.$el).find("#BankName").addClass("has-error");
                             }else{
-                                $(vue.$el).find("#TaxName").removeClass("has-error");
+                                $(vue.$el).find("#BankName").removeClass("has-error");
                             }
                             return;
                         }
@@ -251,10 +230,12 @@ export default {
                         params.郵便フラグ = !!params.郵便フラグ ? params.郵便フラグ : 0;
                         // params.無効フラグ = !!params.無効フラグ ? params.無効フラグ : 0;
 
+                        $(vue.$el).find(".has-error").removeClass("has-error");
+
                         //TODO: 登録用controller method call
                         axios.post("/DAI04191/Save", params)
-                            .then(res => {
-                                $(vue.$el).find(".has-error").removeClass("has-error");
+                            .then(res =gyou> {
+                                //TODO:途中
                             })
                             .catch(err => {
                                 console.log(error);
