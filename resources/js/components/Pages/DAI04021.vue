@@ -12,6 +12,8 @@
                     v-model=viewModel.担当者ＣＤ
                     :readonly=!viewModel.IsNew
                     :tabindex="viewModel.IsNew ? 0 : -1"
+                    maxlength="6"
+                    v-int
                 >
             </div>
         </div>

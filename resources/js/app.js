@@ -31,6 +31,10 @@ window.Dropzone = require("dropzone");
 
 window.Moji = require("moji");
 
+//int only directive
+import onlyInt from "vue-input-only-number";
+Vue.use(onlyInt);
+
 import LogonForm from "@vcs/LogonForm.vue";
 import TopMenu      from "@vcs/TopMenu.vue";
 import PageDialog   from "@vcs/PageDialog.vue";
