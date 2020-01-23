@@ -14,19 +14,24 @@
                     :readonly=!viewModel.IsNew
                     :tabindex="viewModel.IsNew ? 0 : -1"
                     @change="onTaxKbnChanged"
+                    maxlength="6"
+                    v-int
                 >
             </div>
         </div>
         <div class="row">
             <div class="col-md-12">
                 <label class="">消費税名称</label>
-                <input type="text" id="TaxName" class="form-control" v-model="viewModel.消費税名称">
+                <input type="text" id="TaxName" class="form-control" v-model="viewModel.消費税名称" maxlength="30">
             </div>
         </div>
         <div class="row">
             <div class="col-md-5">
                 <label class="">消費税率</label>
-                <input type="text" class="form-control text-right" v-model="viewModel.消費税率">
+                <input type="text" class="form-control text-right" v-model="viewModel.消費税率"
+                    maxlength="3"
+                    v-int
+                >
             </div>
         </div>
         <div class="row">
@@ -126,6 +131,11 @@ textarea {
     text-align: left !important;
     margin-left: 30px;
 }
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
 </style>
 <style>
 #Page_DAI04141 .CustomerSelect .select-name {
@@ -209,7 +219,7 @@ export default {
                 { visible: "true", value: "クリア", id: "DAI04141_Clear", disabled: false, shortcut: "F2",
                     onClick: function () {
                         //TODO: クリア
-                        vue.clearFunc();
+                        vue.clearDetail();
                     }
                 },
                 { visible: "true", value: "削除", id: "DAI04141_Delete", disabled: false, shortcut: "F3",
@@ -233,7 +243,7 @@ export default {
                                             .then(res => {
                                                 DAI04140.conditionChanged();
                                                 $(this).dialog("close");
-                                                vue.clearFunc();
+                                                vue.clearDetail();
                                             })
                                             .catch(err => {
                                                 console.log(error);
@@ -285,9 +295,10 @@ export default {
 
                         var params = _.cloneDeep(vue.viewModel);
 
-                        params.消費税名称 = !!params.消費税名称 ? params.消費税名称 : '';
                         params.消費税率 = !!params.消費税率 ? params.消費税率 : 0;
-                        params.適用年月 = !!params.適用年月 ? moment(vue.viewModel.適用年月,"YYYY-MM-DD").format("YYYY-MM-DD") : "";
+                        params.内外区分 = !!params.内外区分 ? params.内外区分 : 10;
+                        params.適用年月 = moment(vue.viewModel.適用年月,"YYYY-MM-DD").format("YYYY-MM-DD");
+                        params.現在使用FLG = !!params.現在使用FLG ? params.現在使用FLG : 0;
                         params.修正担当者ＣＤ = params.userId;
                         params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
 
@@ -298,6 +309,7 @@ export default {
                             .then(res => {
                                 vue.viewModel = res.data.model;
                                 DAI04140.conditionChanged();
+                                vue.clearDetail();
                             })
                             .catch(err => {
                                 console.log(error);
@@ -318,14 +330,17 @@ export default {
         },
         onTaxKbnChanged: function(code, entities) {
             var vue = this;
+
             vue.searchByTaxKbn();
-         },
+        },
         searchByTaxKbn: function() {
             var vue = this;
             var cd = vue.viewModel.税区分;
             if (!cd) return;
 
             var params = {TaxCd: cd};
+            params.noCache = true;
+
             axios.post("/DAI04141/GetTaxListForDetail", params)
                 .then(res => {
                     if (res.data.length == 1) {
@@ -364,12 +379,13 @@ export default {
                 }
             )
         },
-        clearFunc: function(){
+        clearDetail: function(){
             var vue = this;
 
             _.keys(DAI04141.viewModel).forEach(k => DAI04141.viewModel[k] = null);
             vue.viewModel.適用年月 = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
             vue.viewModel.IsNew = true;
+            vue.viewModel.userId = vue.query.userId;
 
         },
     }

@@ -256,6 +256,7 @@ export default {
                 { visible: "true", value: "クリア", id: "DAI04031_Clear", disabled: false, shortcut: "F2",
                     onClick: function () {
                         //TODO: クリア
+                        vue.clearDetail();
                     }
                 },
                 { visible: "true", value: "削除", id: "DAI04031_Delete", disabled: false, shortcut: "F3",
@@ -266,6 +267,8 @@ export default {
                 { visible: "true", value: "登録", id: "DAI04031Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         //TODO: 登録
+
+                        //TODO:以下作業中。必須入力項目にid未設定。
                         if(!vue.viewModel.商品ＣＤ){
                             $.dialogErr({
                                 title: "登録不可",
@@ -273,6 +276,41 @@ export default {
                             })
                             return;
                         }
+
+                        if(!vue.viewModel.商品ＣＤ || !vue.viewModel.商品名 || !vue.viewModel.商品略称 || !vue.viewModel.部数単位 ){
+                            $.dialogErr({
+                                title: "登録不可",
+                                contents: [
+                                    !vue.viewModel.商品ＣＤ ? "商品CDが入力されていません。<br/>" : "",
+                                    !vue.viewModel.商品名 ? "商品名が入力されていません。<br/>" : "",
+                                    !vue.viewModel.商品略称 ? "商品略称が入力されていません。<br/>" : "",
+                                    !vue.viewModel.部数単位 ? "部数単位" : ""
+
+                                ]
+                            })
+                            if(!vue.viewModel.商品ＣＤ){
+                                $(vue.$el).find("#TaxKbn").addClass("has-error");
+                            }else{
+                                $(vue.$el).find("#TaxKbn").removeClass("has-error");
+                            }
+                            if(!vue.viewModel.商品名){
+                                $(vue.$el).find("#TaxName").addClass("has-error");
+                            }else{
+                                $(vue.$el).find("#TaxName").removeClass("has-error");
+                            }
+                            if(!vue.viewModel.商品略称){
+                                $(vue.$el).find(".TekiyoDate").addClass("has-error");
+                            }else{
+                                $(vue.$el).find(".TekiyoDate").removeClass("has-error");
+                            }
+                            if(!vue.viewModel.部数単位){
+                                $(vue.$el).find(".TekiyoDate").addClass("has-error");
+                            }else{
+                                $(vue.$el).find(".TekiyoDate").removeClass("has-error");
+                            }
+                            return;
+                        }
+
                         var params = _.cloneDeep(vue.viewModel);
 
                         params.修正担当者ＣＤ = params.userId;
@@ -298,6 +336,14 @@ export default {
         },
         mountedFunc: function(vue) {
             $(vue.$el).parents("div.body-content").addClass("Scrollable");
+        },
+        clearDetail: function(){
+            var vue = this;
+
+            _.keys(DAI04031.viewModel).forEach(k => DAI04031.viewModel[k] = null);
+            vue.viewModel.IsNew = true;
+            vue.viewModel.userId = vue.query.userId;
+
         },
     }
 }

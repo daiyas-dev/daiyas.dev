@@ -32,6 +32,29 @@ class DAI04021Controller extends Controller
             );
         });
 
+        $savedData = array_merge(['担当者ＣＤ' => $params['担当者ＣＤ']], $data);
+
+        return response()->json([
+            'result' => true,
+            'model' => $savedData,
+        ]);
+    }
+
+    /**
+     * Delete
+     */
+    public function Delete($request)
+    {
+        $TantoCd = $request->TantoCd;
+
+        // トランザクション開始
+        DB::transaction(function() use ($TantoCd) {
+
+            DB::table('担当者マスタ')->where('担当者ＣＤ', '=', $TantoCd)->delete();
+
+        });
+
+
         return response()->json([
             'result' => true,
         ]);

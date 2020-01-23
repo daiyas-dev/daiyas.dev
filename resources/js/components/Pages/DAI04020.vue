@@ -155,9 +155,6 @@ export default {
                     }
                 },
                 {visible: "false"},
-                {visible: "false"},
-                {visible: "false"},
-                {visible: "false"},
                 { visible: "true", value: "検索", id: "DAI04020_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
                         vue.conditionChanged();
@@ -168,7 +165,6 @@ export default {
                         //TODO: ダウンロード
                     }
                 },
-                {visible: "false"},
                 { visible: "true", value: "詳細", id: "DAI04020Grid1_Detail", disabled: true, shortcut: "F8",
                     onClick: function () {
                         vue.showDetail();

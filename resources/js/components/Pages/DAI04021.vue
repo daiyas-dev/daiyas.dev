@@ -9,9 +9,11 @@
             <div class="col-md-4">
                 <label>担当者ＣＤ</label>
                 <input class="form-control text-right" type="text"
+                    id="TantoCd"
                     v-model=viewModel.担当者ＣＤ
                     :readonly=!viewModel.IsNew
                     :tabindex="viewModel.IsNew ? 0 : -1"
+                    @change="onTantoCdChanged"
                     maxlength="6"
                     v-int
                 >
@@ -20,37 +22,52 @@
         <div class="row">
             <div class="col-md-8">
                 <label class="">担当者名</label>
-                <input type="text" class="form-control" v-model="viewModel.担当者名">
+                <input type="text" class="form-control" v-model="viewModel.担当者名"
+                    id="TantoName"
+                    maxlength="60"
+                    >
             </div>
         </div>
         <div class="row">
             <div class="col-md-8">
                 <label class="">担当者カナ</label>
-                <input type="text" class="form-control" style="font-size: 15px !important;" v-model="viewModel.担当者名カナ">
+                <input type="text" class="form-control" style="font-size: 15px !important;"
+                    v-model="viewModel.担当者名カナ"
+                    maxlength="30"
+                    >
             </div>
         </div>
         <div class="row">
             <div class="col-md-6">
                 <label class="">郵便番号</label>
-                <input class="form-control p-2" style="width: 90px;" type="tel" maxlength="8" v-model=viewModel.郵便番号>
+                <input class="form-control" style="width: 90px;" type="tel"
+                    v-model=viewModel.郵便番号
+                    maxlength="8"
+                    >
             </div>
         </div>
         <div class="row">
             <div class="col-md-12">
                 <label>住所１</label>
-                <input class="form-control" type="text" v-model=viewModel.住所>
+                <input class="form-control" type="text" v-model=viewModel.住所 maxlength="60">
             </div>
         </div>
         <div class="row">
             <div class="col-md-6">
                 <label class="">電話番号</label>
-                <input class="form-control p-1" style="width: 120px;" type="text" v-model=viewModel.電話番号>
+                <input class="form-control" style="width: 130px;" type="tel"
+                    v-model=viewModel.電話番号
+                    maxlength="14"
+                >
             </div>
         </div>
         <div class="row">
             <div class="col-md-6">
                 <label class="">FAX</label>
-                <input class="form-control p-1" style="width: 120px;" type="text" v-model=viewModel.ＦＡＸ>
+                <input class="form-control" style="width: 130px;" type="tel"
+                    v-model=viewModel.ＦＡＸ
+                    maxlength="14"
+                    >
             </div>
         </div>
         <div class="row">
@@ -83,13 +100,18 @@
         <div class="row">
             <div class="col-md-8">
                 <label class="">ユーザーID</label>
-                <input class="form-control p-2" style="width: 120px;" type="text" v-model=viewModel.ユーザーＩＤ>
+                <input class="form-control p-2" style="width: 190px;" type="text"
+                    v-model=viewModel.ユーザーＩＤ
+                    maxlength="20">
             </div>
         </div>
         <div class="row">
             <div class="col-md-8">
                 <label class="">パスワード</label>
-                <input class="form-control p-2" style="width: 120px;" type="text" v-model=viewModel.パスワード>
+                <input class="form-control p-2" style="width: 190px;" type="text"
+                    v-model=viewModel.パスワード
+                    maxlength="20"
+                    >
             </div>
         </div>
         <div class="row">
@@ -109,7 +131,11 @@
         <div class="row">
             <div class="col-md-4">
                 <label class="">権限区分</label>
-                <input class="form-control p-2" style="width: 50px;" type="text" v-model=viewModel.権限区分>
+                <input class="form-control p-2" style="width: 50px;" type="text"
+                    v-model=viewModel.権限区分
+                    maxlength="2"
+                    v-int
+                >
             </div>
         </div>
     </form>
@@ -157,6 +183,11 @@ textarea {
     max-height: unset;
     line-height: 16px;
     resize: none;
+}
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 </style>
 <style>
@@ -240,11 +271,48 @@ export default {
                 { visible: "true", value: "クリア", id: "DAI04021_Clear", disabled: false, shortcut: "F2",
                     onClick: function () {
                         //TODO: クリア
+                        vue.clearDetail();
                     }
                 },
                 { visible: "true", value: "削除", id: "DAI04021_Delete", disabled: false, shortcut: "F3",
                     onClick: function () {
                         //TODO: 削除
+                        var cd = vue.viewModel.担当者ＣＤ;
+                        if(!cd) return;
+
+                        var params = {TantoCd: cd};
+                        params.noCache = true;
+
+                        $.dialogConfirm({
+                            title: "マスタ削除確認",
+                            contents: "マスタを削除します。",
+                            buttons:[
+                                {
+                                    text: "はい",
+                                    class: "btn btn-primary",
+                                    click: function(){
+                                        axios.post("/DAI04021/Delete", params)
+                                            .then(res => {
+                                                DAI04020.conditionChanged();
+                                                $(this).dialog("close");
+                                                vue.clearDetail();
+                                            })
+                                            .catch(err => {
+                                                console.log(error);
+                                                //TODO: エラー
+                                            }
+                                        );
+                                    }
+                                },
+                                {
+                                    text: "いいえ",
+                                    class: "btn btn-danger",
+                                    click: function(){
+                                        $(this).dialog("close");
+                                    }
+                                },
+                            ],
+                        });
                     }
                 },
                 {visible: "false"},
@@ -253,35 +321,54 @@ export default {
                         //TODO: 新規ではない時、所属部署が古いCDの場合どうするか
                         //TODO: 登録
 
-                        if(!vue.viewModel.担当者ＣＤ){
+                        if(!vue.viewModel.担当者ＣＤ || !vue.viewModel.担当者名 || !vue.viewModel.所属部署ＣＤ){
                             $.dialogErr({
                                 title: "登録不可",
                                 contents: "担当者CDを入力して下さい",
+                                contents: [
+                                    !vue.viewModel.担当者ＣＤ ? "担当者CDが入力されていません。<br/>" : "",
+                                    !vue.viewModel.担当者名 ? "担当者名が入力されていません。<br/>" : "",
+                                    !vue.viewModel.所属部署ＣＤ ? "所属部署CDが入力されていません。" : ""
+                                ]
                             })
+                            if(!vue.viewModel.担当者ＣＤ){
+                                $(vue.$el).find("#TantoCd").addClass("has-error");
+                            }else{
+                                $(vue.$el).find("#TantoCd").removeClass("has-error");
+                            }
+                            if(!vue.viewModel.担当者名){
+                                $(vue.$el).find("#TantoName").addClass("has-error");
+                            }else{
+                                $(vue.$el).find("#TantoName").removeClass("has-error");
+                            }
+                            if(!vue.viewModel.所属部署ＣＤ){
+                                $(vue.$el).find("#BushoCd").addClass("has-error");
+                            }else{
+                                $(vue.$el).find("#BushoCd").removeClass("has-error");
+                            }
                             return;
                         }
-                        if(!vue.viewModel.担当者名 || !vue.viewModel.所属部署ＣＤ){
-                            $.dialogErr({
-                                title: "登録不可",
-                                contents: "担当者名・部署CDを入力して下さい",
-                            })
-                            return;
-                        }
+
                         var params = _.cloneDeep(vue.viewModel);
 
+                        params.営業業務区分 = !!params.営業業務区分 ? params.営業業務区分 : 0;
                         params.修正担当者ＣＤ = params.userId;
                         params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
 
                         //チェックボックス
-                        params.オペレータ = params.オペレータ ? 1 : 0;
+                        params.オペレータ = !!params.オペレータ ? params.オペレータ : 0;
+
+                        $(vue.$el).find(".has-error").removeClass("has-error");
 
                         //TODO: 登録用controller method call
                         axios.post("/DAI04021/Save", params)
                             .then(res => {
+                                vue.viewModel = res.data.model;
+                                DAI04020.conditionChanged();
+                                vue.clearDetail();
                             })
                             .catch(err => {
                                 console.log(error);
-                                //TODO: エラー
                             }
                         );
                         console.log("登録", params);
@@ -291,6 +378,68 @@ export default {
         },
         mountedFunc: function(vue) {
             $(vue.$el).parents("div.body-content").addClass("Scrollable");
+        },
+        onTantoCdChanged: function(code, entities) {
+            var vue = this;
+
+            vue.searchByTantoCd();
+        },
+        searchByTantoCd: function() {
+            var vue = this;
+            var cd = vue.viewModel.担当者ＣＤ;
+            if (!cd) return;
+
+            var params = {TantoCd: cd};
+            params.noCache = true;
+
+            axios.post("/Utilities/GetTantoListForMaint", params)
+                .then(res => {
+                    if (res.data.length == 1) {
+                        $.dialogConfirm({
+                            title: "マスタ編集確認",
+                            contents: "マスタを編集しますか？",
+                            buttons:[
+                                {
+                                    text: "はい",
+                                    class: "btn btn-primary",
+                                    click: function(){
+
+                                        //TODO:所属部署エラーがある場合
+                                        $(vue.$el).find(".has-error").removeClass("has-error");
+
+                                        vue.viewModel = res.data[0];
+                                        $(this).dialog("close");
+                                    }
+                                },
+                                {
+                                    text: "いいえ",
+                                    class: "btn btn-danger",
+                                    click: function(){
+                                        vue.viewModel.担当者ＣＤ = "";
+                                        $(this).dialog("close");
+                                    }
+                                },
+                            ],
+                        });
+                        $("[shortcut='F3']").prop("disabled", false);
+                    }else{
+                        //TODO:削除ボタン
+                        $("[shortcut='F3']").prop("disabled", true);
+                        return;
+                    }
+                })
+                .catch(err => {
+                    console.log(err);
+                    //TODO: エラー
+                }
+            )
+        },
+        clearDetail: function(){
+            var vue = this;
+
+            _.keys(DAI04021.viewModel).forEach(k => DAI04021.viewModel[k] = null);
+            vue.viewModel.IsNew = true;
+            vue.viewModel.userId = vue.query.userId;
         },
     }
 }
