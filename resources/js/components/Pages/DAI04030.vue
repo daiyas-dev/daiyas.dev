@@ -134,26 +134,17 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "クリア", id: "DAI04030_Clear", disabled: false, shortcut: "F2",
-                    onClick: function () {
-                        //TODO: クリア
-                    }
-                },
-                {visible: "false"},
-                {visible: "false"},
-                {visible: "false"},
-                {visible: "false"},
                 { visible: "true", value: "検索", id: "DAI04030_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
                         vue.conditionChanged();
                     }
                 },
+                {visible: "false"},
                 { visible: "true", value: "CSV", id: "DAI04030_Download", disabled: false, shortcut: "F7",
                     onClick: function () {
                         //TODO: ダウンロード
                     }
                 },
-                {visible: "false"},
                 { visible: "true", value: "詳細", id: "DAI04030Grid1_Detail", disabled: true, shortcut: "F8",
                     onClick: function () {
                         vue.showDetail();
@@ -409,7 +400,7 @@ export default {
                 isModal: true,
                 isChild: true,
                 width: 550,
-                height: 600,
+                height: 560,
             });
         },
         showNewDetail: function(rowData) {
@@ -423,7 +414,7 @@ export default {
                 isModal: true,
                 isChild: true,
                 width: 550,
-                height: 600,
+                height: 560,
             });
         },
     }

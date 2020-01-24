@@ -9,9 +9,13 @@
             <div class="col-md-4">
                 <label>商品ＣＤ</label>
                 <input class="form-control text-right" type="text"
+                    id="ProductCd"
                     v-model=viewModel.商品ＣＤ
                     :readonly=!viewModel.IsNew
                     :tabindex="viewModel.IsNew ? 0 : -1"
+                    @change="onProductCdChanged"
+                    maxlength="5"
+                    v-int
                 >
             </div>
         </div>
@@ -23,7 +27,8 @@
                         <div class="col-md-12">
                             <label class="width:100">部署グループ</label>
                             <VueSelect
-                                id="ProductKbn"
+                                id="BushoGroup"
+                                ref="BushoGroup_Select"
                                 :vmodel=viewModel
                                 bind="部署グループ"
                                 uri="/Utilities/GetCodeList"
@@ -34,11 +39,21 @@
                         </div>
                         <div class="col-md-12">
                             <label class="">商品名</label>
-                            <input type="text" class="form-control" v-model="viewModel.商品名">
+                            <input type="text" class="form-control" style="width:360px"
+                                v-model="viewModel.商品名"
+                                id="ProductName"
+                                maxlength="24"
+                                v-maxBytes=60
+                            >
                         </div>
                         <div class="col-md-12">
                             <label class="">商品略称</label>
-                            <input type="text" class="form-control" style="width:400px" v-model="viewModel.商品略称">
+                            <input type="text" class="form-control" style="width:230px"
+                                v-model="viewModel.商品略称"
+                                id="ProductAbbr"
+                                maxlength=20
+                                v-maxBytes=20
+                            >
                         </div>
                         <div class="col-md-12">
                             <label class="width:100">商品区分</label>
@@ -50,16 +65,22 @@
                                 :params="{ cd: 14 }"
                                 :withCode=true
                                 customStyle="{ width: 200px; }"
+                                :hasNull=true
                             />
                         </div>
                         <div class="col-md-12">
                             <label class="">売価単価</label>
-                            <input class="form-control p-2 text-right" style="width: 90px;" type="text" v-model=viewModel.売価単価>
+                            <currency-input
+                                class="form-control p-2 text-right" style="width: 100px;"
+                                v-model=viewModel.売価単価
+                                maxlength="9"
+                            />
                         </div>
                         <div class="col-md-12">
                             <label class="width:100">弁当区分</label>
                             <VueSelect
                                 id="BentoKbn"
+                                ref="BentoKbn_Select"
                                 :vmodel=viewModel
                                 bind="弁当区分"
                                 uri="/Utilities/GetCodeList"
@@ -98,6 +119,7 @@
                             <label class="width:100">表示区分</label>
                             <VueSelect
                                 id="DisplayKbn"
+                                ref="DisplayKbn_Select"
                                 :vmodel=viewModel
                                 bind="表示ＦＬＧ"
                                 uri="/Utilities/GetCodeList"
@@ -108,12 +130,17 @@
                         </div>
                         <div class="col-md-12">
                             <label>部数単位</label>
-                            <input class="form-control text-right" style="width:50px" type="text" v-model=viewModel.部数単位>
+                            <input class="form-control text-right" style="width:80px" type="text"
+                                v-model=viewModel.部数単位
+                                maxlength="6"
+                                v-int
+                            >
                         </div>
                         <div class="col-md-12">
                             <label class="width:100">食事区分</label>
                             <VueSelect
                                 id="MealKbn"
+                                ref="MealKbn_Select"
                                 :vmodel=viewModel
                                 bind="食事区分"
                                 uri="/Utilities/GetCodeList"
@@ -262,67 +289,101 @@ export default {
                 { visible: "true", value: "削除", id: "DAI04031_Delete", disabled: false, shortcut: "F3",
                     onClick: function () {
                         //TODO: 削除
+                        var cd = vue.viewModel.商品ＣＤ;
+                        if(!cd) return;
+
+                        var params = {ProductCd: cd};
+                        params.noCache = true;
+
+                        $.dialogConfirm({
+                            title: "マスタ削除確認",
+                            contents: "マスタを削除します。",
+                            buttons:[
+                                {
+                                    text: "はい",
+                                    class: "btn btn-primary",
+                                    click: function(){
+                                        axios.post("/DAI04031/Delete", params)
+                                            .then(res => {
+                                                DAI04030.conditionChanged();
+                                                $(this).dialog("close");
+                                                vue.clearDetail();
+                                            })
+                                            .catch(err => {
+                                                console.log(error);
+                                                //TODO: エラー
+                                            }
+                                        );
+                                    }
+                                },
+                                {
+                                    text: "いいえ",
+                                    class: "btn btn-danger",
+                                    click: function(){
+                                        $(this).dialog("close");
+                                    }
+                                },
+                            ],
+                        });
                     }
                 },
                 { visible: "true", value: "登録", id: "DAI04031Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         //TODO: 登録
 
-                        //TODO:以下作業中。必須入力項目にid未設定。
-                        if(!vue.viewModel.商品ＣＤ){
-                            $.dialogErr({
-                                title: "登録不可",
-                                contents: "商品CDを入力して下さい",
-                            })
-                            return;
-                        }
-
-                        if(!vue.viewModel.商品ＣＤ || !vue.viewModel.商品名 || !vue.viewModel.商品略称 || !vue.viewModel.部数単位 ){
+                        if(!vue.viewModel.商品ＣＤ || !vue.viewModel.商品名 || !vue.viewModel.商品略称 || !vue.viewModel.商品区分){
                             $.dialogErr({
                                 title: "登録不可",
                                 contents: [
                                     !vue.viewModel.商品ＣＤ ? "商品CDが入力されていません。<br/>" : "",
                                     !vue.viewModel.商品名 ? "商品名が入力されていません。<br/>" : "",
                                     !vue.viewModel.商品略称 ? "商品略称が入力されていません。<br/>" : "",
-                                    !vue.viewModel.部数単位 ? "部数単位" : ""
+                                    !vue.viewModel.商品区分 ? "商品区分が入力されていません。" : "",
 
                                 ]
                             })
                             if(!vue.viewModel.商品ＣＤ){
-                                $(vue.$el).find("#TaxKbn").addClass("has-error");
+                                $(vue.$el).find("#ProductCd").addClass("has-error");
                             }else{
-                                $(vue.$el).find("#TaxKbn").removeClass("has-error");
+                                $(vue.$el).find("#ProductCd").removeClass("has-error");
                             }
                             if(!vue.viewModel.商品名){
-                                $(vue.$el).find("#TaxName").addClass("has-error");
+                                $(vue.$el).find("#ProductName").addClass("has-error");
                             }else{
-                                $(vue.$el).find("#TaxName").removeClass("has-error");
+                                $(vue.$el).find("#ProductName").removeClass("has-error");
                             }
                             if(!vue.viewModel.商品略称){
-                                $(vue.$el).find(".TekiyoDate").addClass("has-error");
+                                $(vue.$el).find("#ProductAbbr").addClass("has-error");
                             }else{
-                                $(vue.$el).find(".TekiyoDate").removeClass("has-error");
+                                $(vue.$el).find("#ProductAbbr").removeClass("has-error");
                             }
-                            if(!vue.viewModel.部数単位){
-                                $(vue.$el).find(".TekiyoDate").addClass("has-error");
+                            if(!vue.viewModel.商品区分){
+                                $(vue.$el).find(".ProductKbn").addClass("has-error");
                             }else{
-                                $(vue.$el).find(".TekiyoDate").removeClass("has-error");
+                                $(vue.$el).find(".ProductKbn").removeClass("has-error");
                             }
                             return;
                         }
 
                         var params = _.cloneDeep(vue.viewModel);
 
+                        //TODO:グループ区分は何できまる？この画面では無条件に0を設定しているが0以外のデータがある
+                        params.ｸﾞﾙｰﾌﾟ区分 = 0;
+                        params.副食ＣＤ = !!params.副食ＣＤ ? params.副食ＣＤ : 0;
+                        params.主食ＣＤ = !!params.主食ＣＤ ? params.主食ＣＤ : 0;
+                        params.部数単位 = !!params.部数単位 ? params.部数単位 : 0;
+
                         params.修正担当者ＣＤ = params.userId;
                         params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
 
-
-                        //TODO:必須入力チェック　項目が多い
-                        //TODO:入力欄なしだが、0をいれている項目あり
+                        $(vue.$el).find(".has-error").removeClass("has-error");
 
                         //TODO: 登録用controller method call
                         axios.post("/DAI04031/Save", params)
                             .then(res => {
+                                vue.viewModel = res.data.model;
+                                DAI04030.conditionChanged();
+                                vue.clearDetail();
                             })
                             .catch(err => {
                                 console.log(error);
@@ -333,9 +394,63 @@ export default {
                     }
                 },
             );
+
+            //初期値
+            vue.viewModel.売価単価 = !!vue.viewModel.売価単価 ? vue.viewModel.売価単価 : 0;
         },
         mountedFunc: function(vue) {
             $(vue.$el).parents("div.body-content").addClass("Scrollable");
+        },
+        onProductCdChanged: function(code, entities) {
+            var vue = this;
+
+            vue.searchByProductCd();
+        },
+        searchByProductCd: function() {
+            var vue = this;
+            var cd = vue.viewModel.商品ＣＤ;
+            if (!cd) return;
+
+            var params = {ProductCd: cd};
+            params.noCache = true;
+
+            axios.post("/Utilities/GetProductListForMaint", params)
+                .then(res => {
+                    if (res.data.length == 1) {
+                        $.dialogConfirm({
+                            title: "マスタ編集確認",
+                            contents: "マスタを編集しますか？",
+                            buttons:[
+                                {
+                                    text: "はい",
+                                    class: "btn btn-primary",
+                                    click: function(){
+                                        vue.viewModel = res.data[0];
+                                        $(this).dialog("close");
+                                    }
+                                },
+                                {
+                                    text: "いいえ",
+                                    class: "btn btn-danger",
+                                    click: function(){
+                                        vue.viewModel.税区分 = "";
+                                        $(this).dialog("close");
+                                    }
+                                },
+                            ],
+                        });
+                        $("[shortcut='F3']").prop("disabled", false);
+                    }else{
+                        //TODO:削除ボタン
+                        $("[shortcut='F3']").prop("disabled", true);
+                        return;
+                    }
+                })
+                .catch(err => {
+                    console.log(err);
+                    //TODO: エラー
+                }
+            )
         },
         clearDetail: function(){
             var vue = this;
@@ -344,6 +459,11 @@ export default {
             vue.viewModel.IsNew = true;
             vue.viewModel.userId = vue.query.userId;
 
+            vue.viewModel.売価単価 = 0;
+            vue.viewModel.部署グループ = !!vue.viewModel.部署グループ ? vue.viewModel.部署グループ : vue.$refs.BushoGroup_Select.entities[0].code;
+            vue.viewModel.弁当区分 = !!vue.viewModel.弁当区分 ? vue.viewModel.弁当区分 : vue.$refs.BentoKbn_Select.entities[0].code;
+            vue.viewModel.表示区分 = !!vue.viewModel.表示区分 ? vue.viewModel.表示区分 : vue.$refs.DisplayKbn_Select.entities[0].code;
+            vue.viewModel.食事区分 = !!vue.viewModel.食事区分 ? vue.viewModel.食事区分 : vue.$refs.MealKbn_Select.entities[0].code;
         },
     }
 }

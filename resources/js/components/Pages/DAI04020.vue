@@ -405,8 +405,8 @@ export default {
                 params: params,
                 isModal: true,
                 isChild: true,
-                width: 600,
-                height: 600,
+                width: 840,
+                height: 585,
             });
         },
         showNewDetail: function(rowData) {
@@ -419,8 +419,8 @@ export default {
                 params: params,
                 isModal: true,
                 isChild: true,
-                width: 600,
-                height: 600,
+                width: 840,
+                height: 585,
             });
         },
     }

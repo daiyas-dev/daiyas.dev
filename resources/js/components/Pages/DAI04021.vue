@@ -6,7 +6,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label>担当者ＣＤ</label>
                 <input class="form-control text-right" type="text"
                     id="TantoCd"
@@ -20,11 +20,12 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-8">
+            <div class="col-md-12">
                 <label class="">担当者名</label>
                 <input type="text" class="form-control" v-model="viewModel.担当者名"
                     id="TantoName"
-                    maxlength="60"
+                    maxlength=60
+                    v-maxBytes=60
                     >
             </div>
         </div>
@@ -33,14 +34,15 @@
                 <label class="">担当者カナ</label>
                 <input type="text" class="form-control" style="font-size: 15px !important;"
                     v-model="viewModel.担当者名カナ"
-                    maxlength="30"
+                    maxlength=30
+                    v-maxBytes=30
                     >
             </div>
         </div>
         <div class="row">
             <div class="col-md-6">
                 <label class="">郵便番号</label>
-                <input class="form-control" style="width: 90px;" type="tel"
+                <input class="form-control" style="width: 100px;" type="tel"
                     v-model=viewModel.郵便番号
                     maxlength="8"
                     >
@@ -49,7 +51,11 @@
         <div class="row">
             <div class="col-md-12">
                 <label>住所１</label>
-                <input class="form-control" type="text" v-model=viewModel.住所 maxlength="60">
+                <input class="form-control" type="text"
+                    v-model=viewModel.住所
+                    maxlength=60
+                    v-maxBytes=60
+                >
             </div>
         </div>
         <div class="row">
@@ -98,20 +104,23 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-8">
+            <div class="col-md-10">
                 <label class="">ユーザーID</label>
-                <input class="form-control p-2" style="width: 190px;" type="text"
+                <input class="form-control p-2" style="width: 240px;" type="text"
                     v-model=viewModel.ユーザーＩＤ
-                    maxlength="20">
+                    maxlength=20
+                    v-maxBytes=20
+                >
             </div>
         </div>
         <div class="row">
-            <div class="col-md-8">
+            <div class="col-md-10">
                 <label class="">パスワード</label>
-                <input class="form-control p-2" style="width: 190px;" type="text"
+                <input class="form-control p-2" style="width: 240px;" type="text"
                     v-model=viewModel.パスワード
-                    maxlength="20"
-                    >
+                    maxlength=20
+                    v-maxBytes=20
+                >
             </div>
         </div>
         <div class="row">
@@ -119,6 +128,7 @@
                 <label class="width:100">営業業務区分</label>
                 <VueSelect
                     id="EigoKbn"
+                    ref="EigoKbn_Select"
                     :vmodel=viewModel
                     bind="営業業務区分"
                     uri="/Utilities/GetCodeList"
@@ -342,16 +352,15 @@ export default {
                                 $(vue.$el).find("#TantoName").removeClass("has-error");
                             }
                             if(!vue.viewModel.所属部署ＣＤ){
-                                $(vue.$el).find("#BushoCd").addClass("has-error");
+                                $(vue.$el).find(".BushoCd").addClass("has-error");
                             }else{
-                                $(vue.$el).find("#BushoCd").removeClass("has-error");
+                                $(vue.$el).find(".BushoCd").removeClass("has-error");
                             }
                             return;
                         }
 
                         var params = _.cloneDeep(vue.viewModel);
 
-                        params.営業業務区分 = !!params.営業業務区分 ? params.営業業務区分 : 0;
                         params.修正担当者ＣＤ = params.userId;
                         params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
 
@@ -375,6 +384,9 @@ export default {
                     }
                 },
             );
+
+            //TODO:所属部署ＣＤの初期値101を設定するか
+
         },
         mountedFunc: function(vue) {
             $(vue.$el).parents("div.body-content").addClass("Scrollable");
@@ -437,9 +449,14 @@ export default {
         clearDetail: function(){
             var vue = this;
 
+            $(vue.$el).find(".has-error").removeClass("has-error");
+
             _.keys(DAI04021.viewModel).forEach(k => DAI04021.viewModel[k] = null);
             vue.viewModel.IsNew = true;
             vue.viewModel.userId = vue.query.userId;
+
+            vue.viewModel.営業業務区分 = !!vue.viewModel.営業業務区分 ? vue.viewModel.営業業務区分 : vue.$refs.EigoKbn_Select.entities[0].code;
+            vue.viewModel.所属部署ＣＤ = !!vue.viewModel.所属部署ＣＤ ? vue.viewModel.所属部署ＣＤ : vue.$refs.BushoCdSelect.entities[1].code;
         },
     }
 }

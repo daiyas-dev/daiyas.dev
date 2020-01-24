@@ -22,7 +22,11 @@
         <div class="row">
             <div class="col-md-12">
                 <label class="">消費税名称</label>
-                <input type="text" id="TaxName" class="form-control" v-model="viewModel.消費税名称" maxlength="30">
+                <input type="text" id="TaxName" class="form-control"
+                    v-model="viewModel.消費税名称"
+                    maxlength=30
+                    v-maxBytes=30
+                >
             </div>
         </div>
         <div class="row">
@@ -39,6 +43,7 @@
                 <label>内外区分</label>
                 <VueSelect
                     id="NaigaiKbn"
+                    ref="NaigaiKbn_Select"
                     :vmodel=viewModel
                     bind="内外区分"
                     uri="/Utilities/GetCodeList"
@@ -70,6 +75,7 @@
                 <label class="">現在利用</label>
                 <VueSelect
                     id="RiyoFlg"
+                    ref="RiyoFlg_Select"
                     :vmodel=viewModel
                     bind="現在使用FLG"
                     uri="/Utilities/GetCodeList"
@@ -296,9 +302,7 @@ export default {
                         var params = _.cloneDeep(vue.viewModel);
 
                         params.消費税率 = !!params.消費税率 ? params.消費税率 : 0;
-                        params.内外区分 = !!params.内外区分 ? params.内外区分 : 10;
                         params.適用年月 = moment(vue.viewModel.適用年月,"YYYY-MM-DD").format("YYYY-MM-DD");
-                        params.現在使用FLG = !!params.現在使用FLG ? params.現在使用FLG : 0;
                         params.修正担当者ＣＤ = params.userId;
                         params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
 
@@ -382,10 +386,15 @@ export default {
         clearDetail: function(){
             var vue = this;
 
+            $(vue.$el).find(".has-error").removeClass("has-error");
+
             _.keys(DAI04141.viewModel).forEach(k => DAI04141.viewModel[k] = null);
-            vue.viewModel.適用年月 = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
             vue.viewModel.IsNew = true;
             vue.viewModel.userId = vue.query.userId;
+
+            vue.viewModel.適用年月 = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
+            vue.viewModel.内外区分 = !!vue.viewModel.内外区分 ? vue.viewModel.内外区分 : vue.$refs.NaigaiKbn_Select.entities[0].code;
+            vue.viewModel.現在使用FLG = !!vue.viewModel.現在使用FLG ? paravue.viewModelms.現在使用FLG : vue.$refs.RiyoFlg_Select.entities[0].code;
 
         },
     }

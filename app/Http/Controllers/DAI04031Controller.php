@@ -32,9 +32,31 @@ class DAI04031Controller extends Controller
             );
         });
 
+        $savedData = array_merge(['商品ＣＤ' => $params['商品ＣＤ']], $data);
+
+        return response()->json([
+            'result' => true,
+            'model' => $savedData,
+        ]);
+    }
+
+    /**
+     * Delete
+     */
+    public function Delete($request)
+    {
+        $ProductCd = $request->ProductCd;
+
+        // トランザクション開始
+        DB::transaction(function() use ($ProductCd) {
+
+            DB::table('商品マスタ')->where('商品ＣＤ', '=', $ProductCd)->delete();
+
+        });
+
+
         return response()->json([
             'result' => true,
         ]);
     }
-
 }
