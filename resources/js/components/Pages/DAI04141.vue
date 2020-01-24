@@ -223,13 +223,14 @@ export default {
         createdFunc: function(vue) {
             vue.footerButtons.push(
                 { visible: "true", value: "クリア", id: "DAI04141_Clear", disabled: false, shortcut: "F2",
-                    onClick: function () {
+                    onClick: function (evt) {
                         //TODO: クリア
                         vue.clearDetail();
+                        console.log(vue.$attrs.id, evt.target.outerText, $(evt.target).attr("shortcut"));
                     }
                 },
                 { visible: "true", value: "削除", id: "DAI04141_Delete", disabled: false, shortcut: "F3",
-                    onClick: function () {
+                    onClick: function (evt) {
                         //TODO: 削除
                         var cd = vue.viewModel.税区分;
                         if(!cd) return;
@@ -267,6 +268,7 @@ export default {
                                 },
                             ],
                         });
+                        console.log(vue.$attrs.id, evt.target.outerText, $(evt.target).attr("shortcut"));
                     }
                 },
                 { visible: "true", value: "登録", id: "DAI04141Grid1_Save", disabled: false, shortcut: "F9",
@@ -301,7 +303,7 @@ export default {
 
                         var params = _.cloneDeep(vue.viewModel);
 
-                        params.消費税率 = !!params.消費税率 ? params.消費税率 : 0;
+                        params.消費税率 = params.消費税率 || 0;
                         params.適用年月 = moment(vue.viewModel.適用年月,"YYYY-MM-DD").format("YYYY-MM-DD");
                         params.修正担当者ＣＤ = params.userId;
                         params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
@@ -326,7 +328,7 @@ export default {
             );
 
             //適用年月の初期値 -> 当日
-            vue.viewModel.適用年月 = !!vue.params.適用年月 ? vue.params.適用年月 : moment().format("YYYY-MM-DD HH:mm:ss.SSS");
+            vue.viewModel.適用年月 = vue.params.適用年月 || moment().format("YYYY-MM-DD HH:mm:ss.SSS");
         },
         mountedFunc: function(vue) {
 
@@ -393,8 +395,8 @@ export default {
             vue.viewModel.userId = vue.query.userId;
 
             vue.viewModel.適用年月 = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
-            vue.viewModel.内外区分 = !!vue.viewModel.内外区分 ? vue.viewModel.内外区分 : vue.$refs.NaigaiKbn_Select.entities[0].code;
-            vue.viewModel.現在使用FLG = !!vue.viewModel.現在使用FLG ? paravue.viewModelms.現在使用FLG : vue.$refs.RiyoFlg_Select.entities[0].code;
+            vue.viewModel.内外区分 = vue.viewModel.内外区分 || vue.$refs.NaigaiKbn_Select.entities[0].code;
+            vue.viewModel.現在使用FLG = vue.viewModel.現在使用FLG || vue.$refs.RiyoFlg_Select.entities[0].code;
 
         },
     }

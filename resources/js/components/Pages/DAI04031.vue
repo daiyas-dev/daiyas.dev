@@ -72,6 +72,7 @@
                             <label class="">売価単価</label>
                             <currency-input
                                 class="form-control p-2 text-right" style="width: 100px;"
+                                type="tel"
                                 v-model=viewModel.売価単価
                                 maxlength="9"
                             />
@@ -130,11 +131,12 @@
                         </div>
                         <div class="col-md-12">
                             <label>部数単位</label>
-                            <input class="form-control text-right" style="width:80px" type="text"
+                            <currency-input
+                                class="form-control p-2 text-right" style="width: 80px;"
+                                type="tel"
                                 v-model=viewModel.部数単位
                                 maxlength="6"
-                                v-int
-                            >
+                            />
                         </div>
                         <div class="col-md-12">
                             <label class="width:100">食事区分</label>
@@ -369,9 +371,9 @@ export default {
 
                         //TODO:グループ区分は何できまる？この画面では無条件に0を設定しているが0以外のデータがある
                         params.ｸﾞﾙｰﾌﾟ区分 = 0;
-                        params.副食ＣＤ = !!params.副食ＣＤ ? params.副食ＣＤ : 0;
-                        params.主食ＣＤ = !!params.主食ＣＤ ? params.主食ＣＤ : 0;
-                        params.部数単位 = !!params.部数単位 ? params.部数単位 : 0;
+                        params.副食ＣＤ = params.副食ＣＤ || 0;
+                        params.主食ＣＤ = params.主食ＣＤ || 0;
+                        params.部数単位 = params.部数単位 || 0;
 
                         params.修正担当者ＣＤ = params.userId;
                         params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
@@ -396,7 +398,7 @@ export default {
             );
 
             //初期値
-            vue.viewModel.売価単価 = !!vue.viewModel.売価単価 ? vue.viewModel.売価単価 : 0;
+            vue.viewModel.売価単価 = vue.viewModel.売価単価 || 0;
         },
         mountedFunc: function(vue) {
             $(vue.$el).parents("div.body-content").addClass("Scrollable");
@@ -460,10 +462,10 @@ export default {
             vue.viewModel.userId = vue.query.userId;
 
             vue.viewModel.売価単価 = 0;
-            vue.viewModel.部署グループ = !!vue.viewModel.部署グループ ? vue.viewModel.部署グループ : vue.$refs.BushoGroup_Select.entities[0].code;
-            vue.viewModel.弁当区分 = !!vue.viewModel.弁当区分 ? vue.viewModel.弁当区分 : vue.$refs.BentoKbn_Select.entities[0].code;
-            vue.viewModel.表示区分 = !!vue.viewModel.表示区分 ? vue.viewModel.表示区分 : vue.$refs.DisplayKbn_Select.entities[0].code;
-            vue.viewModel.食事区分 = !!vue.viewModel.食事区分 ? vue.viewModel.食事区分 : vue.$refs.MealKbn_Select.entities[0].code;
+            vue.viewModel.部署グループ = vue.viewModel.部署グループ || vue.$refs.BushoGroup_Select.entities[0].code;
+            vue.viewModel.弁当区分 = vue.viewModel.弁当区分 || vue.$refs.BentoKbn_Select.entities[0].code;
+            vue.viewModel.表示区分 = vue.viewModel.表示区分 || vue.$refs.DisplayKbn_Select.entities[0].code;
+            vue.viewModel.食事区分 = vue.viewModel.食事区分 || vue.$refs.MealKbn_Select.entities[0].code;
         },
     }
 }

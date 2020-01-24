@@ -365,7 +365,7 @@ export default {
                         params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
 
                         //チェックボックス
-                        params.オペレータ = !!params.オペレータ ? params.オペレータ : 0;
+                        params.オペレータ = params.オペレータ || 0;
 
                         $(vue.$el).find(".has-error").removeClass("has-error");
 
@@ -455,8 +455,8 @@ export default {
             vue.viewModel.IsNew = true;
             vue.viewModel.userId = vue.query.userId;
 
-            vue.viewModel.営業業務区分 = !!vue.viewModel.営業業務区分 ? vue.viewModel.営業業務区分 : vue.$refs.EigoKbn_Select.entities[0].code;
-            vue.viewModel.所属部署ＣＤ = !!vue.viewModel.所属部署ＣＤ ? vue.viewModel.所属部署ＣＤ : vue.$refs.BushoCdSelect.entities[1].code;
+            vue.viewModel.営業業務区分 = vue.viewModel.営業業務区分 || vue.$refs.EigoKbn_Select.entities[0].code;
+            vue.viewModel.所属部署ＣＤ = vue.viewModel.所属部署ＣＤ || vue.$refs.BushoCdSelect.entities[1].code;
         },
     }
 }

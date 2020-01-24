@@ -4,6 +4,7 @@
             <div class="col-md-1">
                 <span class="badge badge-primary w-75 ModeLabel">{{ModeLabel}}</span>
             </div>
+            <!-- TODO:削除？ -->
             <!-- <div class="col-md-3">
                 <button class="btn btn-warning" @click="toggleButtons">ボタン状態変更テスト</button>
             </div> -->
@@ -14,6 +15,7 @@
             </div>
             <div class="col-md-1">
                 <input class="form-control text-right" type="text"
+                    id="BushoCd"
                     v-model=viewModel.部署CD
                     :readonly=!viewModel.IsNew
                     :tabindex="viewModel.IsNew ? 0 : -1"
@@ -24,7 +26,7 @@
                 <label class="">部署名</label>
             </div>
             <div class="col-md-2">
-                <input type="text" class="form-control" v-model="viewModel.部署名">
+                <input type="text" class="form-control" id="BushoName" v-model="viewModel.部署名">
             </div>
             <div class="col-md-1">
                 <label class="">部署名カナ</label>
@@ -564,6 +566,7 @@ export default {
                 { visible: "true", value: "クリア", id: "DAI04071_Clear", disabled: false, shortcut: "F2",
                     onClick: function (evt) {
                         //TODO: クリア
+                        vue.clearDetail();
                         console.log(vue.$attrs.id, evt.target.outerText, $(evt.target).attr("shortcut"));
                     }
                 },
@@ -576,22 +579,54 @@ export default {
                 {visible: "false"},
                 { visible: "true", value: "登録", id: "DAI04071Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
-                        if(!vue.viewModel.部署CD){
+                        // if(!vue.viewModel.部署CD){
+                        //     $.dialogErr({
+                        //         title: "登録不可",
+                        //         contents: "部署CDを入力して下さい",
+                        //     })
+                        //     return;
+                        // }
+                        // if(!vue.viewModel.部署名){
+                        //     $.dialogErr({
+                        //         title: "登録不可",
+                        //         contents: "部署名を入力して下さい",
+                        //     })
+                        //     return;
+                        // }
+                        if(!vue.viewModel.部署CD || !vue.viewModel.部署名){
                             $.dialogErr({
                                 title: "登録不可",
-                                contents: "部署CDを入力して下さい",
+                                contents: [
+                                    !vue.viewModel.部署CD ? "部署CDが入力されていません。<br/>" : "",
+                                    !vue.viewModel.部署名 ? "部署名が入力されていません。" : ""
+                                ]
                             })
-                            return;
-                        }
-                        if(!vue.viewModel.部署名){
-                            $.dialogErr({
-                                title: "登録不可",
-                                contents: "部署名を入力して下さい",
-                            })
+                            if(!vue.viewModel.部署CD){
+                                $(vue.$el).find("#BushoCd").addClass("has-error");
+                            }else{
+                                $(vue.$el).find("#BushoCd").removeClass("has-error");
+                            }
+                            if(!vue.viewModel.部署名){
+                                $(vue.$el).find("#BushoName").addClass("has-error");
+                            }else{
+                                $(vue.$el).find("#BushoName").removeClass("has-error");
+                            }
                             return;
                         }
 
                         var params = _.cloneDeep(vue.viewModel);
+
+                        params.部署グループ = params.部署グループ || 0;
+                        params.モバイル_主要商品ＣＤ1 = params.モバイル_主要商品ＣＤ1 || 0;
+                        params.モバイル_主要商品ＣＤ2 = params.モバイル_主要商品ＣＤ2 || 0;
+                        params.モバイル_主要商品ＣＤ3 = params.モバイル_主要商品ＣＤ3 || 0;
+                        params.金融機関CD1 = params.金融機関CD1 || 0;
+                        params.金融機関支店CD1 = params.金融機関支店CD1 || 0;
+                        params.口座種別1 = params.口座種別1 || 0;
+                        params.金融機関CD2 = params.金融機関CD2 || 0;
+                        params.金融機関支店CD2 = params.金融機関支店CD2 || 0;
+                        params.口座種別2 = params.口座種別2 || 0;
+                        params.工場ＣＤ = params.工場ＣＤ || 0;
 
                         //金融機関CD、金融機関支店CD: nullの0置換
                         params.金融機関CD1 = params.金融機関CD1 || 0;
@@ -599,12 +634,17 @@ export default {
                         params.金融機関支店CD1 = params.金融機関支店CD1 || 0;
                         params.金融機関支店CD2 = params.金融機関支店CD2 || 0;
 
-                        params.修正担当者ＣＤ = params.userId;
+                        params.修正担当者CD = params.userId;
                         params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
+
+                        $(vue.$el).find(".has-error").removeClass("has-error");
 
                         //TODO: 登録用controller method call
                         axios.post("/DAI04071/Save", params)
                             .then(res => {
+                                vue.viewModel = res.data.model;
+                                DAI04070.conditionChanged();
+                                vue.clearDetail();
                             })
                             .catch(err => {
                                 console.log(error);
@@ -739,9 +779,20 @@ export default {
                 ;
             return list;
         },
-        toggleButtons: function() {
+        //TODO:削除？
+        // toggleButtons: function() {
+        //     var vue = this;
+        //     vue.footerButtons.forEach(v => v["disabled"] = !v["disabled"]);
+        // },
+        clearDetail: function(){
             var vue = this;
-            vue.footerButtons.forEach(v => v["disabled"] = !v["disabled"]);
+
+            $(vue.$el).find(".has-error").removeClass("has-error");
+
+            _.keys(DAI04071.viewModel).forEach(k => DAI04071.viewModel[k] = null);
+            vue.viewModel.IsNew = true;
+            vue.viewModel.userId = vue.query.userId;
+
         },
     }
 }

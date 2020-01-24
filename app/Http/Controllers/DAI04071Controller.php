@@ -32,8 +32,11 @@ class DAI04071Controller extends Controller
             );
         });
 
+        $savedData = array_merge(['部署CD' => $params['部署CD']], $data);
+
         return response()->json([
             'result' => true,
+            'model' => $savedData,
         ]);
     }
 
