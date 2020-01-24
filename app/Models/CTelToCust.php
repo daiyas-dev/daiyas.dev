@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property string $Tel_TelNo
@@ -12,11 +12,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $Tel_NewDate
  * @property string $Tel_UpdDate
  */
-class CTelToCust extends Model
+class CTelToCust extends BaseModel
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = 'C_TelToCust';

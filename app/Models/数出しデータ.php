@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property string $日付
@@ -17,11 +17,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property float $修正担当者ＣＤ
  * @property string $修正日
  */
-class 数出しデータ extends Model
+class 数出しデータ extends BaseModel
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = '数出しデータ';

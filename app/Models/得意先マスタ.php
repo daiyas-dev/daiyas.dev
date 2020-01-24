@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property float $得意先ＣＤ
@@ -83,32 +83,32 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $修正担当者ＣＤ
  * @property string $修正日
  */
-class 得意先マスタ extends Model
+class 得意先マスタ extends BaseModel
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = '得意先マスタ';
 
     /**
      * The primary key for the model.
-     * 
+     *
      * @var string
      */
     protected $primaryKey = '得意先ＣＤ';
 
     /**
      * The "type" of the auto-incrementing ID.
-     * 
+     *
      * @var string
      */
     protected $keyType = 'float';
 
     /**
      * Indicates if the IDs are auto-incrementing.
-     * 
+     *
      * @var bool
      */
     public $incrementing = false;

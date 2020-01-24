@@ -74,7 +74,7 @@ window.axios.interceptors.response.use(
             "/Account/Logout",
         ];
 
-        if (excepts.includes(url) || (!!params && !!params.noCache)) {
+        if (excepts.includes(url) || (!!params && !!params.noCache) || (!!url && url.includes("Save"))) {
             return response;
         }
 
@@ -101,6 +101,10 @@ window.axios.interceptors.request.use(
         // console.log("axios request interceptor", url, request.data, params, key);
 
         if (!!params && !!params.noCache) {
+            return request;
+        }
+
+        if (!!url && url.includes("Save")) {
             return request;
         }
 

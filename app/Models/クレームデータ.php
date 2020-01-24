@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property int $クレームID
@@ -38,18 +38,18 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $修正担当者ＣＤ
  * @property string $修正日
  */
-class クレームデータ extends Model
+class クレームデータ extends BaseModel
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = 'クレームデータ';
 
     /**
      * The primary key for the model.
-     * 
+     *
      * @var string
      */
     protected $primaryKey = 'クレームID';

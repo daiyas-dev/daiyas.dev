@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property string $日付
@@ -17,11 +17,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $WebService_コースＣＤ
  * @property string $WebService_更新区分
  */
-class モバイル更新予定リスト extends Model
+class モバイル更新予定リスト extends BaseModel
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = 'モバイル_更新予定リスト';

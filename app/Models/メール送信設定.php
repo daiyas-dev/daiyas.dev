@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property int $ＣＤ
@@ -24,11 +24,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property boolean $自動配信
  * @property string $修正日
  */
-class メール送信設定 extends Model
+class メール送信設定 extends BaseModel
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = 'メール送信設定';

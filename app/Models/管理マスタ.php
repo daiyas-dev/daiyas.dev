@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property int $管理ＫＥＹ
@@ -39,25 +39,25 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $修正担当者ＣＤ
  * @property string $修正日
  */
-class 管理マスタ extends Model
+class 管理マスタ extends BaseModel
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = '管理マスタ';
 
     /**
      * The primary key for the model.
-     * 
+     *
      * @var string
      */
     protected $primaryKey = '管理ＫＥＹ';
 
     /**
      * Indicates if the IDs are auto-incrementing.
-     * 
+     *
      * @var bool
      */
     public $incrementing = false;

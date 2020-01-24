@@ -168,6 +168,7 @@ $.fn.extend({ "dialogCustom": dialogCustom });
 var dialogInfo = function(options) {
     options = $.extend(true, {}, options);
     options.kind = "info";
+    options.closeOnEscape = true;
     return this.dialogCustom(options);
 };
 
@@ -217,6 +218,10 @@ $.fn.extend({ "dialogErr": dialogErr });
 var dialogConfirm = function(options) {
     options = $.extend(true, {}, options);
     options.kind = "confirm";
+
+    options.buttons.find(v => v.text == "はい").shortcut = "Enter";
+    options.buttons.find(v => v.text == "いいえ").shortcut = "ESC";
+
     return this.dialogCustom(options);
 };
 

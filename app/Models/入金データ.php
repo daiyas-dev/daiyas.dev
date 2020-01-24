@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property string $入金日付
@@ -27,11 +27,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $修正担当者ＣＤ
  * @property string $修正日
  */
-class 入金データ extends Model
+class 入金データ extends BaseModel
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = '入金データ';

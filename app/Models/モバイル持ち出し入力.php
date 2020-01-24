@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property int $部署ＣＤ
@@ -12,11 +12,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property float $個数
  * @property string $修正日
  */
-class モバイル持ち出し入力 extends Model
+class モバイル持ち出し入力 extends BaseModel
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = 'モバイル_持ち出し入力';

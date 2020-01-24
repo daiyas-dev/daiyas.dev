@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property int $trigger_kind
@@ -20,11 +20,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $GETDATE
  * @property string $IP
  */
-class モバイル更新予定リストトリガーログ extends Model
+class モバイル更新予定リストトリガーログ extends BaseModel
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = 'モバイル_更新予定リストトリガーログ';

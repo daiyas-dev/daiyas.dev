@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property int $税区分
@@ -14,25 +14,25 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $修正担当者ＣＤ
  * @property string $修正日
  */
-class 消費税率マスタ extends Model
+class 消費税率マスタ extends BaseModel
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = '消費税率マスタ';
 
     /**
      * The primary key for the model.
-     * 
+     *
      * @var string
      */
     protected $primaryKey = '税区分';
 
     /**
      * Indicates if the IDs are auto-incrementing.
-     * 
+     *
      * @var bool
      */
     public $incrementing = false;

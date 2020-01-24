@@ -1,9 +1,9 @@
 ﻿<template>
     <form id="this.$options.name">
         <div class="row">
-            <div class="col-md-1">
+            <div class="col-md-3">
                 <label>部署</label>
-                <input type="text" v-model=viewModel.BushoCd v-maxBytes=3>
+                <currency-input v-model=viewModel.BushoCd maxlength="5" />
             </div>
             <div class="col-md-2">
                 <VueSelect

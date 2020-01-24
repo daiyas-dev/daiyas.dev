@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property int $Cal_ID
@@ -19,11 +19,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $Cal_NewDate
  * @property string $Cal_UpdDate
  */
-class CCallDate extends Model
+class CCallDate extends BaseModel
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = 'C_CallDate';

@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property int $部署グループ
@@ -32,25 +32,25 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $修正担当者CD
  * @property string $修正日
  */
-class 部署マスタ extends Model
+class 部署マスタ extends BaseModel
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = '部署マスタ';
 
     /**
      * The primary key for the model.
-     * 
+     *
      * @var string
      */
     protected $primaryKey = '部署CD';
 
     /**
      * Indicates if the IDs are auto-incrementing.
-     * 
+     *
      * @var bool
      */
     public $incrementing = false;

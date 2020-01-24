@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property int $部署ＣＤ
@@ -16,11 +16,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property boolean $相手確認フラグ
  * @property string $修正日
  */
-class モバイル移動入力 extends Model
+class モバイル移動入力 extends BaseModel
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = 'モバイル_移動入力';

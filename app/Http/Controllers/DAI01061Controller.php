@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\コーステーブル;
+use App\Models\モバイル移動入力;
 use App\Models\各種テーブル;
 use App\Models\商品マスタ;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
@@ -36,7 +38,8 @@ SELECT
 	商品マスタ.商品区分,
 	MOBILE.個数,
 	MOBILE.確認フラグ,
-	MOBILE.相手確認フラグ
+    MOBILE.相手確認フラグ,
+    MOBILE.修正日
 FROM
 	[モバイル_移動入力] MOBILE
 	LEFT JOIN コースマスタ ME
@@ -81,7 +84,8 @@ SELECT
 	商品マスタ.商品区分,
 	MOBILE.個数,
 	MOBILE.確認フラグ,
-	MOBILE.相手確認フラグ
+    MOBILE.相手確認フラグ,
+    MOBILE.修正日
 FROM
 	[モバイル_移動入力] MOBILE
 	LEFT JOIN コースマスタ ME
@@ -138,38 +142,128 @@ WHERE
      */
     public function Save($request)
     {
-        $params = $request->all();
+        $skip = array();
 
         // トランザクション開始
-        // DB::transaction(function () use ($params) {
-        //     $IsSend = $params['IsSend'];
+        DB::transaction(function () use ($request) {
+            $params = $request->all();
 
-        //     $AddList = $params['AddList'];
-        //     $UpdateList = $params['UpdateList'];
-        //     $DeleteList = $params['DeleteList'];
+            $BushoCd = $request->BushoCd;
+            $TargetDate = $request->TargetDate;
+            $CourseCd = $request->CourseCd;
 
-        //     $model = new 担当者マスタ();
-        //     $model->fill($params);
+            $AddList = $params['AddList'];
+            $UpdateList = $params['UpdateList'];
+            $DeleteList = $params['DeleteList'];
 
-        //     $data = collect($model)->all();
+            $date = Carbon::now();
+
+            //DeleteList
+            foreach($DeleteList as $rec) {
+                $r = DB::table('モバイル_移動入力')
+                    ->where('部署ＣＤ', $rec['部署ＣＤ'])
+                    ->where('コースＣＤ', $rec['コースＣＤ'])
+                    ->where('相手コースＣＤ', $rec['相手コースＣＤ'])
+                    ->where('日付', $rec['日付'])
+                    ->where('商品ＣＤ', $rec['商品ＣＤ'])
+                    ->get();
+
+                if (count($r) != 1) {
+                    array_push($skip, ["target" => $rec, "current" => null]);
+                    continue;
+                } else if ($rec->修正日 != $r->修正日) {
+                    array_push($skip, ["target" => $rec, "current" => $r]);
+                    continue;
+                }
+
+                DB::table('モバイル_移動入力')
+                    ->where('部署ＣＤ', $rec['部署ＣＤ'])
+                    ->where('コースＣＤ', $rec['コースＣＤ'])
+                    ->where('相手コースＣＤ', $rec['相手コースＣＤ'])
+                    ->where('日付', $rec['日付'])
+                    ->where('商品ＣＤ', $rec['商品ＣＤ'])
+                    ->delete();
+            }
+
+            //UpdateList
+            foreach ($UpdateList as $rec) {
+                $r = DB::table('モバイル_移動入力')
+                    ->where('部署ＣＤ', $rec['部署ＣＤ'])
+                    ->where('コースＣＤ', $rec['コースＣＤ'])
+                    ->where('相手コースＣＤ', $rec['相手コースＣＤ'])
+                    ->where('日付', $rec['日付'])
+                    ->where('商品ＣＤ', $rec['商品ＣＤ'])
+                    ->get();
+
+                if (count($r) != 1) {
+                    array_push($skip, ["target" => $rec, "current" => null]);
+                    continue;
+                } else if ($rec->修正日 != $r->修正日) {
+                    array_push($skip, ["target" => $rec, "current" => $r]);
+                    continue;
+                }
+
+                $model = new モバイル移動入力();
+                $model->fill($rec);
+                $data = collect($model)->all();
+                $data->日付 = $date;
+
+                DB::table('モバイル_移動入力')
+                    ->where('部署ＣＤ', $rec['部署ＣＤ'])
+                    ->where('コースＣＤ', $rec['コースＣＤ'])
+                    ->where('相手コースＣＤ', $rec['相手コースＣＤ'])
+                    ->where('日付', $rec['日付'])
+                    ->where('商品ＣＤ', $rec['商品ＣＤ'])
+                    ->update($data);
+            }
+
+            //AddList
+            foreach ($AddList as $rec) {
+                $r = DB::table('モバイル_移動入力')
+                    ->where('部署ＣＤ', $rec['部署ＣＤ'])
+                    ->where('コースＣＤ', $rec['コースＣＤ'])
+                    ->where('相手コースＣＤ', $rec['相手コースＣＤ'])
+                    ->where('日付', $rec['日付'])
+                    ->where('商品ＣＤ', $rec['商品ＣＤ'])
+                    ->get();
+
+                if (count($r) != 0) {
+                    array_push($skip, ["target" => $rec, "current" => null]);
+                    continue;
+                }
+
+                $seq = DB::table('モバイル_移動入力')
+                    ->where('部署ＣＤ', $rec['部署ＣＤ'])
+                    ->where('コースＣＤ', $rec['コースＣＤ'])
+                    ->where('日付', $rec['日付'])
+                    ->max('ＳＥＱ') + 1;
+
+                $data = $rec;
+                $data['修正日'] = $date;
+                $data['ＳＥＱ'] = $seq;
+                モバイル移動入力::create($data);
+
+                // $model = new モバイル移動入力();
+                // $model->fill($rec);
+                // $data = collect($model)->all();
+
+                // $model->日付 = $date;
+                // // $model->ＳＥＱ = $seq;
+                // $model->save();
+
+                //$data = array_merge(['日付' => $date, 'ＳＥＱ' => $seq], $data);
+                // $data['日付'] = $date;
+                // $data['ＳＥＱ'] = $seq;
+
+                // DB::table('モバイル_移動入力')->insert($data);
+            }
+        });
 
 
-        //     $TantoCd = $params['担当者ＣＤ'];
-
-        //     DB::table('担当者マスタ')->updateOrInsert(
-        //         ['担当者ＣＤ' => $TantoCd],
-        //         $data
-        //     );
-        // });
-
-
-        $sql = "
-SELECT 1
-        ";
-
-        $Result = DB::selectOne($sql);
-
-        return response()->json($Result);
+        return response()->json([
+            'result' => true,
+            'skip' => $skip,
+        ]);
     }
 
     /**

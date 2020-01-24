@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property int $顧客コード
@@ -86,11 +86,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $Last社員コード
  * @property string $Lastホスト名
  */
-class M顧客 extends Model
+class M顧客 extends BaseModel
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = 'M顧客';

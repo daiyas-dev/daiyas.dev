@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property string $注文受付日
@@ -23,11 +23,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $商品画像３
  * @property string $修正日
  */
-class WEB注文メニュー設定 extends Model
+class WEB注文メニュー設定 extends BaseModel
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = 'WEB注文メニュー設定';

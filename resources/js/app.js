@@ -62,6 +62,18 @@ Vue.directive("maxBytes", {
     }
 });
 
+//currency-input
+import VueCurrencyInput from "vue-currency-input";
+
+const pluginOptions = {
+    globalOptions: {
+        currency: null,
+        precision: 0,
+        "allow-negative": true,
+    }
+}
+Vue.use(VueCurrencyInput, pluginOptions);
+
 import LogonForm from "@vcs/LogonForm.vue";
 import TopMenu      from "@vcs/TopMenu.vue";
 import PageDialog   from "@vcs/PageDialog.vue";

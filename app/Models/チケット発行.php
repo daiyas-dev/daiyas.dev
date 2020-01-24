@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property int $得意先ＣＤ
@@ -20,11 +20,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $修正日
  * @property int $修正担当者ＣＤ
  */
-class チケット発行 extends Model
+class チケット発行 extends BaseModel
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = 'チケット発行';

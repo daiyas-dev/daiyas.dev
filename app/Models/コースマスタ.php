@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property int $部署ＣＤ
@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $修正担当者ＣＤ
  * @property string $修正日
  */
-class コースマスタ extends Model
+class コースマスタ extends BaseModel
 {
     /**
      * The table associated with the model.

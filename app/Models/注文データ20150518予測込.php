@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property string $注文区分
@@ -31,11 +31,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $修正担当者ＣＤ
  * @property string $修正日
  */
-class 注文データ20150518予測込 extends Model
+class 注文データ20150518予測込 extends BaseModel
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = '注文データ20150518予測込';

@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property int $チケット調整ID
@@ -19,25 +19,25 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $修正日
  * @property int $修正担当者ＣＤ
  */
-class チケット調整 extends Model
+class チケット調整 extends BaseModel
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = 'チケット調整';
 
     /**
      * The primary key for the model.
-     * 
+     *
      * @var string
      */
     protected $primaryKey = 'チケット調整ID';
 
     /**
      * Indicates if the IDs are auto-incrementing.
-     * 
+     *
      * @var bool
      */
     public $incrementing = false;

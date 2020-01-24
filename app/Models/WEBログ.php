@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property string $日時
@@ -13,11 +13,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $特記
  * @property int $警戒レベル
  */
-class WEBログ extends Model
+class WEBログ extends BaseModel
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = 'WEBログ';

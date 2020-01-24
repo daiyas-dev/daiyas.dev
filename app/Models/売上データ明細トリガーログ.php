@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property int $trigger_kind
@@ -17,11 +17,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $GETDATE
  * @property string $IP
  */
-class 売上データ明細トリガーログ extends Model
+class 売上データ明細トリガーログ extends BaseModel
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = '売上データ明細トリガーログ';

@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property int $年度
@@ -21,25 +21,25 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $修正担当者CD
  * @property string $修正日
  */
-class 稼働日テーブル extends Model
+class 稼働日テーブル extends BaseModel
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = '稼働日テーブル';
 
     /**
      * The primary key for the model.
-     * 
+     *
      * @var string
      */
     protected $primaryKey = '年度';
 
     /**
      * Indicates if the IDs are auto-incrementing.
-     * 
+     *
      * @var bool
      */
     public $incrementing = false;

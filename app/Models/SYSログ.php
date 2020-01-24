@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property int $担当者ＣＤ
@@ -10,11 +10,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $アクション
  * @property string $IP
  */
-class SYSログ extends Model
+class SYSログ extends BaseModel
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = 'SYSログ';

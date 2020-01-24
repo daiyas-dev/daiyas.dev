@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property int $Sta_ID
@@ -11,11 +11,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $Sta_NewDate
  * @property string $Sta_UpdDate
  */
-class CStateMaster extends Model
+class CStateMaster extends BaseModel
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = 'C_StateMaster';

@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property float $得意先ＣＤ
@@ -16,11 +16,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $営業担当者ＣＤ
  * @property int $変更者ＣＤ
  */
-class 得意先履歴テーブル extends Model
+class 得意先履歴テーブル extends BaseModel
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = '得意先履歴テーブル';

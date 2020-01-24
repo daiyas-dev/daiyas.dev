@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property float $得意先ＣＤ
@@ -16,11 +16,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property boolean $配信停止
  * @property string $修正日
  */
-class メール送信リスト extends Model
+class メール送信リスト extends BaseModel
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = 'メール送信リスト';

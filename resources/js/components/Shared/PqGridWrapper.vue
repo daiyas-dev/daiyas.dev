@@ -1805,7 +1805,7 @@ export default {
 
                     var defOp = {
                         uri: "",
-                        params: $.extend(true, grid.createSaveParams(), options.optional),
+                        params: $.extend(true, (_.isEmpty(options.params) ? grid.createSaveParams() : options.params), options.optional),
                         confirm: {
                             isShow: true,
                             title: "確認",

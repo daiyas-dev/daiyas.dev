@@ -19,6 +19,7 @@
                     :autoToolTipDisabled=true
                     :autoEmptyRow=true
                     :autoEmptyRowCount=1
+                    :autoEmptyRowFunc=autoEmptyRowFunc
                     :autoEmptyRowCheckFunc=autoEmptyRowCheckFunc
                     classes="mt-1 mb-1"
                 />
@@ -43,6 +44,7 @@
                     :autoToolTipDisabled=true
                     :autoEmptyRow=true
                     :autoEmptyRowCount=1
+                    :autoEmptyRowFunc=autoEmptyRowFunc
                     :autoEmptyRowCheckFunc=autoEmptyRowCheckFunc
                     classes="mt-1 mb-1"
                 />
@@ -314,6 +316,60 @@ export default {
                             return;
                         }
 
+
+                        //引渡詳細変更内容
+                        var ps = gridS.createSaveParams();
+
+                        //受取詳細変更内容
+                        var pr = gridR.createSaveParams();
+                        //受取詳細はコースと相手コースをswap
+                        _.forIn(pr, (v, k) => v.forEach(r => {
+                            var tcd = r.コースＣＤ;
+                            var tcn = r.コース名;
+                            r.コースＣＤ = r.相手コースＣＤ;
+                            r.コース名 = r.相手コース名;
+                            r.相手コースＣＤ = tcd;
+                            r.相手コース名 = tcn;
+                            return r;
+                        }));
+
+                        //変更内容のmerge
+                        var pp = _.assignWith(ps, pr, (o, s) => _.concat(o, s));
+
+                        //コース/相手コース未指定は除外
+                        _.forIn(pp,
+                            (v, k) => {
+                                var list = v.filter(r => {
+                                    return  r.コースＣＤ != null && r.コースＣＤ != undefined
+                                        &&  r.相手コースＣＤ != null && r.相手コースＣＤ != undefined;
+                                });
+                                pp[k] = list;
+                            }
+                        );
+
+                        if (_.values(pp).every(v => !v.length)) {
+                            //変更無し
+                            $.dialogInfo({
+                                title: "変更無し",
+                                contents: "データが変更されていません。",
+                            });
+                            return;
+                        }
+
+                        // //更新対象
+                        // var send = gridS.pdata.filter(v => !!v.コースＣＤ && !!v.相手コースＣＤ);
+                        // var receive = gridR.pdata
+                        //     .map(r => {
+                        //             var tcd = r.コースＣＤ;
+                        //             var tcn = r.コース名;
+                        //             r.コースＣＤ = r.相手コースＣＤ;
+                        //             r.コース名 = r.相手コース名;
+                        //             r.相手コースＣＤ = tcd;
+                        //             r.相手コース名 = tcn;
+                        //             return r;
+                        //     })
+                        //     .filter(v => !!v.コースＣＤ && !!v.相手コースＣＤ);
+
                         $.dialogConfirm({
                             title: "確認",
                             contents: "変更内容を保存します。宜しいですか？",
@@ -324,14 +380,12 @@ export default {
                                     click: function(){
                                         $(this).dialog("close");
 
-                                        var params = gridS.createSaveParams();
-
                                         //保存実行
                                         gridS.saveData(
                                             {
                                                 uri: "/DAI01061/Save",
-                                                params: params,
-                                                optional: { IsSend: true },
+                                                params: pp,
+                                                optional: { BushoCd: vue.params.BushoCd, TargetDate: vue.params.TargetDate, CourseCd: vue.params.CourseCd },
                                                 confirm: {
                                                     isShow: false,
                                                 },
@@ -437,6 +491,20 @@ export default {
         },
         getProductPsParamsInGrid: (vue, grid) => {
             return { BushoCd: vue.params.BushoCd, CourseKbn: vue.params.CourseKbn, CourseCd: vue.params.CourseCd, };
+        },
+        autoEmptyRowFunc: function(grid) {
+            var vue = this;
+            console.log("01061 autoEmptyRow");
+
+            return {
+                "部署ＣＤ": vue.params.BushoCd,
+                "コースＣＤ": vue.params.CourseCd,
+                "コース名": vue.params.CourseNm,
+                "相手コースＣＤ": null,
+                "相手コース名": null,
+                "日付": vue.params.TargetDate,
+                "個数": null,
+            };
         },
         autoEmptyRowCheckFunc: function(rowData) {
             return !rowData["相手コースＣＤ"] || !rowData["商品ＣＤ"];

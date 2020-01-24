@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * @property float $各種CD
@@ -14,11 +14,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $修正担当者CD
  * @property string $修正日
  */
-class 各種テーブル extends Model
+class 各種テーブル extends BaseModel
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * @var string
      */
     protected $table = '各種テーブル';
