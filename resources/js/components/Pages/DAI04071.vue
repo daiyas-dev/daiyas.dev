@@ -4,10 +4,6 @@
             <div class="col-md-1">
                 <span class="badge badge-primary w-75 ModeLabel">{{ModeLabel}}</span>
             </div>
-            <!-- TODO:削除？ -->
-            <!-- <div class="col-md-3">
-                <button class="btn btn-warning" @click="toggleButtons">ボタン状態変更テスト</button>
-            </div> -->
         </div>
         <div class="row">
             <div class="col-md-1">
@@ -19,20 +15,30 @@
                     v-model=viewModel.部署CD
                     :readonly=!viewModel.IsNew
                     :tabindex="viewModel.IsNew ? 0 : -1"
+                    @change="onBushoCdChanged"
+                    maxlength="6"
+                    v-int
                 >
             </div>
-            <div class="col-md-1" />
             <div class="col-md-1">
                 <label class="">部署名</label>
             </div>
-            <div class="col-md-2">
-                <input type="text" class="form-control" id="BushoName" v-model="viewModel.部署名">
+            <div class="col-md-4">
+                <input type="text" class="form-control" id="BushoName" style="width: 290px;"
+                    v-model="viewModel.部署名"
+                    maxlength=24
+                    v-maxBytes=24
+                >
             </div>
             <div class="col-md-1">
                 <label class="">部署名カナ</label>
             </div>
-            <div class="col-md-2">
-                <input type="text" class="form-control" style="font-size: 15px !important;" v-model="viewModel.部署名カナ">
+            <div class="col-md-4">
+                <input type="text" class="form-control" style="width: 250px;"
+                    v-model="viewModel.部署名カナ"
+                    maxlength=20
+                    v-maxBytes=20
+                >
             </div>
         </div>
         <div class="row">
@@ -40,7 +46,11 @@
                 <label class="">会社名称</label>
             </div>
             <div class="col-md-8">
-                <input type="text" class="form-control" v-model="viewModel.会社名称">
+                <input type="text" class="form-control"
+                    v-model="viewModel.会社名称"
+                    maxlength=60
+                    v-maxBytes=60
+                >
             </div>
         </div>
         <div class="row">
@@ -48,13 +58,21 @@
                 <label class="">郵便番号</label>
             </div>
             <div class="col-md-2">
-                <input class="form-control p-2" style="width: 90px;" type="text" v-model=viewModel.郵便番号>
+                <input class="form-control p-2" style="width: 90px;" type="text"
+                    v-model=viewModel.郵便番号
+                    maxlength="8"
+                    v-maxBytes=8
+                >
             </div>
             <div class="col-md-1">
                 <label>住所</label>
             </div>
-            <div class="col-md-7">
-                <input class="form-control" type="text" v-model=viewModel.住所>
+            <div class="col-md-8">
+                <input class="form-control" type="text"
+                    v-model=viewModel.住所
+                    maxlength=60
+                    v-maxBytes=60
+                >
             </div>
         </div>
         <div class="row">
@@ -62,13 +80,21 @@
                 <label class="">電話番号</label>
             </div>
             <div class="col-md-2">
-                <input class="form-control p-1" style="width: 120px;" type="text" v-model=viewModel.電話番号>
+                <input class="form-control p-1" style="width: 120px;" type="text"
+                    v-model=viewModel.電話番号
+                    maxlength="12"
+                    v-maxBytes=12
+                >
             </div>
             <div class="col-md-1">
                 <label class="">FAX</label>
             </div>
             <div class="col-md-1">
-                <input class="form-control p-1" style="width: 120px;" type="text" v-model=viewModel.FAX>
+                <input class="form-control p-1" style="width: 120px;" type="text"
+                    v-model=viewModel.FAX
+                    maxlength="12"
+                    v-maxBytes=12
+                >
             </div>
         </div>
         <div class="row">
@@ -102,13 +128,14 @@
                                 :exceptCheck="[{Cd: ''}, {Cd: '0'}]"
                                 :inputWidth=95
                                 :nameWidth=235
+                                :ParamsChangedCheckFunc=Bank1ParamsChangedCheckFunc
                                 :onAfterChangedFunc=onBankChanged
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=BankAutoCompleteFunc
                             />
                         </div>
                         <div class="col-md-6">
-                            <label class="">支店名</label>
+                            <label class="shitenmei">支店名</label>
                             <PopupSelect
                                 id="BankBranchSelect1"
                                 ref="PopupSelect_BankBranch1"
@@ -142,7 +169,7 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <label class="">口座種別</label>
                             <VueSelect
                                 id="KouzaKind"
@@ -157,12 +184,19 @@
                         </div>
                         <div class="col-md-3">
                             <label>口座番号</label>
-                            <input class="form-control p-1" style="min-width: 125px;" type="text" v-model=viewModel.口座番号1>
+                            <input class="form-control p-1" style="font-size: 15px !important; width: 90px;" type="text"
+                                v-model=viewModel.口座番号1
+                                maxlength="7"
+                                v-maxBytes=7
+                            >
                         </div>
-                        <div class="col-md-1" />
                         <div class="col-md-5">
                             <label class="">口座名義人</label>
-                            <input class="form-control" type="text" style="font-size: 15px !important;" v-model=viewModel.口座名義人1>
+                            <input class="form-control" type="text" style="font-size: 15px !important;"
+                                v-model=viewModel.口座名義人1
+                                maxlength="15"
+                                v-maxBytes=30
+                            >
                         </div>
                     </div>
                 </fieldset>
@@ -199,13 +233,14 @@
                                 :exceptCheck="[{Cd: ''}, {Cd: '0'}]"
                                 :inputWidth=95
                                 :nameWidth=235
+                                :ParamsChangedCheckFunc=Bank2ParamsChangedCheckFunc
                                 :onAfterChangedFunc=onBankChanged
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=BankAutoCompleteFunc
                             />
                         </div>
                         <div class="col-md-6">
-                            <label class="">支店名</label>
+                            <label class="shitenmei">支店名</label>
                             <PopupSelect
                                 id="BankBranchSelect2"
                                 ref="PopupSelect_BankBranch2"
@@ -239,7 +274,7 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <label class="">口座種別</label>
                             <VueSelect
                                 id="KouzaKind"
@@ -254,12 +289,19 @@
                         </div>
                         <div class="col-md-3">
                             <label>口座番号</label>
-                            <input class="form-control p-1" style="min-width: 125px;" type="text" v-model=viewModel.口座番号2>
+                            <input class="form-control p-1" style="font-size: 15px !important; width: 90px;" type="text"
+                                v-model=viewModel.口座番号2
+                                maxlength="7"
+                                v-maxBytes=7
+                            >
                         </div>
-                        <div class="col-md-1" />
                         <div class="col-md-5">
                             <label class="">口座名義人</label>
-                            <input class="form-control" type="text" style="font-size: 15px !important;" v-model=viewModel.口座名義人2>
+                            <input class="form-control" type="text" style="font-size: 15px !important;"
+                                v-model=viewModel.口座名義人2
+                                maxlength="15"
+                                v-maxBytes=30
+                            >
                         </div>
                     </div>
                 </fieldset>
@@ -298,6 +340,7 @@
                                 :exceptCheck="[{Cd: ''}, {Cd: '0'}]"
                                 :inputWidth=95
                                 :nameWidth=235
+                                :ParamsChangedCheckFunc=Product1ParamsChangedCheckFunc
                                 :onChangeFunc=onProductChanged
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=ProductAutoCompleteFunc
@@ -333,6 +376,7 @@
                                 :exceptCheck="[{Cd: ''}, {Cd: '0'}]"
                                 :inputWidth=95
                                 :nameWidth=235
+                                :ParamsChangedCheckFunc=Product2ParamsChangedCheckFunc
                                 :onChangeFunc=onProductChanged
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=ProductAutoCompleteFunc
@@ -342,12 +386,16 @@
                     <div class="row">
                         <div class="col-md-12">
                             <label>メッセージ</label>
-                            <input class="form-control p-1" style="min-width: 125px;" type="text" v-model=viewModel.モバイル_メッセージ>
+                            <input class="form-control p-1" type="text" style="font-size: 15px !important;"
+                                v-model=viewModel.モバイル_メッセージ
+                                maxlength="60"
+                                v-maxBytes=60
+                            >
                         </div>
                     </div>
                 </fieldset>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-4 busyoGFactory">
                 <div class="row">
                     <div class="col-md-12">
                         <label class="groupFactory">部署グループ</label>
@@ -427,7 +475,15 @@ textarea {
 .groupFactory{
     width: 100px;
     text-align: left !important;
-    margin-left: 30px;
+    margin-left: 40px;
+}
+.shitenmei{
+    min-width: unset !important;
+    margin-left: 10px;
+}
+.busyoGFactory{
+    align-items: flex-start;
+    margin-block-start: 10px;
 }
 </style>
 <style>
@@ -573,26 +629,48 @@ export default {
                 { visible: "true", value: "削除", id: "DAI04071_Delete", disabled: false, shortcut: "F3",
                     onClick: function (evt) {
                         //TODO: 削除
+                        var cd = vue.viewModel.部署CD;
+                        if(!cd) return;
+
+                        var params = {BushoCd: cd};
+                        params.noCache = true;
+
+                        $.dialogConfirm({
+                            title: "マスタ削除確認",
+                            contents: "マスタを削除します。",
+                            buttons:[
+                                {
+                                    text: "はい",
+                                    class: "btn btn-primary",
+                                    click: function(){
+                                        axios.post("/DAI04071/Delete", params)
+                                            .then(res => {
+                                                DAI04070.conditionChanged();
+                                                $(this).dialog("close");
+                                                vue.clearDetail();
+                                            })
+                                            .catch(err => {
+                                                console.log(error);
+                                                //TODO: エラー
+                                            }
+                                        );
+                                    }
+                                },
+                                {
+                                    text: "いいえ",
+                                    class: "btn btn-danger",
+                                    click: function(){
+                                        $(this).dialog("close");
+                                    }
+                                },
+                            ],
+                        });
                         console.log(vue.$attrs.id, evt.target.outerText, $(evt.target).attr("shortcut"));
                     }
                 },
                 {visible: "false"},
                 { visible: "true", value: "登録", id: "DAI04071Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
-                        // if(!vue.viewModel.部署CD){
-                        //     $.dialogErr({
-                        //         title: "登録不可",
-                        //         contents: "部署CDを入力して下さい",
-                        //     })
-                        //     return;
-                        // }
-                        // if(!vue.viewModel.部署名){
-                        //     $.dialogErr({
-                        //         title: "登録不可",
-                        //         contents: "部署名を入力して下さい",
-                        //     })
-                        //     return;
-                        // }
                         if(!vue.viewModel.部署CD || !vue.viewModel.部署名){
                             $.dialogErr({
                                 title: "登録不可",
@@ -654,10 +732,62 @@ export default {
                         console.log("登録", params);
                     }
                 },
+                {visible: "false"},
             );
         },
         mountedFunc: function(vue) {
             $(vue.$el).parents("div.body-content").addClass("Scrollable");
+        },
+        onBushoCdChanged: function(code, entities) {
+            var vue = this;
+
+            vue.searchByBushoCd();
+        },
+        searchByBushoCd: function() {
+            var vue = this;
+            var cd = vue.viewModel.部署CD;
+            if (!cd) return;
+
+            var params = {BushoCd: cd};
+            params.noCache = true;
+
+            axios.post("/DAI04071/GetBushoListForDetail", params)
+                .then(res => {
+                    if (res.data.length == 1) {
+                        $.dialogConfirm({
+                            title: "マスタ編集確認",
+                            contents: "マスタを編集しますか？",
+                            buttons:[
+                                {
+                                    text: "はい",
+                                    class: "btn btn-primary",
+                                    click: function(){
+                                        vue.viewModel = res.data[0];
+                                        $(this).dialog("close");
+                                    }
+                                },
+                                {
+                                    text: "いいえ",
+                                    class: "btn btn-danger",
+                                    click: function(){
+                                        vue.viewModel.部署CD = "";
+                                        $(this).dialog("close");
+                                    }
+                                },
+                            ],
+                        });
+                        $("[shortcut='F3']").prop("disabled", false);
+                    }else{
+                        //TODO:削除ボタン
+                        $("[shortcut='F3']").prop("disabled", true);
+                        return;
+                    }
+                })
+                .catch(err => {
+                    console.log(err);
+                    //TODO: エラー
+                }
+            )
         },
         BankSelectorParamsFunc: function(params, comp) {
             params.KeyWord = null;
@@ -701,6 +831,16 @@ export default {
                 ;
 
             return list;
+        },
+        Bank1ParamsChangedCheckFunc: function(newVal, oldVal) {
+            var vue = this;
+            var ret = !!vue.viewModel.金融機関CD1 && vue.viewModel.金融機関CD1 != 0;
+            return ret;
+        },
+        Bank2ParamsChangedCheckFunc: function(newVal, oldVal) {
+            var vue = this;
+            var ret = !!vue.viewModel.金融機関CD2 && vue.viewModel.金融機関CD2 != 0;
+            return ret;
         },
         BankBranch1ParamsChangedCheckFunc: function(newVal, oldVal) {
             var vue = this;
@@ -747,6 +887,16 @@ export default {
                 ;
             return list;
         },
+        Product1ParamsChangedCheckFunc: function(newVal, oldVal) {
+            var vue = this;
+            var ret = !!vue.viewModel.モバイル_主要商品ＣＤ1 && vue.viewModel.モバイル_主要商品ＣＤ1 != 0;
+            return ret;
+        },
+        Product2ParamsChangedCheckFunc: function(newVal, oldVal) {
+            var vue = this;
+            var ret = !!vue.viewModel.モバイル_主要商品ＣＤ2 && vue.viewModel.モバイル_主要商品ＣＤ2 != 0;
+            return ret;
+        },
         ProductAutoCompleteFunc: function(input, dataList) {
             var vue = this;
 
@@ -779,11 +929,6 @@ export default {
                 ;
             return list;
         },
-        //TODO:削除？
-        // toggleButtons: function() {
-        //     var vue = this;
-        //     vue.footerButtons.forEach(v => v["disabled"] = !v["disabled"]);
-        // },
         clearDetail: function(){
             var vue = this;
 
@@ -793,6 +938,8 @@ export default {
             vue.viewModel.IsNew = true;
             vue.viewModel.userId = vue.query.userId;
 
+            //PopupSelect
+            $(".select-name").val("");
         },
     }
 }

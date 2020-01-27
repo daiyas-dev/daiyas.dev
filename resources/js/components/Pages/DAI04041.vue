@@ -1,4 +1,4 @@
-﻿<template>
+<template>
     <form id="this.$options.name">
         <div class="row">
             <div class="col-md-1">
@@ -361,7 +361,6 @@
                                 :params="{ cd: 5 }"
                                 :withCode=true
                                 customStyle="{ width: 100px; }"
-                                :disabled='viewModel.支払方法１ != "4"'
                             />
                         </div>
                         <div class="col-md-3">
@@ -1090,6 +1089,7 @@ export default {
                         console.log("登録", params);
                     }
                 },
+                {visible: "false"},
             );
         },
         mountedFunc: function(vue) {

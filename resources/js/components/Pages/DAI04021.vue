@@ -383,6 +383,7 @@ export default {
                         console.log("登録", params);
                     }
                 },
+                {visible: "false"},
             );
 
             //TODO:所属部署ＣＤの初期値101を設定するか
