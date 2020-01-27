@@ -54,7 +54,6 @@ class DAI04141Controller extends Controller
 
         });
 
-
         return response()->json([
             'result' => true,
         ]);

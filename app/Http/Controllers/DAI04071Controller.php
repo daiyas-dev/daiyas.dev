@@ -40,4 +40,41 @@ class DAI04071Controller extends Controller
         ]);
     }
 
+    /**
+     * Delete
+     */
+    public function Delete($request)
+    {
+        $BushoCd = $request->BushoCd;
+
+        // トランザクション開始
+        DB::transaction(function() use ($BushoCd) {
+
+            DB::table('部署マスタ')->where('部署CD', '=', $BushoCd)->delete();
+
+        });
+
+        return response()->json([
+            'result' => true,
+        ]);
+    }
+
+    /**
+     * GetBushoListForDetail
+     */
+    public function GetBushoListForDetail($request)
+    {
+        $BushoCd = $request->BushoCd;
+        $query = 部署マスタ::query()
+            ->when(
+                $BushoCd,
+                function($q) use ($BushoCd){
+                    return $q->where('部署CD', $BushoCd);
+                }
+            );
+
+        $BushoList = $query->get();
+
+        return response()->json($BushoList);
+    }
 }

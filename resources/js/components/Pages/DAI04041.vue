@@ -1090,6 +1090,7 @@ export default {
                         console.log("登録", params);
                     }
                 },
+                {visible: "false"},
             );
         },
         mountedFunc: function(vue) {
