@@ -15,9 +15,9 @@ use Illuminate\Support\Facades\DB as IlluminateDB;
 class DAI01061Controller extends Controller
 {
     /**
-     * GetSendList
+     * SearchSendList
      */
-    public function GetSendList($request)
+    public function SearchSendList($request)
     {
         $BushoCd = $request->BushoCd;
         $TargetDate = $request->TargetDate;
@@ -58,12 +58,19 @@ order by
         ";
 
         $DataList = DB::select($sql);
-        return response()->json($DataList);
+        return $DataList;
     }
     /**
-     * GetReceiveList
+     * GetSendList
      */
-    public function GetReceiveList($request)
+    public function GetSendList($request) {
+        return response()->json($this->SearchSendList($request));
+    }
+
+    /**
+     * SearchReceiveList
+     */
+    public function SearchReceiveList($request)
     {
         $BushoCd = $request->BushoCd;
         $TargetDate = $request->TargetDate;
@@ -104,7 +111,14 @@ order by
         ";
 
         $DataList = DB::select($sql);
-        return response()->json($DataList);
+        return $DataList;
+    }
+    /**
+     * GetReceiveList
+     */
+    public function GetReceiveList($request)
+    {
+        return response()->json($this->SearchReceiveList($request));
     }
 
     /**
@@ -142,10 +156,10 @@ WHERE
      */
     public function Save($request)
     {
-        $skip = array();
+        $skip = [];
 
         // トランザクション開始
-        DB::transaction(function () use ($request) {
+        $skip = DB::transaction(function () use ($request, $skip) {
             $params = $request->all();
 
             $BushoCd = $request->BushoCd;
@@ -156,11 +170,11 @@ WHERE
             $UpdateList = $params['UpdateList'];
             $DeleteList = $params['DeleteList'];
 
-            $date = Carbon::now();
+            $date = Carbon::now()->format('Y-m-d H:i:s');
 
             //DeleteList
             foreach($DeleteList as $rec) {
-                $r = DB::table('モバイル_移動入力')
+                $r = モバイル移動入力::query()
                     ->where('部署ＣＤ', $rec['部署ＣＤ'])
                     ->where('コースＣＤ', $rec['コースＣＤ'])
                     ->where('相手コースＣＤ', $rec['相手コースＣＤ'])
@@ -169,14 +183,14 @@ WHERE
                     ->get();
 
                 if (count($r) != 1) {
-                    array_push($skip, ["target" => $rec, "current" => null]);
+                    $skip = collect($skip)->push(["target" => $rec, "current" => null]);
                     continue;
-                } else if ($rec->修正日 != $r->修正日) {
-                    array_push($skip, ["target" => $rec, "current" => $r]);
+                } else if ($rec['修正日'] != $r[0]->修正日) {
+                    $skip = collect($skip)->push(["target" => $rec, "current" => $r[0]]);
                     continue;
                 }
 
-                DB::table('モバイル_移動入力')
+                モバイル移動入力::query()
                     ->where('部署ＣＤ', $rec['部署ＣＤ'])
                     ->where('コースＣＤ', $rec['コースＣＤ'])
                     ->where('相手コースＣＤ', $rec['相手コースＣＤ'])
@@ -187,7 +201,7 @@ WHERE
 
             //UpdateList
             foreach ($UpdateList as $rec) {
-                $r = DB::table('モバイル_移動入力')
+                $r = モバイル移動入力::query()
                     ->where('部署ＣＤ', $rec['部署ＣＤ'])
                     ->where('コースＣＤ', $rec['コースＣＤ'])
                     ->where('相手コースＣＤ', $rec['相手コースＣＤ'])
@@ -196,19 +210,17 @@ WHERE
                     ->get();
 
                 if (count($r) != 1) {
-                    array_push($skip, ["target" => $rec, "current" => null]);
+                    $skip = collect($skip)->push(["target" => $rec, "current" => null]);
                     continue;
-                } else if ($rec->修正日 != $r->修正日) {
-                    array_push($skip, ["target" => $rec, "current" => $r]);
+                } else if ($rec['修正日'] != $r[0]->修正日) {
+                    $skip = collect($skip)->push(["target" => $rec, "current" => $r[0]]);
                     continue;
                 }
 
-                $model = new モバイル移動入力();
-                $model->fill($rec);
-                $data = collect($model)->all();
-                $data->日付 = $date;
+                $data = $rec;
+                $data['修正日'] = $date;
 
-                DB::table('モバイル_移動入力')
+                モバイル移動入力::query()
                     ->where('部署ＣＤ', $rec['部署ＣＤ'])
                     ->where('コースＣＤ', $rec['コースＣＤ'])
                     ->where('相手コースＣＤ', $rec['相手コースＣＤ'])
@@ -219,7 +231,7 @@ WHERE
 
             //AddList
             foreach ($AddList as $rec) {
-                $r = DB::table('モバイル_移動入力')
+                $r = モバイル移動入力::query()
                     ->where('部署ＣＤ', $rec['部署ＣＤ'])
                     ->where('コースＣＤ', $rec['コースＣＤ'])
                     ->where('相手コースＣＤ', $rec['相手コースＣＤ'])
@@ -228,11 +240,11 @@ WHERE
                     ->get();
 
                 if (count($r) != 0) {
-                    array_push($skip, ["target" => $rec, "current" => null]);
+                    $skip = collect($skip)->push(["target" => $rec, "current" => $r[0]]);
                     continue;
                 }
 
-                $seq = DB::table('モバイル_移動入力')
+                $seq = モバイル移動入力::query()
                     ->where('部署ＣＤ', $rec['部署ＣＤ'])
                     ->where('コースＣＤ', $rec['コースＣＤ'])
                     ->where('日付', $rec['日付'])
@@ -241,28 +253,25 @@ WHERE
                 $data = $rec;
                 $data['修正日'] = $date;
                 $data['ＳＥＱ'] = $seq;
-                モバイル移動入力::create($data);
 
-                // $model = new モバイル移動入力();
-                // $model->fill($rec);
-                // $data = collect($model)->all();
-
-                // $model->日付 = $date;
-                // // $model->ＳＥＱ = $seq;
-                // $model->save();
-
-                //$data = array_merge(['日付' => $date, 'ＳＥＱ' => $seq], $data);
-                // $data['日付'] = $date;
-                // $data['ＳＥＱ'] = $seq;
-
-                // DB::table('モバイル_移動入力')->insert($data);
+                モバイル移動入力::insert($data);
             }
+
+            return $skip;
         });
 
+        $send = null;
+        $receive = null;
+        if (!!count($skip)) {
+            $send = $this->SearchSendList($request);
+            $receive = $this->SearchReceiveList($request);
+        }
 
         return response()->json([
-            'result' => true,
-            'skip' => $skip,
+            "result" => true,
+            "skip" => !!count($skip),
+            "send" => $send,
+            "receive" => $receive
         ]);
     }
 
@@ -288,7 +297,7 @@ AND	日付 = '$TargetDate'
         $Result = DB::selectOne($sql);
 
         if (!!$UpdateDate && $Result->最新修正日時 != $UpdateDate) {
-            $Result->list = $IsSend ? $this->GetSendList($request) : $this->GetReceiveListList($request);
+            $Result->list = $IsSend ? $this->SearchSendList($request) : $this->SearchReceiveListList($request);
             return response()->json($Result);
         } else {
             return response()->json($Result);

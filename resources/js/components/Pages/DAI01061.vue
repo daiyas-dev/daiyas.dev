@@ -325,11 +325,9 @@ export default {
                         //受取詳細はコースと相手コースをswap
                         _.forIn(pr, (v, k) => v.forEach(r => {
                             var tcd = r.コースＣＤ;
-                            var tcn = r.コース名;
                             r.コースＣＤ = r.相手コースＣＤ;
-                            r.コース名 = r.相手コース名;
                             r.相手コースＣＤ = tcd;
-                            r.相手コース名 = tcn;
+
                             return r;
                         }));
 
@@ -342,7 +340,15 @@ export default {
                                 var list = v.filter(r => {
                                     return  r.コースＣＤ != null && r.コースＣＤ != undefined
                                         &&  r.相手コースＣＤ != null && r.相手コースＣＤ != undefined;
-                                });
+                                })
+                                .map(r => {
+                                    delete r.コース名;
+                                    delete r.相手コース名;
+                                    delete r.商品名;
+                                    delete r.商品区分;
+                                    return r;
+                                })
+                                ;
                                 pp[k] = list;
                             }
                         );
@@ -355,20 +361,6 @@ export default {
                             });
                             return;
                         }
-
-                        // //更新対象
-                        // var send = gridS.pdata.filter(v => !!v.コースＣＤ && !!v.相手コースＣＤ);
-                        // var receive = gridR.pdata
-                        //     .map(r => {
-                        //             var tcd = r.コースＣＤ;
-                        //             var tcn = r.コース名;
-                        //             r.コースＣＤ = r.相手コースＣＤ;
-                        //             r.コース名 = r.相手コース名;
-                        //             r.相手コースＣＤ = tcd;
-                        //             r.相手コース名 = tcn;
-                        //             return r;
-                        //     })
-                        //     .filter(v => !!v.コースＣＤ && !!v.相手コースＣＤ);
 
                         $.dialogConfirm({
                             title: "確認",
@@ -385,14 +377,28 @@ export default {
                                             {
                                                 uri: "/DAI01061/Save",
                                                 params: pp,
-                                                optional: { BushoCd: vue.params.BushoCd, TargetDate: vue.params.TargetDate, CourseCd: vue.params.CourseCd },
+                                                optional: { BushoCd: vue.params.BushoCd, TargetDate: vue.params.TargetDate, CourseKbn: vue.params.CourseKbn, CourseCd: vue.params.CourseCd },
                                                 confirm: {
                                                     isShow: false,
                                                 },
                                                 done: {
                                                     isShow: false,
-                                                    callback: (vue, grid, res)=>{
-                                                        gridR.refreshDataAndView();
+                                                    callback: (gridVue, grid, res)=>{
+                                                        console.log("res", res);
+
+                                                        if (!!res.skip) {
+                                                            $.dialogInfo({
+                                                                title: "登録チェック",
+                                                                contents: "他で変更されたデータがあります。",
+                                                            });
+                                                            gridS.blinkDiff(res.send);
+                                                            gridR.blinkDiff(res.receive);
+                                                        } else {
+                                                            vue.$root.$emit("DAI01060_updateCheck");
+                                                            $(vue.$el).closest(".ui-dialog-content").dialog("close");
+                                                        }
+
+                                                        return false;
                                                     },
                                                 },
                                             }
@@ -504,6 +510,8 @@ export default {
                 "相手コース名": null,
                 "日付": vue.params.TargetDate,
                 "個数": null,
+                "確認フラグ": 0,
+                "相手確認フラグ": 0,
             };
         },
         autoEmptyRowCheckFunc: function(rowData) {

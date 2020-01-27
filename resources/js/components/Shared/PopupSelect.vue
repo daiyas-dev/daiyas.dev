@@ -973,6 +973,10 @@ export default {
                     if (!$(vue.$el).hasClass("has-error")) {
                         input.tooltip("dispose");
                     }
+
+                    if (!!vue.onGrid && input.val() != vue.selectValue) {
+                        vue.execSetSelectValue(input.val(), true, false);
+                    }
                 },
                 position: { my: "left top", at: "left bottom", collision: "flip" },
                 autoFocus: false,

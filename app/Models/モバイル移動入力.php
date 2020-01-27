@@ -26,6 +26,14 @@ class モバイル移動入力 extends BaseModel
     protected $table = 'モバイル_移動入力';
 
     /**
+     * The primary key for the model.
+     *
+     * @var string
+     */
+    // protected $primaryKey = ['部署ＣＤ', 'コースＣＤ', '相手コースＣＤ', '日付', '商品ＣＤ'];
+    // public $incrementing = false;
+
+    /**
      * @var array
      */
     protected $fillable = ['ＳＥＱ', '個数', '確認フラグ', '相手確認フラグ', '修正日'];

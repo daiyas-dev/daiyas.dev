@@ -618,7 +618,7 @@ export default {
                                 });
                             },
                             getData: function(ui, grid) {
-                                if (ui.column.psProps.getData) {
+                                if (!!ui.column.psProps && !!ui.column.psProps.getData) {
                                     return ui.column.psProps.getData(ui, grid);
                                 }
 
@@ -1762,6 +1762,12 @@ export default {
                             //初期値objectを削除
                             delete row["InitialValue"];
 
+                            //pqGrid propを削除
+                            _.keys(row).filter(k => k.startsWith("pq_"))
+                            .forEach(k => {
+                                delete row[k];
+                            });
+
                             //grouping objectを削除
                             delete row["parent"];
                         });
@@ -2052,11 +2058,9 @@ export default {
 
                     var $cell = grid.getCell({ rowIndx: rowIndx, dataIndx: dataIndx });
 
-                    console.log("add blink")
                     $cell.addClass("blinking")
                         .delay(3000)
                         .queue(next => {
-                            console.log("remove blink")
                             $cell.removeClass("blinking");
                             next();
                         })
@@ -2070,6 +2074,36 @@ export default {
                     $row.removeClass("blinking");
                     $row.addClass("blinking");
                 };
+                this.grid.blinkDiff = function(compare) {
+                    var grid = this;
+                    var vue = grid.options.vue;
+
+                    var prev = _.cloneDeep(grid.getData())
+                        .map(v => {
+                            delete v.InitialValue;
+                            delete v.pq_ri;
+                            return v;
+                        });
+
+                    var dl = diff(prev, compare);
+                    console.log("blinkDiff: detect diff", dl);
+
+                    if (_.isEmpty(dl)) return;
+
+                    var data = compare.map(v => {v.InitialValue = _.cloneDeep(v); return v;});
+                    var location = grid.options.dataModel.location;
+                    grid.options.dataModel.location = "local";
+                    grid.options.dataModel.data = data;
+                    grid.refreshDataAndView();
+                    grid.options.dataModel.location = location;
+
+                    _.forIn(dl, (rowData, rowIndx) => {
+                        _.forIn(rowData, (value, dataIndx) => {
+                            grid.blinkCell(rowIndx, dataIndx);
+                        });
+                    });
+                };
+
 
 
                 this.grid.options.loading = false;
