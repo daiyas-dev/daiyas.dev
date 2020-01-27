@@ -62,6 +62,31 @@ Vue.directive("maxBytes", {
     }
 });
 
+//set Kana directive
+Vue.directive("setKana", {
+    inserted(el, binding) {
+        el.addEventListener(
+            "input",    //"compositionend",
+            _.debounce(event => {
+                console.log("setKana directive", el.value);
+
+                if (el.value == "") return;
+                if (el.value == el.getAttribute("toKana")) return;
+
+                el.setAttribute("toKana", el.value);
+                var callback = binding.value;
+
+                if (!!binding.modifiers.disabled) return;
+                console.log("call getKana api", el.value);
+                window.getKana(el.value, res => {
+                    console.log("getKana api ret", res, binding);
+                    callback(binding.modifiers.full ? res : window.Moji(res).convert("ZK", "HK"))
+                });
+            }, 300)
+        )
+    }
+});
+
 //currency-input
 import VueCurrencyInput from "vue-currency-input";
 

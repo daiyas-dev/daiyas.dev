@@ -1,9 +1,16 @@
 ﻿<template>
     <form id="this.$options.name">
         <div class="row">
+            <div class="col-md-3">
+                <input type="text" v-model=viewModel.test v-setKana.disabled="res => viewModel.testKn = res">
+                <!-- modifiers: disabled, full
+                <input type="text" v-model=viewModel.test v-setKana.disabled="res => viewModel.testKn = res">
+                <input type="text" v-model=viewModel.test v-setKana.full="res => viewModel.testKn = res">
+                -->
+                <input type="text" v-model=viewModel.testKn>
+            </div>
             <div class="col-md-1">
                 <label>部署</label>
-                <input type="text" class="phonetic" v-model=viewModel.BushoNmKn>
             </div>
             <div class="col-md-2">
                 <VueSelect
@@ -112,13 +119,6 @@ export default {
         }
     },
     watch: {
-        "viewModel.BushoNm": {
-            handler: function(newVal) {
-                var vue = this;
-
-                window.getKana(newVal, res => vue.viewModel.BushoNmKn = res);
-            },
-        },
     },
     data() {
         var vue = this;
@@ -129,10 +129,11 @@ export default {
             viewModel: {
                 BushoCd: null,
                 BushoNm: null,
-                BushoNmKn: null,
                 TargetDate: null,
                 CourseKbn: null,
                 UpdateDate: null,
+                test: null,
+                testKn: null,
             },
             CheckInterVal: null,
             DAI01060Grid1: null,
