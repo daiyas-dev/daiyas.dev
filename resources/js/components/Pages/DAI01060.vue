@@ -1,9 +1,9 @@
 ﻿<template>
     <form id="this.$options.name">
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-1">
                 <label>部署</label>
-                <currency-input v-model=viewModel.BushoCd maxlength="5" />
+                <input type="text" class="phonetic" v-model=viewModel.BushoNmKn>
             </div>
             <div class="col-md-2">
                 <VueSelect
@@ -112,6 +112,13 @@ export default {
         }
     },
     watch: {
+        "viewModel.BushoNm": {
+            handler: function(newVal) {
+                var vue = this;
+
+                window.getKana(newVal, res => vue.viewModel.BushoNmKn = res);
+            },
+        },
     },
     data() {
         var vue = this;
@@ -122,6 +129,7 @@ export default {
             viewModel: {
                 BushoCd: null,
                 BushoNm: null,
+                BushoNmKn: null,
                 TargetDate: null,
                 CourseKbn: null,
                 UpdateDate: null,
@@ -305,49 +313,37 @@ export default {
                 }
             );
 
+            if (!!vue.CheckInterVal) clearInterval(vue.CheckInterVal);
+            vue.CheckInterVal = setInterval(vue.updateCheck, 10000);
+
+            vue.$root.$on("DAI01060_updateCheck", vue.updateCheck);
+        },
+        updateCheck: function() {
+            var vue = this;
+            var grid = vue.DAI01060Grid1;
+
             //TODO:
             return;
-            if (!!vue.CheckInterVal) clearInterval(vue.CheckInterVal);
-            vue.CheckInterVal = setInterval(() => {
-                //更新チェック
-                if (!grid.getData().length) return;
 
-                var params = $.extend(true, {}, vue.viewModel);
-                //日付を"YYYYMMDD"形式に編集
-                params.TargetDate = params.TargetDate ? moment(params.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
+            //更新チェック
+            if (!grid.getData().length) return;
 
-                var checkParams = _.cloneDeep(params);
-                checkParams.noCache = true;
-                axios.post("/DAI01060/UpdateCheck", checkParams)
-                    .then(res => {
-                        if (res.data.最新修正日時 != vue.viewModel.UpdateDate) {
-                            vue.viewModel.UpdateDate = res.data.最新修正日時;
+            var params = $.extend(true, {}, vue.viewModel);
+            //日付を"YYYYMMDD"形式に編集
+            params.TargetDate = params.TargetDate ? moment(params.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
 
-                            var prev = _.cloneDeep(grid.getData())
-                                .map(v => {
-                                    delete v.InitialValue;
-                                    delete v.pq_ri;
-                                    return v;
-                                });
-
-                            var dl = diff(prev, res.data.list);
-                            console.log("detect update", dl);
-
-                            grid.options.dataModel.data = res.data.list;
-                            grid.refreshView();
-
-                            _.forIn(dl, (rowData, rowIndx) => {
-                                _.forIn(rowData, (value, dataIndx) => {
-                                    console.log("blinkCell", rowIndx, dataIndx);
-                                    grid.blinkCell(rowIndx, dataIndx);
-                                });
-                            });
-                        }
-                    })
-                    .catch(err => {
-                        console.log(err);
-                    });
-            }, 5000);
+            var checkParams = _.cloneDeep(params);
+            checkParams.noCache = true;
+            axios.post("/DAI01060/UpdateCheck", checkParams)
+                .then(res => {
+                    if (res.data.最新修正日時 != vue.viewModel.UpdateDate) {
+                        vue.viewModel.UpdateDate = res.data.最新修正日時;
+                        grid.blinkDiff(res.data.list);
+                    }
+                })
+                .catch(err => {
+                    console.log(err);
+                });
         },
         gridResizeFunc: function(grid) {
             var oldHeight = grid.options.height;
@@ -695,6 +691,8 @@ export default {
                 height: 750,
                 onBeforeClose: (event, ui) => {
                     console.log("onBeforeClose", event, ui);
+
+                    if ($(window.event.target).attr("shortcut") == "ESC") return true;
 
                     var dlg = $(event.target);
                     var editting = dlg.find(".pq-grid")

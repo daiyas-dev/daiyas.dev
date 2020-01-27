@@ -72,6 +72,7 @@ window.axios.interceptors.response.use(
         var excepts = [
             "/Account/Login",
             "/Account/Logout",
+            "https://labs.goo.ne.jp/api/hiragana",
         ];
 
         if (excepts.includes(url) || (!!params && !!params.noCache) || (!!url && url.includes("Save"))) {
@@ -151,6 +152,28 @@ window.axios.interceptors.request.use(
         return Promise.reject(error)
     }
 );
+
+//goo api key
+window.goo_api_key = "8436e56f4b7832f5d85d161780a64eacaf7b3edaaa4f2b4f83ccc89447604ae1";
+
+window.getKana = (target, callback) => {
+    window.axios.post(
+        "https://labs.goo.ne.jp/api/hiragana",
+        {
+            app_id: window.goo_api_key,
+            request_id: "get_kana",
+            sentence: target,
+            output_type: "katakana"
+        }
+    )
+        .then(res => {
+            callback(res.data.converted);
+        })
+        .catch(err => {
+            console.log(err);
+        })
+};
+
 
 /**
  * Echo exposes an expressive API for subscribing to channels and listening
