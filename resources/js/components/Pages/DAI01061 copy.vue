@@ -110,8 +110,6 @@ export default {
             conditionTrigger: true,
             DAI01061Grid1_Send: null,
             DAI01061Grid1_Receive: null,
-            CourseList: [],
-            ProductList: [],
             grid1Options: {
                 selectionModel: { type: "row", mode: "single", row: true },
                 showHeader: true,
@@ -152,7 +150,7 @@ export default {
                 height: 275,
                 editable: true,
                 columnTemplate: {
-                    editable: false,
+                    editable: true,
                     sortable: false,
                 },
                 trackModel: { on: true },
@@ -163,19 +161,11 @@ export default {
                     menuIcon: false,
                     hideRows: true,
                 },
-                editModel: {
-                    clicksToEdit: 2,
-                    keyUpDown: false,
-                    saveKey: $.ui.keyCode.ENTER,
-                    onSave: "nextFocus",
-                    onTab: "nextFocus",
-                },
                 colModel: [
                     {
                         title: "コース",
                         dataIndx: "コースＣＤ",
                         dataType: "integer",
-                        key: true,
                         hidden: true,
                     },
                     {
@@ -185,51 +175,103 @@ export default {
                         hidden: true,
                     },
                     {
-                        title: "相手コースCD",
+                        title: "相手コース",
                         dataIndx: "相手コースＣＤ",
                         dataType: "string",
                         key: true,
-                        editable: true,
-                        width: 125, maxWidth: 125, minWidth: 125,
-                        autocomplete: {
-                            source: () => vue.getCourseList(),
+                        psProps: {
+                            dataUrl: "/Utilities/GetCourseList",
+                            params: vue.getCoursePsParamsInGrid,
                             bind: "相手コースＣＤ",
                             buddies: { "相手コース名": "CdNm" },
+                            isPreload: true,
+                            title: "コース一覧",
+                            labelCd: "コースCD",
+                            labelCdNm: "コース名",
+                            popupWidth: 600,
+                            popupHeight: 600,
+                            isShowName: true,
+                            isModal: true,
+                            reuse: true,
+                            existsCheck: true,
+                            inputWidth: 60,
+                            nameWidth: 280,
+                            isShowAutoComplete: true,
                             AutoCompleteFunc: vue.CourseAutoCompleteFuncInGrid,
                             AutoCompleteMinLength: 0,
+                            getData: (ui, grid) => {
+                                console.log("psprops getData", ui.$cell.find(".target-input").val());
+                                return ui.$cell.find(".target-input").val();
+                            },
+                            htmlRender: ui => {
+                                var $el = $("<div>")
+                                    .addClass("d-flex")
+                                    .append($("<div>").text(ui.rowData.相手コースＣＤ).width(40).addClass("text-right"))
+                                    .append($("<div>").text(":").addClass("pl-1").addClass("pr-1"))
+                                    .append($("<div>").text(ui.rowData.相手コース名))
+                                    ;
+
+                                return $el[0];
+                            },
                         },
                     },
                     {
                         title: "相手コース名",
                         dataIndx: "相手コース名",
                         dataType: "string",
-                        editable: false,
+                        hidden: true,
                     },
                     {
                         title: "商品",
                         dataIndx: "商品ＣＤ",
                         dataType: "string",
                         key: true,
-                        editable: true,
-                        width: 75, maxWidth: 75, minWidth: 75,
-                        autocomplete: {
-                            source: () => vue.getProductList(),
+                        psProps: {
+                            dataUrl: "/DAI01061/GetTargetProducts",
+                            params: vue.getProductPsParamsInGrid,
                             bind: "商品ＣＤ",
                             buddies: { "商品名": "CdNm" },
+                            isPreload: true,
+                            title: "移動商品一覧",
+                            labelCd: "移動商品CD",
+                            labelCdNm: "移動商品名",
+                            popupWidth: 600,
+                            popupHeight: 600,
+                            isShowName: true,
+                            isModal: true,
+                            reuse: true,
+                            existsCheck: true,
+                            inputWidth: 60,
+                            nameWidth: 280,
+                            isShowAutoComplete: true,
                             AutoCompleteFunc: vue.ProductAutoCompleteFuncInGrid,
                             AutoCompleteMinLength: 0,
+                            getData: (ui, grid) => {
+                                console.log("psprops getData", ui.$cell.find(".target-input").val());
+                                return ui.$cell.find(".target-input").val();
+                            },
+                            htmlRender: ui => {
+                                var $el = $("<div>")
+                                    .addClass("d-flex")
+                                    .append($("<div>").text(ui.rowData.商品ＣＤ).width(40).addClass("text-right"))
+                                    .append($("<div>").text(":").addClass("pl-1").addClass("pr-1"))
+                                    .append($("<div>").text(ui.rowData.商品名))
+                                    ;
+
+                                return $el[0];
+                            },
                         },
                     },
                     {
                         title: "商品名",
                         dataIndx: "商品名",
                         dataType: "string",
+                        hidden: true,
                     },
                     {
                         title: "移動数",
                         dataIndx: "個数",
                         dataType: "integer",
-                        editable: true,
                         width: 75, maxWidth: 75, minWidth: 75,
                     },
                 ],
@@ -378,10 +420,6 @@ export default {
         },
         mountedFunc: function(vue) {
         },
-        getCourseList: function() {
-            var vue = this;
-            return vue.params.CourseList;
-        },
         CourseAutoCompleteFuncInGrid: function(input, dataList, comp) {
             var vue = this;
 
@@ -418,9 +456,8 @@ export default {
 
             return list;
         },
-        getProductList: function() {
-            var vue = this;
-            return vue.params.ProductList;
+        getCoursePsParamsInGrid: (vue, grid) => {
+            return { BushoCd: vue.params.BushoCd, CourseKbn: vue.params.CourseKbn, };
         },
         ProductAutoCompleteFuncInGrid: function(input, dataList, comp) {
             var vue = this;
@@ -457,6 +494,9 @@ export default {
                 ;
 
             return list;
+        },
+        getProductPsParamsInGrid: (vue, grid) => {
+            return { BushoCd: vue.params.BushoCd, CourseKbn: vue.params.CourseKbn, CourseCd: vue.params.CourseCd, };
         },
         autoEmptyRowFunc: function(grid) {
             var vue = this;
