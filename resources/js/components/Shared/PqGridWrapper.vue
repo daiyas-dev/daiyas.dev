@@ -689,6 +689,143 @@ export default {
                         ui.column.editModel = { keyUpDown: false, saveKey: '' };
                     }
 
+                    //セル内Autocomplete設定の共通化
+                    if (ui.column.autocomplete) {
+                        ui.column.cls = "pq-dropdown pq-side-icon";
+                        ui.column.editor = {
+                            type: "textbox",
+                            init:  function (ui){
+                                var $input = ui.$cell.find("input");
+                                var config = ui.column.autocomplete;
+                                var rowData = ui.rowData;
+
+                                var source = config.source;
+                                source = _.isFunction(source) ? source() : source;
+
+                                $input.autocomplete({
+                                    source: (request, response) => {
+                                        var makeList = () => {
+                                            var key = request.term;
+
+                                            if (key == config.autoCompleteKey && !config.autoCompleteList) {
+                                                console.log("getAutoCompleteList: same key " + key);
+                                                return config.autoCompleteList;
+                                            }
+
+                                            var list = config.AutoCompleteFunc
+                                                ? config.AutoCompleteFunc(key, source, vue)
+                                                : source
+                                                    .filter(v => v.Cd.includes(key))
+                                                    .map(v => {
+                                                        var ret = v;
+                                                        ret.value = v.Cd;
+                                                        ret.text = vCdNm;
+                                                        ret.label = ret.value + " : " + ret.text;
+                                                        return ret;
+                                                    })
+                                                    ;
+
+                                            config.autoCompleteKey = key;
+                                            config.autoCompleteList = list;
+
+                                            var max = config.AutoCompleteListMax || 500;
+
+                                            if (!config.AutoCompleteNoLimit && (!!config.CountConstraint || list.length > max)) {
+                                                var len = config.ActualCounts || list.length;
+                                                list = _.slice(list, 0, max - 1);
+                                                var msg = "先頭" + max + "件のみ表示しています(" + len + "件中)"
+                                                        + "\r\n"
+                                                        + "絞り込み条件を追加して下さい";
+
+                                                $input
+                                                    .remove("has-error")
+                                                    .find("#" + vue.id)
+                                                    .tooltip("dispose")
+                                                    .tooltip({
+                                                        animation: false,
+                                                        placement: "auto",
+                                                        trigger: "hover",
+                                                        title: msg,
+                                                        container: "body",
+                                                        template: '<div class="tooltip" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>'
+                                                    })
+                                                    .tooltip("show");
+                                            } else {
+                                                $input.tooltip("dispose");
+                                            }
+
+                                            return list;
+                                        }
+
+                                        response(makeList());
+                                    },
+                                    appendTo: $(vue.$el).closest(".ui-dialog, body"),
+                                    position: { my: "left top", at: "left bottom", collision: "flip" },
+                                    autoFocus: false,
+                                    minLength: ui.column.autocomplete.AutoCompleteMinLength || 0,
+                                    select : function(event, selectedUi) {
+                                        if (!!config.buddy) {
+                                            ui.rowData[config.buddy] = selectedUi.item.CdNm;
+                                        }
+                                        if (!!config.buddies) {
+                                            console.log("set buddies", config.buddies);
+                                            _.forIn(config.buddies, (v, k) => ui.rowData[k] = selectedUi.item[v]);
+                                        }
+
+                                        return true;
+                                    },
+                                    close: function(event, closedUi) {
+                                        console.log("autocomplte close", closedUi);
+                                        var key = $input.val();
+                                        var ret = config.AutoCompleteFunc
+                                            ? config.AutoCompleteFunc(key, source, vue)
+                                            : source
+                                                .filter(v => v.Cd.includes(key))
+                                                .map(v => {
+                                                    var ret = v;
+                                                    ret.value = v.Cd;
+                                                    ret.text = vCdNm;
+                                                    ret.label = ret.value + " : " + ret.text;
+                                                    return ret;
+                                                })
+                                                ;
+
+                                        if (ret.length == 1) {
+                                            ui.$cell
+                                                .removeClass("has-error")
+                                                .tooltip("dispose");
+
+                                            if (!!config.buddy) {
+                                                ui.rowData[config.buddy] = ret[0].CdNm;
+                                            }
+                                            if (!!config.buddies) {
+                                                console.log("set buddies", config.buddies);
+                                                _.forIn(config.buddies, (v, k) => ui.rowData[k] = ret[0].CdNm);
+                                            }
+
+                                        } else {
+                                            var msg = ret.length > 1　? "対象で複数に該当します"　: "対象に存在しません";
+
+                                            //エラー項目設定
+                                            ui.$cell
+                                                .addClass("has-error")
+                                                .tooltip({
+                                                    animation: false,
+                                                    placement: "auto",
+                                                    trigger: "hover",
+                                                    title: msg,
+                                                    container: "body",
+                                                    template: '<div class="tooltip has-error" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>'
+                                                });
+                                        }
+                                    },
+                                }).focus(function () {
+                                    $(this).autocomplete("search", "");
+                                });
+                            }
+                        }
+                    }
+
                     return ui;
                 },
             },

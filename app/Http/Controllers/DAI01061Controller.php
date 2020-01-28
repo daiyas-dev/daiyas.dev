@@ -128,13 +128,15 @@ order by
     {
         $sql = "
 SELECT
-    CONVERT(int,KAKU.サブ各種CD1) AS 商品ＣＤ
-    ,KAKU.各種略称 AS 商品名
-    ,KAKU.行NO AS ソート順
+	CONVERT(int,KAKU.サブ各種CD1) AS 商品ＣＤ
+	,商品マスタ.商品名 AS 商品名
+	,KAKU.行NO AS ソート順
 FROM
-    各種テーブル KAKU
+	各種テーブル KAKU
+	LEFT JOIN 商品マスタ
+		ON 商品マスタ.商品ＣＤ = KAKU.サブ各種CD1
 WHERE
-    KAKU.各種CD = 33
+	KAKU.各種CD = 33
         ";
 
         $Result = collect(DB::select($sql))
@@ -168,6 +170,7 @@ WHERE
 
             $AddList = $params['AddList'];
             $UpdateList = $params['UpdateList'];
+            $OldList = $params['OldList'];
             $DeleteList = $params['DeleteList'];
 
             $date = Carbon::now()->format('Y-m-d H:i:s');
@@ -200,7 +203,7 @@ WHERE
             }
 
             //UpdateList
-            foreach ($UpdateList as $rec) {
+            foreach ($OldList as $index => $rec) {
                 $r = モバイル移動入力::query()
                     ->where('部署ＣＤ', $rec['部署ＣＤ'])
                     ->where('コースＣＤ', $rec['コースＣＤ'])
@@ -217,7 +220,7 @@ WHERE
                     continue;
                 }
 
-                $data = $rec;
+                $data = $UpdateList[$index];
                 $data['修正日'] = $date;
 
                 モバイル移動入力::query()
