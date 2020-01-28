@@ -21,6 +21,7 @@ class DAI04041Controller extends Controller
         $model->fill($params);
 
         $data = collect($model)->all();
+
         // トランザクション開始
         DB::transaction(function() use ($params, $data) {
             $CustomerCd = $params['得意先ＣＤ'];
@@ -29,8 +30,21 @@ class DAI04041Controller extends Controller
                 ['得意先ＣＤ' => $CustomerCd],
                 $data
             );
+
+            // //確認用：削除予定
+            // $query = 得意先マスタ::query()
+            //     ->when(
+            //         $CustomerCd,
+            //         function($q) use ($CustomerCd){
+            //             return $q->where('得意先ＣＤ', $CustomerCd);
+            //         }
+            //     );
+
+            // $CustomerList = $query->get();
+            // throw new \Exception('hogehoge');
         });
 
+        // //確認用：削除予定
         // $data = collect($model);
         // // トランザクション開始
 
@@ -49,6 +63,25 @@ class DAI04041Controller extends Controller
         return response()->json([
             'result' => true,
         ]);
+    }
+
+    /**
+     * GetCustomerListForDetail
+     */
+    public function GetCustomerListForDetail($request)
+    {
+        $CustomerCd = $request->CustomerCd;
+        $query = 得意先マスタ::query()
+            ->when(
+                $CustomerCd,
+                function($q) use ($CustomerCd){
+                    return $q->where('得意先ＣＤ', $CustomerCd);
+                }
+            );
+
+        $CustomerList = $query->get();
+
+        return response()->json($CustomerList);
     }
 
 }

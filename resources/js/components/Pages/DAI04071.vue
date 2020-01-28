@@ -28,7 +28,8 @@
                     v-model="viewModel.部署名"
                     maxlength=24
                     v-maxBytes=24
-                >
+                    v-setKana="res => viewModel.部署名カナ = res"
+            >
             </div>
             <div class="col-md-1">
                 <label class="">部署名カナ</label>

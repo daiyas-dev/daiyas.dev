@@ -72,7 +72,6 @@
                             <label class="">売価単価</label>
                             <currency-input
                                 class="form-control p-2 text-right" style="width: 100px;"
-                                type="tel"
                                 v-model=viewModel.売価単価
                                 maxlength="9"
                             />
