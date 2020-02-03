@@ -26,7 +26,8 @@
                     id="TantoName"
                     maxlength=60
                     v-maxBytes=60
-                    >
+                    v-setKana.disabled="res => viewModel.担当者名カナ = res"
+                >
             </div>
         </div>
         <div class="row">

@@ -1,15 +1,19 @@
-<template>
+﻿<template>
     <form id="this.$options.name">
-        <div class="row">
+        <div class="row ml-0 mr-0">
             <div class="col-md-1">
                 <span class="badge badge-primary w-75 ModeLabel">{{ModeLabel}}</span>
             </div>
             <div class="col-md-2">
                 <label>得意先ＣＤ</label>
                 <input class="form-control text-right" type="text"
+                    id="CustomerCd"
                     v-model=viewModel.得意先ＣＤ
                     :readonly=!viewModel.IsNew
                     :tabindex="viewModel.IsNew ? 0 : -1"
+                    @change="onCustomerCdChanged"
+                    maxlength="7"
+                    v-int
                 >
             </div>
             <div class="col-md-2">
@@ -50,24 +54,37 @@
                 />
             </div>
         </div>
-        <div class="row">
+        <div class="row ml-0 mr-0">
             <div class="col-md-9">
                 <fieldset class="kihon-info w-100">
                     <legend class="kihon-info">基本情報</legend>
                     <div class="row">
-                        <div class="col-md-10">
+                        <div class="col-md-12">
                             <label class="">得意先名</label>
-                            <input type="text" class="form-control" v-model="viewModel.得意先名">
+                            <input type="text" class="form-control"
+                                v-model="viewModel.得意先名"
+                                maxlength=60
+                                v-maxBytes=60
+                                v-setKana.disabled="res => viewModel.得意先名カナ = res"
+                            >
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
                             <label class="">得意先名カナ</label>
-                            <input type="text" class="form-control" style="font-size: 15px !important;" v-model="viewModel.得意先名カナ">
+                            <input type="text" class="form-control" style="font-size: 15px !important;"
+                                v-model="viewModel.得意先名カナ"
+                                maxlength=30
+                                v-maxBytes=30
+                            >
                         </div>
                         <div class="col-md-6">
                             <label class="">得意先名略称</label>
-                            <input type="text" class="form-control" v-model="viewModel.得意先名略称">
+                            <input type="text" class="form-control" style="font-size: 15px !important;"
+                                v-model="viewModel.得意先名略称"
+                                maxlength=20
+                                v-maxBytes=30
+                            >
                         </div>
                     </div>
                     <div class="row">
@@ -77,8 +94,8 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-5">
-                            <label style="width:90px">部署</label>
+                        <div class="col-md-4">
+                            <label style="">部署</label>
                             <VueSelect
                                 id="BushoCd"
                                 :vmodel=viewModel
@@ -87,9 +104,10 @@
                                 :params="{ cds: null }"
                                 :withCode=true
                                 customStyle="{ width: 100px; }"
+                                :hasNull=true
                             />
                         </div>
-                        <div class="col-md-5">
+                        <div class="col-md-3">
                             <label class="">売掛現金区分</label>
                             <VueSelect
                                 id="UriGenKbn"
@@ -105,35 +123,45 @@
                     <div class="row">
                         <div class="col-md-3">
                             <label class="">郵便番号</label>
-                            <input class="form-control p-2" style="width: 90px;" type="text" v-model=viewModel.郵便番号>
+                            <input class="form-control p-2" style="width: 90px;" type="text"
+                                v-model=viewModel.郵便番号
+                                maxlength="8"
+                                v-maxBytes=8
+                            >
                         </div>
                         <div class="col-md-9">
                             <label>住所</label>
-                            <input class="form-control" type="text" v-model=viewModel.住所１>
+                            <input class="form-control" type="text" v-model=viewModel.住所１
+                                maxlength="60"
+                                v-maxBytes=60
+                            >
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-9 offset-md-3">
                             <label></label>
-                            <input class="form-control" type="text" v-model=viewModel.住所２>
+                            <input class="form-control" type="text" v-model=viewModel.住所２
+                                maxlength="60"
+                                v-maxBytes=60
+                            >
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-3">
                             <label class="">電話番号1</label>
-                            <input class="form-control p-1" style="width: 100px;" type="text" v-model=viewModel.電話番号１ maxlength="15">
+                            <input class="form-control p-1" style="width: 130px;" type="text" v-model=viewModel.電話番号１ maxlength="15">
                         </div>
                         <div class="col-md-3">
                             <label class="">電話番号2</label>
-                            <input class="form-control p-1" style="width: 100px;" type="text" v-model=viewModel.電話番号２ maxlength="15">
+                            <input class="form-control p-1" style="width: 130px;" type="text" v-model=viewModel.電話番号２ maxlength="15">
                         </div>
                         <div class="col-md-3">
-                            <label class="">FAX1</label>
-                            <input class="form-control p-1" style="width: 100px;" type="text" v-model=viewModel.ＦＡＸ１ maxlength="15">
+                            <label class="slabel">FAX1</label>
+                            <input class="form-control p-1" style="width: 130px;" type="text" v-model=viewModel.ＦＡＸ１ maxlength="15">
                         </div>
                         <div class="col-md-3">
-                            <label class="">FAX2</label>
-                            <input class="form-control p-1" style="width: 100px;" type="text" v-model=viewModel.ＦＡＸ２ maxlength="15">
+                            <label class="slabel">FAX2</label>
+                            <input class="form-control p-1" style="width: 130px;" type="text" v-model=viewModel.ＦＡＸ２ maxlength="15">
                         </div>
                     </div>
                     <div class="row">
@@ -141,6 +169,7 @@
                             <fieldset class="delivery-info w-100">
                                 <legend class="delivery-info">得意先の担当者</legend>
                                 <div class="row">
+                                    <!-- TODO:画面に新規追加した項目のため入力制限未設定 -->
                                     <div class="col-md-3">
                                         <label class="">氏名</label>
                                         <input class="form-control p-1" type="text" :value=viewModel.得意先担当者氏名>
@@ -153,7 +182,7 @@
                                 <div class="row">
                                     <div class="col-md-3">
                                         <label>電話番号</label>
-                                        <input class="form-control p-1" type="text" style="width: 100px;" :value=viewModel.得意先担当者電話番号>
+                                        <input class="form-control p-1" type="text" style="width: 130px;" :value=viewModel.得意先担当者電話番号 maxlength="15">
                                     </div>
                                     <div class="col-md-9">
                                         <label>メール</label>
@@ -170,35 +199,47 @@
                                 <div class="row">
                                     <div class="col-md-3">
                                         <label class="">郵便番号</label>
-                                        <input class="form-control p-2" style="width: 90px;" type="text" v-model=viewModel.お届け先郵便番号>
+                                        <input class="form-control p-2" style="width: 90px;" type="text"
+                                            v-model=viewModel.お届け先郵便番号
+                                            maxlength="8"
+                                            v-maxBytes=8
+                                        >
                                     </div>
                                     <div class="col-md-9">
                                         <label>住所</label>
-                                        <input class="form-control" type="text" v-model=viewModel.お届け先住所１>
+                                        <input class="form-control" type="text"
+                                            v-model=viewModel.お届け先住所１
+                                            maxlength="60"
+                                            v-maxBytes=60
+                                        >
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-9 offset-md-3">
                                         <label></label>
-                                        <input class="form-control" type="text" v-model=viewModel.お届け先住所２>
+                                        <input class="form-control" type="text"
+                                            v-model=viewModel.お届け先住所２
+                                            maxlength="60"
+                                            v-maxBytes=60
+                                        >
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-3">
                                         <label class="">電話番号1</label>
-                                        <input class="form-control p-1" style="width: 100px;" type="text" v-model=viewModel.お届け先電話番号１>
+                                        <input class="form-control p-1" style="width: 130px;" type="text" v-model=viewModel.お届け先電話番号１ maxlength="15">
                                     </div>
                                     <div class="col-md-3">
                                         <label class="">電話番号2</label>
-                                        <input class="form-control p-1" style="width: 100px;" type="text" v-model=viewModel.お届け先電話番号２>
+                                        <input class="form-control p-1" style="width: 130px;" type="text" v-model=viewModel.お届け先電話番号２ maxlength="15">
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="">FAX1</label>
-                                        <input class="form-control p-1" style="width: 100px;" type="text" v-model=viewModel.お届け先ＦＡＸ１>
+                                        <label class="slabel">FAX1</label>
+                                        <input class="form-control p-1" style="width: 130px;" type="text" v-model=viewModel.お届け先ＦＡＸ１ maxlength="15">
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="">FAX2</label>
-                                        <input class="form-control p-1" style="width: 100px;" type="text" v-model=viewModel.お届け先ＦＡＸ２>
+                                        <label class="slabel">FAX2</label>
+                                        <input class="form-control p-1" style="width: 130px;" type="text" v-model=viewModel.お届け先ＦＡＸ２ maxlength="15">
                                     </div>
                                 </div>
                             </fieldset>
@@ -209,7 +250,7 @@
             <div class="col-md-3">
                 <div class="row">
                     <div class="col-md-12">
-                        <label class="" style="margin-left:30px; text-align: left;">状態理由</label>
+                        <label class="slabel" style="margin-left:25px; text-align: left;">状態理由</label>
                         <VueSelect
                             id="StateReason"
                             :vmodel=viewModel
@@ -222,7 +263,7 @@
                         />
                     </div>
                     <div class="col-md-12">
-                        <label class="" style="margin-left:30px; text-align: left;">失客日</label>
+                        <label class="slabel" style="margin-left:25px; text-align: left;">失客日</label>
                         <DatePickerWrapper
                             id="ShikkyakuDate"
                             ref="DatePicker_ShikkyakuDate"
@@ -236,7 +277,7 @@
                 </div>
             </div>
         </div>
-        <div class="row">
+        <div class="row ml-0 mr-0">
             <div class="col-md-12">
                 <fieldset class="shiharai-info w-100">
                     <legend class="shiharai-info">支払情報</legend>
@@ -255,11 +296,19 @@
                         </div>
                         <div class="col-md-2">
                             <label style="min-width: 60px;">締日1</label>
-                            <input class="form-control text-right p-2" style="width: 40px;" type="text" v-model=viewModel.締日１ maxlength="2">
+                            <input class="form-control text-right p-2" style="width: 40px;" type="text"
+                                v-model=viewModel.締日１
+                                maxlength="2"
+                                v-int
+                            >
                         </div>
                         <div class="col-md-2">
                             <label style="min-width: 60px;">締日2</label>
-                            <input class="form-control text-right p-2" style="width: 40px;" type="text" v-model=viewModel.締日２ maxlength="2">
+                            <input class="form-control text-right p-2" style="width: 40px;" type="text"
+                                v-model=viewModel.締日２
+                                maxlength="2"
+                                v-int
+                            >
                         </div>
                         <div class="col-md-2">
                             <label class="">支払サイト</label>
@@ -275,7 +324,11 @@
                         </div>
                         <div class="col-md-2">
                             <label style="min-width: 60px;">支払日</label>
-                            <input class="form-control text-right p-2" style="width: 40px;" type="text" v-model=viewModel.支払日 maxlength="2">
+                            <input class="form-control text-right p-2" style="width: 40px;" type="text"
+                                v-model=viewModel.支払日
+                                maxlength="2"
+                                v-int
+                            >
                         </div>
                     </div>
                     <div class="row">
@@ -333,7 +386,7 @@
                                 uri="/Utilities/GetCodeList"
                                 :params="{ cd: 6, sub1: 2 }"
                                 :withCode=true
-                                :hasNull=false
+                                :hasNull=true
                                 customStyle="{ width: 100px; }"
                                 :disabled='viewModel.支払方法１ != "1"'
 
@@ -351,21 +404,27 @@
                                 customStyle="{ width: 100px; }"
                             />
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="">集金区分</label>
                             <VueSelect
-                                id="ShiharaiKind1"
+                                id="ShukinKbn"
                                 :vmodel=viewModel
                                 bind="集金区分"
                                 uri="/Utilities/GetCodeList"
                                 :params="{ cd: 5 }"
                                 :withCode=true
                                 customStyle="{ width: 100px; }"
+                                :disabled='viewModel.支払方法１ != "4"'
                             />
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label>集金手数料</label>
-                            <input class="form-control text-right" type="tel" maxlength="5" v-model=viewModel.集金手数料 :disabled='viewModel.支払方法１ != "4"'>
+                            <currency-input
+                                class="form-control p-2 text-right" style="width: 80px;"
+                                v-model=viewModel.集金手数料
+                                :disabled='viewModel.支払方法１ != "4"'
+                                maxlength="5"
+                            />
                         </div>
                     </div>
                     <div class="row">
@@ -403,6 +462,7 @@
                                             :onChangeFunc=onBankChanged
                                             :isShowAutoComplete=true
                                             :AutoCompleteFunc=BankAutoCompleteFunc
+                                            :ParamsChangedCheckFunc="BankParamsChangedCheckFunc"
                                         />
                                     </div>
                                     <div class="col-md-6">
@@ -415,6 +475,7 @@
                                             buddy="金融機関支店名"
                                             dataUrl="/Utilities/GetBankBranchList"
                                             :params="{ BankCd: viewModel.金融機関CD, BranchCd: null, KeyWord: BankBranchKeyWord }"
+                                            :SelectorParamsFunc=BankBranchSelectorParamsFunc
                                             :isPreload=true
                                             title="支店一覧"
                                             labelCd="支店CD"
@@ -433,19 +494,24 @@
                                             :existsCheck=true
                                             :inputWidth=100
                                             :nameWidth=235
-                                            :ParamsChangedCheckFunc=BankBranchParamsChangedCheckFunc
                                             :onChangeFunc=onBankBranchChanged
                                             :isShowAutoComplete=true
                                             :AutoCompleteFunc=BankBranchAutoCompleteFunc
+                                            :ParamsChangedCheckFunc="BankBranchParamsChangedCheckFunc"
                                         />
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-3">
-                                        <label>記号番号</label>
-                                        <input class="form-control p-1" style="min-width: 125px;" type="text" maxlength="14" v-model=viewModel.記号番号 :disabled='viewModel.支払方法１ != "4"'>
+                                        <label class="KigoNo">記号番号</label>
+                                        <input class="form-control p-1" type="text" style="width: 130px;"
+                                            maxlength="14"
+                                            v-model=viewModel.記号番号
+                                            :disabled='(viewModel.支払方法１ != "4") ? true : (viewModel.集金区分 == "2")'
+                                            v-int
+                                        >
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
                                         <label class="">口座種別</label>
                                         <VueSelect
                                             id="KouzaKind"
@@ -459,13 +525,23 @@
                                             :disabled='viewModel.支払方法１ != "4"'
                                         />
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
                                         <label>口座番号</label>
-                                        <input class="form-control p-1" style="min-width: 125px;" type="tel" maxlength="7" v-model=viewModel.口座番号 :disabled='viewModel.支払方法１ != "4"'>
+                                        <input class="form-control p-1" style="text-align: right; width: 80px;" type="text"
+                                            v-model=viewModel.口座番号
+                                            :disabled='viewModel.支払方法１ != "4"'
+                                            maxlength="7"
+                                            v-int
+                                        >
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-5">
                                         <label class="">口座名義人</label>
-                                        <input class="form-control" type="text" style="font-size: 15px !important;" v-model=viewModel.口座名義人 :disabled='viewModel.支払方法１ != "4"'>
+                                        <input class="form-control" type="text" style="font-size: 15px !important;"
+                                            v-model=viewModel.口座名義人
+                                            :disabled='viewModel.支払方法１ != "4"'
+                                            maxlength="30"
+                                            v-maxBytes="1000"
+                                        >
                                     </div>
                                 </div>
                             </fieldset>
@@ -474,22 +550,28 @@
                 </fieldset>
             </div>
         </div>
-        <div class="row">
+        <div class="row ml-0 mr-0 mb-2">
             <fieldset class="fuzoku-info w-100">
                 <legend class="fuzoku-info">付属情報</legend>
-                <div class="row">
+                <div class="row m-0">
                     <div class="col-md-9 d-block">
                             <div class="row">
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <label>チケット枚数</label>
-                                    <input class="form-control text-right p-2" style="width: 60px;" v-model=viewModel.チケット枚数
-                                        type="number" step="1" min="0" max="999"
+                                    <input class="form-control text-right p-2" style="width: 50px;"
+                                        v-model=viewModel.チケット枚数
+                                        type="text"
+                                        maxlength="3"
+                                        v-int
                                     />
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-4">
                                     <label style="width: 170px;">サービスチケット枚数</label>
-                                    <input class="form-control text-right p-2" style="width: 60px;" v-model=viewModel.サービスチケット枚数
-                                        type="number" step="0.5" min="0" max="999"
+                                    <input class="form-control text-right p-2" style="width: 50px;"
+                                        v-model=viewModel.サービスチケット枚数
+                                        type="text"
+                                        maxlength="3"
+                                        v-int
                                     />
                                 </div>
                                 <div class="col-md-3">
@@ -745,34 +827,51 @@
                     </div>
                     <div class="col-md-3 d-block">
                         <div class="row">
-                            <div class="col-md-12">
-                                <label style="text-align: center;">顧客メモ</label>
-                                <textarea class="form-control mr-1 p-1 memo" type="text" v-model=viewModel.備考１>
-                                </textarea>
+                            <div class="col-md-12 ">
+                                <label class="ml-2" style="text-align: left;">顧客メモ</label>
                             </div>
                             <div class="col-md-12">
-                                <label style="">発信メモ</label>
-                                <textarea class="form-control mr-1 p-1 memo" type="text" v-model=viewModel.備考２>
+                                <textarea class="form-control ml-1 mr-1 p-1 memo" type="text" v-model=viewModel.備考１
+                                    v-maxBytes="80">
                                 </textarea>
                             </div>
+                            <div class="col-md-12" >
+                                <label class="ml-2" style="text-align: left;">発信メモ</label>
+                            </div>
                             <div class="col-md-12">
-                                <label style="">配送メモ</label>
-                                <textarea class="form-control mr-1 p-1 memo" type="text" v-model=viewModel.備考３>
+                                <textarea class="form-control ml-1 mr-1 p-1 memo" type="text" v-model=viewModel.備考２
+                                    v-maxBytes="80">
+                                </textarea>
+                            </div>
+                            <div class="col-md-12" >
+                                <label class="ml-2" style="text-align: left;">配送メモ</label>
+                            </div>
+                            <div class="col-md-12">
+                                <textarea class="form-control ml-1 mr-1 p-1 memo" type="text" v-model=viewModel.備考３
+                                    v-maxBytes="80">
                                 </textarea>
                             </div>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-2">
-                            <label style="min-width: 70px;">誕生日１</label>
-                            <input class="form-control p-2" type="text" v-model=viewModel.誕生日１>
+                            <label style="width: 85px;">誕生日１</label>
+                            <input class="form-control p-2" type="text"
+                                v-model=viewModel.誕生日１
+                                maxlength="8"
+                                v-int
+                            >
                         </div>
                         <div class="col-md-2">
-                            <label style="min-width: 70px;">誕生日２</label>
-                            <input class="form-control p-2" type="text" v-model=viewModel.誕生日２>
+                            <label style="width: 85px;">誕生日２</label>
+                            <input class="form-control p-2" type="text"
+                                v-model=viewModel.誕生日２
+                                maxlength="8"
+                                v-int
+                            >
                         </div>
                         <div class="col-md-4">
-                            <label class="" style="width:120px !important">規定製造パターン</label>
+                            <label class="" style="width: 140px !important;">規定製造パターン</label>
                             <VueSelect
                                 id="SeizoPattern"
                                 :vmodel=viewModel
@@ -846,7 +945,11 @@ textarea {
     resize: none;
 }
 .memo{
-    height: 70px;
+    height: 60px;
+}
+.slabel{
+    min-width: unset !important;
+    width: 70px !important;
 }
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
@@ -890,6 +993,24 @@ export default {
                 newVal.split("").forEach((v, i) => {
                     vue.HolidayConfig[moment().day(i).format("dd")] = v;
                 });
+            },
+        },
+        "viewModel.集金区分": {
+            deep: true,
+            sync: true,
+            handler: function(newVal) {
+                console.log("viewModel.集金区分", newVal);
+                var vue = this;
+                if(!!newVal && newVal == "1"){
+                    vue.viewModel.金融機関CD = "9900";
+                }
+                if(!!newVal && newVal == "2"){
+                //TODO:集金区分=2を選んだ時
+                    vue.viewModel.金融機関CD = "1";
+                    //TODO:古いリストがはいってくる
+                    vue.BankBranchParamsChangedCheckFunc();
+                    vue.viewModel.金融機関支店CD = vue.$refs.PopupSelect_BankBranch.dataList[0].Cd;
+                }
             },
         },
         "viewModel.金融機関CD": {
@@ -994,6 +1115,15 @@ export default {
             data.viewModel = $.extend(true, {}, vue.params, vue.query);
         }
 
+        //初期値
+        data.viewModel.状態区分 = data.viewModel.状態区分 || "30";
+        //支払方法２の入力制御のため、初期値設定
+        data.viewModel.支払方法１ = data.viewModel.支払方法１ || "1";
+        data.viewModel.税区分 = data.viewModel.税区分 || "1";
+        data.viewModel.集金区分 = data.viewModel.集金区分 || "1"
+        data.viewModel.金融機関CD = data.viewModel.金融機関CD || "9900";
+        data.viewModel.金融機関支店CD = data.viewModel.金融機関支店CD || "";
+
         return data;
     },
     methods: {
@@ -1016,8 +1146,10 @@ export default {
                     }
                 },
                 { visible: "true", value: "クリア", id: "DAI04041_Clear", disabled: false, shortcut: "F2",
-                    onClick: function () {
+                    onClick: function (evt) {
                         //TODO: クリア
+                        vue.clearDetail();
+                        console.log(vue.$attrs.id, evt.target.outerText, $(evt.target).attr("shortcut"));
                     }
                 },
                 { visible: "true", value: "削除", id: "DAI04041_Delete", disabled: false, shortcut: "F3",
@@ -1039,13 +1171,28 @@ export default {
                 {visible: "false"},
               　{ visible: "true", value: "登録", id: "DAI04041Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
-                        if(!vue.viewModel.得意先ＣＤ){
+
+                        if(!vue.viewModel.得意先ＣＤ || !vue.viewModel.部署CD){
                             $.dialogErr({
                                 title: "登録不可",
-                                contents: "得意先CDを入力して下さい",
+                                contents: [
+                                    !vue.viewModel.得意先ＣＤ ? "得意先ＣＤが入力されていません。<br/>" : "",
+                                    !vue.viewModel.部署CD ? "部署CDが入力されていません。<br/>" : ""
+                                ]
                             })
+                            if(!vue.viewModel.得意先ＣＤ){
+                                $(vue.$el).find("#CustomerCd").addClass("has-error");
+                            }else{
+                                $(vue.$el).find("#CustomerCd").removeClass("has-error");
+                            }
+                            if(!vue.viewModel.部署CD){
+                                $(vue.$el).find(".BushoCd").addClass("has-error");
+                            }else{
+                                $(vue.$el).find(".BushoCd").removeClass("has-error");
+                            }
                             return;
                         }
+
                         var params = _.cloneDeep(vue.viewModel);
 
                         //金融機関CD: nullの0置換
@@ -1057,25 +1204,13 @@ export default {
                             params.電話確認時間_分 = Number(vue.$refs.DatePicker_TakeoutTime.vmodel.発信時間.slice(3,5));
                         }
 
-                        //TODO:おためし:保存用データに不要なもの削除
-                        // delete params.部署名;
-                        // delete params.請求先名;
-                        // delete params.受注得意先名;
-                        // delete params.承認者名;
-                        // delete params.受注方法名称;
-                        // delete params.金融機関名;
-                        // delete params.金融機関支店名;
-                        // delete params.営業担当者名;
-                        // delete params.獲得営業者名;
-                        // delete params.登録担当者名;
-                        // delete params.発信時間;
-
                         //TODO:保存用日付書式
                         params.承認日 = !!params.承認日 ? moment(vue.viewModel.承認日,"YYYY-MM-DD").format("YYYY-MM-DD HH:mm:ss.SSS") : "";
                         params.失客日 = !!params.失客日 ? moment(vue.viewModel.失客日,"YYYY-MM-DD").format("YYYYMMDD") : "";
                         params.新規登録日 = !!params.新規登録日 ? moment(vue.viewModel.新規登録日,"YYYY-MM-DD").format("YYYY-MM-DD HH:mm:ss.SSS") : "";
 
-                        //TODO:修正日と修正担当者のデータ
+                        params.修正担当者ＣＤ = params.userId;
+                        params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
 
                         //TODO: 登録用controller method call
                         axios.post("/DAI04041/Save", params)
@@ -1091,9 +1226,64 @@ export default {
                 },
                 {visible: "false"},
             );
+
+            //初期値
+            vue.viewModel.承認日 = vue.params.承認日 || moment().format("YYYY-MM-DD HH:mm:ss.SSS");
+            vue.viewModel.新規登録日 = vue.params.新規登録日 || moment().format("YYYY-MM-DD HH:mm:ss.SSS");
         },
         mountedFunc: function(vue) {
             $(vue.$el).parents("div.body-content").addClass("Scrollable");
+        },
+        onCustomerCdChanged: function(code, entities) {
+            var vue = this;
+
+            vue.searchByCustomerCd();
+        },
+        searchByCustomerCd: function() {
+            var vue = this;
+            var cd = vue.viewModel.得意先ＣＤ;
+            if (!cd) return;
+
+            var params = {CustomerCd: cd};
+            params.noCache = true;
+
+            axios.post("/DAI04041/GetCustomerListForDetail", params)
+                .then(res => {
+                    if (res.data.length == 1) {
+                        $.dialogConfirm({
+                            title: "マスタ編集確認",
+                            contents: "マスタを編集しますか？",
+                            buttons:[
+                                {
+                                    text: "はい",
+                                    class: "btn btn-primary",
+                                    click: function(){
+                                        vue.viewModel = res.data[0];
+                                        $(this).dialog("close");
+                                    }
+                                },
+                                {
+                                    text: "いいえ",
+                                    class: "btn btn-danger",
+                                    click: function(){
+                                        vue.viewModel.得意先ＣＤ = "";
+                                        $(this).dialog("close");
+                                    }
+                                },
+                            ],
+                        });
+                        $("[shortcut='F3']").prop("disabled", false);
+                    }else{
+                        //TODO:削除ボタン
+                        $("[shortcut='F3']").prop("disabled", true);
+                        return;
+                    }
+                })
+                .catch(err => {
+                    console.log(err);
+                    //TODO: エラー
+                }
+            )
         },
         onBillingChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
             var vue = this;
@@ -1182,6 +1372,11 @@ export default {
             params.BankCd = null;
             return params;
         },
+        BankBranchSelectorParamsFunc: function(params, comp) {
+            params.KeyWord = null;
+            params.BankCd = vue.viewModel.金融機関CD;
+            return params;
+        },
         onBankChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
             var vue = this;
             console.log("onBankChanged", info, comp, isValid);
@@ -1221,12 +1416,6 @@ export default {
                 ;
             console.log("BankAutoCompleteFunc:" + input + " = " + list.length);
             return list;
-        },
-        BankBranchParamsChangedCheckFunc: function(newVal, oldVal) {
-            var vue = this;
-            var ret = !!newVal.BankCd && newVal.BankCd != 0 ;
-            console.log("BankBranchParamsChangedCheckFunc", newVal, ret);
-            return ret;
         },
         onBankBranchChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
             var vue = this;
@@ -1472,6 +1661,36 @@ export default {
                 height: 600,
             });
         },
+        clearDetail: function(){
+            var vue = this;
+
+            $(vue.$el).find(".has-error").removeClass("has-error");
+
+            _.keys(DAI04041.viewModel).forEach(k => DAI04041.viewModel[k] = null);
+            vue.viewModel.IsNew = true;
+            vue.viewModel.userId = vue.query.userId;
+
+            vue.viewModel.承認日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
+            vue.viewModel.新規登録日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
+            vue.viewModel.状態区分 = "30";
+            vue.viewModel.支払方法１ = "1";
+            vue.viewModel.税区分 = "1";
+            vue.viewModel.集金区分 = "1"
+            // vue.viewModel.内外区分 = vue.viewModel.内外区分 || vue.$refs.NaigaiKbn_Select.entities[0].code;
+            // vue.viewModel.現在使用FLG = vue.viewModel.現在使用FLG || vue.$refs.RiyoFlg_Select.entities[0].code;
+
+        },
+        BankParamsChangedCheckFunc: function(newVal, oldVal) {
+            var vue = this;
+            var ret = !!vue.viewModel.金融機関CD && vue.viewModel.金融機関CD != 0;
+            return ret;
+        },
+        BankBranchParamsChangedCheckFunc: function(param) {
+            var vue = this;
+            var ret = !!vue.viewModel.金融機関CD && vue.viewModel.金融機関CD != 0;
+            return ret;
+        },
+
     }
 }
 </script>
