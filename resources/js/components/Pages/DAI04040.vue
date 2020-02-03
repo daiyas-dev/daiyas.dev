@@ -480,7 +480,7 @@ export default {
                 params: params,
                 isModal: true,
                 isChild: true,
-                width: 1100,
+                width: 1200,
                 height: 700,
             });
         },

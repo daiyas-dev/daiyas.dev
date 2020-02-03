@@ -417,10 +417,6 @@ export default {
                                     text: "はい",
                                     class: "btn btn-primary",
                                     click: function(){
-
-                                        //TODO:所属部署エラーがある場合
-                                        $(vue.$el).find(".has-error").removeClass("has-error");
-
                                         vue.viewModel = res.data[0];
                                         $(this).dialog("close");
                                     }

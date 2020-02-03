@@ -129,7 +129,6 @@
                                 :exceptCheck="[{Cd: ''}, {Cd: '0'}]"
                                 :inputWidth=95
                                 :nameWidth=235
-                                :ParamsChangedCheckFunc=Bank1ParamsChangedCheckFunc
                                 :onAfterChangedFunc=onBankChanged
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=BankAutoCompleteFunc
@@ -234,7 +233,6 @@
                                 :exceptCheck="[{Cd: ''}, {Cd: '0'}]"
                                 :inputWidth=95
                                 :nameWidth=235
-                                :ParamsChangedCheckFunc=Bank2ParamsChangedCheckFunc
                                 :onAfterChangedFunc=onBankChanged
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=BankAutoCompleteFunc
@@ -341,7 +339,6 @@
                                 :exceptCheck="[{Cd: ''}, {Cd: '0'}]"
                                 :inputWidth=95
                                 :nameWidth=235
-                                :ParamsChangedCheckFunc=Product1ParamsChangedCheckFunc
                                 :onChangeFunc=onProductChanged
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=ProductAutoCompleteFunc
@@ -377,7 +374,6 @@
                                 :exceptCheck="[{Cd: ''}, {Cd: '0'}]"
                                 :inputWidth=95
                                 :nameWidth=235
-                                :ParamsChangedCheckFunc=Product2ParamsChangedCheckFunc
                                 :onChangeFunc=onProductChanged
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=ProductAutoCompleteFunc
@@ -723,7 +719,6 @@ export default {
                             .then(res => {
                                 vue.viewModel = res.data.model;
                                 DAI04070.conditionChanged();
-                                vue.clearDetail();
                             })
                             .catch(err => {
                                 console.log(error);
@@ -731,6 +726,7 @@ export default {
                             }
                         );
                         console.log("登録", params);
+                        $(this).dialog("close");
                     }
                 },
                 {visible: "false"},
@@ -790,11 +786,11 @@ export default {
                 }
             )
         },
-        BankSelectorParamsFunc: function(params, comp) {
-            params.KeyWord = null;
-            params.BankCd = null;
-            return params;
-        },
+        // BankSelectorParamsFunc: function(params, comp) {
+        //     params.KeyWord = null;
+        //     params.BankCd = null;
+        //     return params;
+        // },
         onBankChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
             var vue = this;
         },
@@ -832,16 +828,6 @@ export default {
                 ;
 
             return list;
-        },
-        Bank1ParamsChangedCheckFunc: function(newVal, oldVal) {
-            var vue = this;
-            var ret = !!vue.viewModel.金融機関CD1 && vue.viewModel.金融機関CD1 != 0;
-            return ret;
-        },
-        Bank2ParamsChangedCheckFunc: function(newVal, oldVal) {
-            var vue = this;
-            var ret = !!vue.viewModel.金融機関CD2 && vue.viewModel.金融機関CD2 != 0;
-            return ret;
         },
         BankBranch1ParamsChangedCheckFunc: function(newVal, oldVal) {
             var vue = this;
@@ -887,16 +873,6 @@ export default {
                 })
                 ;
             return list;
-        },
-        Product1ParamsChangedCheckFunc: function(newVal, oldVal) {
-            var vue = this;
-            var ret = !!vue.viewModel.モバイル_主要商品ＣＤ1 && vue.viewModel.モバイル_主要商品ＣＤ1 != 0;
-            return ret;
-        },
-        Product2ParamsChangedCheckFunc: function(newVal, oldVal) {
-            var vue = this;
-            var ret = !!vue.viewModel.モバイル_主要商品ＣＤ2 && vue.viewModel.モバイル_主要商品ＣＤ2 != 0;
-            return ret;
         },
         ProductAutoCompleteFunc: function(input, dataList) {
             var vue = this;

@@ -22,46 +22,73 @@ class DAI04041Controller extends Controller
 
         $data = collect($model)->all();
 
-        // トランザクション開始
-        DB::transaction(function() use ($params, $data) {
-            $CustomerCd = $params['得意先ＣＤ'];
+        if ($data['支払方法１'] <> '4') {
 
-            DB::table('得意先マスタ')->updateOrInsert(
-                ['得意先ＣＤ' => $CustomerCd],
-                $data
-            );
+            // トランザクション開始
+            DB::transaction(function () use ($params, $data) {
+                $CustomerCd = $params['得意先ＣＤ'];
 
-            // //確認用：削除予定
-            // $query = 得意先マスタ::query()
-            //     ->when(
-            //         $CustomerCd,
-            //         function($q) use ($CustomerCd){
-            //             return $q->where('得意先ＣＤ', $CustomerCd);
-            //         }
-            //     );
+                $cnt = DB::table('得意先マスタ')->where('得意先ＣＤ', $CustomerCd) ->count();
+                if ($cnt == 0) {
+                    $insertData = array_merge(['得意先ＣＤ' => $CustomerCd], $data);
+                    DB::table('得意先マスタ')->insert($insertData);
 
-            // $CustomerList = $query->get();
-            // throw new \Exception('hogehoge');
-        });
+                } else {
+                    $updateData = array_merge(['得意先ＣＤ' => $CustomerCd], $data);
+                    unset($updateData['金融機関CD']);
+                    unset($updateData['金融機関支店CD']);
+                    unset($updateData['記号番号']);
+                    unset($updateData['口座種別']);
+                    unset($updateData['口座番号']);
+                    unset($updateData['口座名義人']);
 
-        // //確認用：削除予定
-        // $data = collect($model);
-        // // トランザクション開始
+                    DB::table('得意先マスタ')->where('得意先ＣＤ', $CustomerCd)->update($updateData);
+                }
 
-            // $cnt = DB::table('得意先マスタ')->where('得意先ＣＤ', $CustomerCd) ->count();
-            // if ($cnt == 0) {
-            //     $insertData = $data->merge(['得意先ＣＤ' => $CustomerCd])->all();
-            //     DB::table('得意先マスタ')->insert($insertData);
-            // } else {
-            //     $updateData = $data->all();
-            //     DB::table('得意先マスタ')->update($updateData);
-            // }
+                // //確認用：削除予定
+                // $query = 得意先マスタ::query()
+                //     ->when(
+                //         $CustomerCd,
+                //         function($q) use ($CustomerCd){
+                //             return $q->where('得意先ＣＤ', $CustomerCd);
+                //         }
+                //     );
 
-        // });
+                // $CustomerList = $query->get();
+                // throw new \Exception('hogehoge');
+            });
+        };
 
+        if ($data['支払方法１'] == '4') {
+
+            // トランザクション開始
+            DB::transaction(function() use ($params, $data) {
+                $CustomerCd = $params['得意先ＣＤ'];
+
+                DB::table('得意先マスタ')->updateOrInsert(
+                    ['得意先ＣＤ' => $CustomerCd],
+                    $data
+                );
+
+                // //確認用：削除予定
+                // $query = 得意先マスタ::query()
+                //     ->when(
+                //         $CustomerCd,
+                //         function($q) use ($CustomerCd){
+                //             return $q->where('得意先ＣＤ', $CustomerCd);
+                //         }
+                //     );
+
+                // $CustomerList = $query->get();
+                // throw new \Exception('hogehoge');
+            });
+        };
+
+        $savedData = array_merge(['得意先ＣＤ' => $params['得意先ＣＤ']], $data);
 
         return response()->json([
             'result' => true,
+            'model' => $savedData,
         ]);
     }
 

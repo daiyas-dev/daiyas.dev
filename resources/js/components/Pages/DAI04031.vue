@@ -276,6 +276,10 @@ export default {
             data.viewModel = $.extend(true, {}, vue.params, vue.query);
         }
 
+        //currency-input項目はString->Numberに変換
+        data.viewModel.売価単価 = (data.viewModel.売価単価 || 0) * 1;
+        data.viewModel.部数単位 = (data.viewModel.部数単位 || 0) * 1;
+
         return data;
     },
     methods: {
@@ -370,6 +374,7 @@ export default {
 
                         //TODO:グループ区分は何できまる？この画面では無条件に0を設定しているが0以外のデータがある
                         params.ｸﾞﾙｰﾌﾟ区分 = 0;
+                        params.売価単価 = params.売価単価 || 0;
                         params.副食ＣＤ = params.副食ＣＤ || 0;
                         params.主食ＣＤ = params.主食ＣＤ || 0;
                         params.部数単位 = params.部数単位 || 0;
@@ -384,7 +389,6 @@ export default {
                             .then(res => {
                                 vue.viewModel = res.data.model;
                                 DAI04030.conditionChanged();
-                                vue.clearDetail();
                             })
                             .catch(err => {
                                 console.log(error);
@@ -392,12 +396,10 @@ export default {
                             }
                         );
                         console.log("登録", params);
+                        $(this).dialog("close");
                     }
                 },
             );
-
-            //初期値
-            vue.viewModel.売価単価 = vue.viewModel.売価単価 || 0;
         },
         mountedFunc: function(vue) {
             $(vue.$el).parents("div.body-content").addClass("Scrollable");
@@ -427,6 +429,11 @@ export default {
                                     class: "btn btn-primary",
                                     click: function(){
                                         vue.viewModel = res.data[0];
+
+                                        //currency-input項目、String->Number
+                                        vue.viewModel.売価単価 = (vue.viewModel.売価単価 || 0 ) * 1;
+                                        vue.viewModel.部数単位 = (vue.viewModel.部数単位 || 0 ) * 1;
+
                                         $(this).dialog("close");
                                     }
                                 },
