@@ -13,8 +13,8 @@
                 'form-control',
                 'target-input',
                 editable == true ? 'editable' : 'readonly',
-                readOnly == true ? 'mr-1' : '',
-                readOnly == true ? 'readOnly' : ''
+                readOnly == true ? 'readOnly' : '',
+                hideSearchButton && hideClearButton && !enablePrevNext ? 'mr-1' : '',
             ]"
             :style='inputWidth ? ("width: " + inputWidth + "px") : ""'
             v-model="vmodel[bind]"
@@ -24,6 +24,7 @@
             :disabled=isDisabled
         >
         <button type="button"
+            v-if=!hideSearchButton
             :class="[
                 'selector-button',
                 'btn',
@@ -74,6 +75,7 @@
             <i class="fa fa-caret-right fa-lg"></i>
         </button>
         <button type="button"
+            v-if=!hideClearButton
             :class="[
                 'clear-button',
                 'btn',
@@ -249,6 +251,8 @@ export default {
         enablePrevNext: Boolean,
         SelectorParamsFunc: Function,
         disabled: Boolean,
+        hideSearchButton: Boolean,
+        hideClearButton: Boolean,
     },
     computed: {
         showText: function() {
@@ -1025,7 +1029,7 @@ export default {
                 if (input.val() == vue.selectRow[vue.isGetName ? "CdNm" : "Cd"]) return;
 
                 input.autocomplete("close");
-                vue.execSetSelectValue(vue.autoCompleteList.length == 1 ? vue.autoCompleteList[0].Cd : input.val(), true, false);
+                // vue.execSetSelectValue(vue.autoCompleteList.length == 1 ? vue.autoCompleteList[0].Cd : input.val(), true, false);
             });
             input.autocomplete("enable");
         },

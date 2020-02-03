@@ -86,7 +86,8 @@ SELECT
 	コースマスタ.コース名,
 	モバイル_持ち出し入力.持ち出し日付,
 	モバイル_持ち出し入力.商品ＣＤ,
-	モバイル_持ち出し入力.個数
+	モバイル_持ち出し入力.個数,
+	モバイル_持ち出し入力.修正日
 FROM
 	コースマスタ
 	LEFT OUTER JOIN [モバイル_持ち出し入力]
@@ -110,11 +111,6 @@ $WhereCourseKbn
     {
         $params = $request->all();
         $targets = $params['targets'];
-
-        //validation
-        validator()->validate($targets, [
-            'targets.*.*' => 'required',
-        ]);
 
         //トランザクション開始
         DB::transaction(function() use ($targets) {

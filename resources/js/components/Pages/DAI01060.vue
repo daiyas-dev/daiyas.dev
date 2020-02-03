@@ -1,26 +1,11 @@
 ﻿<template>
     <form id="this.$options.name">
         <div class="row">
-            <div class="col-md-3">
-                <input type="text" v-model=viewModel.test v-setKana.disabled="res => viewModel.testKn = res">
-                <!-- modifiers: disabled, full
-                <input type="text" v-model=viewModel.test v-setKana.disabled="res => viewModel.testKn = res">
-                <input type="text" v-model=viewModel.test v-setKana.full="res => viewModel.testKn = res">
-                -->
-                <input type="text" v-model=viewModel.testKn>
-            </div>
             <div class="col-md-1">
                 <label>部署</label>
             </div>
             <div class="col-md-2">
-                <VueSelect
-                    id="Busho"
-                    :vmodel=viewModel
-                    bind="BushoCd"
-                    buddy="BushoNm"
-                    uri="/Utilities/GetBushoList"
-                    :withCode=true
-                    style="width:200px"
+                <VueSelectBusho
                     :onChangedFunc=onBushoChanged
                 />
             </div>
@@ -94,15 +79,10 @@ label{
 <script>
 import PageBaseMixin from "@vcs/PageBaseMixin.vue";
 
-import PopupSelect from "@vcs/PopupSelect.vue";
-import VueSelect from "@vcs/VueSelect.vue";
-
 export default {
     mixins: [PageBaseMixin],
     name: "DAI01060",
     components: {
-        "VueSelect": VueSelect,
-        "PopupSelect": PopupSelect,
     },
     props: {
         query: Object,

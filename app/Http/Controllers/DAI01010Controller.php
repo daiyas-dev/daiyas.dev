@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
 use Illuminate\Support\Carbon;
+use PDO;
 
 class DAI01010Controller extends Controller
 {
@@ -164,7 +165,16 @@ ORDER BY
     , WITH_コース別持出数.コースＣＤ
         ";
 
-        $DataList = DB::select($sql);
+        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll();
+        $pdo = null;
+
+        // $DataList = DB::select($sql);
 
         return response()->json($DataList);
     }
