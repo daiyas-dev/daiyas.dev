@@ -65,6 +65,10 @@
 .navbar-dark .dropdown-menu {
     border-radius: 0px;
 }
+.navbar-dark .dropdown-item {
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
 .navbar-dark .dropdown-item:hover {
     color: black !important;
     background-color: lightskyblue;

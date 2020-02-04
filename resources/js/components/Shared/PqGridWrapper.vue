@@ -234,7 +234,7 @@ export default {
                 onTab: "nextEdit",
             },
             editorBegin: function(event, ui) {
-                console.log("Editor Begin:" + ui.$editor.val());
+                // console.log("Editor Begin:" + ui.$editor.val());
             },
             editorEnd: function(event, ui) {
                 //getData呼出のcolumn取り違えと同様に、cell及びcell内コンポーネントの表示状態の制御にもバグあり
@@ -503,7 +503,7 @@ export default {
                         ui.column.editor = {
                             type: "textbox",
                             init: function(ui, args) {
-                                console.log("popupselect on grid initialize");
+                                // console.log("popupselect on grid initialize");
                                 var grid = this;
                                 var vue = grid.options.vue;
 
@@ -562,7 +562,7 @@ export default {
                                 var element = $(ps.$el);
                                 ui.rowData.pq_inputErrors = ui.rowData.pq_inputErrors || {};
                                 element.on("keyup", (event) => {
-                                    console.log("ps keyup:" + event.which, element.find("input").val());
+                                    // console.log("ps keyup:" + event.which, element.find("input").val());
                                     switch (event.which) {
                                         case 9:
                                             if (
@@ -582,7 +582,7 @@ export default {
                                             }
                                             return true;
                                         case 13:
-                                            console.log("ps keyup", event.which);
+                                            // console.log("ps keyup", event.which);
                                             vue.setCellState(grid, ui, true);
                                             vue.moveNextCell(grid, ui);
                                             return false;
@@ -708,7 +708,7 @@ export default {
                                             var key = request.term;
 
                                             if (key == config.autoCompleteKey && !config.autoCompleteList) {
-                                                console.log("getAutoCompleteList: same key " + key);
+                                                // console.log("getAutoCompleteList: same key " + key);
                                                 return config.autoCompleteList;
                                             }
 
@@ -768,16 +768,19 @@ export default {
                                             ui.rowData[config.buddy] = selectedUi.item.CdNm;
                                         }
                                         if (!!config.buddies) {
-                                            console.log("set buddies", config.buddies);
+                                            // console.log("set buddies", config.buddies);
                                             _.forIn(config.buddies, (v, k) => ui.rowData[k] = selectedUi.item[v]);
                                         }
+
+                                        console.log("autocomplete selected", _.pick(ui.rowData, _.keys(config.buddies)));
+                                        if (!!config.onSelect) config.onSelect(ui.rowData);
 
                                         return true;
                                     },
                                     close: function(event, closedUi) {
                                         console.log("autocomplte close", closedUi);
                                         var key = $input.val();
-                                        var ret = config.AutoCompleteFunc
+                                        var list = config.AutoCompleteFunc
                                             ? config.AutoCompleteFunc(key, source, vue)
                                             : source
                                                 .filter(v => v.Cd.includes(key))
@@ -790,21 +793,27 @@ export default {
                                                 })
                                                 ;
 
-                                        if (ret.length == 1) {
+                                        var match = list.length == 1 ? list[0] : list.find(v => v.Cd == key);
+
+                                        if (!!match) {
                                             ui.$cell
                                                 .removeClass("has-error")
                                                 .tooltip("dispose");
 
                                             if (!!config.buddy) {
-                                                ui.rowData[config.buddy] = ret[0].CdNm;
+                                                ui.rowData[config.buddy] = match.CdNm;
                                             }
                                             if (!!config.buddies) {
-                                                console.log("set buddies", config.buddies);
-                                                _.forIn(config.buddies, (v, k) => ui.rowData[k] = ret[0].CdNm);
-                                            }
+                                                // console.log("set buddies", config.buddies);
+                                                _.forIn(config.buddies, (v, k) => ui.rowData[k] = match[v]);
 
+                                                console.log("autocomplete closed", _.pick(ui.rowData, _.keys(config.buddies)));
+                                                if (!!config.onSelect) config.onSelect(ui.rowData);
+                                            }
                                         } else {
-                                            var msg = ret.length > 1　? "対象で複数に該当します"　: "対象に存在しません";
+                                            if (key == "" || event.which == 27) return;
+
+                                            var msg = list.length > 1　? "対象で複数に該当します"　: "対象に存在しません";
 
                                             //エラー項目設定
                                             ui.$cell
@@ -818,6 +827,8 @@ export default {
                                                     template: '<div class="tooltip has-error" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>'
                                                 });
                                         }
+
+                                        return true;
                                     },
                                 }).focus(function () {
                                     $(this).autocomplete("search", "");
@@ -837,7 +848,6 @@ export default {
             },
             history: function (event, ui) {
                 var grid = this;
-                console.log("grid history", ui);
 
                 //undo, redoボタンの状態変更
                 grid.widget().find(".toolbar_button.undo").prop("disabled", !(ui.canUndo || ui.num_undo > 0));
@@ -870,7 +880,7 @@ export default {
                     grid.options.title = "件数: " + grid.getData().length;
                 }
                 if (vue.setCustomTitle) {
-                    grid.options.title = vue.setCustomTitle();
+                    grid.options.title += vue.setCustomTitle();
                 }
                 grid._refreshTitle();
 
@@ -1050,7 +1060,7 @@ export default {
             change: function (event, ui) {
                 var grid = this;
                 var vue = grid.options.vue;
-                console.log("grid change");
+                // console.log("grid change");
 
                 grid.refreshView();
 
@@ -1074,7 +1084,7 @@ export default {
             cellSave: function (event, ui) {
                 var grid = this;
                 var vue = grid.options.vue;
-                console.log("grid cellSave");
+                // console.log("grid cellSave");
 
                 //変更時更新関数
                 if (vue._onCellSaveFunc && vue.grid) {
@@ -1122,7 +1132,7 @@ export default {
                     var next = ui.selection.address()[0];
 
                     if (next && (indices.rowIndx != next.r1 || indices.colIndx != next.c1)) {
-                        console.log("grid selectChange quit edit");
+                        // console.log("grid selectChange quit edit");
                         vue.setCellState(grid, indices);
                         grid.quitEditMode();
                     }
@@ -1151,7 +1161,7 @@ export default {
                 if (editCell) {
                     var indices = grid.getCellIndices(grid.getEditCell());
 
-                    console.log("grid selectChange quit edit");
+                    // console.log("grid selectChange quit edit");
                     vue.setCellState(grid, indices);
                     grid.quitEditMode();
                 }
@@ -1301,7 +1311,7 @@ export default {
                 var grid = this;
                 var vue = grid.options.vue;
                 var cell = this.getCell({rowIndx: ui.rowIndx, dataIndx: ui.dataIndx});
-                console.log("editorKeyDown: " + event.which);
+                // console.log("editorKeyDown: " + event.which);
 
                 if (event.isOnce) {
                     return true;
@@ -1746,6 +1756,7 @@ export default {
                     grid.searchResult = null;
                     grid.options.dataModel.location = "local";
                     grid.options.dataModel.data = initialArray;
+                    grid.options.dataModel.dataUF = initialArray;
                     grid.options.dataModel.postData = {};
                     grid.refreshDataAndView();
                     grid.options.dataModel.location = location;
@@ -1922,6 +1933,11 @@ export default {
                 };
 
                 //保存メソッド追加
+                this.grid.getPlainPData = function() {
+                    return grid.pdata.map(r => _.omitBy(r, (v, k) => k.startsWith("pq_") || k == "InitialValue"));
+                };
+
+                //保存メソッド追加
                 this.grid.saveData = function(options, opti_onEditFunc) {
                     var grid = this;
                     var vue = grid.options.vue;
@@ -2058,6 +2074,7 @@ export default {
                                 saveDlg.dialog("close");
                             })
                             .catch(error => {
+                                console.log("saveFunc Error", error);
                                 var status = error.response.status;
                                 var errObj = error.response.data;
 
@@ -2215,15 +2232,15 @@ export default {
                     var grid = this;
                     var vue = grid.options.vue;
 
-                    var prev = _.cloneDeep(grid.getData())
+                    var prev = _.cloneDeep(grid.getData().filter(v => grid.options.colModel.filter(c => !!c.key).every(c => !!v[c.dataIndx])))
                         .map(v => {
                             delete v.InitialValue;
-                            delete v.pq_ri;
+                            // delete v.pq_ri;
                             return v;
                         });
 
                     var dl = diff(prev, compare);
-                    console.log("blinkDiff: detect diff", dl);
+                    // console.log("blinkDiff: detect diff", dl);
 
                     if (_.isEmpty(dl)) return;
 
@@ -2234,10 +2251,14 @@ export default {
                     grid.refreshDataAndView();
                     grid.options.dataModel.location = location;
 
-                    _.forIn(dl, (rowData, rowIndx) => {
-                        _.forIn(rowData, (value, dataIndx) => {
-                            grid.blinkCell(rowIndx, dataIndx);
-                        });
+                    _.forIn(dl, (rowData, i) => {
+                        var rowIndx = grid.getRowIndx({rowData: prev[i]}).rowIndx;
+
+                        if (rowIndx != undefined && !_.isEmpty(_.omit(rowData, "pq_ri"))) {
+                            _.forIn(rowData, (value, dataIndx) => {
+                                grid.blinkCell(rowIndx, dataIndx);
+                            });
+                        }
                     });
                 };
 
@@ -2342,7 +2363,7 @@ export default {
 
             //TODO: 厳密には可変サイズのGridが複数存在する場合を考慮に入れなければならないか？ -> そのような画面設計を避けるか...
             //新サイズ計算
-            var newHeight = oldHeight + contentHeight - elementsHeightSum;
+            var newHeight = oldHeight + contentHeight - elementsHeightSum - 10;
 
             if (!this.isFixedHeight && _.round(newHeight) != _.round(oldHeight)) {
                 this.grid.options.height += (_.round(newHeight) - _.round(oldHeight));

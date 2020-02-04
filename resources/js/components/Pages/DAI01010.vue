@@ -233,7 +233,7 @@ export default {
                         vue.conditionChanged();
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI01020Grid1_Printout", disabled: false, shortcut: "F6",
+                { visible: "true", value: "印刷", id: "DAI01010Grid1_Printout", disabled: false, shortcut: "F6",
                     onClick: function () {
                         vue.DAI01010Grid1.print(vue.setPrintOptions);
                     }

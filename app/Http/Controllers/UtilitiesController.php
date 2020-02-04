@@ -18,7 +18,8 @@ use App\Models\金融機関支店名称;
 use App\Models\消費税率マスタ;
 use App\Models\得意先履歴テーブル;
 use Illuminate\Http\Request;
-use DB;
+use Illuminate\Support\Facades\DB;
+use PDO;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 
 class UtilitiesController extends Controller
@@ -732,6 +733,7 @@ ORDER BY
         $BushoCd = $request->bushoCd ?? $request->BushoCd;
         $CourseCd = $request->courseCd ?? $request->CourseCd;
         $CourseKbn = $request->courseKbn ?? $request->CourseKbn;
+        $TargetDate = $request->targetDate ?? $request->TargetDate;
 
         $query = コースマスタ::with(['担当者'])
             ->when(
@@ -750,6 +752,12 @@ ORDER BY
                 $CourseKbn,
                 function ($q) use ($CourseKbn) {
                     return $q->where('コース区分', $CourseKbn);
+                }
+            )
+            ->when(
+                $TargetDate,
+                function ($q) use ($request) {
+                    return $q->where('コース区分', $this->SearchCourseKbnFromDate($request)->コース区分);
                 }
             );
 
@@ -1272,6 +1280,10 @@ AND Tel_DelFlg = 0
         $IsOyaOnly = $request->isOyaOnly ?? true;
         $GroupCustomerCd = $request->groupCustomerCd;
 
+        if (!!$GroupCustomerCd && (!is_numeric($GroupCustomerCd) || !ctype_digit($GroupCustomerCd))) {
+            return [];
+        }
+
         $WhereBushoCd = $BushoCd ? " AND M1.部署ＣＤ = $BushoCd" : "";
         $WhereKanaNm = $KanaNm ? " AND M1.得意先名カナ LIKE '%$KanaNm%'" : "";
         $WhereTelNo = $TelNo ? " AND M1.得意先ＣＤ IN (SELECT Tel_CustNo FROM C_TelToCust WHERE Tel_TelNo LIKE '$TelNo%')" : "";
@@ -1375,7 +1387,17 @@ WHERE
 $OrderBy
         ";
 
-        $DataList = DB::select($sql);
+        //TODO: 高速化対応
+        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll();
+        $pdo = null;
+
+        // $DataList = DB::select($sql);
 
         return response()->json($DataList);
     }
@@ -1588,7 +1610,15 @@ ORDER BY
     /**
      * GetCourseKbnFromDate
      */
-    public function GetCourseKbnFromDate($request) {
+    public function GetCourseKbnFromDate($request)
+    {
+        return response()->json($this->SearchCourseKbnFromDate($request));
+    }
+
+    /**
+     * SearchCourseKbnFromDate
+     */
+    public function SearchCourseKbnFromDate($request) {
         $TargetDate = $request->TargetDate;
 
         $sql = "
@@ -1605,9 +1635,9 @@ ORDER BY
                 END AS コース区分
         ";
 
-        $Result = DB::select($sql);
+        $Result = DB::selectOne($sql);
 
-        return response()->json($Result[0]);
+        return $Result;
     }
 
     /**

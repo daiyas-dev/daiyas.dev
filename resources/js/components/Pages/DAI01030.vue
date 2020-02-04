@@ -7,7 +7,27 @@
             <div class="col-md-2">
                 <VueSelectBusho
                     :onChangedFunc=onBushoChanged
+                    :disabled=bushoDisabled
                 />
+            </div>
+            <div class="col-md-1">
+                <label>配送日</label>
+            </div>
+            <div class="col-md-2">
+                <DatePickerWrapper
+                    id="DeliveryDate"
+                    ref="DatePicker_Date"
+                    format="YYYY年MM月DD日"
+                    dayViewHeaderFormat="YYYY年MM月"
+                    :vmodel=viewModel
+                    bind="DeliveryDate"
+                    :editable=true
+                    :onChangedFunc=onDeliveryDateChanged
+                />
+            </div>
+            <div class="col-md-2">
+                <label class="text-center">時間</label>
+                <input class="form-control p-0 text-center" style="width: 80px;" type="text" v-model=viewModel.DeliveryTime readonly tabindex="-1">
             </div>
             <div class="col-md-1">
                 <label>グループ</label>
@@ -29,27 +49,6 @@
         </div>
         <div class="row">
             <div class="col-md-1">
-                <label>配送日</label>
-            </div>
-            <div class="col-md-2">
-                <DatePickerWrapper
-                    id="DeliveryDate"
-                    ref="DatePicker_Date"
-                    format="YYYY年MM月DD日"
-                    dayViewHeaderFormat="YYYY年MM月"
-                    :vmodel=viewModel
-                    bind="DeliveryDate"
-                    :editable=true
-                    :onChangedFunc=onDeliveryDateChanged
-                />
-            </div>
-            <div class="col-md-2">
-                <label class="text-center">時間</label>
-                <input class="form-control p-0 text-center" style="width: 80px;" type="text" :value=viewModel.DeliveryTime readonly tabindex="-1">
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-1">
                 <label>得意先</label>
             </div>
             <div class="col-md-9">
@@ -58,9 +57,10 @@
                     ref="PopupSelect_Customer"
                     :vmodel=viewModel
                     bind="CustomerCd"
-                    buddy="CustomerNm"
-                    dataUrl="/Utilities/GetCustomerAndCourseList"
-                    :params="{ targetDate: FormattedDeliveryDate }"
+                    :buddies='{ CourseNm: "コース名", TantoCd: "担当者ＣＤ", TantoNm: "担当者名" }'
+                    dataUrl="/DAI01030/GetCustomerAndCourseList"
+                    :params="{ targetDate: FormattedDeliveryDate, keyword: viewModel.CustomerCd }"
+                    :isPreload=true
                     title="得意先一覧"
                     labelCd="得意先CD"
                     labelCdNm="得意先名"
@@ -79,12 +79,12 @@
                     :inputWidth=150
                     :nameWidth=400
                     :ParamsChangedCheckFunc=CustomerParamsChangedCheckFunc
-                    :onChangeFunc=onCustomerChanged
+                    :onAfterChangedFunc=onCustomerChanged
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=CustomerAutoCompleteFunc
                 />
                 <label class="label-blue text-center">TEL</label>
-                <input class="form-control p-0 text-center" style="width: 120px;" type="text" :value=viewModel.TelNo readonly tabindex="-1">
+                <input class="form-control p-0 text-center label-blue" style="width: 120px;" type="text" :value=viewModel.TelNo readonly tabindex="-1">
                 <label class="ml-1 label-blue">{{viewModel.PaymentNm}}</label>
             </div>
         </div>
@@ -92,22 +92,50 @@
             <div class="col-md-1">
                 <label>担当者</label>
             </div>
-            <div class="col-md-5">
+            <div class="col-md-4">
                 <input class="form-control label-blue" style="width: 100px;" type="text" :value=viewModel.TantoCd readonly tabindex="-1">
                 <input class="form-control ml-1 label-blue" style="width: 300px;" type="text" :value=viewModel.TantoNm readonly tabindex="-1">
             </div>
-        </div>
-        <div class="row">
             <div class="col-md-1">
-                <label>コース</label>
+                <label style="max-width: unset; width: 100%; text-align: center;">コース</label>
             </div>
-            <div class="col-md-5">
+            <div class="col-md-4">
                 <input class="form-control label-blue" style="width: 100px;" type="text" :value=viewModel.CourseCd readonly tabindex="-1">
                 <input class="form-control ml-1 label-blue" style="width: 300px;" type="text" :value=viewModel.CourseNm readonly tabindex="-1">
             </div>
         </div>
         <div class="row">
-            <div class="col-md-1 offset-md-11 d-flex justify-content-center">
+            <div class="col-md-1">
+                <span class="badge w-75" :class='viewModel.IsEdit ? "badge-warning" : "badge-primary"'>{{viewModel.IsEdit ? "修正" : "登録"}}</span>
+            </div>
+            <div class="col-md-1">
+                <span class="badge w-75" :class='viewModel.IsDeliveried ? "badge-danger" : "badge-primary"'>{{viewModel.IsDeliveried ? "配達済" : "未配達"}}</span>
+            </div>
+            <div class="col-md-7">
+            </div>
+            <div class="col-md-1 d-flex justify-content-center">
+                <button
+                    id="btn_prev"
+                    type="button"
+                    class="btn-light w-100"
+                    :disabled=!hasPrev
+                    @click=prevOrder
+                >
+                    <i class="fa fa-caret-left fa-lg"></i>戻る
+                </button>
+            </div>
+            <div class="col-md-1 d-flex justify-content-center">
+                <button
+                    id="btn_next"
+                    type="button"
+                    class="btn-light w-100"
+                    :disabled=!hasNext
+                    @click=nextOrder
+                >
+                    <i class="fa fa-caret-right fa-lg"></i>先へ
+                </button>
+            </div>
+            <div class="col-md-1 d-flex justify-content-center">
                 <button
                     id="btn_view_toggle"
                     type="button"
@@ -122,7 +150,7 @@
             id="DAI01030Grid1"
             ref="DAI01030Grid1"
             dataUrl="/DAI01030/Search"
-            :query=this.viewModel
+            :query=this.searchParams
             :SearchOnCreate=false
             :SearchOnActivate=false
             :checkChanged=true
@@ -130,36 +158,49 @@
             :checkChangedCancelFunc=checkChangedCancelFunc
             :options=this.grid1Options
             :onCompleteFunc=onCompleteFunc
+            :onAfterSearchFunc=this.onAfterSearchFunc
             :onSelectChangeFunc=onSelectChangeFunc
+            :autoToolTipDisabled=true
             :autoEmptyRow=true
             :autoEmptyRowCount=1
             :autoEmptyRowFunc=autoEmptyRowFunc
             :autoEmptyRowCheckFunc=autoEmptyRowCheckFunc
+            classes="mt-1 mb-1 mr-3 ml-3"
         />
         <div class="row">
             <div class="col-md-1 d-block">
-                <label>備考</label>
+                <label style="width: auto; max-width: unset;">備考(社内)</label>
             </div>
-            <div class="col-md-8 d-block">
-                <VueDataList v-for="n in 0"
-                    v-bind:key='"Bikou" + n'
-                    :id='"Bikou" + n'
-                    :vmodel=viewModel
-                    :bind='"Bikou" + n'
-                    dataUrl="/Utilities/GetBikouList"
-                    :hasNull=true
-                    class="bikou"
-                    style="width: 675px;"
-                    listHeight="20vh"
+            <div class="col-md-5 d-block">
+                <input v-for="(bikou, index) in viewModel.BikouForControl"
+                    v-bind:key=index
+                    :id='"BikouForControl" + (index + 1)'
+                    v-model=viewModel.BikouForControl[index]
+                    class="bikou w-100"
+                />
+            </div>
+            <div class="col-md-1 d-block">
+                <label style="width: 100%; max-width: unset; text-align: center;">備考(配送)</label>
+            </div>
+            <div class="col-md-5 d-block">
+                <input v-for="(bikou, index) in viewModel.BikouForDelivery"
+                    v-bind:key=index
+                    :id='"BikouForDelivery" + (index + 1)'
+                    v-model=viewModel.BikouForDelivery[index]
+                    class="bikou w-100"
                 />
             </div>
         </div>
         <div class="row">
-            <div class="col-md-5 offset-md-5 update-info">
+            <div class="col-md-7">
+            </div>
+            <div class="col-md-2 update-info">
                 <label class="label-blue">修正者</label>
-                <label class="label-blue" style="width: 100px;"></label>
+                <label class="label-blue" style="width: auto;">{{viewModel.LastEditor}}</label>
+            </div>
+            <div class="col-md-3 update-info">
                 <label class="label-blue">修正日時</label>
-                <label class="label-blue" style="width: 100px;"></label>
+                <label class="label-blue" style="width: auto;">{{viewModel.LastEditDate}}</label>
             </div>
         </div>
     </form>
@@ -169,9 +210,15 @@
 label {
     max-width: 60px;
 }
+.badge {
+    font-size: 15px;
+}
 .update-info .label-blue {
     max-width: unset !important;
     margin-right: 4px;
+}
+.btn-light:not(.footer-button-visible-true):disabled {
+    color: #aaaaaa;
 }
 </style>
 <style>
@@ -193,6 +240,24 @@ export default {
             var vue = this;
             return vue.viewModel.DeliveryDate ? moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
         },
+        bushoDisabled: function() {
+
+        },
+        hasPrev: function() {
+            var vue = this;
+            return !!vue.TodayOrders.length && _.last(vue.TodayOrders) != vue.CurrentOrder;
+        },
+        hasNext: function() {
+            var vue = this;
+            return !!vue.TodayOrders.length && _.first(vue.TodayOrders) != vue.CurrentOrder;
+        },
+        searchParams: function() {
+            return {
+                BushoCd: this.viewModel.BushoCd,
+                CustomerCd: this.viewModel.CustomerCd,
+                DeliveryDate: moment(this.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYY-MM-DD"),
+            };
+        }
     },
     watch: {
         "viewModel.IsShowAll": {
@@ -200,6 +265,7 @@ export default {
                 console.log("viewModel.IsShowAll:" + newVal);
                 var vue = this;
                 var grid = vue.DAI01030Grid1;
+                if (!grid) return;
 
                 grid.filter({
                     oper: "replace",
@@ -207,9 +273,16 @@ export default {
                 });
             },
         },
+        "viewModel.IsEdit": {
+            handler: function(newVal) {
+                var vue = this;
+                vue.footerButtons.find(v => v.id == "DAI01030Grid1_DeleteOrder").disabled = !newVal;
+            },
+        },
     },
     data() {
-        return $.extend(true, {}, PageBaseMixin.data(), {
+        var vue = this;
+        var data = $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "注文入力",
             noViewModel: true,
             viewModel: {
@@ -227,26 +300,54 @@ export default {
                 TantoNm: null,
                 CourseCd: null,
                 CourseNm: null,
-                Bikou1: null,
-                Bikou2: null,
-                Bikou3: null,
-                Bikou4: null,
-                Bikou5: null,
+                IsEdit: false,
+                IsDeliveried: false,
+                LastEditor: null,
+                LastEditDate: null,
+                BikouForControl: _.fill(Array(5), null),
+                BikouForDelivery: _.fill(Array(5), null),
                 IsShowAll: null,
                 GroupCustomerCd: null,
             },
+            TodayOrders: [],
+            CurrentOrder: null,
             DAI01030Grid1: null,
             grid1Options: {
-                selectionModel: { type: "cell", mode: "single", row: true, onTab: "nextEdit" },
+                selectionModel: { type: "row", mode: "single", row: true },
                 showHeader: true,
                 showToolbar: false,
+                toolbar: {
+                    cls: "DAI01030_toolbar",
+                    items: [
+                        {
+                            name: "add",
+                            type: "button",
+                            label: "<i class='fa fa-plus fa-lg'></i>",
+                            listener: function (event) {
+                                vue.addRow(this, event);
+                            },
+                            attr: 'class="toolbar_button add" title="行追加"',
+                            options: { disabled: false },
+                        },
+                        {
+                            name: "delete",
+                            type: "button",
+                            label: "<i class='fa fa-minus fa-lg'></i>",
+                            listener: function (event) {
+                                vue.deleteRow(this, event);
+                            },
+                            attr: 'class="toolbar_button delete" title="行削除" delete ',
+                            options: { disabled: true },
+                        },
+                    ]
+                },
                 columnBorders: true,
                 fillHandle: "",
                 numberCell: { show: true, title: "No.", resizable: false, },
                 autoRow: false,
                 rowHtHead: 25,
                 rowHt: 30,
-                height: 270,
+                height: 350,
                 editable: true,
                 columnTemplate: {
                     editable: false,
@@ -254,6 +355,13 @@ export default {
                 },
                 trackModel: { on: true },
                 historyModel: { on: true },
+                editModel: {
+                    clicksToEdit: 2,
+                    keyUpDown: false,
+                    saveKey: $.ui.keyCode.ENTER,
+                    onSave: "nextFocus",
+                    onTab: "nextFocus",
+                },
                 filterModel: {
                     on: true,
                     mode: "OR",
@@ -308,42 +416,30 @@ export default {
                         title: "コード",
                         dataIndx: "商品ＣＤ", dataType: "integer",
                         width: 120, maxWidth: 120, minWidth: 120,
-                        editable: ui => {
-                            var vue = this;
-                            var grid = DAI01030Grid1;
-
-                            if (grid.getSelectionRowData()) {
-                                if (grid.getSelectionRowData().pq_ri == ui.rowData.pq_ri
-                                    &&
-                                    _(grid.getSelectionData()).keys().first() == "商品ＣＤ"
-                                ) {
-                                    return true;
-                                }
-                            }
-
-                            return !ui.rowData[ui.dataIndx];
-                        },
-                        dataUrl: "/Utilities/GetProductList",
-                        buddy: "商品名",
-                        selectorTitle: "商品一覧",
-                        labelCd: "商品ＣＤ",
-                        labelCdNm: "商品名",
-                        isModal: true,
-                        reuse: true,
-                        existsCheck: true,
-                        onChangeFunc: function(element, info, comp, isNoMsg, isValid) {
-                            console.log("grid popupselect onchange func");
-
-                            comp.ui.rowData["商品名"] = info["商品名"];
-                            comp.ui.rowData["単価"] = info["売価単価"];
-                            comp.grid.refreshCell({ rowIndx: comp.ui.rowIndx, dataIndx: "商品名"});
-                            comp.grid.refreshCell({ rowIndx: comp.ui.rowIndx, dataIndx: "単価"});
+                        editable: true,
+                        key: true,
+                        autocomplete: {
+                            source: () => vue.getProductList(),
+                            bind: "商品ＣＤ",
+                            buddies: { "商品名": "CdNm", "単価": "売価単価", "商品区分": "商品区分", },
+                            onSelect: rowData => {
+                                console.log("onSelect", rowData);
+                                rowData["現金金額"] = rowData["単価"] * rowData["現金個数"];
+                                rowData["掛売金額"] = rowData["単価"] * rowData["掛売個数"];
+                            },
+                            AutoCompleteFunc: vue.ProductAutoCompleteFuncInGrid,
+                            AutoCompleteMinLength: 0,
                         },
                     },
                     {
                         title: "商品名",
                         dataIndx: "商品名", dataType: "string",
                         width: 200, minWidth: 200,
+                    },
+                    {
+                        title: "商品区分",
+                        dataIndx: "商品区分", dataType: "integer",
+                        hidden: true,
                     },
                     {
                         title: "単価",
@@ -454,49 +550,93 @@ export default {
                             },
                         ],
                     },
-                    // {
-                    //     title: "確認",
-                    //     dataIndx: "Checked", type: "checkbox",
-                    //     width: 40, maxWidth: 40, minWidth: 40,
-                    //     align: "center",
-                    //     cbId: "CheckState",
-                    //     render: ui => {
-                    //         if (ui.rowData.summaryRow) {
-                    //             //合計行では非表示
-                    //             return "";
-                    //         }
-                    //     },
-                    // },
-                    // {
-                    //     title: "確認チェック状態",
-                    //     dataIndx: "CheckState",
-                    //     dataType: "bool",
-                    //     cb: { header: false },
-                    //     hidden: true,
-                    //     editable: true,
-                    // },
                 ],
             },
         });
+
+        if (!!vue.params || !!vue.query) {
+            data.viewModel = $.extend(true, data.viewModel, vue.params, vue.query);
+        }
+
+        return data;
     },
     methods: {
         createdFunc: function(vue) {
+            vue.footerButtons.push(
+                { visible: "true", value: "検索", id: "DAI01030Grid1_Search", disabled: false, shortcut: "F5",
+                    onClick: function () {
+                        vue.conditionChanged(null, true);
+                    }
+                },
+                {visible: "false"},
+                { visible: "true", value: "伝票削除", id: "DAI01030Grid1_DeleteOrder", disabled: true, shortcut: "F3",
+                    onClick: function () {
+                        vue.deleteOrder();
+                    }
+                },
+                { visible: "true", value: "行削除", id: "DAI01030Grid1_DeleteRow", disabled: true, shortcut: "F4",
+                    onClick: function () {
+                        vue.deleteRow();
+                    }
+                },
+                {visible: "false"},
+                { visible: "true", value: "コース表示", id: "DAI01030Grid1_ShowCourse", disabled: false, shortcut: "F6",
+                    onClick: function () {
+                        vue.showCourse();
+                    }
+                },
+                { visible: "true", value: "残高表示", id: "DAI01030Grid1_ShowBalance", disabled: false, shortcut: "F10",
+                    onClick: function () {
+                        vue.showBalance();
+                    }
+                },
+                {visible: "false"},
+                { visible: "true", value: "登録", id: "DAI01030Grid1_Save", disabled: false, shortcut: "F9",
+                    onClick: function () {
+                        vue.saveOrder();
+                    }
+                },
+            );
+
+            vue.$root.$on("logOn", vue.getTodayOrder);
         },
         mountedFunc: function(vue) {
+            //watcher
+            vue.$watch(
+                "$refs.DAI01030Grid1.selectionRowCount",
+                cnt => {
+                    vue.footerButtons.find(v => v.id == "DAI01030Grid1_DeleteRow").disabled = cnt == 0 || cnt > 1;
+                }
+            );
+
             vue.viewModel.IsShowAll = false;
-            vue.viewModel.DeliveryDate = moment();
+
+
+            //queryがある場合は初期値設定しない
+            if (!_.isEmpty(_.omit(vue.query, "userId"))) {
+                //本日注文履歴取得
+                vue.getTodayOrder(() => {
+                    vue.CurrentOrder = vue.TodayOrders.find(v => {
+                        return v.部署ＣＤ == vue.query.BushoCd
+                            && moment(v.配送日).format("YYYY年MM月DD日") == vue.query.DeliveryDate
+                            && v.修正時間 == vue.query.DeliveryTime
+                            && v.得意先CD == vue.query.CustomerCd
+                            ;
+                    })
+                    //検索
+                    vue.conditionChanged(null, true);
+                });
+
+                return;
+            }
+
+            //TODO:
+            // vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
+            vue.viewModel.DeliveryDate = moment("20190904").format("YYYY年MM月DD日");
             vue.viewModel.DeliveryTime = moment().format("HH:mm:ss");
 
-            console.log("mounted query", vue.query);
-            if (!!vue.query.BushoCd) {
-                vue.viewModel.BushoCd = vue.query.BushoCd;
-            }
-            if (!!vue.query.CustomerCd) {
-                vue.viewModel.CustomerCd = vue.query.CustomerCd;
-            }
-            if (!!vue.query.DeliveryDate) {
-                vue.viewModel.DeliveryDate = vue.query.DeliveryDate;
-            }
+            //本日注文履歴取得
+            vue.getTodayOrder();
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
@@ -506,7 +646,7 @@ export default {
         onDeliveryDateChanged: function(code, entities) {
             var vue = this;
             //条件変更ハンドラ
-            //vue.conditionChanged();
+            vue.conditionChanged();
         },
         onCustomerChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
             var vue = this;
@@ -549,25 +689,78 @@ export default {
             //vue.setGroupCustomer(vue.viewModel.CustomerCd);
 
             //条件変更ハンドラ
-            vue.conditionChanged(noSearch);
+            vue.conditionChanged();
         },
-        conditionChanged: function(noSearch) {
+        conditionChanged: function(callback, force) {
             var vue = this;
             var grid = vue.DAI01030Grid1;
 
-            if (vue.getLoginInfo().isLogOn
-                && vue.viewModel.BushoCd
-                && vue.viewModel.DeliveryDate
-                && vue.viewModel.CustomerCd
-                && noSearch != true
-            ) {
-                var params = $.extend(true, {}, vue.viewModel);
+            if (!grid || !vue.getLoginInfo().isLogOn) return;
+            if (!vue.viewModel.BushoCd || !vue.viewModel.DeliveryDate || !vue.viewModel.CustomerCd) return;
 
-                //配送日を"YYYYMMDD"形式に編集
-                params.DeliveryDate = moment(params.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD");
+            if (!force && _.isEqual(grid.options.dataModel.postData, vue.searchParams)) return;
 
-                vue.DAI01030Grid1.searchData(params);
+            if (grid.options.dataModel.postData.CustomerCd != vue.searchParams.CustomerCd) {
+                grid.showLoading();
+
+                //商品リスト検索
+                axios.post("/DAI01030/GetProductList", vue.searchParams)
+                    .then(res => {
+                        grid.hideLoading();
+                        vue.ProductList = res.data;
+                        vue.DAI01030Grid1.searchData(vue.searchParams);
+                    })
+                    .catch(err => {
+                        grid.hideLoading();
+                        console.log("/DAI01030/GetProductList Error", err)
+                        $.dialogErr({
+                            title: "商品マスタ検索失敗",
+                            contents: "商品マスタの検索に失敗しました" + "<br/>" + err.message,
+                        });
+                    });
+            } else {
+                vue.DAI01030Grid1.searchData(vue.searchParams);
             }
+        },
+        getProductList: function() {
+            var vue = this;
+            return vue.ProductList;
+        },
+        ProductAutoCompleteFuncInGrid: function(input, dataList, comp) {
+            var vue = this;
+
+            if (!dataList.length) return [];
+
+            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
+            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
+
+            var wholeColumns = ["CdNm"];
+
+            if ((input == comp.selectValue && comp.isUnique) || comp.isError) {
+                keyAND = keyOR = [];
+            }
+
+            var list = dataList
+                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
+                .filter(v => {
+                    return keyOR.length == 0
+                        || _.some(keyOR, k => v.Cd.startsWith(k))
+                        || _.some(keyOR, k => v.whole.includes(k))
+                })
+                .filter(v => {
+                    return keyAND.length == 0 || _.every(keyAND, k => v.whole.includes(k));
+                })
+                .map(v => {
+                    var ret = v;
+                    ret.label = v.Cd + " : " + v.CdNm;
+                    ret.value = v.Cd;
+                    ret.text = v.CdNm;
+                    return ret;
+                })
+                ;
+
+            return list;
         },
         autoEmptyRowFunc: function(grid) {
             var vue = this;
@@ -597,44 +790,70 @@ export default {
                 grid.setSelection({ rowIndx: 0, colIndx: colIndx });
             }
         },
-        onSelectChangeFunc: function(grid, ui) {
-        },
-        CustomerAutoCompleteFunc: function(input, dataList) {
+        onAfterSearchFunc: function (gridVue, grid, res) {
             var vue = this;
-            //var input = vmodel.CustomerCd;
 
-            if (!dataList.length) return [];
+            //配送日
+            var deliverDate = _.max(res.filter(v => v.注文区分 == 0).map(v => v.配送日));
+            vue.viewModel.IsEdit = !!deliverDate ? moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").isSame(deliverDate) : false;
 
-            console.time("CustomerAutoCompleteFunc");
+            //注文時間
+            var deliverTime = _.max(res.map(v => v.注文時間));
+            vue.viewModel.DeliveryTime = deliverTime || moment().format("HH:mm:ss");
 
-            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
-            var keyAnd = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
-            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
+            if (vue.viewModel.IsEdit) {
+                var params = _.cloneDeep(vue.searchParams);
+                params.noCache = true;
 
-            var wholeColumns = ["得意先名", "得意先名略称", "得意先名カナ", "備考１", "備考２", "備考３"];
+                //備考
+                axios.post("/DAI01030/GetBikou", params)
+                    .then(res => {
+                        var bikou = res.data
+                            .reduce((a, c) => a = _.mergeWith(a, c, (o, s) => {
+                                if (s == "\r\n") s = "";
+                                return o.includes(s) ? o : (o + "," + s)
+                            }));
 
-            var list = dataList
-                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
-                .filter(v => {
-                    return _.some(keyOR, k => v.得意先CD.startsWith(k))
-                        || _.some(keyOR, k => k.match(/^[0-9\-]{6,}/) != null && !!v.電話番号１ ? v.電話番号１.startsWith(k) : false)
-                        || _.some(keyOR, k => v.whole.includes(k))
-                })
-                .filter(v => {
-                    return keyAnd.length == 0 || _.every(keyAnd, k => (v.whole + (v.電話番号１ || "")).includes(k));
-                })
-                .map(v => {
-                    var ret = v;
-                    ret.label = v.得意先CD + " : " + "【" + v.部署名 + "】" + v.得意先名;
-                    ret.value = v.得意先CD;
-                    ret.text = v.得意先名;
-                    return ret;
-                })
-                ;
+                        _.values(bikou).map(v => !!v ? v.replace(/\r\n/g, "") : v).forEach((v, i) => vue.viewModel.BikouForControl.splice(i, 1, v));
+                        console.log("GetBikou", res.data, bikou, vue.viewModel.BikouForControl);
+                    })
+                    .catch(err => {
+                        console.log("/DAI01030/GetBikou Error", err);
+                    })
+                    ;
 
-            console.timeEnd("CustomerAutoCompleteFunc");
-            console.log("CustomerAutoCompleteFunc:" + input + " = " + list.length);
-            return list;
+                //最終修正日/担当者
+                axios.post("/DAI01030/GetLastEdit", params)
+                    .then(res => {
+                        vue.viewModel.LastEditor = res.data.修正担当者名;
+                        vue.viewModel.LastEditDate = !!res.data.修正日 ? moment(res.data.修正日).format("YYYY/MM/DD HH:mm:ss") : null;
+                    })
+                    .catch(err => {
+                        console.log("/DAI01030/GetLastEdit Error", err);
+                    })
+                    ;
+                //配達済/未配達
+                axios.post("/DAI01030/IsDeliveried", params)
+                    .then(res => {
+                        vue.viewModel.IsDeliveried = res.data.IsDeliveried;
+                    })
+                    .catch(err => {
+                        console.log("/DAI01030/IsDeliveried Error", err);
+                    })
+                    ;
+
+            } else {
+                vue.viewModel.IsDeliveried = false;
+                vue.viewModel.BikouForControl.splice(0, 1, "登録");
+                vue.viewModel.BikouForControl.fill(null, 1);
+                vue.viewModel.LastEditor = "";
+                vue.viewModel.LastEditDate = "";
+            }
+
+
+            return res;
+        },
+        onSelectChangeFunc: function(grid, ui) {
         },
         checkChangedFunc: function(grid) {
             console.log("checkChangedFunc");
@@ -663,12 +882,10 @@ export default {
         },
         CustomerParamsChangedCheckFunc: function(newVal, oldVal) {
             var ret = !!newVal.targetDate;
-            console.log("CustomerParamsChangedCheckFunc", newVal, ret);
             return ret;
         },
         GroupCustomerParamsChangedCheckFunc: function(newVal, oldVal) {
             var ret = !!newVal.targetDate && !!newVal.groupCustomerCd;
-            console.log("GroupCustomerParamsChangedCheckFunc", newVal, ret);
             return ret;
         },
         onGroupCustomerChanged: function() {
@@ -686,6 +903,300 @@ export default {
                     BushoCd: vm.BushoCd,
                     DeliveryDate: vm.DeliveryDate,
                     CustomerCd: vm.GroupCustomerCd,
+                }
+            });
+        },
+        CustomerAutoCompleteFunc: function(input, dataList, comp) {
+            var vue = this;
+
+            if (!dataList.length) return [];
+
+            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
+            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
+
+            var wholeColumns = ["得意先名", "得意先名略称", "得意先名カナ", "備考１", "備考２", "備考３"];
+
+            if ((input == comp.selectValue && comp.isUnique) || comp.isError) {
+                keyAND = keyOR = [];
+            }
+
+            var list = dataList
+                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
+                .filter(v => {
+                    return keyOR.length == 0
+                        || _.some(keyOR, k => v.得意先CD.startsWith(k))
+                        || _.some(keyOR, k => k.match(/^[0-9\-]{6,}/) != null && !!v.電話番号１ ? v.電話番号１.startsWith(k) : false)
+                        || _.some(keyOR, k => v.whole.includes(k))
+                })
+                .filter(v => {
+                    return keyAND.length == 0 || _.every(keyAND, k => (v.whole + (v.電話番号１ || "")).includes(k));
+                })
+                .map(v => {
+                    var ret = v;
+                    ret.label = v.得意先CD + " : " + "【" + v.部署名 + "】" + v.得意先名;
+                    ret.value = v.得意先CD;
+                    ret.text = v.得意先名;
+                    return ret;
+                })
+                ;
+
+            return list;
+        },
+        saveOrder: function() {
+            var vue = this;
+            var grid = vue.DAI01030Grid1;
+
+            var checkError = grid => !!grid.widget().find(".has-error").length || !!grid.widget().find(".ui-state-error").length;
+
+            var hasError = checkError(grid);
+
+            if(hasError){
+                $.dialogErr({
+                    title: "入力値エラー",
+                    contents: "エラー項目があるため、登録できません。",
+                });
+                return;
+            }
+
+            var checkRequire = grid => grid.pdata.map(r => [r.商品ＣＤ]).every(r => r.every(v => !!v) || r.every(v => !v));
+
+            var require = checkRequire(grid);
+
+            if(!require){
+                $.dialogErr({
+                    title: "未入力項目",
+                    contents: "未入力項目があるため、登録できません。",
+                });
+                return;
+            }
+
+            var SaveList = _.cloneDeep(grid.getPlainPData().filter(v => !!v.商品ＣＤ));
+
+            //注文データの型に整形
+            SaveList.forEach((v, i) => {
+                v.注文区分 = 0;
+                v.注文日付 = v.注文日付 || moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYY-MM-DD");
+                v.注文時間 = v.注文時間 || vue.viewModel.DeliveryTime;
+                v.部署ＣＤ = vue.viewModel.BushoCd;
+                v.得意先ＣＤ = vue.viewModel.CustomerCd;
+                v.配送日 = v.配送日 || moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYY-MM-DD");
+                v.明細行Ｎｏ = (i + 1);
+                v.入力区分 = 0;
+                v.備考１ = vue.viewModel.BikouForControl[0];
+                v.備考２ = vue.viewModel.BikouForControl[1];
+                v.備考３ = vue.viewModel.BikouForControl[2];
+                v.備考４ = vue.viewModel.BikouForControl[3];
+                v.備考５ = vue.viewModel.BikouForControl[4];
+                v.予備金額１ = v.単価;
+                v.予備金額２ = 0;
+                v.予備ＣＤ１ = 0;
+                v.予備ＣＤ２ = 0;
+                v.修正担当者ＣＤ = vue.getLoginInfo().uid;
+
+                delete v.商品名;
+                delete v.単価;
+                delete v.予定数;
+                delete v.現金;
+                delete v.掛売;
+                delete v.全表示;
+                delete v.sortIndx;
+            });
+
+            //保存実行
+            grid.saveData(
+                {
+                    uri: "/DAI01030/Save",
+                    params: {
+                        SaveList: SaveList,
+                    },
+                    optional: this.searchParams,
+                    confirm: {
+                        isShow: true,
+                        title: "確認 " + vue.viewModel.CustomerNm,
+                    },
+                    done: {
+                        isShow: false,
+                        callback: (gridVue, grid, res)=>{
+                            console.log("res", res);
+
+                            if (!!res.edited && !!res.edited.length) {
+                                $.dialogInfo({
+                                    title: "登録チェック",
+                                    contents: "他で変更されたデータがあります。",
+                                });
+                                grid.blinkDiff(res.edited);
+                            } else {
+                                grid.commit();
+                                vue.viewModel.IsEdit = true;
+                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
+                            }
+
+                            return false;
+                        },
+                    },
+                }
+            );
+        },
+        deleteOrder: function() {
+            var vue = this;
+            var grid = vue.DAI01030Grid1;
+
+            var DeleteList = _.cloneDeep(grid.getPlainPData().filter(v => !!v.商品ＣＤ));
+
+            //注文データの型に整形
+            DeleteList.forEach((v, i) => {
+                v.注文区分 = 0;
+                v.注文日付 = v.注文日付 || moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYY-MM-DD");
+                v.注文時間 = v.注文時間 || vue.viewModel.DeliveryTime;
+                v.部署ＣＤ = vue.viewModel.BushoCd;
+                v.得意先ＣＤ = vue.viewModel.CustomerCd;
+                v.配送日 = v.配送日 || moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYY-MM-DD");
+                v.明細行Ｎｏ = (i + 1);
+                v.入力区分 = 0;
+                v.修正担当者ＣＤ = vue.getLoginInfo().uid;
+
+                delete v.商品名;
+                delete v.単価;
+                delete v.予定数;
+                delete v.現金;
+                delete v.掛売;
+                delete v.全表示;
+                delete v.sortIndx;
+            });
+
+            //削除実行
+            grid.saveData(
+                {
+                    uri: "/DAI01030/Delete",
+                    params: {
+                        DeleteList: DeleteList,
+                    },
+                    optional: this.searchParams,
+                    confirm: {
+                        isShow: true,
+                        title: "注文データ削除確認",
+                        message: "注文データを削除します。宜しいですか？",
+                    },
+                    done: {
+                        isShow: false,
+                        callback: (gridVue, grid, res)=>{
+                            console.log("res", res);
+
+                            if (!!res.edited && !!res.edited.length) {
+                                $.dialogInfo({
+                                    title: "登録チェック",
+                                    contents: "他で変更されたデータがあります。",
+                                });
+                                grid.blinkDiff(res.edited);
+                            } else {
+                                grid.clearData();
+                                vue.viewModel.CustomerCd = null;
+                                vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
+                                vue.viewModel.DeliveryTime = moment().format("HH:mm:ss");
+                                vue.viewModel.IsEdit = false;
+                                vue.viewModel.IsDeliveried = false;
+                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
+                            }
+
+                            return false;
+                        },
+                    },
+                }
+            );
+        },
+        addRow: function(grid, event) {
+            var vue = this;
+        },
+        deleteRow: function(grid, event) {
+            var vue = this;
+
+            grid = grid || vue.DAI01030Grid1;
+
+            if(!grid.SelectRow().getSelection().length){
+                return;
+            }
+
+            var rowList = grid.SelectRow().getSelection().map(v => _.pick(v, ["rowIndx"]));
+            grid.deleteRow({ rowList: rowList });
+        },
+        showCourse: function() {
+            var vue = this;
+
+            PageDialog.show({
+                pgId: "DAI01031",
+                params: {
+                    BushoCd: vue.viewModel.BushoCd,
+                    TargetDate: vue.searchParams.DeliveryDate,
+                    CourseCd: vue.viewModel.CourseCd,
+                    CourseNm: vue.viewModel.CourseNm,
+                    TantoCd: vue.viewModel.TantoCd,
+                    TantoNm: vue.viewModel.TantoNm,
+                },
+                isModal: false,
+                isChild: true,
+                width: 500,
+                height: 650,
+            });
+        },
+        showBalance: function() {
+            var vue = this;
+            console.log("showBalance");
+        },
+        getTodayOrder: function(callback) {
+            var vue = this;
+
+            if (!vue.getLoginInfo().isLogOn) return;
+
+            //今日の担当注文取得
+            axios.post("/DAI01030/GetTodayOrder", { TantoCd: vue.getLoginInfo().uid })
+                .then(res => {
+                    vue.TodayOrders = res.data;
+
+                    if (callback) callback();
+                })
+                .catch(err => {
+                    console.log("/DAI01030/GetTodayOrder Error", err);
+                })
+                ;
+        },
+        prevOrder: function() {
+            var vue = this;
+
+            if (!vue.CurrentOrder) {
+                vue.loadOrder(0);
+                return;
+            }
+
+            var idx = _.indexOf(vue.TodayOrders, vue.CurrentOrder) + 1;
+            idx = idx > _.findLastIndex(vue.TodayOrders) ? _.findLastIndex(vue.TodayOrders) : idx;
+            vue.loadOrder(idx);
+        },
+        nextOrder: function() {
+            var vue = this;
+
+            if (!vue.CurrentOrder) {
+                vue.loadOrder(0);
+                return;
+            }
+
+            var idx = _.indexOf(vue.TodayOrders, vue.CurrentOrder) - 1;
+            idx = idx < 0 ? 0 : idx;
+            vue.loadOrder(idx);
+        },
+        loadOrder: function(idx) {
+            var vue = this;
+
+            vue.CurrentOrder = vue.TodayOrders[idx];
+
+            vue.$router.push({
+                path: vue.$route.path,
+                query: {
+                    userId: vue.$route.query.userId,
+                    BushoCd: vue.CurrentOrder.部署ＣＤ,
+                    DeliveryDate: moment(vue.CurrentOrder.配送日).format("YYYY年MM月DD日"),
+                    DeliveryTime: vue.CurrentOrder.修正時間,
+                    CustomerCd: vue.CurrentOrder.得意先CD,
                 }
             });
         },

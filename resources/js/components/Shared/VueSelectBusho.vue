@@ -8,7 +8,8 @@
         :withCode="withCode || true"
         :customStyle=customStyle
         :onChangedFunc=onChangedFunc
-        :hasNull="hasNull"
+        :hasNull=hasNull
+        :disabled=disabled
     />
 </template>
 
@@ -42,6 +43,7 @@ export default {
         withCode: Boolean,
         withoutLogin: Boolean,
         customStyle: String,
+        disabled: Boolean,
     },
     computed: {
         _id: function() {
