@@ -86,7 +86,7 @@ export default {
             return {
                 BushoCd: this.viewModel.BushoCd,
                 CourseCd: this.viewModel.CourseCd,
-                TargetDate: moment(this.viewModel.TargetDate, "YYYY年MM月DD日").format("YYYY-MM-DD"),
+                TargetDate: moment(this.viewModel.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD"),
                 noCache: true,
             };
         }
@@ -173,6 +173,8 @@ export default {
             );
         },
         mountedFunc: function(vue) {
+            vue.$root.$on("DAI01030_Deactivated", vue.parentDeactivated);
+            vue.$root.$on("DAI01030_BushoChanged", vue.onBushoChanged);
         },
         onCourseChanged: function(code, entity) {
             var vue = this;
@@ -228,6 +230,16 @@ export default {
                 ;
 
             return list;
+        },
+        parentDeactivated: function() {
+            var vue = this;
+            $(vue.$el).closest(".ui-dialog-content").dialog("close");
+        },
+        onBushoChanged: function(BushoCd) {
+            var vue = this;
+            if (BushoCd != vue.viewModel.BushoCd) {
+                $(vue.$el).closest(".ui-dialog-content").dialog("close");
+            }
         },
     }
 }

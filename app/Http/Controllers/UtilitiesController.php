@@ -17,6 +17,7 @@ use App\Models\金融機関名称;
 use App\Models\金融機関支店名称;
 use App\Models\消費税率マスタ;
 use App\Models\得意先履歴テーブル;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use PDO;
@@ -785,23 +786,22 @@ ORDER BY
         $BushoCd = $request->bushoCd ?? $request->BushoCd;
         $CustomerCd = $request->CustomerCd;
         $KeyWord = $request->KeyWord;
+        $SelectValue = $request->selectValue;
 
         $WhereBusho = $BushoCd ? " AND TM.部署ＣＤ=$BushoCd" : "";
-        $WhereCustomer = $CustomerCd ? " AND TM.得意先ＣＤ=$CustomerCd" : "";
         $WhereKeyWord = $KeyWord
             ? " AND (
-                    TM.得意先ＣＤ LIKE '$KeyWord%' OR
                     TM.得意先名 LIKE '%$KeyWord%' OR
-                    TM.得意先名略称 LIKE '%$KeyWord%' OR
-                    TM.得意先名カナ LIKE '%$KeyWord%' OR
-                    TM.電話番号１ LIKE '$KeyWord%' OR
-                    TM.備考１ LIKE '%$KeyWord%' OR
-                    TM.備考２ LIKE '%$KeyWord%' OR
-                    TM.備考３ LIKE '%$KeyWord%'
+                    TM.電話番号１ LIKE '$KeyWord%'
                 )"
             : "";
 
-        if ($CustomerCd && is_int($CustomerCd)) {
+        $Cd = is_numeric($CustomerCd) && ctype_digit($CustomerCd) ? $CustomerCd :
+            is_numeric($SelectValue) && ctype_digit($SelectValue) ? $SelectValue : null;
+
+        if (!!$Cd) {
+            $WhereCustomer = " AND TM.得意先ＣＤ=$Cd";
+
             //得意先ＣＤでの検索
             $ByCustomerSql = "
 SELECT
@@ -839,8 +839,9 @@ $WhereKeyWord
         ";
 
         $Result = DB::select($CountSql);
+
         $Count = $Result[0]->CNT;
-        $CountMax = $request->CountMax ?? 500;
+        $CountMax = $request->CountMax ?? 100;
         $SelectTop = $Count > $CountMax ? "TOP $CountMax" : "";
 
         $sql = "
@@ -862,7 +863,16 @@ $WhereBusho
 $WhereKeyWord
         ";
 
-        $DataList = DB::select($sql);
+        //TODO: 高速化対応
+        // $DataList = DB::select($sql);
+        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll();
+        $pdo = null;
 
         return response()->json(['Data' => $DataList, 'CountConstraint' => !!$SelectTop ? $CountMax : null, 'ActualCounts' => $Count ]);
     }
@@ -1622,17 +1632,25 @@ ORDER BY
         $TargetDate = $request->TargetDate;
 
         $sql = "
-            SELECT
-                '$TargetDate' AS 対象日付,
-                CASE
-                    WHEN (SELECT 対象日付 FROM 祝日マスタ WHERE 対象日付 = '$TargetDate') IS NOT NULL THEN 4
-                    ELSE
-                        CASE DATEPART(WEEKDAY, '$TargetDate')
-                            WHEN 1 THEN 3
-                            WHEN 7 THEN 2
-                            ELSE 1
-                        END
-                END AS コース区分
+SELECT
+	D.対象日付,
+	D.コース区分,
+	各種テーブル.各種名称 AS コース区分名
+FROM (
+    SELECT
+        '$TargetDate' AS 対象日付,
+        CASE
+            WHEN (SELECT 対象日付 FROM 祝日マスタ WHERE 対象日付 = '$TargetDate') IS NOT NULL THEN 4
+            ELSE
+                CASE DATEPART(WEEKDAY, '$TargetDate')
+                    WHEN 1 THEN 3
+                    WHEN 7 THEN 2
+                    ELSE 1
+                END
+        END AS コース区分
+) D
+	LEFT OUTER JOIN 各種テーブル
+		ON 各種テーブル.行NO = D.コース区分 AND 各種テーブル.各種CD=19
         ";
 
         $Result = DB::selectOne($sql);

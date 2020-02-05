@@ -78,7 +78,7 @@ export default {
         searchParams: function() {
             return {
                 BushoCd: this.viewModel.BushoCd,
-                DeliveryDate: moment(this.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYY-MM-DD"),
+                DeliveryDate: moment(this.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD"),
                 CourseKbn: this.viewModel.CourseKbn,
             };
         }

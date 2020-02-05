@@ -200,7 +200,7 @@ export default {
             errorMsg: null,
             AutoCompleteFocusSkip: false,
             isLoading: true,
-            AutoCompleteListMaxDefault: 500,
+            AutoCompleteListMaxDefault: 100,
         }
     },
     props: {
@@ -346,7 +346,6 @@ export default {
             sync: true,
             handler: function(newVal, oldVal) {
                 var vue = this;
-                // console.log(vue.id + " PopupSelect vmodel watch", newVal, vue.selectValue);
                 var value = _.cloneDeep(vue.vmodel[vue.bind]);
 
                 if (!_.isEqual(_.trim(vue.selectValue), _.trim(value))) {
@@ -355,9 +354,10 @@ export default {
                     //         return;
                     //     }
                     // }
-                    if (!vue.isShowAutoComplete) {
-                        vue.setSelectValue(value, true);
-                    }
+                    // if (!vue.isShowAutoComplete) {
+                    //     vue.setSelectValue(value, true);
+                    // }
+                    vue.setSelectValue(value, true);
                 }
             },
         },
@@ -390,6 +390,7 @@ export default {
             vue.dataList = null;
             // $(vue.$el).children().prop("disabled", true);
 
+            vue.paramsPrev = _.cloneDeep(vue.params);
             vue.getDataList(vue.params, (res) => {
                 $(vue.$el).children().not(".select-name").prop("disabled", vue.isDisabled);
                 $(vue.$el).find(".select-name").prop("disabled", vue.isDisabled || !vue.isNameEditable);
@@ -827,7 +828,9 @@ export default {
 
                     //AutoComplete
                     if (vue.isShowAutoComplete) {
-                        $(vue.$el).find("#" + vue.id).autocomplete("search");//.focus();
+                        if (!vue.CountConstraint) {
+                            $(vue.$el).find("#" + vue.id).autocomplete("search");//.focus();
+                        }
                     }
                 } else {
                     //エラー項目設定解除
@@ -993,6 +996,7 @@ export default {
                     vue.AutoCompleteFocusSkip = false;
                 } else {
                     if (!input.autocomplete("widget").is(":visible")) {
+                        console.log(vue.id + " autocomplete search", "focus");
                         input.autocomplete("search", input.val());
                     }
                 }

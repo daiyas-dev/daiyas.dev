@@ -65,6 +65,7 @@ window.axios.interceptors.response.use(
         var all = [
             "/Utilities/GetBushoList",
             "/Utilities/GetTantoList",
+            "/Utilities/GetTantoListForSelect",
             "/Utilities/GetCodeList",
             "/Utilities/GetBankList",
         ];
@@ -79,13 +80,13 @@ window.axios.interceptors.response.use(
             return response;
         }
 
-        if (all.includes(url) && !params) {
-            // console.log("axios response Cached", url, data);
+        if (all.includes(url) && _.isEmpty(params)) {
+            console.log("axios response Cached", url, data);
             window.myCache.set(url, data, 0);
         } else if (url == "/Utilities/GetCustomerAndCourseList") {
             window.myCache.set(key, data, 0);
         } else {
-            // console.log("axios response Cached", key, data);
+            console.log("axios response Cached", key, data);
             window.myCache.set(key, data);
         }
 
@@ -114,6 +115,9 @@ window.axios.interceptors.request.use(
         if (!window.myCache.has(key) && url == "/Utilities/GetTantoList") {
             key = url;
         }
+        if (!window.myCache.has(key) && url == "/Utilities/GetTantoListForSelect") {
+            key = url;
+        }
         if (!window.myCache.has(key) && url == "/Utilities/GetCodeList") {
             key = url;
         }
@@ -122,7 +126,11 @@ window.axios.interceptors.request.use(
         if (window.myCache.has(key)) {
             var cache = window.myCache.get(key);
 
-            if (key == "/Utilities/GetTantoList" && !!params.bushoCd) {
+            if (key == "/Utilities/GetTantoList" && !!params && !!params.bushoCd) {
+                //console.log("axios request extract Cache", url, params);
+                cache = cache.filter(v => !!v.部署 && v.部署.部署CD == params.bushoCd);
+            }
+            if (key == "/Utilities/GetTantoListForSelect" && !!params && !!params.bushoCd) {
                 //console.log("axios request extract Cache", url, params);
                 cache = cache.filter(v => !!v.部署 && v.部署.部署CD == params.bushoCd);
             }
@@ -133,7 +141,10 @@ window.axios.interceptors.request.use(
                     && v.サブ各種CD2 == (params.sub2 || v.サブ各種CD2)
                 );
             }
-            //console.log("axios request find Cache", url, cache);
+            // console.log("axios request find Cache", url, cache);
+            if (key == "/Utilities/GetTantoListForSelect") {
+                console.log("axios request find Cache", url, cache);
+            }
             request.cache = true;
 
             request.adapter = () => {

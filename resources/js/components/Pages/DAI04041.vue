@@ -48,7 +48,6 @@
                     bind="承認者ＣＤ"
                     buddy="承認者名"
                     uri="/Utilities/GetTantoListForSelect"
-                    :params="{ bushoCd: null }"
                     :withCode=true
                     customStyle="{ width: 150px; }"
                 />
@@ -610,7 +609,6 @@
                                         bind="営業担当者ＣＤ"
                                         buddy="営業担当者名"
                                         dataUrl="/Utilities/GetTantoListForSelect"
-                                        :params="{ bushoCd: null, KeyWord: EigyoKeyWord }"
                                         :isPreload=true
                                         title="営業担当者一覧"
                                         labelCd="営業担当者ＣＤ"
@@ -638,7 +636,6 @@
                                         bind="獲得営業者ＣＤ"
                                         buddy="獲得営業者名"
                                         dataUrl="/Utilities/GetTantoListForSelect"
-                                        :params="{ bushoCd: null, KeyWord: KakutokuKeyWord }"
                                         :isPreload=true
                                         title="獲得営業者一覧"
                                         labelCd="獲得営業者ＣＤ"
@@ -668,7 +665,6 @@
                                         bind="登録担当者ＣＤ"
                                         buddy="登録担当者名"
                                         dataUrl="/Utilities/GetTantoListForSelect"
-                                        :params="{ bushoCd: null, KeyWord: TorokuKeyWord }"
                                         :isPreload=true
                                         title="登録担当者一覧"
                                         labelCd="登録担当者ＣＤ"

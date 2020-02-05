@@ -255,7 +255,7 @@ export default {
             return {
                 BushoCd: this.viewModel.BushoCd,
                 CustomerCd: this.viewModel.CustomerCd,
-                DeliveryDate: moment(this.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYY-MM-DD"),
+                DeliveryDate: moment(this.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD"),
             };
         }
     },
@@ -638,10 +638,13 @@ export default {
             //本日注文履歴取得
             vue.getTodayOrder();
         },
+        deactivatedFunc: function(vue) {
+            var vue = this;
+            vue.$root.$emit("DAI01030_Deactivated");
+        },
         onBushoChanged: function(code, entities) {
             var vue = this;
-
-            //vue.getProductList(code);
+            vue.$root.$emit("DAI01030_BushoChanged", code);
         },
         onDeliveryDateChanged: function(code, entities) {
             var vue = this;
@@ -1029,7 +1032,6 @@ export default {
                             } else {
                                 grid.commit();
                                 vue.viewModel.IsEdit = true;
-                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
                             }
 
                             return false;
@@ -1141,7 +1143,28 @@ export default {
         },
         showBalance: function() {
             var vue = this;
-            console.log("showBalance");
+
+            axios.post(
+                "/DAI01030/GetZandaka",
+                {BushoCd: vue.viewModel.BushoCd, CustomerCd: vue.viewModel.CustomerCd, noCache: true}
+            )
+            .then(res => {
+                var contents = "前回残高: "
+                             + $("<label>").css("width", "75").css("text-align", "right").text(Number(res.data.Zandaka).toLocaleString("jp")).prop("outerHTML")
+                             + "<br>"
+                             + "締後売上: "
+                             + $("<label>").css("width", "75").css("text-align", "right").text(Number(res.data.Uriage).toLocaleString("jp")).prop("outerHTML")
+                             ;
+
+                $.dialogInfo({
+                    title: "残高表示",
+                    contents: contents,
+                    minWidth: 200,
+                });
+            })
+            .catch(err => {
+                console.log(err)
+            });
         },
         getTodayOrder: function(callback) {
             var vue = this;

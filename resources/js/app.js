@@ -278,12 +278,14 @@ var targets = [
     window.axios.post("/Utilities/GetBushoList").then(res => watcher(res)),
     //担当者マスタ
     window.axios.post("/Utilities/GetTantoList").then(res => watcher(res)),
+    window.axios.post("/Utilities/GetTantoListForSelect").then(res => watcher(res)),
     //各種テーブル
     window.axios.post("/Utilities/GetCodeList").then(res => watcher(res)),
     //金融機関マスタ
     window.axios.post("/Utilities/GetBankList").then(res => watcher(res)),
     //得意先マスタ
     window.axios.post("/Utilities/GetCustomerAndCourseList", { targetDate: moment().format("YYYYMMDD") }).then(res => watcher(res)),
+    window.axios.post("/Utilities/GetCustomerListForSelect", { CustomerCd: null, KeyWord: null }).then(res => watcher(res)),
 ];
 
 window.axios.all(targets)

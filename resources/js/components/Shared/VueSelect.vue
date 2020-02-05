@@ -174,7 +174,6 @@ export default {
 
             axios.post(uri, params)
                 .then(response => {
-
                     if (response.data && (response.data.onError || response.data.onException)) {
                         //view更新
                         component.entities = [];

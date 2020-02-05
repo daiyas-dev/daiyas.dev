@@ -1934,6 +1934,7 @@ export default {
 
                 //保存メソッド追加
                 this.grid.getPlainPData = function() {
+                    var grid = this;
                     return grid.pdata.map(r => _.omitBy(r, (v, k) => k.startsWith("pq_") || k == "InitialValue"));
                 };
 
@@ -2228,7 +2229,7 @@ export default {
                     $row.removeClass("blinking");
                     $row.addClass("blinking");
                 };
-                this.grid.blinkDiff = function(compare) {
+                this.grid.blinkDiff = function(compare, exceptEmpty) {
                     var grid = this;
                     var vue = grid.options.vue;
 
@@ -2241,6 +2242,17 @@ export default {
 
                     var dl = diff(prev, compare);
                     // console.log("blinkDiff: detect diff", dl);
+
+                    if (exceptEmpty) {
+                        _.forIn(dl, (v, k) => {
+                            var r = _.omitBy(v, (vv, kk) => vv == undefined);
+                            if (_.isEmpty(r)) {
+                                delete dl[k];
+                            } else {
+                                dl[k] = r;
+                            }
+                        })
+                    }
 
                     if (_.isEmpty(dl)) return;
 
@@ -2266,6 +2278,7 @@ export default {
 
                 this.grid.options.loading = false;
 
+                this.grid.vue = vue;
                 window[this.grid.widget().prop("id")] = this.grid;
                 window.grid = this.grid;
 

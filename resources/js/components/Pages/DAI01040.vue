@@ -157,7 +157,7 @@ export default {
         searchParams: function() {
             return {
                 BushoCd: this.viewModel.BushoCd,
-                TargetDate: moment(this.viewModel.TargetDate, "YYYY年MM月DD日").format("YYYY-MM-DD"),
+                TargetDate: moment(this.viewModel.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD"),
                 CourseCd: this.viewModel.CourseCd,
                 TantoCd: this.viewModel.TantoCd,
             };

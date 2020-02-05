@@ -583,4 +583,68 @@ ORDER BY
             "edited" => count($skip) > 0 ? $this->GetOrderList($request) : [],
         ]);
     }
+    /**
+     * GetZandaka
+     */
+    public function GetZandaka($request)
+    {
+        $BushoCd = $request->BushoCd;
+        $CustomerCd = $request->CustomerCd;
+
+        $sql = "
+SELECT
+	請求先ＣＤ
+FROM
+	得意先マスタ
+WHERE
+	得意先ＣＤ = $CustomerCd
+AND 部署ＣＤ = $BushoCd
+        ";
+
+        $SeikyuCd = DB::selectOne($sql);
+
+        $sql = "
+SELECT
+	MAX(請求日付) 請求日付
+FROM
+	請求データ
+WHERE
+	請求先ＣＤ = $SeikyuCd->請求先ＣＤ
+AND 部署ＣＤ = $BushoCd
+        ";
+
+        $SeikyuDate = DB::selectOne($sql);
+
+        $sql = "
+SELECT
+	今回請求額
+FROM
+	請求データ
+WHERE
+	請求先ＣＤ = 19
+AND CONVERT(varchar, 請求日付, 112) = FORMAT(CONVERT(date, '$SeikyuDate->請求日付'), 'yyyyMMdd')
+AND 部署ＣＤ = $BushoCd
+        ";
+
+        $SeikyuVal = DB::selectOne($sql);
+
+
+        $sql = "
+SELECT
+	SUM(掛売金額) 金額
+FROM
+	売上データ明細
+WHERE
+	CONVERT(varchar, 日付, 112) > FORMAT(CONVERT(date, '$SeikyuDate->請求日付'), 'yyyyMMdd')
+AND 得意先ＣＤ = $CustomerCd
+AND 部署ＣＤ = $BushoCd
+        ";
+
+        $UriageVal = DB::selectOne($sql);
+
+        return response()->json([
+            "Uriage" => !!$UriageVal ? $UriageVal->金額 : 0,
+            "Zandaka" => !!$SeikyuVal ? $SeikyuVal->今回請求額 : 0,
+        ]);
+    }
 }
