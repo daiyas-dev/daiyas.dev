@@ -66,7 +66,7 @@
                                 v-model="viewModel.得意先名"
                                 maxlength=60
                                 v-maxBytes=60
-                                v-setKana.disabled="res => viewModel.得意先名カナ = res"
+                                v-setKana="res => viewModel.得意先名カナ = res.toString()"
                             >
                         </div>
                     </div>
@@ -97,14 +97,11 @@
                     <div class="row">
                         <div class="col-md-4">
                             <label style="">部署</label>
-                            <VueSelect
+                            <VueSelectBusho
                                 id="BushoCd"
+                                ref="VueSelectBusho"
                                 :vmodel=viewModel
                                 bind="部署CD"
-                                uri="/Utilities/GetBushoList"
-                                :params="{ cds: null }"
-                                :withCode=true
-                                customStyle="{ width: 100px; }"
                             />
                         </div>
                         <div class="col-md-3">
@@ -567,16 +564,18 @@
                                 <div class="col-md-4">
                                     <label style="width: 170px;">サービスチケット枚数</label>
                                     <input class="form-control text-right p-2" style="width: 50px;"
+                                        id="ServiceTicket"
                                         v-model=viewModel.サービスチケット枚数
                                         type="text"
                                         maxlength="3"
-                                        v-int
+                                        @change="onServiceTicketChanged"
                                     />
                                 </div>
                                 <div class="col-md-3">
                                     <label class="">受注方法</label>
                                     <VueSelect
                                         id="JuchuKind"
+                                        ref="JuchuKind"
                                         :vmodel=viewModel
                                         bind="受注方法"
                                         buddy="受注方法名称"
@@ -1043,6 +1042,7 @@ export default {
             handler: function(newVal) {
                 var vue = this;
                 if (newVal) {
+                    vue.viewModel.サービスチケット枚数 = vue.viewModel.サービスチケット枚数.replace(/[^0-9\.]/, "") ;
                     vue.viewModel.サービスチケット枚数 = vue.viewModel.サービスチケット枚数.replace(/^\./, "0.") ;
                 }
             },
@@ -1118,9 +1118,15 @@ export default {
         if (!!vue.params || !!vue.query) {
             data.viewModel = $.extend(true, {}, vue.params, vue.query);
         }
-        //入力制御のため、初期値設定
+        //入力制御のため
         data.viewModel.支払方法１ = "";
         data.viewModel.集金区分 = "";
+        //新規CD入力時の値の変更のため
+        data.viewModel.受注方法 = "";
+        data.viewModel.納品書発行区分 = "";
+        data.viewModel.請求書敬称 = "";
+        data.viewModel.空き容器回収区分 = "";
+        data.viewModel.祝日配送区分 = "";
 
         return data;
     },
@@ -1136,36 +1142,26 @@ export default {
                         //currency-input項目、String->Number
                         vue.viewModel.集金手数料 = (vue.viewModel.集金手数料 || 0) * 1;
 
-                        //初期値
-                        vue.viewModel.状態区分 = vue.viewModel.状態区分 || "30";
-                        vue.viewModel.支払方法１ = vue.viewModel.支払方法１ || "1";
-                        vue.viewModel.集金区分 = vue.viewModel.集金区分 || "1";
-                        vue.viewModel.税区分 = vue.viewModel.税区分 || "1";
-                        if(!vue.viewModel.休日設定){
-                            vue.HolidayConfig.日 = "1";
-                        }
-                        vue.viewModel.承認日 = vue.viewModel.承認日 || moment().format("YYYY-MM-DD HH:mm:ss.SSS");
-                        vue.viewModel.新規登録日 = vue.viewModel.新規登録日 || moment().format("YYYY-MM-DD HH:mm:ss.SSS");
-
                     })
                     .catch(err => {
                         console.log(error);
                         //TODO: エラー
                     }
                 );
-            }else{
-                //初期値
-                vue.viewModel.状態区分 = vue.viewModel.状態区分 || "30";
-                vue.viewModel.支払方法１ = vue.viewModel.支払方法１ || "1";
-                vue.viewModel.集金区分 = vue.viewModel.集金区分 || "1";
-                vue.viewModel.税区分 = vue.viewModel.税区分 || "1";
-                if(!vue.viewModel.休日設定){
-                    vue.HolidayConfig.日 = "1";
-                }
-                vue.viewModel.承認日 = vue.viewModel.承認日 || moment().format("YYYY-MM-DD HH:mm:ss.SSS");
-                vue.viewModel.新規登録日 = vue.viewModel.新規登録日 || moment().format("YYYY-MM-DD HH:mm:ss.SSS");
+            } else {
 
+                //初期値
+                vue.viewModel.状態区分 = "30";
+                vue.viewModel.支払方法１ = "1";
+                vue.viewModel.集金区分 = "1";
+                vue.viewModel.税区分 = "1";
+                vue.viewModel.営業担当者ＣＤ = "0";
+                vue.viewModel.獲得営業者ＣＤ = "0";
+                vue.viewModel.登録担当者ＣＤ = vue.getLoginInfo().uid;
+                vue.viewModel.承認日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
+                vue.viewModel.新規登録日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
             }
+
             vue.footerButtons.push(
                 { visible: "true", value: "空No検索", id: "DAI04041_SearchNo", disabled: false, shortcut: "F1",
                     onClick: function () {
@@ -1180,8 +1176,44 @@ export default {
                     }
                 },
                 { visible: "true", value: "削除", id: "DAI04041_Delete", disabled: false, shortcut: "F3",
-                    onClick: function () {
+                    onClick: function (evt) {
                         //TODO: 削除
+                        var cd = vue.viewModel.得意先ＣＤ;
+                        if(!cd) return;
+
+                        var params = {CustomerCd: cd};
+                        params.noCache = true;
+
+                        $.dialogConfirm({
+                            title: "マスタ削除確認",
+                            contents: "マスタを削除します。",
+                            buttons:[
+                                {
+                                    text: "はい",
+                                    class: "btn btn-primary",
+                                    click: function(){
+                                        axios.post("/DAI04041/Delete", params)
+                                            .then(res => {
+                                                DAI04040.conditionChanged();
+                                                $(this).dialog("close");
+                                            })
+                                            .catch(err => {
+                                                console.log(error);
+                                                //TODO: エラー
+                                            }
+                                        );
+                                    }
+                                },
+                                {
+                                    text: "いいえ",
+                                    class: "btn btn-danger",
+                                    click: function(){
+                                        $(this).dialog("close");
+                                    }
+                                },
+                            ],
+                        });
+                        console.log("削除", params);
                     }
                 },
                 {visible: "false"},
@@ -1199,13 +1231,12 @@ export default {
               　{ visible: "true", value: "登録", id: "DAI04041Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
 
-                        if(!vue.viewModel.得意先ＣＤ || !vue.viewModel.得意先名 || !vue.viewModel.部署CD){
+                        if(!vue.viewModel.得意先ＣＤ || !vue.viewModel.得意先名){
                             $.dialogErr({
                                 title: "登録不可",
                                 contents: [
                                     !vue.viewModel.得意先ＣＤ ? "得意先ＣＤが入力されていません。<br/>" : "",
-                                    !vue.viewModel.得意先名 ? "得意先名が入力されていません。<br/>" : "",
-                                    !vue.viewModel.部署CD ? "部署CDが入力されていません。<br/>" : ""
+                                    !vue.viewModel.得意先名 ? "得意先名が入力されていません。<br/>" : ""
                                 ]
                             })
                             if(!vue.viewModel.得意先ＣＤ){
@@ -1217,11 +1248,6 @@ export default {
                                 $(vue.$el).find("#CustomerNm").addClass("has-error");
                             }else{
                                 $(vue.$el).find("#CustomerNm").removeClass("has-error");
-                            }
-                            if(!vue.viewModel.部署CD){
-                                $(vue.$el).find(".BushoCd").addClass("has-error");
-                            }else{
-                                $(vue.$el).find(".BushoCd").removeClass("has-error");
                             }
                             return;
                         }
@@ -1240,20 +1266,15 @@ export default {
                             params.電話確認時間_分 = 0;
                         }
 
-                        params.承認日 = !!params.承認日 ? moment(vue.viewModel.承認日,"YYYY-MM-DD").format("YYYY-MM-DD HH:mm:ss.SSS") : "";
-                        params.失客日 = !!params.失客日 ? moment(vue.viewModel.失客日,"YYYY-MM-DD").format("YYYYMMDD") : "";
-                        params.新規登録日 = !!params.新規登録日 ? moment(vue.viewModel.新規登録日,"YYYY-MM-DD").format("YYYY-MM-DD HH:mm:ss.SSS") : "";
-
-                        params.休日設定 = _.values(vue.HolidayConfig).join().toString().replace(/,/g,"");
-
                         params.電話確認区分 = 0;
                         params.締日１ = params.締日１ || 0;
                         params.締日２ = params.締日２ || 0;
                         params.支払日 = params.支払日 || 0;
+                        params.支払方法２ = params.支払方法１== "1" ? params.支払方法２ : null;
+                        params.記号番号 = params.集金区分 == "1" ? params.記号番号 : null;
                         params.集金手数料 = params.集金手数料 || 0;
-                        //TODO:口座種別　選択していなければnull
                         params.チケット枚数 = params.チケット枚数 || 0;
-                        params.サービスチケット枚数 = params.サービスチケット枚数 || 0.0;
+                        params.サービスチケット枚数 = params.サービスチケット枚数 || 0;
                         params.営業担当者ＣＤ = params.営業担当者ＣＤ || 0;
                         params.獲得営業者ＣＤ = params.獲得営業者ＣＤ || 0;
                         params.登録担当者ＣＤ = params.登録担当者ＣＤ || params.userId;
@@ -1262,7 +1283,14 @@ export default {
                         params.請求内訳区分 = 0;
                         params.ＷＥＢ表示区分 = 0;
                         params.取扱区分 = 0;
-                        //TODO:税処理は0かnullか
+                        params.ＩＤ = "";
+                        params.パスワード = "";
+                        params.承認日 = !!params.承認日 ? moment(vue.viewModel.承認日,"YYYY-MM-DD").format("YYYY-MM-DD HH:mm:ss.SSS") : "";
+                        params.受注顧客区分 = "";
+                        params.休日設定 = _.values(vue.HolidayConfig).join().toString().replace(/,/g,"");
+                        params.新規登録日 = !!params.新規登録日 ? moment(vue.viewModel.新規登録日,"YYYY-MM-DD").format("YYYY-MM-DD HH:mm:ss.SSS") : "";
+                        params.税処理 = 0;
+                        params.失客日 = !!params.失客日 ? moment(vue.viewModel.失客日,"YYYY-MM-DD").format("YYYYMMDD") : "";
 
                         params.修正担当者ＣＤ = params.userId;
                         params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
@@ -1294,6 +1322,30 @@ export default {
             var vue = this;
 
             vue.searchByCustomerCd();
+        },
+        onServiceTicketChanged: function(code, entities) {
+            var vue = this;
+            var regex = /^\d{1,3}$|\.0$|\.5$/;
+            var str = vue.viewModel.サービスチケット枚数.replace(/\.$/, "") ;
+            var result = regex.test(str);
+
+            if(!str) {
+                $(vue.$el).find("#ServiceTicket").removeClass("has-error");
+                return;
+            }
+
+            if(!result){
+                $.dialogErr({
+                    title: "入力値エラー",
+                    contents: "数値で入力してください。<br/>小数点は0.5単位で入力してください。",
+                })
+                $(vue.$el).find("#ServiceTicket").focus();
+                $(vue.$el).find("#ServiceTicket").addClass("has-error");
+
+                return;
+            }else{
+                $(vue.$el).find("#ServiceTicket").removeClass("has-error");
+            }
         },
         searchByCustomerCd: function() {
             var vue = this;
@@ -1343,6 +1395,7 @@ export default {
                         vue.viewModel.空き容器回収区分 = "2";
                         vue.viewModel.祝日配送区分 = "1";
                         vue.viewModel.請求書敬称 = "2";
+                        vue.HolidayConfig.日 = "1";
 
                         $("[shortcut='F3']").prop("disabled", true);
                         return;
@@ -1740,12 +1793,14 @@ export default {
             vue.viewModel.userId = vue.query.userId;
 
             //初期値
-            vue.viewModel.承認日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
-            vue.viewModel.新規登録日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
             vue.viewModel.状態区分 = "30";
             vue.viewModel.支払方法１ = "1";
+            vue.viewModel.集金区分 = "1";
             vue.viewModel.税区分 = "1";
-            vue.viewModel.集金区分 = "1"
+            vue.viewModel.登録担当者ＣＤ = vue.getLoginInfo().uid;
+            vue.viewModel.承認日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
+            vue.viewModel.新規登録日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
+
         },
         BankBranchParamsChangedCheckFunc: function(newVal, oldVal) {
             var vue = this;

@@ -80,7 +80,8 @@ Vue.directive("setKana", {
                 console.log("call getKana api", el.value);
                 window.getKana(el.value, res => {
                     console.log("getKana api ret", res, binding);
-                    callback(binding.modifiers.full ? res : window.Moji(res).convert("ZK", "HK"))
+                    var ret = binding.modifiers.full ? res : window.Moji(res).convert("ZK", "HK");
+                    callback(ret);
                 });
             }, 300)
         )
