@@ -17,6 +17,7 @@ use App\Models\金融機関名称;
 use App\Models\金融機関支店名称;
 use App\Models\消費税率マスタ;
 use App\Models\得意先履歴テーブル;
+use App\Models\得意先単価マスタ;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -1656,6 +1657,26 @@ FROM (
         $Result = DB::selectOne($sql);
 
         return $Result;
+    }
+
+    /**
+     * GetTankaListForMaint
+     */
+    public function GetTankaListForMaint($request)
+    {
+        $CustomerCd = $request->CustomerCd;
+
+        if (!is_numeric($CustomerCd)) {
+            return [];
+        }
+        $TankaList = DB::table('得意先単価マスタ')
+            ->join('得意先マスタ', '得意先単価マスタ.得意先ＣＤ', '=', '得意先マスタ.得意先ＣＤ')
+            ->join('商品マスタ', '得意先単価マスタ.商品ＣＤ', '=', '商品マスタ.商品ＣＤ')
+            ->where('得意先単価マスタ.得意先ＣＤ', '=', $CustomerCd)
+            ->select('得意先単価マスタ.*', '商品マスタ.商品名 as 商品名', '得意先マスタ.得意先名 as 得意先名')
+            ->get();
+
+        return response()->json($TankaList);
     }
 
     /**

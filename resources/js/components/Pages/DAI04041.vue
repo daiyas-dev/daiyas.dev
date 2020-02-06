@@ -243,8 +243,16 @@
                     </div>
                 </fieldset>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-3" style="align-items: start;">
                 <div class="row">
+                    <div class="col-md-12 m-4">
+                        <button type="button" class="btn btn-primary mr-2" style="width:110px; height: 50px;">
+                            コース表示
+                        </button>
+                        <button type="button" class="btn btn-primary mr-2" style="width:120px; height: 50px;">
+                            空き番号表示
+                        </button>
+                    </div>
                     <div class="col-md-12">
                         <label class="slabel" style="margin-left:25px; text-align: left;">状態理由</label>
                         <VueSelect
@@ -1159,11 +1167,6 @@ export default {
             }
 
             vue.footerButtons.push(
-                { visible: "true", value: "空No検索", id: "DAI04041_SearchNo", disabled: false, shortcut: "F1",
-                    onClick: function () {
-                        //TODO: 空いている得意先ＣＤを検索する
-                    }
-                },
                 { visible: "true", value: "クリア", id: "DAI04041_Clear", disabled: false, shortcut: "F2",
                     onClick: function (evt) {
                         //TODO: クリア
@@ -1221,6 +1224,11 @@ export default {
                 { visible: "true", value: "分配先登録", id: "DAI04040_Bunpaisaki", disabled: false, shortcut: "F6",
                     onClick: function () {
                         vue.showBunpaisaki();
+                    }
+                },
+                { visible: "true", value: "単価登録", id: "DAI04040_Bunpaisaki", disabled: false, shortcut: "F7",
+                    onClick: function () {
+                        vue.showTankaToroku();
                     }
                 },
                 {visible: "false"},
@@ -1776,6 +1784,40 @@ export default {
                 isChild: true,
                 resizable: false,
                 width: 600,
+                height: 600,
+            });
+        },
+        showTankaToroku: function() {
+            var vue = this;
+            var cds;
+
+            //修正はparamsから、新規はviewmodelから、両方空なら登録不可とする
+            if (!!vue.params.得意先CD) {
+                cds = { 得意先CD: vue.params.得意先CD};
+            } else{
+                if(!!vue.viewModel.得意先ＣＤ) {
+                    cds = { 得意先CD: vue.viewModel.得意先ＣＤ};
+                } else{
+                    cds = "";
+                }
+            }
+
+            if(!cds){
+                $.dialogErr({
+                    title: "単価登録不可",
+                    contents: "得意先CDがありません。",
+                })
+                return;
+            }
+
+            //DAI04050を子画面表示
+            PageDialog.show({
+                pgId: "DAI04050",
+                params: cds,
+                isModal: true,
+                isChild: true,
+                resizable: false,
+                width: 1000,
                 height: 600,
             });
         },
