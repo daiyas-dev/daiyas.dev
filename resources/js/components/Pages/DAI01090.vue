@@ -7,6 +7,7 @@
             <div class="col-md-2">
                 <VueSelectBusho
                     :onChangedFunc=onBushoChanged
+                    :disabled=bushoDisabled
                 />
             </div>
             <div class="col-md-1">
@@ -16,8 +17,8 @@
                 <DatePickerWrapper
                     id="DeliveryDate"
                     ref="DatePicker_Date"
-                    format="YYYY年MM月DD日"
-                    dayViewHeaderFormat="YYYY年MM月"
+                    format="YYYY年MM月"
+                    dayViewHeaderFormat="YYYY年"
                     :vmodel=viewModel
                     bind="DeliveryDate"
                     :editable=true
@@ -27,38 +28,50 @@
         </div>
         <div class="row">
             <div class="col-md-1">
-                <label>コースCD</label>
+                <label>得意先</label>
             </div>
-            <div class="col-md-5">
+            <div class="col-md-9">
                 <PopupSelect
-                    id="Course"
-                    ref="PopupSelect_Course"
+                    id="CustomerSelect"
+                    ref="PopupSelect_Customer"
                     :vmodel=viewModel
-                    bind="CourseCd"
-                    dataUrl="/Utilities/GetCourseList"
-                    :params='{ bushoCd: viewModel.BushoCd, courseKbn: viewModel.CourseKbn }'
-                    title="コース一覧"
-                    labelCd="コースCD"
-                    labelCdNm="コース名"
+                    bind="CustomerCd"
+                    :buddies='{ CourseNm: "コース名", TantoCd: "担当者ＣＤ", TantoNm: "担当者名" }'
+                    dataUrl="/DAI01030/GetCustomerAndCourseList"
+                    :params="{ targetDate: FormattedDeliveryDate, keyword: viewModel.CustomerCd }"
+                    :isPreload=true
+                    title="得意先一覧"
+                    labelCd="得意先CD"
+                    labelCdNm="得意先名"
+                    :showColumns='[
+                        { title: "部署名", dataIndx: "部署名", dataType: "string", width: 120, maxWidth: 120, minWidth: 120, colIndx: 0 },
+                        { title: "コースCD", dataIndx: "コースCD", dataType: "integer", width: 100, maxWidth: 100, minWidth: 100 },
+                        { title: "コース名", dataIndx: "コース名", dataType: "string", width: 200, maxWidth: 200, minWidth: 200 }
+                    ]'
+                    :popupWidth=1000
+                    :popupHeight=600
                     :isShowName=true
                     :isModal=true
                     :editable=true
                     :reuse=true
                     :existsCheck=true
-                    :exceptCheck="[{ Cd: 0 }]"
-                    :inputWidth=100
-                    :nameWidth=300
-                    :onAfterChangedFunc=onCourseChanged
+                    :inputWidth=150
+                    :nameWidth=400
+                    :ParamsChangedCheckFunc=CustomerParamsChangedCheckFunc
+                    :onAfterChangedFunc=onCustomerChanged
                     :isShowAutoComplete=true
-                    :AutoCompleteFunc=CourseAutoCompleteFunc
+                    :AutoCompleteFunc=CustomerAutoCompleteFunc
                 />
+                <label class="label-blue text-center">TEL</label>
+                <input class="form-control p-0 text-center label-blue" style="width: 120px;" type="text" :value=viewModel.TelNo readonly tabindex="-1">
+                <label class="ml-1 label-blue">{{viewModel.PaymentNm}}</label>
             </div>
         </div>
 
         <PqGridWrapper
-            id="DAI01080Grid1"
-            ref="DAI01080Grid1"
-            dataUrl="/DAI01080/Search"
+            id="DAI01090Grid1"
+            ref="DAI01090Grid1"
+            dataUrl="/DAI01090/Search"
             :query=this.searchParams
             :SearchOnCreate=false
             :SearchOnActivate=false
@@ -70,10 +83,10 @@
 </template>
 
 <style>
-#DAI01080Grid1 .pq-grid-cell.CustomerNameCell {
+#DAI01090Grid1 .pq-grid-cell.CustomerNameCell {
     white-space: pre;
 }
-#DAI01080Grid1 .pq-grid-cell.order-value {
+#DAI01090Grid1 .pq-grid-cell.order-value {
     color: red;
 }
 label{
@@ -86,7 +99,7 @@ import PageBaseMixin from "@vcs/PageBaseMixin.vue";
 
 export default {
     mixins: [PageBaseMixin],
-    name: "DAI01080",
+    name: "DAI01090",
     components: {
     },
     props: {
@@ -108,20 +121,20 @@ export default {
             handler: function(newVal) {
                 var vue = this;
                 var disabled = _.values(newVal).some(v => !v);
-                vue.footerButtons.find(v => v.id == "DAI01080Grid1_Search").disabled = disabled;
+                vue.footerButtons.find(v => v.id == "DAI01090Grid1_Search").disabled = disabled;
             },
         },
     },
     data() {
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "日時処理 > 配送予定入力",
+            ScreenTitle: "日時処理 > 一括注文入力",
             noViewModel: true,
             viewModel: {
                 BushoCd: null,
                 DeliveryDate: null,
                 CourseCd: null,
             },
-            DAI01080Grid1: null,
+            DAI01090Grid1: null,
             PatternList: null,
             grid1Options: {
                 selectionModel: { type: "cell", mode: "single", row: true },
@@ -201,15 +214,15 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "検索", id: "DAI01080Grid1_Search", disabled: false, shortcut: "F5",
+                { visible: "true", value: "検索", id: "DAI01090Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
-                        vue.DAI01080Grid1.searchData(vue.searchParams);
+                        vue.DAI01090Grid1.searchData(vue.searchParams);
                     }
                 },
                 {visible: "false"},
-                { visible: "true", value: "登録", id: "DAI01080Grid1_Save", disabled: true, shortcut: "F9",
+                { visible: "true", value: "登録", id: "DAI01090Grid1_Save", disabled: true, shortcut: "F9",
                     onClick: function () {
-                        var grid = vue.DAI01080Grid1;
+                        var grid = vue.DAI01090Grid1;
 
                         var changes = _.cloneDeep(grid.createSaveParams());
 
@@ -250,12 +263,12 @@ export default {
                             });
                         });
 
-                        console.log("01080 save", productUpdateList, patternUpdateList);
+                        console.log("01090 save", productUpdateList, patternUpdateList);
 
                         //保存実行
                         grid.saveData(
                             {
-                                uri: "/DAI01080/Save",
+                                uri: "/DAI01090/Save",
                                 params: {
                                     ProductList: productUpdateList,
                                     PatternList: patternUpdateList,
@@ -268,7 +281,7 @@ export default {
                                     isShow: false,
                                     callback: (gridVue, grid, res)=>{
                                         var compare = vue.onAfterSearchFunc(gridVue, grid, res.edited);
-                                        var d = diff(vue.DAI01080Grid1.getPlainPData(), compare);
+                                        var d = diff(vue.DAI01090Grid1.getPlainPData(), compare);
 
                                         _.forIn(d, (v, k) => {
                                             var r = _.omitBy(v, (vv, kk) => vv == undefined);
@@ -320,7 +333,7 @@ export default {
             //PqGrid読込待ち
             new Promise((resolve, reject) => {
                 var timer = setInterval(function () {
-                    grid = vue.DAI01080Grid1;
+                    grid = vue.DAI01090Grid1;
                     if (!!grid && vue.getLoginInfo().isLogOn) {
                         clearInterval(timer);
                         return resolve(grid);
@@ -330,7 +343,7 @@ export default {
             .then((grid) => {
                 grid.showLoading();
 
-                axios.post("/DAI01080/ColSearch", { BushoCd: vue.viewModel.BushoCd })
+                axios.post("/DAI01090/ColSearch", { BushoCd: vue.viewModel.BushoCd })
                     .then(response => {
                         var res = _.cloneDeep(response.data);
 
@@ -400,7 +413,7 @@ export default {
         },
         conditionChanged: function(callback) {
             var vue = this;
-            var grid = vue.DAI01080Grid1;
+            var grid = vue.DAI01090Grid1;
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.BushoCd || !vue.viewModel.DeliveryDate || !vue.viewModel.CourseCd) return;
@@ -474,7 +487,7 @@ export default {
 
             groupings = _(groupings).sortBy(v => v.ＳＥＱ * 1).sortBy(v => v.コースＣＤ * 1).value();
 
-            vue.footerButtons.find(v => v.id == "DAI01080Grid1_Save").disabled = !groupings.length;
+            vue.footerButtons.find(v => v.id == "DAI01090Grid1_Save").disabled = !groupings.length;
 
             return groupings;
         },

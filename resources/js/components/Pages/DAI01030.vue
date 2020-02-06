@@ -651,11 +651,14 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        onCustomerChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
+        onCustomerChanged: function(code, entity, comp) {
             var vue = this;
-            vue.CustomerChanged(info, isValid);
+
+            if (!!entity && !_.isEmpty(entity)) {
+                vue.CustomerChanged(entity, comp.isValid);
+            }
         },
-        CustomerChanged: function(info, isValid, noSearch) {
+        CustomerChanged: function(info, isValid) {
             var vue = this;
             var grid = vue.DAI01030Grid1;
 

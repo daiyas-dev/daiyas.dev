@@ -337,8 +337,12 @@ export default {
                     vue.paramsPrev = _.cloneDeep(newVal);
                     vue.getDataList(newVal, (res) => {
                         vue.setSelectValue(vue.vmodel[vue.bind], true, false);
-                        if (!vue.isValid) {
-                            $(vue.$el).find("#" + vue.id).autocomplete("search");
+                        if (!!vue.vmodel[vue.bind] && !vue.isValid) {
+                            if (vue.isShowAutoComplete) {
+                                if (!$(vue.$el).find("#" + vue.id).autocomplete("widget").is(":visible")) {
+                                    $(vue.$el).find("#" + vue.id).autocomplete("search");
+                                }
+                            }
                         }
                     });
                 }
@@ -360,6 +364,12 @@ export default {
                     // if (!vue.isShowAutoComplete) {
                     //     vue.setSelectValue(value, true);
                     // }
+                    if (vue.isShowAutoComplete && !!vue.selectValue) {
+                        if ($(vue.$el).find("#" + vue.id).autocomplete("widget").is(":visible")) {
+                            return;
+                        }
+                    }
+
                     vue.setSelectValue(value, true);
                 }
             },
@@ -832,7 +842,9 @@ export default {
                     //AutoComplete
                     if (vue.isShowAutoComplete) {
                         if (!vue.CountConstraint || vue.dataList.length == 1) {
-                            $(vue.$el).find("#" + vue.id).autocomplete("search");//.focus();
+                            if (!$(vue.$el).find("#" + vue.id).autocomplete("widget").is(":visible")) {
+                                $(vue.$el).find("#" + vue.id).autocomplete("search");
+                            }
                         }
                     }
                 } else {
