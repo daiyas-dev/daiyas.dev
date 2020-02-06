@@ -337,6 +337,9 @@ export default {
                     vue.paramsPrev = _.cloneDeep(newVal);
                     vue.getDataList(newVal, (res) => {
                         vue.setSelectValue(vue.vmodel[vue.bind], true, false);
+                        if (!vue.isValid) {
+                            $(vue.$el).find("#" + vue.id).autocomplete("search");
+                        }
                     });
                 }
             },
@@ -828,7 +831,7 @@ export default {
 
                     //AutoComplete
                     if (vue.isShowAutoComplete) {
-                        if (!vue.CountConstraint) {
+                        if (!vue.CountConstraint || vue.dataList.length == 1) {
                             $(vue.$el).find("#" + vue.id).autocomplete("search");//.focus();
                         }
                     }
