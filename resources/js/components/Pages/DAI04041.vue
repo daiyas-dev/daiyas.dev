@@ -1226,11 +1226,6 @@ export default {
                         vue.showBunpaisaki();
                     }
                 },
-                { visible: "true", value: "単価登録", id: "DAI04040_Bunpaisaki", disabled: false, shortcut: "F7",
-                    onClick: function () {
-                        vue.showTankaToroku();
-                    }
-                },
                 {visible: "false"},
               　{ visible: "true", value: "登録", id: "DAI04041Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
@@ -1314,6 +1309,11 @@ export default {
                         );
                         console.log("登録", params);
                         $(this).dialog("close");
+                    }
+                },
+                { visible: "true", value: "単価登録", id: "DAI04040_Bunpaisaki", disabled: false, shortcut: "F10",
+                    onClick: function () {
+                        vue.showTankaToroku();
                     }
                 },
                 {visible: "false"},
@@ -1402,6 +1402,7 @@ export default {
                         vue.HolidayConfig.日 = "1";
 
                         $("[shortcut='F3']").prop("disabled", true);
+                        $("[shortcut='F10']").prop("disabled", true);
                         return;
                     }
                 })
@@ -1810,9 +1811,9 @@ export default {
                 return;
             }
 
-            //DAI04050を子画面表示
+            //DAI04051を子画面表示
             PageDialog.show({
-                pgId: "DAI04050",
+                pgId: "DAI04051",
                 params: cds,
                 isModal: true,
                 isChild: true,
