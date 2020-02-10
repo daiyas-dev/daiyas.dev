@@ -289,17 +289,17 @@ export default {
                         vue.conditionChanged();
                     }
                 },
-                { visible: "true", value: "履歴表示", id: "DAI04040_History", disabled: true, shortcut: "F5",
+                { visible: "true", value: "履歴表示", id: "DAI04040Grid1_History", disabled: true, shortcut: "F5",
                     onClick: function () {
                         vue.showHistory();
                     }
                 },
-                { visible: "true", value: "分配先登録", id: "DAI04040_Bunpaisaki", disabled: true, shortcut: "F6",
+                { visible: "true", value: "分配先登録", id: "DAI04040Grid1_Bunpaisaki", disabled: true, shortcut: "F6",
                     onClick: function () {
                         vue.showBunpaisaki();
                     }
                 },
-                { visible: "true", value: "CSV", id: "DAI04040_Download", disabled: false, shortcut: "F7",
+                { visible: "true", value: "CSV", id: "DAI04040Grid1_Download", disabled: false, shortcut: "F7",
                     onClick: function () {
                         //TODO: ダウンロード
                     }
@@ -314,7 +314,12 @@ export default {
                         //TODO: 登録
                         vue.showNewDetail();
                     }
-                }
+                },
+                { visible: "true", value: "単価登録", id: "DAI04040Grid1_Tanka", disabled: true, shortcut: "F10",
+                    onClick: function () {
+                        vue.showTanka();
+                    }
+                },
             );
         },
         mountedFunc: function(vue) {
@@ -324,8 +329,9 @@ export default {
                 cnt => {
                     console.log("selectionRowCount watcher: " + cnt);
                     vue.footerButtons.find(v => v.id == "DAI04040Grid1_Detail").disabled = cnt == 0 || cnt > 1;
-                    vue.footerButtons.find(v => v.id == "DAI04040_History").disabled = cnt == 0 || cnt > 1;
-                    vue.footerButtons.find(v => v.id == "DAI04040_Bunpaisaki").disabled = cnt == 0 || cnt > 1;
+                    vue.footerButtons.find(v => v.id == "DAI04040Grid1_History").disabled = cnt == 0 || cnt > 1;
+                    vue.footerButtons.find(v => v.id == "DAI04040Grid1_Bunpaisaki").disabled = cnt == 0 || cnt > 1;
+                    vue.footerButtons.find(v => v.id == "DAI04040Grid1_Tanka").disabled = cnt == 0 || cnt > 1;
                 }
             );
 
@@ -624,6 +630,26 @@ export default {
                 isChild: true,
                 resizable: false,
                 width: 600,
+                height: 600,
+            });
+        },
+        showTanka: function(rowData) {
+            var vue = this;
+            var grid = vue.DAI04040Grid1;
+            if(!grid) return;
+            var params;
+            var selection = grid.SelectRow().getSelection();
+
+            params = selection[0].rowData
+
+            //DAI04051を子画面表示
+            PageDialog.show({
+                pgId: "DAI04051",
+                params: params,
+                isModal: true,
+                isChild: true,
+                resizable: false,
+                width: 1000,
                 height: 600,
             });
         },
