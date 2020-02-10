@@ -171,7 +171,7 @@ ORDER BY
 
         $pdo = new PDO($dsn, $user, $password);
         $stmt = $pdo->query($sql);
-        $DataList = $stmt->fetchAll();
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $pdo = null;
 
         // $DataList = DB::select($sql);

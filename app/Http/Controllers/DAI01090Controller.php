@@ -63,140 +63,68 @@ class DAI01090Controller extends Controller
     {
         $BushoCd = $vm->BushoCd;
         $DeliveryDate = $vm->DeliveryDate;
-        $CourseCd = $vm->CourseCd;
+        $CustomerCd = $vm->CustomerCd;
 
         $sql = "
-WITH WITH_注文データ AS
- (  SELECT
- 		*
- 	FROM
- 		注文データ
- 	WHERE
- 		注文区分 = 0
- 	  AND 部署CD = $BushoCd
- 	  AND CONVERT(varchar, 注文日付, 112) = '$DeliveryDate'
- 	  AND CONVERT(varchar, 配送日, 112)   = '$DeliveryDate'
-)
-,WITH_モバイル_予測入力 AS
-(  SELECT
-		*
-	FROM
-		モバイル_予測入力
-	WHERE
-		部署CD = $BushoCd
-		AND CONVERT(varchar, 日付, 112) = '$DeliveryDate'
-)
-,WITH_注文予測 AS
-(
-   ----- 注文予測両方 -----
+WITH 対象日数 AS (
     SELECT
-    	CHU.部署ＣＤ,
-    	CHU.得意先ＣＤ,
-    	MOB.商品ＣＤ  AS MOB商品ＣＤ,
-    	ISNULL(MOB.見込数, 0) AS 見込数 ,
-    	CHU.商品CD  AS CHU商品ＣＤ,
-    	ISNULL(現金個数 + 掛売個数,0) AS 注文数
+		0 as v
+    UNION ALL
+    SELECT
+		v + 1
     FROM
-    	WITH_注文データ CHU ,
-    	WITH_モバイル_予測入力 MOB
+		対象日数 t
     WHERE
-    	CHU.部署ＣＤ   = MOB.部署ＣＤ
-    	AND  CHU.得意先ＣＤ = MOB.得意先ＣＤ
-    	AND CHU.商品ＣＤ   = MOB.商品ＣＤ
- UNION
-   ----- 注文データのみ -----
-   SELECT
-   		CHU.部署ＣＤ,
-   		CHU.得意先ＣＤ,
-   		NULL AS MOB商品ＣＤ,
-   		NULL AS 見込数,
-   		CHU.商品CD AS CHU商品ＣＤ,
-   		ISNULL(現金個数 + 掛売個数,0) AS 注文数
-   FROM
-   		WITH_注文データ CHU
-   WHERE
-   		NOT EXISTS
-   		(
-   			SELECT
-   				'X'
-   			 FROM
-   			 	WITH_モバイル_予測入力 MOB
-   			 WHERE
-   			 	CHU.部署ＣＤ   = MOB.部署ＣＤ
-   			 	AND CHU.得意先ＣＤ = MOB.得意先ＣＤ
-   			 	AND CHU.商品ＣＤ   = MOB.商品ＣＤ
-   		 )
-  UNION
-   ----- 予測のみ -----
-   SELECT
-   		MOB.部署ＣＤ,
-   		MOB.得意先ＣＤ,
-   		MOB.商品ＣＤ AS MOB商品ＣＤ,
-   		ISNULL(MOB.見込数, 0) AS 見込数,
-   		NULL AS CHU商品ＣＤ,
-   		0 AS 注文数
-   FROM
-   		WITH_モバイル_予測入力 MOB
-   WHERE
-   		NOT EXISTS
-   		(
-   			SELECT
-   				'X'
-   			FROM
-   				WITH_注文データ CHU
-   	     	WHERE
-   	     		CHU.部署ＣＤ   = MOB.部署ＣＤ
-   	     		AND CHU.得意先ＣＤ = MOB.得意先ＣＤ
-   	     		AND CHU.商品ＣＤ   = MOB.商品ＣＤ
-   	     )
-   	)
-    SELECT
-		ct.ＳＥＱ,
-		ct.部署ＣＤ,
-		ct.コースＣＤ,
-		tokui.得意先ＣＤ,
-		tokui.得意先名,
-		ISNULL(MOBCHU.MOB商品ＣＤ,ISNULL(MOBCHU.CHU商品ＣＤ,0)) 商品ＣＤ,
-		ISNULL(MOBCHU.見込数, 0) 見込数,
-		ISNULL(MOBCHU.CHU商品ＣＤ,0) as CHU商品ＣＤ ,
-		ISNULL(MOBCHU.注文数,0)as 注文数,
-		IIF(日別得意先製造パターン.製造パターン IS NULL, tokui.既定製造パターン, 日別得意先製造パターン.製造パターン) AS 製造パターン,
-		IIF(日別得意先製造パターン.製造パターン IS NULL, tokui.修正日, 日別得意先製造パターン.修正日) AS 製造パターン更新日時
-		,(
-			SELECT
-				MAX(修正日)
-			FROM
-				WITH_注文データ
-			WHERE
-				WITH_注文データ.部署CD = ct.部署CD AND
-				WITH_注文データ.得意先CD = ct.得意先CD AND
-				WITH_注文データ.商品ＣＤ = ISNULL(MOBCHU.MOB商品ＣＤ,ISNULL(MOBCHU.CHU商品ＣＤ,0))
-		) 注文データ更新日時
-		,(
-			SELECT
-				MAX(修正日)
-			FROM
-				WITH_モバイル_予測入力
-			WHERE
-				WITH_モバイル_予測入力.部署CD = ct.部署CD AND
-				WITH_モバイル_予測入力.得意先CD = ct.得意先CD AND
-				WITH_モバイル_予測入力.商品ＣＤ = ISNULL(MOBCHU.MOB商品ＣＤ,ISNULL(MOBCHU.CHU商品ＣＤ,0))
-		) 予測データ更新日時
-   	FROM
-        コーステーブル ct
-        LEFT JOIN 得意先マスタ tokui ON ct.得意先ＣＤ = tokui.得意先ＣＤ
-        AND ct.部署ＣＤ = tokui.部署ＣＤ
-        LEFT JOIN WITH_注文予測 MOBCHU ON MOBCHU.得意先CD = ct.得意先CD AND MOBCHU.部署CD = ct.部署CD
-		LEFT OUTER JOIN 日別得意先製造パターン
-			ON tokui.得意先ＣＤ = 日別得意先製造パターン.得意先ＣＤ
-			AND CONVERT(NVARCHAR, 日別得意先製造パターン.製造日, 112) = '$DeliveryDate'
-			AND 日別得意先製造パターン.部署ＣＤ   = ct.部署ＣＤ
-			AND 日別得意先製造パターン.コースＣＤ = ct.コースＣＤ
-    WHERE
-    	ct.部署ＣＤ   = $BushoCd
-    	AND ct.コースＣＤ = $CourseCd
-	ORDER BY ct.コースＣＤ,ct.ＳＥＱ
-";
+		t.v < DAY(EOMONTH('$DeliveryDate')) - 1
+),
+対象日付 AS (
+SELECT
+	DATEADD(day, v, '$DeliveryDate') AS 配送日
+FROM
+	対象日数
+)
+SELECT
+	対象日付.配送日
+	,IIF(祝日マスタ.対象日付 IS NULL, IIF(DATEPART(WEEKDAY, 対象日付.配送日) = 1, 1, 0), 1) AS 休日指定
+	,chumon.注文区分
+	,CONVERT(varchar, chumon.注文日付, 112) 注文日付
+	,chumon.注文時間
+	,tokui.売掛現金区分
+	,chumon.部署ＣＤ
+	,chumon.得意先ＣＤ
+	,chumon.明細行Ｎｏ
+	,chumon.商品ＣＤ
+	,chumon.商品区分
+	,chumon.入力区分
+	,chumon.現金個数
+	,chumon.現金金額
+	,chumon.掛売個数
+	,chumon.掛売金額
+	,chumon.備考１
+	,chumon.備考２
+	,chumon.備考３
+	,chumon.備考４
+	,chumon.備考５
+	,chumon.予備金額１
+	,chumon.予備金額２
+	,chumon.予備ＣＤ１
+	,chumon.予備ＣＤ２
+	,chumon.修正担当者ＣＤ
+	,chumon.修正日
+FROM
+	対象日付
+	LEFT JOIN 祝日マスタ
+		ON 祝日マスタ.対象日付=対象日付.配送日
+	LEFT JOIN 注文データ chumon
+		ON 対象日付.配送日=chumon.配送日
+		AND chumon.注文区分 = 0
+		AND chumon.部署ＣＤ = $BushoCd
+		AND chumon.得意先ＣＤ = $CustomerCd
+	LEFT JOIN 得意先マスタ tokui
+		ON chumon.得意先ＣＤ = tokui.得意先ＣＤ AND chumon.部署ＣＤ = tokui.部署ＣＤ
+ORDER BY
+	対象日付.配送日
+        ";
 
         $DataList = DB::select(DB::raw($sql));
 

@@ -23,6 +23,7 @@
                     bind="DeliveryDate"
                     :editable=true
                     :onChangedFunc=onDeliveryDateChanged
+                    customStyle="width: 100px"
                 />
             </div>
         </div>
@@ -36,17 +37,15 @@
                     ref="PopupSelect_Customer"
                     :vmodel=viewModel
                     bind="CustomerCd"
-                    :buddies='{ CourseNm: "コース名", TantoCd: "担当者ＣＤ", TantoNm: "担当者名" }'
-                    dataUrl="/DAI01030/GetCustomerAndCourseList"
-                    :params="{ targetDate: FormattedDeliveryDate, keyword: viewModel.CustomerCd }"
+                    buddy="CustomerNm"
+                    dataUrl="/Utilities/GetCustomerListForSelect"
+                    :params="{ CustomerCd: null, KeyWord: null }"
                     :isPreload=true
                     title="得意先一覧"
                     labelCd="得意先CD"
                     labelCdNm="得意先名"
                     :showColumns='[
                         { title: "部署名", dataIndx: "部署名", dataType: "string", width: 120, maxWidth: 120, minWidth: 120, colIndx: 0 },
-                        { title: "コースCD", dataIndx: "コースCD", dataType: "integer", width: 100, maxWidth: 100, minWidth: 100 },
-                        { title: "コース名", dataIndx: "コース名", dataType: "string", width: 200, maxWidth: 200, minWidth: 200 }
                     ]'
                     :popupWidth=1000
                     :popupHeight=600
@@ -57,14 +56,10 @@
                     :existsCheck=true
                     :inputWidth=150
                     :nameWidth=400
-                    :ParamsChangedCheckFunc=CustomerParamsChangedCheckFunc
                     :onAfterChangedFunc=onCustomerChanged
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=CustomerAutoCompleteFunc
                 />
-                <label class="label-blue text-center">TEL</label>
-                <input class="form-control p-0 text-center label-blue" style="width: 120px;" type="text" :value=viewModel.TelNo readonly tabindex="-1">
-                <label class="ml-1 label-blue">{{viewModel.PaymentNm}}</label>
             </div>
         </div>
 
@@ -76,17 +71,17 @@
             :SearchOnCreate=false
             :SearchOnActivate=false
             :options=this.grid1Options
-            :onBeforeCreateFunc=onBeforeCreateFunc
             :onAfterSearchFunc=this.onAfterSearchFunc
+            :autoToolTipDisabled=true
         />
     </form>
 </template>
 
 <style>
-#DAI01090Grid1 .pq-grid-cell.CustomerNameCell {
-    white-space: pre;
+#DAI01090Grid1 svg.pq-grid-overlay {
+    display: block;
 }
-#DAI01090Grid1 .pq-grid-cell.order-value {
+#DAI01090Grid1 .pq-grid-cell.holiday {
     color: red;
 }
 label{
@@ -110,10 +105,13 @@ export default {
         searchParams: function() {
             return {
                 BushoCd: this.viewModel.BushoCd,
-                DeliveryDate: moment(this.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD"),
-                CourseCd: this.viewModel.CourseCd,
+                DeliveryDate: moment(this.viewModel.DeliveryDate, "YYYY年MM月").format("YYYYMMDD"),
+                CustomerCd: this.viewModel.CustomerCd,
             };
-        }
+        },
+        bushoDisabled: function() {
+            return true;
+        },
     },
     watch: {
         searchParams: {
@@ -132,18 +130,18 @@ export default {
             viewModel: {
                 BushoCd: null,
                 DeliveryDate: null,
-                CourseCd: null,
+                CustomerCd: null,
+                CustomerNm: null,
             },
             DAI01090Grid1: null,
-            PatternList: null,
             grid1Options: {
-                selectionModel: { type: "cell", mode: "single", row: true },
+                selectionModel: { type: "cell", mode: "block", row: true, column: true, },
                 showHeader: true,
                 showToolbar: false,
                 columnBorders: true,
                 rowHtHead: 50,
                 rowHt: 35,
-                freezeCols: 2,
+                freezeCols: 1,
                 fillHandle: "",
                 numberCell: { show: true, title: "No.", resizable: false, },
                 autoRow: false,
@@ -159,11 +157,6 @@ export default {
                     menuIcon: false,
                     hideRows: false,
                 },
-                sortModel: {
-                    cancel: false,
-                    type: "remote",
-                    sorter:[ { dataIndx: "ＳＥＱ", dir: "up" } ]
-                },
                 groupModel: {
                     on: true,
                     header: false,
@@ -175,37 +168,27 @@ export default {
                 ],
                 colModel: [
                     {
-                        title: "得意先",
-                        dataIndx: "CustomerName", dataType: "string",
-                        width: 250, maxWidth: 250, minWidth: 250,
-                        cls: "CustomerNameCell",
+                        title: "配送日",
+                        dataIndx: "配送日", dataType: "date", format: "yy/mm/dd", align: "center",
+                        width: 100, maxWidth: 100, minWidth: 100,
                         render: ui => {
                             if (ui.rowData.pq_grandsummary) {
                                 ui.rowData.CustomerName = "合計";
                                 ui.cls.push("justify-content-end");
                                 return { text: "合計" };
                             } else {
-                                var el = $("<div>").addClass("d-flex")
-                                    .append($("<label>").css("width", "75px").css("text-align", "right").text(ui.rowData.得意先ＣＤ))
-                                    .append($("<div>").css("margin-left", "4px").text(ui.rowData.得意先名))
-                                    ;
-                                return { text: el.prop("outerHTML") };
+                                if (ui.rowData["休日指定"] == 1) {
+                                    ui.cls.push("holiday");
+                                }
+                                return ui;
                             }
                         },
                         fixed: true,
                     },
-                    {
-                        title: "製造パターン",
-                        dataIndx: "製造パターン", dataType: "string",
-                        width: 150, maxWidth: 150, minWidth: 150,
-                        editable: true,
-                        cls: "pq-dropdown pq-side-icon",
-                        selectList: "PatternList",
-                        selectLabel: "Cd + ':' + CdNm ",
-                        selectNullFirst: false,
-                        fixed: true,
-                    },
                 ],
+                headerCellClick: function (event, ui) {
+                    console.log("headerCellClick", event, ui);
+                },
             },
         });
 
@@ -322,13 +305,41 @@ export default {
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
-
-            //列定義更新
-            vue.refreshCols();
         },
-        refreshCols: function() {
+        onDeliveryDateChanged: function(code, entity) {
             var vue = this;
-            var grid;
+
+            //条件変更ハンドラ
+            vue.conditionChanged();
+        },
+        onCustomerChanged: function(code, entity, comp) {
+            var vue = this;
+
+            if (!!entity && !_.isEmpty(entity)) {
+                vue.viewModel.BushoCd = entity["部署CD"];
+
+                //条件変更ハンドラ
+                vue.conditionChanged();
+            }
+        },
+        conditionChanged: function(callback) {
+            var vue = this;
+            var grid = vue.DAI01090Grid1;
+
+            if (!grid || !vue.getLoginInfo().isLogOn) return;
+            if (!vue.viewModel.BushoCd || !vue.viewModel.DeliveryDate || !vue.viewModel.CustomerCd) return;
+
+            vue.refreshCols(() => grid.searchData(vue.searchParams, false, null, callback));
+        },
+        refreshCols: function(callback) {
+            var vue = this;
+            var grid = vue.DAI01090Grid1;
+
+            if (grid.options.dataModel.postData.BushoCd == vue.searchParams.BushoCd) {
+                //部署変更無し
+                if(callback) callback();
+                return;
+            }
 
             //PqGrid読込待ち
             new Promise((resolve, reject) => {
@@ -357,14 +368,12 @@ export default {
                                         dataType: "integer",
                                         format: "#,###",
                                         width: 75, maxWidth: 75, minWidth: 75,
-                                        editable: ui => !ui.rowData[ui.dataIndx + "_実績"],
+                                        editable: true,
                                         render: ui => {
-                                            if (!ui.cellData) {
-                                                ui.rowData[ui.dataIndx] = 0;
-                                                ui.text = 0;
-                                            }
-                                            if (ui.rowData[ui.dataIndx + "_注文"] > 0) {
-                                                ui.cls.push("order-value");
+                                            if (ui.rowData.pq_grandsummary) {
+                                                if(ui.cellData == 0) {
+                                                    return { text: "" };
+                                                }
                                             }
                                             return ui;
                                         },
@@ -383,8 +392,7 @@ export default {
 
                         if (!!grid) grid.hideLoading();
 
-                        //条件変更ハンドラ
-                        vue.conditionChanged();
+                        if(callback) callback();
                     });
             })
             .catch(error => {
@@ -398,100 +406,50 @@ export default {
                 });
             });
         },
-        onDeliveryDateChanged: function(code, entity) {
-            var vue = this;
-
-            //条件変更ハンドラ
-            vue.conditionChanged();
-        },
-
-        onCourseChanged: function(code, entity) {
-            var vue = this;
-
-            //条件変更ハンドラ
-            vue.conditionChanged();
-        },
-        conditionChanged: function(callback) {
-            var vue = this;
-            var grid = vue.DAI01090Grid1;
-
-            if (!grid || !vue.getLoginInfo().isLogOn) return;
-            if (!vue.viewModel.BushoCd || !vue.viewModel.DeliveryDate || !vue.viewModel.CourseCd) return;
-            if (!grid.options.colModel.some(v => v.custom)) return;
-
-            grid.searchData(vue.searchParams, false, null, callback);
-        },
-        onBeforeCreateFunc: function(gridOptions, callback) {
-            var vue = this;
-
-            axios.post("/Utilities/GetCodeList", { cd: 35 })
-                .then(res => {
-                    console.log("製造パターン", res.data);
-                    vue.PatternList = res.data;
-                    callback();
-                })
-                .catch(err => {
-                    $.dialogErr({
-                        title: "異常終了",
-                        contents: "各種テーブルの取得に失敗しました<br/>" + err.message,
-                    });
-                });
-        },
         onAfterSearchFunc: function (grieVue, grid, res) {
             var vue = this;
 
             //集計
             var groupings = _(res)
-                .groupBy(v => v.得意先ＣＤ)
+                .groupBy(v => v.配送日)
                 .values()
                 .value()
                 .map(r => {
                     var ret = _.reduce(
-                            _.sortBy(r, ["得意先名"]),
+                            _.sortBy(r, ["明細行Ｎｏ"]),
                             (acc, v, j) => {
                                 acc = _.isEmpty(acc) ? _.cloneDeep(v) : acc;
 
-                                delete acc.商品ＣＤ;
-                                delete acc.見込数;
-                                delete acc.CHU商品ＣＤ;
-                                delete acc.注文数;
-                                delete acc.注文データ更新日時;
-                                delete acc.予測データ更新日時;
+                                // delete acc.商品ＣＤ;
+                                // delete acc.見込数;
+                                // delete acc.CHU商品ＣＤ;
+                                // delete acc.注文数;
+                                // delete acc.注文データ更新日時;
+                                // delete acc.予測データ更新日時;
 
-                                acc["商品_" + v.商品ＣＤ + "_注文"] = (acc["商品_" + v.商品ＣＤ + "_注文"] || 0) + v.注文数 * 1;
-                                acc["商品_" + v.商品ＣＤ + "_見込"] = (acc["商品_" + v.商品ＣＤ + "_見込"] || 0) + v.見込数 * 1;
+                                acc["商品_" + v.商品ＣＤ] = (acc["商品_" + v.商品ＣＤ] || 0)
+                                                         + (v.売掛現金区分 == 0 ? v.現金個数 : v.掛売個数) * 1;
 
-                                acc["予測データ更新日時_" + v.商品ＣＤ] = !acc["予測データ更新日時_" + v.商品ＣＤ] ? v.予測データ更新日時
-                                    : (!!v.予測データ更新日時 && moment(v.予測データ更新日時).isAfter(acc["予測データ更新日時_" + v.商品ＣＤ]))
-                                        ? v.予測データ更新日時 : acc["予測データ更新日時_" + v.商品ＣＤ];
-                                acc["注文データ更新日時_" + v.商品ＣＤ] = !acc["注文データ更新日時_" + v.商品ＣＤ] ? v.注文データ更新日時
-                                    : (!!v.注文データ更新日時 && moment(v.注文データ更新日時).isAfter(acc["注文データ更新日時_" + v.商品ＣＤ]))
-                                        ? v.注文データ更新日時 : acc["注文データ更新日時_" + v.商品ＣＤ];
+                                acc["注文データ更新日時_" + v.商品ＣＤ] =
+                                    !acc["注文データ更新日時_" + v.商品ＣＤ] ? v.修正日 :
+                                        (!!v.修正日 && moment(v.修正日).isAfter(acc["注文データ更新日時_" + v.商品ＣＤ])) ? v.修正日 :
+                                        acc["注文データ更新日時_" + v.商品ＣＤ];
 
                                 return acc;
                             },
                             {}
                     )
 
-                    _.keys(ret).forEach(k => {
-                        if (k.startsWith("商品_")) {
-                            var cd = k.replace("商品_", "").replace("_注文", "").replace("_見込", "");
-
-                            ret["商品_" + cd] = (ret["商品_" + cd + "_注文"] > 0 ? ret["商品_" + cd + "_注文"] : ret["商品_" + cd + "_見込"]) + "";
-                            ret["商品_" + cd + "_実績"] = ret["商品_" + cd + "_注文"] > 0;
-                        }
-                    });
-
                     return ret;
                 })
 
-            groupings = _(groupings).sortBy(v => v.ＳＥＱ * 1).sortBy(v => v.コースＣＤ * 1).value();
+            groupings = _(groupings).sortBy(v => v.配送日 * 1).value();
 
             vue.footerButtons.find(v => v.id == "DAI01090Grid1_Save").disabled = !groupings.length;
 
             return groupings;
         },
-        CourseAutoCompleteFunc: function(input, dataList, comp) {
+        CustomerAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
 
             if (!dataList.length) return [];
@@ -500,7 +458,7 @@ export default {
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 
-            var wholeColumns = ["コース名", "担当者名"];
+            var wholeColumns = ["CdNm", "得意先名略称", "得意先名カナ", "備考１", "備考２", "備考３"];
 
             if ((input == comp.selectValue && comp.isUnique) || comp.isError) {
                 keyAND = keyOR = [];
@@ -510,17 +468,18 @@ export default {
                 .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
                 .filter(v => {
                     return keyOR.length == 0
-                        || _.some(keyOR, k => v.コースＣＤ.startsWith(k))
+                        || _.some(keyOR, k => v.Cd.startsWith(k))
+                        || _.some(keyOR, k => k.match(/^[0-9\-]{6,}/) != null && !!v.電話番号１ ? v.電話番号１.startsWith(k) : false)
                         || _.some(keyOR, k => v.whole.includes(k))
                 })
                 .filter(v => {
-                    return keyAND.length == 0 || _.every(keyAND, k => v.whole.includes(k));
+                    return keyAND.length == 0 || _.every(keyAND, k => (v.whole + (v.電話番号１ || "")).includes(k));
                 })
                 .map(v => {
                     var ret = v;
-                    ret.label = v.コースＣＤ + " : " + v.コース名 + "【" + v.担当者名 + "】";
-                    ret.value = v.コースＣＤ;
-                    ret.text = v.コース名;
+                    ret.label = v.Cd + " : " + "【" + v.部署名 + "】" + v.CdNm;
+                    ret.value = v.Cd;
+                    ret.text = v.CdNm;
                     return ret;
                 })
                 ;

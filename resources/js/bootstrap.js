@@ -81,12 +81,12 @@ window.axios.interceptors.response.use(
         }
 
         if (all.includes(url) && _.isEmpty(params)) {
-            console.log("axios response Cached", url, data);
+            // console.log("axios response Cached", url, data);
             window.myCache.set(url, data, 0);
         } else if (url == "/Utilities/GetCustomerAndCourseList") {
             window.myCache.set(key, data, 0);
         } else {
-            console.log("axios response Cached", key, data);
+            // console.log("axios response Cached", key, data);
             window.myCache.set(key, data);
         }
 

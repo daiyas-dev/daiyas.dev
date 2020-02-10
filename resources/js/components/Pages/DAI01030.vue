@@ -59,7 +59,7 @@
                     bind="CustomerCd"
                     :buddies='{ CourseNm: "コース名", TantoCd: "担当者ＣＤ", TantoNm: "担当者名" }'
                     dataUrl="/DAI01030/GetCustomerAndCourseList"
-                    :params="{ targetDate: FormattedDeliveryDate, keyword: viewModel.CustomerCd }"
+                    :params="{ targetDate: FormattedDeliveryDate, KeyWord: viewModel.CustomerCd }"
                     :isPreload=true
                     title="得意先一覧"
                     labelCd="得意先CD"
@@ -598,7 +598,7 @@ export default {
                 },
             );
 
-            vue.$root.$on("logOn", vue.getTodayOrder);
+            vue.$root.$on("logOn", () => vue.getTodayOrder());
         },
         mountedFunc: function(vue) {
             //watcher
@@ -661,10 +661,6 @@ export default {
         CustomerChanged: function(info, isValid) {
             var vue = this;
             var grid = vue.DAI01030Grid1;
-
-            //popupselectがviewModelをwatchしているので、得意先CDから更新
-            vue.viewModel.CustomerCd = info["得意先CD"];
-            vue.viewModel.CustomerNm = info["得意先名"];
 
             if (info["部署CD"] && vue.viewModel.BushoCd != info["部署CD"]) {
                 vue.viewModel.BushoCd = info["部署CD"];

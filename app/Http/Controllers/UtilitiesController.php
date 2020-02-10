@@ -786,7 +786,6 @@ ORDER BY
         $BushoCd = $request->bushoCd ?? $request->BushoCd;
         $CustomerCd = $request->CustomerCd;
         $KeyWord = $request->KeyWord;
-        $SelectValue = $request->selectValue;
 
         $WhereBusho = $BushoCd ? " AND TM.部署ＣＤ=$BushoCd" : "";
         $WhereKeyWord = $KeyWord
@@ -796,17 +795,15 @@ ORDER BY
                 )"
             : "";
 
-        $Cd = is_numeric($CustomerCd) && ctype_digit($CustomerCd) ? $CustomerCd :
-            is_numeric($SelectValue) && ctype_digit($SelectValue) ? $SelectValue : null;
-
-        if (!!$Cd) {
-            $WhereCustomer = " AND TM.得意先ＣＤ=$Cd";
+        if (is_numeric($KeyWord) && ctype_digit($KeyWord)) {
+            $WhereCustomer = " AND TM.得意先ＣＤ=$KeyWord";
 
             //得意先ＣＤでの検索
             $ByCustomerSql = "
 SELECT
     TM.得意先ＣＤ AS Cd,
     TM.得意先名 AS CdNm,
+    TM.部署CD,
     TM.得意先名カナ,
     TM.得意先名略称,
     TM.電話番号１,
@@ -848,6 +845,7 @@ $WhereKeyWord
 SELECT $SelectTop
     TM.得意先ＣＤ AS Cd,
     TM.得意先名 AS CdNm,
+    TM.部署CD,
     TM.得意先名カナ,
     TM.得意先名略称,
     TM.電話番号１,
@@ -871,7 +869,7 @@ $WhereKeyWord
 
         $pdo = new PDO($dsn, $user, $password);
         $stmt = $pdo->query($sql);
-        $DataList = $stmt->fetchAll();
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $pdo = null;
 
         return response()->json(['Data' => $DataList, 'CountConstraint' => !!$SelectTop ? $CountMax : null, 'ActualCounts' => $Count ]);
@@ -1404,7 +1402,7 @@ $OrderBy
 
         $pdo = new PDO($dsn, $user, $password);
         $stmt = $pdo->query($sql);
-        $DataList = $stmt->fetchAll();
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $pdo = null;
 
         // $DataList = DB::select($sql);

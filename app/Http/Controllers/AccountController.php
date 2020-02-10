@@ -8,6 +8,7 @@ use Dotenv\Exception\ValidationException;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Support\Facades\Auth;
 use App\Events\PublicEvent;
+use Exception;
 use Illuminate\Support\Facades\DB;
 
 class AccountController extends Controller
