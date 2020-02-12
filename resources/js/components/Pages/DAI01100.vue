@@ -85,10 +85,14 @@
 
 <style>
 /* stripedの反転 */
-#DAI01100Grid1 .pq-grid-row:not(.pq-striped) {
+#DAI01100Grid1 .pq-grid-row:not([id^="pq-head-row"]):not(.pq-striped),
+#DAI01100Grid1_right .pq-grid-row:not([id^="pq-head-row"]):not(.pq-striped)
+{
     background-color: #e6f4ff !important;
 }
-#DAI01100Grid1 .pq-grid-row.pq-striped {
+#DAI01100Grid1 .pq-grid-row.pq-striped:not([id^="pq-head-row"]),
+#DAI01100Grid1_right .pq-grid-row.pq-striped:not([id^="pq-head-row"])
+{
     background-color: white !important;
 }
 /* マージセル */
@@ -105,7 +109,9 @@
     width: 100%;
 }
 /* 合計行 */
-#DAI01100Grid1 .pq-summary-outer *:not(.tooltip):not(.arrow):not(.tooltip-inner) {
+#DAI01100Grid1 .pq-summary-outer *:not(.tooltip):not(.arrow):not(.tooltip-inner),
+#DAI01100Grid1_right .pq-summary-outer *:not(.tooltip):not(.arrow):not(.tooltip-inner)
+{
     font-weight: bold;
     color: black;
     background-color: transparent !important;

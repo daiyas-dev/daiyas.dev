@@ -821,6 +821,8 @@ export default {
                         params[vue.bind] = newVal;
                         params.KeyWord = newVal;
                         vue.getDataList(params, (res) => setValue());
+                    } else {
+                        setValue();
                     }
                 } else {
                     //該当が無い場合は再検索
