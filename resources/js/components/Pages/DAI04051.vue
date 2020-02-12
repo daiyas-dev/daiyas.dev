@@ -150,7 +150,7 @@ export default {
                     sorter:[ { dataIndx: "sortIndx", dir: "up" } ],
                 },
                 groupModel: {
-                    on: true,
+                    on: false,
                     header: false,
                     grandSummary: false,
                 },
@@ -241,11 +241,11 @@ export default {
                 });
 
             vue.footerButtons.push(
-                { visible: "true", value: "行追加", id: "DAI04051Grid1_AddRow", disabled: false, shortcut: "F2",
-                    onClick: function () {
-                        vue.addRow();
-                    }
-                },
+                // { visible: "true", value: "行追加", id: "DAI04051Grid1_AddRow", disabled: false, shortcut: "F2",
+                //     onClick: function () {
+                //         vue.addRow();
+                //     }
+                // },
                 { visible: "true", value: "行削除", id: "DAI04051Grid1_DeleteRow", disabled: true, shortcut: "F3",
                     onClick: function () {
                         vue.deleteRow();
@@ -260,7 +260,6 @@ export default {
                 { visible: "true", value: "登録", id: "DAI04051Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         //TODO:登録
-                        //メッセージ：得意先マスタが存在しません。
                         vue.saveTankaList();
                     }
                 }
@@ -425,6 +424,7 @@ export default {
 
             var hasError = checkError(grid);
 
+            //TODO:エラー未確認
             if(hasError){
                 $.dialogErr({
                     title: "入力値エラー",
@@ -433,65 +433,66 @@ export default {
                 return;
             }
 
-            var checkRequire = grid => grid.pdata.map(r => [r.商品ＣＤ]).every(r => r.every(v => !!v) || r.every(v => !v));
+            //TODO:不要？
+            // var checkRequire = grid => grid.pdata.map(r => [r.商品ＣＤ]).every(r => r.every(v => !!v) || r.every(v => !v));
 
-            var require = checkRequire(grid);
+            // var require = checkRequire(grid);
 
-            if(!require){
-                $.dialogErr({
-                    title: "未入力項目",
-                    contents: "未入力項目があるため、登録できません。",
+            // if(!require){
+            //     $.dialogErr({
+            //         title: "未入力項目",
+            //         contents: "未入力項目があるため、登録できません。",
+            //     });
+            //     return;
+            // }
+
+            var SaveList = _.cloneDeep(grid.createSaveParams());
+
+            //商品ＣＤ未指定は除外。データの整形。
+            _.forIn(SaveList,
+                (v, k) => {
+                    var list = v.filter(r => {
+                        return r.商品ＣＤ != null && r.商品ＣＤ != undefined;
+                    })
+                    .map(r => {
+                        r.得意先ＣＤ = vue.viewModel.CustomerCd;
+                        r.修正担当者ＣＤ = vue.getLoginInfo().uid;
+                        r.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
+                        delete r.得意先名;
+                        delete r.商品名;
+                        delete r.商品区分;
+                        delete r.sortIndx;
+                        return r;
+                    })
+                    ;
+                    SaveList[k] = list;
+                }
+            );
+
+            if (_.values(SaveList).every(v => !v.length)) {
+                //変更無し
+                $.dialogInfo({
+                    title: "変更無し",
+                    contents: "データが変更されていません。",
                 });
                 return;
             }
 
-            // var SaveList = _.cloneDeep(grid.getPlainPData().filter(v => !!v.商品ＣＤ));
-            var SaveList = _.cloneDeep(grid.createSaveParams());
-            //TODO:確認中　deleteListが正しく入ってこない↑
-
-            //注文データの型に整形
-            SaveList.forEach((v, i) => {
-                v.得意先ＣＤ = vue.viewModel.CustomerCd;
-                v.修正担当者ＣＤ = vue.getLoginInfo().uid;
-
-
-                delete v.得意先名;
-                delete v.商品名;
-                delete v.sortIndx;
-            });
-
             //保存実行
-            grid.saveData(
-                {
-                    uri: "/DAI04051/Save",
-                    params: {
-                        SaveList: SaveList,
-                    },
-                    optional: this.searchParams,
-                    confirm: {
-                        isShow: true,
-                        title: "確認 " + vue.viewModel.CustomerNm,
-                    },
-                    done: {
-                        isShow: false,
-                        callback: (gridVue, grid, res)=>{
-                            console.log("res", res);
-
-                            if (!!res.edited && !!res.edited.length) {
-                                $.dialogInfo({
-                                    title: "登録チェック",
-                                    contents: "他で変更されたデータがあります。",
-                                });
-                                grid.blinkDiff(res.edited);
-                            } else {
-                                grid.commit();
-                            }
-
-                            return false;
-                        },
-                    },
+            var params = {SaveList: SaveList};
+            params.noCache = true;
+            axios.post("/DAI04051/Save", params)
+                .then(res => {
+                    console.log("res", res);
+                    //TODO:画面を閉じる
+                })
+                .catch(err => {
+                    console.log(error);
+                    //TODO: エラー
                 }
             );
+            console.log("登録", params);
+
         },
         addRow: function(grid, event) {
             var vue = this;
@@ -501,6 +502,7 @@ export default {
 
             grid = grid || vue.DAI04051Grid1;
 
+            //選択行なし
             if(!grid.SelectRow().getSelection().length){
                 return;
             }

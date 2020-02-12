@@ -43,132 +43,65 @@ class DAI04051Controller extends Controller
         return response()->json($Result);
     }
 
-    //TODO:以下コピーのまま　修正要
     /**
      * Save
      */
     public function Save($request)
     {
-        $skip = [];
-
         // トランザクション開始
-        $skip = DB::transaction(function () use ($request, $skip) {
+        DB::transaction(function () use ($request) {
             $params = $request->all();
+            $saveList = $params['SaveList'];
 
-            $BushoCd = $request->BushoCd;
-            $TargetDate = $request->TargetDate;
-            $CourseCd = $request->CourseCd;
-
-            $AddList = $params['AddList'];
-            $UpdateList = $params['UpdateList'];
-            $OldList = $params['OldList'];
-            $DeleteList = $params['DeleteList'];
-
-            $date = Carbon::now()->format('Y-m-d H:i:s');
+            $AddList = $saveList['AddList'];
+            $UpdateList = $saveList['UpdateList'];
+            $OldList = $saveList['OldList'];
+            $DeleteList = $saveList['DeleteList'];
 
             //DeleteList
             foreach($DeleteList as $rec) {
-                $r = モバイル移動入力::query()
-                    ->where('部署ＣＤ', $rec['部署ＣＤ'])
-                    ->where('コースＣＤ', $rec['コースＣＤ'])
-                    ->where('相手コースＣＤ', $rec['相手コースＣＤ'])
-                    ->where('日付', $rec['日付'])
-                    ->where('商品ＣＤ', $rec['商品ＣＤ'])
-                    ->get();
 
-                if (count($r) != 1) {
-                    $skip = collect($skip)->push(["target" => $rec, "current" => null]);
-                    continue;
-                } else if ($rec['修正日'] != $r[0]->修正日) {
-                    $skip = collect($skip)->push(["target" => $rec, "current" => $r[0]]);
-                    continue;
-                }
-
-                モバイル移動入力::query()
-                    ->where('部署ＣＤ', $rec['部署ＣＤ'])
-                    ->where('コースＣＤ', $rec['コースＣＤ'])
-                    ->where('相手コースＣＤ', $rec['相手コースＣＤ'])
-                    ->where('日付', $rec['日付'])
-                    ->where('商品ＣＤ', $rec['商品ＣＤ'])
-                    ->delete();
+                得意先単価マスタ::query()
+                ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
+                ->where('商品ＣＤ', $rec['商品ＣＤ'])
+                ->delete();
             }
 
             //UpdateList
             foreach ($OldList as $index => $rec) {
-                $r = モバイル移動入力::query()
-                    ->where('部署ＣＤ', $rec['部署ＣＤ'])
-                    ->where('コースＣＤ', $rec['コースＣＤ'])
-                    ->where('相手コースＣＤ', $rec['相手コースＣＤ'])
-                    ->where('日付', $rec['日付'])
-                    ->where('商品ＣＤ', $rec['商品ＣＤ'])
-                    ->get();
-
-                if (count($r) != 1) {
-                    $skip = collect($skip)->push(["target" => $rec, "current" => null]);
-                    continue;
-                } else if ($rec['修正日'] != $r[0]->修正日) {
-                    $skip = collect($skip)->push(["target" => $rec, "current" => $r[0]]);
-                    continue;
-                }
-
                 $data = $UpdateList[$index];
-                $data['修正日'] = $date;
 
-                モバイル移動入力::query()
-                    ->where('部署ＣＤ', $rec['部署ＣＤ'])
-                    ->where('コースＣＤ', $rec['コースＣＤ'])
-                    ->where('相手コースＣＤ', $rec['相手コースＣＤ'])
-                    ->where('日付', $rec['日付'])
-                    ->where('商品ＣＤ', $rec['商品ＣＤ'])
-                    ->update($data);
+                得意先単価マスタ::query()
+                ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
+                ->where('商品ＣＤ', $rec['商品ＣＤ'])
+                ->update($data);
             }
 
             //AddList
+            //TODO:条件：CDがあればupdate？
             foreach ($AddList as $rec) {
-                $r = モバイル移動入力::query()
-                    ->where('部署ＣＤ', $rec['部署ＣＤ'])
-                    ->where('コースＣＤ', $rec['コースＣＤ'])
-                    ->where('相手コースＣＤ', $rec['相手コースＣＤ'])
-                    ->where('日付', $rec['日付'])
-                    ->where('商品ＣＤ', $rec['商品ＣＤ'])
-                    ->get();
-
-                if (count($r) != 0) {
-                    $skip = collect($skip)->push(["target" => $rec, "current" => $r[0]]);
-                    continue;
-                }
-
-                $seq = モバイル移動入力::query()
-                    ->where('部署ＣＤ', $rec['部署ＣＤ'])
-                    ->where('コースＣＤ', $rec['コースＣＤ'])
-                    ->where('日付', $rec['日付'])
-                    ->max('ＳＥＱ') + 1;
-
                 $data = $rec;
-                $data['修正日'] = $date;
-                $data['ＳＥＱ'] = $seq;
 
-                モバイル移動入力::insert($data);
+                得意先単価マスタ::insert($data);
             }
 
-            //TODO:確認要　削除予定
-            throw new \Exception('hogehoge');
+            // //確認用：削除予定
+            // $CustomerCd = $UpdateList[0]['得意先ＣＤ'];
 
-            return $skip;
+            // $query = 得意先単価マスタ::query()
+            //     ->when(
+            //         $CustomerCd,
+            //         function($q) use ($CustomerCd){
+            //             return $q->where('得意先ＣＤ', $CustomerCd);
+            //         }
+            //     );
+            // $CustomerList = $query->get();
+            // throw new \Exception('hogehoge');
+
         });
-
-        $send = null;
-        $receive = null;
-        if (!!count($skip)) {
-            $send = $this->SearchSendList($request);
-            $receive = $this->SearchReceiveList($request);
-        }
 
         return response()->json([
             "result" => true,
-            "skip" => !!count($skip),
-            "send" => $send,
-            "receive" => $receive
         ]);
     }
 }
