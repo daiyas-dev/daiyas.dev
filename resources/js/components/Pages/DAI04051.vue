@@ -420,11 +420,9 @@ export default {
             var vue = this;
             var grid = vue.DAI04051Grid1;
 
-            //var checkError = grid => !!grid.widget().find(".has-error").length || !!grid.widget().find(".ui-state-error").length;
-            //var hasError = checkError(grid);
-            var hasError = !!grid.widget().find(".has-error").length || !!grid.widget().find(".ui-state-error").length;
+            var hasError = !!$(vue.$el).find(".has-error").length || !!grid.widget().find(".ui-state-error").length;
 
-            //TODO:エラー未確認
+            //TODO:Grid内エラー未確認
             if(hasError){
                 $.dialogErr({
                     title: "入力値エラー",
@@ -432,19 +430,6 @@ export default {
                 });
                 return;
             }
-
-            //TODO:不要？
-            // var checkRequire = grid => grid.pdata.map(r => [r.商品ＣＤ]).every(r => r.every(v => !!v) || r.every(v => !v));
-
-            // var require = checkRequire(grid);
-
-            // if(!require){
-            //     $.dialogErr({
-            //         title: "未入力項目",
-            //         contents: "未入力項目があるため、登録できません。",
-            //     });
-            //     return;
-            // }
 
             var SaveList = _.cloneDeep(grid.createSaveParams());
 
