@@ -874,15 +874,20 @@ export default {
                 }
 
                 //title
-                if (!!grid.options.filterModel && !!grid.options.filterModel.rules && !!grid.options.filterModel.rules.length) {
-                    grid.options.title = "件数: " + grid.pdata.filter(v => v.pq_level == undefined).length + " / " + grid.getData().length + " [フィルタ中]";
+                if (grid.isRight) {
+                    grid.options.title = "　";
+                    grid._refreshTitle();
                 } else {
-                    grid.options.title = "件数: " + grid.getData().length;
+                    if (!!grid.options.filterModel && !!grid.options.filterModel.rules && !!grid.options.filterModel.rules.length) {
+                        grid.options.title = "件数: " + grid.pdata.filter(v => v.pq_level == undefined).length + " / " + grid.getData().length + " [フィルタ中]";
+                    } else {
+                        grid.options.title = "件数: " + grid.getData().length;
+                    }
+                    if (vue.setCustomTitle) {
+                        grid.options.title += vue.setCustomTitle();
+                    }
+                    grid._refreshTitle();
                 }
-                if (vue.setCustomTitle) {
-                    grid.options.title += vue.setCustomTitle();
-                }
-                grid._refreshTitle();
 
                 vue.resize();
 
@@ -1141,6 +1146,10 @@ export default {
                 //パラメータ指定更新関数
                 if (vue._onSelectChangeFunc && vue.grid) {
                     vue._onSelectChangeFunc(grid, ui);
+                }
+
+                if (!grid.isRight) {
+                    vue.isSelection = !_.isEmpty(grid.getSelectionData());
                 }
 
                 //PqGrid-Toolbar設定
@@ -1614,7 +1623,7 @@ export default {
                         )
                         .map(c => c.dataIndx);
                     var rightColsWidth = _.sum(this.grid.options.colModel
-                                            .filter(c => rightColsDataIndices.includes(c.dataIndx))
+                                            .filter(c => rightColsDataIndices.includes(c.dataIndx) && !c.float)
                                             .map(c => c.width * 1)
                                         );
                     this.grid.options.colModel
@@ -1624,10 +1633,15 @@ export default {
                     widget.addClass("hasRight");
 
                     //右テーブル用option
-                    var rightOptions = $.extend(true, pqGridObj);
-                    rightOptions.colModel.forEach((c, i) => c.hidden = !rightColsDataIndices.includes(c.dataIndx));
+                    var rightOptions = _.omit(pqGridObj, "colModel");
+                    rightOptions.colModel = _.cloneDeep(pqGridObj.colModel)
+                        .map((c, i) => {
+                            c.hidden = !rightColsDataIndices.includes(c.dataIndx) || !!c.float;
+                            return c;
+                        });
+
                     rightOptions.numberCell = { show: false };
-                    rightOptions.width = rightColsWidth + 26;
+                    rightOptions.width = rightColsWidth + 55;
                     rightOptions.dataModel.location = "local";
 
                     widget.parent().addClass("d-flex");
@@ -1638,6 +1652,7 @@ export default {
                         .pqGrid("getInstance").grid;
 
                     this.grid.gridRight = this.gridRight;
+                    this.gridRight.isRight = true;
                     this.gridRight.gridLeft = this.grid;
 
                     this.grid.on("scroll", function() {
@@ -2164,7 +2179,7 @@ export default {
                     var address = grid.Selection().address();
                     if (address.length == 0) return null;
                     var rowIndx = grid.Selection().address()[0].r1;
-                    var rowData = grid.pdata[rowIndx];
+                    var rowData = _.cloneDeep(grid.pdata[rowIndx]);
 
                     if (!!rowData) {
                         if (rowData.InitialValue) {
@@ -2282,6 +2297,11 @@ export default {
                 window[this.grid.widget().prop("id")] = this.grid;
                 window.grid = this.grid;
 
+                if (!!this.grid.gridRight) {
+                    window[this.grid.widget().prop("id") + "_right"] = this.grid.gridRight;
+                    window.gridRight = this.grid.gridRight;
+                }
+
                 //PqGridのリサイズ
                 this.resize();
             } catch (ex) {
@@ -2381,6 +2401,11 @@ export default {
             if (!this.isFixedHeight && _.round(newHeight) != _.round(oldHeight)) {
                 this.grid.options.height += (_.round(newHeight) - _.round(oldHeight));
                 this.grid.refresh();
+
+                if (!!this.grid.gridRight) {
+                    this.grid.gridRight.options.height += (_.round(newHeight) - _.round(oldHeight));
+                    this.grid.gridRight.refresh();
+                }
             }
         },
         onSearchErrors: function(grid, errObj) {

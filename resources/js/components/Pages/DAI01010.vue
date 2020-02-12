@@ -52,6 +52,7 @@
                     bind="CourseStart"
                     dataUrl="/Utilities/GetCourseList"
                     :params='{ bushoCd: viewModel.BushoCd, courseKbn: viewModel.CourseKbn }'
+                    :dataListReset=true
                     title="コース一覧"
                     labelCd="コースCD"
                     labelCdNm="コース名"
@@ -84,6 +85,7 @@
                     bind="CourseEnd"
                     dataUrl="/Utilities/GetCourseList"
                     :params='{ bushoCd: viewModel.BushoCd, courseKbn: viewModel.CourseKbn }'
+                    :dataListReset=true
                     title="コース一覧"
                     labelCd="コースCD"
                     labelCdNm="コース名"

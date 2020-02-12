@@ -53,6 +53,7 @@
                     bind="CourseStart"
                     dataUrl="/Utilities/GetCourseList"
                     :params='{ bushoCd: viewModel.BushoCd, courseKbn: viewModel.CourseKbn }'
+                    :dataListReset=true
                     title="コース一覧"
                     labelCd="コースCD"
                     labelCdNm="コース名"
@@ -83,6 +84,7 @@
                     bind="CourseEnd"
                     dataUrl="/Utilities/GetCourseList"
                     :params='{ bushoCd: viewModel.BushoCd, courseKbn: viewModel.CourseKbn }'
+                    :dataListReset=true
                     title="コース一覧"
                     labelCd="コースCD"
                     labelCdNm="コース名"
@@ -280,7 +282,7 @@ export default {
                         vue.DAI01070Grid1.vue.exportData("csv");
                     }
                 },
-                { visible: "false", value: "Excel", id: "DAI01070Grid1_CSV", disabled: false, shortcut: "F11",
+                { visible: "false", value: "Excel", id: "DAI01070Grid1_Excel", disabled: false, shortcut: "F11",
                     onClick: function () {
                         vue.DAI01070Grid1.vue.exportData("xlsx");
                     }

@@ -213,6 +213,7 @@ export default {
         buddies: Object,
         dataUrl: String,
         params: Object,
+        dataListReset: Boolean,
         embedded: Boolean,
         container: Object,
         width: Number,
@@ -331,7 +332,7 @@ export default {
 
                     if (vue.isShowAutoComplete) {
                         var list = vue.getAutoCompleteList(newVal.KeyWord);
-                        if (list.length != 0) return;
+                        if (!!list && list.length != 0) return;
                     }
 
                     vue.getDataList(newVal, (res) => {
@@ -504,7 +505,7 @@ export default {
 
                     //データリスト保持
                     if (!!res.length) {
-                        if (!vue.dataList) {
+                        if (!vue.dataList || !!vue.dataListReset) {
                             vue.dataList = res;
                         } else if (!_.isEqual(vue.dataList, res)) {
                             var ins = res.filter(v => !vue.dataList.map(v => v.Cd).includes(v.Cd));
@@ -670,7 +671,8 @@ export default {
                     }
 
                     //入力有り、かつチェック指定されている場合は、存在チェック
-                    vue.isValid = checkValue(!_.isEmpty($.trim(vue.selectValue)) && vue.existsCheck);
+                    // vue.isValid = checkValue(!_.isEmpty($.trim(vue.selectValue)) && vue.existsCheck);
+                    vue.isValid = checkValue((newVal != null && newVal != "") && vue.existsCheck);
                     vue.isUnique = !!rowData;
 
                     //選択行データに設定

@@ -36,6 +36,7 @@
                     :vmodel=viewModel
                     bind="CourseCd"
                     dataUrl="/Utilities/GetCourseList"
+                    :dataListReset=true
                     :params='{ bushoCd: viewModel.BushoCd, courseKbn: viewModel.CourseKbn }'
                     title="コース一覧"
                     labelCd="コースCD"
@@ -118,8 +119,11 @@ export default {
             noViewModel: true,
             viewModel: {
                 BushoCd: null,
+                BushoNm: null,
                 DeliveryDate: null,
                 CourseCd: null,
+                CourseNm: null,
+                CourseKbn: null,
             },
             DAI01080Grid1: null,
             PatternList: null,
@@ -388,10 +392,25 @@ export default {
         onDeliveryDateChanged: function(code, entity) {
             var vue = this;
 
-            //条件変更ハンドラ
-            vue.conditionChanged();
-        },
+            //コース区分変更
+            axios.post(
+                "/Utilities/GetCourseKbnFromDate",
+                {TargetDate: moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD")}
+            )
+                .then(res => {
+                    vue.viewModel.CourseKbn = res.data.コース区分;
 
+                    //条件変更ハンドラ
+                    vue.conditionChanged();
+                })
+                .catch(err => {
+                    console.log(err);
+                    $.dialogErr({
+                        title: "異常終了",
+                        contents: "祝日マスタの検索に失敗しました<br/>",
+                    });
+                });
+        },
         onCourseChanged: function(code, entity) {
             var vue = this;
 

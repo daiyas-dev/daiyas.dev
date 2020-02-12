@@ -40,6 +40,7 @@
                     buddy="CustomerNm"
                     dataUrl="/Utilities/GetCustomerListForSelect"
                     :params="{ CustomerCd: null, KeyWord: null }"
+                    :dataListReset=true
                     :isPreload=true
                     title="得意先一覧"
                     labelCd="得意先CD"
@@ -71,7 +72,9 @@
             :SearchOnCreate=false
             :SearchOnActivate=false
             :options=this.grid1Options
+            :checkChanged=true
             :onAfterSearchFunc=this.onAfterSearchFunc
+            :onCompleteFunc=onCompleteFunc
             :autoToolTipDisabled=true
         />
     </form>
@@ -134,6 +137,7 @@ export default {
                 CustomerNm: null,
             },
             DAI01090Grid1: null,
+            ProductList: [],
             grid1Options: {
                 selectionModel: { type: "cell", mode: "block", row: true, column: true, },
                 showHeader: true,
@@ -149,6 +153,10 @@ export default {
                 columnTemplate: {
                     editable: false,
                     sortable: false,
+                },
+                editModel: {
+                    onSave: null,
+                    onTab: "nextFocus",
                 },
                 filterModel: {
                     on: true,
@@ -203,96 +211,29 @@ export default {
                     }
                 },
                 {visible: "false"},
-                { visible: "true", value: "登録", id: "DAI01090Grid1_Save", disabled: true, shortcut: "F9",
+                { visible: "true", value: "コピー", id: "DAI01090Grid1_Copy", disabled: true, shortcut: "F6",
                     onClick: function () {
                         var grid = vue.DAI01090Grid1;
 
-                        var changes = _.cloneDeep(grid.createSaveParams());
+                        var selected = grid.getSelectionData();
+                        if (_.isArray(selected)) {
+                            selected = selected[0];
+                        }
+                        selected = _.pickBy(selected, (v, k) => k.startsWith("商品_"));
 
-                        var productUpdateList = [];
-                        var patternUpdateList = [];
+                        var startRowIndx = grid.getSelectionRowData().pq_ri;
 
-                        changes.UpdateList.forEach((r, i) => {
-                            var d = diff(changes.OldList[i], r);
+                        var rowList = grid.getData()
+                            .filter(r => r.pq_ri > startRowIndx && r.休日指定 == "0")
+                            .map(r => { return { rowIndx: grid.getRowIndx({rowData: r }).rowIndx,  newRow: selected, }; });
 
-                            _.forIn(d, (v, k) => {
-                                if (k.startsWith("商品_")) {
-                                    var product = {};
-                                    var cd = k.replace("商品_", "");
-                                    product.部署ＣＤ = r.部署ＣＤ;
-                                    product.得意先ＣＤ = r.得意先ＣＤ;
-                                    product.日付 = vue.searchParams.DeliveryDate;
-                                    product.商品ＣＤ = cd;
-                                    product.見込数 = !v ? 0 : (v * 1);
-                                    product.見込入力 = 1;
-                                    product.更新フラグ = 0;
-                                    product.修正日 = r["予測データ更新日時_" + cd];
-
-                                    productUpdateList.push(product);
-
-                                } else if (k == "製造パターン") {
-                                    var pattern = {};
-                                    pattern.部署ＣＤ = r.部署ＣＤ;
-                                    pattern.製造日 = vue.searchParams.DeliveryDate;
-                                    pattern.コースＣＤ = r.コースＣＤ;
-                                    pattern.得意先ＣＤ = r.得意先ＣＤ;
-                                    pattern.製造パターン = r.製造パターン;
-                                    pattern.修正担当者ＣＤ = vue.getLoginInfo().uid;
-                                    pattern.修正日 = r.製造パターン更新日時;
-
-                                    patternUpdateList.push(pattern);
-
-                                }
-                            });
-                        });
-
-                        console.log("01090 save", productUpdateList, patternUpdateList);
-
-                        //保存実行
-                        grid.saveData(
-                            {
-                                uri: "/DAI01090/Save",
-                                params: {
-                                    ProductList: productUpdateList,
-                                    PatternList: patternUpdateList,
-                                },
-                                optional: vue.searchParams,
-                                confirm: {
-                                    isShow: true,
-                                },
-                                done: {
-                                    isShow: false,
-                                    callback: (gridVue, grid, res)=>{
-                                        var compare = vue.onAfterSearchFunc(gridVue, grid, res.edited);
-                                        var d = diff(vue.DAI01090Grid1.getPlainPData(), compare);
-
-                                        _.forIn(d, (v, k) => {
-                                            var r = _.omitBy(v, (vv, kk) => vv == undefined);
-                                            if (_.isEmpty(r)) {
-                                                delete d[k];
-                                            } else {
-                                                d[k] = r;
-                                            }
-                                        })
-
-                                        if (_.isEmpty(d)) {
-                                            grid.commit();
-                                        } else {
-                                            if (res.skipped) {
-                                                $.dialogInfo({
-                                                    title: "登録チェック",
-                                                    contents: "他で変更されたデータがあります。",
-                                                });
-                                            }
-
-                                            grid.blinkDiff(compare, true);
-                                        }
-
-                                        return false;
-                                    },
-                                },
-                            }
-                        );
+                        grid.updateRow({ rowList: rowList });
+                    }
+                },
+                {visible: "false"},
+                { visible: "true", value: "登録", id: "DAI01090Grid1_Save", disabled: true, shortcut: "F9",
+                    onClick: function () {
+                        vue.saveOrder();
                     }
                 },
             );
@@ -302,6 +243,14 @@ export default {
             //TODO
             // vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
             vue.viewModel.DeliveryDate = moment("20190905").format("YYYY年MM月DD日");
+
+            //watcher
+            vue.$watch(
+                "$refs.DAI01090Grid1.isSelection",
+                val => {
+                    vue.footerButtons.find(v => v.id == "DAI01090Grid1_Copy").disabled = !val;
+                }
+            );
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
@@ -354,11 +303,19 @@ export default {
             .then((grid) => {
                 grid.showLoading();
 
-                axios.post("/DAI01090/ColSearch", { BushoCd: vue.viewModel.BushoCd })
-                    .then(response => {
-                        var res = _.cloneDeep(response.data);
+                //事前情報取得
+                axios.all(
+                    [
+                        //列定義の取得
+                        axios.post("/DAI01090/ColSearch", vue.searchParams),
+                        //商品リストの取得
+                        axios.post("/DAI01090/GetProductList", vue.searchParams),
+                    ]
+                ).then(
+                    axios.spread((responseCol, responseProduct) => {
+                        var res = _.cloneDeep(responseCol.data);
 
-                         var newCols = grid.options.colModel
+                        var newCols = grid.options.colModel
                             .filter(v => !!v.fixed)
                             .concat(
                                 res.map((v, i) => {
@@ -390,19 +347,23 @@ export default {
                         grid.refreshCM();
                         grid.refresh();
 
+                        //商品リスト保持
+                        vue.ProductList = responseProduct.data;
+
                         if (!!grid) grid.hideLoading();
 
                         if(callback) callback();
-                    });
+                    })
+                );
             })
-            .catch(error => {
-                console.log(error);
+            .catch(err => {
+                console.log(err);
                 if (!!grid) grid.hideLoading();
 
                 //失敗ダイアログ
                 $.dialogErr({
-                    title: "各種テーブル検索失敗",
-                    contents: "各種テーブル検索に失敗しました" + "<br/>" + error.message,
+                    title: "各種テーブル/商品マスタ検索失敗",
+                    contents: "各種テーブル/商品マスタ検索に失敗しました" + "<br/>" + err.message,
                 });
             });
         },
@@ -420,15 +381,10 @@ export default {
                             (acc, v, j) => {
                                 acc = _.isEmpty(acc) ? _.cloneDeep(v) : acc;
 
-                                // delete acc.商品ＣＤ;
-                                // delete acc.見込数;
-                                // delete acc.CHU商品ＣＤ;
-                                // delete acc.注文数;
-                                // delete acc.注文データ更新日時;
-                                // delete acc.予測データ更新日時;
-
                                 acc["商品_" + v.商品ＣＤ] = (acc["商品_" + v.商品ＣＤ] || 0)
                                                          + (v.売掛現金区分 == 0 ? v.現金個数 : v.掛売個数) * 1;
+
+                                acc["明細行Ｎｏ_" + v.商品ＣＤ] = acc["明細行Ｎｏ_" + v.商品ＣＤ] || v.明細行Ｎｏ;
 
                                 acc["注文データ更新日時_" + v.商品ＣＤ] =
                                     !acc["注文データ更新日時_" + v.商品ＣＤ] ? v.修正日 :
@@ -448,6 +404,13 @@ export default {
             vue.footerButtons.find(v => v.id == "DAI01090Grid1_Save").disabled = !groupings.length;
 
             return groupings;
+        },
+        onCompleteFunc: function(grid, ui) {
+            var vue = this;
+
+            if (grid.pdata.length > 0) {
+                grid.setSelection({ rowIndx: 0, colIndx: 1 });
+            }
         },
         CustomerAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
@@ -485,6 +448,105 @@ export default {
                 ;
 
             return list;
+        },
+        saveOrder: function() {
+            var vue = this;
+            var grid = vue.DAI01090Grid1;
+
+            var changes = _.cloneDeep(grid.createSaveParams());
+
+            var SaveList = [];
+
+            changes.UpdateList.forEach((r, i) => {
+                var orderBase = {
+                    注文区分: 0,
+                    注文日付: !!r.注文日付
+                        ? moment(r.注文日付, "YYYYMMDD").format("YYYY-MM-DD")
+                        : moment(r.配送日).format("YYYY-MM-DD"),
+                    注文時間: r.注文時間 || moment().format("HH:mm:ss"),
+                    部署ＣＤ: vue.viewModel.BushoCd,
+                    得意先ＣＤ: vue.viewModel.CustomerCd,
+                    配送日: r.配送日,
+                    入力区分: 0,
+                    備考１: r.備考１,
+                    備考２: r.備考２,
+                    備考３: r.備考３,
+                    備考４: r.備考４,
+                    備考５: r.備考５,
+                    予備金額２: 0,
+                    予備ＣＤ１: 0,
+                    予備ＣＤ２: 0,
+                    修正担当者ＣＤ: vue.getLoginInfo().uid,
+                };
+
+                var d = diff(changes.OldList[i], r);
+
+                _.forIn(d, (v, k) => {
+                    var cd = k.replace("商品_", "");
+
+                    var product = vue.ProductList.find(p => p.Cd == cd);
+
+                    var order = _.cloneDeep(orderBase);
+
+                    order.商品ＣＤ = cd;
+                    order.商品区分 = product.商品区分;
+                    order.明細行Ｎｏ = r["明細行Ｎｏ_" + cd];
+                    order.現金個数 = r.売掛現金区分 == "0" ? v : null;
+                    order.現金金額 = r.売掛現金区分 == "0" ? v * product.売価単価 : null;
+                    order.掛売個数 = r.売掛現金区分 == "1" ? v : null;
+                    order.掛売金額 = r.売掛現金区分 == "1" ? v * product.売価単価 : null;
+                    order.予備金額１ = product.売価単価;
+                    order.修正日 = r["注文データ更新日時_" + cd];
+
+                    SaveList.push(order);
+                });
+            });
+
+            //保存実行
+            grid.saveData(
+                {
+                    uri: "/DAI01090/Save",
+                    params: {
+                        SaveList: SaveList,
+                    },
+                    optional: this.searchParams,
+                    confirm: {
+                        isShow: true,
+                        title: "確認 " + vue.viewModel.CustomerNm,
+                    },
+                    done: {
+                        isShow: false,
+                        callback: (gridVue, grid, res)=>{
+                            var compare = vue.onAfterSearchFunc(gridVue, grid, res.edited);
+                            var d = diff(vue.DAI01090Grid1.getPlainPData(), compare);
+
+                            _.forIn(d, (v, k) => {
+                                var r = _.omitBy(v, (vv, kk) => vv == undefined);
+                                if (_.isEmpty(r)) {
+                                    delete d[k];
+                                } else {
+                                    d[k] = r;
+                                }
+                            })
+
+                            if (_.isEmpty(d)) {
+                                grid.commit();
+                            } else {
+                                if (res.skipped) {
+                                    $.dialogInfo({
+                                        title: "登録チェック",
+                                        contents: "他で変更されたデータがあります。",
+                                    });
+                                }
+
+                                grid.blinkDiff(compare, true);
+                            }
+
+                            return false;
+                        },
+                    },
+                }
+            );
         },
     }
 }
