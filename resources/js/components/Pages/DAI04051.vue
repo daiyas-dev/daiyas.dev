@@ -261,6 +261,7 @@ export default {
                     onClick: function () {
                         //TODO:登録
                         vue.saveTankaList();
+                        $(this).dialog("close");
                     }
                 }
             );
@@ -464,7 +465,7 @@ export default {
             }
 
             //保存実行
-            var params = {SaveList: SaveList};
+            var params = {SaveList: SaveList, CustomerCd: vue.viewModel.CustomerCd};
             params.noCache = true;
             axios.post("/DAI04051/Save", params)
                 .then(res => {

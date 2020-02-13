@@ -1403,6 +1403,11 @@ export default {
 
                         $("[shortcut='F3']").prop("disabled", true);
                         $("[shortcut='F10']").prop("disabled", true);
+
+                        //TODO:請求先ＣＤと受注得意先ＣＤのエラー解除
+                        // $(vue.$el).find("#BillingSelect").removeClass("has-error");
+                        // $(vue.$el).find("#JuchuCustomerSelect").removeClass("has-error");
+
                         return;
                     }
                 })

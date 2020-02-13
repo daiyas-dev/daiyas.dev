@@ -51,6 +51,9 @@ class DAI04051Controller extends Controller
         // トランザクション開始
         DB::transaction(function () use ($request) {
             $params = $request->all();
+
+            $CustomerCd = $params['CustomerCd'];
+
             $saveList = $params['SaveList'];
 
             $AddList = $saveList['AddList'];
@@ -78,16 +81,23 @@ class DAI04051Controller extends Controller
             }
 
             //AddList
-            //TODO:条件：CDがあればupdate？
             foreach ($AddList as $rec) {
                 $data = $rec;
+                $cnt = DB::table('得意先単価マスタ')
+                    ->where('得意先ＣＤ', $CustomerCd)
+                    ->where('商品ＣＤ', $data['商品ＣＤ'])->count();
 
-                得意先単価マスタ::insert($data);
+                if ($cnt == 0){
+                    得意先単価マスタ::insert($data);
+                }else{
+                    得意先単価マスタ::query()
+                    ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
+                    ->where('商品ＣＤ', $rec['商品ＣＤ'])
+                    ->update($data);
+                }
             }
 
             // //確認用：削除予定
-            // $CustomerCd = $UpdateList[0]['得意先ＣＤ'];
-
             // $query = 得意先単価マスタ::query()
             //     ->when(
             //         $CustomerCd,
