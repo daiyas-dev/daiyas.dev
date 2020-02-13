@@ -196,7 +196,7 @@ export default {
                     on: false,
                     header: false,
                     headerMenu: false,
-                    dataIndx: ["CustomerIndex", "CustomerInfo"],
+                    dataIndx: ["CustomerIndex"],
                     titleDefault: "{0}",
                     collapsed: [false],
                     merge: true,
@@ -213,15 +213,24 @@ export default {
                     {
                         summaryRow: true,
                         pq_fn:{
-                            CustomerInfo: "TRIM('合計')",
-                            Payment: "TRIM('現金')",
+                            "得意先名": "TRIM('合計')",
+                            "その他_個数": "SUMIF(C:C, '現金', D:D)",
+                            "その他_金額": "SUMIF(C:C, '現金', E:E)",
+                            "チケット売": "SUMIF(C:C, '現金', F:F)",
+                            "値引": "SUMIF(C:C, '現金', G:G)",
+                            "現金売上": "SUMIF(C:C, '現金', H:H)",
+                            "入金額": "SUMIF(C:C, '現金', I:I)",
                         }
                     },
                     {
                         summaryRow: true,
                         pq_fn:{
-                            CustomerInfo: "TRIM('')",
-                            Payment: "TRIM('売掛')",
+                            "その他_個数": "SUMIF(C:C, '売掛', D:D)",
+                            "その他_金額": "SUMIF(C:C, '売掛', E:E)",
+                            "チケット売": "SUMIF(C:C, '売掛', F:F)",
+                            "値引": "SUMIF(C:C, '売掛', G:G)",
+                            "現金売上": "SUMIF(C:C, '売掛', H:H)",
+                            "入金額": "SUMIF(C:C, '売掛', I:I)",
                         }
                     },
                 ],
@@ -242,7 +251,7 @@ export default {
                     },
                     {
                         title: "得意先",
-                        dataIndx: "CustomerInfo", dataType: "string",
+                        dataIndx: "得意先名", dataType: "string",
                         width: 150, maxWidth: 1000, minWidth: 150,
                         render: ui => {
                             if (ui.rowData.summaryRow) {
@@ -306,7 +315,7 @@ export default {
                             },
                         ],
                         right: true,
-                        float: true,
+                        float: false,
                         fixed: true,
                     },
                     {
@@ -314,7 +323,7 @@ export default {
                         dataIndx: "チケット売", dataType: "integer",
                         width: 75, minWidth: 75, maxWidth: 75,
                         right: true,
-                        float: true,
+                        float: false,
                         fixed: true,
                     },
                     {
@@ -322,7 +331,7 @@ export default {
                         dataIndx: "値引", dataType: "integer",
                         width: 75, minWidth: 75, maxWidth: 75,
                         right: true,
-                        float: true,
+                        float: false,
                         fixed: true,
                     },
                     {
@@ -343,19 +352,24 @@ export default {
                                     // zero to blank
                                     return ui.rowData[ui.dataIndx] || "";
                                 },
-                                right: true,
-                                float: true,
-                                fixed: true,
                             },
                         ],
                         right: true,
-                        float: true,
+                        float: false,
                         fixed: true,
                     },
                     {
                         title: "入金額",
-                        dataIndx: "入金額", dataType: "integer",
+                        dataIndx: "入金額",
+                        dataType: "integer",
+                        format: "#,##0",
                         width: 75, minWidth: 75, maxWidth: 75,
+                        render: ui => {
+                            if (!ui.rowData[ui.dataIndx]) {
+                                return { text: "" };
+                            }
+                            return ui;
+                        },
                         right: true,
                         fixed: true,
                     },
@@ -366,12 +380,9 @@ export default {
                         colModel: [
                             {
                                 title: "備考",
-                                dataIndx: "備考テキスト",
-                                dataType: "string",
+                                dataIndx: "備考", dataType: "string",
                                 width: 150, minWidth: 150, maxWidth: 150,
-                                right: true,
-                                fixed: true,
-                            },
+                            }
                         ],
                         right: true,
                         fixed: true,
@@ -387,7 +398,11 @@ export default {
             vue.footerButtons.push(
                 { visible: "true", value: "検索", id: "DAI01100Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
-                        vue.DAI01100Grid1.searchData(vue.searchParams);
+                        if (vue.DAI01100Grid1.colModel.some(v => !!v.custom)) {
+                            vue.DAI01100Grid1.searchData(vue.searchParams);
+                        } else {
+                            vue.refreshCols();
+                        }
                     }
                 },
                 {visible: "false"},
@@ -524,6 +539,8 @@ export default {
                             return {
                                 title: v.商品名,
                                 custom: true,
+                                hasSummary: true,
+                                cd: v.商品ＣＤ,
                                 colModel: [
                                     {
                                         title: "個数",
@@ -560,6 +577,26 @@ export default {
                             0,
                             ...productCols
                         );
+
+                        //合計行設定
+                        newCols.forEach((c, i) => {
+                            if (!!c.hasSummary) {
+                                var cidx = i * 2 - 3;
+                                var getCN = v => String.fromCharCode("A".charCodeAt() + v);
+                                var getRange = v => {
+                                    var intVal = Math.floor(v / 26);
+                                    var modVal = v % 26;
+                                    var cn = (intVal > 0 ? getCN(intVal - 1) : "") + (intVal > 0 || modVal > 0 ? getCN(modVal) : "");
+                                    var range = cn + ":" + cn;
+                                    return range;
+                                };
+
+                                grid.options.summaryData[0].pq_fn["個数_" + c.cd] = "SUMIF(C:C, '現金', " + getRange(cidx) + ")";
+                                grid.options.summaryData[1].pq_fn["個数_" + c.cd] = "SUMIF(C:C, '売掛', " + getRange(cidx) + ")";
+                                grid.options.summaryData[0].pq_fn["金額_" + c.cd] = "SUMIF(C:C, '現金', " + getRange(cidx + 1) + ")";
+                                grid.options.summaryData[1].pq_fn["金額_" + c.cd] = "SUMIF(C:C, '売掛', " + getRange(cidx + 1) + ")";
+                            }
+                        });
 
                         //列定義更新
                         grid.options.colModel = newCols;
@@ -634,8 +671,8 @@ export default {
                                 acc.得意先名 = v.得意先名;
                                 acc.得意先売掛現金区分 = v.得意先売掛現金区分;
                                 acc.得意先売掛現金区分名称 = v.得意先売掛現金区分名称;
-                                acc.入金額 = v.入金額;
-                                acc.備考 = v.備考;
+                                acc.入金額 = (acc.入金額 || 0) + v.入金額 * 1;
+                                acc.備考 = (acc.備考 || "") + ((v.売掛現金区分 == 0 ? v.備考 : v.備考テキスト) || "");
 
                                 acc.売掛現金区分 = v.売掛現金区分;
                                 acc.売掛現金区分名称 = v.売掛現金区分名称;
@@ -651,7 +688,6 @@ export default {
                                     + (v.売掛現金区分 == 0 ? v.現金金額 : v.掛売金額 ) * 1;
 
                                 acc.CustomerIndex = acc.CustomerIndex || parseInt(i / 2 + 1);
-                                acc.CustomerInfo = acc.CustomerInfo || (v.得意先ＣＤ + "\t" + v.売掛現金区分名称 + "\r\n" + v.得意先名);
 
                                 return acc;
                             },
@@ -665,13 +701,19 @@ export default {
             //mergeCellsの設定
             grid.options.mergeCells = _.flattenDeep(res.filter((r, i) => !(i % 2))
                 .map((r, i) => {
-                    var checkedCol = grid.options.colModel.filter(c => c.dataIndx == "Checked")[0];
-                    var checkStateCol = grid.options.colModel.filter(c => c.dataIndx == "CheckState")[0];
                     return [
                         { r1: i * 2, c1: 0, rc: 2, cc: 1 },
                         { r1: i * 2, c1: 1, rc: 2, cc: 1 },
-                        // { r1: i * 2, c1: checkedCol.leftPos, rc: 2, cc: 1 },
-                        // { r1: i * 2, c1: checkStateCol.leftPos, rc: 2, cc: 1 },
+                    ];
+                })
+            );
+
+            grid.gridRight.options.mergeCells = _.flattenDeep(res.filter((r, i) => !(i % 2))
+                .map((r, i) => {
+                    var checkedCol = grid.options.colModel.filter(c => c.dataIndx == "Checked")[0];
+                    var checkStateCol = grid.options.colModel.filter(c => c.dataIndx == "CheckState")[0];
+                    return [
+                        // { r1: i * 2, c1: 8, rc: 2, cc: 1 },
                     ];
                 })
             );
