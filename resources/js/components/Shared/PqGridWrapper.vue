@@ -101,6 +101,7 @@ export default {
         isMultiRowSelectable: Boolean,
         maxRowSelectCount: Number,
         autoToolTipDisabled:Boolean,
+        setCustomTitle: Function,
     },
     computed: {
         isDialog: function() {
@@ -690,13 +691,16 @@ export default {
                     }
 
                     //セル内Autocomplete設定の共通化
-                    if (ui.column.autocomplete) {
-                        ui.column.cls = "pq-dropdown pq-side-icon";
+                    if (!!ui.column.autocomplete) {
                         ui.column.editor = {
                             type: "textbox",
                             init:  function (ui){
                                 var $input = ui.$cell.find("input");
                                 var config = ui.column.autocomplete;
+
+                                console.log("Autocomplete init", ui.rowIndx, config, config.trigger(ui));
+                                if (!!config.trigger && config.trigger(ui) == false) return;
+
                                 var rowData = ui.rowData;
 
                                 var source = config.source;
@@ -793,7 +797,7 @@ export default {
                                                 })
                                                 ;
 
-                                        var match = list.find(v => v.Cd == key);
+                                        var match = list.find(v => v == key || v.Cd == key);
 
                                         if (!!match) {
                                             //エラー項目設定除去
@@ -808,10 +812,19 @@ export default {
                                                 _.forIn(config.buddies, (v, k) => ui.rowData[k] = match[v]);
 
                                                 console.log("autocomplete closed", _.pick(ui.rowData, _.keys(config.buddies)));
-                                                if (!!config.onSelect) config.onSelect(ui.rowData);
+                                            }
+
+                                            if (!!config.onSelect) config.onSelect(ui.rowData);
+
+                                            if (config.selectSave) {
+                                                ui.$editor.trigger($.Event("keydown", {
+                                                    keyCode: 13,
+                                                    which: 13,
+                                                }));
                                             }
                                         } else {
                                             if (key == "" || event.which == 27) return;
+                                            if (!!config.noCheck) return;
 
                                             var msg = list.length > 1　? "対象で複数に該当します"　: "対象に存在しません";
 
@@ -825,6 +838,8 @@ export default {
                                 }).focus(function () {
                                     $(this).autocomplete("search", "");
                                 });
+
+                                ui.column.cls = "pq-dropdown pq-side-icon";
                             }
                         }
                         ui.column.postRender = function (ui) {
@@ -903,7 +918,7 @@ export default {
                         grid.options.title = "件数: " + grid.getData().length;
                     }
                     if (vue.setCustomTitle) {
-                        grid.options.title += vue.setCustomTitle();
+                        grid.options.title = vue.setCustomTitle(grid.options.title);
                     }
                     grid._refreshTitle();
                 }
@@ -3083,8 +3098,12 @@ export default {
         scrollBoth: _.debounce(function(val) {
             var vue = this;
 
-            vue.grid.scrollY(val);
-            vue.gridRight.scrollY(val);
+            if (val != vue.prevScrollValue) {
+                vue.prevScrollValue = val;
+
+                vue.grid.scrollY(val);
+                vue.gridRight.scrollY(val);
+            }
         }, 0),
         addRow: function(rowIndx, newRow) {
             var vue = this;
