@@ -649,7 +649,7 @@ export default {
                 isModal: true,
                 isChild: true,
                 resizable: false,
-                width: 1000,
+                width: 880,
                 height: 600,
             });
         },
