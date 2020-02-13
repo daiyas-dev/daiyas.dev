@@ -793,12 +793,12 @@ export default {
                                                 })
                                                 ;
 
-                                        var match = list.length == 1 ? list[0] : list.find(v => v.Cd == key);
+                                        var match = list.find(v => v.Cd == key);
 
                                         if (!!match) {
-                                            ui.$cell
-                                                .removeClass("has-error")
-                                                .tooltip("dispose");
+                                            //エラー項目設定除去
+                                            ui.rowData.pq_inputErrors = ui.rowData.pq_inputErrors || {};
+                                            delete ui.rowData.pq_inputErrors[ui.dataIndx];
 
                                             if (!!config.buddy) {
                                                 ui.rowData[config.buddy] = match.CdNm;
@@ -816,16 +816,8 @@ export default {
                                             var msg = list.length > 1　? "対象で複数に該当します"　: "対象に存在しません";
 
                                             //エラー項目設定
-                                            ui.$cell
-                                                .addClass("has-error")
-                                                .tooltip({
-                                                    animation: false,
-                                                    placement: "auto",
-                                                    trigger: "hover",
-                                                    title: msg,
-                                                    container: "body",
-                                                    template: '<div class="tooltip has-error" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>'
-                                                });
+                                            ui.rowData.pq_inputErrors = ui.rowData.pq_inputErrors || {};
+                                            ui.rowData.pq_inputErrors[ui.dataIndx] = msg;
                                         }
 
                                         return true;
@@ -835,6 +827,33 @@ export default {
                                 });
                             }
                         }
+                        ui.column.postRender = function (ui) {
+                            var grid = this;
+                            var vue = grid.options.vue;
+
+                            var gridCell = $(ui.cell);
+
+                            ui.rowData.pq_inputErrors = ui.rowData.pq_inputErrors || {};
+                            var inputError = ui.rowData.pq_inputErrors[ui.dataIndx];
+                            if (inputError) {
+                                gridCell
+                                    .addClass("ui-state-error")
+                                    .tooltip({
+                                        animation: false,
+                                        placement: "auto",
+                                        trigger: "hover",
+                                        title: inputError,
+                                        container: "body",
+                                        template: '<div class="tooltip has-error" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>'
+                                    });
+                            } else {
+                                gridCell
+                                    .removeClass("ui-state-error")
+                                    .tooltip("dispose");
+                            }
+
+                            return ui;
+                        };
                     }
 
                     return ui;
@@ -1641,7 +1660,7 @@ export default {
                         });
 
                     rightOptions.numberCell = { show: false };
-                    rightOptions.width = rightColsWidth + 55;
+                    rightOptions.width = rightColsWidth + 28;
                     rightOptions.dataModel.location = "local";
 
                     widget.parent().addClass("d-flex");
