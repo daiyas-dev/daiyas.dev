@@ -165,6 +165,7 @@
                                 :onAfterChangedFunc=onBankBranchChanged
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=BankBranchAutoCompleteFunc
+                                :dataListReset=true
                             />
                         </div>
                     </div>
@@ -269,6 +270,7 @@
                                 :onAfterChangedFunc=onBankBranchChanged
                                 :isShowAutoComplete=true
                                 :AutoCompleteFunc=BankBranchAutoCompleteFunc
+                                :dataListReset=true
                             />
                         </div>
                     </div>

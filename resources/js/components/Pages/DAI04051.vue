@@ -19,7 +19,7 @@
                     labelCdNm="得意先名"
                     :isShowName=true
                     :isModal=true
-                    :editable=true
+                    :editable=false
                     :reuse=true
                     :existsCheck=true
                     :inputWidth=100
@@ -203,7 +203,7 @@ export default {
                     },
                     {
                         title: "修正日",
-                        dataIndx: "修正日", dataType: "date", format: "YYYY/MM/DD HH:mm:ss",
+                        dataIndx: "修正日", dataType: "date", format: "yyyy/MM/dd HH:mm:ss",
                         width: 150, maxWidth: 200, minWidth: 150,
                     },
                 ],
@@ -420,11 +420,8 @@ export default {
             var vue = this;
             var grid = vue.DAI04051Grid1;
 
-            //var checkError = grid => !!grid.widget().find(".has-error").length || !!grid.widget().find(".ui-state-error").length;
-            //var hasError = checkError(grid);
-            var hasError = !!grid.widget().find(".has-error").length || !!grid.widget().find(".ui-state-error").length;
+            var hasError = !!$(vue.$el).find(".has-error").length || !!grid.widget().find(".ui-state-error").length;
 
-            //TODO:エラー未確認
             if(hasError){
                 $.dialogErr({
                     title: "入力値エラー",
@@ -433,26 +430,13 @@ export default {
                 return;
             }
 
-            //TODO:不要？
-            // var checkRequire = grid => grid.pdata.map(r => [r.商品ＣＤ]).every(r => r.every(v => !!v) || r.every(v => !v));
-
-            // var require = checkRequire(grid);
-
-            // if(!require){
-            //     $.dialogErr({
-            //         title: "未入力項目",
-            //         contents: "未入力項目があるため、登録できません。",
-            //     });
-            //     return;
-            // }
-
             var SaveList = _.cloneDeep(grid.createSaveParams());
 
             //商品ＣＤ未指定は除外。データの整形。
             _.forIn(SaveList,
                 (v, k) => {
                     var list = v.filter(r => {
-                        return r.商品ＣＤ != null && r.商品ＣＤ != undefined;
+                        return r.商品ＣＤ != null && r.商品ＣＤ != undefined　&& r.商品ＣＤ != "";
                     })
                     .map(r => {
                         r.得意先ＣＤ = vue.viewModel.CustomerCd;
@@ -479,12 +463,13 @@ export default {
             }
 
             //保存実行
-            var params = {SaveList: SaveList};
+            var params = {SaveList: SaveList, CustomerCd: vue.viewModel.CustomerCd};
             params.noCache = true;
             axios.post("/DAI04051/Save", params)
                 .then(res => {
                     console.log("res", res);
-                    //TODO:画面を閉じる
+                    //画面を閉じる
+                    $(vue.$el).closest(".ui-dialog-content").dialog("close");
                 })
                 .catch(err => {
                     console.log(error);
