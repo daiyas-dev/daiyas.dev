@@ -420,9 +420,9 @@ export default {
             var vue = this;
             var grid = vue.DAI04051Grid1;
 
-            var checkError = grid => !!grid.widget().find(".has-error").length || !!grid.widget().find(".ui-state-error").length;
-
-            var hasError = checkError(grid);
+            //var checkError = grid => !!grid.widget().find(".has-error").length || !!grid.widget().find(".ui-state-error").length;
+            //var hasError = checkError(grid);
+            var hasError = !!grid.widget().find(".has-error").length || !!grid.widget().find(".ui-state-error").length;
 
             //TODO:エラー未確認
             if(hasError){
