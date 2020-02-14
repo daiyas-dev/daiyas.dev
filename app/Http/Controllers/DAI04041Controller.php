@@ -103,4 +103,77 @@ class DAI04041Controller extends Controller
         return response()->json($CustomerList);
     }
 
+    /**
+     * GetCourseListForCustomer
+     */
+    public function GetCourseListForCustomer($request)
+    {
+        $CustomerCd = $request->CustomerCd;
+        $BushoCd = $request->BushoCd;
+
+        $sql = "
+            SELECT
+                コースマスタ.コース区分,
+                各種テーブル.各種名称,
+                コーステーブル.コースＣＤ,
+                コースマスタ.コース名
+
+            FROM [コーステーブル]
+
+            INNER JOIN [コースマスタ]
+                ON コースマスタ.コースＣＤ = コーステーブル.コースＣＤ
+                AND コースマスタ.部署ＣＤ = コーステーブル.部署ＣＤ
+
+                INNER JOIN [得意先マスタ]
+                ON 得意先マスタ.得意先ＣＤ = コーステーブル.得意先ＣＤ
+                AND 得意先マスタ.部署ＣＤ = コーステーブル.部署ＣＤ
+
+            INNER JOIN [各種テーブル]
+                ON 各種テーブル.各種CD = 19
+                AND 各種テーブル.行NO = コースマスタ.コース区分
+
+            WHERE
+                コーステーブル.得意先ＣＤ = $CustomerCd
+                AND コーステーブル.部署ＣＤ = $BushoCd
+
+            ORDER BY コースマスタ.コース区分,コーステーブル.コースＣＤ
+        ";
+
+        $CourseList = DB::select($sql);
+
+        return response()->json($CourseList);
+    }
+
+    /**
+     * GetFreeCustomerCdList
+     */
+    public function GetFreeCustomerCdList($request)
+    {
+        $StartNo = $request->StartNo;
+        $EndNo = $request->EndNo;
+
+        $sql = "
+            WITH CTE(連番) AS
+            (
+                SELECT $StartNo UNION ALL SELECT 連番 + 1 FROM CTE
+            )
+
+            SELECT T1.digits
+            FROM ( SELECT TOP 50000 連番 AS digits FROM CTE ) T1
+
+            LEFT OUTER JOIN 得意先マスタ TOK
+                ON T1.digits = TOK.得意先ＣＤ
+
+            WHERE
+                T1.digits BETWEEN $StartNo AND $EndNo
+                AND TOK.得意先ＣＤ IS NULL
+
+            ORDER BY digits
+            OPTION (MAXRECURSION 0)
+        ";
+
+        $CdList = DB::select($sql);
+
+        return response()->json($CdList);
+    }
 }

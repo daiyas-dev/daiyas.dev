@@ -8,6 +8,7 @@
                 <label>得意先ＣＤ</label>
                 <input class="form-control text-right" type="text"
                     id="CustomerCd"
+                    ref="CustomerCd"
                     v-model=viewModel.得意先ＣＤ
                     :readonly=!viewModel.IsNew
                     :tabindex="viewModel.IsNew ? 0 : -1"
@@ -246,10 +247,10 @@
             <div class="col-md-3" style="align-items: start;">
                 <div class="row">
                     <div class="col-md-12 m-4">
-                        <button type="button" class="btn btn-primary mr-2" style="width:110px; height: 50px;">
+                        <button type="button" class="btn btn-primary mr-2" style="width:110px; height: 50px;" @click="showCourse">
                             コース表示
                         </button>
-                        <button type="button" class="btn btn-primary mr-2" style="width:120px; height: 50px;">
+                        <button type="button" class="btn btn-primary mr-2" style="width:120px; height: 50px;" @click="showFreeCustomerCd" :disabled="!!viewModel.得意先ＣＤ">
                             空き番号表示
                         </button>
                     </div>
@@ -1405,19 +1406,21 @@ export default {
                         });
                         $("[shortcut='F3']").prop("disabled", false);
                     }else{
-                        //TODO:入力した得意先ＣＤを反映
-                        DAI04041.$refs.PopupSelect_Billing.setSelectValue(vue.viewModel.得意先ＣＤ);
-                        DAI04041.$refs.PopupSelect_JuchuCustomer.setSelectValue(vue.viewModel.得意先ＣＤ)
-                        vue.viewModel.受注方法 = "2";
-                        vue.viewModel.納品書発行区分 = "1";
-                        vue.viewModel.空き容器回収区分 = "2";
-                        vue.viewModel.祝日配送区分 = "1";
-                        vue.viewModel.請求書敬称 = "2";
-                        vue.HolidayConfig.日 = "1";
+                        vue.setNewCustomerCd();
 
-                        $("[shortcut='F3']").prop("disabled", true);
+                        // //TODO:入力した得意先ＣＤを反映
+                        // DAI04041.$refs.PopupSelect_Billing.setSelectValue(vue.viewModel.得意先ＣＤ);
+                        // DAI04041.$refs.PopupSelect_JuchuCustomer.setSelectValue(vue.viewModel.得意先ＣＤ);
+                        // vue.viewModel.受注方法 = "2";
+                        // vue.viewModel.納品書発行区分 = "1";
+                        // vue.viewModel.空き容器回収区分 = "2";
+                        // vue.viewModel.祝日配送区分 = "1";
+                        // vue.viewModel.請求書敬称 = "2";
+                        // vue.HolidayConfig.日 = "1";
 
-                        return;
+                        // $("[shortcut='F3']").prop("disabled", true);
+
+                        // return;
                     }
                 })
                 .catch(err => {
@@ -1725,6 +1728,16 @@ export default {
         showHistory: function() {
             var vue = this;
 
+            //修正はparamsから、新規はviewmodelから、両方空なら表示不可とする
+            var cds = !!vue.params.得意先CD ? vue.params.得意先CD : (!!vue.viewModel.得意先ＣＤ ? vue.viewModel.得意先ＣＤ : "");
+            if(!cds){
+                $.dialogErr({
+                    title: "履歴表示不可",
+                    contents: "得意先CDが入力されていません。",
+                })
+                return;
+            }
+
             vue.showColumns = [
                     { title: "状態", dataIndx: "状態", dataType: "string", width: 80, maxWidth: 80, minWidth: 80, colIndx: 0 },
                     { title: "承認日", dataIndx: "承認日", dataType: "string", width: 90, maxWidth: 90, minWidth: 90, colIndx: 1 },
@@ -1733,21 +1746,10 @@ export default {
                     { title: "失客日", dataIndx: "失客日", dataType: "string", width: 90, maxWidth: 90, minWidth: 90, colIndx: 4 },
                     { title: "営業担当者", dataIndx: "営業担当者", dataType: "string", width: 100, maxWidth: 120, minWidth: 100, colIndx: 5 },
                     { title: "処理日", dataIndx: "処理日", dataType: "string", width: 90, maxWidth: 90, minWidth: 90, colIndx: 6 },
-                    { title: "登録担当者", dataIndx: "登録担当者", dataType: "string", width: 100, maxWidth: 120, minWidth: 100, colIndx: 7 },
+                    { title: "登録担当者", dataIndx: "登録担当者", dataType: "string", width: 100, maxWidth: 150, minWidth: 100, colIndx: 7 },
                     { title: "Cd", dataIndx: "Cd", dataType: "string", hidden: true, colIndx: 8 },
                     { title: "CdNm", dataIndx: "CdNm", dataType: "string", hidden: true, colIndx: 9 },
             ];
-
-            //修正はparamsから、新規はviewmodelから、両方空なら表示不可とする
-            var cds = !!vue.params.得意先CD ? vue.params.得意先CD : (!!vue.viewModel.得意先ＣＤ ? vue.viewModel.得意先ＣＤ : "");
-
-            if(!cds){
-                $.dialogErr({
-                    title: "履歴表示不可",
-                    contents: "得意先CDが入力されていません。",
-                })
-                return;
-            }
 
             PageDialog.showSelector({
                 dataUrl: "/Utilities/GetCustomerHistoryList",
@@ -1948,6 +1950,73 @@ export default {
             );
             console.log("登録", params);
         },
-    }
+        showCourse: function() {
+            var vue = this;
+            var cds = vue.viewModel.得意先ＣＤ;
+            if(!cds){
+                $.dialogErr({
+                    title: "コース検索表示不可",
+                    contents: "得意先CDが入力されていません。",
+                })
+                return;
+            }
+
+            vue.showColumns = [
+                    { title: "区分", dataIndx: "コース区分", dataType: "string", width: 50, maxWidth: 50, minWidth: 50, colIndx: 0 },
+                    { title: "区分名称", dataIndx: "各種名称", dataType: "string", width: 90, maxWidth: 90, minWidth: 90, colIndx: 1 },
+                    { title: "コースCD", dataIndx: "コースＣＤ", dataType: "string", width: 90, maxWidth: 90, minWidth: 90, colIndx: 2 },
+                    { title: "コース名", dataIndx: "コース名", dataType: "string", width: 250, maxWidth: 300, minWidth: 200, colIndx: 3 },
+                    { title: "Cd", dataIndx: "Cd", dataType: "string", hidden: true, colIndx: 4 },
+                    { title: "CdNm", dataIndx: "CdNm", dataType: "string", hidden: true, colIndx: 5 },
+            ];
+
+            var params = {CustomerCd: cds, BushoCd: vue.viewModel.部署CD}
+            PageDialog.showSelector({
+                dataUrl: "/DAI04041/GetCourseListForCustomer",
+                params: params,
+                title: "コース検索",
+                isModal: true,
+                showColumns: vue.showColumns,
+                width: 600,
+                height: 400,
+                reuse: true,
+            });
+        },
+        showFreeCustomerCd: function() {
+            var vue = this;
+            var cds = vue.viewModel.得意先ＣＤ;
+            if(!!cds) return;
+
+            //DAI04043を子画面表示
+            PageDialog.show({
+                pgId: "DAI04043",
+                isModal: true,
+                isChild: true,
+                resizable: false,
+                width: 380,
+                height: 380,
+            });
+        },
+        setNewCustomerCd: function() {
+            console.log("てすと");
+            var vue = this;
+            var cd = vue.viewModel.得意先ＣＤ;
+
+            //TODO:入力した得意先ＣＤを反映
+            DAI04041.$refs.PopupSelect_Billing.setSelectValue(cd);
+            DAI04041.$refs.PopupSelect_JuchuCustomer.setSelectValue(cd);
+            vue.viewModel.受注方法 = "2";
+            vue.viewModel.納品書発行区分 = "1";
+            vue.viewModel.空き容器回収区分 = "2";
+            vue.viewModel.祝日配送区分 = "1";
+            vue.viewModel.請求書敬称 = "2";
+            vue.HolidayConfig.日 = "1";
+
+            $("[shortcut='F3']").prop("disabled", true);
+
+            return;
+
+        }
+    },
 }
 </script>
