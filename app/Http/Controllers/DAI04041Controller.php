@@ -167,6 +167,7 @@ class DAI04041Controller extends Controller
             WHERE
                 T1.digits BETWEEN $StartNo AND $EndNo
                 AND TOK.得意先ＣＤ IS NULL
+                AND T1.digits <> 0
 
             ORDER BY digits
             OPTION (MAXRECURSION 0)

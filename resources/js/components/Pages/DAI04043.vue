@@ -19,7 +19,7 @@
                     :readonly=false
                     maxlength="7"
                     v-int
-                    @input="searchFreeCd"
+                    @focusout="searchFreeCd"
                 >
             </div>
             <div class="col-md-3">
@@ -155,42 +155,44 @@ export default {
 
             return res;
         },
-        searchFreeCd: _.debounce(function() {
+        searchFreeCd: function() {
             var vue = this;
             var grid = vue.DAI04043Grid1;
 
-            //EndNoがないときは検索しない
-            if (!!grid && vue.getLoginInfo().isLogOn && !!vue.viewModel.EndNo) {
+            //アルファベットの除去、nullは0
+            var regex = /[^0-9]/;
+            vue.viewModel.StartNo = regex.test(vue.viewModel.StartNo) ? 0 : vue.viewModel.StartNo || 0;
+            vue.viewModel.EndNo = regex.test(vue.viewModel.EndNo) ? 0 : vue.viewModel.EndNo || 0;
+
+            if (!!grid && vue.getLoginInfo().isLogOn) {
                 var params = {StartNo: vue.viewModel.StartNo, EndNo: vue.viewModel.EndNo};
                 grid.searchData(params, false);
             }
-        }, 300),
+        },
         selectFreeCd: function(rowData) {
             var vue = this;
             var grid = vue.DAI04043Grid1;
             if(!grid) return;
 
-            if(grid.pdata.length == 0){
-                console.log('ゼロ件');
-                return;
-            }else{
-                //TODO:確認中、選択行が取得できてない
-                var rows = grid.selectRow().getSelection();
-                if(rows.length != 1) return;
+            //検索結果0件
+            if(grid.pdata.length == 0) return;
 
-                params = _.cloonDeep(rows[0]);
+            var params;
+            var rows = grid.SelectRow().getSelection();
+
+            //複数件選択
+            if(rows.length > 1) return;
+
+            if(rows.length == 1){
+                params = _.cloneDeep(rows[0].rowData.digits);
+            }else{
+                //未選択 -> 1行目の値を採用
+                params = !!rowData.digits ? rowData.digits: grid.pdata[0].digits;
             }
 
-            //TODO:選択行の番号を代入する。未選択なら一行目の番号を代入。
+            //元の画面に値をセット
+            vue.params.setCustomerCd(params);
 
-        },
-        setNewCustomerCd: function() {
-            //TODO:選択行の番号を代入する。未選択なら一行目の番号を代入。
-            var cd = res[0].digits
-            DAI04041.viewModel.得意先ＣＤ = cd;
-            DAI04041.setNewCustomerCd();
-
-            var vue = this;
             //画面を閉じる
             $(vue.$el).closest(".ui-dialog-content").dialog("close");
         },

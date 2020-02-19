@@ -834,7 +834,7 @@
                             </div>
                             <div class="col-md-12">
                                 <textarea class="form-control ml-1 mr-1 p-1 memo" type="text" v-model=viewModel.備考１
-                                    v-maxBytes="80">
+                                    v-maxBytes="100">
                                 </textarea>
                             </div>
                             <div class="col-md-12" >
@@ -842,7 +842,7 @@
                             </div>
                             <div class="col-md-12">
                                 <textarea class="form-control ml-1 mr-1 p-1 memo" type="text" v-model=viewModel.備考２
-                                    v-maxBytes="80">
+                                    v-maxBytes="100">
                                 </textarea>
                             </div>
                             <div class="col-md-12" >
@@ -850,7 +850,7 @@
                             </div>
                             <div class="col-md-12">
                                 <textarea class="form-control ml-1 mr-1 p-1 memo" type="text" v-model=viewModel.備考３
-                                    v-maxBytes="80">
+                                    v-maxBytes="100">
                                 </textarea>
                             </div>
                         </div>
@@ -1148,6 +1148,7 @@ export default {
     methods: {
         createdFunc: function(vue) {
             if(this.params.IsNew == false || !this.params.IsNew){
+                //修正
                 var param = {CustomerCd: vue.viewModel.得意先CD};
                 param.noCache = true;
                 axios.post("/Utilities/GetCustomerList", param)
@@ -1164,7 +1165,7 @@ export default {
                     }
                 );
             } else {
-
+                //新規
                 //初期値
                 vue.viewModel.状態区分 = "30";
                 vue.viewModel.支払方法１ = "1";
@@ -1185,7 +1186,7 @@ export default {
                         console.log(vue.$attrs.id, evt.target.outerText, $(evt.target).attr("shortcut"));
                     }
                 },
-                { visible: "true", value: "削除", id: "DAI04041_Delete", disabled: false, shortcut: "F3",
+                { visible: "true", value: "削除", id: "DAI04041_Delete", disabled: true, shortcut: "F3",
                     onClick: function (evt) {
                         //TODO: 削除
                         var cd = vue.viewModel.得意先ＣＤ;
@@ -1229,101 +1230,21 @@ export default {
                     }
                 },
                 {visible: "false"},
-                { visible: "true", value: "履歴表示", id: "DAI04040_History", disabled: false, shortcut: "F5",
+                { visible: "true", value: "履歴表示", id: "DAI04041_History", disabled: true, shortcut: "F5",
                     onClick: function () {
                         vue.showHistory();
                     }
                 },
-                { visible: "true", value: "分配先登録", id: "DAI04040_Bunpaisaki", disabled: false, shortcut: "F6",
+                { visible: "true", value: "分配先登録", id: "DAI04041_Bunpaisaki", disabled: true, shortcut: "F6",
                     onClick: function () {
                         vue.showBunpaisaki();
                     }
                 },
                 {visible: "false"},
                 {visible: "false"},
-              　{ visible: "true", value: "登録", id: "DAI04041Grid1_Save", disabled: false, shortcut: "F9",
+              　{ visible: "true", value: "登録", id: "DAI04041_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         vue.saveTokuisaki();
-
-                        // if(!vue.viewModel.得意先ＣＤ || !vue.viewModel.得意先名){
-                        //     $.dialogErr({
-                        //         title: "登録不可",
-                        //         contents: [
-                        //             !vue.viewModel.得意先ＣＤ ? "得意先ＣＤが入力されていません。<br/>" : "",
-                        //             !vue.viewModel.得意先名 ? "得意先名が入力されていません。<br/>" : ""
-                        //         ]
-                        //     })
-                        //     if(!vue.viewModel.得意先ＣＤ){
-                        //         $(vue.$el).find("#CustomerCd").addClass("has-error");
-                        //     }else{
-                        //         $(vue.$el).find("#CustomerCd").removeClass("has-error");
-                        //     }
-                        //     if(!vue.viewModel.得意先名){
-                        //         $(vue.$el).find("#CustomerNm").addClass("has-error");
-                        //     }else{
-                        //         $(vue.$el).find("#CustomerNm").removeClass("has-error");
-                        //     }
-                        //     return;
-                        // }
-
-                        // var params = _.cloneDeep(vue.viewModel);
-
-                        // //金融機関CD: nullの0置換
-                        // params.金融機関CD = params.金融機関CD || 0;
-                        // params.金融機関支店CD = params.金融機関支店CD || 0;
-
-                        // if(!!vue.$refs.DatePicker_TakeoutTime.vmodel.発信時間){
-                        //     params.電話確認時間_時 = Number(vue.$refs.DatePicker_TakeoutTime.vmodel.発信時間.slice(0,2));
-                        //     params.電話確認時間_分 = Number(vue.$refs.DatePicker_TakeoutTime.vmodel.発信時間.slice(3,5));
-                        // }else{
-                        //     params.電話確認時間_時 = 0;
-                        //     params.電話確認時間_分 = 0;
-                        // }
-
-                        // params.電話確認区分 = 0;
-                        // params.締日１ = params.締日１ || 0;
-                        // params.締日２ = params.締日２ || 0;
-                        // params.支払日 = params.支払日 || 0;
-                        // params.支払方法２ = params.支払方法１== "1" ? params.支払方法２ : null;
-                        // params.記号番号 = params.集金区分 == "1" ? params.記号番号 : null;
-                        // params.集金手数料 = params.集金手数料 || 0;
-                        // params.チケット枚数 = params.チケット枚数 || 0;
-                        // params.サービスチケット枚数 = params.サービスチケット枚数 || 0;
-                        // params.営業担当者ＣＤ = params.営業担当者ＣＤ || 0;
-                        // params.獲得営業者ＣＤ = params.獲得営業者ＣＤ || 0;
-                        // params.登録担当者ＣＤ = params.登録担当者ＣＤ || params.userId;
-                        // params.配送ｸﾞﾙｰﾌﾟＣＤ = params.配送ｸﾞﾙｰﾌﾟＣＤ || 0;
-                        // params.請求書区分別頁 = 0;
-                        // params.請求内訳区分 = 0;
-                        // params.ＷＥＢ表示区分 = 0;
-                        // params.取扱区分 = 0;
-                        // params.ＩＤ = "";
-                        // params.パスワード = "";
-                        // params.承認日 = !!params.承認日 ? moment(vue.viewModel.承認日,"YYYY-MM-DD").format("YYYY-MM-DD HH:mm:ss.SSS") : "";
-                        // params.受注顧客区分 = "";
-                        // params.休日設定 = _.values(vue.HolidayConfig).join().toString().replace(/,/g,"");
-                        // params.新規登録日 = !!params.新規登録日 ? moment(vue.viewModel.新規登録日,"YYYY-MM-DD").format("YYYY-MM-DD HH:mm:ss.SSS") : "";
-                        // params.税処理 = 0;
-                        // params.失客日 = !!params.失客日 ? moment(vue.viewModel.失客日,"YYYY-MM-DD").format("YYYYMMDD") : "";
-
-                        // params.修正担当者ＣＤ = params.userId;
-                        // params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
-
-                        // $(vue.$el).find(".has-error").removeClass("has-error");
-
-                        // //TODO: 登録用controller method call
-                        // axios.post("/DAI04041/Save", params)
-                        //     .then(res => {
-                        //         vue.viewModel = res.data.model;
-                        //         DAI04040.conditionChanged();
-                        //     })
-                        //     .catch(err => {
-                        //         console.log(error);
-                        //         //TODO: エラー
-                        //     }
-                        // );
-                        // console.log("登録", params);
-                        $(this).dialog("close");
                     }
                 },
                 { visible: "true", value: "単価登録", id: "DAI04041_Tanka", disabled: false, shortcut: "F10",
@@ -1333,6 +1254,14 @@ export default {
                 },
                 {visible: "false"},
             );
+
+            if(this.params.IsNew == false || !this.params.IsNew){
+                //修正時：ボタン制御
+                $("[shortcut='F3']").prop("disabled", false);
+                $("[shortcut='F5']").prop("disabled", false);
+                $("[shortcut='F6']").prop("disabled", false);
+            }
+
         },
         mountedFunc: function(vue) {
             $(vue.$el).parents("div.body-content").addClass("Scrollable");
@@ -1392,6 +1321,11 @@ export default {
                                         vue.viewModel.集金手数料 = (vue.viewModel.集金手数料 || 0 ) * 1;
 
                                         $(this).dialog("close");
+
+                                        //新規 -> 修正：　ボタン制御
+                                        $("[shortcut='F3']").prop("disabled", false);
+                                        $("[shortcut='F5']").prop("disabled", false);
+                                        $("[shortcut='F6']").prop("disabled", false);
                                     }
                                 },
                                 {
@@ -1404,23 +1338,8 @@ export default {
                                 },
                             ],
                         });
-                        $("[shortcut='F3']").prop("disabled", false);
                     }else{
                         vue.setNewCustomerCd();
-
-                        // //TODO:入力した得意先ＣＤを反映
-                        // DAI04041.$refs.PopupSelect_Billing.setSelectValue(vue.viewModel.得意先ＣＤ);
-                        // DAI04041.$refs.PopupSelect_JuchuCustomer.setSelectValue(vue.viewModel.得意先ＣＤ);
-                        // vue.viewModel.受注方法 = "2";
-                        // vue.viewModel.納品書発行区分 = "1";
-                        // vue.viewModel.空き容器回収区分 = "2";
-                        // vue.viewModel.祝日配送区分 = "1";
-                        // vue.viewModel.請求書敬称 = "2";
-                        // vue.HolidayConfig.日 = "1";
-
-                        // $("[shortcut='F3']").prop("disabled", true);
-
-                        // return;
                     }
                 })
                 .catch(err => {
@@ -1798,44 +1717,53 @@ export default {
         },
         showTankaToroku: function() {
             var vue = this;
-            var cds;
+            var cd;
 
             //修正はparamsから、新規はviewmodelから、両方空なら登録不可とする
+            cd = vue.params.得意先CD || !!vue.viewModel.得意先ＣＤ ? vue.viewModel.得意先ＣＤ : "";
             if (!!vue.params.得意先CD) {
-                cds = { 得意先CD: vue.params.得意先CD};
+                cd = vue.params.得意先CD;
             } else{
                 if(!!vue.viewModel.得意先ＣＤ) {
-                    cds = { 得意先CD: vue.viewModel.得意先ＣＤ};
+                    cd = vue.viewModel.得意先ＣＤ;
                 } else{
-                    cds = "";
+                    cd = "";
                 }
             }
 
-            if(!cds){
+            if(!cd || !vue.viewModel.得意先名){
                 $.dialogErr({
                     title: "単価登録不可",
-                    contents: "得意先CDが入力されていません。",
+                    contents: [
+                        !cd ? "得意先CDが入力されていません。<br/>" : "",
+                        !vue.viewModel.得意先名 ? "得意先名が入力されていません。" : ""
+                    ]
                 })
-                return;
-            }else{
-                if(!vue.viewModel.得意先名){
-                    $.dialogErr({
-                        title: "単価登録不可",
-                        contents: "得意先名が入力されていません。",
-                    })
-                    return;
+                if(!cd){
+                    $(vue.$el).find("#CustomerCd").addClass("has-error");
+                }else{
+                    $(vue.$el).find("#CustomerCd").removeClass("has-error");
                 }
+                if(!vue.viewModel.得意先名){
+                    $(vue.$el).find("#CustomerNm").addClass("has-error");
+                }else{
+                    $(vue.$el).find("#CustomerNm").removeClass("has-error");
+                }
+                return;
             }
 
+            //新規なら登録
             if(vue.viewModel.IsNew == true){
                 vue.saveTokuisaki();
             }
 
+            var params = {得意先CD: cd, 得意先名: vue.viewModel.得意先名}
 
+            //単価登録画面
             //DAI04051を子画面表示
             PageDialog.show({
                 pgId: "DAI04051",
-                params: cds,
+                params: params,
                 isModal: true,
                 isChild: true,
                 resizable: false,
@@ -1860,7 +1788,12 @@ export default {
             vue.viewModel.登録担当者ＣＤ = vue.getLoginInfo().uid;
             vue.viewModel.承認日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
             vue.viewModel.新規登録日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
+            vue.HolidayConfig = {"日":"0","月":"0","火":"0","水":"0","木":"0","金":"0","土":"0"};
 
+            //ボタン制御
+            $("[shortcut='F3']").prop("disabled", true);
+            $("[shortcut='F5']").prop("disabled", true);
+            $("[shortcut='F6']").prop("disabled", true);
         },
         BankBranchParamsChangedCheckFunc: function(newVal, oldVal) {
             var vue = this;
@@ -1936,12 +1869,11 @@ export default {
 
             $(vue.$el).find(".has-error").removeClass("has-error");
 
-            //TODO: 登録用controller method call
+            //登録用controller method call
             axios.post("/DAI04041/Save", params)
                 .then(res => {
                     vue.viewModel = res.data.model;
                     DAI04040.conditionChanged();
-                    $("[shortcut='F3']").prop("disabled", false);
                 })
                 .catch(err => {
                     console.log(error);
@@ -1949,6 +1881,9 @@ export default {
                 }
             );
             console.log("登録", params);
+
+            //画面を閉じる
+            $(vue.$el).closest(".ui-dialog-content").dialog("close");
         },
         showCourse: function() {
             var vue = this;
@@ -1990,6 +1925,12 @@ export default {
             //DAI04043を子画面表示
             PageDialog.show({
                 pgId: "DAI04043",
+                params: {
+                    setCustomerCd: cd => {
+                        vue.viewModel.得意先ＣＤ = cd;
+                        setTimeout(() => vue.setNewCustomerCd(), 100);
+                    }
+                },
                 isModal: true,
                 isChild: true,
                 resizable: false,
@@ -1998,13 +1939,15 @@ export default {
             });
         },
         setNewCustomerCd: function() {
-            console.log("てすと");
             var vue = this;
             var cd = vue.viewModel.得意先ＣＤ;
 
-            //TODO:入力した得意先ＣＤを反映
-            DAI04041.$refs.PopupSelect_Billing.setSelectValue(cd);
-            DAI04041.$refs.PopupSelect_JuchuCustomer.setSelectValue(cd);
+            //入力した得意先ＣＤを反映
+            vue.$refs.PopupSelect_Billing.exceptCheck.push({Cd: cd})
+            vue.$refs.PopupSelect_Billing.setSelectValue(cd);
+            vue.$refs.PopupSelect_JuchuCustomer.exceptCheck.push({Cd: cd})
+            vue.$refs.PopupSelect_JuchuCustomer.setSelectValue(cd);
+
             vue.viewModel.受注方法 = "2";
             vue.viewModel.納品書発行区分 = "1";
             vue.viewModel.空き容器回収区分 = "2";
@@ -2012,10 +1955,7 @@ export default {
             vue.viewModel.請求書敬称 = "2";
             vue.HolidayConfig.日 = "1";
 
-            $("[shortcut='F3']").prop("disabled", true);
-
             return;
-
         }
     },
 }
