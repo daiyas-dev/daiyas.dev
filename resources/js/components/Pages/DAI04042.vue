@@ -23,43 +23,6 @@
 </template>
 
 <style scoped>
-fieldset {
-    width: 90%;
-    display: flex;
-    justify-content: center;
-    border: 1px solid gray;
-    padding: 0;
-    padding-bottom: 5px;
-    margin: 0;
-    margin-bottom: 5px;
-}
-.moveLegend {
-    width: auto;
-    font-size: 15px;
-    margin: 0;
-}
-.moveAction {
-    font-weight: bold;
-    color: green;
-}
-.moveAction.copy {
-    color: orange;
-}
-.moveButtons button {
-    width: 55px !important;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    margin: 0;
-    margin-left: 8px;
-    margin-right: 8px;
-}
-.moveButtons button span {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
 </style>
 <style>
 form[pgid="DAI04042"] .pq-grid .DAI04042_toolbar {

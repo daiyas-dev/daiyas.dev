@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\得意先マスタ;
+use App\Models\CTelToCust;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
@@ -103,4 +104,154 @@ class DAI04041Controller extends Controller
         return response()->json($CustomerList);
     }
 
+    /**
+     * GetCourseListForCustomer
+     */
+    public function GetCourseListForCustomer($request)
+    {
+        $CustomerCd = $request->CustomerCd;
+        $BushoCd = $request->BushoCd;
+
+        $sql = "
+            SELECT
+                コースマスタ.コース区分,
+                各種テーブル.各種名称,
+                コーステーブル.コースＣＤ,
+                コースマスタ.コース名
+
+            FROM [コーステーブル]
+
+            INNER JOIN [コースマスタ]
+                ON コースマスタ.コースＣＤ = コーステーブル.コースＣＤ
+                AND コースマスタ.部署ＣＤ = コーステーブル.部署ＣＤ
+
+                INNER JOIN [得意先マスタ]
+                ON 得意先マスタ.得意先ＣＤ = コーステーブル.得意先ＣＤ
+                AND 得意先マスタ.部署ＣＤ = コーステーブル.部署ＣＤ
+
+            INNER JOIN [各種テーブル]
+                ON 各種テーブル.各種CD = 19
+                AND 各種テーブル.行NO = コースマスタ.コース区分
+
+            WHERE
+                コーステーブル.得意先ＣＤ = $CustomerCd
+                AND コーステーブル.部署ＣＤ = $BushoCd
+
+            ORDER BY コースマスタ.コース区分,コーステーブル.コースＣＤ
+        ";
+
+        $CourseList = DB::select($sql);
+
+        return response()->json($CourseList);
+    }
+
+    /**
+     * GetFreeCustomerCdList
+     */
+    public function GetFreeCustomerCdList($request)
+    {
+        $StartNo = $request->StartNo;
+        $EndNo = $request->EndNo;
+
+        $sql = "
+            WITH CTE(連番) AS
+            (
+                SELECT $StartNo UNION ALL SELECT 連番 + 1 FROM CTE
+            )
+
+            SELECT T1.digits
+            FROM ( SELECT TOP 50000 連番 AS digits FROM CTE ) T1
+
+            LEFT OUTER JOIN 得意先マスタ TOK
+                ON T1.digits = TOK.得意先ＣＤ
+
+            WHERE
+                T1.digits BETWEEN $StartNo AND $EndNo
+                AND TOK.得意先ＣＤ IS NULL
+                AND T1.digits <> 0
+
+            ORDER BY digits
+            OPTION (MAXRECURSION 0)
+        ";
+
+        $CdList = DB::select($sql);
+
+        return response()->json($CdList);
+    }
+
+    /**
+     * GetTelToCustList
+     */
+    public function GetTelToCustList($request)
+    {
+        $CustomerCd = $request->CustomerCd;
+        if($CustomerCd == null) return [];
+
+        // $sql = "
+        //     SELECT * FROM C_TelToCust
+        //     WHERE Tel_CustNo = $CustomerCd
+        //     ORDER BY Tel_RepFlg,Tel_TelNo
+        // ";
+
+        // $TelList = DB::select($sql);
+
+        //お試し
+        $query = CTelToCust::query()
+            ->when(
+                $CustomerCd,
+                function($q) use ($CustomerCd){
+                    return $q->where('Tel_CustNo', $CustomerCd);
+                }
+            )
+            ->orderBy('Tel_RepFlg', 'asc')
+            ->orderBy('Tel_TelNo', 'asc')
+            ;
+
+        $TelList = $query->get();
+
+
+        return response()->json($TelList);
+    }
+
+    /**
+     * SaveTelList
+     */
+    public function SaveTelList($request)
+    {
+        $CustomerCd = $request->CustomerCd;
+        $params = $request->all();
+        $data = $params['SaveList'];
+
+        // トランザクション開始
+        DB::transaction(function () use ($CustomerCd, $data) {
+
+            $cnt = DB::table('C_TelToCust')->where('Tel_CustNo', $CustomerCd) ->count();
+            if ($cnt == 0) {
+                DB::table('C_TelToCust')->insert($data);
+            } else {
+                DB::table('C_TelToCust')->where('Tel_CustNo', $CustomerCd)->delete();
+                DB::table('C_TelToCust')->insert($data);
+            }
+
+            // //確認用：削除予定
+            // $query = CTelToCust::query()
+            //     ->when(
+            //         $CustomerCd,
+            //         function($q) use ($CustomerCd){
+            //             return $q->where('Tel_CustNo', $CustomerCd);
+            //         }
+            //     );
+
+            // $TelList = $query->get();
+            // $xxx = $TelList->toJson();
+            // throw new \Exception('hogehoge');
+        });
+
+        $savedData = $data;
+
+        return response()->json([
+            'result' => true,
+            'model' => $savedData,
+        ]);
+    }
 }

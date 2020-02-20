@@ -335,7 +335,6 @@ export default {
                         if(!vue.viewModel.担当者ＣＤ || !vue.viewModel.担当者名 || !vue.viewModel.所属部署ＣＤ){
                             $.dialogErr({
                                 title: "登録不可",
-                                contents: "担当者CDを入力して下さい",
                                 contents: [
                                     !vue.viewModel.担当者ＣＤ ? "担当者CDが入力されていません。<br/>" : "",
                                     !vue.viewModel.担当者名 ? "担当者名が入力されていません。<br/>" : "",

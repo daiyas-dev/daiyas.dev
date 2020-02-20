@@ -4,7 +4,21 @@
             <div class="col-md-1">
                 <label>得意先CD</label>
             </div>
-            <div class="col-md-11">
+            <div class="col-md-2">
+                <input class="form-control ml-4 mr-1" type="text"
+                    id="CustomerCd"
+                    v-model=viewModel.CustomerCd
+                    :readonly=true
+                >
+            </div>
+            <div class="col-md-6">
+                <input class="form-control" type="text"
+                    id="CustomerNm"
+                    v-model=viewModel.CustomerNm
+                    :readonly=true
+                >
+            </div>
+            <!-- <div class="col-md-11">
                 <PopupSelect
                     id="CustomerCd"
                     class="Tanka"
@@ -29,7 +43,7 @@
                     :onAfterChangedFunc=onCustomerCdChanged
                     :isPreload=true
                 />
-            </div>
+            </div> -->
         </div>
         <PqGridWrapper
             id="DAI04051Grid1"
@@ -217,6 +231,7 @@ export default {
         //得意先マスタメンテの詳細画面から開いた時
         if(!!vue.params){
             data.viewModel.CustomerCd = vue.params.得意先CD;
+            data.viewModel.CustomerNm = vue.params.得意先名;
         }
 
         return data;
@@ -241,11 +256,6 @@ export default {
                 });
 
             vue.footerButtons.push(
-                // { visible: "true", value: "行追加", id: "DAI04051Grid1_AddRow", disabled: false, shortcut: "F2",
-                //     onClick: function () {
-                //         vue.addRow();
-                //     }
-                // },
                 { visible: "true", value: "行削除", id: "DAI04051Grid1_DeleteRow", disabled: true, shortcut: "F3",
                     onClick: function () {
                         vue.deleteRow();
@@ -308,44 +318,44 @@ export default {
 
             return vue.ProductList;
         },
-        CustomerCdAutoCompleteFunc: function(input, dataList, comp) {
-            var vue = this;
+        // CustomerCdAutoCompleteFunc: function(input, dataList, comp) {
+        //     var vue = this;
 
-            if (!dataList.length) return [];
+        //     if (!dataList.length) return [];
 
-            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
-            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
-            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
+        //     var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+        //     var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
+        //     var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 
-            var wholeColumns = ["CdNm", "得意先名略称", "得意先名カナ", "備考１", "備考２", "備考３"];
+        //     var wholeColumns = ["CdNm", "得意先名略称", "得意先名カナ", "備考１", "備考２", "備考３"];
 
-            if (input == comp.selectValue && comp.isUnique) {
-                keyAND = keyOR = [];
-            }
+        //     if (input == comp.selectValue && comp.isUnique) {
+        //         keyAND = keyOR = [];
+        //     }
 
-            var list = dataList
-                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
-                .filter(v => {
-                    return keyOR.length == 0
-                        || _.some(keyOR, k => v.Cd.startsWith(k))
-                        || _.some(keyOR, k => k.match(/^[0-9\-]{6,}/) != null && !!v.電話番号１ ? v.電話番号１.startsWith(k) : false)
-                        || _.some(keyOR, k => v.whole.includes(k))
-                })
-                .filter(v => {
-                    return keyAND.length == 0
-                        || _.every(keyAND, k => (v.whole + (v.電話番号１ || "")).includes(k));
-                })
-                .map(v => {
-                    var ret = v;
-                    ret.label = v.Cd + " : " + "【" + v.部署名 + "】" + v.CdNm;
-                    ret.value = v.Cd;
-                    ret.text = v.CdNm;
-                    return ret;
-                })
-                ;
-            console.log("CustomerCdAutoCompleteFunc:" + input + " = " + list.length);
-            return list;
-        },
+        //     var list = dataList
+        //         .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
+        //         .filter(v => {
+        //             return keyOR.length == 0
+        //                 || _.some(keyOR, k => v.Cd.startsWith(k))
+        //                 || _.some(keyOR, k => k.match(/^[0-9\-]{6,}/) != null && !!v.電話番号１ ? v.電話番号１.startsWith(k) : false)
+        //                 || _.some(keyOR, k => v.whole.includes(k))
+        //         })
+        //         .filter(v => {
+        //             return keyAND.length == 0
+        //                 || _.every(keyAND, k => (v.whole + (v.電話番号１ || "")).includes(k));
+        //         })
+        //         .map(v => {
+        //             var ret = v;
+        //             ret.label = v.Cd + " : " + "【" + v.部署名 + "】" + v.CdNm;
+        //             ret.value = v.Cd;
+        //             ret.text = v.CdNm;
+        //             return ret;
+        //         })
+        //         ;
+        //     console.log("CustomerCdAutoCompleteFunc:" + input + " = " + list.length);
+        //     return list;
+        // },
         onSelectChangeFunc: function(grid, ui) {
         },
         checkChangedFunc: function(grid) {

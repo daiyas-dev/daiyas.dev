@@ -469,7 +469,6 @@ export default {
                 if (grid.pdata.filter(v => v.得意先CD == vue.viewModel.CustomerCd).length == 1) {
                     params = _.cloneDeep(grid.pdata.find(v => v.得意先CD == vue.viewModel.CustomerCd));
                 } else {
-                    var selection = grid.SelectRow().getSelection();
 
                     var rows = grid.SelectRow().getSelection();
                     if (rows.length != 1) return;
