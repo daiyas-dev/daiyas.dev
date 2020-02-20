@@ -246,7 +246,7 @@
             </div>
             <div class="col-md-3" style="align-items: start;">
                 <div class="row">
-                    <div class="col-md-12 m-4">
+                    <div class="col-md-12 mt-2 mb-2 ml-4 ml-4">
                         <button type="button" class="btn btn-primary mr-2" style="width:110px; height: 50px;" @click="showCourse">
                             コース表示
                         </button>
@@ -278,6 +278,28 @@
                             bind="失客日"
                             :editable='viewModel.状態区分 == "40"'
                         />
+                    </div>
+                    <div class="col-md-12">
+                        <label class="mt-3" style="width: -webkit-fill-available; margin-right:25px; text-align: right;">0：主, 1:副</label>
+                    </div>
+                    <div class="col-md-12 align-items-start">
+                        <PqGridWrapper
+                            id="DAI04041Grid1"
+                            ref="DAI04041Grid1"
+                            dataUrl="/DAI04041/GetTelToCustList"
+                            :query="{CustomerCd: this.viewModel.得意先ＣＤ}"
+                            :SearchOnCreate=true
+                            :SearchOnActivate=false
+                            :options=this.grid1Options
+                            :onAfterSearchFunc=onAfterSearchFunc
+                            :autoToolTipDisabled=true
+                            :autoEmptyRow=true
+                            :autoEmptyRowCount=1
+                            classes="ml-4 mr-4"
+                        />
+                    </div>
+                    <div class="col-md-12">
+                        <label class="" style="width: -webkit-fill-available; margin-right:25px; text-align: right;">"-"無しで入力　Ctrl+Deleteで行削除</label>
                     </div>
                 </div>
             </div>
@@ -960,9 +982,6 @@ input::-webkit-inner-spin-button {
 }
 </style>
 <style>
-#Page_DAI04041 .CustomerSelect .select-name {
-    color: royalblue;
-}
 </style>
 
 <script>
@@ -1088,23 +1107,30 @@ export default {
             TorokuKeyWord: null,
             HolidayConfig: {"日":"0","月":"0","火":"0","水":"0","木":"0","金":"0","土":"0"},
             grid1Options: {
-                selectionModel: { type: "cell", mode: "single", row: true, onTab: "nextEdit" },
+                selectionModel: { type: "row", mode: "single", row: true},
                 showHeader: true,
                 showToolbar: false,
                 columnBorders: true,
                 fillHandle: "",
                 numberCell: { show: true, title: "No.", resizable: false, },
                 autoRow: false,
-                rowHtHead: 25,
+                rowHtHead: 30,
                 rowHt: 30,
-                height: 200,
+                height: 280,
                 editable: true,
                 columnTemplate: {
                     editable: false,
                     sortable: false,
                 },
-                trackModel: { on: true },
-                historyModel: { on: true },
+                trackModel: { on: false },
+                historyModel: { on: false },
+                editModel: {
+                    clicksToEdit: 2,
+                    keyUpDown: false,
+                    saveKey: $.ui.keyCode.ENTER,
+                    onSave: "nextFocus",
+                    onTab: "nextFocus",
+                },
                 filterModel: {
                     on: true,
                     mode: "OR",
@@ -1119,13 +1145,34 @@ export default {
                     sorter:[ { dataIndx: "sortIndx", dir: "up" } ],
                 },
                 groupModel: {
-                    on: true,
+                    on: false,
                     header: false,
-                    grandSummary: true,
+                    grandSummary: false,
                 },
                 formulas: [
                 ],
                 colModel: [
+                    {
+                        title: "電話番号",
+                        dataIndx: "Tel_TelNo", dataType: "integer",
+                        width: 150, maxWidth: 200, minWidth: 150,
+                        editable: true,
+                        key: true,
+                        align: "left",
+                    },
+                    {
+                        title: "得意先ＣＤ",
+                        dataIndx: "Tel_CusNo", dataType: "integer",
+                        hidden: true,
+                        align: "left",
+                    },
+                    {
+                        title: "区分",
+                        dataIndx: "Tel_RepFlg", dataType: "integer",
+                        width: 50, maxWidth: 50, minWidth: 50,
+                        editable: true,
+                        align: "right",
+                    },
                 ],
             },
         });
@@ -1245,6 +1292,7 @@ export default {
               　{ visible: "true", value: "登録", id: "DAI04041_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         vue.saveTokuisaki();
+                        vue.saveTelList();
                     }
                 },
                 { visible: "true", value: "単価登録", id: "DAI04041_Tanka", disabled: false, shortcut: "F10",
@@ -1254,17 +1302,20 @@ export default {
                 },
                 {visible: "false"},
             );
+        },
+        mountedFunc: function(vue) {
+            $(vue.$el).parents("div.body-content").addClass("Scrollable");
 
             if(this.params.IsNew == false || !this.params.IsNew){
+                //修正時；電話番号一覧検索
+                var vue = this;
+                vue.searchTelList();
+
                 //修正時：ボタン制御
                 $("[shortcut='F3']").prop("disabled", false);
                 $("[shortcut='F5']").prop("disabled", false);
                 $("[shortcut='F6']").prop("disabled", false);
             }
-
-        },
-        mountedFunc: function(vue) {
-            $(vue.$el).parents("div.body-content").addClass("Scrollable");
         },
         onCustomerCdChanged: function(code, entities) {
             var vue = this;
@@ -1295,6 +1346,19 @@ export default {
                 $(vue.$el).find("#ServiceTicket").removeClass("has-error");
             }
         },
+        searchTelList: function() {
+            //電話番号一覧検索
+            var vue = this;
+            var grid = vue.DAI04041Grid1;
+
+            var cd = !!vue.params.得意先CD ? vue.params.得意先CD : (!!vue.viewModel.得意先ＣＤ ? vue.viewModel.得意先ＣＤ: "");
+            if(!cd) return;
+
+            if (!!grid && vue.getLoginInfo().isLogOn) {
+                var params = {CustomerCd: cd};
+                grid.searchData(params, false);
+            }
+        },
         searchByCustomerCd: function() {
             var vue = this;
             var cd = vue.viewModel.得意先ＣＤ;
@@ -1319,6 +1383,9 @@ export default {
 
                                         //currency-input項目、String->Number
                                         vue.viewModel.集金手数料 = (vue.viewModel.集金手数料 || 0 ) * 1;
+
+                                        //電話番号一覧検索
+                                        vue.searchTelList();
 
                                         $(this).dialog("close");
 
@@ -1790,6 +1857,10 @@ export default {
             vue.viewModel.新規登録日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
             vue.HolidayConfig = {"日":"0","月":"0","火":"0","水":"0","木":"0","金":"0","土":"0"};
 
+            //TODO:確認中
+            //電話番号一覧クリア
+            vue.DAI04041Grid1.clearData();
+
             //ボタン制御
             $("[shortcut='F3']").prop("disabled", true);
             $("[shortcut='F5']").prop("disabled", true);
@@ -1955,8 +2026,51 @@ export default {
             vue.viewModel.請求書敬称 = "2";
             vue.HolidayConfig.日 = "1";
 
+            //TODO:電話番号一覧を入力可能にする
+            // vue.searchTelList();
             return;
-        }
+        },
+        onAfterSearchFunc: function (gridVue, grid, res) {
+            var vue = this;
+
+            res = res.map(v => {
+                return v;
+            });
+
+            return res;
+        },
+        saveTelList: function() {
+            var vue = this;
+            var grid = vue.DAI04041Grid1;
+
+            var saveList = _.cloneDeep(grid.getPlainPData().filter(v => !!v.Tel_TelNo));
+
+            //電話番号の値がないものは除外、データの整形。
+            //TODO:得意先CDが一致するデータをすべてdelete。gridのデータで電話番号があるものだけinsesrt。
+            saveList.forEach((v, i) => {
+                v.Tel_CustNo = vue.viewModel.得意先ＣＤ;
+                v.Tel_RepFlg = v.Tel_RepFlg || 0;
+                v.Tel_DelFlg = 0;
+                v.Tel_NewDate = moment().format("YYYY/MM/DD");
+                v.Tel_UpdDate = moment().format("YYYY/MM/DD");
+            });
+
+            var params = { CustomerCd: vue.viewModel.得意先ＣＤ, SaveList: saveList};
+
+            //登録用controller method call
+            axios.post("/DAI04041/SaveTelList", params)
+                .then(res => {
+                    // vue.viewModel = res.data.model;
+                    // DAI04040.conditionChanged();
+                })
+                .catch(err => {
+                    console.log(error);
+                    //TODO: エラー
+                }
+            );
+            console.log("登録", params);
+
+        },
     },
 }
 </script>

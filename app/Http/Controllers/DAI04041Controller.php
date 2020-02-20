@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\得意先マスタ;
+use App\Models\CTelToCust;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
@@ -176,5 +177,81 @@ class DAI04041Controller extends Controller
         $CdList = DB::select($sql);
 
         return response()->json($CdList);
+    }
+
+    /**
+     * GetTelToCustList
+     */
+    public function GetTelToCustList($request)
+    {
+        $CustomerCd = $request->CustomerCd;
+        if($CustomerCd == null) return [];
+
+        // $sql = "
+        //     SELECT * FROM C_TelToCust
+        //     WHERE Tel_CustNo = $CustomerCd
+        //     ORDER BY Tel_RepFlg,Tel_TelNo
+        // ";
+
+        // $TelList = DB::select($sql);
+
+        //お試し
+        $query = CTelToCust::query()
+            ->when(
+                $CustomerCd,
+                function($q) use ($CustomerCd){
+                    return $q->where('Tel_CustNo', $CustomerCd);
+                }
+            )
+            ->orderBy('Tel_RepFlg', 'asc')
+            ->orderBy('Tel_TelNo', 'asc')
+            ;
+
+        $TelList = $query->get();
+
+
+        return response()->json($TelList);
+    }
+
+    /**
+     * SaveTelList
+     */
+    public function SaveTelList($request)
+    {
+        $CustomerCd = $request->CustomerCd;
+        $params = $request->all();
+        $data = $params['SaveList'];
+
+        // トランザクション開始
+        DB::transaction(function () use ($CustomerCd, $data) {
+
+            $cnt = DB::table('C_TelToCust')->where('Tel_CustNo', $CustomerCd) ->count();
+            if ($cnt == 0) {
+                DB::table('C_TelToCust')->insert($data);
+            } else {
+                DB::table('C_TelToCust')->where('Tel_CustNo', $CustomerCd)->delete();
+                DB::table('C_TelToCust')->insert($data);
+            }
+
+            // //確認用：削除予定
+            // $query = CTelToCust::query()
+            //     ->when(
+            //         $CustomerCd,
+            //         function($q) use ($CustomerCd){
+            //             return $q->where('Tel_CustNo', $CustomerCd);
+            //         }
+            //     );
+
+            // $TelList = $query->get();
+            // $xxx = $TelList->toJson();
+            // throw new \Exception('hogehoge');
+        });
+
+        $savedData = $data;
+
+        return response()->json([
+            'result' => true,
+            'model' => $savedData,
+        ]);
     }
 }
