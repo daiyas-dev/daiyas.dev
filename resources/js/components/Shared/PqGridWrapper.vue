@@ -27,6 +27,7 @@ export default {
             saveExceptions: null,
             isSearchOnActivate: true,
             isActivated: false,
+            selectionRow: null,
             selectionRowCount: null,
             isSelection: false,
             isSelectionFirst: false,
@@ -341,8 +342,6 @@ export default {
                                 prepend: ui.column.selectNullFirst == true ? { "": "" } : null,
                             };
                             ui.column.render = function (ui) {
-                                if (!ui.cellData) return ui;
-
                                 var editor = ui.column.editor;
                                 var item = editor.options(ui).filter((v) => v[editor.valueIndx] == ui.cellData);
 
@@ -355,6 +354,13 @@ export default {
                                }
 
                                 return { text: text };
+                            };
+                            ui.column.postRender = function (ui) {
+                                var grid = this;
+
+                                $(ui.cell).addClass("select-cell");
+
+                                return ui;
                             };
                         }
                     }
@@ -696,9 +702,9 @@ export default {
                             type: "textbox",
                             init:  function (ui){
                                 var $input = ui.$cell.find("input");
+                                $input.attr("autocomplete", "off");
                                 var config = ui.column.autocomplete;
 
-                                console.log("Autocomplete init", ui.rowIndx, config, config.trigger(ui));
                                 if (!!config.trigger && config.trigger(ui) == false) return;
 
                                 var rowData = ui.rowData;
@@ -838,15 +844,17 @@ export default {
                                 }).focus(function () {
                                     $(this).autocomplete("search", "");
                                 });
-
-                                ui.column.cls = "pq-dropdown pq-side-icon";
                             }
                         }
                         ui.column.postRender = function (ui) {
                             var grid = this;
                             var vue = grid.options.vue;
+                            var config = ui.column.autocomplete;
 
                             var gridCell = $(ui.cell);
+                            if (!!config.trigger && config.trigger(ui) == false) return ui;
+
+                            gridCell.addClass("autocomplete-cell");
 
                             ui.rowData.pq_inputErrors = ui.rowData.pq_inputErrors || {};
                             var inputError = ui.rowData.pq_inputErrors[ui.dataIndx];
@@ -869,6 +877,10 @@ export default {
 
                             return ui;
                         };
+
+                        if (!!ui.column.autocomplete.render) {
+                            return ui.column.autocomplete.render(ui);
+                        }
                     }
 
                     return ui;
@@ -1112,7 +1124,9 @@ export default {
                 //console.log("grid click");
             },
             cellClick: function (event, ui) {
-                //TODO: checkbox toggle by cell click
+                if (ui.$td.hasClass("autocomplete-cell") || ui.$td.hasClass("select-cell")) {
+                    grid.editCell({rowIndx: ui.rowIndx, dataIndx: ui.dataIndx});
+                }
                 // var current = event.currentTarget;
                 // var original = event.originalEvent.target;
                 // var cb = ui.$td.has(":checkbox");
@@ -1216,6 +1230,7 @@ export default {
                     vue.isSelectionLast = isSelection ? _.last(grid.SelectRow().getSelection()).rowIndx == grid.pdata.length - 1 : false;
                     vue.isSelection = isSelection;
                     vue.selectionRowCount = grid.SelectRow().getSelection().length;
+                    vue.selectionRow = vue.selectionRowCount > 0 ? grid.SelectRow().getSelection()[0] : null;
                     return;
                 }
 
@@ -1713,9 +1728,67 @@ export default {
                     var grid = this;
 
                     //変更有無判定
-                    var isChanged = $.map(grid.createSaveParams(), (v) => v.length > 0).includes(true);
+                    // var isChanged = $.map(grid.createSaveParams(), (v) => v.length > 0).includes(true);
+                    var changes = grid.createSaveParams();
+                    changes.AddList = changes.AddList.filter(r => {
+                        var data = _.cloneDeep(r);
+                        if (grid.vue.autoEmptyRowFunc) {
+                            data = diff(data, grid.vue.autoEmptyRowFunc());
+                        }
+
+                        return _.values(data).some(v => v != null && v != undefined);
+                    });
+                    var isChanged = _.values(changes).some(v => v.length > 0);
 
                     return isChanged;
+                };
+
+                //変更通知メソッド追加
+                this.grid.notifyChanged = function(message, cancelCallback) {
+                    var grid = this;
+
+                    if (vue.checkChanged && (vue.checkChangedFunc ? vue.checkChangedFunc(grid) : grid.isChanged())) {
+                        //確認ダイアログ
+                        $.dialogConfirm({
+                            title: "内容が変更されています",
+                            contents: message || "再検索を行いますか？(変更は破棄されます)",
+                            buttons:[
+                                {
+                                    text: "はい",
+                                    class: "btn btn-primary",
+                                    click: function(){
+                                        if (cancelCallback) {
+                                            cancelCallback(grid, () => {
+                                                $(this).dialog("close");
+                                            });
+                                        } else {
+                                            $(this).dialog("close");
+                                        }
+                                    }
+                                },
+                                {
+                                    text: "いいえ",
+                                    class: "btn btn-danger",
+                                    click: function(){
+                                        $(this).dialog("close");
+                                    }
+                                },
+                            ],
+                            keyDownHandler: (element, option, event) => {
+                                if (event.which == 27) {
+                                    $(element).dialog("close");
+                                }
+                            },
+                        });
+                    } else {
+                        if (cancelCallback) {
+                            cancelCallback(grid, () => {
+                                $(this).dialog("close");
+                            });
+                        } else {
+                            $(this).dialog("close");
+                        }
+                    }
                 };
 
                 //検索メソッド追加
@@ -1732,13 +1805,11 @@ export default {
                         vue._onCompleteFunc = newFunc;
                     }
 
-                    if (vue.checkChanged && grid.isChanged() && !isActivated
-                        && (vue.checkChangedFunc ? vue.checkChangedFunc(grid) : true)
-                    ) {
+                    if (vue.checkChanged && (vue.checkChangedFunc ? vue.checkChangedFunc(grid) : grid.isChanged()) && !isActivated) {
                         //確認ダイアログ
                         $.dialogConfirm({
                             title: "内容が変更されています",
-                            contents: "検索を行いますか？(変更は破棄されます)",
+                            contents: "再検索を行いますか？(変更は破棄されます)",
                             buttons:[
                                 {
                                     text: "はい",
@@ -3238,8 +3309,13 @@ export default {
         background-color: lightyellow !important;
     }
 
+    .pq-grid-cell.cell-disabled {
+        background-color: darkgrey !important;
+        border-color: darkgrey !important;
+    }
+
     /* 合計行 */
-    .pq-summary-outer *:not(.tooltip):not(.arrow):not(.tooltip-inner) {
+    .pq-summary-outer *:not(.tooltip):not(.arrow):not(.tooltip-inner):not(.pq-grid-cell.cell-disabled) {
         font-weight: bold;
         color: black;
         background-color: lightpink !important;
@@ -3395,6 +3471,28 @@ export default {
             background-color: #e50000;
             border: 3px solid rgb(117,209,63);
         }
+    }
+
+    .select-cell,
+    .autocomplete-cell
+    {
+        padding-left: 20px !important;
+    }
+    .select-cell:before,
+    .autocomplete-cell:before
+    {
+	    width: 20px;
+	    height:20px;
+	    position: absolute;
+	    left: 5px;
+        font-family: "Font Awesome 5 Free";
+        content: "\f0d7";
+    }
+
+    .pq-align-right.select-cell:before,
+    .pq-align-right.autocomplete-cell:before
+    {
+	    left: 0px;
     }
 </style>
 

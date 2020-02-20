@@ -68,6 +68,7 @@ import DAI01070 from "@vcp/DAI01070.vue";
 import DAI01080 from "@vcp/DAI01080.vue";
 import DAI01090 from "@vcp/DAI01090.vue";
 import DAI01100 from "@vcp/DAI01100.vue";
+import DAI01110 from "@vcp/DAI01110.vue";
 import DAI01160 from "@vcp/DAI01160.vue";
 import DAI01170 from "@vcp/DAI01170.vue";
 import DAI01220 from "@vcp/DAI01220.vue";
@@ -97,6 +98,9 @@ import DAI04201 from "@vcp/DAI04201.vue";
 import DAI07010 from "@vcp/DAI07010.vue";
 
 import DAI08010 from "@vcp/DAI08010.vue";
+
+import DAI10010 from "@vcp/DAI10010.vue";
+import DAI10011 from "@vcp/DAI10011.vue";
 
 //子画面表示確認
 import CommonSelector from "@vcs/CommonSelector.vue";
@@ -154,6 +158,7 @@ export default {
         DAI01080,
         DAI01090,
         DAI01100,
+        DAI01110,
         DAI01160,
         DAI01170,
         DAI01220,
@@ -180,6 +185,8 @@ export default {
         DAI04201,
         DAI07010,
         DAI08010,
+        DAI10010,
+        DAI10011,
         //共通画面用Selector
         CommonSelector,
         //TODO: dummy || sample

@@ -216,7 +216,7 @@ export default {
                     resizable: options.resizable,
                     reuse: options.reuse || false,
                     buttons: buttons,
-                    beforeClose: options.onBeforeClose || null,
+                    beforeClose: options.onBeforeClose || this.beforeClose,
                 });
 
                 //画面IDの編集
@@ -231,6 +231,44 @@ export default {
 
                 return;
             });
+        },
+        beforeClose: (event, ui) => {
+            console.log("dialog beforeClose");
+            if (!window.event) return true;
+
+            var d = $(event.target);
+            var pg = d.find(".pq-grid");
+
+            var changed = pg
+                .map((i, v) => $(v).pqGrid("getInstance").grid)
+                .get()
+                .filter(g => g.isChanged());
+
+            if (changed.length == 0 && $(window.event.target).attr("shortcut") == "ESC") return true;
+
+            var editting = pg
+                .map((i, v) => $(v).pqGrid("getInstance").grid)
+                .get()
+                .some(g => !_.isEmpty(g.getEditCell()));
+            var isEscOnEditor = !!window.event && window.event.key == "Escape"
+                && (
+                    $(window.event.target).hasClass("target-input") ||
+                    $(window.event.target).hasClass("pq-cell-editor")
+                );
+
+            if (changed.length == 0) return !editting && !isEscOnEditor;
+
+            var content = d.closest(".ui-dialog-content");
+            if (!!content.attr("closable")) return true;
+            changed[0].notifyChanged(
+                "終了して宜しいですか？(変更は破棄されます)",
+                (grid, callback) => {
+                    content.attr("closable", true);
+                    content.dialog("close");
+                    callback();
+                }
+            );
+            return false;
         },
         show: function (options) {
             options.buttons = options.buttons || [];
@@ -381,7 +419,7 @@ export default {
                     resizable: options.resizable,
                     reuse: options.reuse || false,
                     buttons: buttons,
-                    beforeClose: options.onBeforeClose || null,
+                    beforeClose: options.onBeforeClose || this.beforeClose,
                 });
 
                 //画面IDの指定

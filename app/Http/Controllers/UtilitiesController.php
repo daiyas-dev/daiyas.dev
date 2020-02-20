@@ -254,9 +254,12 @@ $WhereKeyWord
                     return $q->where('所属部署ＣＤ', $BushoCd);
                 }
             )
-            ->where('ユーザーＩＤ', '>', 0);
+           ->where('ユーザーＩＤ', '!=', '0');
 
         $UserList = collect($query->get())
+            ->filter(function ($user) {
+                return !!$user->ユーザーＩＤ;
+            })
             ->map(function ($user) {
                 $vm = (object) $user;
 
@@ -294,7 +297,7 @@ $WhereKeyWord
                     return $q->where('担当者ＣＤ', $TantoCd);
                 }
             )
-           ->where('ユーザーＩＤ', '>', 0);
+           ->where('ユーザーＩＤ', '!=', '0');
 
         $TantoList = collect($query->get())
             ->map(function ($user) {
@@ -407,6 +410,61 @@ $WhereKeyWord
             ->values();
 
         return response()->json($ProductList);
+    }
+
+    /**
+     * GetMainSubList
+     */
+    public function GetMainSubList($request)
+    {
+        $BushoCd = $request->BushoCd;
+
+        $sql = "
+SELECT DISTINCT
+	CASE
+		WHEN SHOHIN.主食ＣＤ = 0 AND SHOHIN.副食ＣＤ = 0 THEN SHOHIN.商品ＣＤ
+		WHEN S2.商品ＣＤ IS NOT NULL THEN S2.商品ＣＤ
+		WHEN S1.商品ＣＤ IS NOT NULL THEN S1.商品ＣＤ
+	END AS Cd,
+	CASE
+		WHEN SHOHIN.主食ＣＤ = 0 AND SHOHIN.副食ＣＤ = 0 THEN SHOHIN.商品名
+		WHEN S2.商品ＣＤ IS NOT NULL THEN S2.商品名
+		WHEN S1.商品ＣＤ IS NOT NULL THEN S1.商品名
+	END AS CdNm,
+	CASE
+		WHEN SHOHIN.主食ＣＤ = 0 AND SHOHIN.副食ＣＤ = 0 THEN SHOHIN.商品ＣＤ
+		WHEN S2.商品ＣＤ IS NOT NULL THEN S2.商品ＣＤ
+		WHEN S1.商品ＣＤ IS NOT NULL THEN S1.商品ＣＤ
+	END AS 商品ＣＤ,
+	CASE
+		WHEN SHOHIN.主食ＣＤ = 0 AND SHOHIN.副食ＣＤ = 0 THEN SHOHIN.商品名
+		WHEN S2.商品ＣＤ IS NOT NULL THEN S2.商品名
+		WHEN S1.商品ＣＤ IS NOT NULL THEN S1.商品名
+	END AS 商品名,
+	CASE
+		WHEN SHOHIN.主食ＣＤ = 0 AND SHOHIN.副食ＣＤ = 0 THEN SHOHIN.商品区分
+		WHEN S2.商品ＣＤ IS NOT NULL THEN S2.商品区分
+		WHEN S1.商品ＣＤ IS NOT NULL THEN S1.商品区分
+	END AS 商品区分
+FROM
+  商品マスタ SHOHIN
+  LEFT OUTER JOIN 各種テーブル BUSHOGRP
+	ON BUSHOGRP.各種CD = 26 AND SHOHIN.部署グループ = BUSHOGRP.サブ各種CD2
+  LEFT OUTER JOIN 商品マスタ S1
+	ON S1.商品CD = SHOHIN.主食ＣＤ
+  LEFT OUTER JOIN 商品マスタ S2
+	ON S2.商品CD = SHOHIN.副食ＣＤ
+WHERE
+  SHOHIN.表示ＦＬＧ = 0
+  AND BUSHOGRP.サブ各種CD1 = $BushoCd
+ORDER BY
+	商品区分,
+	商品ＣＤ
+        ";
+
+        $DataList = DB::select($sql);
+
+        return response()->json($DataList);
     }
 
     /**
@@ -780,6 +838,56 @@ ORDER BY
     }
 
     /**
+     * GetCourseListByCustomer
+     */
+    public function GetCourseListByCustomer($request)
+    {
+        $BushoCd = $request->bushoCd ?? $request->BushoCd;
+        $CustomerCd = $request->customerCd ?? $request->CustomerCd;
+        $TargetDate = $request->targetDate ?? $request->TargetDate;
+        $CourseKbn = $request->CourseKbn ?? (!!$TargetDate ? $this->SearchCourseKbnFromDate($request)->コース区分 : null);
+        $WhereCourseKbn = !!$CourseKbn ? " AND MC.コース区分=$CourseKbn" : "";
+
+        $sql = "
+SELECT
+    TC.得意先ＣＤ,
+    MC.コースCD,
+    MC.コース名,
+    MT.担当者ＣＤ,
+    MT.担当者名,
+    MC.コースCD AS Cd,
+    MC.コース名 AS CdNm
+FROM
+    コースマスタ MC
+    LEFT OUTER JOIN コーステーブル TC
+        ON MC.部署CD = TC.部署CD AND MC.コースCD = TC.コースCD
+    LEFT OUTER JOIN 担当者マスタ MT
+        ON MT.担当者ＣＤ = MC.担当者ＣＤ
+WHERE
+    MC.部署CD=$BushoCd
+AND TC.得意先ＣＤ=$CustomerCd
+$WhereCourseKbn
+        ";
+
+        //TODO: 高速化対応
+        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $pdo = null;
+
+        if (count($DataList) == 0 && isset($Keyword)) {
+            return $this->GetCustomerAndCourseList($request, true);
+        }
+
+        return response()->json($DataList);
+    }
+
+    /**
      * GetCustomerListForSelect
      */
     public function GetCustomerListForSelect($request)
@@ -811,6 +919,7 @@ SELECT
     TM.備考１,
     TM.備考２,
     TM.備考３,
+    TM.売掛現金区分,
     BM.部署名
 FROM 得意先マスタ TM
 LEFT JOIN 部署マスタ BM
@@ -853,6 +962,7 @@ SELECT $SelectTop
     TM.備考１,
     TM.備考２,
     TM.備考３,
+    TM.売掛現金区分,
     BM.部署名
 FROM 得意先マスタ TM
 LEFT JOIN 部署マスタ BM
@@ -1628,7 +1738,7 @@ ORDER BY
      * SearchCourseKbnFromDate
      */
     public function SearchCourseKbnFromDate($request) {
-        $TargetDate = $request->TargetDate;
+        $TargetDate = $request->targetDate ?? $request->TargetDate;
 
         $sql = "
 SELECT

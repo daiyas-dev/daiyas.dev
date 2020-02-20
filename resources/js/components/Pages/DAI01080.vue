@@ -114,6 +114,7 @@ export default {
         },
     },
     data() {
+        var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "日時処理 > 配送予定入力",
             noViewModel: true,
@@ -142,6 +143,13 @@ export default {
                 columnTemplate: {
                     editable: false,
                     sortable: false,
+                },
+                editModel: {
+                    clicksToEdit: 2,
+                    keyUpDown: false,
+                    saveKey: $.ui.keyCode.ENTER,
+                    onSave: "nextFocus",
+                    onTab: "nextFocus",
                 },
                 filterModel: {
                     on: true,
@@ -190,10 +198,20 @@ export default {
                         dataIndx: "製造パターン", dataType: "string",
                         width: 150, maxWidth: 150, minWidth: 150,
                         editable: true,
-                        cls: "pq-dropdown pq-side-icon",
-                        selectList: "PatternList",
-                        selectLabel: "Cd + ':' + CdNm ",
-                        selectNullFirst: false,
+                        autocomplete: {
+                            source: () => vue.PatternList,
+                            bind: "製造パターン",
+                            selectSave: true,
+                            AutoCompleteFunc: vue.PatternAutoCompleteFuncInGrid,
+                            AutoCompleteMinLength: 0,
+                            render: ui => {
+                                var match = vue.PatternList.find(v => v.Cd == ui.rowData.製造パターン);
+                                return { text: !!match ? (match.Cd + ":" + match.CdNm) : ui.rowData.製造パターン };
+                            },
+                        },
+                        // selectList: "PatternList",
+                        // selectLabel: "Cd + ':' + CdNm ",
+                        // selectNullFirst: false,
                         fixed: true,
                     },
                 ],
@@ -432,7 +450,6 @@ export default {
 
             axios.post("/Utilities/GetCodeList", { cd: 35 })
                 .then(res => {
-                    console.log("製造パターン", res.data);
                     vue.PatternList = res.data;
                     callback();
                 })
@@ -527,6 +544,42 @@ export default {
                     ret.label = v.コースＣＤ + " : " + v.コース名 + "【" + v.担当者名 + "】";
                     ret.value = v.コースＣＤ;
                     ret.text = v.コース名;
+                    return ret;
+                })
+                ;
+
+            return list;
+        },
+        PatternAutoCompleteFuncInGrid: function(input, dataList, comp) {
+            var vue = this;
+
+            if (!dataList.length) return [];
+
+            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
+            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
+
+            var wholeColumns = ["CdNm"];
+
+            if ((input == comp.selectValue && comp.isUnique) || comp.isError) {
+                keyAND = keyOR = [];
+            }
+
+            var list = dataList
+                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
+                .filter(v => {
+                    return keyOR.length == 0
+                        || _.some(keyOR, k => v.Cd.startsWith(k))
+                        || _.some(keyOR, k => v.whole.includes(k))
+                })
+                .filter(v => {
+                    return keyAND.length == 0 || _.every(keyAND, k => v.whole.includes(k));
+                })
+                .map(v => {
+                    var ret = v;
+                    ret.label = v.Cd + " : " + v.CdNm;
+                    ret.value = v.Cd;
+                    ret.text = v.CdNm;
                     return ret;
                 })
                 ;

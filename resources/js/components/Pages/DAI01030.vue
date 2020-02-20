@@ -57,7 +57,7 @@
                     ref="PopupSelect_Customer"
                     :vmodel=viewModel
                     bind="CustomerCd"
-                    :buddies='{ CourseNm: "コース名", TantoCd: "担当者ＣＤ", TantoNm: "担当者名" }'
+                    :buddies='{ CustomerNm: "CdNm", CourseNm: "コース名", TantoCd: "担当者ＣＤ", TantoNm: "担当者名" }'
                     dataUrl="/DAI01030/GetCustomerAndCourseList"
                     :params="{ targetDate: FormattedDeliveryDate, KeyWord: viewModel.CustomerCd }"
                     :isPreload=true
@@ -731,7 +731,7 @@ export default {
         ProductAutoCompleteFuncInGrid: function(input, dataList, comp) {
             var vue = this;
 
-            if (!dataList.length) return [];
+            if (!dataList || !dataList.length) return [];
 
             var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
@@ -973,8 +973,6 @@ export default {
                 return;
             }
 
-            var SaveList = _.cloneDeep(grid.getPlainPData().filter(v => !!v.商品ＣＤ));
-
             //注文データの型に整形
             SaveList.forEach((v, i) => {
                 v.注文区分 = 0;
@@ -983,7 +981,6 @@ export default {
                 v.部署ＣＤ = vue.viewModel.BushoCd;
                 v.得意先ＣＤ = vue.viewModel.CustomerCd;
                 v.配送日 = v.配送日 || moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYY-MM-DD");
-                v.明細行Ｎｏ = (i + 1);
                 v.入力区分 = 0;
                 v.備考１ = vue.viewModel.BikouForControl[0];
                 v.備考２ = vue.viewModel.BikouForControl[1];

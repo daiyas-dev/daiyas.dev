@@ -125,7 +125,7 @@
 }
 
 /* 合計行 */
-.pq-summary-outer *:not(.tooltip):not(.arrow):not(.tooltip-inner) {
+#DAI01040Grid1　.pq-summary-outer *:not(.tooltip):not(.arrow):not(.tooltip-inner) {
     font-weight: bold;
     color: black;
     background-color: transparent !important;

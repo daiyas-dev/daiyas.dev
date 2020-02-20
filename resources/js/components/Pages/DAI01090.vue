@@ -40,7 +40,6 @@
                     buddy="CustomerNm"
                     dataUrl="/Utilities/GetCustomerListForSelect"
                     :params="{ CustomerCd: null, KeyWord: null }"
-                    :dataListReset=true
                     :isPreload=true
                     title="得意先一覧"
                     labelCd="得意先CD"
@@ -277,6 +276,7 @@ export default {
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.BushoCd || !vue.viewModel.DeliveryDate || !vue.viewModel.CustomerCd) return;
+            console.log("conditionChanged", vue.viewModel);
 
             vue.refreshCols(() => grid.searchData(vue.searchParams, false, null, callback));
         },
@@ -517,6 +517,11 @@ export default {
                     done: {
                         isShow: false,
                         callback: (gridVue, grid, res)=>{
+                            if (res.edited.length == 0) {
+                                grid.commit();
+                                return false;
+                            }
+
                             var compare = vue.onAfterSearchFunc(gridVue, grid, res.edited);
                             var d = diff(vue.DAI01090Grid1.getPlainPData(), compare);
 

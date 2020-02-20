@@ -76,6 +76,8 @@
                     :query=this.searchParams
                     :SearchOnCreate=false
                     :SearchOnActivate=false
+                    :checkChanged=true
+                    :checkChangedFunc=checkGridChangedFunc
                     :options=this.grid1Options
                     :onAfterSearchFunc=this.onAfterSearchFunc
                     :autoToolTipDisabled=true
@@ -105,7 +107,7 @@
 {
     background-color: #e6f4ff !important;
 }
-#DAI01100Grid2 .pq-grid-row:not([id^="pq-head-row"]):not(.pq-striped) .pq-grid-cell.toggle:not([id^=pq-sum]) {
+#DAI01100Grid2 .pq-grid-row:not([id^="pq-head-row"]):not(.pq-striped):not(.pq-state-select) .pq-grid-cell.toggle:not([id^=pq-sum]) {
     background-color: #ffc7ac !important;
 }
 #DAI01100Grid1 .pq-grid-row.pq-striped:not([id^="pq-head-row"]),
@@ -114,6 +116,12 @@
     background-color: white !important;
 }
 /* マージセル */
+#DAI01100Grid1 .pq-grid-row .pq-grid-cell.pq-merge-cell,
+#DAI01100Grid2 .pq-grid-row .pq-grid-cell.pq-merge-cell
+{
+    background: white;
+    color: initial;
+}
 #DAI01100Grid1 div.tk_info {
     width: 100%;
 }
@@ -217,7 +225,7 @@ export default {
                 "翌月分",
             ],
             grid1Options: {
-                selectionModel: { type: "cell", mode: "single", row: true },
+                selectionModel: { type: "row", mode: "single", row: true },
                 showHeader: true,
                 showToolbar: false,
                 columnBorders: true,
@@ -248,6 +256,9 @@ export default {
                 cellClick: function (event, ui) {
                     var grid = this;
                     vue.toggleGrid2(false);
+                    if (ui.$td.hasClass("autocomplete-cell") || ui.$td.hasClass("select-cell")) {
+                        grid.editCell({rowIndx: ui.rowIndx, dataIndx: ui.dataIndx});
+                    }
                 },
                 summaryData: [
                     {
@@ -304,9 +315,12 @@ export default {
 
                     vue.syncScroll(grid.scrollY());
                 },
+                rowDblClick: function (event, ui) {
+                    vue.showDetail(false, ui.rowData);
+                },
             },
             grid2Options: {
-                selectionModel: { type: "cell", mode: "single", row: true },
+                selectionModel: { type: "row", mode: "single", row: true },
                 showHeader: true,
                 showToolbar: false,
                 strNoRows: "",
@@ -327,7 +341,7 @@ export default {
                 trackModel: { on: true },
                 historyModel: { on: true },
                 editModel: {
-                    clicksToEdit: 1,
+                    clicksToEdit: 2,
                     keyUpDown: false,
                     saveKey: $.ui.keyCode.ENTER,
                     onSave: "nextFocus",
@@ -347,6 +361,9 @@ export default {
                 cellClick: function (event, ui) {
                     var grid = this;
                     vue.toggleGrid2(true);
+                    if (ui.$td.hasClass("autocomplete-cell") || ui.$td.hasClass("select-cell")) {
+                        grid.editCell({rowIndx: ui.rowIndx, dataIndx: ui.dataIndx});
+                    }
                 },
                 summaryData: [
                     {
@@ -364,13 +381,15 @@ export default {
                     [
                         "売上",
                         function (rowData) {
-                            return _(rowData).pickBy((v, k) => k.startsWith("金額")).map(v => v * 1).values().sum();
+                            return _(rowData).pickBy((v, k) => k.startsWith("金額")).map(v => v * 1).values().sum()
+                                 + (rowData.チケット売 || 0) * 1;
                         }
                     ],
                     [
                         "掛売上",
                         function (rowData) {
-                            return _(rowData).pickBy((v, k) => k.startsWith("金額")).map(v => v * 1).values().sum();
+                            return _(rowData).pickBy((v, k) => k.startsWith("金額")).map(v => v * 1).values().sum()
+                                + (rowData.チケット売 || 0) * 1;
                         }
                     ],
                 ],
@@ -523,6 +542,11 @@ export default {
 
                     vue.syncScroll(grid.scrollY());
                 },
+                rowDblClick: function (event, ui) {
+                    if (ui.dataIndx != "入金額" && ui.dataIndx != "備考") {
+                        vue.showDetail(false, ui.rowData);
+                    }
+                },
             },
         });
 
@@ -531,6 +555,13 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
+                { visible: "true", value: "明細入力", id: "DAI01100Grid1_Detail", disabled: true, shortcut: "F1",
+                    onClick: function () {
+                        vue.showDetail(false);
+                    }
+                },
+                {visible: "false"},
+                {visible: "false"},
                 { visible: "true", value: "検索", id: "DAI01100Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
                         if (vue.DAI01100Grid1.colModel.some(v => !!v.custom)) {
@@ -540,67 +571,64 @@ export default {
                         }
                     }
                 },
+                { visible: "true", value: "分配入力", id: "DAI01100Grid1_Bunpai", disabled: true, shortcut: "F6",
+                    onClick: function () {
+                    }
+                },
                 {visible: "false"},
                 { visible: "true", value: "登録", id: "DAI01100Grid1_Save", disabled: true, shortcut: "F9",
                     onClick: function () {
-                        var grid = vue.DAI01100Grid1;
+                        var grid2 = vue.DAI01100Grid2;
 
-                        var changes = _.cloneDeep(grid.createSaveParams());
+                        var changes = _.cloneDeep(grid2.getChanges());
 
-                        var productUpdateList = [];
-                        var patternUpdateList = [];
+                        var SaveList = _(changes.updateList)
+                            .groupBy(r => r.得意先ＣＤ)
+                            .values()
+                            .value()
+                            .map(r => _.reduce(r, (a, v) => {
+                                a.入金日付 = vue.searchParams.DeliveryDate;
+                                a.伝票Ｎｏ = v.伝票Ｎｏ;
+                                a.部署ＣＤ = vue.searchParams.BushoCd;
+                                a.得意先ＣＤ = v.得意先ＣＤ;
+                                a.入金区分 = 1;
+                                a.現金 = (a.現金 || 0) + (v.売掛現金区分 == 0 ? v.入金額 : 0) * 1;
+                                a.小切手 = 0;
+                                a.振込 = 0;
+                                a.バークレー = 0;
+                                a.その他 = 0;
+                                a.相殺 = 0;
+                                a.値引 = 0;
+                                a.摘要 = (a.摘要 || "") + (v.売掛現金区分 == 0 ? v.備考 : "");
+                                a.備考 = (a.備考 || "") + (v.売掛現金区分 == 1 ? v.備考 : "");
+                                a.請求日付 = v.請求日付;
+                                a.予備金額１ = 0;
+                                a.予備金額２ = 0;
+                                a.予備ＣＤ１ = 0;
+                                a.予備ＣＤ２ = 0;
+                                a.修正日 = v.入金データ修正日;
+                                a.修正担当者ＣＤ = vue.getLoginInfo().uid;
 
-                        changes.UpdateList.forEach((r, i) => {
-                            var d = diff(changes.OldList[i], r);
-
-                            _.forIn(d, (v, k) => {
-                                if (k.startsWith("商品_")) {
-                                    var product = {};
-                                    var cd = k.replace("商品_", "");
-                                    product.部署ＣＤ = r.部署ＣＤ;
-                                    product.得意先ＣＤ = r.得意先ＣＤ;
-                                    product.日付 = vue.searchParams.DeliveryDate;
-                                    product.商品ＣＤ = cd;
-                                    product.見込数 = !v ? 0 : (v * 1);
-                                    product.見込入力 = 1;
-                                    product.更新フラグ = 0;
-                                    product.修正日 = r["予測データ更新日時_" + cd];
-
-                                    productUpdateList.push(product);
-
-                                } else if (k == "製造パターン") {
-                                    var pattern = {};
-                                    pattern.部署ＣＤ = r.部署ＣＤ;
-                                    pattern.製造日 = vue.searchParams.DeliveryDate;
-                                    pattern.コースＣＤ = r.コースＣＤ;
-                                    pattern.得意先ＣＤ = r.得意先ＣＤ;
-                                    pattern.製造パターン = r.製造パターン;
-                                    pattern.修正担当者ＣＤ = vue.getLoginInfo().uid;
-                                    pattern.修正日 = r.製造パターン更新日時;
-
-                                    patternUpdateList.push(pattern);
-
-                                }
-                            });
-                        });
+                                return a;
+                            }, {}))
+                            ;
 
                         //保存実行
                         grid.saveData(
                             {
                                 uri: "/DAI01100/Save",
                                 params: {
-                                    ProductList: productUpdateList,
-                                    PatternList: patternUpdateList,
+                                    SaveList: SaveList,
                                 },
                                 optional: vue.searchParams,
                                 confirm: {
-                                    isShow: true,
+                                    isShow: false,
                                 },
                                 done: {
                                     isShow: false,
                                     callback: (gridVue, grid, res)=>{
-                                        var compare = vue.onAfterSearchFunc(gridVue, grid, res.edited);
-                                        var d = diff(vue.DAI01100Grid1.getPlainPData(), compare);
+                                        var compare = vue.mergeData(res.edited);
+                                        var d = diff(vue.DAI01100Grid2.getPlainPData(), compare);
 
                                         _.forIn(d, (v, k) => {
                                             var r = _.omitBy(v, (vv, kk) => vv == undefined);
@@ -612,7 +640,7 @@ export default {
                                         })
 
                                         if (_.isEmpty(d)) {
-                                            grid.commit();
+                                            grid2.commit();
                                         } else {
                                             if (res.skipped) {
                                                 $.dialogInfo({
@@ -621,7 +649,7 @@ export default {
                                                 });
                                             }
 
-                                            grid.blinkDiff(compare, true);
+                                            grid2.blinkDiff(compare, true);
                                         }
 
                                         return false;
@@ -631,6 +659,11 @@ export default {
                         );
                     }
                 },
+                { visible: "true", value: "新規明細入力", id: "DAI01100Grid1_DetailNew", disabled: false, shortcut: "F10",
+                    onClick: function () {
+                        vue.showDetail(true);
+                    }
+                },
             );
         },
         mountedFunc: function(vue) {
@@ -638,6 +671,26 @@ export default {
             //TODO
             // vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
             vue.viewModel.DeliveryDate = moment("20190904").format("YYYY年MM月DD日");
+
+            //watcher
+            vue.$watch(
+                "$refs.DAI01100Grid1.selectionRowCount",
+                cnt => {
+                    vue.footerButtons.find(v => v.id == "DAI01100Grid1_Detail").disabled = cnt == 0 || cnt > 1;
+                }
+            );
+            vue.$watch(
+                "$refs.DAI01100Grid1.selectionRow",
+                row => {
+                    vue.DAI01100Grid2.refresh();
+                }
+            );
+            vue.$watch(
+                "$refs.DAI01100Grid2.selectionRow",
+                row => {
+                    vue.DAI01100Grid1.refresh();
+                }
+            );
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
@@ -803,9 +856,11 @@ export default {
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.BushoCd || !vue.viewModel.DeliveryDate || !vue.viewModel.CourseCd) return;
-            if (!grid.options.colModel.some(v => v.custom)) return;
-
-            grid.searchData(vue.searchParams, false, null, callback);
+            if (!grid.options.colModel.some(v => v.custom)) {
+                vue.refreshCols();
+            } else {
+                grid.searchData(vue.searchParams, false, null, callback);
+            }
         },
         resizeGrid: function(grid) {
             var vue = this;
@@ -851,11 +906,16 @@ export default {
 
             vue.grid2Expand = show;
         },
-        onAfterSearchFunc: function (grieVue, grid, res) {
+        checkGridChangedFunc: function(grid) {
+            var vue = this;
+            var grid2 = vue.DAI01100Grid2;
+
+            return grid2.isChanged();
+        },
+        mergeData: function (data) {
             var vue = this;
 
-            window.orgData = _.cloneDeep(res);
-            var merged = _.values(_.groupBy(res, v => v.得意先ＣＤ + "," + v.売掛現金区分))
+            var merged = _.values(_.groupBy(data, v => v.得意先ＣＤ + "," + v.売掛現金区分))
                 .map((r, i) => {
                     var ret = _.reduce(
                             r,
@@ -866,6 +926,10 @@ export default {
                                 acc.得意先売掛現金区分名称 = v.得意先売掛現金区分名称;
                                 acc.入金額 = v.入金額 ;
                                 acc.備考 = (acc.備考 || "") + ((v.売掛現金区分 == 0 ? v.備考 : v.備考テキスト) || "");
+                                acc.入金日付 = v.入金日付 ;
+                                acc.伝票Ｎｏ = v.伝票Ｎｏ ;
+                                acc.請求日付 = v.請求日付 ;
+                                acc.入金データ修正日 = v.入金データ修正日 ;
 
                                 acc.売掛現金区分 = v.売掛現金区分;
                                 acc.売掛現金区分名称 = v.売掛現金区分名称;
@@ -874,11 +938,16 @@ export default {
                                 acc["現金金額_" + v.商品ＣＤ] = (acc["現金金額_" + v.商品ＣＤ] || 0) + v.現金金額 * 1;
                                 acc["掛売個数_" + v.商品ＣＤ] = (acc["掛売個数_" + v.商品ＣＤ] || 0) + v.掛売個数 * 1;
                                 acc["掛売金額_" + v.商品ＣＤ] = (acc["掛売金額_" + v.商品ＣＤ] || 0) + v.掛売金額 * 1;
+                                acc["分配元数量_" + v.商品ＣＤ] = (acc["分配元数量_" + v.商品ＣＤ] || 0) + v.分配元数量 * 1;
 
                                 if (!!vue.ProductList.find(p => p.商品ＣＤ == v.商品ＣＤ)) {
                                     acc["個数_" + v.商品ＣＤ] = (acc["個数_" + v.商品ＣＤ] || 0)
-                                        + (v.売掛現金区分 == 0 ? v.現金個数 : v.掛売個数 ) * 1;
+                                        + (v.売掛現金区分 == 0 ? v.現金個数 : v.掛売個数 ) * 1 + acc["分配元数量_" + v.商品ＣＤ];
                                     acc["金額_" + v.商品ＣＤ] = (acc["金額_" + v.商品ＣＤ] || 0)
+                                        + (v.売掛現金区分 == 0 ? v.現金金額 : v.掛売金額 ) * 1;
+                                } else if (v.商品区分 == 9) {
+                                    //チケット
+                                    acc["チケット売"] = (acc["チケット売"] || 0)
                                         + (v.売掛現金区分 == 0 ? v.現金金額 : v.掛売金額 ) * 1;
                                 } else {
                                     acc["個数_その他"] = (acc["個数_その他"] || 0)
@@ -886,6 +955,7 @@ export default {
                                     acc["金額_その他"] = (acc["金額_その他"] || 0)
                                         + (v.売掛現金区分 == 0 ? v.現金金額 : v.掛売金額 ) * 1;
                                 }
+                                acc["値引"] = (acc["値引"] || 0) + (v.売掛現金区分 == 0 ? v.現金値引 : v.掛売値引 ) * 1;
 
                                 acc.CustomerIndex = acc.CustomerIndex || parseInt(i / 2 + 1);
 
@@ -896,6 +966,14 @@ export default {
 
                     return ret;
                 });
+
+            return merged;
+        },
+        onAfterSearchFunc: function (grieVue, grid, res) {
+            var vue = this;
+
+            vue.orgData = _.cloneDeep(res);
+            var merged = vue.mergeData(res);
 
             //mergeCellsの設定
             grid.options.mergeCells = _.flattenDeep(res.filter((r, i) => !(i % 2))
@@ -958,6 +1036,45 @@ export default {
                 ;
 
             return list;
+        },
+        showDetail: function(isNew, rowData) {
+            var vue = this;
+
+            var params = null;
+            if (!isNew) {
+                var data;
+                if (!!rowData) {
+                    data = _.cloneDeep(rowData);
+                } else {
+                    var selection = grid.SelectRow().getSelection();
+
+                    var rows = grid.SelectRow().getSelection();
+                    if (rows.length != 1) return;
+
+                    data = _.cloneDeep(rows[0].rowData);
+                }
+
+                var params = {
+                    BushoCd: vue.viewModel.BushoCd,
+                    BushoNm: vue.viewModel.BushoNm,
+                    TargetDate: vue.viewModel.DeliveryDate,
+                    CourseKbn: vue.viewModel.CourseKbn,
+                    CourseCd: vue.viewModel.CourseCd,
+                    CourseNm: vue.viewModel.CourseNm,
+                    CustomerCd: data.得意先ＣＤ,
+                    CustomerIndex: data.CustomerIndex,
+                };
+            }
+
+            PageDialog.show({
+                pgId: "DAI10010",
+                params: params,
+                isModal: true,
+                isChild: true,
+                reuse: false,
+                width: 1000,
+                height: 600,
+            });
         },
     }
 }

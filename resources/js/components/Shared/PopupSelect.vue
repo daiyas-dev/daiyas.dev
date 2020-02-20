@@ -17,11 +17,10 @@
                 hideSearchButton && hideClearButton && !enablePrevNext ? 'mr-1' : '',
             ]"
             :style='inputWidth ? ("width: " + inputWidth + "px") : ""'
-            v-model="vmodel[bind]"
+            :value="vmodel[bind]"
             :readonly="this.editable == false"
             autocomplete="off"
             @input=onInput
-            @change=onChange
             :disabled=isDisabled
         >
         <button type="button"
@@ -255,6 +254,7 @@ export default {
         disabled: Boolean,
         hideSearchButton: Boolean,
         hideClearButton: Boolean,
+        onAfterSearchFunc: Function,
     },
     computed: {
         showText: function() {
@@ -374,8 +374,6 @@ export default {
 
             vue.paramsPrev = _.cloneDeep(vue.params);
             vue.getDataList(vue.params, (res) => {
-                $(vue.$el).children().not(".select-name").prop("disabled", vue.isDisabled);
-                $(vue.$el).find(".select-name").prop("disabled", vue.isDisabled || !vue.isNameEditable);
                 if (vue.vmodel[vue.bind]) {
                     vue.setSelectValue(vue.vmodel[vue.bind], true);
                 }
@@ -412,8 +410,6 @@ export default {
                 // $(vue.$el).children().prop("disabled", true);
 
                 vue.getDataList(vue.params, (res) => {
-                    $(vue.$el).children().not(".select-name").prop("disabled", vue.isDisabled);
-                    $(vue.$el).find(".select-name").prop("disabled", vue.isDisabled || !vue.isNameEditable);
                     if (vue.vmodel[vue.bind]) {
                         vue.setSelectValue(vue.vmodel[vue.bind], true);
                     }
@@ -514,11 +510,18 @@ export default {
                     }
 
                     vue.isLoading = false;
+                    $(vue.$el).children().not(".select-name").prop("disabled", vue.isDisabled);
+                    $(vue.$el).find(".select-name").prop("disabled", vue.isDisabled || !vue.isNameEditable);
 
                     if (vue.isShowAutoComplete) {
                         vue.autoCompleteKey = null;
                         vue.autoCompleteList = [];
                         vue.setAutoComplete();
+                    }
+
+                    if (vue.onAfterSearchFunc) {
+                        var ret = vue.onAfterSearchFunc(vue);
+                        if (ret == false) return;
                     }
 
                     //callback実行
@@ -666,8 +669,8 @@ export default {
                 try {
 
                     var rowData = vue.dataList.find(v => newVal == v[vue.isGetName ? "CdNm" : "Cd"]);
-                    if (!rowData && vue.isShowAutoComplete && vue.autoCompleteList.length == 1) {
-                        rowData = vue.autoCompleteList[0];
+                    if (!!newVal && !rowData && vue.isShowAutoComplete && vue.getAutoCompleteList(newVal).length == 1) {
+                        rowData = vue.getAutoCompleteList(newVal)[0];
                     }
 
                     //入力有り、かつチェック指定されている場合は、存在チェック
@@ -679,6 +682,8 @@ export default {
                     vue.selectValue = !rowData ? "" : rowData[!vue.isGetName ? "Cd" : "CdNm"];
                     vue.selectName = !rowData ? "" : rowData[vue.isGetName ? "Cd" : "CdNm"];
                     vue.selectRow = !rowData ? {} : rowData;
+
+                    console.log("ps setValue", newVal, vue.selectValue, vue.selectName, vue.selectRow);
 
                     if (vue.onChangeFunc) {
                         //変更時functionが指定されている場合は呼び出す
@@ -692,11 +697,11 @@ export default {
                     }
 
                     //bindingが指定されている場合、反映
-                    if (!!vue.vmodel && !!vue.bind) {
+                    if (vue.isValid && !!vue.vmodel && !!vue.bind) {
                         var parent = vue.$parent;
 
                         if (parent) {
-                            parent.$set(vue.vmodel, vue.bind, newVal);
+                            parent.$set(vue.vmodel, vue.bind, vue.selectValue);
                             if (vue.buddy) {
                                 parent.$set(vue.vmodel, vue.buddy, vue.selectName);
                             }
@@ -705,7 +710,7 @@ export default {
                             }
                             parent.$forceUpdate();
                         } else {
-                            vue.vmodel[vue.bind] = newVal;
+                            vue.vmodel[vue.bind] = vue.selectValue;
                             if (vue.buddy) {
                                 vue.vmodel[vue.buddy] = vue.selectName;
                             }
@@ -713,12 +718,10 @@ export default {
                                 _.forIn(vue.buddies, (v, k) => vue.vmodel[k] = vue.selectRow[v]);
                             }
                         }
+                        if (vue.onAfterChangedFunc) {
+                            vue.onAfterChangedFunc(vue.selectValue, vue.selectRow, vue);
+                        }
                     }
-
-                    if (vue.onAfterChangedFunc) {
-                        vue.onAfterChangedFunc(newVal, vue.selectRow, vue);
-                    }
-
                 } catch(ex) {
                     console.log("PopupSelect setValue Exception", ex);
                 }
@@ -743,13 +746,13 @@ export default {
 
                 //検索結果から、現在の値を含むものを抽出
                 var rowData = vue.dataList.find(v => newVal == v[vue.isGetName ? "CdNm" : "Cd"]);
-                if (!rowData && vue.isShowAutoComplete && vue.autoCompleteList.length == 1) {
-                    rowData = vue.autoCompleteList[0];
+                if (!!newVal && !rowData && vue.isShowAutoComplete && vue.getAutoCompleteList(newVal).length == 1) {
+                    rowData = vue.getAutoCompleteList(newVal)[0];
                 }
 
                 if (!rowData && check) {
                     //現在の値を含むものが無い場合、エラーとする
-                    vue.errorMsg = vue.isShowAutoComplete && !!rowData && vue.autoCompleteList.length > 1
+                    vue.errorMsg = vue.isShowAutoComplete && !!rowData && vue.getAutoCompleteList(newVal).length > 1
                         ? ((vue.title || (vue.label + "一覧")) + "で複数該当します")
                         : ((vue.title || (vue.label + "一覧")) + "に存在しません");
 
@@ -932,6 +935,7 @@ export default {
                 // console.log("autocomplete focus:" + input.val() + " skip:" + vue.AutoCompleteFocusSkip);
                 if (vue.AutoCompleteFocusSkip) {
                     vue.AutoCompleteFocusSkip = false;
+                    return false;
                 } else {
                     if (!input.autocomplete("widget").is(":visible")) {
                         input.autocomplete("search", input.val());
@@ -981,9 +985,10 @@ export default {
                 // console.log("getAutoCompleteList: same key " + key);
                 return vue.autoCompleteList;
             }
+            if (!vue.dataList) return [];
 
             var match = vue.dataList.filter(v => v[vue.isGetName ? "CdNm" : "Cd"] == key);
-            var list = vue.AutoCompleteFunc
+            var list = (vue.AutoCompleteFunc && key != null && key != undefined)
                 ? vue.AutoCompleteFunc(key, _.cloneDeep(vue.dataList), vue)
                 : _.cloneDeep(vue.dataList)
                     .filter(v => v[vue.isGetName ? "CdNm" : "Cd"].includes(key))
@@ -1003,7 +1008,7 @@ export default {
 
             return list;
             } catch (err) {
-                console.log("getAutoCompleteList Error", key);
+                console.log("getAutoCompleteList Error", err, key);
             };
         },
         prevList: function() {
@@ -1016,8 +1021,9 @@ export default {
             var next = vue.dataList[!vue.selectRow ? 0 : (vue.dataList.indexOf(vue.selectRow) + 1)];
             vue.setSelectValue(next[vue.isGetName ? "CdNm" : "Cd"], true)
         },
-        focus: function() {
+        focus: function(skip) {
             var vue = this;
+            vue.AutoCompleteFocusSkip = skip;
             $(vue.$el).find(".target-input").focus();
         },
     }
