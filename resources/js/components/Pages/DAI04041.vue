@@ -296,6 +296,7 @@
                             :autoEmptyRow=true
                             :autoEmptyRowCount=1
                             :autoEmptyRowFunc=autoEmptyRowFunc
+                            :autoEmptyRowCheckFunc=autoEmptyRowCheckFunc
                             classes="ml-4 mr-4"
                         />
                     </div>
@@ -1163,13 +1164,16 @@ export default {
                     editable: true,
                     sortable: true,
                 },
-                trackModel: { on: true },
+                trackModel: { on: false },
                 historyModel: { on: true },
                 filterModel: {
                     on: false,
                     header: false,
                     menuIcon: false,
                     hideRows: true,
+                },
+                sortModel: {
+                    on: false,
                 },
                 editModel: {
                     clicksToEdit: 2,
@@ -2055,8 +2059,6 @@ export default {
             vue.viewModel.請求書敬称 = "2";
             vue.HolidayConfig.日 = "1";
 
-            //TODO:電話番号一覧を入力可能にする
-            // vue.searchTelList();
             return;
         },
         onAfterSearchFunc: function (gridVue, grid, res) {
@@ -2114,7 +2116,6 @@ export default {
             grid.deleteRow({ rowList: rowList });
         },
         autoEmptyRowFunc: function(grid) {
-            var vue = this;
 
             return {
                 "Tel_TelNo": "",
@@ -2122,6 +2123,11 @@ export default {
                 "Tel_RepFlg": "",
             };
         },
+        autoEmptyRowCheckFunc: function(){
+            //TODO:作業中
+            //TODO:電話番号未入力、行追加しない
+            return !rowData["Tel_TelNo"];
+        }
     },
 }
 </script>

@@ -2802,10 +2802,10 @@ export default {
                     //次セル検索 & 移動
                     if (rows) {
                         return moveNext();
-                    } else {
-                        if (editor) {
-                            grid.quitEditMode();
-                        }
+                    // } else {
+                    //     if (editor) {
+                    //         grid.quitEditMode();
+                    //     }
                     }
                 }
 
