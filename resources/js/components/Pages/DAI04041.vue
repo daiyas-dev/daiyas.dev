@@ -1132,17 +1132,13 @@ export default {
                     onTab: "nextFocus",
                 },
                 filterModel: {
-                    on: true,
-                    mode: "OR",
+                    on: false,
                     header: false,
                     menuIcon: false,
                     hideRows: false,
                 },
                 sortModel: {
-                    on: true,
-                    cancel: false,
-                    type: "local",
-                    sorter:[ { dataIndx: "sortIndx", dir: "up" } ],
+                    on: false,
                 },
                 groupModel: {
                     on: false,

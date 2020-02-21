@@ -154,7 +154,6 @@
             :SearchOnCreate=false
             :SearchOnActivate=false
             :checkChanged=true
-            :checkChangedFunc=checkChangedFunc
             :checkChangedCancelFunc=checkChangedCancelFunc
             :options=this.grid1Options
             :onCompleteFunc=onCompleteFunc
@@ -857,10 +856,6 @@ export default {
         },
         onSelectChangeFunc: function(grid, ui) {
         },
-        checkChangedFunc: function(grid) {
-            console.log("checkChangedFunc");
-            return true;
-        },
         checkChangedCancelFunc: function(grid) {
             var vue = this;
             var grid = vue.DAI01030Grid1;
@@ -972,6 +967,8 @@ export default {
                 });
                 return;
             }
+
+            var SaveList = _.cloneDeep(grid.getPlainPData().filter(v => !!v.商品ＣＤ));
 
             //注文データの型に整形
             SaveList.forEach((v, i) => {
