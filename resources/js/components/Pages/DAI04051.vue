@@ -493,6 +493,7 @@ export default {
             var vue = this;
         },
         deleteRow: function(grid, event) {
+            //TODO:現行で削除クリックは、選択行のデータをマスタから削除する。（確認メッセージ有り。）
             var vue = this;
 
             grid = grid || vue.DAI04051Grid1;

@@ -280,7 +280,7 @@
                         />
                     </div>
                     <div class="col-md-12">
-                        <label class="mt-3" style="width: -webkit-fill-available; margin-right:25px; text-align: right;">0：主, 1:副</label>
+                        <label class="mt-4 attention" style="width: -webkit-fill-available; margin-right:25px; text-align: right;">［番号］"-"無しで入力［区分］0:主,1:副</label>
                     </div>
                     <div class="col-md-12 align-items-start">
                         <PqGridWrapper
@@ -295,11 +295,9 @@
                             :autoToolTipDisabled=true
                             :autoEmptyRow=true
                             :autoEmptyRowCount=1
+                            :autoEmptyRowFunc=autoEmptyRowFunc
                             classes="ml-4 mr-4"
                         />
-                    </div>
-                    <div class="col-md-12">
-                        <label class="" style="width: -webkit-fill-available; margin-right:25px; text-align: right;">"-"無しで入力　Ctrl+Deleteで行削除</label>
                     </div>
                 </div>
             </div>
@@ -982,6 +980,34 @@ input::-webkit-inner-spin-button {
 }
 </style>
 <style>
+form[pgid="DAI04041"] .pq-grid .DAI04041_toolbar {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+form[pgid="DAI04041"] .pq-grid .DAI04041_toolbar .toolbar_button {
+    width: 45px;
+    height: 30px;
+    padding: 0px;
+    padding-left: 3px;
+    padding-right: 3px;
+    margin: 0px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+form[pgid="DAI04041"] .pq-grid .DAI04041_toolbar .toolbar_button > i {
+    margin: 0px;
+}
+form[pgid="DAI04041"] .pq-grid .DAI04041_toolbar .toolbar_button > i > span {
+    font-size: 12px !important;
+}
+form[pgid="DAI04041"] .pq-grid .DAI04041_toolbar .toolbar_button.ope {
+    width: 45px;
+}
+.attention{
+    color: navy;
+}
 </style>
 
 <script>
@@ -1107,23 +1133,44 @@ export default {
             TorokuKeyWord: null,
             HolidayConfig: {"日":"0","月":"0","火":"0","水":"0","木":"0","金":"0","土":"0"},
             grid1Options: {
-                selectionModel: { type: "row", mode: "single", row: true},
+                selectionModel: { type: "row", mode: "block", row: true},
                 showHeader: true,
-                showToolbar: false,
+                showToolbar: true,
+                toolbar: {
+                    cls: "DAI04041_toolbar",
+                    items: [
+                        {
+                            name: "delete",
+                            type: "button",
+                            label: "<i class='fa fa-minus fa-lg'></i>",
+                            listener: function (event) {
+                                vue.deleteRow(this, event);
+                            },
+                            attr: 'class="toolbar_button delete" title="行削除" delete ',
+                            options: { disabled: true },
+                        },
+                    ]
+                },
                 columnBorders: true,
                 fillHandle: "",
-                numberCell: { show: true, title: "No.", resizable: false, },
+                numberCell: { show: true, title: "No.", resizable: false },
                 autoRow: false,
                 rowHtHead: 30,
                 rowHt: 30,
-                height: 280,
+                height: 300,
                 editable: true,
                 columnTemplate: {
-                    editable: false,
-                    sortable: false,
+                    editable: true,
+                    sortable: true,
                 },
-                trackModel: { on: false },
-                historyModel: { on: false },
+                trackModel: { on: true },
+                historyModel: { on: true },
+                filterModel: {
+                    on: false,
+                    header: false,
+                    menuIcon: false,
+                    hideRows: true,
+                },
                 editModel: {
                     clicksToEdit: 2,
                     keyUpDown: false,
@@ -1131,26 +1178,6 @@ export default {
                     onSave: "nextFocus",
                     onTab: "nextFocus",
                 },
-                filterModel: {
-                    on: true,
-                    mode: "OR",
-                    header: false,
-                    menuIcon: false,
-                    hideRows: false,
-                },
-                sortModel: {
-                    on: true,
-                    cancel: false,
-                    type: "local",
-                    sorter:[ { dataIndx: "sortIndx", dir: "up" } ],
-                },
-                groupModel: {
-                    on: false,
-                    header: false,
-                    grandSummary: false,
-                },
-                formulas: [
-                ],
                 colModel: [
                     {
                         title: "電話番号",
@@ -1164,7 +1191,6 @@ export default {
                         title: "得意先ＣＤ",
                         dataIndx: "Tel_CusNo", dataType: "integer",
                         hidden: true,
-                        align: "left",
                     },
                     {
                         title: "区分",
@@ -1173,6 +1199,8 @@ export default {
                         editable: true,
                         align: "right",
                     },
+                ],
+                formulas: [
                 ],
             },
         });
@@ -1859,7 +1887,8 @@ export default {
 
             //TODO:確認中
             //電話番号一覧クリア
-            vue.DAI04041Grid1.clearData();
+            var grid = this.DAI04041Grid1;
+            grid.clearData();
 
             //ボタン制御
             $("[shortcut='F3']").prop("disabled", true);
@@ -2070,6 +2099,28 @@ export default {
             );
             console.log("登録", params);
 
+        },
+        deleteRow: function(grid, event) {
+            var vue = this;
+
+            grid = grid || vue.DAI04041Grid1;
+
+            //選択行なし
+            if(!grid.SelectRow().getSelection().length){
+                return;
+            }
+
+            var rowList = grid.SelectRow().getSelection().map(v => _.pick(v, ["rowIndx"]));
+            grid.deleteRow({ rowList: rowList });
+        },
+        autoEmptyRowFunc: function(grid) {
+            var vue = this;
+
+            return {
+                "Tel_TelNo": "",
+                "Tel_CusNo": "",
+                "Tel_RepFlg": "",
+            };
         },
     },
 }
