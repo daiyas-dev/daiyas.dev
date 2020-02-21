@@ -1876,7 +1876,7 @@ export default {
                     grid.searchResult = null;
                     grid.options.dataModel.location = "local";
                     grid.options.dataModel.data = initialArray;
-                    grid.options.dataModel.dataUF = initialArray;
+                    grid.options.dataModel.dataUF = [];
                     grid.options.dataModel.postData = {};
                     grid.refreshDataAndView();
                     grid.options.dataModel.location = location;
@@ -3155,10 +3155,18 @@ export default {
                                             rowIndx: grid.getData().length + i,
                                         };
                                     });
-                    grid.addRow({
-                        rowList: rowList,
-                        checkEditable: false,
-                    });
+                    if (cnt == 1) {
+                        grid.addRow({
+                            rowIndx: rowList[0].rowIndx,
+                            newRow: rowList[0].newRow,
+                            checkEditable: false,
+                        });
+                    } else {
+                        grid.addRow({
+                            rowList: rowList,
+                            checkEditable: false,
+                        });
+                    }
 
                     return rowList;
                 }
