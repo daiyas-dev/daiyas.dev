@@ -2123,10 +2123,10 @@ export default {
                 "Tel_RepFlg": "",
             };
         },
-        autoEmptyRowCheckFunc: function(){
-            //TODO:作業中
-            //TODO:電話番号未入力、行追加しない
+        autoEmptyRowCheckFunc: function(rowData){
+            //電話番号が未入力の行かどうか
             return !rowData["Tel_TelNo"];
+
         }
     },
 }

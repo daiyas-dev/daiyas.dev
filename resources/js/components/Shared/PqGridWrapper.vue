@@ -3147,7 +3147,7 @@ export default {
                     ;
 
                 if (empties > actuals || forced) {
-                    var cnt = forced ? 1 : empties - actuals;
+                    var cnt = forced ? (empties == actuals ? 0 : 1) : empties - actuals;
                     var rowList = _.fill(Array(cnt), {})
                                     .map((v, i) => {
                                         return {
@@ -3155,6 +3155,9 @@ export default {
                                             rowIndx: grid.getData().length + i,
                                         };
                                     });
+
+                    if(cnt == 0 ) return;
+
                     if (cnt == 1) {
                         grid.addRow({
                             rowIndx: rowList[0].rowIndx,

@@ -424,7 +424,7 @@ export default {
             };
         },
         autoEmptyRowCheckFunc: function(rowData) {
-            return !rowData["得意先ＣＤ"];
+            return !rowData["商品ＣＤ"];
         },
         saveTankaList: function() {
             var vue = this;
