@@ -1803,15 +1803,108 @@ export default {
                 return;
             }
 
-            //DAI04042を子画面表示
-            PageDialog.show({
-                pgId: "DAI04042",
-                params: cds,
-                isModal: true,
-                isChild: true,
-                resizable: false,
-                width: 600,
-                height: 600,
+            // //DAI04042を子画面表示
+            // PageDialog.show({
+            //     pgId: "DAI04042",
+            //     params: cds,
+            //     isModal: true,
+            //     isChild: true,
+            //     resizable: false,
+            //     width: 600,
+            //     height: 600,
+            // });
+
+            //事前情報取得
+            axios.all(
+                [
+                    //得意先リストの取得
+                    axios.post("/DAI04042/GetCustomerListForSelect", null),
+                ]
+            ).then(
+                axios.spread((responseCustomer) => {
+                    var resCustomer = responseCustomer.data;
+
+                    var checkError = (res, name) => {
+                        if (res.onError && !!res.errors) {
+                            //メッセージリストに追加
+                            Object.values(res.errors).filter(v => v)
+                                .forEach(v => vue.$root.$emit("addMessage", v.replace(/(^\"|\"$)/g, "")));
+
+                            //ダイアログ
+                            $.dialogErr({ errObj: res });
+
+                            return false;
+                        } else if (res.onException) {
+                            //メッセージ追加
+                            vue.$root.$emit("addMessage", name +"リスト取得失敗(" + vue.page.ScreenTitle + ":" + res.message + ")");
+
+                            //ダイアログ
+                            $.dialogErr({
+                                title: "異常終了",
+                                contents: name +"リストの取得に失敗しました<br/>" + res.message,
+                            });
+
+                            return false;
+                        } else if (res == "") {
+                            //完了ダイアログ
+                            $.dialogErr({
+                                title: name +"リスト無し",
+                                contents: "該当データは存在しません" ,
+                            });
+
+                            return false;
+                        }
+
+                        return true;
+                    };
+
+                    if (!checkError(resCustomer)) return;
+
+                    //取得した結果を設定
+                    var params = {};
+                    params.CustomerList = resCustomer;
+                    params.得意先CD = cds.得意先CD;
+                    params.部署CD = cds.部署CD;
+
+                    PageDialog.show({
+                        pgId: "DAI04042",
+                        params: params,
+                        isModal: true,
+                        isChild: true,
+                        width: 600,
+                        height: 600,
+                        onBeforeClose: (event, ui) => {
+                            console.log("onBeforeClose", event, ui);
+
+                            if ($(window.event.target).attr("shortcut") == "ESC") return true;
+
+                            var dlg = $(event.target);
+                            var editting = dlg.find(".pq-grid")
+                                .map((i, v) => $(v).pqGrid("getInstance").grid)
+                                .get()
+                                .some(g => !_.isEmpty(g.getEditCell()));
+                            var isEscOnEditor = !!window.event && window.event.key == "Escape"
+                                && (
+                                    $(window.event.target).hasClass("target-input") ||
+                                    $(window.event.target).hasClass("pq-cell-editor")
+                                );
+
+                            return !editting && !isEscOnEditor;
+                        }
+                    });
+                })
+            )
+            .catch(error => {
+                grid.hideLoading();
+
+                //メッセージ追加
+                vue.$root.$emit("addMessage", "DB検索失敗(" + vue.ScreenTitle + ":" + error + ")");
+
+                //完了ダイアログ
+                $.dialogErr({
+                    title: "異常終了",
+                    contents: "DBの検索に失敗しました<br/>",
+                });
             });
         },
         showTankaToroku: function() {
@@ -2074,10 +2167,8 @@ export default {
             var vue = this;
             var grid = vue.DAI04041Grid1;
 
-            var saveList = _.cloneDeep(grid.getPlainPData().filter(v => !!v.Tel_TelNo));
-
             //電話番号の値がないものは除外、データの整形。
-            //TODO:得意先CDが一致するデータをすべてdelete。gridのデータで電話番号があるものだけinsesrt。
+            var saveList = _.cloneDeep(grid.getPlainPData().filter(v => !!v.Tel_TelNo));
             saveList.forEach((v, i) => {
                 v.Tel_CustNo = vue.viewModel.得意先ＣＤ;
                 v.Tel_RepFlg = v.Tel_RepFlg || 0;
@@ -2091,6 +2182,7 @@ export default {
             //登録用controller method call
             axios.post("/DAI04041/SaveTelList", params)
                 .then(res => {
+                    //TODO:
                     // vue.viewModel = res.data.model;
                     // DAI04040.conditionChanged();
                 })
@@ -2119,7 +2211,7 @@ export default {
 
             return {
                 "Tel_TelNo": "",
-                "Tel_CusNo": "",
+                "Tel_CustNo": "",
                 "Tel_RepFlg": "",
             };
         },

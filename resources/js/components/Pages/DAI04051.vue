@@ -52,9 +52,7 @@
             :query=this.viewModel
             :SearchOnCreate=false
             :SearchOnActivate=false
-            :checkChanged=true
-            :checkChangedFunc=checkChangedFunc
-            :checkChangedCancelFunc=checkChangedCancelFunc
+            :checkChanged=false
             :options=this.grid1Options
             :onCompleteFunc=onCompleteFunc
             :onSelectChangeFunc=onSelectChangeFunc
@@ -358,18 +356,6 @@ export default {
         // },
         onSelectChangeFunc: function(grid, ui) {
         },
-        checkChangedFunc: function(grid) {
-            console.log("checkChangedFunc");
-            return true;
-        },
-        checkChangedCancelFunc: function(grid) {
-            var vue = this;
-            var grid = vue.DAI04051Grid1;
-            var postData = grid.options.dataModel.postData;
-
-            console.log("checkChangedCancelFunc");
-
-        },
         onCompleteFunc: function(grid, ui) {
             var vue = this;
 
@@ -480,12 +466,14 @@ export default {
                     console.log("res", res);
                     //画面を閉じる
                     $(vue.$el).closest(".ui-dialog-content").dialog("close");
+                    //TODO:画面開閉時にメッセージがでるのを消したい
                 })
                 .catch(err => {
                     console.log(error);
                     //TODO: エラー
                 }
             );
+
             console.log("登録", params);
 
         },
@@ -503,8 +491,42 @@ export default {
                 return;
             }
 
-            var rowList = grid.SelectRow().getSelection().map(v => _.pick(v, ["rowIndx"]));
-            grid.deleteRow({ rowList: rowList });
+            var row = grid.SelectRow().getSelection()[0].rowData;
+            if(!row.商品ＣＤ) return;
+
+            var params = { CustomerCd: vue.viewModel.CustomerCd , ProductCd: row.商品ＣＤ };
+            params.noCache = true;
+
+            $.dialogConfirm({
+                title: "マスタ削除確認",
+                contents: "マスタを削除します。",
+                buttons:[
+                    {
+                        text: "はい",
+                        class: "btn btn-primary",
+                        click: function(){
+                            axios.post("/DAI04051/DeleteTankaList", params)
+                            .then(res => {
+                                var rowList = grid.SelectRow().getSelection().map(v => _.pick(v, ["rowIndx"]));
+                                grid.deleteRow({ rowList: rowList });
+                                $(this).dialog("close");
+                            })
+                            .catch(err => {
+                                console.log(error);
+                                //TODO: エラー
+                            });
+                        }
+                    },
+                    {
+                        text: "いいえ",
+                        class: "btn btn-danger",
+                        click: function(){
+                            $(this).dialog("close");
+                        }
+                    },
+                ],
+            });
+
         },
     }
 }
