@@ -280,7 +280,7 @@
                         />
                     </div>
                     <div class="col-md-12">
-                        <label class="mt-3" style="width: -webkit-fill-available; margin-right:25px; text-align: right;">0：主, 1:副</label>
+                        <label class="mt-4 attention" style="width: -webkit-fill-available; margin-right:25px; text-align: right;">［番号］"-"無しで入力［区分］0:主,1:副</label>
                     </div>
                     <div class="col-md-12 align-items-start">
                         <PqGridWrapper
@@ -295,11 +295,10 @@
                             :autoToolTipDisabled=true
                             :autoEmptyRow=true
                             :autoEmptyRowCount=1
+                            :autoEmptyRowFunc=autoEmptyRowFunc
+                            :autoEmptyRowCheckFunc=autoEmptyRowCheckFunc
                             classes="ml-4 mr-4"
                         />
-                    </div>
-                    <div class="col-md-12">
-                        <label class="" style="width: -webkit-fill-available; margin-right:25px; text-align: right;">"-"無しで入力　Ctrl+Deleteで行削除</label>
                     </div>
                 </div>
             </div>
@@ -982,6 +981,34 @@ input::-webkit-inner-spin-button {
 }
 </style>
 <style>
+form[pgid="DAI04041"] .pq-grid .DAI04041_toolbar {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+form[pgid="DAI04041"] .pq-grid .DAI04041_toolbar .toolbar_button {
+    width: 45px;
+    height: 30px;
+    padding: 0px;
+    padding-left: 3px;
+    padding-right: 3px;
+    margin: 0px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+form[pgid="DAI04041"] .pq-grid .DAI04041_toolbar .toolbar_button > i {
+    margin: 0px;
+}
+form[pgid="DAI04041"] .pq-grid .DAI04041_toolbar .toolbar_button > i > span {
+    font-size: 12px !important;
+}
+form[pgid="DAI04041"] .pq-grid .DAI04041_toolbar .toolbar_button.ope {
+    width: 45px;
+}
+.attention{
+    color: navy;
+}
 </style>
 
 <script>
@@ -1107,23 +1134,47 @@ export default {
             TorokuKeyWord: null,
             HolidayConfig: {"日":"0","月":"0","火":"0","水":"0","木":"0","金":"0","土":"0"},
             grid1Options: {
-                selectionModel: { type: "row", mode: "single", row: true},
+                selectionModel: { type: "row", mode: "block", row: true},
                 showHeader: true,
-                showToolbar: false,
+                showToolbar: true,
+                toolbar: {
+                    cls: "DAI04041_toolbar",
+                    items: [
+                        {
+                            name: "delete",
+                            type: "button",
+                            label: "<i class='fa fa-minus fa-lg'></i>",
+                            listener: function (event) {
+                                vue.deleteRow(this, event);
+                            },
+                            attr: 'class="toolbar_button delete" title="行削除" delete ',
+                            options: { disabled: true },
+                        },
+                    ]
+                },
                 columnBorders: true,
                 fillHandle: "",
-                numberCell: { show: true, title: "No.", resizable: false, },
+                numberCell: { show: true, title: "No.", resizable: false },
                 autoRow: false,
                 rowHtHead: 30,
                 rowHt: 30,
-                height: 280,
+                height: 300,
                 editable: true,
                 columnTemplate: {
-                    editable: false,
-                    sortable: false,
+                    editable: true,
+                    sortable: true,
                 },
                 trackModel: { on: false },
-                historyModel: { on: false },
+                historyModel: { on: true },
+                filterModel: {
+                    on: false,
+                    header: false,
+                    menuIcon: false,
+                    hideRows: true,
+                },
+                sortModel: {
+                    on: false,
+                },
                 editModel: {
                     clicksToEdit: 2,
                     keyUpDown: false,
@@ -1131,22 +1182,6 @@ export default {
                     onSave: "nextFocus",
                     onTab: "nextFocus",
                 },
-                filterModel: {
-                    on: false,
-                    header: false,
-                    menuIcon: false,
-                    hideRows: false,
-                },
-                sortModel: {
-                    on: false,
-                },
-                groupModel: {
-                    on: false,
-                    header: false,
-                    grandSummary: false,
-                },
-                formulas: [
-                ],
                 colModel: [
                     {
                         title: "電話番号",
@@ -1160,7 +1195,6 @@ export default {
                         title: "得意先ＣＤ",
                         dataIndx: "Tel_CusNo", dataType: "integer",
                         hidden: true,
-                        align: "left",
                     },
                     {
                         title: "区分",
@@ -1169,6 +1203,8 @@ export default {
                         editable: true,
                         align: "right",
                     },
+                ],
+                formulas: [
                 ],
             },
         });
@@ -1767,15 +1803,108 @@ export default {
                 return;
             }
 
-            //DAI04042を子画面表示
-            PageDialog.show({
-                pgId: "DAI04042",
-                params: cds,
-                isModal: true,
-                isChild: true,
-                resizable: false,
-                width: 600,
-                height: 600,
+            // //DAI04042を子画面表示
+            // PageDialog.show({
+            //     pgId: "DAI04042",
+            //     params: cds,
+            //     isModal: true,
+            //     isChild: true,
+            //     resizable: false,
+            //     width: 600,
+            //     height: 600,
+            // });
+
+            //事前情報取得
+            axios.all(
+                [
+                    //得意先リストの取得
+                    axios.post("/DAI04042/GetCustomerListForSelect", null),
+                ]
+            ).then(
+                axios.spread((responseCustomer) => {
+                    var resCustomer = responseCustomer.data;
+
+                    var checkError = (res, name) => {
+                        if (res.onError && !!res.errors) {
+                            //メッセージリストに追加
+                            Object.values(res.errors).filter(v => v)
+                                .forEach(v => vue.$root.$emit("addMessage", v.replace(/(^\"|\"$)/g, "")));
+
+                            //ダイアログ
+                            $.dialogErr({ errObj: res });
+
+                            return false;
+                        } else if (res.onException) {
+                            //メッセージ追加
+                            vue.$root.$emit("addMessage", name +"リスト取得失敗(" + vue.page.ScreenTitle + ":" + res.message + ")");
+
+                            //ダイアログ
+                            $.dialogErr({
+                                title: "異常終了",
+                                contents: name +"リストの取得に失敗しました<br/>" + res.message,
+                            });
+
+                            return false;
+                        } else if (res == "") {
+                            //完了ダイアログ
+                            $.dialogErr({
+                                title: name +"リスト無し",
+                                contents: "該当データは存在しません" ,
+                            });
+
+                            return false;
+                        }
+
+                        return true;
+                    };
+
+                    if (!checkError(resCustomer)) return;
+
+                    //取得した結果を設定
+                    var params = {};
+                    params.CustomerList = resCustomer;
+                    params.得意先CD = cds.得意先CD;
+                    params.部署CD = cds.部署CD;
+
+                    PageDialog.show({
+                        pgId: "DAI04042",
+                        params: params,
+                        isModal: true,
+                        isChild: true,
+                        width: 600,
+                        height: 600,
+                        onBeforeClose: (event, ui) => {
+                            console.log("onBeforeClose", event, ui);
+
+                            if ($(window.event.target).attr("shortcut") == "ESC") return true;
+
+                            var dlg = $(event.target);
+                            var editting = dlg.find(".pq-grid")
+                                .map((i, v) => $(v).pqGrid("getInstance").grid)
+                                .get()
+                                .some(g => !_.isEmpty(g.getEditCell()));
+                            var isEscOnEditor = !!window.event && window.event.key == "Escape"
+                                && (
+                                    $(window.event.target).hasClass("target-input") ||
+                                    $(window.event.target).hasClass("pq-cell-editor")
+                                );
+
+                            return !editting && !isEscOnEditor;
+                        }
+                    });
+                })
+            )
+            .catch(error => {
+                grid.hideLoading();
+
+                //メッセージ追加
+                vue.$root.$emit("addMessage", "DB検索失敗(" + vue.ScreenTitle + ":" + error + ")");
+
+                //完了ダイアログ
+                $.dialogErr({
+                    title: "異常終了",
+                    contents: "DBの検索に失敗しました<br/>",
+                });
             });
         },
         showTankaToroku: function() {
@@ -1855,7 +1984,8 @@ export default {
 
             //TODO:確認中
             //電話番号一覧クリア
-            vue.DAI04041Grid1.clearData();
+            var grid = this.DAI04041Grid1;
+            grid.clearData();
 
             //ボタン制御
             $("[shortcut='F3']").prop("disabled", true);
@@ -2022,8 +2152,6 @@ export default {
             vue.viewModel.請求書敬称 = "2";
             vue.HolidayConfig.日 = "1";
 
-            //TODO:電話番号一覧を入力可能にする
-            // vue.searchTelList();
             return;
         },
         onAfterSearchFunc: function (gridVue, grid, res) {
@@ -2039,10 +2167,8 @@ export default {
             var vue = this;
             var grid = vue.DAI04041Grid1;
 
-            var saveList = _.cloneDeep(grid.getPlainPData().filter(v => !!v.Tel_TelNo));
-
             //電話番号の値がないものは除外、データの整形。
-            //TODO:得意先CDが一致するデータをすべてdelete。gridのデータで電話番号があるものだけinsesrt。
+            var saveList = _.cloneDeep(grid.getPlainPData().filter(v => !!v.Tel_TelNo));
             saveList.forEach((v, i) => {
                 v.Tel_CustNo = vue.viewModel.得意先ＣＤ;
                 v.Tel_RepFlg = v.Tel_RepFlg || 0;
@@ -2056,6 +2182,7 @@ export default {
             //登録用controller method call
             axios.post("/DAI04041/SaveTelList", params)
                 .then(res => {
+                    //TODO:
                     // vue.viewModel = res.data.model;
                     // DAI04040.conditionChanged();
                 })
@@ -2067,6 +2194,32 @@ export default {
             console.log("登録", params);
 
         },
+        deleteRow: function(grid, event) {
+            var vue = this;
+
+            grid = grid || vue.DAI04041Grid1;
+
+            //選択行なし
+            if(!grid.SelectRow().getSelection().length){
+                return;
+            }
+
+            var rowList = grid.SelectRow().getSelection().map(v => _.pick(v, ["rowIndx"]));
+            grid.deleteRow({ rowList: rowList });
+        },
+        autoEmptyRowFunc: function(grid) {
+
+            return {
+                "Tel_TelNo": "",
+                "Tel_CustNo": "",
+                "Tel_RepFlg": "",
+            };
+        },
+        autoEmptyRowCheckFunc: function(rowData){
+            //電話番号が未入力の行かどうか
+            return !rowData["Tel_TelNo"];
+
+        }
     },
 }
 </script>

@@ -48,11 +48,15 @@ class DAI04051Controller extends Controller
      */
     public function Save($request)
     {
-        // トランザクション開始
-        DB::transaction(function () use ($request) {
-            $params = $request->all();
+        $params = $request->all();
 
-            $CustomerCd = $params['CustomerCd'];
+        $CustomerCd = $params['CustomerCd'];
+
+    // トランザクション開始
+        DB::transaction(function () use ($params, $CustomerCd) {
+            // $params = $request->all();
+
+            // $CustomerCd = $params['CustomerCd'];
 
             $saveList = $params['SaveList'];
 
@@ -96,6 +100,51 @@ class DAI04051Controller extends Controller
                     ->update($data);
                 }
             }
+
+            // //確認用：削除予定
+            // $query = 得意先単価マスタ::query()
+            //     ->when(
+            //         $CustomerCd,
+            //         function($q) use ($CustomerCd){
+            //             return $q->where('得意先ＣＤ', $CustomerCd);
+            //         }
+            //     );
+            // $CustomerList = $query->get();
+            // throw new \Exception('hogehoge');
+
+        });
+
+        $query = 得意先単価マスタ::query()
+            ->when(
+                $CustomerCd,
+                function($q) use ($CustomerCd){
+                    return $q->where('得意先ＣＤ', $CustomerCd);
+                }
+            );
+        $savedData = $query->get();
+
+        return response()->json([
+            "result" => true,
+            'model' => $savedData,
+        ]);
+    }
+
+    /**
+     * DeleteTankaList
+     */
+    public function DeleteTankaList($request)
+    {
+        // トランザクション開始
+        DB::transaction(function () use ($request) {
+            $params = $request->all();
+
+            $CustomerCd = $params['CustomerCd'];
+            $ProductCd = $params['ProductCd'];
+
+            得意先単価マスタ::query()
+            ->where('得意先ＣＤ', $CustomerCd)
+            ->where('商品ＣＤ', $ProductCd)
+            ->delete();
 
             // //確認用：削除予定
             // $query = 得意先単価マスタ::query()

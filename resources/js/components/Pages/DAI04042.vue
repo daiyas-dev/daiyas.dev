@@ -120,7 +120,7 @@ export default {
                 },
                 columnBorders: true,
                 fillHandle: "",
-                numberCell: { show: true, title: "No.", resizable: false, width: 55, minWidth: 55 },
+                numberCell: { show: true, title: "No.", resizable: false},
                 autoRow: false,
                 rowHtHead: 30,
                 rowHt: 30,
@@ -129,91 +129,96 @@ export default {
                 height: 450,
                 editable: true,
                 columnTemplate: {
-                    editable: true,
-                    sortable: true,
+                    editable: false,
+                    sortable: false,
                 },
-                dataModel: { recIndx: "得意先ＣＤ" },
                 trackModel: { on: true },
                 historyModel: { on: true },
                 filterModel: {
-                    on: true,
-                    mode: "AND",
+                    on: false,
                     header: false,
                     menuIcon: false,
-                    hideRows: false,
+                    hideRows: true,
+                },
+                editModel: {
+                    clicksToEdit: 2,
+                    keyUpDown: false,
+                    saveKey: $.ui.keyCode.ENTER,
+                    onSave: "nextFocus",
+                    onTab: "nextFocus",
                 },
                 colModel: [
+                    //TODO:ps→autoconmへ追加中
                     {
                         title: "得意先",
                         dataIndx: "得意先ＣＤ",
                         dataType: "string",
                         key: true,
-                        psProps: {
-                            dataUrl: "/DAI04042/GetCustomerListForSelect",
-                            params: vue.getCustomerPsParamsInGrid,
+                        editable: true,
+                        width: 125, maxWidth: 125, minWidth: 125,
+                        autocomplete: {
+                            source: () => vue.GetCustomerListForSelect(),
                             bind: "得意先ＣＤ",
                             buddies: { "得意先名": "CdNm" },
-                            isPreload: true,
-                            title: "得意先一覧",
-                            labelCd: "得意先CD",
-                            labelCdNm: "得意先名",
-                            popupWidth: 600,
-                            popupHeight: 600,
-                            isShowName: true,
-                            isModal: true,
-                            reuse: true,
-                            existsCheck: true,
-                            inputWidth: 90,
-                            nameWidth: 280,
-                            isShowAutoComplete: true,
                             AutoCompleteFunc: vue.CustomerAutoCompleteFuncInGrid,
-                            AutoCompleteMinLength: 1,
-                            getData: (ui, grid) => {
-                                console.log("psprops getData", ui.$cell.find(".target-input").val());
-                                return ui.$cell.find(".target-input").val();
-                            },
-                            htmlRender: ui => {
-                                var $el = $("<div>")
-                                    .addClass("d-flex")
-                                    .append($("<div>").text(ui.rowData.得意先ＣＤ).width(60).addClass("text-right"))
-                                    .append($("<div>").text(":").addClass("pl-1").addClass("pr-1"))
-                                    .append($("<div>").text(ui.rowData.得意先名))
-                                    ;
-
-                                return $el[0];
-                            },
+                            AutoCompleteMinLength: 0,
                         },
                     },
                     {
                         title: "得意先名",
                         dataIndx: "得意先名",
                         dataType: "string",
-                        hidden: true,
+                        editable: false,
                     },
+                    // {
+                    //     title: "得意先",
+                    //     dataIndx: "得意先ＣＤ",
+                    //     dataType: "string",
+                    //     key: true,
+                    //     psProps: {
+                    //         dataUrl: "/DAI04042/GetCustomerListForSelect",
+                    //         params: vue.getCustomerPsParamsInGrid,
+                    //         bind: "得意先ＣＤ",
+                    //         buddies: { "得意先名": "CdNm" },
+                    //         isPreload: true,
+                    //         title: "得意先一覧",
+                    //         labelCd: "得意先CD",
+                    //         labelCdNm: "得意先名",
+                    //         popupWidth: 600,
+                    //         popupHeight: 600,
+                    //         isShowName: true,
+                    //         isModal: true,
+                    //         reuse: true,
+                    //         existsCheck: true,
+                    //         inputWidth: 90,
+                    //         nameWidth: 280,
+                    //         isShowAutoComplete: true,
+                    //         AutoCompleteFunc: vue.CustomerAutoCompleteFuncInGrid,
+                    //         AutoCompleteMinLength: 1,
+                    //         getData: (ui, grid) => {
+                    //             console.log("psprops getData", ui.$cell.find(".target-input").val());
+                    //             return ui.$cell.find(".target-input").val();
+                    //         },
+                    //         htmlRender: ui => {
+                    //             var $el = $("<div>")
+                    //                 .addClass("d-flex")
+                    //                 .append($("<div>").text(ui.rowData.得意先ＣＤ).width(60).addClass("text-right"))
+                    //                 .append($("<div>").text(":").addClass("pl-1").addClass("pr-1"))
+                    //                 .append($("<div>").text(ui.rowData.得意先名))
+                    //                 ;
+
+                    //             return $el[0];
+                    //         },
+                    //     },
+                    // },
+                    // {
+                    //     title: "得意先名",
+                    //     dataIndx: "得意先名",
+                    //     dataType: "string",
+                    //     hidden: true,
+                    // },
                 ],
                 formulas: [
-                    [
-                        "Content",
-                        function(rowData){
-                            return _.keys(rowData)
-                                .filter(k => !k.startsWith("pq") && k != "Content" && k != "InitialValue")
-                                .map(k => rowData[k])
-                                .join(",");
-                        }
-                    ],
-                    [
-                        "pq_label",
-                        function(rowData){
-                            var $el = $("<div>")
-                                .addClass("d-flex")
-                                .append($("<div>").text(rowData.得意先ＣＤ).width(60).addClass("text-right"))
-                                .append($("<div>").text(":").addClass("pl-1").addClass("pr-1"))
-                                .append($("<div>").text(rowData.得意先名))
-                                ;
-
-                            return $el[0].outerHTML;
-                        }
-                    ],
                 ],
             },
         });
@@ -259,6 +264,10 @@ export default {
         },
         mountedFunc: function(vue) {
         },
+        GetCustomerListForSelect: function() {
+            var vue = this;
+            return vue.params.CustomerList;
+        },
         conditionChanged: function(forced) {
             var vue = this;
             var grid1 = vue.DAI04042Grid1;
@@ -284,6 +293,8 @@ export default {
 
             axios.post("/DAI04042/UpdateBunpaisakiList", params)
             .then(res => {
+                //画面を閉じる
+                $(vue.$el).closest(".ui-dialog-content").dialog("close");
             })
             .catch(err => {
                 console.log(error);
@@ -311,8 +322,6 @@ export default {
         },
         CustomerAutoCompleteFuncInGrid: function(input, dataList, comp) {
             var vue = this;
-
-            // console.log("CustomerAutoCompleteFuncInGrid", comp.id, input, dataList);
 
             if (!dataList.length) return [];
 
@@ -345,13 +354,12 @@ export default {
                 })
                 ;
 
-            // console.log("CustomerAutoCompleteFuncInGrid", comp.id, list);
-
             return list;
         },
-        getCustomerPsParamsInGrid: (vue, grid) => {
-            return { BushoCd: !!vue.params ? vue.params.部署CD : null };
-        },
+        //TODO:削除予定
+        // getCustomerPsParamsInGrid: (vue, grid) => {
+        //     return { BushoCd: !!vue.params ? vue.params.部署CD : null };
+        // },
         addRowFunc: function() {
             var grid = DAI04042Grid1;
             var rowIndx = grid.SelectRow().getSelection().length == 0

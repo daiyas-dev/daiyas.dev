@@ -621,15 +621,109 @@ export default {
 
             params = selection[0].rowData
 
-            //DAI04042を子画面表示
-            PageDialog.show({
-                pgId: "DAI04042",
-                params: params,
-                isModal: true,
-                isChild: true,
-                resizable: false,
-                width: 600,
-                height: 600,
+            // //DAI04042を子画面表示
+            // PageDialog.show({
+            //     pgId: "DAI04042",
+            //     params: params,
+            //     isModal: true,
+            //     isChild: true,
+            //     resizable: false,
+            //     width: 600,
+            //     height: 600,
+            // });
+
+            grid.showLoading();
+
+            //事前情報取得
+            axios.all(
+                [
+                    //得意先リストの取得
+                    axios.post("/DAI04042/GetCustomerListForSelect", null),
+                ]
+            ).then(
+                axios.spread((responseCustomer) => {
+                    var resCustomer = responseCustomer.data;
+
+                    var checkError = (res, name) => {
+                        if (res.onError && !!res.errors) {
+                            //メッセージリストに追加
+                            Object.values(res.errors).filter(v => v)
+                                .forEach(v => vue.$root.$emit("addMessage", v.replace(/(^\"|\"$)/g, "")));
+
+                            //ダイアログ
+                            $.dialogErr({ errObj: res });
+
+                            return false;
+                        } else if (res.onException) {
+                            //メッセージ追加
+                            vue.$root.$emit("addMessage", name +"リスト取得失敗(" + vue.page.ScreenTitle + ":" + res.message + ")");
+
+                            //ダイアログ
+                            $.dialogErr({
+                                title: "異常終了",
+                                contents: name +"リストの取得に失敗しました<br/>" + res.message,
+                            });
+
+                            return false;
+                        } else if (res == "") {
+                            //完了ダイアログ
+                            $.dialogErr({
+                                title: name +"リスト無し",
+                                contents: "該当データは存在しません" ,
+                            });
+
+                            return false;
+                        }
+
+                        return true;
+                    };
+
+                    if (!checkError(resCustomer)) return;
+
+                    //取得した結果を設定
+                    params.CustomerList = resCustomer;
+
+                    grid.hideLoading();
+
+                    PageDialog.show({
+                        pgId: "DAI04042",
+                        params: params,
+                        isModal: true,
+                        isChild: true,
+                        width: 600,
+                        height: 600,
+                        onBeforeClose: (event, ui) => {
+                            console.log("onBeforeClose", event, ui);
+
+                            if ($(window.event.target).attr("shortcut") == "ESC") return true;
+
+                            var dlg = $(event.target);
+                            var editting = dlg.find(".pq-grid")
+                                .map((i, v) => $(v).pqGrid("getInstance").grid)
+                                .get()
+                                .some(g => !_.isEmpty(g.getEditCell()));
+                            var isEscOnEditor = !!window.event && window.event.key == "Escape"
+                                && (
+                                    $(window.event.target).hasClass("target-input") ||
+                                    $(window.event.target).hasClass("pq-cell-editor")
+                                );
+
+                            return !editting && !isEscOnEditor;
+                        }
+                    });
+                })
+            )
+            .catch(error => {
+                grid.hideLoading();
+
+                //メッセージ追加
+                vue.$root.$emit("addMessage", "DB検索失敗(" + vue.ScreenTitle + ":" + error + ")");
+
+                //完了ダイアログ
+                $.dialogErr({
+                    title: "異常終了",
+                    contents: "DBの検索に失敗しました<br/>",
+                });
             });
         },
         showTanka: function(rowData) {
@@ -638,6 +732,7 @@ export default {
             if(!grid) return;
             var params;
             var selection = grid.SelectRow().getSelection();
+            if(!selection) return;
 
             params = selection[0].rowData
 
