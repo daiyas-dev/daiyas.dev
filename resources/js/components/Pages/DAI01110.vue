@@ -83,17 +83,22 @@
                     classes="ml-0 mr-0 mt-1"
                 />
             </div>
-            <div class="col-md-4" style="align-items: baseline;">
+            <div class="col-md-4 d-block" style="align-items: baseline;">
                 <PqGridWrapper
                     id="DAI01110GridTicketSummary"
                     ref="DAI01110GridTicketSummary"
-                    :options=this.gridTicketOptionsSummary
+                    :options=this.gridTicketSummaryOptions
                     :autoToolTipDisabled=true
                     :SearchOnCreate=false
                     :SearchOnActivate=false
                     :onAfterSearchFunc=this.onAfterSearchFunc
                     classes="ml-0 mr-0 mt-1"
                 />
+                <div  v-show="viewModel.IsSaved" class="w-100 mt-4">
+                    <label class="label-blue" style="width: inherit; text-align: left;">修正者　： {{viewModel.LastEditor}}</label>
+                    <label class="label-blue" style="width: inherit; text-align: left;">修正日時： {{viewModel.LastEditDate}}</label>
+                    <label class="label-blue" style="color: red; width: inherit; text-align: left;">精算済みですので、モバイルからの更新は出来ません</label>
+                </div>
             </div>
         </div>
         <div class="row">
@@ -150,7 +155,7 @@
                     :SearchOnCreate=false
                     :SearchOnActivate=false
                     :setCustomTitle=setGridMoneyInfoTitle
-                    classes="ml-5 mr-0 mt-1 mb-1"
+                    classes="ml-5 mr-0 mt-1 mb-0"
                 />
                 <PqGridWrapper
                     id="DAI01110GridTicket"
@@ -160,7 +165,7 @@
                     :SearchOnCreate=false
                     :SearchOnActivate=false
                     :setCustomTitle=setGridTicketTitle
-                    classes="ml-5 mr-0 mt-3 mb-1"
+                    classes="ml-5 mr-0 mt-1 mb-0"
                 />
                 <PqGridWrapper
                     id="DAI01110GridBV"
@@ -170,7 +175,7 @@
                     :SearchOnCreate=false
                     :SearchOnActivate=false
                     :setCustomTitle=setGridBVTitle
-                    classes="ml-5 mr-0 mt-2 mb-1"
+                    classes="ml-5 mr-0 mt-1 mb-0"
                 />
             </div>
         </div>
@@ -249,6 +254,12 @@ export default {
         }
     },
     watch: {
+        "viewModel.IsSaved": {
+            handler: function(newVal) {
+                var vue = this;
+                vue.footerButtons.find(v => v.id == "DAI01110_Delete").disabled = !newVal;
+            },
+        },
     },
     data() {
         var vue = this;
@@ -261,11 +272,12 @@ export default {
                 BushoNm: null,
                 TargetDate: null,
                 CourseKbn: null,
-                UpdateDate: null,
-                test: null,
-                testKn: null,
+                IsSaved: false,
+                LastEditor: null,
+                LastEditDate: null,
             },
             CheckInterVal: null,
+            ProductList: [],
             DAI01110GridIdou: null,
             DAI01110GridTicketSummary: null,
             DAI01110GridCash: null,
@@ -299,7 +311,7 @@ export default {
                 },
                 dataModel: {
                     location: "local",
-                    data: _.range(7).map(v => {return { "商品名": "商品" + (v + 1) };}),
+                    data: [],
                 },
                 filterModel: {
                     on: false,
@@ -389,7 +401,7 @@ export default {
                     },
                 ],
             },
-            gridTicketOptionsSummary: {
+            gridTicketSummaryOptions: {
                 selectionModel: { type: "cell", mode: "block", row: true },
                 numberCell: { show: false },
                 showTitle: false,
@@ -478,7 +490,7 @@ export default {
                 },
                 dataModel: {
                     location: "local",
-                    data: _.range(7).map(v => {return { "商品名": "商品" + (v + 1) };}),
+                    data: [],
                 },
                 filterModel: {
                     on: false,
@@ -495,6 +507,16 @@ export default {
                 summaryData: [],
                 mergeCells: [],
                 formulas: [
+                    [
+                        "本日現金入金",
+                        function(rowData) {
+                            return (rowData.現金金額 || 0)
+                                - (rowData.現金売値引金額 || 0)
+                                + (rowData.その他現金 || 0)　
+                                + (rowData.売掛入金 || 0)
+                                + (rowData.チケット代入金 || 0);
+                        }
+                    ],
                 ],
                 colModel: [
                     {
@@ -517,7 +539,7 @@ export default {
                             },
                             {
                                 title: "個数",
-                                dataIndx: "個数",
+                                dataIndx: "現金個数",
                                 dataType: "integer",
                                 format: "#,###",
                                 width: 75, maxWidth: 75, minWidth: 75,
@@ -527,7 +549,7 @@ export default {
                             },
                             {
                                 title: "金額",
-                                dataIndx: "金額",
+                                dataIndx: "現金金額",
                                 dataType: "integer",
                                 format: "#,###",
                                 width: 100, maxWidth: 100, minWidth: 100,
@@ -571,7 +593,7 @@ export default {
                     },
                     {
                         title: "③その他",
-                        dataIndx: "その他",
+                        dataIndx: "その他現金",
                         dataType: "integer",
                         format: "#,###",
                         width: 100, maxWidth: 100, minWidth: 100,
@@ -595,11 +617,21 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
+                            if (ui.rowIndx == 0 && !!ui.rowData.売掛入金件数) {
+                                return { text: ui.rowData.売掛入金件数 + "件分"};
+                            }
                             if (ui.rowIndx != 0 && !ui.rowData.pq_grandsummary) {
                                 ui.cls.push("cell-disabled");
                             }
                             return ui;
                         },
+                    },
+                    {
+                        title: "売掛入金件数",
+                        dataIndx: "売掛入金件数",
+                        dataType: "integer",
+                        format: "#,###",
+                        hidden: true,
                     },
                     {
                         title: "⑤チケット代入金",
@@ -658,7 +690,7 @@ export default {
                 },
                 dataModel: {
                     location: "local",
-                    data: _.range(7).map(v => {return { "商品名": "商品" + (v + 1) };}),
+                    data: [],
                 },
                 filterModel: {
                     on: false,
@@ -697,7 +729,7 @@ export default {
                             },
                             {
                                 title: "個数",
-                                dataIndx: "個数",
+                                dataIndx: "掛売個数",
                                 dataType: "integer",
                                 format: "#,###",
                                 width: 75, maxWidth: 75, minWidth: 75,
@@ -707,7 +739,7 @@ export default {
                             },
                             {
                                 title: "金額",
-                                dataIndx: "金額",
+                                dataIndx: "掛売金額",
                                 dataType: "integer",
                                 format: "#,###",
                                 width: 100, maxWidth: 100, minWidth: 100,
@@ -751,7 +783,7 @@ export default {
                     },
                     {
                         title: "⑧その他",
-                        dataIndx: "その他",
+                        dataIndx: "その他掛売",
                         dataType: "integer",
                         format: "#,###",
                         width: 100, maxWidth: 100, minWidth: 100,
@@ -778,6 +810,20 @@ export default {
                         cls: "cell-disabled",
                     },
                     {
+                        title: "本日掛売未収",
+                        dataIndx: "本日掛売未収",
+                        dataType: "integer",
+                        format: "#,###",
+                        hidden: true,
+                    },
+                    {
+                        title: "本日掛売掛",
+                        dataIndx: "本日掛売掛",
+                        dataType: "integer",
+                        format: "#,###",
+                        hidden: true,
+                    },
+                    {
                         title: "本日掛売売上",
                         colModel: [
                             {
@@ -788,6 +834,36 @@ export default {
                                 width: 125, maxWidth: 125, minWidth: 125,
                                 summary: {
                                     type: "TotalInt",
+                                },
+                                render: ui => {
+                                    if (!!ui.rowData.pq_grandsummary) return ui;
+                                    switch(ui.rowIndx) {
+                                        case 0:
+                                        case 1:
+                                            return {text: ""};
+                                        case 2:
+                                            _.remove(ui.cls, v => v == "pq-align-right")
+                                            ui.cls.push("summary-cell");
+                                            return {text: "本日未集金"};
+                                        case 3:
+                                            var g = eval("this");
+                                            var val = _.sum(g.pdata.map(v => v.本日掛売未収));
+                                            return {text: pq.formatNumber(val, "#,###")};
+                                        case 4:
+                                            _.remove(ui.cls, v => v == "pq-align-right")
+                                            ui.cls.push("summary-cell");
+                                            return {text: "本日掛売上"};
+                                        case 5:
+                                            var g = eval("this");
+                                            var val = _.sum(g.pdata.map(v => v.本日掛売掛));
+                                            return {text: pq.formatNumber(val, "#,###")};
+                                        case 6:
+                                            _.remove(ui.cls, v => v == "pq-align-right")
+                                            ui.cls.push("summary-cell");
+                                            return {text: "本日掛合計"};
+                                    }
+
+                                    return ui;
                                 },
                             },
                         ],
@@ -811,7 +887,7 @@ export default {
                 },
                 dataModel: {
                     location: "local",
-                    data: [{"本日総売上額": 99999, "総値引金額": 99999, "その他": 99999, "チケット": 99999,　"バークレー": 99999, }],
+                    data: [],
                 },
                 filterModel: {
                     on: false,
@@ -916,7 +992,7 @@ export default {
                 rowHt: 19,
                 rowHtHead: 19,
                 width: 245,
-                height: 276,
+                height: 295,
                 editable: false,
                 columnTemplate: {
                     editable: false,
@@ -931,6 +1007,7 @@ export default {
                         {kind: 1000, value: 0},
                         {kind: 500, value: 0},
                         {kind: 100, value: 0},
+                        {kind: 50, value: 0},
                         {kind: 10, value: 0},
                         {kind: 5, value: 0},
                         {kind: 1, value: 0},
@@ -944,7 +1021,7 @@ export default {
                     clicksToEdit: 2,
                     keyUpDown: false,
                     saveKey: $.ui.keyCode.ENTER,
-                    onSave: "nextFocus",
+                    onSave: null,
                     onTab: "nextFocus",
                 },
                 filterModel: {
@@ -1094,8 +1171,8 @@ export default {
                 dataModel: {
                     location: "local",
                     data: [
-                        {price: 200, value: 0},
                         {price: 300, value: 0},
+                        {price: 200, value: 0},
                     ],
                 },
                 editModel: {
@@ -1164,21 +1241,37 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "検索", id: "DAI01110GridIdou_Search", disabled: false, shortcut: "F5",
+                { visible: "true", value: "削除", id: "DAI01110_Delete", disabled: true, shortcut: "F3",
+                    onClick: function () {
+                        vue.delete();
+                    }
+                },
+                {visible: "false"},
+                { visible: "true", value: "検索", id: "DAI01110_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
                         vue.conditionChanged(null, true);
                     }
                 },
                 {visible: "false"},
-                { visible: "true", value: "明細入力", id: "DAI01110GridIdou_Detail", disabled: true, shortcut: "Enter",
+                // { visible: "true", value: "金銭明細入力", id: "DAI01110_MoneyDetail", disabled: false, shortcut: "F6",
+                //     onClick: function () {
+                //         vue.showMoneyDetail();
+                //     }
+                // },
+                { visible: "true", value: "チケット<br>明細表示", id: "DAI01110_TicketDetail", disabled: false, shortcut: "F7",
                     onClick: function () {
-                        vue.showDetail();
+                        vue.showTicketDetail();
                     }
                 },
                 {visible: "false"},
-                { visible: "true", value: "印刷", id: "DAI01110GridIdou_Printout", disabled: false, shortcut: "F6",
+                { visible: "true", value: "登録", id: "DAI01110_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
-                        vue.DAI01110GridIdou.print(vue.setPrintOptions);
+                        vue.save();
+                    }
+                },
+                { visible: "true", value: "印刷", id: "DAI01110_Printout", disabled: false, shortcut: "F11",
+                    onClick: function () {
+                        vue.print();
                     }
                 }
             );
@@ -1190,8 +1283,32 @@ export default {
         onBushoChanged: function(code, entities) {
             var vue = this;
 
-            //検索条件変更
-            vue.conditionChanged();
+            if (vue.viewModel.CourseCd == null || vue.viewModel.CourseCd == undefined) {
+                //商品リスト変更
+                axios.post("/DAI01110/GetProductList", vue.searchParams)
+                    .then(res => {
+                        vue.ProductList = res.data;
+
+                        vue.DAI01110GridCash.options.dataModel.data = vue.ProductList.map(v => { return { "商品名": v.各種名称, "商品区分": v.サブ各種CD2 }; });
+                        vue.DAI01110GridCredit.options.dataModel.data = vue.ProductList.map(v => { return { "商品名": v.各種名称, "商品区分": v.サブ各種CD2 }; });
+
+                        vue.DAI01110GridCash.refreshDataAndView();
+                        vue.DAI01110GridCredit.refreshDataAndView();
+
+                        //条件変更ハンドラ
+                        vue.conditionChanged();
+                    })
+                    .catch(err => {
+                        console.log(err);
+                        $.dialogErr({
+                            title: "異常終了",
+                            contents: "各種テーブルの検索に失敗しました<br/>",
+                        });
+                    });
+            } else {
+                //条件変更ハンドラ
+                vue.conditionChanged();
+            }
         },
         onTargetDateChanged: function(code, entity) {
             var vue = this;
@@ -1264,11 +1381,163 @@ export default {
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.BushoCd || !vue.viewModel.TargetDate || !vue.viewModel.CourseCd) return;
 
-            //移動入力検索
+            //検索
             axios.post("/DAI01110/Search", vue.searchParams)
                 .then(res => {
+                    //コース別明細データ
+                    var CourseMeisaiData = _.cloneDeep(res.data.CourseMeisaiData);
+                    vue.viewModel.IsSaved = !!CourseMeisaiData;
+                    vue.viewModel.LastEditor = !!CourseMeisaiData ? CourseMeisaiData.修正担当者名 : "";
+                    vue.viewModel.LastEditDate = !!CourseMeisaiData? moment(CourseMeisaiData.修正日).format("YYYY/MM/DD HH:mm:ss") : "";
+
+                    //金銭明細書
+                    vue.DAI01110GridMoneyInfo.pdata.map((v, i) => {
+                        var zIdx = Moji((i + 1).toString()).convert('HE', 'ZE').toString();
+                        if (_.has(CourseMeisaiData, "金種" + zIdx)) {
+                            v.value = CourseMeisaiData["金種" + zIdx];
+                        } else if (_.has(CourseMeisaiData, v.kind)) {
+                            v.value = CourseMeisaiData[v.kind] * 1;
+                        }
+                    });
+                    vue.DAI01110GridMoneyInfo.refreshDataAndView();
+
+                    //バークレーバウチャー
+                    vue.DAI01110GridBV.pdata.map((v, i) => {
+                        var zPrice = Moji(v.price.toString()).convert('HE', 'ZE').toString();
+                        if (_.has(CourseMeisaiData, "ＢＶチケット" + zPrice)) {
+                            v.value = CourseMeisaiData["ＢＶチケット" + zPrice] * 1;
+                        }
+                    });
+                    vue.DAI01110GridBV.refreshDataAndView();
+
+
+                    //移動データ
                     vue.DAI01110GridIdou.options.dataModel.data = res.data.IdouDataList;
                     vue.DAI01110GridIdou.refreshDataAndView();
+
+                    //明細データ
+                    var MeisaiDataList = _.cloneDeep(res.data.MeisaiDataList);
+
+                    //入金データ
+                    var NyukinData = _.cloneDeep(res.data.NyukinData);
+
+                    var ProductDataList = vue.ProductList
+                        .map((r, i) => {
+                            var pdata = {
+                                "商品名": r.各種名称,
+                                "商品区分": r.サブ各種CD2,
+                                "現金個数": 0,
+                                "現金金額": 0,
+                                "現金売値引件数": 0,
+                                "現金売値引金額": 0,
+                                "その他現金": i == 0 ? _.sum(MeisaiDataList.filter(m => m.商品区分 == 8 && m.売掛現金区分 != 2).map(m => m.現金金額)) * 1 : 0,
+                                "掛売個数": 0,
+                                "掛売金額": 0,
+                                "掛売値引件数": 0,
+                                "掛売値引金額": 0,
+                                "その他掛売": i == 0 ? _.sum(MeisaiDataList.filter(m => m.商品区分 == 8 && m.売掛現金区分 != 2).map(m => m.掛売金額)) * 1 : 0,
+                                "売掛入金": i == 0 ? (!!NyukinData ? NyukinData.現金 * 1 : 0) : 0,
+                                "売掛入金件数": i == 0 ? (!!NyukinData ? NyukinData.件数 * 1 : 0) : 0,
+
+                                "チケット代入金": i == 0 ? _.sum(MeisaiDataList.filter(m => m.商品区分 == 9).map(m => m.現金金額 * 1 - m.現金値引 * 1)) : 0,
+
+                                "本日掛売未収": i == 0 ? _.sum(
+                                    MeisaiDataList.filter(m => !["2", "3", "4"].includes(m.売掛現金区分) && m.マスタ売掛現金区分 == 0 && m.商品区分 != 9)
+                                        .map(m => m.掛売金額 * 1 - m.掛売値引 * 1)
+                                ) : 0,
+                                "本日掛売掛": i == 0 ? _.sum(
+                                    MeisaiDataList.filter(m => !["2", "3", "4"].includes(m.売掛現金区分) && m.マスタ売掛現金区分 != 0 && m.商品区分 != 9)
+                                        .map(m => m.掛売金額 * 1 - m.掛売値引 * 1)
+                                ) : 0,
+                                "本日掛売売上": 0,
+                            };
+
+                            var meisai = _.reduce(
+                                MeisaiDataList.filter(v => v.商品区分 == r.サブ各種CD2),
+                                (acc, v,) => {
+
+                                    acc.現金個数 = (acc.現金個数 || 0)
+                                        + (["3", "4"].includes(v.売掛現金区分) ? 0 : (v.現金個数 * 1));
+                                    acc.現金金額 = (acc.現金金額 || 0)
+                                        + (["3", "4"].includes(v.売掛現金区分) ? 0 : (v.現金金額 * 1));
+                                    acc.現金売値引件数 = (acc.現金売値引件数 || 0)
+                                        + (["3", "4"].includes(v.売掛現金区分) ? 0 : (v.現金値引 != 0 ? 1 : 0));
+                                    acc.現金売値引金額 = (acc.現金売値引金額 || 0)
+                                        + (["3", "4"].includes(v.売掛現金区分) ? 0 : (v.現金値引 * 1));
+
+                                    acc.掛売個数 = (acc.掛売個数 || 0)
+                                        + (["2", "3", "4"].includes(v.売掛現金区分) ? 0 : (v.掛売個数 * 1));
+                                    acc.掛売金額 = (acc.掛売金額 || 0)
+                                        + (["2", "3", "4"].includes(v.売掛現金区分) ? 0 : (v.掛売金額 * 1));
+                                    acc.掛売値引件数 = (acc.掛売値引件数 || 0)
+                                        + (["2", "3", "4"].includes(v.売掛現金区分) ? 0 : (v.掛売値引 != 0 ? 1 : 0));
+                                    acc.掛売値引金額 = (acc.掛売値引金額 || 0)
+                                        + (["2", "3", "4"].includes(v.売掛現金区分) ? 0 : (v.掛売値引 * 1));
+
+                                    // acc.本日掛売未収 = (acc.本日掛売未収 || 0)
+                                    //     + (!["2", "3", "4"].includes(v.売掛現金区分) && v.マスタ売掛現金区分 == 0
+                                    //         ? (v.掛売金額 * 1 - v.掛売値引 * 1) : 0
+                                    //     );
+                                    // acc.本日掛売掛 = (acc.本日掛売掛 || 0)
+                                    //     + (!["2", "3", "4"].includes(v.売掛現金区分) && v.マスタ売掛現金区分 != 0
+                                    //         ? (v.掛売金額 * 1 - v.掛売値引 * 1) : 0
+                                    //     );
+                                    acc.本日掛売売上 = (acc.掛売金額 || 0) - (acc.掛売値引金額 || 0) + (acc.その他掛売 || 0);
+
+                                    acc.チケット枚数 = (acc.チケット枚数 || 0) + (v.売掛現金区分 == 2 ? (v.現金個数 * 1 + v.掛売個数 * 1 + v.分配元数量 * 1) : 0);
+                                    acc.チケット金額 = (acc.チケット金額 || 0) + (v.売掛現金区分 == 2 ? (v.掛売金額 * 1 - v.掛売値引 * 1) : 0);
+
+                                    acc.バークレー金額 = (acc.バークレー金額 || 0)
+                                        + (v.売掛現金区分 == 3 ? (v.現金金額 * 1 - v.現金値引 * 1) + v.掛売金額 * 1 - v.掛売値引 * 1 : 0);
+
+                                    acc.ボーナス枚数 = (acc.ボーナス枚数 || 0) + (v.売掛現金区分 == 4 ? (v.現金個数 * 1 + v.掛売個数 * 1 + v.分配元数量 * 1) : 0);
+
+                                    return acc;
+                                },
+                                {},
+                            );
+
+                            var ret = _.merge(pdata, meisai);
+                            return ret;
+                        });
+
+                    vue.DAI01110GridCash.options.dataModel.data = ProductDataList;
+                    vue.DAI01110GridCash.refreshDataAndView();
+                    vue.DAI01110GridCredit.options.dataModel.data = ProductDataList;
+                    vue.DAI01110GridCredit.refreshDataAndView();
+
+                    var SummaryData = [
+                        {
+                            "本日総売上額": _.sumBy(ProductDataList, "現金金額") + _.sumBy(ProductDataList, "掛売金額"),
+                            "総値引金額": _.sumBy(ProductDataList, "現金売値引金額") + _.sumBy(ProductDataList, "掛売値引金額"),
+                            "その他": _.sumBy(ProductDataList, "その他現金") + _.sumBy(ProductDataList, "その他掛売"),
+                            "チケット": _.sumBy(ProductDataList, "チケット金額"),
+                            "バークレー": _.sumBy(ProductDataList, "バークレー金額"),
+                        }
+                    ];
+                    vue.DAI01110GridSummary.options.dataModel.data = SummaryData;
+                    vue.DAI01110GridSummary.refreshDataAndView();
+
+                    var TicketSummaryData = [
+                        {
+                            チケット精算: "チケット",
+                            "持出枚数": 0,
+                            "持帰枚数": 0,
+                            "売り枚数": 0,
+                            "売上金額": _.sumBy(ProductDataList, "チケット代入金"),
+                        }
+                    ];
+
+                    vue.DAI01110GridTicketSummary.options.dataModel.data = TicketSummaryData;
+                    vue.DAI01110GridTicketSummary.refreshDataAndView();
+
+                    var TicketData = [
+                        {kind: "チケット", value: _.sumBy(ProductDataList, "チケット枚数")},
+                        {kind: "ボーナス", value: _.sumBy(ProductDataList, "ボーナス枚数")},
+                    ];
+                    vue.DAI01110GridTicket.options.dataModel.data = TicketData;
+                    vue.DAI01110GridTicket.refreshDataAndView();
+
                 })
                 .catch(err => {
                     console.log(err);
@@ -1580,6 +1849,157 @@ export default {
                     contents: "DBの検索に失敗しました<br/>",
                 });
             });
+        },
+        delete: function() {
+            var vue = this;
+
+            //削除実行
+            vue.DAI01110GridIdou.saveData(
+                {
+                    uri: "/DAI01110/Delete",
+                    params: {
+                        LastEditDate: vue.viewModel.LastEditDate,
+                    },
+                    optional: vue.searchParams,
+                    confirm: {
+                        isShow: true,
+                        title: "コース別明細データ削除確認",
+                        message: "コース別明細データを削除します。宜しいですか？",
+                    },
+                    done: {
+                        isShow: false,
+                        callback: (gridVue, grid, res)=>{
+                            if (!!res.edited && !!res.edited.length) {
+                                $.dialogInfo({
+                                    title: "登録チェック",
+                                    contents: "他で変更されたデータがあります。",
+                                });
+                                vue.notifyChange(res.edited);
+                            } else {
+                                vue.viewModel.IsSaved = false;
+                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
+                            }
+
+                            return false;
+                        },
+                    },
+                }
+            );
+
+        },
+        notifyChange: function(newData) {
+            var vue = this;
+        },
+        save: function() {
+            var vue = this;
+
+            var target = {
+                "日付": vue.searchParams.TargetDate,
+                "部署CD": vue.searchParams.BushoCd,
+                "コースＣＤ": vue.searchParams.CourseCd,
+                "配送担当者ＣＤ": vue.searchParams.TantoCd,
+            };
+
+            var idou = vue.DAI01110GridIdou.pdata.map((v, i) => {
+                var zIdx = Moji((i + 1).toString()).convert('HE', 'ZE').toString();
+                return {
+                    ["持出し個数" + zIdx] : v.持ち出し数 * 1,
+                    ["工場追加" + zIdx] : v.受取数_工場 * 1,
+                    ["もらった" + zIdx] : v.受取数_一般 * 1,
+                    ["やった" + zIdx] : v.引渡数 * 1,
+                    ["見本" + zIdx] : v.ボーナス販売数 * 1,
+                    ["残数" + zIdx] : v.残数 * 1,
+                };
+            });
+            _.merge(target, ...idou);
+
+            var ticketSummary = {
+                "チケット１持出枚数": vue.DAI01110GridTicketSummary.pdata[0].持出枚数 * 1,
+                "チケット１持帰枚数": vue.DAI01110GridTicketSummary.pdata[0].持帰枚数 * 1,
+                "チケット１生協売": 0,
+                "チケット１売枚数": vue.DAI01110GridTicketSummary.pdata[0].売り枚数 * 1,
+                "チケット１売上金額": vue.DAI01110GridTicketSummary.pdata[0].売上金額 * 1,
+                "チケット２持出枚数": 0,
+                "チケット２持帰枚数": 0,
+                "チケット２生協売": 0,
+                "チケット２売枚数": 0,
+                "チケット２売上金額": 0,
+                "チケット１現金集金": 0,
+                "チケット２現金集金": 0,
+                "ＶＢ集金３００個数": 0,
+                "ＶＢ集金２００個数": 0,
+            };
+            _.merge(target, ticketSummary);
+
+            var money = vue.DAI01110GridMoneyInfo.pdata.map((v, i) => {
+                var zIdx = Moji((i + 1).toString()).convert('HE', 'ZE').toString();
+
+                if (i < 11) {
+                    var key = "金種" + zIdx;
+                    return { [key]: v.value * 1 };
+                } else if (v.value2 == "過剰金") {
+                    return [
+                        { [v.kind] : v.value * 1 },
+                        { [v.value2] : vue.DAI01110GridMoneyInfo.pdata.find(r => r.kind == "合計").value2 * 1 },
+                    ];
+                } else {
+                    return { [v.kind] : v.value * 1 };
+                }
+            });
+            _.merge(target, ...(_.flatten(money)));
+
+            target.セイブチケットＥお = vue.DAI01110GridTicket.pdata.find(v => v.kind == "チケット").value * 1;
+            target.セイブチケットＨお = vue.DAI01110GridTicket.pdata.find(v => v.kind == "ボーナス").value * 1;
+            target.セイブボーナス = 0;
+            target.ＢＶチケット３００ = vue.DAI01110GridBV.pdata.find(v => v.price == 300).value * 1;
+            target.ＢＶチケット２００ = vue.DAI01110GridBV.pdata.find(v => v.price == 200).value * 1;
+
+            target.予備金額１ = 0;
+            target.予備金額２ = 0;
+            target.予備ＣＤ１ = 0;
+            target.予備ＣＤ２ = 0;
+
+            target.修正担当者ＣＤ = vue.getLoginInfo().uid;
+
+            console.log(target);
+            return;
+
+            //登録実行
+            vue.DAI01110GridIdou.saveData(
+                {
+                    uri: "/DAI01110/Delete",
+                    params: {
+                        Target: target,
+                        LastEditDate: vue.viewModel.LastEditDate,
+                    },
+                    optional: vue.searchParams,
+                    confirm: {
+                        isShow: true,
+                        title: "コース別明細データ削除確認",
+                        message: "コース別明細データを削除します。宜しいですか？",
+                    },
+                    done: {
+                        isShow: false,
+                        callback: (gridVue, grid, res)=>{
+                            if (!!res.edited && !!res.edited.length) {
+                                $.dialogInfo({
+                                    title: "登録チェック",
+                                    contents: "他で変更されたデータがあります。",
+                                });
+                                vue.notifyChange(res.edited);
+                            } else {
+                                vue.viewModel.IsSaved = false;
+                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
+                            }
+
+                            return false;
+                        },
+                    },
+                }
+            );
+        },
+        print: function() {
+            var vue = this;
         },
     }
 }

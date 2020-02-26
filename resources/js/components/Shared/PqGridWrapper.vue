@@ -3318,6 +3318,7 @@ export default {
     }
 
     .pq-grid-cell.cell-disabled {
+        color: darkgrey !important;
         background-color: darkgrey !important;
         border-color: darkgrey !important;
     }
