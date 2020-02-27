@@ -885,6 +885,9 @@ export default {
 
                     return ui;
                 },
+                editor: {
+                    select: true,
+                },
             },
             trackModel: {
                 on: true,
@@ -2326,6 +2329,21 @@ export default {
                     vue.exportData("", true);
                 };
 
+                this.grid.generateHtml = function(styles) {
+                    var grid = this;
+                    var table = $($(grid.exportData({ format: "htm", render: true }))[3]).addClass(grid.vue.id);
+                    var tableHeaders = table.find("tr").filter((i, v) => !!$(v).find("th").length);
+                    var tableBodies = table.find("tr").filter((i, v) => !!$(v).find("td").length);
+
+                    var contents = table;
+
+                    var ret = $("<div>")
+                        .append($("<style>").text(styles || ""))
+                        .append(contents)
+                        ;
+                    return ret;
+                };
+
                 //blink
                 this.grid.blinkCell = function(rowIndx, dataIndx) {
                     var grid = this;
@@ -2761,6 +2779,7 @@ export default {
                 var indices = grid.widget()
                     .find(grid.options.selectionModel.onTab == "nextEdit" ? ".pq-grid-cell.cell-editable" : ".pq-grid-cell")
                     .not("[id^='pq-sum-cell']")
+                    .not(".cell-disabled")
                     .map((i, c) => grid.getCellIndices({$td: $(c)}))
                     .filter((i, ind) => _.isFunction(ind.column.editable) ? ind.column.editable(ind) : ind.column.editable)
                     ;
@@ -2788,6 +2807,7 @@ export default {
                             return false;
                         } else {
                             //標準editor
+                            console.log("editor next cell", ui);
                             return true;
                         }
                     } else {
@@ -2802,10 +2822,18 @@ export default {
                     //次セル検索 & 移動
                     if (rows) {
                         return moveNext();
-                    // } else {
-                    //     if (editor) {
-                    //         grid.quitEditMode();
-                    //     }
+                    } else {
+                        if (editor) {
+                            var row = {
+                                rowIndx: ui.rowIndx,
+                                newRow: {
+                                    [ui.dataIndx]: ui.$editor.val(),
+                                },
+                            };
+                            grid.updateRow(row);
+                            console.log("editor next cell", ui.rowIndx, row);
+                            return false;
+                        }
                     }
                 }
 
@@ -3321,6 +3349,7 @@ export default {
     }
 
     .pq-grid-cell.cell-disabled {
+        color: darkgrey !important;
         background-color: darkgrey !important;
         border-color: darkgrey !important;
     }
