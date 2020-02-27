@@ -315,7 +315,7 @@ export default {
                                                 vue.clearDetail();
                                             })
                                             .catch(err => {
-                                                console.log(error);
+                                                console.log(err);
                                                 //TODO: エラー
                                             }
                                         );
@@ -391,7 +391,7 @@ export default {
                                 DAI04030.conditionChanged();
                             })
                             .catch(err => {
-                                console.log(error);
+                                console.log(err);
                                 //TODO: エラー
                             }
                         );

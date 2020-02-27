@@ -274,7 +274,7 @@ export default {
                             .then(res => {
                             })
                             .catch(err => {
-                                console.log(error);
+                                console.log(err);
                                 //TODO: エラー
                             }
                         );

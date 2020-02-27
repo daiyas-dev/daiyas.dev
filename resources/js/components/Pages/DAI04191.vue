@@ -238,7 +238,7 @@ export default {
                                 //TODO:途中
                             })
                             .catch(err => {
-                                console.log(error);
+                                console.log(err);
                                 //TODO: エラー
                             }
                         );

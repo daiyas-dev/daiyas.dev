@@ -309,7 +309,7 @@ export default {
                                                 vue.clearDetail();
                                             })
                                             .catch(err => {
-                                                console.log(error);
+                                                console.log(err);
                                                 //TODO: エラー
                                             }
                                         );
@@ -377,7 +377,7 @@ export default {
                                 vue.clearDetail();
                             })
                             .catch(err => {
-                                console.log(error);
+                                console.log(err);
                             }
                         );
                         console.log("登録", params);

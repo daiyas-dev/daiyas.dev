@@ -469,7 +469,7 @@ export default {
                     //TODO:画面開閉時にメッセージがでるのを消したい
                 })
                 .catch(err => {
-                    console.log(error);
+                    console.log(err);
                     //TODO: エラー
                 }
             );
@@ -512,7 +512,7 @@ export default {
                                 $(this).dialog("close");
                             })
                             .catch(err => {
-                                console.log(error);
+                                console.log(err);
                                 //TODO: エラー
                             });
                         }

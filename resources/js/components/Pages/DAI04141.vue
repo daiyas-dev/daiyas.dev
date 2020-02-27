@@ -253,7 +253,7 @@ export default {
                                                 vue.clearDetail();
                                             })
                                             .catch(err => {
-                                                console.log(error);
+                                                console.log(err);
                                                 //TODO: エラー
                                             }
                                         );
@@ -318,7 +318,7 @@ export default {
                                 vue.clearDetail();
                             })
                             .catch(err => {
-                                console.log(error);
+                                console.log(err);
                                 //TODO: エラー
                             }
                         );

@@ -297,7 +297,7 @@ export default {
                 $(vue.$el).closest(".ui-dialog-content").dialog("close");
             })
             .catch(err => {
-                console.log(error);
+                console.log(err);
                 //TODO: エラー
             });
 
@@ -395,7 +395,7 @@ export default {
                 grid.deleteRow({ rowList: rowList });
             })
             .catch(err => {
-                console.log(error);
+                console.log(err);
                 //TODO: エラー
             });
         },
