@@ -1325,6 +1325,9 @@ export default {
                     onClick: function () {
                         vue.saveTokuisaki();
                         vue.saveTelList();
+
+                        //TODO:履歴テーブルの更新
+                        vue.saveHistoryList();
                     }
                 },
                 { visible: "true", value: "単価登録", id: "DAI04041_Tanka", disabled: false, shortcut: "F10",
@@ -2219,7 +2222,32 @@ export default {
             //電話番号が未入力の行かどうか
             return !rowData["Tel_TelNo"];
 
-        }
+        },
+        saveHistoryList: function() {
+            var vue = this;
+            var params = {};
+            params.得意先ＣＤ = vue.viewModel.得意先ＣＤ;
+            params.状態区分 = vue.viewModel.状態区分;
+            params.失客理由 = vue.viewModel.状態理由;
+            params.失客日 = !!vue.viewModel.失客日 ? moment(vue.viewModel.失客日,"YYYY-MM-DD").format("YYYYMMDD") : "";
+            params.承認日 = !!vue.viewModel.承認日 ? moment(vue.viewModel.承認日,"YYYY-MM-DD").format("YYYYMMDD") : "";
+            params.承認者ＣＤ = vue.viewModel.承認者ＣＤ;
+            params.登録日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
+            params.営業担当者ＣＤ = vue.viewModel.営業担当者ＣＤ;
+            params.変更者ＣＤ = vue.query.userId;
+
+            //履歴更新用controller method call
+            axios.post("/DAI04041/UpdateHistoryList", params)
+                .then(res => {
+                })
+                .catch(err => {
+                    console.log(err);
+                    //TODO: エラー
+                }
+            );
+            console.log("履歴更新", params);
+
+        },
     },
 }
 </script>

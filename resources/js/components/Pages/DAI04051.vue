@@ -466,7 +466,6 @@ export default {
                     console.log("res", res);
                     //画面を閉じる
                     $(vue.$el).closest(".ui-dialog-content").dialog("close");
-                    //TODO:画面開閉時にメッセージがでるのを消したい
                 })
                 .catch(err => {
                     console.log(err);
@@ -510,6 +509,9 @@ export default {
                                 var rowList = grid.SelectRow().getSelection().map(v => _.pick(v, ["rowIndx"]));
                                 grid.deleteRow({ rowList: rowList });
                                 $(this).dialog("close");
+
+                                //画面を閉じる
+                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
                             })
                             .catch(err => {
                                 console.log(err);
