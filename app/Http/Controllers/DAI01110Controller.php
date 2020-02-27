@@ -650,7 +650,7 @@ class DAI01110Controller extends Controller
                 FROM
                     コース別明細データ
                 WHERE コース別明細データ.日付 = '$TargetDate'
-                AND   コース別明細データ.部署ＣＤ = $BushoCd
+                AND   コース別明細データ.部署CD = $BushoCd
                 AND	  コース別明細データ.コースＣＤ = $CourseCd
                 AND	  コース別明細データ.修正日 = '$LastEditDate'
             ";
@@ -658,12 +658,11 @@ class DAI01110Controller extends Controller
             $ret = DB::delete($sql);
 
 
-            DB::rollBack();
-            // if ($ret != 1) {
-            //     DB::rollBack();
-            // } else {
-            //     DB::commit();
-            // }
+            if ($ret != 1) {
+                DB::rollBack();
+            } else {
+                DB::commit();
+            }
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;
@@ -695,44 +694,44 @@ class DAI01110Controller extends Controller
 
             $date = Carbon::now()->format('Y-m-d H:i:s');
 
-            if (isset($LastEditDate) && !!$LastEditDate) {
-                $r = コース別明細データ::query()
-                    ->where('日付', $Target['日付'])
-                    ->where('部署ＣＤ', $Target['部署ＣＤ'])
-                    ->where('コースＣＤ', $Target['コースＣＤ'])
-                    ->get();
+            $r = コース別明細データ::query()
+                ->where('日付', $Target['日付'])
+                ->where('部署CD', $Target['部署CD'])
+                ->where('コースＣＤ', $Target['コースＣＤ'])
+                ->get();
 
-                if (count($r) != 1) {
-                    $edited = true;
-                } else if ($LastEditDate != $r[0]->修正日) {
-                    $edited = true;
-                } else {
-                    $Target['修正日'] = $date;
+            if (count($r) == 1) {
+                if (isset($LastEditDate) && !!$LastEditDate) {
+                    if ($LastEditDate != $r[0]->修正日) {
+                        $edited = true;
+                    } else {
+                        $Target['修正日'] = $date;
 
-                    コース別明細データ::query()
-                        ->where('日付', $Target['日付'])
-                        ->where('部署ＣＤ', $Target['部署ＣＤ'])
-                        ->where('コースＣＤ', $Target['コースＣＤ'])
-                        ->update($Target);
+                        コース別明細データ::query()
+                            ->where('日付', $Target['日付'])
+                            ->where('部署CD', $Target['部署CD'])
+                            ->where('コースＣＤ', $Target['コースＣＤ'])
+                            ->update($Target);
+                    }
                 }
             } else {
                 $Target['修正日'] = $date;
                 コース別明細データ::insert($Target);
             }
 
-            DB::rollBack();
-            // if ($ret != 1) {
-            //     DB::rollBack();
-            // } else {
-            //     DB::commit();
-            // }
+            if ($edited) {
+                DB::rollBack();
+            } else {
+                DB::commit();
+            }
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;
         }
 
         return response()->json([
-            'result' => true,
+            "result" => true,
+            "CourseMeisaiData" => $this->GetCourseMeisaiData($request),
             // "edited" => $ret != 1 ? $this->GetOrderList($request) : [],
         ]);
         return;

@@ -301,12 +301,10 @@ export default {
                     editable: false,
                     sortable: false,
                     render: ui => {
+                        if (!ui.cls) ui.cls = [];
                         ui.cls.push(ui.cellData < 0 ? "minus-value" : "plus-value");
-                        if(ui.cellData == 0) {
-                            return { text: "" };
-                        }
 
-                        return ui;
+                        return { text: !!ui.Export || ui.cellData != 0 ? ui.cellData : "" };
                     },
                 },
                 dataModel: {
@@ -531,6 +529,7 @@ export default {
                                 render: ui => {
                                     if (ui.rowData.pq_grandsummary) {
                                         ui.rowData["商品名"] = "現金売合計";
+                                        if (!ui.cls) ui.cls = [];
                                         ui.cls.push("pq-align-right");
                                         return { text: "現金売合計" };
                                     }
@@ -602,7 +601,11 @@ export default {
                         },
                         render: ui => {
                             if (ui.rowIndx != 0 && !ui.rowData.pq_grandsummary) {
-                                ui.cls.push("cell-disabled");
+                                if (!!ui.Export) {
+                                    return { text: ""};
+                                } else {
+                                    ui.cls.push("cell-disabled");
+                                }
                             }
                             return ui;
                         },
@@ -621,7 +624,11 @@ export default {
                                 return { text: ui.rowData.売掛入金件数 + "件分"};
                             }
                             if (ui.rowIndx != 0 && !ui.rowData.pq_grandsummary) {
-                                ui.cls.push("cell-disabled");
+                                if (!!ui.Export) {
+                                    return { text: ""};
+                                } else {
+                                    ui.cls.push("cell-disabled");
+                                }
                             }
                             return ui;
                         },
@@ -644,7 +651,11 @@ export default {
                         },
                         render: ui => {
                             if (!ui.rowData.pq_grandsummary) {
-                                ui.cls.push("cell-disabled");
+                                if (!!ui.Export) {
+                                    return { text: ""};
+                                } else {
+                                    ui.cls.push("cell-disabled");
+                                }
                             }
                             return ui;
                         },
@@ -663,7 +674,11 @@ export default {
                                 },
                                 render: ui => {
                                     if (!ui.rowData.pq_grandsummary) {
-                                        ui.cls.push("cell-disabled");
+                                        if (!!ui.Export) {
+                                            return { text: ""};
+                                        } else {
+                                            ui.cls.push("cell-disabled");
+                                        }
                                     }
                                     return ui;
                                 },
@@ -721,6 +736,7 @@ export default {
                                 render: ui => {
                                     if (ui.rowData.pq_grandsummary) {
                                         ui.rowData["商品名"] = "掛売合計";
+                                        if (!ui.cls) ui.cls = [];
                                         ui.cls.push("pq-align-right");
                                         return { text: "掛売合計" };
                                     }
@@ -792,7 +808,11 @@ export default {
                         },
                         render: ui => {
                             if (ui.rowIndx != 0 && !ui.rowData.pq_grandsummary) {
-                                ui.cls.push("cell-disabled");
+                                if (!!ui.Export) {
+                                    return { text: ""};
+                                } else {
+                                    ui.cls.push("cell-disabled");
+                                }
                             }
                             return ui;
                         },
@@ -843,6 +863,7 @@ export default {
                                             return {text: ""};
                                         case 2:
                                             _.remove(ui.cls, v => v == "pq-align-right")
+                                            if (!ui.cls) ui.cls = [];
                                             ui.cls.push("summary-cell");
                                             return {text: "本日未集金"};
                                         case 3:
@@ -851,6 +872,7 @@ export default {
                                             return {text: pq.formatNumber(val, "#,###")};
                                         case 4:
                                             _.remove(ui.cls, v => v == "pq-align-right")
+                                            if (!ui.cls) ui.cls = [];
                                             ui.cls.push("summary-cell");
                                             return {text: "本日掛売上"};
                                         case 5:
@@ -859,6 +881,7 @@ export default {
                                             return {text: pq.formatNumber(val, "#,###")};
                                         case 6:
                                             _.remove(ui.cls, v => v == "pq-align-right")
+                                            if (!ui.cls) ui.cls = [];
                                             ui.cls.push("summary-cell");
                                             return {text: "本日掛合計"};
                                     }
@@ -1021,8 +1044,8 @@ export default {
                     clicksToEdit: 2,
                     keyUpDown: false,
                     saveKey: $.ui.keyCode.ENTER,
-                    onSave: null,
-                    onTab: "nextFocus",
+                    onSave: "nextEdit",
+                    onTab: "nextEdit",
                 },
                 filterModel: {
                     on: false,
@@ -1053,6 +1076,7 @@ export default {
                                 editable: false,
                                 render: ui => {
                                     if (!_.isInteger(ui.rowData[ui.dataIndx]) && ui.cellData != "") {
+                                        if (!ui.cls) ui.cls = [];
                                         ui.cls.push("pq-align-center-force");
                                     }
 
@@ -1068,6 +1092,15 @@ export default {
                                 editable: ui => {
                                     return  ui.rowData.kind != "合計";
                                 },
+                                render: ui => {
+                                    if (ui.rowData.kind != "合計") return ui;
+
+                                    var grid = eval("this");
+                                    if (!grid.pdata || !grid.pdata.length) return ui;
+                                    var sum = _.sum(grid.pdata.filter(v => v.kind != "合計").map(v => v.value * 1));
+                                    ui.rowData.value = sum;
+                                    return { text: sum };
+                                }
                             },
                             {
                                 title: "過剰金",
@@ -1078,10 +1111,24 @@ export default {
                                 editable: false,
                                 render: ui => {
                                     if (ui.cellData == "過剰金") {
+                                        if (!ui.cls) ui.cls = [];
                                         ui.cls.push("pq-align-center-force");
                                         ui.cls.push("title-col");
                                     } else if (ui.rowData.kind != "合計") {
+                                        if (!ui.cls) ui.cls = [];
                                         ui.cls.push("cell-disabled");
+                                    } else {
+                                        var grid = eval("this");
+                                        if (!grid.pdata || !grid.pdata.length) return ui;
+                                        var sum = _.sum(grid.pdata.filter(v => v.kind != "合計").map(v => v.value * 1));
+
+                                        var val = 0;
+                                        if (sum > 0) {
+                                            val = sum - pq.deFormatNumber(vue.DAI01110GridCash.options.summaryData[0].本日現金入金);
+                                        }
+
+                                        ui.rowData.value2 = val;
+                                        return { text: pq.formatNumber(val, "#,###") };
                                     }
 
                                     return ui;
@@ -1382,35 +1429,16 @@ export default {
             if (!vue.viewModel.BushoCd || !vue.viewModel.TargetDate || !vue.viewModel.CourseCd) return;
 
             //検索
-            axios.post("/DAI01110/Search", vue.searchParams)
+            var params = _.cloneDeep(vue.searchParams);
+            params.noCache = true;
+
+            //検索中ダイアログ
+            var progressDlg = $.dialogProgress({
+                contents: "<i class='fa fa-spinner fa-spin' style='font-size: 24px; margin-right: 5px;'></i> 検索中…",
+            });
+
+            axios.post("/DAI01110/Search", params)
                 .then(res => {
-                    //コース別明細データ
-                    var CourseMeisaiData = _.cloneDeep(res.data.CourseMeisaiData);
-                    vue.viewModel.IsSaved = !!CourseMeisaiData;
-                    vue.viewModel.LastEditor = !!CourseMeisaiData ? CourseMeisaiData.修正担当者名 : "";
-                    vue.viewModel.LastEditDate = !!CourseMeisaiData? moment(CourseMeisaiData.修正日).format("YYYY/MM/DD HH:mm:ss") : "";
-
-                    //金銭明細書
-                    vue.DAI01110GridMoneyInfo.pdata.map((v, i) => {
-                        var zIdx = Moji((i + 1).toString()).convert('HE', 'ZE').toString();
-                        if (_.has(CourseMeisaiData, "金種" + zIdx)) {
-                            v.value = CourseMeisaiData["金種" + zIdx];
-                        } else if (_.has(CourseMeisaiData, v.kind)) {
-                            v.value = CourseMeisaiData[v.kind] * 1;
-                        }
-                    });
-                    vue.DAI01110GridMoneyInfo.refreshDataAndView();
-
-                    //バークレーバウチャー
-                    vue.DAI01110GridBV.pdata.map((v, i) => {
-                        var zPrice = Moji(v.price.toString()).convert('HE', 'ZE').toString();
-                        if (_.has(CourseMeisaiData, "ＢＶチケット" + zPrice)) {
-                            v.value = CourseMeisaiData["ＢＶチケット" + zPrice] * 1;
-                        }
-                    });
-                    vue.DAI01110GridBV.refreshDataAndView();
-
-
                     //移動データ
                     vue.DAI01110GridIdou.options.dataModel.data = res.data.IdouDataList;
                     vue.DAI01110GridIdou.refreshDataAndView();
@@ -1538,10 +1566,47 @@ export default {
                     vue.DAI01110GridTicket.options.dataModel.data = TicketData;
                     vue.DAI01110GridTicket.refreshDataAndView();
 
+                    //コース別明細データ
+                    var CourseMeisaiData = _.cloneDeep(res.data.CourseMeisaiData);
+                    vue.viewModel.IsSaved = !!CourseMeisaiData;
+                    vue.viewModel.LastEditor = !!CourseMeisaiData ? CourseMeisaiData.修正担当者名 : "";
+                    vue.viewModel.LastEditDate = !!CourseMeisaiData? moment(CourseMeisaiData.修正日).format("YYYY/MM/DD HH:mm:ss") : "";
+
+                    if (!!CourseMeisaiData) {
+                        //金銭明細書
+                        vue.DAI01110GridMoneyInfo.rollback();
+                        vue.DAI01110GridMoneyInfo.pdata.map((v, i) => {
+                            var zIdx = Moji((i + 1).toString()).convert('HE', 'ZE').toString();
+                            if (_.has(CourseMeisaiData, "金種" + zIdx)) {
+                                v.value = CourseMeisaiData["金種" + zIdx];
+                            } else if (_.has(CourseMeisaiData, v.kind)) {
+                                v.value = CourseMeisaiData[v.kind] * 1;
+                            }
+
+                            if (v.kind == "合計") {
+                                v.value2 = CourseMeisaiData.過剰金;
+                            }
+                        });
+                        vue.DAI01110GridMoneyInfo.refreshDataAndView();
+                        vue.DAI01110GridMoneyInfo.commit();
+
+                        //バークレーバウチャー
+                        vue.DAI01110GridBV.pdata.map((v, i) => {
+                            var zPrice = Moji(v.price.toString()).convert('HE', 'ZE').toString();
+                            if (_.has(CourseMeisaiData, "ＢＶチケット" + zPrice)) {
+                                v.value = CourseMeisaiData["ＢＶチケット" + zPrice] * 1;
+                            }
+                        });
+                        vue.DAI01110GridBV.refreshDataAndView();
+                        vue.DAI01110GridBV.commit();
+                    }
+
+                    progressDlg.dialog("close");
+                    vue.DAI01110GridMoneyInfo.setSelection({ rowIndx: 0, colIndx: 1 });
                 })
                 .catch(err => {
+                    progressDlg.dialog("close");
                     console.log(err);
-                    grid.hideLoading();
                     $.dialogErr({
                         title: "異常終了",
                         contents: "データの検索に失敗しました<br/>",
@@ -1562,175 +1627,162 @@ export default {
         setGridBVTitle: function(title) {
             return "バークレーヴァウチャーズチケット(弁当用)";
         },
-        setPrintOptions: function(grid) {
+        delete: function() {
             var vue = this;
 
-            //PqGrid Print options
-            grid.options.printOptions.printType = "raw-html";
-            grid.options.printOptions.printStyles = "@media print { @page { size: A4 landscape; } }";
+            //削除実行
+            vue.DAI01110GridIdou.saveData(
+                {
+                    uri: "/DAI01110/Delete",
+                    params: {
+                        LastEditDate: moment(vue.viewModel.LastEditDate).format("YYYY-MM-DD HH:mm:ss.SSS"),
+                    },
+                    optional: vue.searchParams,
+                    confirm: {
+                        isShow: true,
+                        title: "コース別明細データ削除確認",
+                        message: "コース別明細データを削除します。宜しいですか？",
+                    },
+                    done: {
+                        isShow: false,
+                        callback: (gridVue, grid, res)=>{
+                            if (!!res.edited && !!res.edited.length) {
+                                $.dialogInfo({
+                                    title: "登録チェック",
+                                    contents: "他で変更されたデータがあります。",
+                                });
+                                vue.notifyChange(res.edited);
+                            } else {
+                                vue.viewModel.IsSaved = false;
+                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
+                            }
 
-            var table = $($(grid.exportData({ format: "htm", render: true }))[3]);
-            var tableHeaders = table.find("tr").filter((i, v) => !!$(v).find("th").length);
-            var tableBodies = table.find("tr").filter((i, v) => !!$(v).find("td").length);
-
-            //optional: multiple summary rows
-            var courseNm;
-            tableBodies.map((i, v) => {
-                var row = $(v);
-                courseNm = row.find("td[rowspan]").text() || row.find("td").filter((idx, e) => $(e).text().includes("合計")).text() || courseNm;
-                if (row.find("td").length != tableHeaders.find("th").length) {
-                    row.prepend($("<td>").text(courseNm).hide());
+                            return false;
+                        },
+                    },
                 }
-                if (!row.find("td:first").text()) {
-                    row.find("td:first").text(courseNm).hide();
-                }
-                return row.get(0);
-            });
+            );
 
-            //optional: generate contents for multipages
-            var contents = [];
-            var maxRowsPerPage = 45;
-            _(tableBodies)
-                .groupBy(v => $(v).find("td:first").text())
-                .values()
-                .reduce((a, v, i, o) => {
-                    if (!$(v[0]).find("td:first").attr("rowspan")) {
-                        $(v[0]).find("td:first").attr("rowspan", v.length).css("border-bottom-width", "1px");
-                    }
-
-                    if (!_.isEmpty(a) && a.find(".data-table tr").length + v.length > maxRowsPerPage) {
-                        var page = _.cloneDeep(a);
-                        page.find("tr:last td").css("border-bottom-width", "1px");
-                        contents.push(page);
-                        a = {};
-                    }
-
-                    if (_.isEmpty(a)) {
-                        var pageHeader = `
-                                            <div class="title">
-                                                <h3>* * * 移動表 * * *</h3>
-                                            </div>
-                                            <table class="header-table">
-                                                <thead>
-                                                    <tr>
-                                                        <th style="width: 5%;">日付</th>
-                                                        <th style="width: 15%;">${vue.viewModel.TargetDate}</th>
-                                                        <th style="width: 52%; border-top-width: 0px !important;"> </th>
-                                                        <th style="width: 16%;">${moment().format("YYYY年MM月DD日 HH:mm:ss")}</th>
-                                                        <th style="width: 6%;">PAGE</th>
-                                                        <th style="width: 6%;">${contents.length + 1}</th>
-                                                    </tr>
-                                                </thead>
-                                            </table>
-                                        `;
-
-                        a = $("<div>").css("page-break-before", "always")
-                            .append(pageHeader)
-                            .append($("<table>").addClass("data-table").append(tableHeaders.prop("outerHTML")))
-                            .append("<br/>")
-                            ;
-                    }
-
-                    v.forEach(r => {
-                        if (v.indexOf(r) == 0) {
-                            $(r).find("td[colspan]").css("border-bottom-width", "1px");
-                        }
-                        if (v.indexOf(r) == v.length - 1) {
-                            $(r).find("td").css("border-bottom-width", "1px");
-                        }
-                    })
-                    a.find(".data-table").append(v);
-
-                    if (_.last(o) == v) {
-                        var page = _.cloneDeep(a);
-                        page.find("tr:last td").css("border-bottom-width", "1px");
-                        contents.push(page);
-                    }
-
-                    return a;
-                }, {});
-
-            var styles =  `
-                                <style>
-                                    .grid-contents .title {
-                                        width: 100%;
-                                        display: inline-flex;
-                                        justify-content: center;
-                                        margin-bottom: 10px;
-                                    }
-                                    .grid-contents .title h3 {
-                                        text-align: center;
-                                        border: solid 1px black;
-                                        border-radius: 4px;
-                                        background-color: grey;
-                                        margin: 0px;
-                                        padding-left: 30px;
-                                        padding-right: 30px;
-                                    }
-                                    .grid-contents table {
-                                        width: 100%;
-                                        border-collapse:collapse;
-                                    }
-                                    .grid-contents .header-table tr th {
-                                        border-bottom: 0px;
-                                    }
-                                    .grid-contents tr th,
-                                    .grid-contents tr td
-                                    {
-                                        height: 12px !important;
-                                        font-family: "MS UI Gothic" !important;
-                                        font-size: 9pt !important;
-                                        font-weight: normal !important;
-                                        line-height: normal !important;
-                                        border: solid 1px black;
-                                        margin: 0px;
-                                        padding: 0px;
-                                        padding-top: 1px;
-                                        padding-bottom: 1px;
-                                        padding-left: 3px;
-                                        padding-right: 3px;
-                                    }
-                                    .grid-contents tr td {
-                                        border-top-width: 0px;
-                                        border-bottom-width: 0px;
-                                    }
-                                    .grid-contents tr th:nth-child(1) {
-                                        width: 14%;
-                                    }
-                                    .grid-contents tr th:nth-child(2) {
-                                        width: 6%;
-                                    }
-                                    .grid-contents tr th:nth-child(7),
-                                    .grid-contents tr th:nth-child(9)
-                                    {
-                                        width: 22%;
-                                    }
-                                    .grid-contents tr th:nth-child(n+3):nth-child(-n+6),
-                                    .grid-contents tr th:nth-child(8),
-                                    .grid-contents tr th:nth-child(10)
-                                    {
-                                        width: 6%;
-                                        text-align: center;
-                                    }
-                                    .grid-contents tr td:nth-child(1) {
-                                        vertical-align: top;
-                                    }
-                                </style>
-                            `;
-
-            var printable = $("<html>")
-                .append($("<head>").append(styles))
-                .append($("<body>").append($("<div>").addClass("grid-contents").append(contents)));
-
-            grid.options.printOptions.printable = printable.prop("outerHTML");
-
-            console.log(grid.options.printable);
         },
-        showDetail: function(rowData) {
+        notifyChange: function(newData) {
+            var vue = this;
+        },
+        save: function() {
+            var vue = this;
+
+            var target = {
+                "日付": vue.searchParams.TargetDate,
+                "部署CD": vue.searchParams.BushoCd,
+                "コースＣＤ": vue.searchParams.CourseCd,
+                "配送担当者ＣＤ": vue.searchParams.TantoCd,
+            };
+
+            var idou = vue.DAI01110GridIdou.pdata.map((v, i) => {
+                var zIdx = Moji((i + 1).toString()).convert('HE', 'ZE').toString();
+                return {
+                    ["持出し個数" + zIdx] : v.持ち出し数 * 1,
+                    ["工場追加" + zIdx] : v.受取数_工場 * 1,
+                    ["もらった" + zIdx] : v.受取数_一般 * 1,
+                    ["やった" + zIdx] : v.引渡数 * 1,
+                    ["見本" + zIdx] : v.ボーナス販売数 * 1,
+                    ["残数" + zIdx] : v.残数 * 1,
+                };
+            });
+            _.merge(target, ...idou);
+
+            var ticketSummary = {
+                "チケット１持出枚数": vue.DAI01110GridTicketSummary.pdata[0].持出枚数 * 1,
+                "チケット１持帰枚数": vue.DAI01110GridTicketSummary.pdata[0].持帰枚数 * 1,
+                "チケット１生協売": 0,
+                "チケット１売枚数": vue.DAI01110GridTicketSummary.pdata[0].売り枚数 * 1,
+                "チケット１売上金額": vue.DAI01110GridTicketSummary.pdata[0].売上金額 * 1,
+                "チケット２持出枚数": 0,
+                "チケット２持帰枚数": 0,
+                "チケット２生協売": 0,
+                "チケット２売枚数": 0,
+                "チケット２売上金額": 0,
+                "チケット１現金集金": 0,
+                "チケット２現金集金": 0,
+                "ＶＢ集金３００個数": 0,
+                "ＶＢ集金２００個数": 0,
+            };
+            _.merge(target, ticketSummary);
+
+            var money = vue.DAI01110GridMoneyInfo.pdata.map((v, i) => {
+                var zIdx = Moji((i + 1).toString()).convert('HE', 'ZE').toString();
+
+                if (i < 11) {
+                    var key = "金種" + zIdx;
+                    return { [key]: v.value * 1 };
+                } else if (v.value2 == "過剰金") {
+                    return [
+                        { [v.kind] : v.value * 1 },
+                        { [v.value2] : vue.DAI01110GridMoneyInfo.pdata.find(r => r.kind == "合計").value2 * 1 },
+                    ];
+                } else {
+                    return { [v.kind] : v.value * 1 };
+                }
+            });
+            _.merge(target, ...(_.flatten(money)));
+
+            target.セイブチケットＥお = vue.DAI01110GridTicket.pdata.find(v => v.kind == "チケット").value * 1;
+            target.セイブチケットＨお = vue.DAI01110GridTicket.pdata.find(v => v.kind == "ボーナス").value * 1;
+            target.セイブボーナス = 0;
+            target.ＢＶチケット３００ = vue.DAI01110GridBV.pdata.find(v => v.price == 300).value * 1;
+            target.ＢＶチケット２００ = vue.DAI01110GridBV.pdata.find(v => v.price == 200).value * 1;
+
+            target.予備金額１ = 0;
+            target.予備金額２ = 0;
+            target.予備ＣＤ１ = 0;
+            target.予備ＣＤ２ = 0;
+
+            target.修正担当者ＣＤ = vue.getLoginInfo().uid;
+
+            console.log(target);
+
+            //登録実行
+            vue.DAI01110GridIdou.saveData(
+                {
+                    uri: "/DAI01110/Save",
+                    params: {
+                        Target: target,
+                        LastEditDate: moment(vue.viewModel.LastEditDate).format("YYYY-MM-DD HH:mm:ss.SSS"),
+                    },
+                    optional: vue.searchParams,
+                    confirm: {
+                        isShow: false,
+                    },
+                    done: {
+                        isShow: false,
+                        callback: (gridVue, grid, res)=>{
+                            if (!!res.edited && !!res.edited.length) {
+                                $.dialogInfo({
+                                    title: "登録チェック",
+                                    contents: "他で変更されたデータがあります。",
+                                });
+                                vue.notifyChange(res.edited);
+                            } else {
+                                var ret = res.CourseMeisaiData;
+                                vue.viewModel.IsSaved = true;
+                                vue.viewModel.LastEditor = !!ret ? ret.修正担当者名 : "";
+                                vue.viewModel.LastEditDate = !!ret? moment(ret.修正日).format("YYYY/MM/DD HH:mm:ss") : "";
+                                vue.DAI01110GridMoneyInfo.commit();
+                                vue.DAI01110GridBV.commit();
+                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
+                            }
+
+                            return false;
+                        },
+                    },
+                }
+            );
+        },
+        showTicketDetail: function(rowData) {
             var vue = this;
             var grid = vue.DAI01110GridIdou;
             if (!grid) return;
 
+            //TODO:
             var params;
 
             if (!rowData) {
@@ -1850,156 +1902,194 @@ export default {
                 });
             });
         },
-        delete: function() {
-            var vue = this;
-
-            //削除実行
-            vue.DAI01110GridIdou.saveData(
-                {
-                    uri: "/DAI01110/Delete",
-                    params: {
-                        LastEditDate: vue.viewModel.LastEditDate,
-                    },
-                    optional: vue.searchParams,
-                    confirm: {
-                        isShow: true,
-                        title: "コース別明細データ削除確認",
-                        message: "コース別明細データを削除します。宜しいですか？",
-                    },
-                    done: {
-                        isShow: false,
-                        callback: (gridVue, grid, res)=>{
-                            if (!!res.edited && !!res.edited.length) {
-                                $.dialogInfo({
-                                    title: "登録チェック",
-                                    contents: "他で変更されたデータがあります。",
-                                });
-                                vue.notifyChange(res.edited);
-                            } else {
-                                vue.viewModel.IsSaved = false;
-                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
-                            }
-
-                            return false;
-                        },
-                    },
-                }
-            );
-
-        },
-        notifyChange: function(newData) {
-            var vue = this;
-        },
-        save: function() {
-            var vue = this;
-
-            var target = {
-                "日付": vue.searchParams.TargetDate,
-                "部署CD": vue.searchParams.BushoCd,
-                "コースＣＤ": vue.searchParams.CourseCd,
-                "配送担当者ＣＤ": vue.searchParams.TantoCd,
-            };
-
-            var idou = vue.DAI01110GridIdou.pdata.map((v, i) => {
-                var zIdx = Moji((i + 1).toString()).convert('HE', 'ZE').toString();
-                return {
-                    ["持出し個数" + zIdx] : v.持ち出し数 * 1,
-                    ["工場追加" + zIdx] : v.受取数_工場 * 1,
-                    ["もらった" + zIdx] : v.受取数_一般 * 1,
-                    ["やった" + zIdx] : v.引渡数 * 1,
-                    ["見本" + zIdx] : v.ボーナス販売数 * 1,
-                    ["残数" + zIdx] : v.残数 * 1,
-                };
-            });
-            _.merge(target, ...idou);
-
-            var ticketSummary = {
-                "チケット１持出枚数": vue.DAI01110GridTicketSummary.pdata[0].持出枚数 * 1,
-                "チケット１持帰枚数": vue.DAI01110GridTicketSummary.pdata[0].持帰枚数 * 1,
-                "チケット１生協売": 0,
-                "チケット１売枚数": vue.DAI01110GridTicketSummary.pdata[0].売り枚数 * 1,
-                "チケット１売上金額": vue.DAI01110GridTicketSummary.pdata[0].売上金額 * 1,
-                "チケット２持出枚数": 0,
-                "チケット２持帰枚数": 0,
-                "チケット２生協売": 0,
-                "チケット２売枚数": 0,
-                "チケット２売上金額": 0,
-                "チケット１現金集金": 0,
-                "チケット２現金集金": 0,
-                "ＶＢ集金３００個数": 0,
-                "ＶＢ集金２００個数": 0,
-            };
-            _.merge(target, ticketSummary);
-
-            var money = vue.DAI01110GridMoneyInfo.pdata.map((v, i) => {
-                var zIdx = Moji((i + 1).toString()).convert('HE', 'ZE').toString();
-
-                if (i < 11) {
-                    var key = "金種" + zIdx;
-                    return { [key]: v.value * 1 };
-                } else if (v.value2 == "過剰金") {
-                    return [
-                        { [v.kind] : v.value * 1 },
-                        { [v.value2] : vue.DAI01110GridMoneyInfo.pdata.find(r => r.kind == "合計").value2 * 1 },
-                    ];
-                } else {
-                    return { [v.kind] : v.value * 1 };
-                }
-            });
-            _.merge(target, ...(_.flatten(money)));
-
-            target.セイブチケットＥお = vue.DAI01110GridTicket.pdata.find(v => v.kind == "チケット").value * 1;
-            target.セイブチケットＨお = vue.DAI01110GridTicket.pdata.find(v => v.kind == "ボーナス").value * 1;
-            target.セイブボーナス = 0;
-            target.ＢＶチケット３００ = vue.DAI01110GridBV.pdata.find(v => v.price == 300).value * 1;
-            target.ＢＶチケット２００ = vue.DAI01110GridBV.pdata.find(v => v.price == 200).value * 1;
-
-            target.予備金額１ = 0;
-            target.予備金額２ = 0;
-            target.予備ＣＤ１ = 0;
-            target.予備ＣＤ２ = 0;
-
-            target.修正担当者ＣＤ = vue.getLoginInfo().uid;
-
-            console.log(target);
-            return;
-
-            //登録実行
-            vue.DAI01110GridIdou.saveData(
-                {
-                    uri: "/DAI01110/Delete",
-                    params: {
-                        Target: target,
-                        LastEditDate: vue.viewModel.LastEditDate,
-                    },
-                    optional: vue.searchParams,
-                    confirm: {
-                        isShow: true,
-                        title: "コース別明細データ削除確認",
-                        message: "コース別明細データを削除します。宜しいですか？",
-                    },
-                    done: {
-                        isShow: false,
-                        callback: (gridVue, grid, res)=>{
-                            if (!!res.edited && !!res.edited.length) {
-                                $.dialogInfo({
-                                    title: "登録チェック",
-                                    contents: "他で変更されたデータがあります。",
-                                });
-                                vue.notifyChange(res.edited);
-                            } else {
-                                vue.viewModel.IsSaved = false;
-                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
-                            }
-
-                            return false;
-                        },
-                    },
-                }
-            );
-        },
         print: function() {
             var vue = this;
+
+            //印刷用HTML全体適用CSS
+            var globalStyles = `
+                body {
+                    -webkit-print-color-adjust: exact;
+                }
+                div.title {
+                    width: 100%;
+                    display: flex;
+                    justify-content: center;
+                }
+                table {
+                    table-layout: fixed;
+                    margin-left: 0px;
+                    margin-right: 0px;
+                    width: 100%;
+                    border-spacing: unset;
+                    border-bottom: solid 1px black;
+                    border-right: solid 1px black;
+                }
+                th, td {
+                    font-family: "MS UI Gothic";
+                    font-size: 9pt;
+                    font-weight: normal;
+                    border-top: solid 1px black;
+                    border-left: solid 1px black;
+                    overflow: hidden;
+                    margin: 0px;
+                    padding-left: 3px;
+                    padding-right: 3px;
+                }
+                th {
+                    height: 19px;
+                    text-align: center;
+                }
+                td {
+                    height: 19px;
+                }
+            `;
+
+            var header = `
+                <div class="title">
+                    <h3>* * * 売上明細表 * * *</h3>
+                </div>
+                <table class="header-table" style="border-top-width: 0px; border-left-width: 0px;">
+                    <colgroup>
+                            <col style="width:5.0%;"></col>
+                            <col style="width:5.0%;"></col>
+                            <col style="width:7.5%;"></col>
+                            <col style="width:5.5%;"></col>
+                            <col style="width:5.5%;"></col>
+                            <col style="width:5.5%;"></col>
+                            <col style="width:5.5%;"></col>
+                            <col style="width:5.5%;"></col>
+                            <col style="width:5.5%;"></col>
+                            <col style="width:5.5%;"></col>
+                            <col style="width:5.5%;"></col>
+                            <col style="width:5.5%;"></col>
+                            <col style="width:5.5%;"></col>
+                            <col style="width:5.5%;"></col>
+                            <col style="width:5.5%;"></col>
+                            <col style="width:5.5%;"></col>
+                            <col style="width:5.5%;"></col>
+                            <col style="width:5.5%;"></col>
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th colspan="12" style="border-top-width: 0px; border-left-width: 0px;"></th>
+                            <th colspan="2">作成日</th>
+                            <th colspan="2">${moment().format("YYYY年MM月DD日")}</th>
+                            <th>PAGE</th>
+                            <th>1</th>
+                        </tr>
+                        <tr>
+                            <th>日付</th>
+                            <th colspan="5">${vue.viewModel.TargetDate}</th>
+                            <th colspan="6" style="border-top-width: 0px !important;"></th>
+                            <th>コース</th>
+                            <th>${vue.viewModel.CourseCd}</th>
+                            <th colspan="4">${vue.viewModel.CourseNm}</th>
+                        </tr>
+                        <tr>
+                            <th>部署</th>
+                            <th>${vue.viewModel.BushoCd}</th>
+                            <th colspan="4">${vue.viewModel.BushoNm}</th>
+                            <th colspan="6" style="border-top-width: 0px !important;"></th>
+                            <th>担当者</th>
+                            <th>${vue.viewModel.TantoCd}</th>
+                            <th colspan="4">${vue.viewModel.TantoNm}</th>
+                        </tr>
+                    </thead>
+                </table>
+            `;
+
+            var printable = $("<html>")
+                .append($("<head>").append($("<style>").text(globalStyles)))
+                .append(
+                    $("<body>")
+                        .append(header)
+                        .append(vue.getGridHtml(vue.DAI01110GridIdou))
+                        .append(vue.getGridHtml(vue.DAI01110GridTicketSummary, "table.DAI01110GridTicketSummary { width: 400px; }"))
+                        .append(vue.getGridHtml(
+                                vue.DAI01110GridCash,
+                                `
+                                    table.DAI01110GridCash tr:nth-child(1) th:nth-child(1) {
+                                        width: 30%;
+                                    }
+                                    table.DAI01110GridCash tr:nth-child(1) th:nth-child(2) {
+                                        width: 20%;
+                                    }
+                                    table.DAI01110GridCash tr:nth-child(1) th:nth-child(3),
+                                    table.DAI01110GridCash tr:nth-child(1) th:nth-child(4),
+                                    table.DAI01110GridCash tr:nth-child(1) th:nth-child(5)
+                                    {
+                                        width: 10%;
+                                    }
+                                    table.DAI01110GridCash tr:nth-child(1) th:nth-child(6) {
+                                        width: 20%;
+                                    }
+                                    table.DAI01110GridCash tr:nth-child(n+4):nth-child(-n+9) td {
+                                        border-top-width: 0px;
+                                    }
+                                    table.DAI01110GridCash tr:nth-child(n+3) td:nth-child(2),
+                                    table.DAI01110GridCash tr:nth-child(n+3) td:nth-child(3),
+                                    table.DAI01110GridCash tr:nth-child(n+3) td:nth-child(5)
+                                    {
+                                        border-left-width: 0px;
+                                    }
+                                `
+                            )
+                        )
+                        .append(vue.getGridHtml(
+                                vue.DAI01110GridCredit,
+                                `
+                                    table.DAI01110GridCredit tr:nth-child(1) th:nth-child(1) {
+                                        width: 30%;
+                                    }
+                                    table.DAI01110GridCredit tr:nth-child(1) th:nth-child(2) {
+                                        width: 20%;
+                                    }
+                                    table.DAI01110GridCredit tr:nth-child(1) th:nth-child(3),
+                                    table.DAI01110GridCredit tr:nth-child(1) th:nth-child(4),
+                                    table.DAI01110GridCredit tr:nth-child(1) th:nth-child(5)
+                                    {
+                                        width: 10%;
+                                    }
+                                    table.DAI01110GridCredit tr:nth-child(1) th:nth-child(6) {
+                                        width: 20%;
+                                    }
+                                    table.DAI01110GridCredit tr:nth-child(n+4):nth-child(-n+9) td {
+                                        border-top-width: 0px;
+                                    }
+                                    table.DAI01110GridCredit tr:nth-child(n+3) td:nth-child(2),
+                                    table.DAI01110GridCredit tr:nth-child(n+3) td:nth-child(3),
+                                    table.DAI01110GridCredit tr:nth-child(n+3) td:nth-child(5)
+                                    {
+                                        border-left-width: 0px;
+                                    }
+                                `
+                            )
+                        )
+                        .append(vue.getGridHtml(vue.DAI01110GridSummary))
+                )
+                .prop("outerHTML")
+                ;
+
+            var printOptions = {
+                type: "raw-html",
+                printStyles: "@media print { @page { size: A4; } }",
+                printable: printable,
+            };
+
+            printJS(printOptions);
+            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //$("#printJS").contents().find("html").html()
+        },
+        getGridHtml: function(grid, styles) {
+            var baseStyles = `
+                table.${grid.vue.id} {
+                    margin-top: 5px;
+                }
+                table.${grid.vue.id} th {
+                    background-color: lightgrey !important;
+                }
+            `;
+            return grid.generateHtml(baseStyles + (styles || ""));
         },
     }
 }
