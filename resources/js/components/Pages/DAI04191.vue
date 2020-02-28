@@ -239,7 +239,6 @@ export default {
                             })
                             .catch(err => {
                                 console.log(err);
-                                //TODO: エラー
                             }
                         );
                         console.log("登録", params);

@@ -224,14 +224,12 @@ export default {
             vue.footerButtons.push(
                 { visible: "true", value: "クリア", id: "DAI04141_Clear", disabled: false, shortcut: "F2",
                     onClick: function (evt) {
-                        //TODO: クリア
                         vue.clearDetail();
                         console.log(vue.$attrs.id, evt.target.outerText, $(evt.target).attr("shortcut"));
                     }
                 },
                 { visible: "true", value: "削除", id: "DAI04141_Delete", disabled: false, shortcut: "F3",
                     onClick: function (evt) {
-                        //TODO: 削除
                         var cd = vue.viewModel.税区分;
                         if(!cd) return;
 
@@ -254,7 +252,6 @@ export default {
                                             })
                                             .catch(err => {
                                                 console.log(err);
-                                                //TODO: エラー
                                             }
                                         );
                                     }
@@ -273,7 +270,6 @@ export default {
                 },
                 { visible: "true", value: "登録", id: "DAI04141Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
-                        //TODO: 登録
                         if(!vue.viewModel.税区分 || !vue.viewModel.消費税名称 || !vue.viewModel.適用年月){
                             $.dialogErr({
                                 title: "登録不可",
@@ -310,7 +306,7 @@ export default {
 
                         $(vue.$el).find(".has-error").removeClass("has-error");
 
-                        //TODO: 登録用controller method call
+                        //登録用controller method call
                         axios.post("/DAI04141/Save", params)
                             .then(res => {
                                 vue.viewModel = res.data.model;
@@ -319,7 +315,6 @@ export default {
                             })
                             .catch(err => {
                                 console.log(err);
-                                //TODO: エラー
                             }
                         );
                         console.log("登録", params);
@@ -374,14 +369,13 @@ export default {
                         });
                         $("[shortcut='F3']").prop("disabled", false);
                     }else{
-                        //TODO:削除ボタン
+                        //削除ボタン制御
                         $("[shortcut='F3']").prop("disabled", true);
                         return;
                     }
                 })
                 .catch(err => {
                     console.log(err);
-                    //TODO: エラー
                 }
             )
         },

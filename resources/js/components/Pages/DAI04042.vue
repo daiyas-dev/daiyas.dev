@@ -148,7 +148,6 @@ export default {
                     onTab: "nextFocus",
                 },
                 colModel: [
-                    //TODO:ps→autoconmへ追加中
                     {
                         title: "得意先",
                         dataIndx: "得意先ＣＤ",
@@ -170,53 +169,6 @@ export default {
                         dataType: "string",
                         editable: false,
                     },
-                    // {
-                    //     title: "得意先",
-                    //     dataIndx: "得意先ＣＤ",
-                    //     dataType: "string",
-                    //     key: true,
-                    //     psProps: {
-                    //         dataUrl: "/DAI04042/GetCustomerListForSelect",
-                    //         params: vue.getCustomerPsParamsInGrid,
-                    //         bind: "得意先ＣＤ",
-                    //         buddies: { "得意先名": "CdNm" },
-                    //         isPreload: true,
-                    //         title: "得意先一覧",
-                    //         labelCd: "得意先CD",
-                    //         labelCdNm: "得意先名",
-                    //         popupWidth: 600,
-                    //         popupHeight: 600,
-                    //         isShowName: true,
-                    //         isModal: true,
-                    //         reuse: true,
-                    //         existsCheck: true,
-                    //         inputWidth: 90,
-                    //         nameWidth: 280,
-                    //         isShowAutoComplete: true,
-                    //         AutoCompleteFunc: vue.CustomerAutoCompleteFuncInGrid,
-                    //         AutoCompleteMinLength: 1,
-                    //         getData: (ui, grid) => {
-                    //             console.log("psprops getData", ui.$cell.find(".target-input").val());
-                    //             return ui.$cell.find(".target-input").val();
-                    //         },
-                    //         htmlRender: ui => {
-                    //             var $el = $("<div>")
-                    //                 .addClass("d-flex")
-                    //                 .append($("<div>").text(ui.rowData.得意先ＣＤ).width(60).addClass("text-right"))
-                    //                 .append($("<div>").text(":").addClass("pl-1").addClass("pr-1"))
-                    //                 .append($("<div>").text(ui.rowData.得意先名))
-                    //                 ;
-
-                    //             return $el[0];
-                    //         },
-                    //     },
-                    // },
-                    // {
-                    //     title: "得意先名",
-                    //     dataIndx: "得意先名",
-                    //     dataType: "string",
-                    //     hidden: true,
-                    // },
                 ],
                 formulas: [
                 ],
@@ -249,6 +201,9 @@ export default {
                 {visible: "false"},
                 { visible: "true", value: "登録", id: "DAI04042_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
+                        //TODO:現行では、メッセージ「親得意先と同一のコードは使用できません。」と所属部署が違う場合に「得意先が存在しません」がでる。
+                        //登録可能条件を、同じ所属部署かつ親得意先コード以外、とするか。所属部署は関係なく親得意先コード以外とするか。
+                        //過去データは、親得意先コードが入っているデータが多くある。
 
                         if((grid.widget().find(".has-error").length == 0 ) && (grid.widget().find(".ui-state-error").length == 0 )){
                             vue.saveBunpaisaki();
@@ -298,7 +253,6 @@ export default {
             })
             .catch(err => {
                 console.log(err);
-                //TODO: エラー
             });
 
         },
@@ -356,10 +310,6 @@ export default {
 
             return list;
         },
-        //TODO:削除予定
-        // getCustomerPsParamsInGrid: (vue, grid) => {
-        //     return { BushoCd: !!vue.params ? vue.params.部署CD : null };
-        // },
         addRowFunc: function() {
             var grid = DAI04042Grid1;
             var rowIndx = grid.SelectRow().getSelection().length == 0
@@ -396,7 +346,6 @@ export default {
             })
             .catch(err => {
                 console.log(err);
-                //TODO: エラー
             });
         },
     }

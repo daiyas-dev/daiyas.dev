@@ -281,13 +281,11 @@ export default {
             vue.footerButtons.push(
                 { visible: "true", value: "クリア", id: "DAI04021_Clear", disabled: false, shortcut: "F2",
                     onClick: function () {
-                        //TODO: クリア
                         vue.clearDetail();
                     }
                 },
                 { visible: "true", value: "削除", id: "DAI04021_Delete", disabled: false, shortcut: "F3",
                     onClick: function () {
-                        //TODO: 削除
                         var cd = vue.viewModel.担当者ＣＤ;
                         if(!cd) return;
 
@@ -310,7 +308,6 @@ export default {
                                             })
                                             .catch(err => {
                                                 console.log(err);
-                                                //TODO: エラー
                                             }
                                         );
                                     }
@@ -330,7 +327,6 @@ export default {
                 { visible: "true", value: "登録", id: "DAI04021Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         //TODO: 新規ではない時、所属部署が古いCDの場合どうするか
-                        //TODO: 登録
 
                         if(!vue.viewModel.担当者ＣＤ || !vue.viewModel.担当者名 || !vue.viewModel.所属部署ＣＤ){
                             $.dialogErr({
@@ -369,7 +365,7 @@ export default {
 
                         $(vue.$el).find(".has-error").removeClass("has-error");
 
-                        //TODO: 登録用controller method call
+                        //登録用controller method call
                         axios.post("/DAI04021/Save", params)
                             .then(res => {
                                 vue.viewModel = res.data.model;
@@ -432,14 +428,13 @@ export default {
                         });
                         $("[shortcut='F3']").prop("disabled", false);
                     }else{
-                        //TODO:削除ボタン
+                        //削除ボタン制御
                         $("[shortcut='F3']").prop("disabled", true);
                         return;
                     }
                 })
                 .catch(err => {
                     console.log(err);
-                    //TODO: エラー
                 }
             )
         },

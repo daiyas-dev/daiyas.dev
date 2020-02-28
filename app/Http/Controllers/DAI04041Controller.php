@@ -255,67 +255,24 @@ class DAI04041Controller extends Controller
         $params = $request->all();
         $CustomerCd = $params['得意先ＣＤ'];
 
-        // $sql = "
-        //     SELECT ISNULL(MAXID,0) + 1
-        //     FROM (
-        //         SELECT MAX(得意先履歴ID) AS MAXID
-        //         FROM 得意先履歴テーブル WHERE 得意先CD = $CustomerCd
-        //     ) MAXID
-        // ";
-    //     $sql = "
-    //     INSERT INTO 得意先履歴テーブル(
-    //         得意先履歴ID
-    //        ,得意先ＣＤ
-    //        ,状態区分
-    //        ,失客理由
-    //        ,失客日
-    //        ,承認日
-    //        ,承認者ＣＤ
-    //        ,登録日
-    //        ,営業担当者ＣＤ
-    //        ,変更者ＣＤ
-    //   )VALUES(
-    //         (
-    //           SELECT ISNULL(MAXID,0) + 1
-    //           FROM (
-    //               SELECT MAX(得意先履歴ID) AS MAXID
-    //               FROM 得意先履歴テーブル
-    //               WHERE 得意先CD = $CustomerCd
-    //               )
-    //            MAXID )
-    //        ,$CustomerCd
-    //        ,@状態区分
-    //        ,@失客理由
-    //        ,@失客日
-    //        ,@承認日
-    //        ,@承認者ＣＤ
-    //        ,@登録日
-    //        ,@営業担当者ＣＤ
-    //        ,@変更者ＣＤ
-    //   )        ";
+        //得意先履歴ID取得
+        $sql = "
+            SELECT ISNULL(MAXID,0) + 1 AS SerialNumber
+            FROM (
+                SELECT MAX(得意先履歴ID) AS MAXID
+                FROM 得意先履歴テーブル WHERE 得意先CD = $CustomerCd
+            ) MAXID
+        ";
 
-    //     $CdList = DB::select($sql);
-    //     $SerialNumber = $CdList['stdClass'];
-    //     $saveData = array_merge(['得意先履歴ID' => $SerialNumber], $params);
+        $CdList = DB::selectOne($sql);
+        $SerialNumber = $CdList->SerialNumber;
+        $saveData = array_merge(['得意先履歴ID' => $SerialNumber], $params);
 
         // トランザクション開始
         DB::transaction(function () use ($CustomerCd, $saveData) {
 
-            DB::insert($saveData);
+            DB::table('得意先履歴テーブル')->insert($saveData);
 
-            //確認用：削除予定
-            $query = 得意先履歴テーブル::query()
-                ->when(
-                    $CustomerCd,
-                    function($q) use ($CustomerCd){
-                        return $q->where('得意先ＣＤ', $CustomerCd);
-                    }
-                );
-
-            $HistoryList = $query->get();
-            $xxx = $HistoryList->toJson();
-
-            throw new \Exception('hogehoge');
         });
 
         return response()->json($saveData);

@@ -278,11 +278,6 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "クリア", id: "DAI04040_Clear", disabled: false, shortcut: "F2",
-                    onClick: function () {
-                        //TODO: クリア
-                    }
-                },
                 {visible: "false"},
                 { visible: "true", value: "検索", id: "DAI04040_Search", disabled: false, shortcut: "F4",
                     onClick: function () {
@@ -311,7 +306,6 @@ export default {
                 },
                 { visible: "true", value: "新規登録", id: "DAI04040Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
-                        //TODO: 登録
                         vue.showNewDetail();
                     }
                 },
@@ -524,7 +518,6 @@ export default {
                         })
                         .catch(err => {
                             console.log(err);
-                            //TODO: エラー
                         })
                 }
             }
@@ -609,7 +602,7 @@ export default {
                 showColumns: vue.showColumns,
                 width: 1000,
                 height: 500,
-                reuse: true,
+                reuse: false,
             });
         },
         showBunpaisaki: function(rowData) {
