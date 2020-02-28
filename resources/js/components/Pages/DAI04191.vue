@@ -13,19 +13,32 @@
                     v-model=viewModel.銀行CD
                     :readonly=!viewModel.IsNew
                     :tabindex="viewModel.IsNew ? 0 : -1"
+                    @change="onBankCdChanged"
+                    maxlength="4"
+                    v-int
                 >
             </div>
         </div>
         <div class="row">
             <div class="col-md-12">
                 <label class="">銀行名</label>
-                <input type="text" class="form-control" v-model="viewModel.銀行名" id="BankName">
+                <input type="text" class="form-control"
+                    v-model="viewModel.銀行名"
+                    id="BankNm"
+                    maxlength=50
+                    v-maxBytes=50
+                    v-setKana.disabled="res => viewModel.銀行名カナ = res.toString()"
+                >
             </div>
         </div>
         <div class="row">
             <div class="col-md-12">
                 <label class="">銀行名カナ</label>
-                <input type="text" class="form-control" style="" v-model="viewModel.銀行名カナ">
+                <input type="text" class="form-control" style=""
+                    v-model="viewModel.銀行名カナ"
+                    maxlength=30
+                    v-maxBytes=30
+                >
             </div>
         </div>
         <div class="row">
@@ -63,44 +76,6 @@ span.ModeLabel {
 }
 div[class^="col-md"] > label {
     min-width: 80px;
-}
-fieldset div[class^="col-md"] label {
-    min-width: 90px;
-}
-fieldset fieldset label {
-    margin-right: -5px;
-}
-fieldset {
-    border: 1px solid gray;
-    padding: 0;
-    padding-bottom: 5px;
-    padding-right: 5px;
-    margin: 0;
-}
-fieldset * {
-    font-size: 14px !important;
-}
-legend {
-    font-size: 15px;
-    width: auto;
-    padding: 0;
-    margin: 0;
-    margin-left: 5px;
-    border-bottom:none;
-}
-fieldset .row {
-    margin-left: 10px;
-    margin-right: 0px;
-}
-textarea {
-    max-height: unset;
-    line-height: 16px;
-    resize: none;
-}
-.groupFactory{
-    width: 100px;
-    text-align: left !important;
-    margin-left: 30px;
 }
 </style>
 <style>
@@ -184,22 +159,52 @@ export default {
             vue.footerButtons.push(
                 { visible: "true", value: "クリア", id: "DAI04191_Clear", disabled: false, shortcut: "F2",
                     onClick: function () {
-                        //TODO: クリア
+                        vue.clearDetail();
                     }
                 },
-                {visible: "false"},
+                { visible: "true", value: "削除", id: "DAI04191_Delete", disabled: true, shortcut: "F3",
+                    onClick: function (evt) {
+                        var cd = vue.viewModel.銀行CD;
+                        if(!cd) return;
+
+                        var params = {BankCd: cd};
+                        params.noCache = true;
+
+                        $.dialogConfirm({
+                            title: "マスタ削除確認",
+                            contents: "マスタを削除します。",
+                            buttons:[
+                                {
+                                    text: "はい",
+                                    class: "btn btn-primary",
+                                    click: function(){
+                                        axios.post("/DAI04191/Delete", params)
+                                            .then(res => {
+                                                DAI04190.conditionChanged();
+                                                $(this).dialog("close");
+                                                //画面04191を閉じる
+                                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
+                                            })
+                                            .catch(err => {
+                                                console.log(err);
+                                            }
+                                        );
+                                    }
+                                },
+                                {
+                                    text: "いいえ",
+                                    class: "btn btn-danger",
+                                    click: function(){
+                                        $(this).dialog("close");
+                                    }
+                                },
+                            ],
+                        });
+                        console.log("削除", params);
+                    }
+                },
                 { visible: "true", value: "登録", id: "DAI04191Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
-                        //TODO: 登録
-                        if(!vue.viewModel.銀行CD){
-                            $.dialogErr({
-                                title: "登録不可",
-                                contents: "銀行CDが入力されていません",
-                            })
-                            $(vue.$el).find("#BankCd").addClass("has-error");
-                            return;
-                        }
-                        //TODO:下記作業途中
                         if(!vue.viewModel.銀行CD || !vue.viewModel.銀行名){
                             $.dialogErr({
                                 title: "登録不可",
@@ -214,9 +219,9 @@ export default {
                                 $(vue.$el).find("#BankCd").removeClass("has-error");
                             }
                             if(!vue.viewModel.銀行名){
-                                $(vue.$el).find("#BankName").addClass("has-error");
+                                $(vue.$el).find("#BankNm").addClass("has-error");
                             }else{
-                                $(vue.$el).find("#BankName").removeClass("has-error");
+                                $(vue.$el).find("#BankNm").removeClass("has-error");
                             }
                             return;
                         }
@@ -228,14 +233,16 @@ export default {
 
                         //チェックボックス
                         params.郵便フラグ = !!params.郵便フラグ ? params.郵便フラグ : 0;
+                        //TODO:無効フラグは追加カラムのため未完了
                         // params.無効フラグ = !!params.無効フラグ ? params.無効フラグ : 0;
 
                         $(vue.$el).find(".has-error").removeClass("has-error");
 
-                        //TODO: 登録用controller method call
+                        //登録用controller method call
                         axios.post("/DAI04191/Save", params)
-                            .then(res =gyou> {
-                                //TODO:途中
+                            .then(res => {
+                                DAI04190.conditionChanged();
+                                $(this).dialog("close");
                             })
                             .catch(err => {
                                 console.log(err);
@@ -248,6 +255,73 @@ export default {
         },
         mountedFunc: function(vue) {
             $(vue.$el).parents("div.body-content").addClass("Scrollable");
+
+            if(this.params.IsNew == false || !this.params.IsNew){
+                //修正時：ボタン制御
+                $("[shortcut='F3']").prop("disabled", false);
+            }
+        },
+        onBankCdChanged: function(code, entities) {
+            var vue = this;
+
+            vue.searchByBankCd();
+        },
+        searchByBankCd: function() {
+            var vue = this;
+            var cd = vue.viewModel.銀行CD;
+            if (!cd) return;
+
+            var params = {BankCd: cd};
+            params.noCache = true;
+
+            axios.post("/DAI04191/GetBankListForDetail", params)
+                .then(res => {
+                    if (res.data.length == 1) {
+                        $.dialogConfirm({
+                            title: "マスタ編集確認",
+                            contents: "マスタを編集しますか？",
+                            buttons:[
+                                {
+                                    text: "はい",
+                                    class: "btn btn-primary",
+                                    click: function(){
+                                        $(vue.$el).find(".has-error").removeClass("has-error");
+                                        vue.viewModel = res.data[0];
+                                        $(this).dialog("close");
+
+                                        //新規 -> 修正：　ボタン制御
+                                        $("[shortcut='F3']").prop("disabled", false);
+                                    }
+                                },
+                                {
+                                    text: "いいえ",
+                                    class: "btn btn-danger",
+                                    click: function(){
+                                        vue.viewModel.銀行CD = "";
+                                        $(this).dialog("close");
+                                    }
+                                },
+                            ],
+                        });
+                    }else{
+                    }
+                })
+                .catch(err => {
+                    console.log(err);
+                }
+            )
+        },
+        clearDetail: function(){
+            var vue = this;
+
+            $(vue.$el).find(".has-error").removeClass("has-error");
+
+            _.keys(DAI04191.viewModel).forEach(k => DAI04191.viewModel[k] = null);
+            vue.viewModel.IsNew = true;
+            vue.viewModel.userId = vue.query.userId;
+
+            //ボタン制御
+            $("[shortcut='F3']").prop("disabled", true);
         },
     }
 }
