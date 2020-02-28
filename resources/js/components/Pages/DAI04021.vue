@@ -304,7 +304,8 @@ export default {
                                             .then(res => {
                                                 DAI04020.conditionChanged();
                                                 $(this).dialog("close");
-                                                vue.clearDetail();
+                                                //画面04021を閉じる
+                                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
                                             })
                                             .catch(err => {
                                                 console.log(err);
@@ -326,7 +327,7 @@ export default {
                 {visible: "false"},
                 { visible: "true", value: "登録", id: "DAI04021Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
-                        //TODO: 新規ではない時、所属部署が古いCDの場合どうするか
+                        //TODO: 修正の時、所属部署が古いCDの場合どうするか->そのままの値で保存
 
                         if(!vue.viewModel.担当者ＣＤ || !vue.viewModel.担当者名 || !vue.viewModel.所属部署ＣＤ){
                             $.dialogErr({
@@ -368,9 +369,9 @@ export default {
                         //登録用controller method call
                         axios.post("/DAI04021/Save", params)
                             .then(res => {
-                                vue.viewModel = res.data.model;
                                 DAI04020.conditionChanged();
-                                vue.clearDetail();
+                                //画面を閉じる
+                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
                             })
                             .catch(err => {
                                 console.log(err);
@@ -381,9 +382,6 @@ export default {
                 },
                 {visible: "false"},
             );
-
-            //TODO:所属部署ＣＤの初期値101を設定するか
-
         },
         mountedFunc: function(vue) {
             $(vue.$el).parents("div.body-content").addClass("Scrollable");
@@ -447,8 +445,10 @@ export default {
             vue.viewModel.IsNew = true;
             vue.viewModel.userId = vue.query.userId;
 
-            vue.viewModel.営業業務区分 = vue.viewModel.営業業務区分 || vue.$refs.EigoKbn_Select.entities[0].code;
-            vue.viewModel.所属部署ＣＤ = vue.viewModel.所属部署ＣＤ || vue.$refs.BushoCdSelect.entities[1].code;
+            vue.viewModel.営業業務区分 = vue.$refs.EigoKbn_Select.entities[0].code;
+            //所属部署CDが現在ない部署の場合考慮
+            var bushoList = vue.$refs.BushoCdSelect.entities
+            vue.viewModel.所属部署ＣＤ = !!bushoList[0].name ? bushoList[0].code : bushoList[1].code;
         },
     }
 }

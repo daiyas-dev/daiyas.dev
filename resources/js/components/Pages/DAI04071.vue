@@ -624,7 +624,7 @@ export default {
                         console.log(vue.$attrs.id, evt.target.outerText, $(evt.target).attr("shortcut"));
                     }
                 },
-                { visible: "true", value: "削除", id: "DAI04071_Delete", disabled: false, shortcut: "F3",
+                { visible: "true", value: "削除", id: "DAI04071_Delete", disabled: true, shortcut: "F3",
                     onClick: function (evt) {
                         var cd = vue.viewModel.部署CD;
                         if(!cd) return;
@@ -644,7 +644,8 @@ export default {
                                             .then(res => {
                                                 DAI04070.conditionChanged();
                                                 $(this).dialog("close");
-                                                vue.clearDetail();
+                                                //画面を閉じる
+                                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
                                             })
                                             .catch(err => {
                                                 console.log(err);
@@ -716,8 +717,9 @@ export default {
                         //登録用controller method call
                         axios.post("/DAI04071/Save", params)
                             .then(res => {
-                                vue.viewModel = res.data.model;
                                 DAI04070.conditionChanged();
+                                //画面を閉じる
+                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
                             })
                             .catch(err => {
                                 console.log(err);
@@ -732,6 +734,11 @@ export default {
         },
         mountedFunc: function(vue) {
             $(vue.$el).parents("div.body-content").addClass("Scrollable");
+
+            if(this.params.IsNew == false || !this.params.IsNew){
+                //修正時：ボタン制御
+                $("[shortcut='F3']").prop("disabled", false);
+            }
         },
         onBushoCdChanged: function(code, entities) {
             var vue = this;
@@ -911,6 +918,9 @@ export default {
             _.keys(DAI04071.viewModel).forEach(k => DAI04071.viewModel[k] = null);
             vue.viewModel.IsNew = true;
             vue.viewModel.userId = vue.query.userId;
+
+            //ボタン制御
+            $("[shortcut='F3']").prop("disabled", true);
 
             //PopupSelect
             $(".select-name").val("");

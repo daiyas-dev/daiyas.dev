@@ -248,7 +248,8 @@ export default {
                                             .then(res => {
                                                 DAI04140.conditionChanged();
                                                 $(this).dialog("close");
-                                                vue.clearDetail();
+                                                //画面04141を閉じる
+                                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
                                             })
                                             .catch(err => {
                                                 console.log(err);
@@ -309,9 +310,9 @@ export default {
                         //登録用controller method call
                         axios.post("/DAI04141/Save", params)
                             .then(res => {
-                                vue.viewModel = res.data.model;
                                 DAI04140.conditionChanged();
-                                vue.clearDetail();
+                                //画面04141を閉じる
+                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
                             })
                             .catch(err => {
                                 console.log(err);
@@ -389,8 +390,8 @@ export default {
             vue.viewModel.userId = vue.query.userId;
 
             vue.viewModel.適用年月 = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
-            vue.viewModel.内外区分 = vue.viewModel.内外区分 || vue.$refs.NaigaiKbn_Select.entities[0].code;
-            vue.viewModel.現在使用FLG = vue.viewModel.現在使用FLG || vue.$refs.RiyoFlg_Select.entities[0].code;
+            vue.viewModel.内外区分 = vue.$refs.NaigaiKbn_Select.entities[0].code;
+            vue.viewModel.現在使用FLG = vue.$refs.RiyoFlg_Select.entities[0].code;
 
         },
     }

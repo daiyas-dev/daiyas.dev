@@ -461,10 +461,10 @@ export default {
             vue.viewModel.userId = vue.query.userId;
 
             vue.viewModel.売価単価 = 0;
-            vue.viewModel.部署グループ = vue.viewModel.部署グループ || vue.$refs.BushoGroup_Select.entities[0].code;
-            vue.viewModel.弁当区分 = vue.viewModel.弁当区分 || vue.$refs.BentoKbn_Select.entities[0].code;
-            vue.viewModel.表示区分 = vue.viewModel.表示区分 || vue.$refs.DisplayKbn_Select.entities[0].code;
-            vue.viewModel.食事区分 = vue.viewModel.食事区分 || vue.$refs.MealKbn_Select.entities[0].code;
+            vue.viewModel.部署グループ = vue.$refs.BushoGroup_Select.entities[0].code;
+            vue.viewModel.弁当区分 = vue.$refs.BentoKbn_Select.entities[0].code;
+            vue.viewModel.表示区分 = vue.$refs.DisplayKbn_Select.entities[0].code;
+            vue.viewModel.食事区分 = vue.$refs.MealKbn_Select.entities[0].code;
         },
     }
 }

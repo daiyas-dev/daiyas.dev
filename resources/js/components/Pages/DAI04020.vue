@@ -149,17 +149,13 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "クリア", id: "DAI04020_Clear", disabled: false, shortcut: "F2",
-                    onClick: function () {
-                        //TODO: クリア
-                    }
-                },
                 {visible: "false"},
                 { visible: "true", value: "検索", id: "DAI04020_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
                         vue.conditionChanged();
                     }
                 },
+                {visible: "false"},
                 { visible: "true", value: "CSV", id: "DAI04020_Download", disabled: false, shortcut: "F7",
                     onClick: function () {
                         //TODO: ダウンロード
