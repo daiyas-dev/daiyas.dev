@@ -284,7 +284,7 @@ export default {
                         vue.clearDetail();
                     }
                 },
-                { visible: "true", value: "削除", id: "DAI04021_Delete", disabled: false, shortcut: "F3",
+                { visible: "true", value: "削除", id: "DAI04021_Delete", disabled: true, shortcut: "F3",
                     onClick: function () {
                         var cd = vue.viewModel.担当者ＣＤ;
                         if(!cd) return;
@@ -385,6 +385,11 @@ export default {
         },
         mountedFunc: function(vue) {
             $(vue.$el).parents("div.body-content").addClass("Scrollable");
+
+            if(this.params.IsNew == false || !this.params.IsNew){
+                //修正時：ボタン制御
+                $("[shortcut='F3']").prop("disabled", false);
+            }
         },
         onTantoCdChanged: function(code, entities) {
             var vue = this;
@@ -449,6 +454,10 @@ export default {
             //所属部署CDが現在ない部署の場合考慮
             var bushoList = vue.$refs.BushoCdSelect.entities
             vue.viewModel.所属部署ＣＤ = !!bushoList[0].name ? bushoList[0].code : bushoList[1].code;
+
+            //ボタン制御
+            $("[shortcut='F3']").prop("disabled", true);
+
         },
     }
 }

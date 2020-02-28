@@ -8,7 +8,7 @@
         <div class="row">
             <div class="col-md-4">
                 <label>商品ＣＤ</label>
-                <input class="form-control text-right" type="text"
+                <input class="form-control text-right p-2" type="text"
                     id="ProductCd"
                     v-model=viewModel.商品ＣＤ
                     :readonly=!viewModel.IsNew
@@ -290,7 +290,7 @@ export default {
                         vue.clearDetail();
                     }
                 },
-                { visible: "true", value: "削除", id: "DAI04031_Delete", disabled: false, shortcut: "F3",
+                { visible: "true", value: "削除", id: "DAI04031_Delete", disabled: true, shortcut: "F3",
                     onClick: function () {
                         var cd = vue.viewModel.商品ＣＤ;
                         if(!cd) return;
@@ -310,7 +310,8 @@ export default {
                                             .then(res => {
                                                 DAI04030.conditionChanged();
                                                 $(this).dialog("close");
-                                                vue.clearDetail();
+                                                //画面を閉じる
+                                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
                                             })
                                             .catch(err => {
                                                 console.log(err);
@@ -382,8 +383,9 @@ export default {
                         //登録用controller method call
                         axios.post("/DAI04031/Save", params)
                             .then(res => {
-                                vue.viewModel = res.data.model;
                                 DAI04030.conditionChanged();
+                                //画面を閉じる
+                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
                             })
                             .catch(err => {
                                 console.log(err);
@@ -397,6 +399,11 @@ export default {
         },
         mountedFunc: function(vue) {
             $(vue.$el).parents("div.body-content").addClass("Scrollable");
+
+            if(this.params.IsNew == false || !this.params.IsNew){
+                //修正時：ボタン制御
+                $("[shortcut='F3']").prop("disabled", false);
+            }
         },
         onProductCdChanged: function(code, entities) {
             var vue = this;
@@ -428,6 +435,8 @@ export default {
                                         vue.viewModel.売価単価 = (vue.viewModel.売価単価 || 0 ) * 1;
                                         vue.viewModel.部数単位 = (vue.viewModel.部数単位 || 0 ) * 1;
 
+                                        //ボタン制御
+                                        $("[shortcut='F3']").prop("disabled", false);
                                         $(this).dialog("close");
                                     }
                                 },
@@ -465,6 +474,10 @@ export default {
             vue.viewModel.弁当区分 = vue.$refs.BentoKbn_Select.entities[0].code;
             vue.viewModel.表示区分 = vue.$refs.DisplayKbn_Select.entities[0].code;
             vue.viewModel.食事区分 = vue.$refs.MealKbn_Select.entities[0].code;
+
+            //ボタン制御
+            $("[shortcut='F3']").prop("disabled", true);
+
         },
     }
 }

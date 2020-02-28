@@ -228,7 +228,7 @@ export default {
                         console.log(vue.$attrs.id, evt.target.outerText, $(evt.target).attr("shortcut"));
                     }
                 },
-                { visible: "true", value: "削除", id: "DAI04141_Delete", disabled: false, shortcut: "F3",
+                { visible: "true", value: "削除", id: "DAI04141_Delete", disabled: true, shortcut: "F3",
                     onClick: function (evt) {
                         var cd = vue.viewModel.税区分;
                         if(!cd) return;
@@ -329,6 +329,11 @@ export default {
         mountedFunc: function(vue) {
 
             $(vue.$el).parents("div.body-content").addClass("Scrollable");
+
+            if(this.params.IsNew == false || !this.params.IsNew){
+                //修正時：ボタン制御
+                $("[shortcut='F3']").prop("disabled", false);
+            }
         },
         onTaxKbnChanged: function(code, entities) {
             var vue = this;
@@ -392,6 +397,9 @@ export default {
             vue.viewModel.適用年月 = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
             vue.viewModel.内外区分 = vue.$refs.NaigaiKbn_Select.entities[0].code;
             vue.viewModel.現在使用FLG = vue.$refs.RiyoFlg_Select.entities[0].code;
+
+            //ボタン制御
+            $("[shortcut='F3']").prop("disabled", true);
 
         },
     }
