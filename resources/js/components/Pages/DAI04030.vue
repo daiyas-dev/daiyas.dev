@@ -134,6 +134,7 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
+                {visible: "false"},
                 { visible: "true", value: "検索", id: "DAI04030_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
                         vue.conditionChanged();

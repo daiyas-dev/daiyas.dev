@@ -267,7 +267,6 @@ export default {
                 },
                 { visible: "true", value: "登録", id: "DAI04051Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
-                        //TODO:登録
                         vue.saveTankaList();
                     }
                 }
@@ -466,11 +465,9 @@ export default {
                     console.log("res", res);
                     //画面を閉じる
                     $(vue.$el).closest(".ui-dialog-content").dialog("close");
-                    //TODO:画面開閉時にメッセージがでるのを消したい
                 })
                 .catch(err => {
-                    console.log(error);
-                    //TODO: エラー
+                    console.log(err);
                 }
             );
 
@@ -481,7 +478,6 @@ export default {
             var vue = this;
         },
         deleteRow: function(grid, event) {
-            //TODO:現行で削除クリックは、選択行のデータをマスタから削除する。（確認メッセージ有り。）
             var vue = this;
 
             grid = grid || vue.DAI04051Grid1;
@@ -510,10 +506,12 @@ export default {
                                 var rowList = grid.SelectRow().getSelection().map(v => _.pick(v, ["rowIndx"]));
                                 grid.deleteRow({ rowList: rowList });
                                 $(this).dialog("close");
+
+                                //画面を閉じる
+                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
                             })
                             .catch(err => {
-                                console.log(error);
-                                //TODO: エラー
+                                console.log(err);
                             });
                         }
                     },

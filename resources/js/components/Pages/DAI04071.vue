@@ -620,14 +620,12 @@ export default {
             vue.footerButtons.push(
                 { visible: "true", value: "クリア", id: "DAI04071_Clear", disabled: false, shortcut: "F2",
                     onClick: function (evt) {
-                        //TODO: クリア
                         vue.clearDetail();
                         console.log(vue.$attrs.id, evt.target.outerText, $(evt.target).attr("shortcut"));
                     }
                 },
-                { visible: "true", value: "削除", id: "DAI04071_Delete", disabled: false, shortcut: "F3",
+                { visible: "true", value: "削除", id: "DAI04071_Delete", disabled: true, shortcut: "F3",
                     onClick: function (evt) {
-                        //TODO: 削除
                         var cd = vue.viewModel.部署CD;
                         if(!cd) return;
 
@@ -646,11 +644,11 @@ export default {
                                             .then(res => {
                                                 DAI04070.conditionChanged();
                                                 $(this).dialog("close");
-                                                vue.clearDetail();
+                                                //画面を閉じる
+                                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
                                             })
                                             .catch(err => {
-                                                console.log(error);
-                                                //TODO: エラー
+                                                console.log(err);
                                             }
                                         );
                                     }
@@ -716,15 +714,15 @@ export default {
 
                         $(vue.$el).find(".has-error").removeClass("has-error");
 
-                        //TODO: 登録用controller method call
+                        //登録用controller method call
                         axios.post("/DAI04071/Save", params)
                             .then(res => {
-                                vue.viewModel = res.data.model;
                                 DAI04070.conditionChanged();
+                                //画面を閉じる
+                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
                             })
                             .catch(err => {
-                                console.log(error);
-                                //TODO: エラー
+                                console.log(err);
                             }
                         );
                         console.log("登録", params);
@@ -736,6 +734,11 @@ export default {
         },
         mountedFunc: function(vue) {
             $(vue.$el).parents("div.body-content").addClass("Scrollable");
+
+            if(this.params.IsNew == false || !this.params.IsNew){
+                //修正時：ボタン制御
+                $("[shortcut='F3']").prop("disabled", false);
+            }
         },
         onBushoCdChanged: function(code, entities) {
             var vue = this;
@@ -777,14 +780,13 @@ export default {
                         });
                         $("[shortcut='F3']").prop("disabled", false);
                     }else{
-                        //TODO:削除ボタン
+                        //削除ボタン制御
                         $("[shortcut='F3']").prop("disabled", true);
                         return;
                     }
                 })
                 .catch(err => {
                     console.log(err);
-                    //TODO: エラー
                 }
             )
         },
@@ -916,6 +918,9 @@ export default {
             _.keys(DAI04071.viewModel).forEach(k => DAI04071.viewModel[k] = null);
             vue.viewModel.IsNew = true;
             vue.viewModel.userId = vue.query.userId;
+
+            //ボタン制御
+            $("[shortcut='F3']").prop("disabled", true);
 
             //PopupSelect
             $(".select-name").val("");

@@ -66,7 +66,7 @@
                                 v-model="viewModel.得意先名"
                                 maxlength=60
                                 v-maxBytes=60
-                                v-setKana="res => viewModel.得意先名カナ = res.toString()"
+                                v-setKana.disabled="res => viewModel.得意先名カナ = res.toString()"
                             >
                         </div>
                     </div>
@@ -1239,8 +1239,7 @@ export default {
 
                     })
                     .catch(err => {
-                        console.log(error);
-                        //TODO: エラー
+                        console.log(err);
                     }
                 );
             } else {
@@ -1260,14 +1259,12 @@ export default {
             vue.footerButtons.push(
                 { visible: "true", value: "クリア", id: "DAI04041_Clear", disabled: false, shortcut: "F2",
                     onClick: function (evt) {
-                        //TODO: クリア
                         vue.clearDetail();
                         console.log(vue.$attrs.id, evt.target.outerText, $(evt.target).attr("shortcut"));
                     }
                 },
                 { visible: "true", value: "削除", id: "DAI04041_Delete", disabled: true, shortcut: "F3",
                     onClick: function (evt) {
-                        //TODO: 削除
                         var cd = vue.viewModel.得意先ＣＤ;
                         if(!cd) return;
 
@@ -1290,8 +1287,7 @@ export default {
                                                 $(vue.$el).closest(".ui-dialog-content").dialog("close");
                                             })
                                             .catch(err => {
-                                                console.log(error);
-                                                //TODO: エラー
+                                                console.log(err);
                                             }
                                         );
                                     }
@@ -1325,6 +1321,7 @@ export default {
                     onClick: function () {
                         vue.saveTokuisaki();
                         vue.saveTelList();
+                        vue.saveHistoryList();
                     }
                 },
                 { visible: "true", value: "単価登録", id: "DAI04041_Tanka", disabled: false, shortcut: "F10",
@@ -1443,7 +1440,6 @@ export default {
                 })
                 .catch(err => {
                     console.log(err);
-                    //TODO: エラー
                 }
             )
         },
@@ -1777,7 +1773,7 @@ export default {
                 showColumns: vue.showColumns,
                 width: 1000,
                 height: 500,
-                reuse: true,
+                reuse: false,
             });
         },
         showBunpaisaki: function() {
@@ -1982,7 +1978,6 @@ export default {
             vue.viewModel.新規登録日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
             vue.HolidayConfig = {"日":"0","月":"0","火":"0","水":"0","木":"0","金":"0","土":"0"};
 
-            //TODO:確認中
             //電話番号一覧クリア
             var grid = this.DAI04041Grid1;
             grid.clearData();
@@ -2073,8 +2068,7 @@ export default {
                     DAI04040.conditionChanged();
                 })
                 .catch(err => {
-                    console.log(error);
-                    //TODO: エラー
+                    console.log(err);
                 }
             );
             console.log("登録", params);
@@ -2182,13 +2176,9 @@ export default {
             //登録用controller method call
             axios.post("/DAI04041/SaveTelList", params)
                 .then(res => {
-                    //TODO:
-                    // vue.viewModel = res.data.model;
-                    // DAI04040.conditionChanged();
                 })
                 .catch(err => {
-                    console.log(error);
-                    //TODO: エラー
+                    console.log(err);
                 }
             );
             console.log("登録", params);
@@ -2219,7 +2209,34 @@ export default {
             //電話番号が未入力の行かどうか
             return !rowData["Tel_TelNo"];
 
-        }
+        },
+        saveHistoryList: function() {
+            var vue = this;
+            if(!vue.viewModel.得意先ＣＤ) return;
+            if(!vue.query.userId) return;
+
+            var params = {};
+            params.得意先ＣＤ = vue.viewModel.得意先ＣＤ;
+            params.状態区分 = vue.viewModel.状態区分 || "";
+            params.失客理由 = vue.viewModel.状態理由 || "";
+            params.失客日 = !!vue.viewModel.失客日 ? moment(vue.viewModel.失客日,"YYYY-MM-DD").format("YYYYMMDD") : "";
+            params.承認日 = !!vue.viewModel.承認日 ? moment(vue.viewModel.承認日,"YYYY-MM-DD").format("YYYYMMDD") : "";
+            params.承認者ＣＤ = vue.viewModel.承認者ＣＤ || "";
+            params.登録日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
+            params.営業担当者ＣＤ = vue.viewModel.営業担当者ＣＤ || "";
+            params.変更者ＣＤ = vue.query.userId;
+
+            //履歴更新用controller method call
+            axios.post("/DAI04041/UpdateHistoryList", params)
+                .then(res => {
+                })
+                .catch(err => {
+                    console.log(err);
+                }
+            );
+            console.log("履歴更新", params);
+
+        },
     },
 }
 </script>

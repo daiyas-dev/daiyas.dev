@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\得意先マスタ;
 use App\Models\CTelToCust;
+use App\Models\得意先履歴テーブル;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
@@ -187,15 +188,6 @@ class DAI04041Controller extends Controller
         $CustomerCd = $request->CustomerCd;
         if($CustomerCd == null) return [];
 
-        // $sql = "
-        //     SELECT * FROM C_TelToCust
-        //     WHERE Tel_CustNo = $CustomerCd
-        //     ORDER BY Tel_RepFlg,Tel_TelNo
-        // ";
-
-        // $TelList = DB::select($sql);
-
-        //お試し
         $query = CTelToCust::query()
             ->when(
                 $CustomerCd,
@@ -253,5 +245,36 @@ class DAI04041Controller extends Controller
             'result' => true,
             'model' => $savedData,
         ]);
+    }
+
+    /**
+     * UpdateHistoryList
+     */
+    public function UpdateHistoryList($request)
+    {
+        $params = $request->all();
+        $CustomerCd = $params['得意先ＣＤ'];
+
+        //得意先履歴ID取得
+        $sql = "
+            SELECT ISNULL(MAXID,0) + 1 AS SerialNumber
+            FROM (
+                SELECT MAX(得意先履歴ID) AS MAXID
+                FROM 得意先履歴テーブル WHERE 得意先CD = $CustomerCd
+            ) MAXID
+        ";
+
+        $CdList = DB::selectOne($sql);
+        $SerialNumber = $CdList->SerialNumber;
+        $saveData = array_merge(['得意先履歴ID' => $SerialNumber], $params);
+
+        // トランザクション開始
+        DB::transaction(function () use ($CustomerCd, $saveData) {
+
+            DB::table('得意先履歴テーブル')->insert($saveData);
+
+        });
+
+        return response()->json($saveData);
     }
 }

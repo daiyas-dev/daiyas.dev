@@ -281,13 +281,11 @@ export default {
             vue.footerButtons.push(
                 { visible: "true", value: "クリア", id: "DAI04021_Clear", disabled: false, shortcut: "F2",
                     onClick: function () {
-                        //TODO: クリア
                         vue.clearDetail();
                     }
                 },
-                { visible: "true", value: "削除", id: "DAI04021_Delete", disabled: false, shortcut: "F3",
+                { visible: "true", value: "削除", id: "DAI04021_Delete", disabled: true, shortcut: "F3",
                     onClick: function () {
-                        //TODO: 削除
                         var cd = vue.viewModel.担当者ＣＤ;
                         if(!cd) return;
 
@@ -306,11 +304,11 @@ export default {
                                             .then(res => {
                                                 DAI04020.conditionChanged();
                                                 $(this).dialog("close");
-                                                vue.clearDetail();
+                                                //画面04021を閉じる
+                                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
                                             })
                                             .catch(err => {
-                                                console.log(error);
-                                                //TODO: エラー
+                                                console.log(err);
                                             }
                                         );
                                     }
@@ -329,8 +327,7 @@ export default {
                 {visible: "false"},
                 { visible: "true", value: "登録", id: "DAI04021Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
-                        //TODO: 新規ではない時、所属部署が古いCDの場合どうするか
-                        //TODO: 登録
+                        //TODO: 修正の時、所属部署が古いCDの場合どうするか->そのままの値で保存
 
                         if(!vue.viewModel.担当者ＣＤ || !vue.viewModel.担当者名 || !vue.viewModel.所属部署ＣＤ){
                             $.dialogErr({
@@ -369,15 +366,15 @@ export default {
 
                         $(vue.$el).find(".has-error").removeClass("has-error");
 
-                        //TODO: 登録用controller method call
+                        //登録用controller method call
                         axios.post("/DAI04021/Save", params)
                             .then(res => {
-                                vue.viewModel = res.data.model;
                                 DAI04020.conditionChanged();
-                                vue.clearDetail();
+                                //画面を閉じる
+                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
                             })
                             .catch(err => {
-                                console.log(error);
+                                console.log(err);
                             }
                         );
                         console.log("登録", params);
@@ -385,12 +382,14 @@ export default {
                 },
                 {visible: "false"},
             );
-
-            //TODO:所属部署ＣＤの初期値101を設定するか
-
         },
         mountedFunc: function(vue) {
             $(vue.$el).parents("div.body-content").addClass("Scrollable");
+
+            if(this.params.IsNew == false || !this.params.IsNew){
+                //修正時：ボタン制御
+                $("[shortcut='F3']").prop("disabled", false);
+            }
         },
         onTantoCdChanged: function(code, entities) {
             var vue = this;
@@ -432,14 +431,13 @@ export default {
                         });
                         $("[shortcut='F3']").prop("disabled", false);
                     }else{
-                        //TODO:削除ボタン
+                        //削除ボタン制御
                         $("[shortcut='F3']").prop("disabled", true);
                         return;
                     }
                 })
                 .catch(err => {
                     console.log(err);
-                    //TODO: エラー
                 }
             )
         },
@@ -452,8 +450,14 @@ export default {
             vue.viewModel.IsNew = true;
             vue.viewModel.userId = vue.query.userId;
 
-            vue.viewModel.営業業務区分 = vue.viewModel.営業業務区分 || vue.$refs.EigoKbn_Select.entities[0].code;
-            vue.viewModel.所属部署ＣＤ = vue.viewModel.所属部署ＣＤ || vue.$refs.BushoCdSelect.entities[1].code;
+            vue.viewModel.営業業務区分 = vue.$refs.EigoKbn_Select.entities[0].code;
+            //所属部署CDが現在ない部署の場合考慮
+            var bushoList = vue.$refs.BushoCdSelect.entities
+            vue.viewModel.所属部署ＣＤ = !!bushoList[0].name ? bushoList[0].code : bushoList[1].code;
+
+            //ボタン制御
+            $("[shortcut='F3']").prop("disabled", true);
+
         },
     }
 }
