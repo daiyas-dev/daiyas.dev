@@ -699,6 +699,8 @@ ORDER BY
     {
         $sql = "
             SELECT * FROM 各種テーブル
+            WHERE 各種テーブル.各種CD > 0
+            ORDER BY 各種CD
         ";
         $CodeList = DB::select($sql);
 

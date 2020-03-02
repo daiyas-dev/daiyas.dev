@@ -334,9 +334,21 @@ export default {
                 return;
             }
 
+            var row = grid.SelectRow().getSelection()[0].rowData;
+
+            //選択行が未保存のデータなら、画面上行削除のみ
+            if(!row.InitialValue){
+                var rowList = grid.SelectRow().getSelection().map(v => _.pick(v, ["rowIndx"]));
+                grid.deleteRow({ rowList: rowList });
+
+                return;
+            }
+
+            //選択行の初期値から削除対象のキーを取得
+            var bunpaisakiCd = row.InitialValue.得意先ＣＤ;
+
             //選択中の得意先CDの受注得意先をnullで更新
-            var BunpaisakiCd = grid.SelectRow().getSelection()[0].rowData.得意先ＣＤ;
-            var params = { CustomerCd: DAI04042.params.得意先CD, Bunpaisaki: BunpaisakiCd };
+            var params = { CustomerCd: DAI04042.params.得意先CD, Bunpaisaki: bunpaisakiCd };
             params.noCache = true;
 
             axios.post("/DAI04042/DeleteBunpaisakiList", params)
