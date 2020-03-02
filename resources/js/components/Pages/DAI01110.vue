@@ -2072,7 +2072,7 @@ export default {
 
             var printOptions = {
                 type: "raw-html",
-                printStyles: "@media print { @page { size: A4; } }",
+                style: "@media print { @page { size: A4; } }",
                 printable: printable,
             };
 

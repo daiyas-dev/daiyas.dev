@@ -240,6 +240,7 @@ export default {
         nameWidth: Number,
         showTextFunc: String,
         isPreload: Boolean,
+        noResearch: Boolean,
         onBeforeFunc: Function,
         isTrim: Boolean,
         hasButtonFocus: Boolean,
@@ -334,6 +335,8 @@ export default {
                         var list = vue.getAutoCompleteList(newVal.KeyWord);
                         if (!!list && list.length != 0) return;
                     }
+
+                    if (!!vue.noResearch) return;
 
                     vue.getDataList(newVal, (res) => {
                         vue.setSelectValue(vue.vmodel[vue.bind], true, false);
@@ -657,21 +660,24 @@ export default {
                 showSelector(vue.dataUrl, params);
             }
         },
-        setSelectValue: function(newVal, noMsg) {
+        setSelectValue: function(newVal, noMsg, item) {
             var vue = this;
             console.log("ps setSelectValue", newVal);
+            if (!newVal) {
+                console.log("ps setSelectValue empty");
+            }
 
             //elementに設定
-            $(vue.$el).find("#" + vue.id).val(newVal);
+            // $(vue.$el).find("#" + vue.id).val(newVal);
 
             //値設定関数object
             var setValue = function() {
                 try {
 
-                    var rowData = vue.dataList.find(v => newVal == v[vue.isGetName ? "CdNm" : "Cd"]);
-                    if (!!newVal && !rowData && vue.isShowAutoComplete && vue.getAutoCompleteList(newVal).length == 1) {
-                        rowData = vue.getAutoCompleteList(newVal)[0];
-                    }
+                    var rowData = item || vue.dataList.find(v => newVal == v[vue.isGetName ? "CdNm" : "Cd"]);
+                    // if (!!newVal && !rowData && vue.isShowAutoComplete && vue.getAutoCompleteList(newVal).length == 1) {
+                    //     rowData = vue.getAutoCompleteList(newVal)[0];
+                    // }
 
                     //入力有り、かつチェック指定されている場合は、存在チェック
                     // vue.isValid = checkValue(!_.isEmpty($.trim(vue.selectValue)) && vue.existsCheck);
@@ -697,7 +703,7 @@ export default {
                     }
 
                     //bindingが指定されている場合、反映
-                    if (vue.isValid && !!vue.vmodel && !!vue.bind) {
+                    if (!!vue.vmodel && !!vue.bind && (!!vue.isValid || vue.selectValue == "")) {
                         var parent = vue.$parent;
 
                         if (parent) {
@@ -745,10 +751,10 @@ export default {
                 }
 
                 //検索結果から、現在の値を含むものを抽出
-                var rowData = vue.dataList.find(v => newVal == v[vue.isGetName ? "CdNm" : "Cd"]);
-                if (!!newVal && !rowData && vue.isShowAutoComplete && vue.getAutoCompleteList(newVal).length == 1) {
-                    rowData = vue.getAutoCompleteList(newVal)[0];
-                }
+                var rowData = item || vue.dataList.find(v => newVal == v[vue.isGetName ? "CdNm" : "Cd"]);
+                // if (!!newVal && !rowData && vue.isShowAutoComplete && vue.getAutoCompleteList(newVal).length == 1) {
+                //     rowData = vue.getAutoCompleteList(newVal)[0];
+                // }
 
                 if (!rowData && check) {
                     //現在の値を含むものが無い場合、エラーとする
@@ -761,7 +767,7 @@ export default {
                         .addClass("has-error")
                         .find("#" + vue.id).tooltip({
                             animation: false,
-                            placement: "auto",
+                            placement: "top",
                             trigger: "hover",
                             title: vue.errorMsg,
                             container: "body",
@@ -806,7 +812,7 @@ export default {
                 var target = vue.labelCd || vue.label || "コード";
 
                 //検索結果から、現在の値を含むものを抽出
-                var rowData = !!vue.dataList ? vue.dataList.find(v => newVal == v[vue.isGetName ? "CdNm" : "Cd"]) : null;
+                var rowData = item || !!vue.dataList ? vue.dataList.find(v => newVal == v[vue.isGetName ? "CdNm" : "Cd"]) : null;
                 if (!rowData && vue.isShowAutoComplete && vue.autoCompleteList.length == 1) {
                     rowData = vue.autoCompleteList[0];
                 }
@@ -818,7 +824,7 @@ export default {
                 } else if (vue.isShowAutoComplete) {
                     var list = vue.getAutoCompleteList(newVal);
 
-                    if (list.length == 0) {
+                    if (list.length == 0 && !vue.noResearch) {
                         //該当が無い場合は再検索
                         var params = _.cloneDeep(vue.params) || {};
                         params[vue.bind] = newVal;
@@ -869,7 +875,7 @@ export default {
                                 .tooltip("dispose")
                                 .tooltip({
                                     animation: false,
-                                    placement: "auto",
+                                    placement: "top",
                                     trigger: "hover",
                                     title: msg,
                                     container: "body",
@@ -904,7 +910,7 @@ export default {
                 select : function(event, ui) {
                     //選択した値を設定
                     vue.selectRow = ui.item;
-                    vue.setSelectValue(ui.item.value, true);
+                    vue.setSelectValue(ui.item.value, true, ui.item);
 
                     if (!!vue.onGrid && !!vue.grid) {
                         $(vue.$el).trigger($.Event("keyup", {
@@ -928,7 +934,7 @@ export default {
                 },
                 position: { my: "left top", at: "left bottom", collision: "flip" },
                 autoFocus: false,
-                delay: 200,
+                delay: 100,
                 minLength: vue.AutoCompleteMinLength || 0,
             })
             .focus(function(ev) {

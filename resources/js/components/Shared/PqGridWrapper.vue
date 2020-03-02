@@ -888,6 +888,19 @@ export default {
                 editor: {
                     select: true,
                 },
+                postRender: function(ui) {
+                    if (!!ui.column.tooltip) {
+                        $(ui.cell).tooltip({
+                            container: "body",
+                            animation: false,
+                            template: '<div class="tooltip text-overflow" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>',
+                            placement: "auto",
+                            trigger: "hover",
+                            title: ui.rowData[ui.dataIndx],
+                        })
+                        ;
+                    }
+                },
             },
             trackModel: {
                 on: true,
@@ -1599,6 +1612,8 @@ export default {
                     { title: "初期値", dataType: "string", dataIndx: "InitialValue", editable: false, hidden: true,
                         render: function (ui) {
                             //console.log("initialValue render")
+
+                            if (!!ui.Export) return ui;
 
                             if (ui.attr.filter(v => v.includes("-sum")).length > 0) {
                                 //集計行は除外
@@ -2329,19 +2344,45 @@ export default {
                     vue.exportData("", true);
                 };
 
-                this.grid.generateHtml = function(styles) {
+                this.grid.generateHtml = function(styles, header, maxRowsPerPage, summaryRowsCount) {
                     var grid = this;
                     var table = $($(grid.exportData({ format: "htm", render: true }))[3]).addClass(grid.vue.id);
-                    var tableHeaders = table.find("tr").filter((i, v) => !!$(v).find("th").length);
-                    var tableBodies = table.find("tr").filter((i, v) => !!$(v).find("td").length);
+                    var tableHeaders = table.find("tr").filter((i, v) => !!$(v).find("th").length).get();
+                    var tableBodies = table.find("tr").filter((i, v) => !!$(v).find("td").length).get();
 
-                    var contents = table;
+                    if (!maxRowsPerPage) {
+                        return $("<div>")
+                            .append($("<style>").text(styles || ""))
+                            .append(header || "")
+                            .append(table)
+                            ;
+                    } else {
+                        if (!!summaryRowsCount) {
+                            var summary = _.remove(tableBodies, (v, i) => i > tableBodies.length - summaryRowsCount - 1);
+                            summary.forEach(el => $(el).addClass("summary"));
+                            tableBodies = _.concat(tableBodies, summary);
+                        }
 
-                    var ret = $("<div>")
-                        .append($("<style>").text(styles || ""))
-                        .append(contents)
-                        ;
-                    return ret;
+                        var chunks = _.chunk(tableBodies, maxRowsPerPage);
+
+                        var ret = $("<div>")
+                            .append($("<style>").text(styles || ""))
+                            .append(
+                                chunks.map((chunk, i) => {
+                                    var page = $("<div>").css("page-break-before", "always")
+                                        .append(!!header ? (_.isFunction(header) ? header(chunk, i, chunks.length) : header) : "")
+                                        .append(
+                                            $("<table>").addClass(grid.vue.id)
+                                                .append($("<thead>").append(tableHeaders))
+                                                .append($("<tbody>").append(chunk))
+                                        );
+
+                                    return page.prop("outerHTML");
+                                })
+                            );
+
+                        return ret;
+                    }
                 };
 
                 //blink
@@ -2506,6 +2547,7 @@ export default {
             //PqGridリサイズ基本設定(ヘッダーとフッターの間に収まるように)
             //widget
             var widget = this.grid.widget();
+            var container = widget.parent().closest("div");
 
             //heightを適正に変更
             var oldHeight = widget.outerHeight();
@@ -2515,11 +2557,21 @@ export default {
 
             //空き領域を計算
             var contentHeight = content.height();
-            var elementsHeightSum = _.sum(content.find("form > *").map((i, el) => $(el).outerHeight(true)));
+            var elementsHeightSum = _.sum(content.find("form > *")
+                .map((i, el) => {
+                    if ($(el).hasClass("row")) {
+                        return $(el).height() + 4;  //mergin-bottom
+                    } else {
+                        return $(el).outerHeight(true);
+                    }
+                })
+            )
+            - container.outerHeight(true);
 
             //TODO: 厳密には可変サイズのGridが複数存在する場合を考慮に入れなければならないか？ -> そのような画面設計を避けるか...
             //新サイズ計算
-            var newHeight = oldHeight + contentHeight - elementsHeightSum - 10;
+            // var newHeight = oldHeight + contentHeight - elementsHeightSum - 10;
+            var newHeight = contentHeight - elementsHeightSum - 10;
 
             if (!this.isFixedHeight && _.round(newHeight) != _.round(oldHeight)) {
                 this.grid.options.height += (_.round(newHeight) - _.round(oldHeight));
@@ -3044,7 +3096,7 @@ export default {
 
             return (this.BodyContextMenuEditCallback || ((v) => v))(menuItems);
         },
-        exportData: function (format, isPrint) {
+        exportData: function (format, isPrint, withRender) {
             var vue = this;
             var grid = vue.grid;
 
@@ -3121,7 +3173,13 @@ export default {
                     }
                 });
 
-                var blob = grid.exportData({ format: format, sheetName: vue.$parent.ScreenTitle });
+                var blob = grid.exportData(
+                    {
+                        format: format,
+                        sheetName: vue.$parent.ScreenTitle,
+                        render: !!withRender,
+                    }
+                );
                 if (typeof blob === "string") {
                     blob = new Blob([blob]);
                 }

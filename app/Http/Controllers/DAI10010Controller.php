@@ -106,7 +106,7 @@ ORDER BY
         $TargetDate = $vm->TargetDate;
         $CustomerCd = $vm->CustomerCd;
         $CourseCd = $vm->CourseCd;
-        $WhereCourseCd = !!$CourseCd ? "AND	コーステーブル.コースＣＤ = $CourseCd" : "";
+        $WhereCourseCd = isset($CourseCd) ? " AND 売上データ明細.コースＣＤ = $CourseCd " : "";
 
         $sql = "
 SELECT
@@ -160,12 +160,13 @@ FROM
 				OR
 				(支払方法.行NO != 0 AND 売上データ明細.売掛現金区分 != 0)
 			)
-		LEFT OUTER JOIN [コーステーブル]
-			ON コーステーブル.得意先ＣＤ = 得意先マスタ.得意先ＣＤ
-			AND コーステーブル.部署ＣＤ = 得意先マスタ.部署ＣＤ
 		LEFT OUTER JOIN [コースマスタ]
-			ON コースマスタ.コースＣＤ = コーステーブル.コースＣＤ
-			AND コースマスタ.部署ＣＤ = コーステーブル.部署ＣＤ
+			ON コースマスタ.コースＣＤ = 売上データ明細.コースＣＤ
+			AND コースマスタ.部署ＣＤ = 売上データ明細.部署ＣＤ
+		LEFT OUTER JOIN [コーステーブル]
+			ON コーステーブル.コースＣＤ = コースマスタ.コースＣＤ
+			AND コーステーブル.得意先ＣＤ = 売上データ明細.得意先ＣＤ
+			AND コーステーブル.部署ＣＤ = コースマスタ.部署ＣＤ
 		LEFT OUTER JOIN 各種テーブル 得意先支払方法
 			ON 得意先支払方法.各種CD=1
 			AND 得意先支払方法.行NO = 得意先マスタ.売掛現金区分
