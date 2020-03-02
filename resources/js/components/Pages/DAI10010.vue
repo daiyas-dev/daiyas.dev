@@ -179,7 +179,7 @@ export default {
             return {
                 BushoCd: this.viewModel.BushoCd,
                 TargetDate: moment(this.viewModel.TargetDate, "YYYY年MM月DD日").isValid() ? moment(this.viewModel.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD") : null,
-                CourseCd: this.viewModel.CourseCd,
+                CourseCd: this.viewModel.CourseCd || 0,
                 CustomerCd: this.viewModel.CustomerCd,
                 TantoCd: this.viewModel.TantoCd,
             };
@@ -583,8 +583,10 @@ export default {
         mountedFunc: function(vue) {
             //日付の初期値 -> 当日
             //TODO
-            // vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
-            vue.viewModel.TargetDate = moment("20190904").format("YYYY年MM月DD日");
+            if (!vue.viewModel.TargetDate) {
+                // vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
+                vue.viewModel.TargetDate = moment("20190904").format("YYYY年MM月DD日");
+            }
 
             //watcher
             vue.$watch(
@@ -629,7 +631,7 @@ export default {
             var vue = this;
 
             var match = comp.dataList.filter(v => v.得意先ＣＤ == vue.viewModel.CustomerCd);
-            if (match.length == 1) {
+            if (match.length == 1 && vue.viewModel.CourseCd != "0" && vue.viewModel.CourseCd != "") {
                 comp.selectValue = vue.viewModel.CourseCd = match[0].Cd;
                 comp.selectName = vue.viewModel.CourseNm = match[0].CdNm;
                 comp.selectRow = match;

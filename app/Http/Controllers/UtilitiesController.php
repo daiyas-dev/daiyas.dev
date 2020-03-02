@@ -21,6 +21,7 @@ use App\Models\得意先単価マスタ;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use PDO;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 
@@ -791,50 +792,51 @@ ORDER BY
     public function GetCourseList($request)
     {
         $BushoCd = $request->bushoCd ?? $request->BushoCd;
-        $CourseCd = $request->courseCd ?? $request->CourseCd;
-        $CourseKbn = $request->courseKbn ?? $request->CourseKbn;
+        $WhereBushoCd = !!$BushoCd ? " AND MC.部署CD=$BushoCd" : "";
+
         $TargetDate = $request->targetDate ?? $request->TargetDate;
 
-        $query = コースマスタ::with(['担当者'])
-            ->when(
-                $BushoCd,
-                function ($q) use ($BushoCd) {
-                    return $q->where('部署ＣＤ', $BushoCd);
-                }
-            )
-            ->when(
-                $CourseCd,
-                function ($q) use ($CourseCd) {
-                    return $q->where('コースＣＤ', $CourseCd);
-                }
-            )
-            ->when(
-                $CourseKbn,
-                function ($q) use ($CourseKbn) {
-                    return $q->where('コース区分', $CourseKbn);
-                }
-            )
-            ->when(
-                $TargetDate,
-                function ($q) use ($request) {
-                    return $q->where('コース区分', $this->SearchCourseKbnFromDate($request)->コース区分);
-                }
-            );
+        $CourseKbn = $request->courseKbn ?? $request->CourseKbn ?? (!!$TargetDate ? $this->SearchCourseKbnFromDate($request)->コース区分 : null);
+        $WhereCourseKbn = !!$CourseKbn ? " AND MC.コース区分=$CourseKbn" : "";
 
-        $CourseList = collect($query->get())
-            ->map(function ($course) {
-                $vm = (object) $course;
+        $KeyWord = $request->KeyWord;
+        $CourseCd = $request->courseCd ?? $request->CourseCd;
+        $WhereCourseCd = !isset($KeyWord) && !!$CourseCd ? " AND MC.コースＣＤ=$CourseCd" : "";
 
-                $vm->Cd = $course->コースＣＤ;
-                $vm->CdNm = $course->コース名;
+        $sql = "
+            SELECT
+                MC.*,
+                MC.コースCD AS Cd,
+                MC.コース名 AS CdNm,
+				MB.部署名,
+				MT.担当者名
+            FROM
+                コースマスタ MC
+                LEFT OUTER JOIN 部署マスタ MB
+                    ON MB.部署CD = MC.部署ＣＤ
+                LEFT OUTER JOIN 担当者マスタ MT
+                    ON MT.担当者ＣＤ = MC.担当者ＣＤ
+            WHERE
+                0=0
+                $WhereBushoCd
+                $WhereCourseKbn
+                $WhereCourseCd
 
-                $vm->担当者名 = $course->担当者->担当者名;
+        ";
 
-                return $vm;
-            })
-            ->values();
+        //TODO: 高速化対応
+        // $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        // $user = 'daiyas';
+        // $password = 'daiyas';
 
-        return response()->json($CourseList);
+        // $pdo = new PDO($dsn, $user, $password);
+        // $stmt = $pdo->query($sql);
+        // $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // $pdo = null;
+        $DataList = DB::select(DB::raw($sql));
+
+        return response()->json($DataList);
     }
 
     /**
@@ -893,14 +895,26 @@ $WhereCourseKbn
     public function GetCustomerListForSelect($request)
     {
         $BushoCd = $request->bushoCd ?? $request->BushoCd;
-        $CustomerCd = $request->CustomerCd;
         $KeyWord = $request->KeyWord;
+        $TelNo = !!$KeyWord ? str_replace('-', '', $KeyWord) : '';
 
         $WhereBusho = $BushoCd ? " AND TM.部署ＣＤ=$BushoCd" : "";
         $WhereKeyWord = $KeyWord
             ? " AND (
                     TM.得意先名 LIKE '%$KeyWord%' OR
-                    TM.電話番号１ LIKE '$KeyWord%'
+                    TM.備考１ LIKE '%$KeyWord%' OR
+                    TM.備考２ LIKE '%$KeyWord%' OR
+                    TM.備考３ LIKE '%$KeyWord%' OR
+                    TM.電話番号１ LIKE '%$KeyWord%' OR
+                    TM.電話番号１ LIKE '%$TelNo%'
+                )"
+            : "";
+
+        $CourseCd = $request->CourseCd;
+        $SelectCourseCd = !!$BushoCd && !!$CourseCd ? ", $CourseCd AS コースＣＤ" : "";
+        $WhereCourseCd = !!$BushoCd && !!$CourseCd
+            ? " AND TM.得意先ＣＤ IN (
+                    SELECT 得意先ＣＤ FROM コーステーブル WHERE 部署ＣＤ=$BushoCd AND コースＣＤ=$CourseCd
                 )"
             : "";
 
@@ -943,6 +957,7 @@ FROM 得意先マスタ TM
 WHERE 0=0
 $WhereBusho
 $WhereKeyWord
+$WhereCourseCd
         ";
 
         $Result = DB::select($CountSql);
@@ -964,12 +979,14 @@ SELECT $SelectTop
     TM.備考３,
     TM.売掛現金区分,
     BM.部署名
+    $SelectCourseCd
 FROM 得意先マスタ TM
 LEFT JOIN 部署マスタ BM
     ON TM.部署CD = BM.部署CD
 WHERE 0=0
 $WhereBusho
 $WhereKeyWord
+$WhereCourseCd
         ";
 
         //TODO: 高速化対応
@@ -1732,6 +1749,22 @@ ORDER BY
     public function GetCourseKbnFromDate($request)
     {
         return response()->json($this->SearchCourseKbnFromDate($request));
+    }
+
+    /**
+     * GetCourseKbnFromDateList
+     */
+    public function GetCourseKbnFromDateList($request)
+    {
+        $TargetDateList = $request->TargetDateList ?? $request->TargetDateList;
+
+        $ret = collect($TargetDateList)
+            ->map(function($date) {
+                $param = (object) ["TargetDate" => $date];
+                return $this->SearchCourseKbnFromDate($param);
+            });
+
+        return response()->json($ret);
     }
 
     /**
