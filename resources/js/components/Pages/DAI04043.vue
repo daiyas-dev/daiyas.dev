@@ -159,10 +159,10 @@ export default {
             var vue = this;
             var grid = vue.DAI04043Grid1;
 
-            //アルファベットの除去、nullは0
+            //アルファベットの除去
             var regex = /[^0-9]/;
-            vue.viewModel.StartNo = regex.test(vue.viewModel.StartNo) ? 0 : vue.viewModel.StartNo || 0;
-            vue.viewModel.EndNo = regex.test(vue.viewModel.EndNo) ? 0 : vue.viewModel.EndNo || 0;
+            vue.viewModel.StartNo = regex.test(vue.viewModel.StartNo) ? "" : vue.viewModel.StartNo;
+            vue.viewModel.EndNo = regex.test(vue.viewModel.EndNo) ? "" : vue.viewModel.EndNo;
 
             if (!!grid && vue.getLoginInfo().isLogOn) {
                 var params = {StartNo: vue.viewModel.StartNo, EndNo: vue.viewModel.EndNo};

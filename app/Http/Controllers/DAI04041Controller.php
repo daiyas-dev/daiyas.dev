@@ -153,21 +153,26 @@ class DAI04041Controller extends Controller
     {
         $StartNo = $request->StartNo;
         $EndNo = $request->EndNo;
+        $WhereStartNo = !!$StartNo ? " AND $StartNo < T1.digits" : "";
+        $WhereEndNo = !!$EndNo ? " AND T1.digits < $EndNo" : "";
+        $top = !$StartNo || !$EndNo ? "TOP 10" : "";
 
         $sql = "
             WITH CTE(連番) AS
             (
-                SELECT $StartNo UNION ALL SELECT 連番 + 1 FROM CTE
+                SELECT 0 UNION ALL SELECT 連番 + 1 FROM CTE
             )
 
-            SELECT T1.digits
+            SELECT $top T1.digits
             FROM ( SELECT TOP 50000 連番 AS digits FROM CTE ) T1
 
             LEFT OUTER JOIN 得意先マスタ TOK
                 ON T1.digits = TOK.得意先ＣＤ
 
             WHERE
-                T1.digits BETWEEN $StartNo AND $EndNo
+                0=0
+                $WhereStartNo
+                $WhereEndNo
                 AND TOK.得意先ＣＤ IS NULL
                 AND T1.digits <> 0
 

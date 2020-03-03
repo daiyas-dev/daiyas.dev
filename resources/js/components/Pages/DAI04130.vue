@@ -398,34 +398,26 @@ export default {
             var params = {SaveList: SaveList};
             params.noCache = true;
 
-            //TODO:確認中
-            //TODO:Key制約違反のデータを入力した場合 作業途中
-            // axios.post("/DAI04130/GetKakusyuListForDetail", params)
-            //     .then(res => {
-            //         if (res.data.length == 1) {
-            //             $.dialogInfo({
-            //                 title: "重複チェック",
-            //                 contents: "各種CDと行NOは重複できませんのメッセージ",
-            //             });
-            //             return;
-            //         }
-            //     })
-            //     .catch(err => {
-            //         console.log(err);
-            //     }
-            // )
-
             axios.post("/DAI04130/Save", params)
                 .then(res => {
-                    if(res.data.errMs == 23000){
-                        //削除予定　TODO:Key制約違反
-
-                    }else{
-                        //成功
-                        //画面を閉じる
-                        vue.conditionChanged();
-                        $(vue.$el).closest(".ui-dialog-content").dialog("close");
+                    if(res.data.duplicateList.length > 0 ){
+                        var duplicate = [];
+                        for( var i in res.data.duplicateList){
+                            var k = res.data.duplicateList[i][0];
+                            duplicate[i] = {};
+                            duplicate[i].各種CD = k.各種CD;
+                            duplicate[i].行NO = k.行NO;
+                        }
+                        duplicate = JSON.stringify(duplicate).replace("},{","},<br/>{").replace(/[\[\]\{\}")]/g,"");
+                        $.dialogInfo({
+                            title: "登録失敗",
+                            contents: "各種CDと行NOが重複しています。<br>" + duplicate,
+                        });
                     }
+                    //画面を閉じる
+                    vue.conditionChanged();
+                    $(vue.$el).closest(".ui-dialog-content").dialog("close");
+
                 })
                 .catch(err => {
                     console.log(err);

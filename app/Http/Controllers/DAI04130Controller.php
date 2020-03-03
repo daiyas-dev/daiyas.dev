@@ -44,99 +44,63 @@ class DAI04130Controller extends Controller
     public function Save($request)
     {
         $params = $request->all();
-
+        $duplicateList = [];
         try {
-            DB::transaction(function () use ($params) {
+            DB::beginTransaction();
 
-                $saveList = $params['SaveList'];
+            $saveList = $params['SaveList'];
 
-                $AddList = $saveList['AddList'];
-                $UpdateList = $saveList['UpdateList'];
-                $OldList = $saveList['OldList'];
+            $AddList = $saveList['AddList'];
+            $UpdateList = $saveList['UpdateList'];
+            $OldList = $saveList['OldList'];
 
-                //UpdateList
-                foreach ($OldList as $index => $rec) {
-                    $data = $UpdateList[$index];
+            //UpdateList
+            foreach ($OldList as $index => $rec) {
+                $data = $UpdateList[$index];
 
+                try{
                     各種テーブル::query()
                     ->where('各種CD', $rec['各種CD'])
                     ->where('行NO', $rec['行NO'])
                     ->update($data);
-                }
 
-                //AddList
-                foreach ($AddList as $rec) {
-                    $data = $rec;
-                    $cnt = DB::table('各種テーブル')
-                        ->where('各種CD', $rec['各種CD'])
-                        ->where('行NO', $data['行NO'])->count();
+                } catch (Exception $exception) {
+                    $errMs = $exception->getCode();
 
-                    if ($cnt == 0){
-                        各種テーブル::insert($data);
-                    }else{
-                        各種テーブル::query()
-                        ->where('各種CD', $rec['各種CD'])
-                        ->where('行NO', $rec['行NO'])
-                        ->update($data);
+                    //主キー重複
+                    if($errMs == "23000"){
+                        $duplicateList = collect($duplicateList) ->push([$data]);
+                    } else {
+                        throw $exception;
                     }
                 }
+            }
 
-            });
+            //AddList
+            foreach ($AddList as $rec) {
+                $data = $rec;
+                $cnt = DB::table('各種テーブル')
+                    ->where('各種CD', $rec['各種CD'])
+                    ->where('行NO', $data['行NO'])->count();
+
+                if ($cnt == 0){
+                    各種テーブル::insert($data);
+                }else{
+                    //主キー重複
+                    $duplicateList = collect($duplicateList) ->push([$data]);
+                }
+            }
+
+            DB::commit();
 
         } catch (Exception $exception) {
             DB::rollBack();
-            $errMs = $exception->getCode();
-
-            return response()->json([
-                "result" => false,
-                'errMs' => $errMs,
-            ]);
-            }
-
-        // // トランザクション開始
-        // DB::transaction(function () use ($params) {
-
-        //     $saveList = $params['SaveList'];
-
-        //     $AddList = $saveList['AddList'];
-        //     $UpdateList = $saveList['UpdateList'];
-        //     $OldList = $saveList['OldList'];
-
-        //     //UpdateList
-        //     foreach ($OldList as $index => $rec) {
-        //         $data = $UpdateList[$index];
-
-        //         各種テーブル::query()
-        //         ->where('各種CD', $rec['各種CD'])
-        //         ->where('行NO', $rec['行NO'])
-        //         ->update($data);
-        //     }
-
-        //     //AddList
-        //     foreach ($AddList as $rec) {
-        //         $data = $rec;
-        //         $cnt = DB::table('各種テーブル')
-        //             ->where('各種CD', $rec['各種CD'])
-        //             ->where('行NO', $data['行NO'])->count();
-
-        //         if ($cnt == 0){
-        //             各種テーブル::insert($data);
-        //         }else{
-        //             各種テーブル::query()
-        //             ->where('各種CD', $rec['各種CD'])
-        //             ->where('行NO', $rec['行NO'])
-        //             ->update($data);
-        //         }
-        //     }
-
-        // });
-
-        $query = 各種テーブル::query();
-        $savedData = $query->get();
+            throw $exception;
+        }
 
         return response()->json([
             "result" => true,
-            'model' => $savedData,
+            'duplicateList' => $duplicateList,
         ]);
     }
 
@@ -156,24 +120,6 @@ class DAI04130Controller extends Controller
             ->where('各種CD', $KakusyuCd)
             ->where('行NO', $GyoNo)
             ->delete();
-
-            // //確認用：削除予定
-            // $query = 各種テーブル::query()
-            //     ->when(
-            //         $KakusyuCd,
-            //         function($q) use ($KakusyuCd){
-            //             return $q->where('各種CD', $KakusyuCd);
-            //         }
-            //     )
-            //     ->when(
-            //         $GyoNo,
-            //         function($q) use ($GyoNo){
-            //             return $q->where('行NO', $GyoNo);
-            //         }
-            //     );
-            // $KakusyuList = $query->get();
-            // throw new \Exception('hogehoge');
-
         });
 
         return response()->json([
