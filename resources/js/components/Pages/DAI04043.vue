@@ -142,6 +142,11 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
+                { visible: "true", value: "検索", id: "DAI04043_Search", disabled: false, shortcut: "F4",
+                    onClick: function () {
+                        vue.searchFreeCd();
+                    }
+                },
             );
         },
         mountedFunc: function(vue) {

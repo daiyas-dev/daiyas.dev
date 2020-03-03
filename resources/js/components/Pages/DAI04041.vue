@@ -250,7 +250,7 @@
                         <button type="button" class="btn btn-primary mr-2" style="width:110px; height: 50px;" @click="showCourse">
                             コース表示
                         </button>
-                        <button type="button" class="btn btn-primary mr-2" style="width:120px; height: 50px;" @click="showFreeCustomerCd" :disabled="!!viewModel.得意先ＣＤ">
+                        <button type="button" class="btn btn-primary mr-2" style="width:120px; height: 50px;" @click="showFreeCustomerCd">
                             空き番号表示
                         </button>
                     </div>
@@ -1320,8 +1320,6 @@ export default {
               　{ visible: "true", value: "登録", id: "DAI04041_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         vue.saveTokuisaki();
-                        vue.saveTelList();
-                        vue.saveHistoryList();
                     }
                 },
                 { visible: "true", value: "単価登録", id: "DAI04041_Tanka", disabled: false, shortcut: "F10",
@@ -2066,22 +2064,38 @@ export default {
             params.修正担当者ＣＤ = params.userId;
             params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
 
+            //新規か修正か
+            params.IsNew = vue.params.IsNew;
+
             $(vue.$el).find(".has-error").removeClass("has-error");
 
             //登録用controller method call
             axios.post("/DAI04041/Save", params)
                 .then(res => {
-                    vue.viewModel = res.data.model;
-                    DAI04040.conditionChanged();
+                    if(!!res.data.duplicate){
+                        var duplicate = res.data.duplicate;
+                        $.dialogInfo({
+                            title: "登録失敗",
+                            contents: "得意先CD:" + duplicate + "が重複しています。",
+                        });
+                        vue.viewModel.得意先ＣＤ = "";
+                    }else{
+                        vue.viewModel = res.data.model;
+                        DAI04040.conditionChanged();
+
+                        //電話帳一覧と履歴を更新
+                        vue.saveTelList();
+                        vue.saveHistoryList();
+
+                        //画面を閉じる
+                        $(vue.$el).closest(".ui-dialog-content").dialog("close");
+                    }
                 })
                 .catch(err => {
                     console.log(err);
                 }
             );
             console.log("登録", params);
-
-            //画面を閉じる
-            $(vue.$el).closest(".ui-dialog-content").dialog("close");
         },
         showCourse: function() {
             var vue = this;

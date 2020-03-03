@@ -8,6 +8,7 @@ use App\Models\得意先履歴テーブル;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
+use Exception;
 use Illuminate\Support\Carbon;
 
 class DAI04041Controller extends Controller
@@ -36,34 +37,45 @@ class DAI04041Controller extends Controller
             unset($newData['口座名義人']);
         };
 
-        // トランザクション開始
-        DB::transaction(function () use ($CustomerCd, $newData) {
+        $isNew = $params['IsNew'];
+        $duplicate = "";
 
-            $cnt = DB::table('得意先マスタ')->where('得意先ＣＤ', $CustomerCd) ->count();
-            if ($cnt == 0) {
-                DB::table('得意先マスタ')->insert($newData);
-            } else {
+        // トランザクション開始
+        try {
+            DB::beginTransaction();
+            if($isNew){
+                //新規
+                try {
+                    DB::table('得意先マスタ')->insert($newData);
+                } catch (Exception $exception) {
+                    $errMs = $exception->getCode();
+
+                    //主キー重複
+                    if($errMs == "23000"){
+                        $duplicate = $CustomerCd;
+                    } else {
+                        throw $exception;
+                    }
+                }
+            }else{
+                //修正
                 DB::table('得意先マスタ')->where('得意先ＣＤ', $CustomerCd)->update($newData);
             }
 
-            // //確認用：削除予定
-            // $query = 得意先マスタ::query()
-            //     ->when(
-            //         $CustomerCd,
-            //         function($q) use ($CustomerCd){
-            //             return $q->where('得意先ＣＤ', $CustomerCd);
-            //         }
-            //     );
+            DB::commit();
 
-            // $CustomerList = $query->get();
-            // throw new \Exception('hogehoge');
-        });
+        } catch (Exception $exception) {
+            DB::rollBack();
+            throw $exception;
+        }
+
 
         $savedData = array_merge(['得意先ＣＤ' => $params['得意先ＣＤ']], $data);
 
         return response()->json([
             'result' => true,
             'model' => $savedData,
+            'duplicate' => $duplicate,
         ]);
     }
 
@@ -153,14 +165,15 @@ class DAI04041Controller extends Controller
     {
         $StartNo = $request->StartNo;
         $EndNo = $request->EndNo;
-        $WhereStartNo = !!$StartNo ? " AND $StartNo < T1.digits" : "";
-        $WhereEndNo = !!$EndNo ? " AND T1.digits < $EndNo" : "";
+        $WhereStartNo = !!$StartNo ? " AND $StartNo <= T1.digits" : "";
+        $WhereEndNo = !!$EndNo ? " AND T1.digits <= $EndNo" : "";
         $top = !$StartNo || !$EndNo ? "TOP 10" : "";
+        $startNumber = !!$StartNo ? $StartNo : 0;
 
         $sql = "
             WITH CTE(連番) AS
             (
-                SELECT 0 UNION ALL SELECT 連番 + 1 FROM CTE
+                SELECT $startNumber UNION ALL SELECT 連番 + 1 FROM CTE
             )
 
             SELECT $top T1.digits
@@ -175,6 +188,7 @@ class DAI04041Controller extends Controller
                 $WhereEndNo
                 AND TOK.得意先ＣＤ IS NULL
                 AND T1.digits <> 0
+                AND T1.digits < 10000000
 
             ORDER BY digits
             OPTION (MAXRECURSION 0)
