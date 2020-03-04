@@ -67,6 +67,14 @@ export default {
                 }
             },
         },
+        list: {
+            deep: true,
+            sync: true,
+            handler: function(newVal) {
+                var vue = this;
+                vue.setEntities();
+            },
+        },
         entities: {
             deep: true,
             handler: function(newVal) {
@@ -90,7 +98,7 @@ export default {
                     }
 
                     if (this.onChangedFunc) {
-                        this.onChangedFunc(newVal[0].code, newVal);
+                        this.onChangedFunc(newVal[0].code, newVal[0], newVal);
                     }
                 }
             }
@@ -155,7 +163,7 @@ export default {
 
             //変更時関数が指定されていれば呼出
             if (vue.onChangedFunc) {
-                vue.onChangedFunc(code, vue.entities);
+                vue.onChangedFunc(code, entity, vue.entities);
             }
 
             return false;

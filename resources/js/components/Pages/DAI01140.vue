@@ -14,7 +14,7 @@
                 <label class="text-center mr-2" style="width: auto;">日付</label>
                 <DatePickerWrapper
                     id="DateStart"
-                    ref="DatePicker_Date"
+                    ref="DatePicker_DateStart"
                     format="YYYY年MM月DD日"
                     dayViewHeaderFormat="YYYY年MM月"
                     :vmodel=viewModel
@@ -25,7 +25,7 @@
                 <label class="text-center ml-2 mr-2" style="width: auto;">～</label>
                 <DatePickerWrapper
                     id="DateEnd"
-                    ref="DatePicker_Date"
+                    ref="DatePicker_DateEnd"
                     format="YYYY年MM月DD日"
                     dayViewHeaderFormat="YYYY年MM月"
                     :vmodel=viewModel
@@ -47,7 +47,7 @@
                     bind="CourseCd"
                     :buddies='{ CourseNm: "コース名" }'
                     dataUrl="/Utilities/GetCourseList"
-                    :params='{}'
+                    :params='{ UserBushoCd: getLoginInfo().bushoCd }'
                     :isPreload=true
                     :noResearch=true
                     :dataListReset=true
@@ -575,8 +575,21 @@ export default {
         onAfterSearchFunc: function (grieVue, grid, res) {
             var vue = this;
 
-            var dataList = _.flatten(
-                _.cloneDeep(res)
+            var data = _.cloneDeep(res)
+                .filter(v => _.some(["現金", "小切手", "振込", "バークレー","その他", "相殺","値引"], k => v[k] != 0));
+
+            var group = _.groupBy(data, v => v.得意先ＣＤ);
+            var sort = _.uniq(data.map(v => v.得意先ＣＤ));
+
+            var list = _(group).keys()
+                .sortBy(k => _.findIndex(sort, v => v == k))
+                .map(k => group[k])
+                .flatten()
+                .value();
+
+            // var dataList = _.flatten(
+            //     _.cloneDeep(res)
+            var dataList = _.flatten(list
                 .map(v => {
                     var pick = kind => {
                         if (!!v[kind] && v[kind] != "0") {
@@ -751,23 +764,18 @@ export default {
 
             var params = {
                 BushoCd: vue.viewModel.BushoCd,
-                BushoNm: vue.viewModel.BushoNm,
-                TargetDate: data.日付,
-                CourseKbn: data.コース区分,
-                CourseCd: data.コースＣＤ,
-                CourseNm: data.コース名,
+                TargetDate: moment(data.入金日付).format("YYYY年MM月DD日"),
                 CustomerCd: data.得意先ＣＤ,
-                CustomerIndex: data.行Ｎｏ,
             };
 
             PageDialog.show({
-                pgId: "DAI10010",
+                pgId: "DAI01130",
                 params: params,
                 isModal: true,
                 isChild: true,
                 reuse: false,
-                width: 1000,
-                height: 600,
+                width: 900,
+                height: 725,
             });
         },
         print: function() {

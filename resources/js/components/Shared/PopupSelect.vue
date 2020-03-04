@@ -15,6 +15,7 @@
                 editable == true ? 'editable' : 'readonly',
                 readOnly == true ? 'readOnly' : '',
                 hideSearchButton && hideClearButton && !enablePrevNext ? 'mr-1' : '',
+                hideSearchButton && hideClearButton && !enablePrevNext ? 'noButton' : '',
             ]"
             :style='inputWidth ? ("width: " + inputWidth + "px") : ""'
             :value="vmodel[bind]"
@@ -116,7 +117,9 @@
     border-top-right-radius: 0px;
     border-bottom-right-radius: 0px;
 }
-.PopupSelect .target-input.readOnly {
+.PopupSelect .target-input.readOnly,
+.PopupSelect .target-input.noButton
+{
     border-top-right-radius: 4px;
     border-bottom-right-radius: 4px;
 }
@@ -212,6 +215,7 @@ export default {
         buddies: Object,
         dataUrl: String,
         params: Object,
+        list: Array,
         dataListReset: Boolean,
         embedded: Boolean,
         container: Object,
@@ -472,6 +476,23 @@ export default {
                 vue.disableAutoComplete();
             }
 
+            if (!!vue.list) {
+                vue.dataList = _.cloneDeep(vue.list);
+                vue.isLoading = false;
+
+                if (vue.isShowAutoComplete) {
+                    vue.autoCompleteKey = null;
+                    vue.autoCompleteList = [];
+                    vue.setAutoComplete();
+                }
+
+                //callback実行
+                if (callback) {
+                    callback(vue.list);
+                }
+                return;
+            }
+
             params = _.cloneDeep(params || vue.params || {});
 
             vue.searchParams = _.cloneDeep(params);
@@ -678,6 +699,10 @@ export default {
                     // if (!!newVal && !rowData && vue.isShowAutoComplete && vue.getAutoCompleteList(newVal).length == 1) {
                     //     rowData = vue.getAutoCompleteList(newVal)[0];
                     // }
+
+                    if (!!vue.noResearch && !vue.existsCheck) {
+                        rowData = { Cd: newVal, CdNm: "" };
+                    }
 
                     //入力有り、かつチェック指定されている場合は、存在チェック
                     // vue.isValid = checkValue(!_.isEmpty($.trim(vue.selectValue)) && vue.existsCheck);
@@ -991,7 +1016,13 @@ export default {
                 // console.log("getAutoCompleteList: same key " + key);
                 return vue.autoCompleteList;
             }
-            if (!vue.dataList) return [];
+            if (!vue.dataList || !vue.dataList.length) return [];
+
+            if (!_.isObject(vue.dataList[0])) {
+                vue.dataList = vue.dataList.map(v => {
+                    return { Cd: v, CdNm: v || "【無し】" };
+                });
+            }
 
             var match = vue.dataList.filter(v => v[vue.isGetName ? "CdNm" : "Cd"] == key);
             var list = (vue.AutoCompleteFunc && key != null && key != undefined)
@@ -1002,10 +1033,26 @@ export default {
                         var ret = v;
                         ret.value = v[vue.isGetName ? "CdNm" : "Cd"];
                         ret.text = v[!vue.isGetName ? "CdNm" : "Cd"];
-                        ret.label = ret.value + " : " + ret.text;
+                        ret.label = ret.value == ""
+                            ? (ret.text || "【無し】")
+                            : (ret.value + (ret.text != "" && ret.value != ret.text ? (" : " + ret.text) : ""));
                         return ret;
                     })
                     ;
+
+            if (!!match && list.length == 1) {
+                list = _.cloneDeep(vue.dataList)
+                    .map(v => {
+                        var ret = v;
+                        ret.value = v[vue.isGetName ? "CdNm" : "Cd"];
+                        ret.text = v[!vue.isGetName ? "CdNm" : "Cd"];
+                        ret.label = ret.value == ""
+                            ? (ret.text || "【無し】")
+                            : (ret.value + (ret.text != "" && ret.value != ret.text ? (" : " + ret.text) : ""));
+                        return ret;
+                    })
+                    ;
+            }
 
             // console.log("getAutoCompleteList:" + key + " = " + list.length + "[" + match.length + "]");
 

@@ -1113,6 +1113,8 @@ export default {
             }
 
             var rowList = grid.SelectRow().getSelection().map(v => _.pick(v, ["rowIndx"]));
+
+            //TODO: call controller Delete method
             grid.deleteRow({ rowList: rowList });
         },
         showCourse: function() {

@@ -20,6 +20,7 @@ use App\Models\得意先履歴テーブル;
 use App\Models\得意先単価マスタ;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use PDO;
@@ -791,6 +792,10 @@ ORDER BY
      */
     public function GetCourseList($request)
     {
+        $userBusho = $request->UserBushoCd; //Auth::user()->部署->部署CD;
+        $rankBusho = !!$userBusho ? ",IIF(MB.部署CD = $userBusho, 0, 1) AS sort" : "";
+        $orderBusho = !!$userBusho ? "ORDER BY sort, MB.部署CD, MC.コースCD" : "";
+
         $BushoCd = $request->bushoCd ?? $request->BushoCd;
         $WhereBushoCd = !!$BushoCd ? " AND MC.部署CD=$BushoCd" : "";
 
@@ -809,7 +814,8 @@ ORDER BY
                 MC.コースCD AS Cd,
                 MC.コース名 AS CdNm,
 				MB.部署名,
-				MT.担当者名
+                MT.担当者名
+                $rankBusho
             FROM
                 コースマスタ MC
                 LEFT OUTER JOIN 部署マスタ MB
@@ -821,7 +827,7 @@ ORDER BY
                 $WhereBushoCd
                 $WhereCourseKbn
                 $WhereCourseCd
-
+            $orderBusho
         ";
 
         //TODO: 高速化対応
@@ -902,11 +908,11 @@ $WhereCourseKbn
         $WhereKeyWord = $KeyWord
             ? " AND (
                     TM.得意先名 LIKE '%$KeyWord%' OR
-                    TM.備考１ LIKE '%$KeyWord%' OR
-                    TM.備考２ LIKE '%$KeyWord%' OR
-                    TM.備考３ LIKE '%$KeyWord%' OR
-                    TM.電話番号１ LIKE '%$KeyWord%' OR
-                    TM.電話番号１ LIKE '%$TelNo%'
+                    TM.備考１ LIKE '$KeyWord%' OR
+                    TM.備考２ LIKE '$KeyWord%' OR
+                    TM.備考３ LIKE '$KeyWord%' OR
+                    TM.電話番号１ LIKE '$KeyWord%' OR
+                    TM.電話番号１ LIKE '$TelNo%'
                 )"
             : "";
 
@@ -929,11 +935,14 @@ SELECT
     TM.部署CD,
     TM.得意先名カナ,
     TM.得意先名略称,
+    TM.住所１,
     TM.電話番号１,
+    TM.ＦＡＸ１,
     TM.備考１,
     TM.備考２,
     TM.備考３,
     TM.売掛現金区分,
+    TM.締日１,
     BM.部署名
 FROM 得意先マスタ TM
 LEFT JOIN 部署マスタ BM
@@ -973,11 +982,14 @@ SELECT $SelectTop
     TM.部署CD,
     TM.得意先名カナ,
     TM.得意先名略称,
+    TM.住所１,
     TM.電話番号１,
+    TM.ＦＡＸ１,
     TM.備考１,
     TM.備考２,
     TM.備考３,
     TM.売掛現金区分,
+    TM.締日１,
     BM.部署名
     $SelectCourseCd
 FROM 得意先マスタ TM

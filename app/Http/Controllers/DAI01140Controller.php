@@ -34,16 +34,27 @@ class DAI01140Controller extends Controller
         $WehreBushoCd = !!$BushoCd ? " AND 得意先マスタ.部署ＣＤ = $BushoCd" : "";
 
         $CourseCd = $vm->CourseCd;
-        $WehreCourseCd = !!$CourseCd ? " AND 売上データ明細.コースＣＤ = $CourseCd" : "";
+        $WehreCourseCd = !!$CourseCd
+            ? " AND COUM.コースＣＤ = $CourseCd"
+            : " AND
+                    (
+                        COUM.コース区分 = (
+                            SELECT MIN(DMY_COUM.コース区分)
+                            FROM コースマスタ DMY_COUM
+                                LEFT OUTER JOIN コーステーブル DMY_COU
+                                    ON  DMY_COUM.部署ＣＤ = DMY_COU.部署ＣＤ
+                                    AND DMY_COUM.コースＣＤ = DMY_COU.コースＣＤ
+                            WHERE  DMY_COUM.部署ＣＤ = COUM.部署ＣＤ
+                            AND DMY_COU.得意先ＣＤ = 得意先マスタ.受注得意先ＣＤ
+                            AND DMY_COUM.コース区分 IN (1,2,3,4)
+                        )
+                        OR
+                        COUT.コースＣＤ IS NULL
+                    )
+            ";
 
         $CustomerCd = $vm->CustomerCd;
         $WehreCustomerCd = !!$CustomerCd ? " AND 得意先マスタ.得意先ＣＤ = $CustomerCd" : " AND 得意先マスタ.請求先ＣＤ != 0";
-
-        $SeikyuCd = $vm->SeikyuCd;
-        $WehreSeikyuCd = !!$SeikyuCd ? " AND 得意先マスタ.請求先ＣＤ = $SeikyuCd" : "";
-
-        $JuchuCd = $vm->JuchuCd;
-        $WehreJuchuCd = !!$JuchuCd ? " AND 得意先マスタ.受注得意先ＣＤ = $JuchuCd" : "";
 
         $sql = "
             SELECT
@@ -72,26 +83,12 @@ class DAI01140Controller extends Controller
             LEFT OUTER JOIN [コースマスタ] COUM
                 ON COUM.コースＣＤ = COUT.コースＣＤ
                 AND 得意先マスタ.部署ＣＤ = COUM.部署ＣＤ
-            AND
-            COUM.コース区分 IN (1, 2, 3, 4)
+                AND COUM.コース区分 IN (1, 2, 3, 4)
             WHERE
                 入金日付 >= '$DateStart' AND 入金日付 <= '$DateEnd'
-            $WehreBushoCd
-            AND
-                (
-                    COUM.コース区分 = (
-                        SELECT MIN(DMY_COUM.コース区分)
-                        FROM コースマスタ DMY_COUM
-                            LEFT OUTER JOIN コーステーブル DMY_COU
-                                ON  DMY_COUM.部署ＣＤ = DMY_COU.部署ＣＤ
-                                AND DMY_COUM.コースＣＤ = DMY_COU.コースＣＤ
-                        WHERE  DMY_COUM.部署ＣＤ = COUM.部署ＣＤ
-                        AND DMY_COU.得意先ＣＤ = 得意先マスタ.受注得意先ＣＤ
-                        AND DMY_COUM.コース区分 IN (1,2,3,4)
-                    )
-                    OR
-                    COUT.コースＣＤ IS NULL
-                )
+                $WehreBushoCd
+                $WehreCourseCd
+                $WehreCustomerCd
             ORDER BY
                 入金日付,
                 伝票Ｎｏ
