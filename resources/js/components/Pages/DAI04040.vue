@@ -614,17 +614,6 @@ export default {
 
             params = selection[0].rowData
 
-            // //DAI04042を子画面表示
-            // PageDialog.show({
-            //     pgId: "DAI04042",
-            //     params: params,
-            //     isModal: true,
-            //     isChild: true,
-            //     resizable: false,
-            //     width: 600,
-            //     height: 600,
-            // });
-
             grid.showLoading();
 
             //事前情報取得
@@ -738,6 +727,24 @@ export default {
                 resizable: false,
                 width: 880,
                 height: 600,
+                onBeforeClose: (event, ui) => {
+                    console.log("onBeforeClose", event, ui);
+
+                    if ($(window.event.target).attr("shortcut") == "ESC") return true;
+
+                    var dlg = $(event.target);
+                    var editting = dlg.find(".pq-grid")
+                        .map((i, v) => $(v).pqGrid("getInstance").grid)
+                        .get()
+                        .some(g => !_.isEmpty(g.getEditCell()));
+                    var isEscOnEditor = !!window.event && window.event.key == "Escape"
+                        && (
+                            $(window.event.target).hasClass("target-input") ||
+                            $(window.event.target).hasClass("pq-cell-editor")
+                        );
+
+                    return !editting && !isEscOnEditor;
+                }
             });
         },
     }

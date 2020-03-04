@@ -488,9 +488,19 @@ export default {
             }
 
             var row = grid.SelectRow().getSelection()[0].rowData;
-            if(!row.商品ＣＤ) return;
 
-            var params = { CustomerCd: vue.viewModel.CustomerCd , ProductCd: row.商品ＣＤ };
+            //選択行が未保存のデータなら、画面上行削除のみ
+            if(!row.InitialValue){
+                var rowList = grid.SelectRow().getSelection().map(v => _.pick(v, ["rowIndx"]));
+                grid.deleteRow({ rowList: rowList });
+
+                return;
+            }
+
+            //選択行の初期値から削除対象のキーを取得
+            var productCd = row.InitialValue.商品ＣＤ
+
+            var params = { CustomerCd: vue.viewModel.CustomerCd , ProductCd: productCd };
             params.noCache = true;
 
             $.dialogConfirm({
