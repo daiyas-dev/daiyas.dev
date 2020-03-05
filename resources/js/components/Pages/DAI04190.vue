@@ -168,7 +168,6 @@ export default {
             vue.filterChanged();
         }, 300),
         conditionChanged: function() {
-            // TODO:nishiyama
             var vue = this;
             var grid = vue.DAI04190Grid1;
 

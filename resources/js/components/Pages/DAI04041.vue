@@ -2154,6 +2154,7 @@ export default {
             var vue = this;
             var cd = vue.viewModel.得意先ＣＤ;
 
+            //TODO:ps
             //入力した得意先ＣＤを反映
             vue.$refs.PopupSelect_Billing.exceptCheck.push({Cd: cd})
             vue.$refs.PopupSelect_Billing.setSelectValue(cd);

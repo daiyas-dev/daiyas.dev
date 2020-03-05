@@ -368,7 +368,6 @@ export default {
 
                         var params = _.cloneDeep(vue.viewModel);
 
-                        //TODO:グループ区分は何できまる？この画面では無条件に0を設定しているが0以外のデータがある
                         params.ｸﾞﾙｰﾌﾟ区分 = 0;
                         params.売価単価 = params.売価単価 || 0;
                         params.副食ＣＤ = params.副食ＣＤ || 0;

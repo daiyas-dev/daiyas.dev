@@ -247,13 +247,6 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "クリア", id: "DAI04090_Clear", disabled: false, shortcut: "F2",
-                    onClick: function () {
-                        //TODO: クリア
-                    }
-                },
-                {visible: "false"},
-                {visible: "false"},
                 {visible: "false"},
                 {visible: "false"},
                 { visible: "true", value: "検索", id: "DAI04090_Search", disabled: false, shortcut: "F5",

@@ -153,7 +153,6 @@ export default {
                 },
                 { visible: "true", value: "新規登録", id: "DAI04070Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
-                        //TODO: 登録
                         vue.showNewDetail();
                     }
                 }

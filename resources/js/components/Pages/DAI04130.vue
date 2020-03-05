@@ -237,7 +237,6 @@ export default {
                 },
                 { visible: "true", value: "登録", id: "DAI04130Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
-                        //TODO: 登録
                         vue.saveKakusyuList();
                     }
                 }
