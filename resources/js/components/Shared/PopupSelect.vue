@@ -710,7 +710,7 @@ export default {
                     vue.isUnique = !!rowData;
 
                     //選択行データに設定
-                    vue.selectValue = !rowData ? "" : rowData[!vue.isGetName ? "Cd" : "CdNm"];
+                    vue.selectValue = !rowData ? (!!vue.isValid ? newVal : "") : rowData[!vue.isGetName ? "Cd" : "CdNm"];
                     vue.selectName = !rowData ? "" : rowData[vue.isGetName ? "Cd" : "CdNm"];
                     vue.selectRow = !rowData ? {} : rowData;
 
@@ -849,7 +849,7 @@ export default {
                 } else if (vue.isShowAutoComplete) {
                     var list = vue.getAutoCompleteList(newVal);
 
-                    if (list.length == 0 && !vue.noResearch) {
+                    if (list.length == 0 && !vue.noResearch && !vue.exceptCheck.some(v => _.keys(v).some(k => v[k] == newVal))) {
                         //該当が無い場合は再検索
                         var params = _.cloneDeep(vue.params) || {};
                         params[vue.bind] = newVal;
