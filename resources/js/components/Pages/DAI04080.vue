@@ -185,11 +185,6 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "クリア", id: "DAI04080_Clear", disabled: false, shortcut: "F2",
-                    onClick: function () {
-                        //TODO: クリア
-                    }
-                },
                 {visible: "false"},
                 {visible: "false"},
                 { visible: "true", value: "再検索", id: "DAI04080_Search", disabled: false, shortcut: "F5",
@@ -202,8 +197,6 @@ export default {
                         //TODO: ダウンロード
                     }
                 },
-                {visible: "false"},
-                {visible: "false"},
                 { visible: "true", value: "詳細", id: "DAI04080Grid1_Detail", disabled: true, shortcut: "F8",
                     onClick: function () {
                         vue.showDetail();
@@ -211,7 +204,6 @@ export default {
                 },
                 { visible: "true", value: "新規登録", id: "DAI04080Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
-                        //TODO: 登録
                         vue.showNewDetail();
                     }
                 },
