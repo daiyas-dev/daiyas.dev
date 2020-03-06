@@ -6,6 +6,7 @@ use App\Models\コースマスタ;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
+use Exception;
 use Illuminate\Support\Carbon;
 
 class DAI04081Controller extends Controller
@@ -17,24 +18,53 @@ class DAI04081Controller extends Controller
     {
         $params = $request->all();
 
+        $BushoCd = $params['部署ＣＤ'];
+        $CourseCd = $params['コースＣＤ'];
+
         $model = new コースマスタ();
         $model->fill($params);
 
         $data = collect($model)->all();
+        $newData = array_merge(['部署ＣＤ' => $BushoCd, 'コースＣＤ' => $CourseCd], $data);
+
+        $isNew = $params['IsNew'];
+        $duplicate = "";
 
         // トランザクション開始
-        DB::transaction(function() use ($params, $data) {
-            $BushoCd = $params['部署ＣＤ'];
-            $CourseCd = $params['コースＣＤ'];
+        try {
+            DB::beginTransaction();
+            if($isNew){
+                //新規
+                try {
+                    DB::table('コースマスタ')->insert($newData);
+                } catch (Exception $exception) {
+                    $errMs = $exception->getCode();
 
-            DB::table('コースマスタ')->updateOrInsert(
-                ['部署ＣＤ' => $BushoCd, 'コースＣＤ' => $CourseCd],
-                $data
-            );
-        });
+                    //主キー重複
+                    if($errMs == "23000"){
+                        $duplicate = $CourseCd;
+                    } else {
+                        throw $exception;
+                    }
+                }
+            }else{
+                //修正
+                DB::table('コースマスタ')
+                ->where('部署ＣＤ', $BushoCd)
+                ->where('コースＣＤ', $CourseCd)
+                ->update($newData);
+            }
+
+            DB::commit();
+
+        } catch (Exception $exception) {
+            DB::rollBack();
+            throw $exception;
+        }
 
         return response()->json([
             'result' => true,
+            'duplicate' => $duplicate,
         ]);
     }
 

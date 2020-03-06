@@ -94,13 +94,17 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-5">
+            <div class="col-md-12 mt-1 mb-1">
                 <label>オペレータ</label>
                 <VueCheck
                     bind="オペレータ"
                     :vmodel=viewModel
                     checkedCode="1"
                     customContainerStyle="border-style: none;"
+                    :list="[
+                        {code: '0', label: 'チェック無し：オペレータではない'},
+                        {code: '1', label: 'チェック有り：オペレータ'}
+                    ]"
                 />
             </div>
         </div>
@@ -273,6 +277,8 @@ export default {
         if (!!vue.params || !!vue.query) {
             data.viewModel = $.extend(true, {}, vue.params, vue.query);
         }
+
+        data.viewModel.オペレータ = data.viewModel.オペレータ || "";
 
         return data;
     },

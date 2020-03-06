@@ -332,17 +332,26 @@ export default {
                         params.修正担当者ＣＤ = params.userId;
                         params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
 
-                        //TODO: 登録用controller method call
+                        $(vue.$el).find(".has-error").removeClass("has-error");
+
+                        //登録用controller method call
                         axios.post("/DAI04081/Save", params)
                             .then(res => {
-                                DAI04080.conditionChanged();
+                                if(!!res.data.duplicate){
+                                    var duplicate = res.data.duplicate;
+                                    $.dialogInfo({
+                                        title: "登録失敗",
+                                        contents: "コースCD:" + duplicate + "が重複しています。",
+                                    });
+                                }else{
+                                    DAI04080.conditionChanged();
 
-                                //画面を閉じる
-                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
+                                    //画面を閉じる
+                                    $(vue.$el).closest(".ui-dialog-content").dialog("close");
+                                }
                             })
                             .catch(err => {
                                 console.log(err);
-                                //TODO: エラー
                             }
                         );
                         console.log("登録", params);

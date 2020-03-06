@@ -43,24 +43,31 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-                <label>郵便フラグ</label>
+                <label>郵便</label>
                 <VueCheck
                     bind="郵便フラグ"
                     :vmodel=viewModel
                     checkedCode="1"
+                    :list="[
+                        {code: '0', label:'チェック無し：銀行'},
+                        {code: '1', label:'チェック有り：ゆうちょ銀行'}
+                    ]"
                     customContainerStyle="border-style: none;"
                 />
             </div>
         </div>
         <div class="row">
             <div class="col-md-12">
-                <label>無効フラグ</label>
+                <label>無効</label>
                 <VueCheck
                     bind="無効フラグ"
                     :vmodel=viewModel
                     checkedCode="1"
+                    :list="[
+                        {code: '0', label: 'チェック無し：有効な銀行CD'},
+                        {code: '1', label: 'チェック有り：無効な銀行CD'}
+                    ]"
                     customContainerStyle="border-style: none;"
-                    :disabled=true
                 />
             </div>
         </div>
@@ -104,7 +111,6 @@ export default {
             ScreenTitle: "金融機関名称メンテ詳細",
             noViewModel: true,
             DAI04191Grid1: null,
-            IsChecked: null,
             grid1Options: {
                 selectionModel: { type: "cell", mode: "single", row: true, onTab: "nextEdit" },
                 showHeader: true,
@@ -151,6 +157,9 @@ export default {
         if (!!vue.params || !!vue.query) {
             data.viewModel = $.extend(true, {}, vue.params, vue.query);
         }
+
+        data.viewModel.郵便フラグ = data.viewModel.郵便フラグ || "";
+        data.viewModel.無効フラグ = data.viewModel.無効フラグ || "";
 
         return data;
     },
@@ -233,8 +242,8 @@ export default {
 
                         //チェックボックス
                         params.郵便フラグ = !!params.郵便フラグ ? params.郵便フラグ : 0;
-                        //TODO:無効フラグは追加カラムのため未完了
-                        // params.無効フラグ = !!params.無効フラグ ? params.無効フラグ : 0;
+                        //TODO:無効フラグはDBに追加予定カラム
+                        params.無効フラグ = !!params.無効フラグ ? params.無効フラグ : 0;
 
                         $(vue.$el).find(".has-error").removeClass("has-error");
 

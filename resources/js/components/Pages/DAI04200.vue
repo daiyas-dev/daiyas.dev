@@ -416,7 +416,7 @@ export default {
                 params: params,
                 isModal: true,
                 isChild: true,
-                width: 500,
+                width: 530,
                 height: 330,
             });
         },
@@ -430,7 +430,7 @@ export default {
                 params: params,
                 isModal: true,
                 isChild: true,
-                width: 500,
+                width: 530,
                 height: 330,
             });
         },

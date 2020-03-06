@@ -402,7 +402,7 @@ export default {
                 isModal: true,
                 isChild: true,
                 width: 840,
-                height: 585,
+                height: 590,
             });
         },
         showNewDetail: function(rowData) {
@@ -416,7 +416,7 @@ export default {
                 isModal: true,
                 isChild: true,
                 width: 840,
-                height: 585,
+                height: 590,
             });
         },
     }
