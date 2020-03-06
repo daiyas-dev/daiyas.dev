@@ -849,7 +849,8 @@ export default {
                 } else if (vue.isShowAutoComplete) {
                     var list = vue.getAutoCompleteList(newVal);
 
-                    if (list.length == 0 && !vue.noResearch && !vue.exceptCheck.some(v => _.keys(v).some(k => v[k] == newVal))) {
+                    var isExcept = !!vue.exceptCheck && !!vue.exceptCheck.length && !vue.exceptCheck.some(v => _.keys(v).some(k => v[k] == newVal));
+                    if (list.length == 0 && !vue.noResearch && !isExcept) {
                         //該当が無い場合は再検索
                         var params = _.cloneDeep(vue.params) || {};
                         params[vue.bind] = newVal;
