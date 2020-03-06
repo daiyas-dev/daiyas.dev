@@ -88,7 +88,7 @@
                     uri="/Utilities/GetBushoList"
                     :params="{ cds: null }"
                     :withCode=true
-                    :isShowInvalid=true
+                    :isShowInvalid=!viewModel.IsNew
                     customStyle="{ width: 100px; }"
                 />
             </div>

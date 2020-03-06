@@ -15,8 +15,10 @@ class DAI04042Controller extends Controller
      */
     public function GetCustomerListForSelect($request)
     {
-        // $BushoCd = $request->bushoCd ?? $request->BushoCd;
+        $CustomerCd = $request->CustomerCd;
+        $WhereCustomerCd = !!$CustomerCd ? "AND TM.得意先ＣＤ <> $CustomerCd" : "";
 
+        // $BushoCd = $request->bushoCd ?? $request->BushoCd;
         // if (!$BushoCd) return [];
 
         $sql = "
@@ -26,6 +28,8 @@ SELECT
     TM.得意先名カナ,
     TM.得意先名略称
 FROM 得意先マスタ TM
+WHERE 0=0
+        $WhereCustomerCd
         ";
 
         $Result = DB::select($sql);

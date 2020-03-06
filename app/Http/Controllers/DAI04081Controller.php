@@ -38,4 +38,27 @@ class DAI04081Controller extends Controller
         ]);
     }
 
+    /**
+     * Delete
+     */
+    public function Delete($request)
+    {
+        $BushoCd = $request->BushoCd;
+        $CourseCd = $request->CourseCd;
+
+        // トランザクション開始
+        DB::transaction(function() use ($BushoCd, $CourseCd) {
+
+            DB::table('コースマスタ')
+            ->where('部署ＣＤ', '=', $BushoCd)
+            ->where('コースＣＤ', '=', $CourseCd)
+            ->delete();
+
+        });
+
+        return response()->json([
+            'result' => true,
+        ]);
+    }
+
 }

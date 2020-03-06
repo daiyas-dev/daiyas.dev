@@ -369,7 +369,7 @@ export default {
                 isModal: true,
                 isChild: true,
                 width: 450,
-                height: 380,
+                height: 615,
             });
         },
         showNewDetail: function(rowData) {
@@ -383,7 +383,7 @@ export default {
                 isModal: true,
                 isChild: true,
                 width: 450,
-                height: 380,
+                height: 615,
             });
         },
     }

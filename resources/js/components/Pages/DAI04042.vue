@@ -11,7 +11,6 @@
                     :SearchOnActivate=false
                     :options=grid1Options
                     :onAfterSearchFunc=onAfterSearchFunc
-                    :onChangeFunc=onChangeGrid
                     :resizeFunc=onMainGridResize
                     :isMultiRowSelectable=true
                     :autoToolTipDisabled=true
@@ -264,13 +263,6 @@ export default {
             });
 
             return res;
-        },
-        onChangeGrid: function(grid, ui, event) {
-            var vue = this;
-            console.log(grid.widget().prop("id") + " onChangeGrid", ui, event);
-            //行削除ボタン制御
-            $("button.delete,[shortcut=F3]").prop("disabled", (grid.widget().find(".has-error").length == 0 ) && (grid.widget().find(".ui-state-error").length == 0 ) ? false : true);
-
         },
         onMainGridResize: grid => {
         },

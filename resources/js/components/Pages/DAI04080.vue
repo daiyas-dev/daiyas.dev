@@ -51,6 +51,7 @@
                     :editable=true
                     :reuse=true
                     :existsCheck=true
+                    :exceptCheck="[{Cd: ''}]"
                     :onAfterChangedFunc=onTantoCdChanged
                     :inputWidth=80
                     :nameWidth=150
@@ -536,7 +537,9 @@ export default {
 
             var params = { IsNew: true}
 
-            //TODO：一覧で表示中の部署ＣＤを渡すか？
+            //一覧で表示中の部署ＣＤを渡す
+            var vue = this;
+            params.BushoCd = vue.viewModel.BushoCd;
 
             //DAI04081を子画面表示
             PageDialog.show({
