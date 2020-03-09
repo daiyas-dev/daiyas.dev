@@ -503,7 +503,7 @@
                                             :existsCheck=true
                                             :inputWidth=100
                                             :nameWidth=235
-                                            :onChangeFunc=onBankChanged
+                                            :onAfterChangedFunc=onBankChanged
                                             :isShowAutoComplete=true
                                             :AutoCompleteFunc=BankAutoCompleteFunc
                                         />
@@ -1584,7 +1584,6 @@ export default {
         },
         onBankBranchChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
             var vue = this;
-
         },
         BankBranchAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;

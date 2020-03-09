@@ -112,7 +112,7 @@
                                 bind="金融機関CD1"
                                 buddy="金融機関名称1"
                                 dataUrl="/Utilities/GetBankList"
-                                :params="{ BankCd: null }"
+                                :params="{ BankCd: null, KeyWord: BankKeyWord }"
                                 :isPreload=true
                                 title="金融機関一覧"
                                 labelCd="金融機関CD"
@@ -790,11 +790,6 @@ export default {
                 }
             )
         },
-        // BankSelectorParamsFunc: function(params, comp) {
-        //     params.KeyWord = null;
-        //     params.BankCd = null;
-        //     return params;
-        // },
         onBankChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
             var vue = this;
         },
@@ -810,13 +805,13 @@ export default {
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 
-            var wholeColumns = ["銀行名", "銀行名カナ"];
+            var wholeColumns = ["Cd", "CdNm", "銀行名カナ"];
 
             var list = dataList
                 .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
                 .filter(v => {
                     return keyOR.length == 0
-                        || _.some(keyOR, k => v.銀行CD.startsWith(k))
+                        || _.some(keyOR, k => v.Cd.startsWith(k))
                         || _.some(keyOR, k => v.whole.includes(k))
                 })
                 .filter(v => {
@@ -824,13 +819,12 @@ export default {
                 })
                 .map(v => {
                     var ret = v;
-                    ret.label = v.銀行CD + " : " + v.銀行名 + "【" + v.銀行名カナ + "】";
-                    ret.value = v.銀行CD;
-                    ret.text = v.銀行名;
+                    ret.label = v.Cd + " : " + v.CdNm + "【" + v.銀行名カナ + "】";
+                    ret.value = v.Cd;
+                    ret.text = v.CdNm;
                     return ret;
                 })
                 ;
-
             return list;
         },
         BankBranch1ParamsChangedCheckFunc: function(newVal, oldVal) {
@@ -902,7 +896,7 @@ export default {
                 })
                 .map(v => {
                     var ret = v;
-                    ret.label = v.Cd + " : " + v.CdNm+ "【 " + v.商品区分 + "：" + v.各種名称 + "】"+ "￥" + v.売価単価 ;
+                    ret.label = v.Cd + " : " + v.CdNm + "【 " + v.商品区分 + "：" + v.各種名称 + "】"+ "￥" + v.売価単価 ;
                     ret.value = v.Cd;
                     ret.text = v.CdNm;
                     return ret;
