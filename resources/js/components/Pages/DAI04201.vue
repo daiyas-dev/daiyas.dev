@@ -21,18 +21,13 @@
                     title="金融機関一覧"
                     labelCd="金融機関CD"
                     labelCdNm="金融機関名"
-                    :showColumns='[
-                    ]'
-                    :popupWidth=600
-                    :popupHeight=600
                     :isShowName=true
                     :isModal=true
                     :editable=!!viewModel.IsNew
                     :reuse=true
                     :existsCheck=true
-                    :inputWidth=60
+                    :inputWidth=80
                     :nameWidth=235
-                    :onChangeFunc=onBankChanged
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=BankAutoCompleteFunc
                     :AutoCompleteMinLength=1
@@ -76,14 +71,17 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-5">
-                <label>無効フラグ</label>
+            <div class="col-md-12">
+                <label>無効</label>
                 <VueCheck
                     bind="無効フラグ"
                     :vmodel=viewModel
                     checkedCode="1"
+                    :list="[
+                        {code: '0', label: 'チェック無し：有効な支店CD'},
+                        {code: '1', label: 'チェック有り：無効な支店CD'}
+                    ]"
                     customContainerStyle="border-style: none;"
-                    :disabled=true
                 />
             </div>
         </div>
@@ -175,6 +173,8 @@ export default {
             data.viewModel = $.extend(true, {}, vue.params, vue.query);
         }
 
+        data.viewModel.無効フラグ = data.viewModel.無効フラグ || "";
+
         return data;
     },
     methods: {
@@ -261,9 +261,9 @@ export default {
                         params.修正担当者ＣＤ = params.userId;
                         params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
 
-                        //TODO:無効フラグは追加カラムのため未完了
                         //チェックボックス
-                        // params.無効フラグ = !!params.無効フラグ ? params.無効フラグ : 0;
+                        //TODO:無効フラグはDBに追加予定カラム
+                        params.無効フラグ = !!params.無効フラグ ? params.無効フラグ : 0;
 
                         $(vue.$el).find(".has-error").removeClass("has-error");
 
@@ -295,13 +295,13 @@ export default {
             params.BankCd = null;
             return params;
         },
-        onBankChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
-            var vue = this;
-            console.log("onBankChanged", info, comp, isValid);
-            if (!isValid) {
-                vue.BankKeyWord = comp.selectValue;
-            }
-        },
+        // onBankChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
+        //     var vue = this;
+        //     console.log("onBankChanged", info, comp, isValid);
+        //     if (!isValid) {
+        //         vue.BankKeyWord = comp.selectValue;
+        //     }
+        // },
         BankAutoCompleteFunc: function(input, dataList) {
             var vue = this;
 

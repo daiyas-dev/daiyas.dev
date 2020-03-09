@@ -68,6 +68,7 @@
                     :editable=true
                     :reuse=true
                     :existsCheck=true
+                    :exceptCheck="[{Cd: ''}]"
                     :onAfterChangedFunc=onShoninCdChanged
                     :inputWidth=80
                     :nameWidth=150
@@ -620,7 +621,7 @@ export default {
             axios.all(
                 [
                     //得意先リストの取得
-                    axios.post("/DAI04042/GetCustomerListForSelect", null),
+                    axios.post("/DAI04042/GetCustomerListForSelect", {CustomerCd: params.得意先CD}),
                 ]
             ).then(
                 axios.spread((responseCustomer) => {

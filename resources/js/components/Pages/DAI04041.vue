@@ -91,7 +91,11 @@
                     <div class="row">
                         <div class="col-md-6">
                             <label class="" style="width:360px !important">スマフォ表示用得意先名称</label>
-                            <input type="text" class="form-control" :value="viewModel.スマフォ表示用得意先名名称">
+                            <input type="text" class="form-control"
+                                v-model="viewModel.スマフォ表示用得意先名名称"
+                                maxlength=15
+                                v-maxBytes=30
+                            >
                         </div>
                     </div>
                     <div class="row">
@@ -166,24 +170,39 @@
                             <fieldset class="delivery-info w-100">
                                 <legend class="delivery-info">得意先の担当者</legend>
                                 <div class="row">
-                                    <!-- TODO:画面に新規追加した項目のため入力制限未設定 -->
+                                    <!-- TODO:画面に新規追加した項目のため入力文字数制限未確定 -->
                                     <div class="col-md-3">
                                         <label class="">氏名</label>
-                                        <input class="form-control p-1" type="text" :value=viewModel.得意先担当者氏名>
+                                        <input class="form-control p-1" type="text"
+                                            v-model=viewModel.得意先担当者氏名
+                                            maxlength=30
+                                            v-maxBytes=60
+                                        >
                                     </div>
                                     <div class="col-md-9">
                                         <label>部署</label>
-                                        <input class="form-control p-1" type="text" :value=viewModel.得意先担当者部署>
+                                        <input class="form-control p-1" type="text"
+                                            v-model=viewModel.得意先担当者部署
+                                            maxlength=30
+                                            v-maxBytes=60
+                                        >
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-3">
                                         <label>電話番号</label>
-                                        <input class="form-control p-1" type="text" style="width: 130px;" :value=viewModel.得意先担当者電話番号 maxlength="15">
+                                        <input class="form-control p-1" type="text" style="width: 130px;"
+                                            v-model=viewModel.得意先担当者電話番号
+                                            maxlength="15"
+                                        >
                                     </div>
+                                    <!-- TODO:メールアドレス:半角のみ入力可？ -->
                                     <div class="col-md-9">
                                         <label>メール</label>
-                                        <input class="form-control p-1" type="text" :value=viewModel.得意先担当者メール>
+                                        <input class="form-control p-1" type="tel"
+                                            v-model=viewModel.得意先担当者メール
+                                            maxlength=60
+                                        >
                                     </div>
                                 </div>
                             </fieldset>
@@ -1523,11 +1542,6 @@ export default {
             console.log("JuchuCustomerAutoCompleteFunc:" + input + " = " + list.length);
             return list;
         },
-        // BankSelectorParamsFunc: function(params, comp) {
-        //     params.KeyWord = null;
-        //     params.BankCd = null;
-        //     return params;
-        // },
         onBankChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
             var vue = this;
             console.log("onBankChanged", info, comp, isValid);
@@ -1801,7 +1815,7 @@ export default {
             axios.all(
                 [
                     //得意先リストの取得
-                    axios.post("/DAI04042/GetCustomerListForSelect", null),
+                    axios.post("/DAI04042/GetCustomerListForSelect",  {CustomerCd: cds.得意先CD}),
                 ]
             ).then(
                 axios.spread((responseCustomer) => {
@@ -2047,6 +2061,7 @@ export default {
             params.営業担当者ＣＤ = params.営業担当者ＣＤ || 0;
             params.獲得営業者ＣＤ = params.獲得営業者ＣＤ || 0;
             params.登録担当者ＣＤ = params.登録担当者ＣＤ || params.userId;
+            params.受注得意先ＣＤ = params.受注得意先ＣＤ || 0;
             params.配送ｸﾞﾙｰﾌﾟＣＤ = params.配送ｸﾞﾙｰﾌﾟＣＤ || 0;
             params.請求書区分別頁 = 0;
             params.請求内訳区分 = 0;
@@ -2154,7 +2169,6 @@ export default {
             var vue = this;
             var cd = vue.viewModel.得意先ＣＤ;
 
-            //TODO:ps
             //入力した得意先ＣＤを反映
             vue.$refs.PopupSelect_Billing.exceptCheck.push({Cd: cd})
             vue.$refs.PopupSelect_Billing.setSelectValue(cd);

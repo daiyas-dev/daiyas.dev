@@ -18,7 +18,7 @@
                     :withCode=true
                     :isShowInvalid=true
                     customStyle="{ width: 100px; }"
-                    :disabled=true
+                    :disabled=!viewModel.IsNew
                 />
             </div>
         </div>
@@ -40,16 +40,25 @@
             <div class="col-md-5">
                 <label>コースＣＤ</label>
                 <input class="form-control text-right" type="text" style="width:80px;"
+                    id="CourseCd"
                     v-model=viewModel.コースＣＤ
                     :readonly=false
                     :tabindex="viewModel.IsNew ? 0 : -1"
+                    maxlength="5"
+                    v-int
                 >
             </div>
         </div>
         <div class="row">
             <div class="col-md-11">
                 <label class="">コース名</label>
-                <input class="form-control p-2" type="text" v-model=viewModel.コース名>
+                <input class="form-control p-2" type="text"
+                    v-model=viewModel.コース名
+                    id="CourseNm"
+                    maxlength="60"
+                    v-maxBytes=60
+
+                >
             </div>
         </div>
         <div class="row">
@@ -74,6 +83,7 @@
                     :editable=true
                     :reuse=true
                     :existsCheck=true
+                    :exceptCheck="[{Cd: ''}]"
                     :onChangeFunc=onTantoChanged
                     :inputWidth=80
                     :nameWidth=197
@@ -220,6 +230,12 @@ export default {
             data.viewModel = $.extend(true, {}, vue.params, vue.query);
         }
 
+        //初期値：新規なら一覧で表示中の部署ＣＤ
+        if(data.viewModel.IsNew){
+            data.viewModel.部署ＣＤ = vue.params.BushoCd || "";
+            data.viewModel.工場区分 = "";
+        }
+
         return data;
     },
     methods: {
@@ -227,55 +243,115 @@ export default {
             vue.footerButtons.push(
                 { visible: "true", value: "クリア", id: "DAI04081_Clear", disabled: false, shortcut: "F2",
                     onClick: function () {
-                        //TODO: クリア
+                        vue.clearDetail();
                     }
                 },
-                { visible: "true", value: "削除", id: "DAI04081_Delete", disabled: false, shortcut: "F3",
+                { visible: "true", value: "削除", id: "DAI04081_Delete", disabled: true, shortcut: "F3",
                     onClick: function () {
-                        //TODO: 削除
+
+                        var cd = vue.viewModel.コースＣＤ;
+                        if(!cd) return;
+
+                        var params = {BushoCd: vue.viewModel.部署ＣＤ, CourseCd: cd};
+                        params.noCache = true;
+
+                        $.dialogConfirm({
+                            title: "マスタ削除確認",
+                            contents: "マスタを削除します。",
+                            buttons:[
+                                {
+                                    text: "はい",
+                                    class: "btn btn-primary",
+                                    click: function(){
+                                        axios.post("/DAI04081/Delete", params)
+                                            .then(res => {
+                                                DAI04080.conditionChanged();
+                                                $(this).dialog("close");
+                                                //画面04081を閉じる
+                                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
+                                            })
+                                            .catch(err => {
+                                                console.log(err);
+                                            }
+                                        );
+                                    }
+                                },
+                                {
+                                    text: "いいえ",
+                                    class: "btn btn-danger",
+                                    click: function(){
+                                        $(this).dialog("close");
+                                    }
+                                },
+                            ],
+                        });
+                        console.log("削除", params);
                     }
                 },
                 { visible: "true", value: "登録", id: "DAI04081Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
-                        //TODO: 登録
 
-                        if(!vue.viewModel.コース区分){
+                        //必須入力：工場区分以外
+                        if(!vue.viewModel.部署ＣＤ || !vue.viewModel.コースＣＤ || !vue.viewModel.コース名 || !vue.viewModel.担当者ＣＤ){
                             $.dialogErr({
                                 title: "登録不可",
-                                contents: "コース区分が未設定です",
+                                contents: [
+                                    !vue.viewModel.部署ＣＤ ? "部署が入力されていません。<br/>" : "",
+                                    !vue.viewModel.コース区分 ? "コース区分が入力されていません。<br/>" : "",
+                                    !vue.viewModel.コースＣＤ ? "コースＣＤが入力されていません。<br/>" : "",
+                                    !vue.viewModel.コース名 ? "コース名が入力されていません。<br/>" : "",
+                                    !vue.viewModel.担当者ＣＤ ? "担当者が入力されていません。<br/>" : ""
+                                ]
                             })
-                            return;
-                        }
-                        if(!vue.viewModel.コースＣＤ){
-                            $.dialogErr({
-                                title: "登録不可",
-                                contents: "コースCDが未設定です",
-                            })
-                            return;
-                        }
-                        if(!vue.viewModel.コース名){
-                            $.dialogErr({
-                                title: "登録不可",
-                                contents: "コース名が未設定です",
-                            })
-                            return;
+                            if(!vue.viewModel.部署ＣＤ){
+                                $(vue.$el).find("#BushoCd").addClass("has-error");
+                            }else{
+                                $(vue.$el).find("#BushoCd").removeClass("has-error");
+                            }
+                            if(!vue.viewModel.コースＣＤ){
+                                $(vue.$el).find("#CourseCd").addClass("has-error");
+                            }else{
+                                $(vue.$el).find("#CourseCd").removeClass("has-error");
+                            }
+                             if(!vue.viewModel.コース名){
+                                $(vue.$el).find("#CourseNm").addClass("has-error");
+                            }else{
+                                $(vue.$el).find("#CourseNm").removeClass("has-error");
+                            }
+                            if(!vue.viewModel.担当者ＣＤ){
+                                $(vue.$el).find("#TantoSelect").addClass("has-error");
+                            }else{
+                                $(vue.$el).find("#TantoSelect").removeClass("has-error");
+                            }
+                           return;
                         }
 
                         var params = _.cloneDeep(vue.viewModel);
 
+                        params.工場区分 = params.工場区分 || 0;
                         params.修正担当者ＣＤ = params.userId;
                         params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
 
-                        //TODO:ラジオボタン
-                        //TODO:必須入力項目
+                        $(vue.$el).find(".has-error").removeClass("has-error");
 
-                        //TODO: 登録用controller method call
+                        //登録用controller method call
                         axios.post("/DAI04081/Save", params)
                             .then(res => {
+                                if(!!res.data.duplicate){
+                                    var duplicate = res.data.duplicate;
+                                    $.dialogInfo({
+                                        title: "登録失敗",
+                                        contents: "コースCD:" + duplicate + "が重複しています。",
+                                    });
+                                }else{
+                                    DAI04080.conditionChanged();
+
+                                    //画面を閉じる
+                                    $(vue.$el).closest(".ui-dialog-content").dialog("close");
+                                }
                             })
                             .catch(err => {
                                 console.log(err);
-                                //TODO: エラー
                             }
                         );
                         console.log("登録", params);
@@ -285,6 +361,11 @@ export default {
         },
         mountedFunc: function(vue) {
             $(vue.$el).parents("div.body-content").addClass("Scrollable");
+
+        if(this.params.IsNew == false || !this.params.IsNew){
+                //修正時：ボタン制御
+                $("[shortcut='F3']").prop("disabled", false);
+            }
         },
         onTantoChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
             var vue = this;
@@ -330,11 +411,22 @@ export default {
             console.log("TantoAutoCompleteFunc:" + input + " = " + list.length);
             return list;
         },
-        // TantoSelectorParamsFunc: function(params, comp) {
-        //     params.KeyWord = null;
-        //     params.BushoCd = null;
-        //     return params;
-        // },
+        clearDetail: function(){
+            var vue = this;
+
+            $(vue.$el).find(".has-error").removeClass("has-error");
+
+            _.keys(DAI04081.viewModel).forEach(k => DAI04081.viewModel[k] = null);
+            vue.viewModel.IsNew = true;
+            vue.viewModel.userId = vue.query.userId;
+
+            //初期値
+            vue.viewModel.部署ＣＤ = vue.params.BushoCd || vue.params.部署ＣＤ || "";
+            vue.viewModel.工場区分 = "";
+
+            //ボタン制御
+            $("[shortcut='F3']").prop("disabled", true);
+        },
     }
 }
 </script>
