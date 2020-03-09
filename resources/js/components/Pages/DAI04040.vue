@@ -58,6 +58,7 @@
                     buddy="ShoninNm"
                     dataUrl="/Utilities/GetTantoList"
                     :params="{ bushoCd: null }"
+                    :isPreload=true
                     title="承認者一覧"
                     labelCd="承認者CD"
                     labelCdNm="承認者名"
