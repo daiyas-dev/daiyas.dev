@@ -10,102 +10,38 @@ use DB;
 use Exception;
 use Illuminate\Support\Carbon;
 
-class DAI01100Controller extends Controller
+class DAI01101Controller extends Controller
 {
-
-    /**
-     *  ColumSerch
-     */
-
-    public function ColSearch($vm)
-    {
-        $BushoCd = $vm->BushoCd;
-        $sql = "
-            SELECT
-                サブ各種CD1 AS 商品ＣＤ,
-                各種名称 AS 商品名,
-                各種略称 AS 商品略称
-            FROM 各種テーブル
-            WHERE 各種CD=
-                (
-                    SELECT
-                        IIF(サブ各種CD2=1, 24, IIF(サブ各種CD2=2, 25, IIF(サブ各種CD2=3, 41 ,NULL)))
-                    FROM 各種テーブル
-                    WHERE 各種CD=26
-                    AND サブ各種CD1=$BushoCd
-                )
-                AND サブ各種CD2=0
-            ORDER BY 各種CD,行NO
-        ";
-
-        $DataList = DB::select($sql);
-
-        return response()->json($DataList);
-    }
-
-    /**
-     * GetProductList
-     */
-    public function GetProductList($request)
-    {
-        $CustomerCd = $request->CustomerCd;
-
-        $sql = "
-SELECT
-	PM.商品ＣＤ,
-	PM.商品名,
-	PM.商品区分,
-	IIF(MTT.商品ＣＤ IS NOT NULL, MTT.単価, PM.売価単価) AS 売価単価
-FROM
-	商品マスタ PM
-	LEFT JOIN 得意先単価マスタ MTT
-		ON	PM.商品ＣＤ=MTT.商品ＣＤ
-		AND MTT.得意先ＣＤ=$CustomerCd
-WHERE
-     表示ＦＬＧ=0
-        ";
-
-        $Result = collect(DB::select($sql))
-            ->map(function ($product) {
-                $vm = (object) $product;
-
-                $vm->Cd = $product->商品ＣＤ;
-                $vm->CdNm = $product->商品名;
-
-                return $vm;
-            })
-            ->values();
-
-        return response()->json($Result);
-    }
 
     /**
      * Search
      */
-    public function Search($vm)
+    public function Search($request)
     {
-        return response()->json($this->GetSalesList($vm));
+        return response()->json($this->GetSalesList($request, false));
+    }
+
+    /**
+     * GetParentData
+     */
+    public function GetParentData($request)
+    {
+        return response()->json($this->GetSalesList($request, true));
     }
 
     /**
      * GetSalesList
      */
-    public function GetSalesList($vm)
+    public function GetSalesList($request, $isParent)
     {
-        $BushoCd = $vm->BushoCd;
-        $DeliveryDate = $vm->DeliveryDate;
-        $CourseCd = $vm->CourseCd;
+        $TargetDate = $request->TargetDate;
+        $CustomerCd = $request->CustomerCd;
+        $WhereCustomerCd = $isParent ? "得意先マスタ.得意先ＣＤ = $CustomerCd" : "得意先マスタ.受注得意先ＣＤ = $CustomerCd";
 
         $sql = "
             SELECT
-                コーステーブル.コースＣＤ,
-                コースマスタ.コース名,
-                コーステーブル.ＳＥＱ,
-                コーステーブル.得意先ＣＤ,
-                得意先マスタ.得意先名略称 AS 得意先名,
-                得意先マスタ.受注得意先ＣＤ,
-                支払方法.行NO AS 売掛現金区分,
-                支払方法.各種名称 AS 売掛現金区分名称,
+                得意先マスタ.得意先ＣＤ,
+                得意先マスタ.得意先名,
                 得意先マスタ.売掛現金区分 AS 得意先売掛現金区分,
                 得意先支払方法.各種名称 AS 得意先売掛現金区分名称,
                 売上データ明細.日付,
@@ -126,65 +62,39 @@ WHERE
                 商品マスタ.商品区分,
                 商品マスタ.商品名,
                 売上データ明細.分配元数量,
+                売上データ明細.修正日,
                 CASE WHEN 売上データ明細.食事区分 IS NULL OR 売上データ明細.食事区分 = 0 THEN 商品マスタ.食事区分 ELSE 売上データ明細.食事区分 END 食事区分,
                 CASE WHEN 売上データ明細.主食ＣＤ = 0 THEN 商品マスタ.主食ＣＤ ELSE 売上データ明細.主食ＣＤ END 主食ＣＤ,
                 CASE WHEN 売上データ明細.副食ＣＤ = 0 THEN 商品マスタ.副食ＣＤ ELSE 売上データ明細.副食ＣＤ END 副食ＣＤ,
                 入金データ.入金日付,
                 入金データ.伝票Ｎｏ,
                 入金データ.現金 AS 入金額,
-                入金データ.摘要 AS 備考,
-                入金データ.備考 AS 備考テキスト,
+                入金データ.摘要,
+                入金データ.備考,
                 入金データ.請求日付,
-                入金データ.修正日 AS 入金データ修正日,
-                分配先.分配先件数
+                入金データ.修正日 AS 入金データ修正日
             FROM
-                [コーステーブル]
-                    LEFT JOIN 各種テーブル 支払方法
-                        ON 支払方法.各種CD=1
-                    INNER JOIN [コースマスタ]
-                        ON コースマスタ.コースＣＤ = コーステーブル.コースＣＤ
-                        AND コースマスタ.部署ＣＤ = コーステーブル.部署ＣＤ
-                    INNER JOIN [得意先マスタ]
-                        ON 得意先マスタ.得意先ＣＤ = コーステーブル.得意先ＣＤ
-                        AND 得意先マスタ.部署ＣＤ = コーステーブル.部署ＣＤ
+                [得意先マスタ]
                     LEFT JOIN 各種テーブル 得意先支払方法
                         ON 得意先支払方法.各種CD=1
                         AND 得意先支払方法.行NO = 得意先マスタ.売掛現金区分
                     LEFT OUTER JOIN [売上データ明細]
-                        ON 売上データ明細.日付 = '$DeliveryDate'
-                        AND 売上データ明細.部署ＣＤ = コーステーブル.部署ＣＤ
-                        AND 売上データ明細.得意先ＣＤ = コーステーブル.得意先ＣＤ
-                        AND (
-                            (支払方法.行NO = 0 AND 売上データ明細.売掛現金区分 = 0)
-                            OR
-                            (支払方法.行NO != 0 AND 売上データ明細.売掛現金区分 != 0)
-                        )
+                        ON 売上データ明細.日付 = '$TargetDate'
+                        AND 売上データ明細.部署ＣＤ = 得意先マスタ.部署ＣＤ
+                        AND 売上データ明細.得意先ＣＤ = 得意先マスタ.得意先ＣＤ
                     LEFT JOIN 各種テーブル 売上支払方法
                         ON 売上支払方法.各種CD=1
                         AND 売上支払方法.行NO = 売上データ明細.売掛現金区分
                     LEFT OUTER JOIN [商品マスタ]
                         ON 商品マスタ.商品ＣＤ = 売上データ明細.商品ＣＤ
                     LEFT OUTER JOIN [入金データ]
-                        ON 入金データ.入金日付 = '$DeliveryDate'
-                        AND 入金データ.得意先ＣＤ = コーステーブル.得意先ＣＤ
+                        ON 入金データ.入金日付 = '$TargetDate'
+                        AND 入金データ.得意先ＣＤ = 得意先マスタ.得意先ＣＤ
                         AND 入金データ.入金区分 = 1
-                    LEFT OUTER JOIN (
-                        SELECT
-                            受注得意先ＣＤ,
-                            COUNT(受注得意先ＣＤ) AS 分配先件数
-                        FROM 得意先マスタ
-                        GROUP BY
-                            受注得意先ＣＤ
-                    ) 分配先
-                        ON 分配先.受注得意先ＣＤ = 得意先マスタ.得意先ＣＤ
             WHERE
-                コーステーブル.コースＣＤ = $CourseCd
-            AND コーステーブル.部署ＣＤ = $BushoCd
+				$WhereCustomerCd
             ORDER BY
-                コーステーブル.コースＣＤ,
-                コーステーブル.ＳＥＱ,
-                支払方法.行NO,
-                売上データ明細.日付,
+                得意先マスタ.得意先ＣＤ,
                 売上データ明細.行Ｎｏ,
                 売上データ明細.商品ＣＤ
         ";

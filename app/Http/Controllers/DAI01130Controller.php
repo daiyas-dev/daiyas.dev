@@ -161,19 +161,25 @@ class DAI01130Controller extends Controller
     }
 
     /**
+     * GetData
+     */
+    public function GetData($request)
+    {
+        return [
+            "SeikyuDataList" => $this->GetSeikyuDataList($request),
+            "DenpyoNoList" => $this->GetDenpyoNoList($request),
+            "NyukinData" => $this->GetNyukinData($request),
+            "CheckSeikyu" => $this->CheckSeikyu($request),
+            "CheckKaikei" => $this->CheckKaikei($request),
+        ];
+    }
+
+    /**
      * Search
      */
     public function Search($request)
     {
-        return response()->json(
-            [
-                "SeikyuDataList" => $this->GetSeikyuDataList($request),
-                "DenpyoNoList" => $this->GetDenpyoNoList($request),
-                "NyukinData" => $this->GetNyukinData($request),
-                "CheckSeikyu" => $this->CheckSeikyu($request),
-                "CheckKaikei" => $this->CheckKaikei($request),
-            ]
-        );
+        return response()->json($this->GetData($request));
     }
 
     /**
@@ -181,59 +187,45 @@ class DAI01130Controller extends Controller
      */
     public function Save($request)
     {
-        $skip = [];
-
+        $edited = false;
         DB::beginTransaction();
 
+        $Target = $request->Target;
+
         try {
-            $params = $request->all();
-
-            $SaveList = $params['SaveList'];
-
             $date = Carbon::now()->format('Y-m-d H:i:s');
-            foreach ($SaveList as $rec) {
-                if (isset($rec['伝票Ｎｏ']) && !!$rec['伝票Ｎｏ']) {
-                    $r = 入金データ::query()
-                        ->where('入金日付', $rec['入金日付'])
-                        ->where('伝票Ｎｏ', $rec['伝票Ｎｏ'])
-                        ->get();
 
-                    if (count($r) != 1) {
-                        $skip = collect($skip)->push(["target" => $rec, "current" => null]);
-                        continue;
-                    } else if ($rec['修正日'] != $r[0]->修正日) {
-                        $skip = collect($skip)->push(["target" => $rec, "current" => $r[0]]);
-                        continue;
-                    }
+            if (isset($Target['伝票Ｎｏ']) && !!$Target['伝票Ｎｏ']) {
+                $r = 入金データ::query()
+                    ->where('入金日付', $Target['入金日付'])
+                    ->where('伝票Ｎｏ', $Target['伝票Ｎｏ'])
+                    ->get();
 
-                    //現金が0の場合は削除扱い
-                    if (!isset($rec['現金']) && !isset($rec['現金'])) {
-                        入金データ::query()
-                            ->where('入金日付', $rec['入金日付'])
-                            ->where('伝票Ｎｏ', $rec['伝票Ｎｏ'])
-                            ->delete();
-                    } else {
-                        $rec['修正日'] = $date;
-
-                        入金データ::query()
-                            ->where('入金日付', $rec['入金日付'])
-                            ->where('伝票Ｎｏ', $rec['伝票Ｎｏ'])
-                            ->update($rec);
-                    }
+                if (count($r) != 1) {
+                    $edited = true;
+                } else if ($Target['修正日'] != $r[0]->修正日) {
+                    $edited = true;
                 } else {
-                    $no = 管理マスタ::query()
-                        ->where('管理ＫＥＹ', 1)
-                        ->max('入金伝票Ｎｏ') + 1;
+                    $Target['修正日'] = $date;
 
-                    管理マスタ::query()
-                        ->where('管理ＫＥＹ', 1)
-                        ->update(['入金伝票Ｎｏ' => $no]);
-
-                    $rec['伝票Ｎｏ'] = $no;
-                    $rec['修正日'] = $date;
-
-                    入金データ::insert($rec);
+                    入金データ::query()
+                        ->where('入金日付', $Target['入金日付'])
+                        ->where('伝票Ｎｏ', $Target['伝票Ｎｏ'])
+                        ->update($Target);
                 }
+            } else {
+                $no = 管理マスタ::query()
+                    ->where('管理ＫＥＹ', 1)
+                    ->max('入金伝票Ｎｏ') + 1;
+
+                管理マスタ::query()
+                    ->where('管理ＫＥＹ', 1)
+                    ->update(['入金伝票Ｎｏ' => $no]);
+
+                $Target['伝票Ｎｏ'] = $no;
+                $Target['修正日'] = $date;
+
+                入金データ::insert($Target);
             }
 
             DB::commit();
@@ -244,7 +236,8 @@ class DAI01130Controller extends Controller
 
         return response()->json([
             'result' => true,
-            "edited" => $this->GetNyukinList($request),
+            "edited" => $edited,
+            "current" => $this->GetData($request),
         ]);
     }
 }

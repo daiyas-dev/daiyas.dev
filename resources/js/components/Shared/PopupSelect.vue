@@ -18,7 +18,7 @@
                 hideSearchButton && hideClearButton && !enablePrevNext ? 'noButton' : '',
             ]"
             :style='inputWidth ? ("width: " + inputWidth + "px") : ""'
-            :value="vmodel[bind]"
+            :value="showText"
             :readonly="this.editable == false"
             autocomplete="off"
             @input=onInput
@@ -264,7 +264,7 @@ export default {
     computed: {
         showText: function() {
             var comp = this;
-            return !!showTextFunc ? eval(showTextFunc(comp)) : this.selectValue;
+            return !!comp.showTextFunc ? eval(comp.showTextFunc(comp)) : (comp.selectValue || comp.vmodel[comp.bind]);
         },
         nameLabel: function() {
             return this.isGetName ? (this.labelCd || this.label || "コード") : (this.labelCdNm || "名称");
@@ -696,9 +696,9 @@ export default {
                 try {
 
                     var rowData = item || vue.dataList.find(v => newVal == v[vue.isGetName ? "CdNm" : "Cd"]);
-                    // if (!!newVal && !rowData && vue.isShowAutoComplete && vue.getAutoCompleteList(newVal).length == 1) {
-                    //     rowData = vue.getAutoCompleteList(newVal)[0];
-                    // }
+                    if (!!newVal && !rowData && vue.isShowAutoComplete && vue.getAutoCompleteList(newVal).length == 1) {
+                        rowData = vue.getAutoCompleteList(newVal)[0];
+                    }
 
                     if (!!vue.noResearch && !vue.existsCheck) {
                         rowData = { Cd: newVal, CdNm: "" };
@@ -710,7 +710,7 @@ export default {
                     vue.isUnique = !!rowData;
 
                     //選択行データに設定
-                    vue.selectValue = !rowData ? (!!vue.isValid ? newVal : "") : rowData[!vue.isGetName ? "Cd" : "CdNm"];
+                    vue.selectValue = !rowData ? newVal : rowData[!vue.isGetName ? "Cd" : "CdNm"];
                     vue.selectName = !rowData ? "" : rowData[vue.isGetName ? "Cd" : "CdNm"];
                     vue.selectRow = !rowData ? {} : rowData;
 
@@ -826,6 +826,7 @@ export default {
                         .find("#" + vue.id).tooltip("dispose");
 
                     vue.errorMsg = null;
+                    return true;
                 }
 
                 return !!rowData;
@@ -851,6 +852,7 @@ export default {
 
                     var isExcept = !!vue.exceptCheck && !!vue.exceptCheck.length && !vue.exceptCheck.some(v => _.keys(v).some(k => v[k] == newVal));
                     if (list.length == 0 && !vue.noResearch && !isExcept) {
+                    // if (list.length == 0 && !vue.noResearch && !vue.exceptCheck.some(v => _.keys(v).some(k => v[k] == newVal))) {
                         //該当が無い場合は再検索
                         var params = _.cloneDeep(vue.params) || {};
                         params[vue.bind] = newVal;
@@ -1025,7 +1027,7 @@ export default {
                 });
             }
 
-            var match = vue.dataList.filter(v => v[vue.isGetName ? "CdNm" : "Cd"] == key);
+            var match = vue.dataList.find(v => v[vue.isGetName ? "CdNm" : "Cd"] == key);
             var list = (vue.AutoCompleteFunc && key != null && key != undefined)
                 ? vue.AutoCompleteFunc(key, _.cloneDeep(vue.dataList), vue)
                 : _.cloneDeep(vue.dataList)

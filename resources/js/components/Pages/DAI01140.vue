@@ -462,7 +462,7 @@ export default {
             // vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
             // vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
             vue.viewModel.DateStart = moment("20190902").format("YYYY年MM月DD日");
-            vue.viewModel.DateEnd = moment("20190902").format("YYYY年MM月DD日");
+            vue.viewModel.DateEnd = moment("20190917").format("YYYY年MM月DD日");
 
             //watcher
             vue.$watch(
@@ -766,6 +766,10 @@ export default {
                 BushoCd: vue.viewModel.BushoCd,
                 TargetDate: moment(data.入金日付).format("YYYY年MM月DD日"),
                 CustomerCd: data.得意先ＣＤ,
+                onSaveFunc: () => {
+                    var grid = vue.DAI01140Grid1;
+                    grid.refreshDataAndView();
+                },
             };
 
             PageDialog.show({
@@ -776,6 +780,24 @@ export default {
                 reuse: false,
                 width: 900,
                 height: 725,
+                onBeforeClose: (event, ui) => {
+                    if ($(window.event.target).attr("shortcut") == "ESC") return true;
+
+                    var dlg = $(event.target);
+                    var editting = dlg.find(".pq-grid")
+                        .map((i, v) => $(v).pqGrid("getInstance").grid)
+                        .get()
+                        .some(g => !_.isEmpty(g.getEditCell()));
+                    var isEscOnEditor = !!window.event && window.event.key == "Escape"
+                        && (
+                            $(window.event.target).hasClass("target-input") ||
+                            $(window.event.target).hasClass("pq-cell-editor")
+                        );
+
+                    var canClose = !editting && !isEscOnEditor;
+
+                    return canClose;
+                }
             });
         },
         print: function() {

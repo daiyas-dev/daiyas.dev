@@ -1168,7 +1168,7 @@ export default {
             scroll: function (event, ui) {
                 var grid = this;
 
-                //console.log("grid scroll");
+                // console.log("grid scroll");
                 //スクロール中にbootstrap tooltipのゴミが残るので消去(bootstrapの処理にモレ)
                 $("body").find("[id^=tooltip]").tooltip("hide");
 

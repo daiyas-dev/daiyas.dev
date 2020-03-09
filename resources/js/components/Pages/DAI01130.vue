@@ -251,6 +251,7 @@ export default {
             DAI01130GridNyukin: null,
             DAI01130GridSeikyu: null,
             DenpyoNoList: [],
+            CurrentNyukinData: null,
             gridNyukinOptions: {
                 selectionModel: { type: "cell", mode: "block", row: true },
                 numberCell: { show: false },
@@ -437,8 +438,8 @@ export default {
             },
         });
 
-        if (!!vue.params || !!vue.query) {
-            data.viewModel = $.extend(true, data.viewModel, vue.params, vue.query);
+        if (!!vue.params) {
+            data.viewModel = $.extend(true, data.viewModel, vue.params);
             data.IsChild = true;
         }
 
@@ -473,6 +474,9 @@ export default {
                 // vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
                 vue.viewModel.TargetDate = moment("20190902").format("YYYY年MM月DD日");
             }
+        },
+        activatedFunc: function(vue) {
+            vue.IsChild = !!vue.params;
         },
         onDenpyoNoChanged: function(code, entity) {
             var vue = this;
@@ -522,56 +526,7 @@ export default {
                 .then(res => {
                     console.log("/DAI01130/Search", res.data);
 
-                    //請求データ
-                    vue.DAI01130GridSeikyu.options.dataModel.data = res.data.SeikyuDataList;
-                    vue.DAI01130GridSeikyu.refreshDataAndView();
-
-                    //伝票番号リスト
-                    vue.DenpyoNoList = res.data.DenpyoNoList.map(v => {
-                        v.code = v.伝票Ｎｏ;
-                        v.label = v.伝票Ｎｏ + "【" + moment(v.入金日付).format("YYYY年MM月DD日") + "入金】"
-                        return v;
-                    });
-                    var match = vue.DenpyoNoList.find(v => moment(v.入金日付).format("YYYY年MM月DD日") == vue.viewModel.TargetDate);
-                    if (!!match) {
-                        vue.viewModel.DenpyoNo = match.伝票Ｎｏ;
-                    } else {
-                        vue.viewModel.DenpyoNo = null;
-                    }
-
-                    //入金データ
-                    var NyukinData = res.data.NyukinData;
-
-                    if (!!NyukinData) {
-                        //摘要/備考
-                        vue.viewModel.Tekiyo = NyukinData.摘要;
-                        vue.viewModel.Biko = NyukinData.備考;
-
-                        //入金データ
-                        vue.DAI01130GridNyukin.rollback();
-                        vue.DAI01130GridNyukin.pdata.forEach(v => v.value = NyukinData[v.kind]);
-                        vue.DAI01130GridNyukin.refreshDataAndView();
-                        vue.DAI01130GridNyukin.commit();
-                        vue.DAI01130GridNyukin.refresh();
-                    } else {
-                        vue.viewModel.Tekiyo = null;
-                        vue.viewModel.Biko = null;
-
-                        //入金データ
-                        vue.DAI01130GridNyukin.rollback();
-                        vue.DAI01130GridNyukin.pdata.forEach(v => v.value = 0);
-                        vue.DAI01130GridNyukin.refreshDataAndView();
-                        vue.DAI01130GridNyukin.commit();
-                        vue.DAI01130GridNyukin.refresh();
-                    }
-
-                    //請求済チェック
-                    var CheckSeikyu = res.data.CheckSeikyu * 1;
-                    var CheckKaikei = res.data.CheckKaikei * 1;
-
-                    vue.checkMsg = !!CheckSeikyu ? "請求済みです" : !!CheckKaikei ? "会計処理済みです" : "";
-                    vue.footerButtons.find(v => v.id == "DAI01130Grid1_Delete").disabled = !!CheckSeikyu || !!CheckKaikei;
-                    vue.footerButtons.find(v => v.id == "DAI01130Grid1_Save").disabled = !!CheckSeikyu || !!CheckKaikei;
+                    vue.setSearchResult(res.data);
 
                     progressDlg.dialog("close");
                     vue.DAI01130GridNyukin.setSelection({ rowIndx: 0, colIndx: 1 });
@@ -584,6 +539,75 @@ export default {
                         contents: "データの検索に失敗しました<br/>",
                     });
                 });
+        },
+        setSearchResult: function(data, isBlink) {
+            var vue = this;
+
+            //請求データ
+            if (!!isBlink) {
+                vue.DAI01130GridSeikyu.blinkDiff(data.SeikyuDataList, true);
+            } else {
+                vue.DAI01130GridSeikyu.options.dataModel.data = data.SeikyuDataList;
+                vue.DAI01130GridSeikyu.refreshDataAndView();
+            }
+
+            //伝票番号リスト
+            vue.DenpyoNoList = data.DenpyoNoList.map(v => {
+                v.code = v.伝票Ｎｏ;
+                v.label = v.伝票Ｎｏ + "【" + moment(v.入金日付).format("YYYY年MM月DD日") + "入金】"
+                return v;
+            });
+            var match = vue.DenpyoNoList.find(v => moment(v.入金日付).format("YYYY年MM月DD日") == vue.viewModel.TargetDate);
+            if (!!match) {
+                vue.viewModel.DenpyoNo = match.伝票Ｎｏ;
+            } else {
+                vue.viewModel.DenpyoNo = null;
+            }
+
+            //入金データ
+            var NyukinData = data.NyukinData;
+
+            if (!!NyukinData) {
+                vue.CurrentNyukinData = NyukinData;
+
+                //摘要/備考
+                vue.viewModel.Tekiyo = NyukinData.摘要;
+                vue.viewModel.Biko = NyukinData.備考;
+
+                //入金データ
+                var NyukinList = _.cloneDeep(vue.DAI01130GridNyukin.pdata);
+                NyukinList.forEach(v => v.value = NyukinData[v.kind]);
+
+                if (!!isBlink) {
+                    vue.DAI01130GridNyukin.blinkDiff(NyukinList, true);
+                } else {
+                    vue.DAI01130GridNyukin.rollback();
+                    vue.DAI01130GridNyukin.pdata.forEach(v => v.value = NyukinData[v.kind]);
+                    vue.DAI01130GridNyukin.refreshDataAndView();
+                    vue.DAI01130GridNyukin.commit();
+                    vue.DAI01130GridNyukin.refresh();
+                }
+            } else {
+                vue.CurrentNyukinData = null;
+
+                vue.viewModel.Tekiyo = null;
+                vue.viewModel.Biko = null;
+
+                //入金データ
+                vue.DAI01130GridNyukin.rollback();
+                vue.DAI01130GridNyukin.pdata.forEach(v => v.value = 0);
+                vue.DAI01130GridNyukin.refreshDataAndView();
+                vue.DAI01130GridNyukin.commit();
+                vue.DAI01130GridNyukin.refresh();
+            }
+
+            //請求済チェック
+            var CheckSeikyu = data.CheckSeikyu * 1;
+            var CheckKaikei = data.CheckKaikei * 1;
+
+            vue.checkMsg = !!CheckSeikyu ? "請求済みです" : !!CheckKaikei ? "会計処理済みです" : "";
+            vue.footerButtons.find(v => v.id == "DAI01130Grid1_Delete").disabled = !!CheckSeikyu || !!CheckKaikei;
+            vue.footerButtons.find(v => v.id == "DAI01130Grid1_Save").disabled = !!CheckSeikyu || !!CheckKaikei;
         },
         CustomerAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
@@ -642,6 +666,70 @@ export default {
                     })
 
             return list;
+        },
+        save: function() {
+            var vue = this;
+            var grid = vue.DAI01130GridNyukin;
+
+            var target = {
+                "入金日付": vue.searchParams.TargetDate,
+                "伝票Ｎｏ": vue.viewModel.DenpyoNo,
+                "部署ＣＤ": vue.searchParams.BushoCd,
+                "得意先ＣＤ": vue.searchParams.CustomerCd,
+                "入金区分": 1,
+                "現金": grid.pdata.find(r => r.kind == "現金").value * 1,
+                "小切手": grid.pdata.find(r => r.kind == "小切手").value * 1,
+                "振込": grid.pdata.find(r => r.kind == "振込").value * 1,
+                "バークレー": grid.pdata.find(r => r.kind == "振替").value * 1,
+                "その他": grid.pdata.find(r => r.kind == "チケット入金").value * 1,
+                "相殺": grid.pdata.find(r => r.kind == "振込料").value * 1,
+                "値引": grid.pdata.find(r => r.kind == "値引").value * 1,
+                "摘要": vue.viewModel.Tekiyo,
+                "備考": vue.viewModel.Biko,
+                "請求日付": !!vue.CurrentNyukinData ? vue.CurrentNyukinData.請求日付 : "",
+                "予備金額１": 0,
+                "予備金額２": 0,
+                "予備ＣＤ１": 0,
+                "予備ＣＤ２": 0,
+                "修正日": !!vue.CurrentNyukinData ? vue.CurrentNyukinData.修正日 : "",
+                "修正担当者ＣＤ": vue.getLoginInfo().uid,
+            };
+
+            //保存実行
+            grid.saveData(
+                {
+                    uri: "/DAI01130/Save",
+                    params: {
+                        Target: target,
+                    },
+                    optional: vue.searchParams,
+                    confirm: {
+                        isShow: false,
+                    },
+                    done: {
+                        isShow: false,
+                        callback: (gridVue, grid, res)=>{
+                            if (!!res.edited) {
+                                $.dialogInfo({
+                                    title: "登録チェック",
+                                    contents: "他で変更されたデータがあります。",
+                                });
+
+                                vue.setSearchResult(res.current, true);
+                            } else {
+                                if (!!vue.IsChild && !!vue.params.onSaveFunc) {
+                                    vue.params.onSaveFunc(vue.viewModel);
+                                    $(vue.$el).closest(".ui-dialog-content").dialog("close");
+                                } else {
+                                    vue.setSearchResult(res.current, false);
+                                }
+                            }
+
+                            return false;
+                        },
+                    },
+                }
+            );
         },
     }
 }

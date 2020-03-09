@@ -286,6 +286,7 @@ export default {
                         title: "得意先",
                         dataIndx: "得意先名", dataType: "string",
                         width: 150, maxWidth: 1000, minWidth: 150,
+                        tooltip: true,
                         render: ui => {
                             if (ui.rowData.summaryRow) {
                                 ui.column.align = "center";
@@ -312,6 +313,8 @@ export default {
                 ],
                 scroll: function (event, ui) {
                     var grid = this;
+
+                    $("body").find("[id^=tooltip]").tooltip("hide");
 
                     vue.syncScroll(grid.scrollY());
                 },
@@ -540,6 +543,8 @@ export default {
                 scroll: function (event, ui) {
                     var grid = this;
 
+                    $("body").find("[id^=tooltip]").tooltip("hide");
+
                     vue.syncScroll(grid.scrollY());
                 },
                 rowDblClick: function (event, ui) {
@@ -573,6 +578,7 @@ export default {
                 },
                 { visible: "true", value: "分配入力", id: "DAI01100Grid1_Bunpai", disabled: true, shortcut: "F6",
                     onClick: function () {
+                        vue.showBunpai(false);
                     }
                 },
                 {visible: "false"},
@@ -682,12 +688,14 @@ export default {
             vue.$watch(
                 "$refs.DAI01100Grid1.selectionRow",
                 row => {
+                    vue.footerButtons.find(v => v.id == "DAI01100Grid1_Bunpai").disabled = row.rowData.分配先件数 == 0;
                     vue.DAI01100Grid2.refresh();
                 }
             );
             vue.$watch(
                 "$refs.DAI01100Grid2.selectionRow",
                 row => {
+                    vue.footerButtons.find(v => v.id == "DAI01100Grid1_Bunpai").disabled = row.rowData.分配先件数 == 0;
                     vue.DAI01100Grid1.refresh();
                 }
             );
@@ -922,6 +930,7 @@ export default {
                             (acc, v, j) => {
                                 acc.得意先ＣＤ = v.得意先ＣＤ;
                                 acc.得意先名 = v.得意先名;
+                                acc.分配先件数 = v.分配先件数 * 1;
                                 acc.得意先売掛現金区分 = v.得意先売掛現金区分;
                                 acc.得意先売掛現金区分名称 = v.得意先売掛現金区分名称;
                                 acc.入金額 = v.入金額 ;
@@ -1039,6 +1048,7 @@ export default {
         },
         showDetail: function(isNew, rowData) {
             var vue = this;
+            var grid = vue.DAI01100Grid1;
 
             var params = null;
             if (!isNew) {
@@ -1073,6 +1083,38 @@ export default {
                 isChild: true,
                 reuse: false,
                 width: 1000,
+                height: 600,
+            });
+        },
+        showBunpai: function(isNew, rowData) {
+            var vue = this;
+            var grid = vue.DAI01100Grid1;
+
+            var selection = grid.SelectRow().getSelection();
+
+            var rows = grid.SelectRow().getSelection();
+            if (rows.length != 1) return;
+
+            var data = _.cloneDeep(rows[0].rowData);
+
+            var params = {
+                BushoCd: vue.viewModel.BushoCd,
+                BushoNm: vue.viewModel.BushoNm,
+                TargetDate: vue.viewModel.DeliveryDate,
+                CourseKbn: vue.viewModel.CourseKbn,
+                CourseCd: vue.viewModel.CourseCd,
+                CourseNm: vue.viewModel.CourseNm,
+                CustomerCd: data.得意先ＣＤ,
+                CustomerIndex: data.CustomerIndex,
+            };
+
+            PageDialog.show({
+                pgId: "DAI01101",
+                params: params,
+                isModal: true,
+                isChild: true,
+                reuse: false,
+                width: 1175,
                 height: 600,
             });
         },
