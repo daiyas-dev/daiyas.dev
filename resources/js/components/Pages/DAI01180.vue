@@ -85,7 +85,7 @@
         </div>
         <div class="row">
             <div class="col-md-3">
-                <label>コース別</label>
+                <label>出力区分</label>
                 <VueOptions
                     id="SummaryKind"
                     ref="VueOptions_SummaryKind"
@@ -93,47 +93,17 @@
                     :vmodel=viewModel
                     bind="SummaryKind"
                     :list="[
-                        {code: '1', name: 'コース別', label: 'コース別'},
-                        {code: '2', name: 'コース合計', label: 'コース合計'},
+                        {code: '2', name: 'コース計', label: 'コース計'},
+                        {code: '1', name: '得意先別', label: '得意先別'},
                     ]"
                     :onChangedFunc=onSummaryKindChanged
                 />
             </div>
-            <div class="col-md-2">
-                <VueCheck
-                    id="VueCheck_IncludeJuchu"
-                    ref="VueCheck_IncludeJuchu"
-                    :vmodel=viewModel
-                    bind="IsIncludeJuchu"
-                    checkedCode="1"
-                    customContainerStyle="border: none;"
-                    :list="[
-                        {code: '0', name: '含まない', label: '受注情報含まない'},
-                        {code: '1', name: '含む', label: '受注情報含む'},
-                    ]"
-                    :onChangedFunc=onIncludeJuchuChanged
-                />
-            </div>
-            <div class="col-md-2">
-                <VueCheck
-                    id="VueCheck_BikoOutput"
-                    ref="VueCheck_BikoOutput"
-                    :vmodel=viewModel
-                    bind="IsBikoOutput"
-                    checkedCode="1"
-                    customContainerStyle="border: none;"
-                    :list="[
-                        {code: '0', name: 'しない', label: '備考出力しない'},
-                        {code: '1', name: 'する', label: '備考出力する'},
-                    ]"
-                    :onChangedFunc=onBikoOutputChanged
-                />
-            </div>
         </div>
         <PqGridWrapper
-            id="DAI01160Grid1"
-            ref="DAI01160Grid1"
-            dataUrl="/DAI01160/Search"
+            id="DAI01180Grid1"
+            ref="DAI01180Grid1"
+            dataUrl="/DAI01180/Search"
             :query=this.viewModel
             :SearchOnCreate=false
             :SearchOnActivate=false
@@ -144,10 +114,10 @@
 </template>
 
 <style>
-#DAI01160Grid1 .pq-group-toggle-none {
+#DAI01180Grid1 .pq-group-toggle-none {
     display: none !important;
 }
-#DAI01160Grid1 .pq-group-icon {
+#DAI01180Grid1 .pq-group-icon {
     display: none !important;
 }
 label{
@@ -160,7 +130,7 @@ import PageBaseMixin from "@vcs/PageBaseMixin.vue";
 
 export default {
     mixins: [PageBaseMixin],
-    name: "DAI01160",
+    name: "DAI01180",
     components: {
     },
     props: {
@@ -171,7 +141,7 @@ export default {
     },
     data() {
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "日時処理 > 配送集計表",
+            ScreenTitle: "日次処理 > コース別入金一覧表",
             noViewModel: true,
             viewModel: {
                 BushoCd: null,
@@ -186,7 +156,7 @@ export default {
                 ColHeader : [],
                 dd: null,
             },
-            DAI01160Grid1: null,
+            DAI01180Grid1: null,
             grid1Options: {
                 selectionModel: { type: "cell", mode: "single", row: true },
                 showHeader: true,
@@ -288,6 +258,19 @@ export default {
                         },
                     },
                     {
+                        title: "締日",
+                        dataIndx: "締日", dataType: "string",
+                        align : "center",
+                        width: 35, minWidth: 35, maxWidth: 35,
+                        fixed: true,
+                    },
+                    {
+                        title: "日締現金",
+                        dataIndx: "日締現金", dataType: "integer",
+                        width: 35, minWidth: 35, maxWidth: 35,
+                        fixed: true,
+                    },
+                    {
                         title: "配送コース名",
                         dataIndx: "配送コース名", dataType: "string",
                         width: 200, minWidth: 200, maxWidth: 200,
@@ -312,14 +295,14 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "検索", id: "DAI01160Grid1_Search", disabled: false, shortcut: "F5",
+                { visible: "true", value: "検索", id: "DAI01180Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
                         var params = $.extend(true, {}, vue.viewModel);
 
                         //配送日を"YYYYMMDD"形式に編集
                         params.DeliveryDate = params.DeliveryDate ? moment(params.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
 
-                        vue.DAI01160Grid1.searchData(params);
+                        vue.DAI01180Grid1.searchData(params);
                     }
                 },
                 { visible: "true", value: "印刷", id: "DAI01020Grid1_Printout", disabled: false, shortcut: "F6",
@@ -328,7 +311,7 @@ export default {
 
                         //配送日を"YYYYMMDD"形式に編集
                         params.DeliveryDate = params.DeliveryDate ? moment(params.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
-                        vue.DAI01160Grid1.searchData(params, false, null, () => vue.DAI01160Grid1.print(vue.setPrintOptions));
+                        vue.DAI01180Grid1.searchData(params, false, null, () => vue.DAI01180Grid1.print(vue.setPrintOptions));
                     }
                 }
             );
@@ -425,7 +408,7 @@ export default {
             //PqGrid読込待ち
             new Promise((resolve, reject) => {
                 var timer = setInterval(function () {
-                    grid = vue.DAI01160Grid1;
+                    grid = vue.DAI01180Grid1;
                     if (!!grid && vue.getLoginInfo().isLogOn) {
                         clearInterval(timer);
                         return resolve(grid);
@@ -435,7 +418,7 @@ export default {
             .then((grid) => {
                 grid.showLoading();
 
-                axios.post("/DAI01160/ColSearch", { BushoCd: vue.viewModel.BushoCd })
+                axios.post("/DAI01180/ColSearch", { BushoCd: vue.viewModel.BushoCd })
                     .then(response => {
                         var res = _.cloneDeep(response.data);
                         var cd2eq0 = res.filter(v => v.サブ各種CD2 == "0");
@@ -617,7 +600,7 @@ export default {
         },
         onSummaryKindChanged: function(code, entities) {
             var vue = this;
-            var grid = vue.DAI01160Grid1;
+            var grid = vue.DAI01180Grid1;
 
             //条件別列変更
             vue.changeColVisible();
@@ -633,7 +616,7 @@ export default {
         },
         changeColVisible: function(colModel) {
             var vue = this;
-            var grid = vue.DAI01160Grid1;
+            var grid = vue.DAI01180Grid1;
             var cols = colModel || _.cloneDeep(grid.options.colModel);
 
             //順, 顧客名, 受注方法表示の列はコース合計時は非表示
@@ -721,7 +704,7 @@ export default {
         },
         conditionChanged: function(callback) {
             var vue = this;
-            var grid = vue.DAI01160Grid1;
+            var grid = vue.DAI01180Grid1;
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.BushoCd || !vue.viewModel.DeliveryDate) return;
@@ -740,7 +723,7 @@ export default {
         },
         filterChanged: function() {
             var vue = this;
-            var grid = vue.DAI01160Grid1;
+            var grid = vue.DAI01180Grid1;
 
             if (!grid) return;
 
