@@ -37,6 +37,7 @@
                     bind="CourseStart"
                     dataUrl="/Utilities/GetCourseList"
                     :params='{ bushoCd: viewModel.BushoCd, courseKbn: viewModel.CourseKbn }'
+                    :dataListReset=true
                     title="コース一覧"
                     labelCd="コースCD"
                     labelCdNm="コース名"
@@ -66,6 +67,7 @@
                     bind="CourseEnd"
                     dataUrl="/Utilities/GetCourseList"
                     :params='{ bushoCd: viewModel.BushoCd, courseKbn: viewModel.CourseKbn }'
+                    :dataListReset=true
                     title="コース一覧"
                     labelCd="コースCD"
                     labelCdNm="コース名"
@@ -171,7 +173,7 @@ export default {
     },
     data() {
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "日時処理 > 配送集計表",
+            ScreenTitle: "日次処理 > 配送集計表",
             noViewModel: true,
             viewModel: {
                 BushoCd: null,
@@ -698,9 +700,25 @@ export default {
         onDeliveryDateChanged: function(code, entity) {
             var vue = this;
 
-            //条件変更ハンドラ
-            vue.conditionChanged();
-        },
+           //コース区分変更
+            axios.post(
+                "/Utilities/GetCourseKbnFromDate",
+                {TargetDate: moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD")}
+            )
+                .then(res => {
+                    vue.viewModel.CourseKbn = res.data.コース区分;
+
+                    //条件変更ハンドラ
+                    vue.conditionChanged();
+                })
+                .catch(err => {
+                    console.log(err);
+                    $.dialogErr({
+                        title: "異常終了",
+                        contents: "祝日マスタの検索に失敗しました<br/>",
+                    });
+                });
+         },
         onIncludeJuchuChanged: function(code, entity) {
             var vue = this;
 
