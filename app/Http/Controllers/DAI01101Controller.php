@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\入金データ;
+use App\Models\売上データ明細;
 use App\Models\管理マスタ;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -12,6 +13,45 @@ use Illuminate\Support\Carbon;
 
 class DAI01101Controller extends Controller
 {
+
+    /**
+     * GetProductList
+     */
+    public function GetProductList($request)
+    {
+        $CustomerCd = $request->CustomerCd;
+
+        $sql = "
+            SELECT
+                PM.商品ＣＤ,
+                PM.商品名,
+                PM.商品区分,
+                PM.主食ＣＤ,
+                PM.副食ＣＤ,
+                IIF(MTT.商品ＣＤ IS NOT NULL, MTT.単価, PM.売価単価) AS 売価単価
+            FROM
+                商品マスタ PM
+                LEFT JOIN 得意先単価マスタ MTT
+                    ON	PM.商品ＣＤ=MTT.商品ＣＤ
+                    AND MTT.得意先ＣＤ=$CustomerCd
+            WHERE
+                表示ＦＬＧ=0
+				AND PM.商品ＣＤ IN (SELECT サブ各種CD1 FROM 各種テーブル WHERE 各種CD=44)
+        ";
+
+        $Result = collect(DB::select($sql))
+            ->map(function ($product) {
+                $vm = (object) $product;
+
+                $vm->Cd = $product->商品ＣＤ;
+                $vm->CdNm = $product->商品名;
+
+                return $vm;
+            })
+            ->values();
+
+        return response()->json($Result);
+    }
 
     /**
      * Search
@@ -47,6 +87,7 @@ class DAI01101Controller extends Controller
                 売上データ明細.日付,
                 売上データ明細.行Ｎｏ,
                 売上データ明細.明細行Ｎｏ,
+                売上データ明細.受注Ｎｏ,
                 売上データ明細.商品ＣＤ,
                 売上データ明細.現金個数,
                 売上データ明細.現金金額,
@@ -61,6 +102,7 @@ class DAI01101Controller extends Controller
                 売上支払方法.各種名称 AS 売上売掛現金区分名称,
                 商品マスタ.商品区分,
                 商品マスタ.商品名,
+                商品マスタ.商品名 AS 単価,
                 売上データ明細.分配元数量,
                 売上データ明細.修正日,
                 CASE WHEN 売上データ明細.食事区分 IS NULL OR 売上データ明細.食事区分 = 0 THEN 商品マスタ.食事区分 ELSE 売上データ明細.食事区分 END 食事区分,
@@ -114,16 +156,22 @@ class DAI01101Controller extends Controller
         DB::beginTransaction();
 
         try {
+            $TargetDate = $request->TargetDate;
             $params = $request->all();
 
-            $SaveList = $params['SaveList'];
+            $UriageList = $params['UriageList'];
 
             $date = Carbon::now()->format('Y-m-d H:i:s');
-            foreach ($SaveList as $rec) {
-                if (isset($rec['伝票Ｎｏ']) && !!$rec['伝票Ｎｏ']) {
-                    $r = 入金データ::query()
-                        ->where('入金日付', $rec['入金日付'])
-                        ->where('伝票Ｎｏ', $rec['伝票Ｎｏ'])
+            foreach ($UriageList as $rec) {
+                if (isset($rec['修正日']) && !!$rec['修正日']) {
+                    $r = 売上データ明細::query()
+                        ->where('日付', $rec['日付'])
+                        ->where('部署ＣＤ', $rec['部署ＣＤ'])
+                        ->where('コースＣＤ', $rec['コースＣＤ'])
+                        ->where('行Ｎｏ', $rec['行Ｎｏ'])
+                        ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
+                        ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
+                        ->where('受注Ｎｏ', $rec['受注Ｎｏ'])
                         ->get();
 
                     if (count($r) != 1) {
@@ -134,21 +182,81 @@ class DAI01101Controller extends Controller
                         continue;
                     }
 
-                    //現金が0の場合は削除扱い
-                    if (!isset($rec['現金']) && !isset($rec['現金'])) {
-                        入金データ::query()
-                            ->where('入金日付', $rec['入金日付'])
-                            ->where('伝票Ｎｏ', $rec['伝票Ｎｏ'])
-                            ->delete();
-                    } else {
-                        $rec['修正日'] = $date;
+                    $rec['修正日'] = $date;
+                    $rec['請求日付'] = $rec['請求日付'] ?? '';
 
-                        入金データ::query()
-                            ->where('入金日付', $rec['入金日付'])
-                            ->where('伝票Ｎｏ', $rec['伝票Ｎｏ'])
+
+                    //個数が0の場合は削除扱い
+                    if ($rec['現金個数'] == '0' && $rec['掛売個数'] == '0') {
+                        売上データ明細::query()
+                            ->where('日付', $rec['日付'])
+                            ->where('部署ＣＤ', $rec['部署ＣＤ'])
+                            ->where('コースＣＤ', $rec['コースＣＤ'])
+                            ->where('行Ｎｏ', $rec['行Ｎｏ'])
+                            ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
+                            ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
+                            ->where('受注Ｎｏ', $rec['受注Ｎｏ'])
+                            ->delete($rec);
+                    } else {
+                        売上データ明細::query()
+                            ->where('日付', $rec['日付'])
+                            ->where('部署ＣＤ', $rec['部署ＣＤ'])
+                            ->where('コースＣＤ', $rec['コースＣＤ'])
+                            ->where('行Ｎｏ', $rec['行Ｎｏ'])
+                            ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
+                            ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
+                            ->where('受注Ｎｏ', $rec['受注Ｎｏ'])
                             ->update($rec);
                     }
                 } else {
+                    $gno = 売上データ明細::query()
+                        ->where('日付', $rec['日付'])
+                        ->where('部署ＣＤ', $rec['部署ＣＤ'])
+                        ->where('コースＣＤ', $rec['コースＣＤ'])
+                        ->max('行Ｎｏ') + 1;
+
+                    $mno = 売上データ明細::query()
+                        ->where('日付', $rec['日付'])
+                        ->where('部署ＣＤ', $rec['部署ＣＤ'])
+                        ->where('コースＣＤ', $rec['コースＣＤ'])
+                        ->where('行Ｎｏ', $rec['行Ｎｏ'])
+                        ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
+                        ->max('明細行Ｎｏ') + 1;
+
+                    $rec['修正日'] = $date;
+                    $rec['行Ｎｏ'] = $gno;
+                    $rec['明細行Ｎｏ'] = $mno;
+                    $rec['請求日付'] = $rec['請求日付'] ?? '';
+
+                    売上データ明細::insert($rec);
+                }
+            }
+
+            $NyukinList = $params['NyukinList'];
+
+            foreach ($NyukinList as $rec) {
+                if (isset($rec['伝票Ｎｏ']) && !!$rec['伝票Ｎｏ']) {
+                    $r = 入金データ::query()
+                        ->where('入金日付', $rec['入金日付'])
+                        ->where('伝票Ｎｏ', $rec['伝票Ｎｏ'])
+                        ->get();
+
+                    if (count($r) != 1) {
+                        $skip = collect($skip)->push(["target" => $rec, "current" => null]);
+                        continue;
+                    } elseif ($rec['修正日'] != $r[0]->修正日) {
+                        $skip = collect($skip)->push(["target" => $rec, "current" => $r[0]]);
+                        continue;
+                    }
+
+                    入金データ::query()
+                        ->where('入金日付', $rec['入金日付'])
+                        ->where('伝票Ｎｏ', $rec['伝票Ｎｏ'])
+                        ->delete();
+                }
+
+                //現金が0の場合は登録しない
+                if (!!isset($rec['現金']) && $rec['現金'] != 0) {
                     $no = 管理マスタ::query()
                         ->where('管理ＫＥＹ', 1)
                         ->max('入金伝票Ｎｏ') + 1;
@@ -157,6 +265,7 @@ class DAI01101Controller extends Controller
                         ->where('管理ＫＥＹ', 1)
                         ->update(['入金伝票Ｎｏ' => $no]);
 
+                    $rec['入金日付'] = $TargetDate;
                     $rec['伝票Ｎｏ'] = $no;
                     $rec['修正日'] = $date;
 
@@ -172,7 +281,7 @@ class DAI01101Controller extends Controller
 
         return response()->json([
             'result' => true,
-            "edited" => $this->GetSalesList($request),
+            "edited" => count($skip) > 0 ? $this->GetSalesList($request) : [],
         ]);
     }
 }

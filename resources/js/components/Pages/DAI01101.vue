@@ -89,6 +89,7 @@ export default {
             DAI01101Grid1: null,
             CustomerList: [],
             ProductList: [],
+            ParentDataList: [],
             ParentData: {},
             grid1Options: {
                 selectionModel: { type: "cell", mode: "single", row: true },
@@ -155,6 +156,9 @@ export default {
                         ],
                     }
                 ],
+                rowDblClick: function (event, ui) {
+                    vue.showDetail(ui.rowData);
+                },
             },
         });
 
@@ -170,7 +174,7 @@ export default {
                 {visible: "false"},
                 { visible: "true", value: "明細入力", id: "DAI01101Grid1_Detail", disabled: true, shortcut: "F1",
                     onClick: function () {
-                        vue.showDetail(false);
+                        vue.showDetail();
                     }
                 },
                 {visible: "false"},
@@ -179,87 +183,106 @@ export default {
                 { visible: "true", value: "登録", id: "DAI01101Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         var grid = vue.DAI01101Grid1;
+                        var UpdateList = grid.getChanges().updateList;
+                        var OldList = grid.getChanges().oldList;
 
-                        var checkError = grid => !!grid.widget().find(".has-error").length || !!grid.widget().find(".ui-state-error").length;
+                        var UriageList = _.reduce(
+                            OldList,
+                            (acc, v, i) => {
+                                var cols = _.keys(v).filter(c => !!c.startsWith("個数_"));
+                                var upd = UpdateList[i];
 
-                        var hasError = checkError(grid);
+                                cols.forEach(c => {
+                                    var cd = c.replace("個数_", "");
+                                    var tanka = vue.ProductList.find(p => p.商品ＣＤ == cd).売価単価 || 0;
+                                    var parent = vue.ParentDataList.find(p => p.商品ＣＤ == cd);
+                                    var product = vue.ProductList.find(p => p.商品ＣＤ == cd);
 
-                        if(hasError){
-                            $.dialogErr({
-                                title: "入力値エラー",
-                                contents: "エラー項目があるため、登録できません。",
+                                    var data  = {};
+                                    data.日付 = moment(vue.params.TargetDate, "YYYY年MM月DD日").format("YYYY-MM-DD");
+                                    data.部署ＣＤ = vue.params.BushoCd;
+                                    data.コースＣＤ = vue.params.CourseCd || 0;
+                                    data.得意先ＣＤ = upd.得意先ＣＤ;
+                                    data.行Ｎｏ = upd["行Ｎｏ_" + cd];
+                                    data.明細行Ｎｏ = upd["明細行Ｎｏ_" + cd];
+                                    data.受注Ｎｏ = upd["受注Ｎｏ_" + cd] || 0;
+                                    data.配送担当者ＣＤ = 0;
+                                    data.商品ＣＤ = cd;
+                                    data.商品区分 = product.商品区分;
+                                    data.現金個数 = (upd.得意先売掛現金区分 == 0 ? upd[c] : 0) || 0;
+                                    data.現金金額 = data.現金個数 * tanka;
+                                    data.現金値引 = 0;
+                                    data.現金値引事由ＣＤ = 0;
+                                    data.掛売個数 = (upd.得意先売掛現金区分 == 1 ? upd[c] : 0) || 0;
+                                    data.掛売金額 = data.掛売個数 * tanka;
+                                    data.掛売値引 = 0;
+                                    data.掛売値引事由ＣＤ = 0;
+                                    data.請求日付 = !!data.請求日付 ? moment(data.請求日付).format("YYYYMMDD") : "";
+                                    data.予備金額１ = tanka;
+                                    data.予備金額２ = 0;
+                                    data.売掛現金区分 = upd.得意先売掛現金区分;
+                                    data.予備ＣＤ２ = 0;
+                                    data.主食ＣＤ = upd["主食_" + cd]
+                                        || (!!parent ? parent.主食ＣＤ : !!product ? product.主食ＣＤ : null);
+                                    data.副食ＣＤ = upd["副食_" + cd]
+                                        || (!!parent ? parent.副食ＣＤ : !!product ? product.副食ＣＤ : null);
+                                    data.食事区分 = upd["食事区分_" + cd]
+                                        || (!!parent ? parent.食事区分 : !!product ? product.食事区分 : null);
+                                    data.分配元数量 = 0;
+                                    data.修正日 = upd["修正日_" + cd];
+                                    data.修正担当者ＣＤ = vue.getLoginInfo().uid;
+
+                                    acc.push(data);
+                                });
+
+                                return acc;
+                            },
+                            []
+                        );
+
+                        var NyukinList = OldList
+                            .map((v, i) => _.has(v, "入金額") ? _.cloneDeep(UpdateList[i]) : null)
+                            .filter(v => !!v)
+                            .map(v => {
+                                var data  = {};
+                                data.入金日付 = v.入金日付;
+                                data.伝票Ｎｏ = v.伝票Ｎｏ;
+                                data.部署ＣＤ = vue.params.BushoCd;
+                                data.得意先ＣＤ = v.得意先ＣＤ;
+                                data.入金区分 = 1;
+                                data.現金 = v.入金額;
+                                data.小切手 = 0;
+                                data.振込 = 0;
+                                data.バークレー = 0;
+                                data.その他 = 0;
+                                data.相殺 = 0;
+                                data.値引 = 0;
+                                data.摘要 = v.摘要;
+                                data.備考 = v.備考;
+                                data.請求日付 = v.請求日付;
+                                data.予備金額１ = 0;
+                                data.予備金額２ = 0;
+                                data.予備ＣＤ１ = 0;
+                                data.予備ＣＤ２ = 0;
+                                data.修正日 = v.入金データ修正日;
+                                data.修正担当者ＣＤ = vue.getLoginInfo().uid;
+
+                                return data;
                             });
-                            return;
-                        }
 
-                        var checkRequire = grid => grid.pdata.map(r => [r.商品ＣＤ, r.個数]).every(r => r.every(v => !!v) || r.every(v => !v));
 
-                        var require = checkRequire(grid);
-
-                        if(!require){
-                            $.dialogErr({
-                                title: "未入力項目",
-                                contents: "未入力項目があるため、登録できません。",
-                            });
-                            return;
-                        }
-
-                        var changes = grid.createSaveParams();
-                        changes.AddList = changes.AddList.filter(r => _.values(diff(grid.vue.autoEmptyRowFunc(), r)).some(v => !!v));
-                        var SaveList = _.concat(changes.AddList, changes.UpdateList);
-
-                        //注文データの型に整形
-                        SaveList.forEach((v, i) => {
-                            v.日付 = moment(vue.searchParams.TargetDate).format("YYYY-MM-DD");
-                            v.部署ＣＤ = vue.searchParams.BushoCd;
-                            v.コースＣＤ = vue.searchParams.CourseCd || 0;
-                            v.行Ｎｏ = !!vue.params ? (vue.params.CustomerIndex || 0): 0;
-                            v.得意先ＣＤ = vue.searchParams.CustomerCd;
-                            v.受注Ｎｏ = _.max(grid.pdata.map(v => v.受注Ｎｏ)) || 0;
-                            v.配送担当者ＣＤ = vue.searchParams.TantoCd || 999;
-                            v.現金個数 = (v.売上売掛現金区分 == 0 ? v.個数 : v.現金個数) || 0;
-                            v.現金金額 = (v.売上売掛現金区分 == 0 ? v.金額 : v.現金金額) || 0;
-                            v.現金値引 = (v.売上売掛現金区分 == 0 ? v.値引 : v.現金値引) || 0;
-                            v.現金値引事由ＣＤ = (v.売上売掛現金区分 == 0 ? v.値引事由 : v.現金値引事由ＣＤ) || 0;
-                            v.掛売個数 = (v.売上売掛現金区分 == 1 ? v.個数 : v.掛売個数) || 0;
-                            v.掛売金額 = (v.売上売掛現金区分 == 1 ? v.金額 : v.掛売金額) || 0;
-                            v.掛売値引 = (v.売上売掛現金区分 == 1 ? v.値引 : v.掛売値引) || 0;
-                            v.掛売値引事由ＣＤ = (v.売上売掛現金区分 == 1 ? v.値引事由 : v.掛売値引事由ＣＤ) || 0;
-                            v.請求日付 = !!v.請求日付 ? moment(v.請求日付).format("YYYYMMDD") : "";
-                            v.予備金額１ = v.単価;
-                            v.予備金額２ = 0;
-                            v.売掛現金区分 = v.売上売掛現金区分;
-                            v.予備ＣＤ２ = 0;
-                            v.修正担当者ＣＤ = vue.getLoginInfo().uid;
-
-                            delete v.コース名;
-                            delete v.ＳＥＱ;
-                            delete v.得意先名;
-                            delete v.売掛現金区分名称;
-                            delete v.得意先売掛現金区分;
-                            delete v.得意先売掛現金区分名称;
-                            delete v.売上売掛現金区分;
-                            delete v.売上売掛現金区分名称;
-                            delete v.商品名;
-                            delete v.単価;
-                            delete v.個数;
-                            delete v.値引;
-                            delete v.値引事由;
-                            delete v.金額;
-                            delete v.今回請求額;
-                        });
 
                         //保存実行
                         grid.saveData(
                             {
                                 uri: "/DAI01101/Save",
                                 params: {
-                                    SaveList: SaveList,
+                                    UriageList: UriageList,
+                                    NyukinList: NyukinList,
                                 },
-                                optional: this.searchParams,
+                                optional: vue.searchParams,
                                 confirm: {
-                                    isShow: true,
-                                    title: "確認 " + vue.viewModel.CustomerNm,
+                                    isShow: false,
                                 },
                                 done: {
                                     isShow: false,
@@ -273,19 +296,8 @@ export default {
                                             });
                                             grid.blinkDiff(res.edited);
                                         } else {
-                                            if (!!vue.params) {
-                                                grid.commit();
-                                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
-                                            } else {
-                                                grid.clearData();
-                                                vue.viewModel.CustomerCd = null;
-                                                vue.viewModel.CustomerCd = null;
-                                                vue.viewModel.CourseCd = null;
-                                                vue.viewModel.CourseNm = null;
-                                                vue.viewModel.TantoCd = null;
-                                                vue.viewModel.PaymentCd = null;
-                                                vue.viewModel.PaymentNm = null;
-                                            }
+                                            grid.commit();
+                                            $(vue.$el).closest(".ui-dialog-content").dialog("close");
                                         }
 
                                         return false;
@@ -301,9 +313,9 @@ export default {
         mountedFunc: function(vue) {
             //watcher
             vue.$watch(
-                "$refs.DAI01101Grid1.selectionRowCount",
-                cnt => {
-                    vue.footerButtons.find(v => v.id == "DAI01101Grid1_Detail").disabled = cnt == 0 || cnt > 1;
+                "$refs.DAI01101Grid1.isSelection",
+                isSelection => {
+                    vue.footerButtons.find(v => v.id == "DAI01101Grid1_Detail").disabled = !isSelection;
                 }
             );
         },
@@ -313,16 +325,15 @@ export default {
             //事前情報取得
             axios.all(
                 [
-                    //対象商品リストの取得
-                    axios.post("/Utilities/GetCodeList", { cd: 44 }),
+                    //商品リストの取得
+                    axios.post("/DAI01101/GetProductList", { CustomerCd: vue.params.CustomerCd }),
                     //分配元データの取得
                     axios.post("/DAI01101/GetParentData", vue.searchParams),
                 ]
             ).then(
                 axios.spread((responseProduct, responseParent) => {
-                    vue.ProductList = responseProduct.data.map(v => {
-                        return { "商品ＣＤ": v.サブ各種CD1, "商品名": v.各種名称 };
-                    });
+                    vue.ProductList = responseProduct.data;
+                    vue.ParentDataList = responseParent.data;
                     vue.ParentData = vue.mergeData(responseParent.data)[0];
 
                     if(callback) callback();
@@ -465,6 +476,7 @@ export default {
                             acc.得意先売掛現金区分 = v.得意先売掛現金区分;
                             acc.得意先売掛現金区分名称 = v.得意先売掛現金区分名称;
 
+
                             acc.入金日付 = v.入金日付 ;
                             acc.伝票Ｎｏ = v.伝票Ｎｏ ;
                             acc.入金額 = v.入金額 ;
@@ -483,6 +495,16 @@ export default {
                             if (!!vue.ProductList.find(p => p.商品ＣＤ == v.商品ＣＤ)) {
                                 acc["個数_" + v.商品ＣＤ] = (acc["個数_" + v.商品ＣＤ] || 0)
                                     + v.現金個数 * 1 + v.掛売個数 * 1 + acc["分配元数量_" + v.商品ＣＤ];
+                                acc["修正日_" + v.商品ＣＤ] =
+                                    (!acc["修正日_" + v.商品ＣＤ] || acc["修正日_" + v.商品ＣＤ] < v.修正日) ? v.修正日 : acc["修正日_" + v.商品ＣＤ];
+
+                                acc["行Ｎｏ_" + v.商品ＣＤ] = v.行Ｎｏ;
+                                acc["明細行Ｎｏ_" + v.商品ＣＤ] = v.明細行Ｎｏ;
+                                acc["受注Ｎｏ_" + v.商品ＣＤ] = v.受注Ｎｏ;
+
+                                acc["主食_" + v.商品ＣＤ] = v.主食ＣＤ;
+                                acc["副食_" + v.商品ＣＤ] = v.副食ＣＤ;
+                                acc["食事区分_" + v.商品ＣＤ] = v.食事区分;
                             } else {
                                 acc["個数_その他"] = (acc["個数_その他"] || 0)
                                     + v.現金個数 * 1 + v.掛売個数 * 1;
@@ -512,10 +534,26 @@ export default {
             var vue = this;
             vue.footerButtons.find(v => v.id == "DAI01101Grid1_Save").disabled = grid.widget().find(".ng_value").length > 0;
         },
-        showDetail: function() {
+        showDetail: function(rowData) {
             var vue = this;
+            var grid = vue.DAI01101Grid1;
 
-            var params = vue.params;
+            var params = _.cloneDeep(vue.params);
+
+            var data;
+            if (!!rowData) {
+                data = _.cloneDeep(rowData);
+            } else {
+                var selection = grid.Selection().getSelection()
+                if (selection.length != 1) return;
+
+                data = _.cloneDeep(selection[0].rowData);
+            }
+
+            params.IsBunpai = true;
+            params.ParentCustomerCd = vue.params.CustomerCd;
+            params.CustomerCd = data.得意先ＣＤ;
+            delete params.CustomerIndex;
 
             PageDialog.show({
                 pgId: "DAI10010",

@@ -490,7 +490,7 @@ export default {
                         changes.AddList = changes.AddList.filter(r => _.values(diff(grid.vue.autoEmptyRowFunc(), r)).some(v => !!v));
                         var SaveList = _.concat(changes.AddList, changes.UpdateList);
 
-                        //注文データの型に整形
+                        //売上データ明細の型に整形
                         SaveList.forEach((v, i) => {
                             v.日付 = moment(vue.searchParams.TargetDate).format("YYYY-MM-DD");
                             v.部署ＣＤ = vue.searchParams.BushoCd;
@@ -630,18 +630,23 @@ export default {
         CourseAfterSearchFunc: function(comp) {
             var vue = this;
 
-            var match = comp.dataList.filter(v => v.得意先ＣＤ == vue.viewModel.CustomerCd);
-            if (match.length == 1 && vue.viewModel.CourseCd != "0" && vue.viewModel.CourseCd != "") {
-                comp.selectValue = vue.viewModel.CourseCd = match[0].Cd;
-                comp.selectName = vue.viewModel.CourseNm = match[0].CdNm;
-                comp.selectRow = match;
-                vue.viewModel.TantoCd = match[0].担当者ＣＤ
-            } else if (match.length > 1) {
-                comp.selectValue = vue.viewModel.CourseCd = "";
-                comp.selectName = vue.viewModel.CourseNm = "複数コース該当";
+            if (!!vue.params.IsBunpai) {
+                comp.selectValue = vue.viewModel.CourseCd = vue.params.CourseCd;
+                comp.selectName = vue.viewModel.CourseNm = vue.params.CourseNm;
             } else {
-                comp.selectValue = vue.viewModel.CourseCd = "";
-                comp.selectName = vue.viewModel.CourseNm = "コース無し";
+                var match = comp.dataList.filter(v => v.得意先ＣＤ == vue.viewModel.CustomerCd);
+                if (match.length == 1 && vue.viewModel.CourseCd != "0" && vue.viewModel.CourseCd != "") {
+                    comp.selectValue = vue.viewModel.CourseCd = match[0].Cd;
+                    comp.selectName = vue.viewModel.CourseNm = match[0].CdNm;
+                    comp.selectRow = match;
+                    vue.viewModel.TantoCd = match[0].担当者ＣＤ
+                } else if (match.length > 1) {
+                    comp.selectValue = vue.viewModel.CourseCd = "";
+                    comp.selectName = vue.viewModel.CourseNm = "複数コース該当";
+                } else {
+                    comp.selectValue = vue.viewModel.CourseCd = "";
+                    comp.selectName = vue.viewModel.CourseNm = "コース無し";
+                }
             }
 
             return false;
@@ -667,8 +672,14 @@ export default {
                 vue.viewModel.PaymentCd = entity["売掛現金区分"];
                 vue.viewModel.PaymentNm = ["現金", "掛売"][vue.viewModel.PaymentCd];
 
+                var params = _.cloneDeep(vue.searchParams);
+
+                if (!!vue.params.IsBunpai) {
+                    params.CustomerCd = vue.params.ParentCustomerCd;
+                }
+
                 //商品リスト検索
-                axios.post("/DAI10010/GetProductList", vue.searchParams)
+                axios.post("/DAI10010/GetProductList", params)
                     .then(res => {
                         vue.ProductList = res.data;
                         //条件変更ハンドラ
