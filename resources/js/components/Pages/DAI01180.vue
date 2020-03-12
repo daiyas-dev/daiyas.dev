@@ -44,12 +44,13 @@
             </div>
             <div class="col-md-5">
                 <PopupSelect
-                    id="CourseCode"
-                    ref="PopupSelect_CourseCode"
+                    id="CourseCd"
+                    ref="PopupSelect_CourseCd"
                     :vmodel=viewModel
-                    bind="CourseCode"
+                    bind="CourseCd"
                     dataUrl="/Utilities/GetCourseList"
                     :params='{ bushoCd: viewModel.BushoCd, courseKbn: viewModel.CourseKbn }'
+                    :dataListReset=true
                     title="コース一覧"
                     labelCd="コースCD"
                     labelCdNm="コース名"
@@ -61,7 +62,7 @@
                     :exceptCheck="[{ Cd: 0 }]"
                     :inputWidth=100
                     :nameWidth=300
-                    :onAfterChangedFunc=onCourseCodeChanged
+                    :onAfterChangedFunc=onCourseCdChanged
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=CourseAutoCompleteFunc
                 />
@@ -136,7 +137,7 @@ export default {
                 IsIncludeJuchu: "1",
                 IsBikoOutput: "0",
                 CourseKbn: null,
-                CourseCode: null,
+                CourseCd: null,
                 ColHeader : [],
                 dd: null,
             },
@@ -483,6 +484,8 @@ export default {
                 }, 100);
             })
             .then((grid) => {
+                //条件変更ハンドラ
+                vue.conditionChanged();
             })
             .catch(error => {
                 console.log(error);
@@ -538,7 +541,7 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        onCourseCodeChanged: function(code, entity) {
+        onCourseCdChanged: function(code, entity) {
             var vue = this;
 
             //フィルタ変更ハンドラ
@@ -547,7 +550,6 @@ export default {
         conditionChanged: function(callback) {
             var vue = this;
             var grid = vue.DAI01180Grid1;
-
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.BushoCd || !vue.viewModel.DateStart) return;
             if (!grid.options.colModel.some(v => v.custom)) return;
@@ -559,7 +561,7 @@ export default {
             params.DateEnd = params.DateEnd ? moment(params.DateEnd, "YYYY年MM月DD日").format("YYYYMMDD") : null;
 
             //コースコードはフィルタするので除外
-            delete params.CourseCode;
+            delete params.CourseCd;
 
             grid.searchData(params, false, null, callback);
         },
@@ -571,8 +573,8 @@ export default {
 
             var rules = [];
             var crules = [];
-            if (vue.viewModel.CourseCode != undefined && vue.viewModel.CourseCode != "") {
-                crules.push({ condition: "equal", value: vue.viewModel.CourseCode * 1 });
+            if (vue.viewModel.CourseCd != undefined && vue.viewModel.CourseCd != "") {
+                crules.push({ condition: "equal", value: vue.viewModel.CourseCd * 1 });
             }
 
             if (crules.length) {
