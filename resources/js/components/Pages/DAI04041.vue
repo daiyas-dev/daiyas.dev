@@ -124,7 +124,7 @@
                     <div class="row">
                         <div class="col-md-3">
                             <label class="">郵便番号</label>
-                            <input class="form-control p-2" style="width: 90px;" type="text"
+                            <input class="form-control p-2" style="width: 90px;" type="tel"
                                 v-model=viewModel.郵便番号
                                 maxlength="8"
                                 v-maxBytes=8
@@ -150,25 +150,25 @@
                     <div class="row">
                         <div class="col-md-3">
                             <label class="">電話番号1</label>
-                            <input class="form-control p-1" style="width: 130px;" type="text"
+                            <input class="form-control p-1" style="width: 130px;" type="tel"
                                 v-model=viewModel.電話番号１ maxlength="15" v-maxBytes=15
                             >
                         </div>
                         <div class="col-md-3">
                             <label class="">電話番号2</label>
-                            <input class="form-control p-1" style="width: 130px;" type="text"
+                            <input class="form-control p-1" style="width: 130px;" type="tel"
                                 v-model=viewModel.電話番号２ maxlength="15" v-maxBytes=15
                             >
                         </div>
                         <div class="col-md-3">
                             <label class="slabel">FAX1</label>
-                            <input class="form-control p-1" style="width: 130px;" type="text"
+                            <input class="form-control p-1" style="width: 130px;" type="tel"
                                 v-model=viewModel.ＦＡＸ１ maxlength="15" v-maxBytes=15
                             >
                         </div>
                         <div class="col-md-3">
                             <label class="slabel">FAX2</label>
-                            <input class="form-control p-1" style="width: 130px;" type="text"
+                            <input class="form-control p-1" style="width: 130px;" type="tel"
                                 v-model=viewModel.ＦＡＸ２ maxlength="15" v-maxBytes=15
                             >
                         </div>
@@ -178,7 +178,6 @@
                             <fieldset class="delivery-info w-100">
                                 <legend class="delivery-info">得意先の担当者</legend>
                                 <div class="row">
-                                    <!-- TODO:画面に新規追加した項目のため入力文字数制限未確定 -->
                                     <div class="col-md-3">
                                         <label class="">氏名</label>
                                         <input class="form-control p-1" type="text"
@@ -199,17 +198,16 @@
                                 <div class="row">
                                     <div class="col-md-3">
                                         <label>電話番号</label>
-                                        <input class="form-control p-1" type="text" style="width: 130px;"
+                                        <input class="form-control p-1" type="tel" style="width: 130px;"
                                             v-model=viewModel.窓口電話番号
                                             maxlength="15"  v-maxBytes=15
                                         >
                                     </div>
-                                    <!-- TODO:メールアドレス:半角のみ入力可？ -->
                                     <div class="col-md-9">
                                         <label>メール</label>
-                                        <input class="form-control p-1" type="tel"
+                                        <input class="form-control p-1" type="email"
                                             v-model=viewModel.窓口メール
-                                            maxlength=255
+                                            maxlength=254
                                         >
                                     </div>
                                 </div>
@@ -223,7 +221,7 @@
                                 <div class="row">
                                     <div class="col-md-3">
                                         <label class="">郵便番号</label>
-                                        <input class="form-control p-2" style="width: 90px;" type="text"
+                                        <input class="form-control p-2" style="width: 90px;" type="tel"
                                             v-model=viewModel.お届け先郵便番号
                                             maxlength="8"
                                             v-maxBytes=8
@@ -251,13 +249,13 @@
                                 <div class="row">
                                     <div class="col-md-3">
                                         <label class="">電話番号1</label>
-                                        <input class="form-control p-1" style="width: 130px;" type="text"
+                                        <input class="form-control p-1" style="width: 130px;" type="tel"
                                             v-model=viewModel.お届け先電話番号１ maxlength="15" v-maxBytes=15
                                         >
                                     </div>
                                     <div class="col-md-3">
                                         <label class="">電話番号2</label>
-                                        <input class="form-control p-1" style="width: 130px;" type="text"
+                                        <input class="form-control p-1" style="width: 130px;" type="tel"
                                             v-model=viewModel.お届け先電話番号２ maxlength="15" v-maxBytes=15
                                         >
                                     </div>

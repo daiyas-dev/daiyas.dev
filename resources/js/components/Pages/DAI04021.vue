@@ -46,6 +46,7 @@
                 <input class="form-control" style="width: 100px;" type="tel"
                     v-model=viewModel.郵便番号
                     maxlength="8"
+                    v-maxBytes=8
                     >
             </div>
         </div>
@@ -64,7 +65,8 @@
                 <label class="">電話番号</label>
                 <input class="form-control" style="width: 130px;" type="tel"
                     v-model=viewModel.電話番号
-                    maxlength="14"
+                    maxlength="12"
+                    v-maxBytes=12
                 >
             </div>
         </div>
@@ -73,8 +75,9 @@
                 <label class="">FAX</label>
                 <input class="form-control" style="width: 130px;" type="tel"
                     v-model=viewModel.ＦＡＸ
-                    maxlength="14"
-                    >
+                    maxlength="12"
+                    v-maxBytes=12
+                >
             </div>
         </div>
         <div class="row">
