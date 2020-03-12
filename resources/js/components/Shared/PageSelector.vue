@@ -73,6 +73,7 @@ import DAI01110 from "@vcp/DAI01110.vue";
 import DAI01120 from "@vcp/DAI01120.vue";
 import DAI01130 from "@vcp/DAI01130.vue";
 import DAI01140 from "@vcp/DAI01140.vue";
+import DAI01150 from "@vcp/DAI01150.vue";
 import DAI01160 from "@vcp/DAI01160.vue";
 import DAI01170 from "@vcp/DAI01170.vue";
 import DAI01180 from "@vcp/DAI01180.vue";
@@ -170,6 +171,7 @@ export default {
         DAI01120,
         DAI01130,
         DAI01140,
+        DAI01150,
         DAI01160,
         DAI01170,
         DAI01180,
@@ -219,6 +221,9 @@ export default {
         var vue = this;
         var component = vue.isSelector ? "CommonSelector" : vue._pgId;
         var componentVue = vue.$options.components[component];
+
+        //tooltip消去
+        $("body").find("[id^=tooltip]").tooltip("hide");
 
         //ページ切替通知
         if (vue.isChild != true && componentVue && componentVue.data().ScreenTitle) {

@@ -231,7 +231,7 @@ export default {
         var vue = this;
 
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: vue.IsChild ? "入金入力" : "日時処理 > 入金入力",
+            ScreenTitle: !!vue.params ? "入金入力" : "日時処理 > 入金入力",
             noViewModel: true,
             viewModel: {
                 BushoCd: null,
@@ -450,7 +450,7 @@ export default {
             vue.footerButtons.push(
                 { visible: "true", value: "削除", id: "DAI01130Grid1_Delete", disabled: true, shortcut: "F3",
                     onClick: function () {
-                        vue.Delete();
+                        vue.delete();
                     }
                 },
                 {visible: "false"},
@@ -705,6 +705,72 @@ export default {
                     optional: vue.searchParams,
                     confirm: {
                         isShow: false,
+                    },
+                    done: {
+                        isShow: false,
+                        callback: (gridVue, grid, res)=>{
+                            if (!!res.edited) {
+                                $.dialogInfo({
+                                    title: "登録チェック",
+                                    contents: "他で変更されたデータがあります。",
+                                });
+
+                                vue.setSearchResult(res.current, true);
+                            } else {
+                                if (!!vue.IsChild && !!vue.params.onSaveFunc) {
+                                    vue.params.onSaveFunc(vue.viewModel);
+                                    $(vue.$el).closest(".ui-dialog-content").dialog("close");
+                                } else {
+                                    vue.setSearchResult(res.current, false);
+                                }
+                            }
+
+                            return false;
+                        },
+                    },
+                }
+            );
+        },
+        delete: function() {
+            var vue = this;
+            var grid = vue.DAI01130GridNyukin;
+
+            var target = {
+                "入金日付": vue.searchParams.TargetDate,
+                "伝票Ｎｏ": vue.viewModel.DenpyoNo,
+                "部署ＣＤ": vue.searchParams.BushoCd,
+                "得意先ＣＤ": vue.searchParams.CustomerCd,
+                "入金区分": 1,
+                "現金": grid.pdata.find(r => r.kind == "現金").value * 1,
+                "小切手": grid.pdata.find(r => r.kind == "小切手").value * 1,
+                "振込": grid.pdata.find(r => r.kind == "振込").value * 1,
+                "バークレー": grid.pdata.find(r => r.kind == "振替").value * 1,
+                "その他": grid.pdata.find(r => r.kind == "チケット入金").value * 1,
+                "相殺": grid.pdata.find(r => r.kind == "振込料").value * 1,
+                "値引": grid.pdata.find(r => r.kind == "値引").value * 1,
+                "摘要": vue.viewModel.Tekiyo,
+                "備考": vue.viewModel.Biko,
+                "請求日付": !!vue.CurrentNyukinData ? vue.CurrentNyukinData.請求日付 : "",
+                "予備金額１": 0,
+                "予備金額２": 0,
+                "予備ＣＤ１": 0,
+                "予備ＣＤ２": 0,
+                "修正日": !!vue.CurrentNyukinData ? vue.CurrentNyukinData.修正日 : "",
+                "修正担当者ＣＤ": vue.getLoginInfo().uid,
+            };
+
+            //削除実行
+            grid.saveData(
+                {
+                    uri: "/DAI01130/Delete",
+                    params: {
+                        Target: target,
+                    },
+                    optional: vue.searchParams,
+                    confirm: {
+                        isShow: true,
+                        title: "入金データ削除確認",
+                        message: "入金データを削除します。宜しいですか？",
                     },
                     done: {
                         isShow: false,

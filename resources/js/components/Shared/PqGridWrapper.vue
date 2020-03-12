@@ -27,6 +27,7 @@ export default {
             saveExceptions: null,
             isSearchOnActivate: true,
             isActivated: false,
+            selectionData: null,
             selectionRow: null,
             selectionRowCount: null,
             isSelection: false,
@@ -1010,6 +1011,10 @@ export default {
                             grid.refreshToolbar();
                         }
                     }
+                }
+
+                if (grid.getData().length == 0) {
+                    vue.selectionRowCount = 0;
                 }
 
                 //PqGrid-Toolbar設定
@@ -2420,7 +2425,6 @@ export default {
                         });
 
                     var dl = diff(prev, compare);
-                    // console.log("blinkDiff: detect diff", dl);
 
                     if (exceptEmpty) {
                         _.forIn(dl, (v, k) => {
@@ -2441,6 +2445,8 @@ export default {
                     grid.options.dataModel.data = data;
                     grid.refreshDataAndView();
                     grid.options.dataModel.location = location;
+
+                    if (prev.length != compare.length) return;
 
                     _.forIn(dl, (rowData, i) => {
                         var rowIndx = grid.getRowIndx({rowData: prev[i]}).rowIndx;

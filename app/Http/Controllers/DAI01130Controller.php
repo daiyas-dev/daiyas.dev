@@ -240,4 +240,46 @@ class DAI01130Controller extends Controller
             "current" => $this->GetData($request),
         ]);
     }
+
+    /**
+     * Delete
+     */
+    public function Delete($request)
+    {
+        $edited = false;
+        DB::beginTransaction();
+
+        $Target = $request->Target;
+
+        try {
+            if (isset($Target['伝票Ｎｏ']) && !!$Target['伝票Ｎｏ']) {
+                $r = 入金データ::query()
+                    ->where('入金日付', $Target['入金日付'])
+                    ->where('伝票Ｎｏ', $Target['伝票Ｎｏ'])
+                    ->get();
+
+                if (count($r) != 1) {
+                    $edited = true;
+                } else if ($Target['修正日'] != $r[0]->修正日) {
+                    $edited = true;
+                } else {
+                    入金データ::query()
+                        ->where('入金日付', $Target['入金日付'])
+                        ->where('伝票Ｎｏ', $Target['伝票Ｎｏ'])
+                        ->delete();
+
+                    DB::commit();
+                }
+            }
+        } catch (Exception $exception) {
+            DB::rollBack();
+            throw $exception;
+        }
+
+        return response()->json([
+            'result' => true,
+            "edited" => $edited,
+            "current" => $this->GetData($request),
+        ]);
+    }
 }

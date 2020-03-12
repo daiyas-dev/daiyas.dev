@@ -501,12 +501,6 @@ export default {
         onCourseChanged: function(code, entity, comp) {
             var vue = this;
 
-            if (!!entity) {
-                vue.viewModel.BushoCd = entity.部署ＣＤ;
-            } else {
-                vue.viewModel.BushoCd = !!vue.getLoginInfo() ? vue.getLoginInfo().bushoCd : null;
-            }
-
             //条件変更ハンドラ
             vue.conditionChanged();
         },
@@ -518,6 +512,10 @@ export default {
         },
         onCustomerChanged: function(code, entity, comp) {
             var vue = this;
+
+            if (!!entity) {
+                vue.viewModel.BushoCd = entity.部署CD;
+            }
 
             //条件変更ハンドラ
             vue.conditionChanged();
