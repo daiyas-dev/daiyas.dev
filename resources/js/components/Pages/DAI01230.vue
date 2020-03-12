@@ -5,35 +5,10 @@
                 <label>部署</label>
             </div>
             <div class="col-md-2">
-                <VueSelect
-                    id="BushoCdStart"
-                    ref="BushoCdSelectStart"
-                    :vmodel=viewModel
-                    bind="BushoCdStart"
-                    uri="/Utilities/GetBushoList"
-                    :params="{ cds: null }"
-                    :withCode=true
-                    :isShowInvalid=false
+                <VueSelectBusho
                     :onChangedFunc=onBushoChanged
                 />
             </div>
-            ～　
-            <div class="col-md-2">
-                <VueSelect
-                    id="BushoCdEnd"
-                    ref="BushoCdSelectEnd"
-                    :vmodel=viewModel
-                    bind="BushoCdEnd"
-                    uri="/Utilities/GetBushoList"
-                    :params="{ cds: null }"
-                    :withCode=true
-                    :isShowInvalid=false
-                    :onChangedFunc=onBushoChanged
-
-                />
-            </div>
-        </div>
-        <div class="row">
             <div class="col-md-1">
                 <label>配送日付</label>
             </div>
@@ -49,8 +24,6 @@
                     :onChangedFunc=onDeliveryDateChanged
                 />
             </div>
-        </div>
-        <div class="row">
             <div class="col-md-1">
                 <label>コース区分</label>
             </div>
@@ -83,8 +56,6 @@
                     :onChangedFunc=onShokuKbnChanged
                 />
             </div>
-        </div>
-        <div class="row">
             <div class="col-md-1">
                 <label>工場ＣＤ</label>
             </div>
@@ -168,8 +139,6 @@ export default {
             viewModel: {
                 BushoCd: null,
                 BushoNm: null,
-                BushoCdStart: null,
-                BushoCdEnd: null,
                 DeliveryDate: null,
                 CourseKbn: null,
                 ShokuKbn: null,
@@ -296,8 +265,7 @@ export default {
             var grid = vue.DAI01230Grid1;
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
-            if (!vue.viewModel.BushoCdStart || !vue.viewModel.BushoCdEnd ||
-                !vue.viewModel.DeliveryDate || !vue.viewModel.CourseKbn || !vue.viewModel.ShokuKbn) return;
+            if (!vue.viewModel.BushoCd || !vue.viewModel.DeliveryDate || !vue.viewModel.CourseKbn || !vue.viewModel.ShokuKbn) return;
 
             var params = $.extend(true, {}, vue.viewModel);
 

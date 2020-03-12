@@ -15,8 +15,7 @@ class DAI01230Controller extends Controller
      */
     public function Search($vm)
     {
-        $BushoCdStart = $vm->BushoCdStart;
-        $BushoCdEnd = $vm->BushoCdEnd;
+        $BushoCd = $vm->BushoCd;
         $DeliveryDate = $vm->DeliveryDate;
         $CourseKbn = $vm->CourseKbn;
         //TODO:主食副食区分は？
@@ -30,7 +29,7 @@ class DAI01230Controller extends Controller
 WITH WITH_注文データ AS (
 SELECT * FROM 注文データ
         WHERE 注文区分 = 0
-            AND 部署ＣＤ >= $BushoCdStart AND 部署ＣＤ <= $BushoCdEnd
+            AND 部署ＣＤ = $BushoCd
             AND CONVERT(varchar, 注文日付, 112) = $DeliveryDate
             AND CONVERT(varchar, 配送日, 112)   = $DeliveryDate
 )
@@ -42,7 +41,7 @@ SELECT
 GROUP BY
     部署ＣＤ,  得意先ＣＤ ,日付, 商品ＣＤ
 HAVING CONVERT(VARCHAR, 日付, 112) = $DeliveryDate
-AND 部署ＣＤ >= $BushoCdStart AND 部署ＣＤ <= $BushoCdEnd
+AND 部署ＣＤ = $BushoCd
 )
 
 ,WITH_注文予測 AS (
@@ -127,8 +126,7 @@ FROM
     INNER JOIN コーステーブル CT ON
         COU.コースＣＤ = CT.コースＣＤ
         AND COU.部署ＣＤ = CT.部署ＣＤ
-        AND CT.部署ＣＤ >= $BushoCdStart
-        AND CT.部署ＣＤ <= $BushoCdEnd
+        AND CT.部署ＣＤ = $BushoCd
         AND COU.コース区分 = $CourseKbn
 
     LEFT JOIN 部署マスタ BUSYO  ON
