@@ -42,94 +42,10 @@ class DAI01180Controller extends Controller
     public function Search($vm)
     {
         $BushoCd = $vm->BushoCd;
-        $DateStart = $vm->DeliveryDate;
-        $DateEnd = $vm->DeliveryDate;
-        //テスト用に日付を固定
-        $DateStart = '20190507';
-        $DateEnd = '20190509';
-        $DeliveryDate = $vm->DeliveryDate;//後ほど除去する
+        $DateStart = $vm->DateStart;
+        $DateEnd = $vm->DateEnd;
 
         $sql = "
-WITH コース区分判定 AS (
-	SELECT
-		(CASE
-			WHEN
-				(
-					SELECT
-						対象日付
-					FROM
-						祝日マスタ
-					WHERE
-						CONVERT(VARCHAR, 対象日付, 112)='$DeliveryDate') IS NOT NULL
-			THEN
-				'4'
-			ELSE
-				CASE DATEPART (WEEKDAY , '$DeliveryDate')
-					WHEN '1' THEN '3'
-					WHEN '7' THEN '2'
-					ELSE '1'
-				END
-		END) AS 区分
-),
-得意先別注文データ AS (
-	select
-		chumon.*
-	from 注文データ chumon
-	where
-		部署ＣＤ=$BushoCd
-		and chumon.注文区分 = 0
-		AND chumon.注文日付 = '$DeliveryDate'
-),
-単価表示商品 AS (
-	SELECT
-		サブ各種CD1 AS 単価表示商品CD
-	FROM 各種テーブル
-	WHERE 各種CD=(
-		SELECT
-			IIF(サブ各種CD2=1,24,IIF(サブ各種CD2=2,25,IIF(サブ各種CD2=3,41,NULL)))
-		FROM 各種テーブル
-		WHERE
-			各種CD = 26
-		AND サブ各種CD1 =$BushoCd
-	)
-	AND サブ各種CD2 =1
-),
-得意先単価AGG AS (
-	SELECT
-		T1.得意先ＣＤ,
-		'{' + STUFF(
-			(
-				SELECT
-					',\"' + CAST(T2.商品ＣＤ AS VARCHAR(5)) + '\":' + CAST(T2.単価 AS VARCHAR(10))
-				FROM (
-					SELECT
-						*
-					FROM
-						得意先単価マスタ TT
-						INNER JOIN 	単価表示商品 TP
-							on TT.商品ＣＤ = TP.単価表示商品CD
-				) AS T2
-				WHERE
-					T2.得意先ＣＤ = T1.得意先ＣＤ
-				ORDER BY 得意先ＣＤ
-					FOR XML PATH(''), TYPE
-			).value('.', 'VARCHAR(MAX)'),
-			1,
-			1,
-			''
-		) + '}'
-		AS 得意先単価JSON
-	FROM (
-		SELECT
-			*
-		FROM
-			得意先単価マスタ TT
-			INNER JOIN 	単価表示商品 TP
-				on TT.商品ＣＤ = TP.単価表示商品CD
-	) AS T1
-	GROUP BY
-		T1.得意先ＣＤ
-)
 SELECT
   CONVERT(NVARCHAR, D1.日付, 111) AS 日付
   , D1.部署ＣＤ
