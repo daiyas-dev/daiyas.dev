@@ -535,12 +535,6 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        onIncludeJuchuChanged: function(code, entity) {
-            var vue = this;
-
-            //条件変更ハンドラ
-            vue.conditionChanged();
-        },
         onCourseCdChanged: function(code, entity) {
             var vue = this;
 
