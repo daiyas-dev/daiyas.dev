@@ -45,8 +45,8 @@ class DAI01180Controller extends Controller
         $DateStart = $vm->DeliveryDate;
         $DateEnd = $vm->DeliveryDate;
         //テスト用に日付を固定
-        $DateStart = '20190904';
-        $DateEnd = '20190904';
+        $DateStart = '20190507';
+        $DateEnd = '20190509';
         $DeliveryDate = $vm->DeliveryDate;//後ほど除去する
 
         $sql = "
@@ -138,7 +138,7 @@ SELECT
   , MAX(D1.コース名) AS コース名
   , D1.ＳＥＱ
   , D1.得意先ＣＤ
-  , MAX(D1.得意先名) AS 得意先名
+  , MAX(D1.得意先名) 1AS 得意先名
   , D1.締日
   , SUM(日締現金) AS 日締現金
   , SUM(バークレー) AS バークレー
