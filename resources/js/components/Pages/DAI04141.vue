@@ -58,7 +58,6 @@
         <div class="row">
             <div class="col-md-12">
                 <label>適用年月</label>
-                <!-- TODO:DatePickerが子画面からはみ出る -->
                 <DatePickerWrapper
                     id="TekiyoDate"
                     ref="DatePicker_Date"

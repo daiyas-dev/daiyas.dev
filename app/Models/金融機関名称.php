@@ -36,6 +36,6 @@ class 金融機関名称 extends BaseModel
     /**
      * @var array
      */
-    protected $fillable = ['銀行名', '銀行名カナ', '郵便フラグ'];
+    protected $fillable = ['銀行名', '銀行名カナ', '郵便フラグ', '無効フラグ'];
 
 }

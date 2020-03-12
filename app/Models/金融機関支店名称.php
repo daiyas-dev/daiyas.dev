@@ -22,6 +22,6 @@ class 金融機関支店名称 extends BaseModel
     /**
      * @var array
      */
-    protected $fillable = ['支店名', '支店名カナ'];
+    protected $fillable = ['支店名', '支店名カナ', '無効フラグ'];
 
 }
