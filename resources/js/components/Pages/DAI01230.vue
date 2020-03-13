@@ -74,28 +74,17 @@
             <div class="col-md-1">
                 <label>工場ＣＤ</label>
             </div>
-            <div class="col-md-2">
-                <VueSelect
-                    id="FactoryCdStart"
+            <div class="col-md-5">
+                <VueMultiSelect
+                    id="BushoCd"
+                    ref="VueMultiSelect_FactoryCd"
                     :vmodel=viewModel
-                    bind="FactoryCdStart"
+                    bind="FactoryCdArray"
                     uri="/Utilities/GetCodeList"
                     :params="{ cd: 37 }"
+                    :hasNull=true
                     :withCode=true
-                    :hasNull=false
-                    :onChangedFunc=onFactoryChanged
-                />
-            </div>
-            ～　
-            <div class="col-md-2">
-                <VueSelect
-                    id="FactoryCdEnd"
-                    :vmodel=viewModel
-                    bind="FactoryCdEnd"
-                    uri="/Utilities/GetCodeList"
-                    :params="{ cd: 37 }"
-                    :withCode=true
-                    :hasNull=false
+                    customStyle="{ width: 200px; }"
                     :onChangedFunc=onFactoryChanged
                 />
             </div>
@@ -260,29 +249,20 @@ export default {
         onDeliveryDateChanged: function(code, entity) {
             var vue = this;
 
-            //TODO:列定義更新
-            vue.refreshCols();
-
-            // //条件変更ハンドラ
-            // vue.conditionChanged();
+            //条件変更ハンドラ
+            vue.conditionChanged();
         },
         onCourseKbnChanged: function(code, entity) {
             var vue = this;
 
-            //TODO:列定義更新
-            vue.refreshCols();
-
-            // //条件変更ハンドラ
-            // vue.conditionChanged();
+            //条件変更ハンドラ
+            vue.conditionChanged();
         },
         onBentoKbnChanged: function(code, entity) {
             var vue = this;
 
-            //TODO:列定義更新
-            vue.refreshCols();
-
-            // //条件変更ハンドラ
-            // vue.conditionChanged();
+            //条件変更ハンドラ
+            vue.conditionChanged();
         },
         onFactoryChanged: function(code, entity) {
             var vue = this;
@@ -309,7 +289,7 @@ export default {
             })
             .then((grid) => {
                 grid.showLoading();
-                //TODO:作業途中
+                //TODO:作業途中 /DAI01230/ColSearchしない。BushoCdArrayからとる。
                 var params = {BushoCd: vue.viewModel.BushoCd, FactoryCdStart: vue.viewModel.FactoryCdStart, FactoryCdEnd: vue.viewModel.FactoryCdEnd}
 
                 axios.post("/DAI01230/ColSearch", params)
@@ -396,6 +376,7 @@ export default {
             var vue = this;
             var bentoKbn = vue.viewModel.BentoKbn;
 
+            //TODO:集計結果をもとに、列の設定
             //集計
             var groupings = _(res)
                 //.groupBy(v => v.主食ＣＤ)
