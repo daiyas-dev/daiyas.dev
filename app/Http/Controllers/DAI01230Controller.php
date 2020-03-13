@@ -11,6 +11,38 @@ use PDO;
 class DAI01230Controller extends Controller
 {
     /**
+     *  ColumSearch
+     */
+
+    public function ColSearch($vm)
+    {
+        $BushoCd = $vm->BushoCd;
+        $FactoryCdStart = $vm->FactoryCdStart;
+        $FactoryCdEnd = $vm->FactoryCdEnd;
+
+        $WhereBusho = !!$BushoCd ? "AND 部署CD = $BushoCd" : "";
+
+        $sql = "
+            SELECT
+                部署CD
+                ,部署名
+                ,工場ＣＤ
+
+            FROM 部署マスタ
+            WHERE
+                0=0
+                $WhereBusho
+                AND 工場ＣＤ >= $FactoryCdStart
+                AND 工場ＣＤ <= $FactoryCdEnd
+            ORDER by 工場ＣＤ　
+        ";
+
+        $DataList = DB::select($sql);
+
+        return response()->json($DataList);
+    }
+
+    /**
      * Search
      */
     public function Search($vm)
@@ -18,7 +50,6 @@ class DAI01230Controller extends Controller
         $BushoCd = $vm->BushoCd;
         $DeliveryDate = $vm->DeliveryDate;
         $CourseKbn = $vm->CourseKbn;
-        //TODO:主食副食区分は？
         $FactoryCdStart = $vm->FactoryCdStart;
         $FactoryCdEnd = $vm->FactoryCdEnd;
 
@@ -157,11 +188,12 @@ WHERE
 
 SELECT
 	WITH_コース別持出数.*
-	,s1.商品略称 主食略称
-	,s2.商品略称 副食略称
-from WITH_コース別持出数
+	,s1.商品名 主食名
+	,s2.商品名 副食名
+FROM WITH_コース別持出数
     LEFT JOIN 商品マスタ s1 ON s1.商品ＣＤ = WITH_コース別持出数.主食ＣＤ
     LEFT JOIN 商品マスタ s2 ON s2.商品ＣＤ = WITH_コース別持出数.副食ＣＤ
+
 ORDER BY
     WITH_コース別持出数.部署ＣＤ
     , WITH_コース別持出数.得意先ＣＤ
