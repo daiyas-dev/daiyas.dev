@@ -6,6 +6,7 @@
 import VueDataList from "@vcs/DataList.vue";
 import VueSelect from "@vcs/VueSelect.vue";
 import VueSelectBusho from "@vcs/VueSelectBusho.vue";
+import VueMultiSelect from "@vcs/VueMultiSelect.vue";
 import VueOptions from "@vcs/VueOptions.vue";
 import VueCheck from "@vcs/VueCheck.vue";
 import VueCheckList from "@vcs/VueCheckList.vue";
@@ -59,6 +60,7 @@ export default {
         "VueDataList": VueDataList,
         "VueSelect": VueSelect,
         "VueSelectBusho": VueSelectBusho,
+        "VueMultiSelect": VueMultiSelect,
         "VueOptions": VueOptions,
         "VueCheck": VueCheck,
         "VueCheckList": VueCheckList,

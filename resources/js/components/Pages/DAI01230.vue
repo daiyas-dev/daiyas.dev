@@ -9,6 +9,21 @@
                     :onChangedFunc=onBushoChanged
                 />
             </div>
+            <div class="col-md-9">
+                <VueMultiSelect
+                    id="BushoCd"
+                    ref="VueMultiSelect_BushoCd"
+                    :vmodel=viewModel
+                    bind="BushoCdArray"
+                    uri="/Utilities/GetBushoList"
+                    :hasNull=true
+                    :withCode=true
+                    customStyle="{ width: 200px; }"
+                    :onChangedFunc=onBushoChanged
+                />
+            </div>
+        </div>
+        <div class="row">
             <div class="col-md-1">
                 <label>配送日付</label>
             </div>
@@ -139,6 +154,7 @@ export default {
             viewModel: {
                 BushoCd: null,
                 BushoNm: null,
+                BushoCdArray: [],
                 DeliveryDate: null,
                 CourseKbn: null,
                 BentoKbn: null,
