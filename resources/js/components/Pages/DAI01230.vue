@@ -46,14 +46,14 @@
             </div>
             <div class="col-md-2">
                 <VueSelect
-                    id="ShokuKbn"
+                    id="BentoKbn"
                     :vmodel=viewModel
-                    bind="ShokuKbn"
+                    bind="BentoKbn"
                     uri="/Utilities/GetCodeList"
                     :params="{ cd: 39 }"
                     :withCode=true
                     :hasNull=false
-                    :onChangedFunc=onShokuKbnChanged
+                    :onChangedFunc=onBentoKbnChanged
                 />
             </div>
             <div class="col-md-1">
@@ -141,7 +141,7 @@ export default {
                 BushoNm: null,
                 DeliveryDate: null,
                 CourseKbn: null,
-                ShokuKbn: null,
+                BentoKbn: null,
                 FactoryCdStart: null,
                 FactoryCdEnd: null,
             },
@@ -185,26 +185,30 @@ export default {
                 ],
                 colModel: [
                     {
-                        title: "商品ＣＤ",
-                        dataIndx: "商品ＣＤ", dataType: "string", key: true,
-                        editable: false,
-                        fixed: true,
-                        hidden: true,
-                    },
-                    {
                         title: "製造品名",
-                        dataIndx: "商品名", dataType: "string", key: true,
-                        width: 200, minWidth: 200,
+                        dataIndx: "主食副食名", dataType: "string",
+                        width: 200, maxWidth: 250, minWidth: 200,
                         editable: false,
-                        fixed: true,
                         render: ui => {
                             if (ui.rowData.pq_grandsummary) {
-                                //集計行
-                                ui.rowData["商品名"] = "合計";
+                                ui.rowData.CustomerName = "合計";
+                                ui.cls.push("justify-content-end");
                                 return { text: "合計" };
+                            } else {
+                                var el = $("<div>").addClass("d-flex")
+                                    .append($("<label>").css("width", "75px").css("text-align", "right").text(ui.rowData.主食副食名))
+                                    .append($("<div>").css("margin-left", "4px").text(ui.rowData.主食副食名))
+                                    ;
+                                return { text: el.prop("outerHTML") };
                             }
-                            return ui;
                         },
+                        fixed: true,
+                    },
+                    {
+                        title: "合計",
+                        dataIndx: "持出数合計", dataType: "integer",
+                        width: 150, maxWidth: 150, minWidth: 150,
+                        editable: false,
                     },
                 ],
             },
@@ -232,8 +236,11 @@ export default {
         onBushoChanged: function(code, entities) {
             var vue = this;
 
-            //検索条件変更
-            vue.conditionChanged();
+            //TODO:列定義更新
+            vue.refreshCols();
+
+            // //条件変更ハンドラ
+            // vue.conditionChanged();
         },
         onDeliveryDateChanged: function(code, entity) {
             var vue = this;
@@ -247,134 +254,182 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        onShokuKbnChanged: function(code, entity) {
+        onBentoKbnChanged: function(code, entity) {
             var vue = this;
 
-            //条件変更ハンドラ
-            vue.conditionChanged();
+            //TODO:列定義更新
+            vue.refreshCols();
+
+            // //条件変更ハンドラ
+            // vue.conditionChanged();
         },
         onFactoryChanged: function(code, entity) {
             var vue = this;
 
-            //TODO:フィルターではなく条件変更？
-            //フィルタ変更ハンドラ
-            vue.filterChanged();
+            //TODO:列定義更新
+            vue.refreshCols();
+
+            // //条件変更ハンドラ
+            // vue.conditionChanged();
+        },
+        refreshCols: function() {
+            var vue = this;
+            var grid;
+
+            //PqGrid読込待ち
+            new Promise((resolve, reject) => {
+                var timer = setInterval(function () {
+                    grid = vue.DAI01230Grid1;
+                    if (!!grid && vue.getLoginInfo().isLogOn) {
+                        clearInterval(timer);
+                        return resolve(grid);
+                    }
+                }, 100);
+            })
+            .then((grid) => {
+                grid.showLoading();
+                //TODO:作業途中
+                var params = {BushoCd: vue.viewModel.BushoCd, FactoryCdStart: vue.viewModel.FactoryCdStart, FactoryCdEnd: vue.viewModel.FactoryCdEnd}
+
+                axios.post("/DAI01230/ColSearch", params)
+                    .then(response => {
+                        var res = _.cloneDeep(response.data);
+
+                         var newCols = grid.options.colModel
+                            .filter(v => !!v.fixed)
+                            .concat(
+                                res.map((v, i) => {
+                                    return {
+                                        title: v.部署名,
+                                        dataIndx: "持出数_" + v.主食ＣＤ,
+                                        dataType: "integer",
+                                        format: "#,###",
+                                        width: 75, maxWidth: 75, minWidth: 75,
+                                        //editable: ui => !ui.rowData[ui.dataIndx + "_実績"],
+                                        render: ui => {
+                                            if (!ui.cellData) {
+                                                ui.rowData[ui.dataIndx] = 0;
+                                                ui.text = 0;
+                                            }
+                                            if (ui.rowData[ui.dataIndx + "_注文"] > 0) {
+                                                ui.cls.push("order-value");
+                                            }
+                                            return ui;
+                                        },
+                                        summary: {
+                                            type: "TotalInt",
+                                        },
+                                        custom: true,
+                                    };
+                                }))
+
+                            newCols.push(
+                                {
+                                    title: "合計",
+                                    dataIndx: "持出数合計",
+                                    dataType: "integer",
+                                    format: "#,###",
+                                    width: 150, maxWidth: 150, minWidth: 150,
+                                }
+                            );
+
+                        //列定義更新
+                        grid.options.colModel = newCols;
+                        grid.refreshCM();
+                        grid.refresh();
+
+                        if (!!grid) grid.hideLoading();
+
+                        //条件変更ハンドラ
+                        vue.conditionChanged();
+                    });
+            })
+            .catch(error => {
+                console.log(error);
+                if (!!grid) grid.hideLoading();
+
+                //失敗ダイアログ
+                $.dialogErr({
+                    title: "各種テーブル検索失敗",
+                    contents: "各種テーブル検索に失敗しました" + "<br/>" + error.message,
+                });
+            });
         },
         conditionChanged: function(callback) {
             var vue = this;
             var grid = vue.DAI01230Grid1;
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
-            if (!vue.viewModel.BushoCd || !vue.viewModel.DeliveryDate || !vue.viewModel.CourseKbn || !vue.viewModel.ShokuKbn) return;
+            if (!vue.viewModel.BushoCd || !vue.viewModel.DeliveryDate || !vue.viewModel.CourseKbn || !vue.viewModel.BentoKbn ||
+                !vue.viewModel.FactoryCdStart || !vue.viewModel.FactoryCdEnd) return;
+            if (!grid.options.colModel.some(v => v.custom)) return;
 
             var params = $.extend(true, {}, vue.viewModel);
-
             //配送日を"YYYYMMDD"形式に編集
             params.DeliveryDate = params.DeliveryDate ? moment(params.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
 
-            //TODO:sqlで必要？
-            //工場ＣＤ 開始/終了はフィルタするので除外？
-            // delete params.FactoryCdStart;
-            // delete params.FactoryCdEnd;
-
             grid.searchData(params, false, null, callback);
         },
-        filterChanged: function() {
-            var vue = this;
-            var grid = vue.DAI01230Grid1;
-
-            if (!grid) return;
-
-            var rules = [];
-            var crules = [];
-            if (!!vue.viewModel.FactoryCdStart) {
-                crules.push({ condition: "gte", value: vue.viewModel.FactoryCdStart });
-            }
-            if (!!vue.viewModel.FactoryCdEnd) {
-                crules.push({ condition: "lte", value: vue.viewModel.FactoryCdEnd });
-            }
-
-            if (crules.length) {
-                rules.push({ dataIndx: "工場ＣＤ", mode: "AND", crules: crules });
-            }
-
-            grid.filter({ oper: "replace", mode: "AND", rules: rules });
-        },
         onAfterSearchFunc: function (vue, grid, res) {
-            //集計単位取得
-            var items = _(res
-                .filter(v => v.CHU注文数 || v.見込数)
-                .map(v => [
-                    { Cd: v.主食ＣＤ * 1, Nm: v.主食略称 },
-                    { Cd: v.副食ＣＤ * 1, Nm: v.副食略称 }
-                ])
-            )
-            .flatten().uniqBy("Cd").sortBy("Cd").value()
-            .filter(v => !!v.Nm);
 
-            //列定義初期化
-            grid.options.colModel = grid.options.colModel.filter(c => c.fixed);
-
-            //列定義に集計単位を設定
-            grid.options.colModel = grid.options.colModel.concat(items.map(v => {
-                return {
-                    title: v.Nm,
-                    dataIndx: "工場ＣＤ_" + v.Cd,
-                    dataType: "integer",
-                    format: "#,###",
-                    width: 60, maxWidth: 60, minWidth: 60,
-                    editable: false,
-                    render: ui => {
-                        if (!ui.rowData[ui.dataIndx]) {
-                            return { text: "" };
-                        }
-                        return ui;
-                    },
-                    summary: {
-                        type: "TotalInt",
-                    },
-                };
-            }));
-
-            //不足分を空列追加
-            grid.options.colModel = grid.options.colModel
-                .concat(
-                    _.range(16 - grid.options.colModel.filter(c => !c.hidden).length)
-                        .map(v => {
-                            return {
-                                title: "",
-                                dataIndx: "empty",
-                                dataType: "integer",
-                                format: "#,###",
-                                width: 60, maxWidth: 60, minWidth: 60,
-                                editable: false,
-                            };
-                        })
-                );
-
-            //列定義更新
-            grid.refreshCM();
+            //TODO:01080を参考にする
+            var vue = this;
+            var bentoKbn = vue.viewModel.BentoKbn;
 
             //集計
-            var groupings = _.values(_.groupBy(res, v => v.商品ＣＤ))
-                .map((r, i) => {
+            var groupings = _(res)
+                .groupBy(v => v.主食ＣＤ)
+                .values()
+                .value()
+                .map(r => {
                     var ret = _.reduce(
-                            r,
+                            _.sortBy(r, ["主食ＣＤ"]),
                             (acc, v, j) => {
-                                acc.商品ＣＤ = v.商品ＣＤ;
-                                acc.商品名 = v.商品名;
-                                items.forEach(item => {
-                                    acc["工場ＣＤ_" + item.Cd] = (acc["工場ＣＤ_" + item.Cd] || 0)
-                                                           + ([v.主食ＣＤ * 1, v.副食ＣＤ * 1].includes(item.Cd) ? (v.CHU注文数 * 1 || v.見込数 * 1) : 0);
-                                });
+                                acc = _.isEmpty(acc) ? _.cloneDeep(v) : acc;
+
+                                //delete acc.部署ＣＤ;
+                                //delete acc.部署名;
+                                delete acc.得意先ＣＤ;
+                                delete acc.得意先名;
+                                delete acc.商品ＣＤ;
+                                delete acc.見込数;
+                                delete acc.規定製造パターン;
+                                //delete acc.副食ＣＤ;
+                                //delete acc.主食ＣＤ;
+                                delete acc.CHU商品ＣＤ;
+                                delete acc.CHU注文数;
+                                delete acc.部署グループ;
+                                //delete acc.工場ＣＤ;
+                                delete acc.主食名;
+                                delete acc.副食名;
+
+                                if(!!acc.主食ＣＤ && acc.主食ＣＤ != 0 && vue.viewModel.BentoKbn == 1){
+                                    acc["主食副食名"] = acc.主食名;
+                                    acc["持出数_" + v.主食ＣＤ] = !!v.CHU注文数 ? (acc["持出数_" + v.主食ＣＤ] || 0) + v.CHU注文数 * 1 : (acc["持出数_" + v.主食ＣＤ] || 0) + v.見込数 * 1;
+                                }
+                                if(!!acc.副食ＣＤ && acc.副食ＣＤ != 0 && vue.viewModel.BentoKbn == 2){
+                                    acc["主食副食名"] = acc.副食名;
+                                    acc["持出数_" + v.副食ＣＤ] = !!v.CHU注文数 ? (acc["持出数_" + v.副食ＣＤ] || 0) + v.CHU注文数 * 1 : (acc["持出数_" + v.副食ＣＤ] || 0) + v.見込数 * 1;
+                                }
 
                                 return acc;
                             },
                             {}
-                    );
+                    )
+
+                    // _.keys(ret).forEach(k => {
+                    //     if (k.startsWith("持出数_")) {
+                    //         var cd = k.replace("持出数_", "");
+
+                    //         ret["持出数_" + cd] = (ret["部署_" + cd + "_注文"] > 0 ? ret["部署_" + cd + "_注文"] : ret["部署_" + cd + "_見込"]) + "";
+                    //         ret["部署_" + cd + "_実績"] = ret["部署_" + cd + "_注文"] > 0;
+                    //     }
+                    // });
 
                     return ret;
-                });
+                })
+
+            //groupings = _(groupings).sortBy(v => v.主食ＣＤ * 1).sortBy(v => v.副食ＣＤ * 1).value();
 
             return groupings;
         },
@@ -406,7 +461,7 @@ export default {
                     if (_.isEmpty(a)) {
                         var pageHeader = `
                                             <div class="title">
-                                                <h3>* * 部署別製造数一覧表 ${vue.viewModel.ShokuKbn}* *</h3>
+                                                <h3>* * 部署別製造数一覧表 ${vue.viewModel.BentoKbn}* *</h3>
                                             </div>
                                             <table class="header-table">
                                                 <colgroup>
