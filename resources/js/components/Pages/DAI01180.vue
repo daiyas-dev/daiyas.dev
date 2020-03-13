@@ -12,7 +12,7 @@
             <div class="col-md-1">
                 <label>入金日付</label>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-4">
                 <DatePickerWrapper
                     id="DateStart"
                     ref="DatePicker_Date"
@@ -23,9 +23,7 @@
                     :editable=true
                     :onChangedFunc=onDateChanged
                 />
-            </div>
-            ～
-            <div class="col-md-2">
+                <label>～</label>
                 <DatePickerWrapper
                     id="DateEnd"
                     ref="DatePicker_Date"
@@ -69,12 +67,14 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-1">
                 <label>出力区分</label>
+            </div>
+            <div class="col-md-3">
                 <VueOptions
                     id="SummaryKind"
                     ref="VueOptions_SummaryKind"
-                    customLabelStyle="text-align: center;"
+                    customItemStyle="text-align: center; margin-right: 10px;"
                     :vmodel=viewModel
                     bind="SummaryKind"
                     :list="[
@@ -93,6 +93,7 @@
             :SearchOnCreate=false
             :SearchOnActivate=false
             :options=this.grid1Options
+            :autoToolTipDisabled=true
             :onAfterSearchFunc=this.onAfterSearchFunc
         />
     </form>
@@ -125,6 +126,7 @@ export default {
     computed: {
     },
     data() {
+        var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "日次処理 > コース別入金一覧表",
             noViewModel: true,
@@ -134,12 +136,9 @@ export default {
                 DateStart: null,
                 DateEnd: null,
                 SummaryKind: null,
-                IsIncludeJuchu: "1",
-                IsBikoOutput: "0",
                 CourseKbn: null,
                 CourseCd: null,
                 ColHeader : [],
-                dd: null,
             },
             DAI01180Grid1: null,
             grid1Options: {
@@ -174,10 +173,10 @@ export default {
                     on: true,
                     header: false,
                     grandSummary: true,
-                    indent: 20,
-                    dataIndx: ["GroupKey"],
-                    showSummary: [true],
-                    collapsed: [false],
+                    indent: 10,
+                    dataIndx: ["日付", "コース"],
+                    showSummary: [true, true],
+                    collapsed: [false, true],
                     summaryInTitleRow: "collapsed",
                 },
                 summaryData: [
@@ -192,26 +191,14 @@ export default {
                 ],
                 colModel: [
                     {
-                        title: "GroupKey",
-                        dataIndx: "GroupKey", dataType: "string",
+                        title: "日付",
+                        dataIndx: "日付", dataType: "string",
                         hidden: true,
                         fixed: true,
                     },
                     {
-                        title: "得意先ＣＤ",
-                        dataIndx: "得意先ＣＤ", dataType: "integer",
-                        width: 100, minWidth: 100, maxWidth: 100,
-                        fixed: true,
-                    },
-                    {
-                        title: "得意先名",
-                        dataIndx: "得意先名", dataType: "string",
-                        width: 250, minWidth: 250, maxWidth: 250,
-                        fixed: true,
-                    },
-                    {
-                        title: "日付",
-                        dataIndx: "日付", dataType: "string",
+                        title: "コース",
+                        dataIndx: "コース", dataType: "string",
                         hidden: true,
                         fixed: true,
                     },
@@ -222,15 +209,53 @@ export default {
                         fixed: true,
                     },
                     {
-                        title: "配送コース名",
-                        dataIndx: "配送コース名", dataType: "string",
-                        width: 300, minWidth: 300, maxWidth: 300,
+                        title: "コース名",
+                        dataIndx: "コース名", dataType: "string",
+                        align: "left",
+                        hidden: true,
+                        fixed: true,
+                    },
+                    {
+                        title: "CD",
+                        dataIndx: "得意先ＣＤ", dataType: "integer",
+                        width: 60, minWidth: 60, maxWidth: 60,
                         fixed: true,
                         render: ui => {
-                            if (!!ui.rowData.pq_gid) {
-                                //グループ行
-                                ui.rowData["配送コース名"] = ui.rowData.pq_gid;
-                                return { text: ui.rowData.pq_gid };
+                            if (!ui.rowData.pq_grandsummary && !!ui.rowData.pq_gtitle && ui.rowData.pq_level == 1) {
+                                if (vue.viewModel.SummaryKind == 2) {
+                                    return { text: ui.rowData.コース.split(" ")[0] };
+                                }
+                            }
+                            return ui;
+                        },
+                    },
+                    {
+                        title: "得意先名",
+                        dataIndx: "得意先名", dataType: "string",
+                        width: 250, minWidth: 250,
+                        fixed: true,
+                        tooltip: true,
+                        render: ui => {
+                            if (!!ui.Export) ui.cls = [];
+                            if (!!ui.Export && !!ui.rowData.pq_grandsummary) {
+                                return { text: "* * 合計" };
+                            }
+                            if (!ui.rowData.pq_grandsummary && !!ui.rowData.pq_gtitle && ui.rowData.pq_level == 1) {
+                                if (vue.viewModel.SummaryKind == 2) {
+                                    return { text: ui.rowData.コース.split(" ")[1] };
+                                }
+                            }
+                            if (!ui.rowData.pq_grandsummary && !!ui.rowData.pq_gsummary && ui.rowIndx > 0) {
+                                //小計行
+                                var pid = ui.rowData.parentId;
+                                if (ui.rowData.pq_level == 0) {
+                                    ui.cls.push("pq-align-right");
+                                } else {
+                                    ui.cls.push("pq-align-center");
+                                    pid = pid.split("_")[ui.rowData.pq_level];
+                                }
+                                ui.rowData["得意先名"] = pid;
+                                return { text: pid };
                             }
                             return ui;
                         },
@@ -239,23 +264,29 @@ export default {
                         title: "締日",
                         dataIndx: "締日", dataType: "string",
                         align : "center",
-                        width: 80, minWidth: 80, maxWidth: 80,
+                        width: 75, minWidth: 75, maxWidth: 75,
                         fixed: true,
                         render: ui => {
                             if (!!ui.rowData.pq_grandsummary) {
                                 //総計行
-                                ui.rowData["締日"] = "総計";
-                                return { text: "総計" };
+                                if (!!ui.Export) {
+                                    ui.rowData["締日"] = "* *";
+                                    return { text: "* *" };
+                                } else {
+                                    ui.rowData["締日"] = "総計";
+                                    return { text: "総計" };
+                                }
+                            }
+                            if (!!ui.rowData.pq_gtitle && ui.rowData.pq_level == 1) {
+                                if (vue.viewModel.SummaryKind == 2) {
+                                    ui.rowData["締日"] = "コース計";
+                                    return { text: ui.rowData["締日"] };
+                                }
                             }
                             if (!!ui.rowData.pq_gsummary) {
                                 //小計行
-                                ui.rowData["締日"] = "コース計";
-                                return { text: "コース計" };
-                            }
-                            if (!!ui.rowData.pq_gid) {
-                                //グループ行
-                                ui.rowData["締日"] = "コース計";
-                                return { text: "コース計" };
+                                ui.rowData["締日"] = ui.rowData.pq_level == 0 ? "日計" : "コース計";
+                                return { text: ui.rowData["締日"] };
                             }
                             return ui;
                         },
@@ -263,7 +294,7 @@ export default {
                     {
                         title: "日締現金",
                         dataIndx: "日締現金", dataType: "integer", format: "#,###",
-                        width: 80, minWidth: 80, maxWidth: 80,
+                        width: 75, minWidth: 75, maxWidth: 75,
                         fixed: true,
                         summary: {
                             type: "TotalInt",
@@ -272,7 +303,7 @@ export default {
                     {
                         title: "バークレー",
                         dataIndx: "バークレー", dataType: "integer", format: "#,###",　
-                        width: 100, minWidth: 100, maxWidth: 100,
+                        width: 75, minWidth: 75, maxWidth: 75,
                         fixed: true,
                         summary: {
                             type: "TotalInt",
@@ -281,7 +312,7 @@ export default {
                     {
                         title: "束売り",
                         dataIndx: "束売り", dataType: "integer", format: "#,###",　
-                        width: 80, minWidth: 80, maxWidth: 80,
+                        width: 75, minWidth: 75, maxWidth: 75,
                         fixed: true,
                         summary: {
                             type: "TotalInt",
@@ -290,7 +321,7 @@ export default {
                     {
                         title: "売掛現金",
                         dataIndx: "売掛現金", dataType: "integer", format: "#,###",
-                        width: 80, minWidth: 80, maxWidth: 80,
+                        width: 75, minWidth: 75, maxWidth: 75,
                         fixed: true,
                         summary: {
                             type: "TotalInt",
@@ -299,7 +330,7 @@ export default {
                     {
                         title: "現金計",
                         dataIndx: "現金計", dataType: "integer", format: "#,###",
-                        width: 80, minWidth: 80, maxWidth: 80,
+                        width: 75, minWidth: 75, maxWidth: 75,
                         fixed: true,
                         summary: {
                             type: "TotalInt",
@@ -308,7 +339,7 @@ export default {
                     {
                         title: "振込",
                         dataIndx: "振込", dataType: "integer", format: "#,###",
-                        width: 80, minWidth: 80, maxWidth: 80,
+                        width: 75, minWidth: 75, maxWidth: 75,
                         fixed: true,
                         summary: {
                             type: "TotalInt",
@@ -317,7 +348,7 @@ export default {
                     {
                         title: "振替",
                         dataIndx: "振替", dataType: "integer", format: "#,###",
-                        width: 80, minWidth: 80, maxWidth: 80,
+                        width: 75, minWidth: 75, maxWidth: 75,
                         fixed: true,
                         summary: {
                             type: "TotalInt",
@@ -326,7 +357,7 @@ export default {
                     {
                         title: "チケット",
                         dataIndx: "チケット", dataType: "integer", format: "#,###",
-                        width: 80, minWidth: 80, maxWidth: 80,
+                        width: 75, minWidth: 75, maxWidth: 75,
                         fixed: true,
                         summary: {
                             type: "TotalInt",
@@ -335,7 +366,7 @@ export default {
                     {
                         title: "調整額",
                         dataIndx: "調整額", dataType: "integer", format: "#,###",
-                        width: 80, minWidth: 80, maxWidth: 80,
+                        width: 75, minWidth: 75, maxWidth: 75,
                         fixed: true,
                         summary: {
                             type: "TotalInt",
@@ -371,163 +402,53 @@ export default {
                         vue.DAI01180Grid1.searchData(params);
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI01020Grid1_Printout", disabled: false, shortcut: "F6",
+                {visible: "false"},
+                {visible: "false"},
+                { visible: "true", value: "CSV", id: "DAI01180Grid1_CSV", disabled: true, shortcut: "F10",
                     onClick: function () {
-                        var params = $.extend(true, {}, vue.viewModel);
-
-                        //入金日付を"YYYYMMDD"形式に編集
-                        params.DateStart = params.DateStart ? moment(params.DateStart, "YYYY年MM月DD日").format("YYYYMMDD") : null;
-                        params.DateEnd = params.DateEnd ? moment(params.DateEnd, "YYYY年MM月DD日").format("YYYYMMDD") : null;
-                        vue.DAI01180Grid1.searchData(params, false, null, () => vue.DAI01180Grid1.print(vue.setPrintOptions));
+                        vue.DAI01180Grid1.vue.exportData("csv", false, true);
                     }
-                }
+                },
+                { visible: "true", value: "Excel", id: "DAI01180Grid1_Excel", disabled: true, shortcut: "F9",
+                    onClick: function () {
+                        vue.DAI01180Grid1.vue.exportData("xlsx", false, true);
+                    }
+                },
+                { visible: "true", value: "印刷", id: "DAI01180Grid1_Print", disabled: true, shortcut: "F11",
+                    onClick: function () {
+                        vue.print();
+                    }
+                },
             );
         },
         mountedFunc: function(vue) {
-            //入金日付の初期値 -> 当日
-            vue.viewModel.DateStart = moment();
-            vue.viewModel.DateEnd = moment();
-        },
-        setPrintOptions: function(grid) {
-            var vue = this;
-
-            //PqGrid Print options
-            grid.options.printHeader =
-                `
-                    <style>
-                        .header-table {
-
-                        }
-                        .header-table th {
-                            font-family: "MS UI Gothic";
-                            font-size: 10pt;
-                            font-weight: normal !important;
-                            border: solid 1px black !important;
-                            white-space: nowrap;
-                            overflow: hidden;
-                            margin: 0px;
-                            padding-left: 3px;
-                            padding-right: 3px;
-                        }
-                        .header-table tr:last-child th{
-                            border-bottom-width: 0px !important;
-                        }
-                    </style>
-                    <h3 style="text-align: center; margin: 0px; margin-bottom: 10px;">* * 持ち出し数一覧表 * *</h3>
-                    <table style="border-collapse: collapse; width: 100%;" class="header-table">
-                        <colgroup>
-                                <col style="width:4.58%;"></col>
-                                <col style="width:4.60%;"></col>
-                                <col style="width:9.00%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                        </colgroup>
-                        <thead>
-                            <tr>
-                                <th>日付</th>
-                                <th colspan="5">${moment().format("YYYY年MM月DD日 dddd")}</th>
-                            </tr>
-                            <tr>
-                                <th>部署</th>
-                                <th>${vue.viewModel.BushoCd}</th>
-                                <th colspan="4">${vue.viewModel.BushoNm}</th>
-                                <th colspan="6" style="border-top-width: 0px !important;"></th>
-                                <th colspan="2">作成日</th>
-                                <th colspan="2">${moment().format("YYYY/MM/DD")}</th>
-                                <th>PAGE</th>
-                                <th>1</th>
-                            </tr>
-                        </thead>
-                    </table>
-                `;
-            grid.options.printStyles =
-                `
-                    tr td:nth-child(1) {
-                        font-size: 9pt;
-                    }
-                    tr td:nth-child(n+2) {
-                        text-align: right;
-                    }
-                `;
+            //日付の初期値 -> 当日
+            //TODO:
+            // vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
+            // vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
+            vue.viewModel.DateStart = moment("20190903").format("YYYY年MM月DD日");
+            vue.viewModel.DateEnd = moment("20190904").format("YYYY年MM月DD日");
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
 
-            //列定義更新
-            vue.refreshCols();
-        },
-        refreshCols: function() {
-            var vue = this;
-            var grid;
-
-            //PqGrid読込待ち
-            new Promise((resolve, reject) => {
-                var timer = setInterval(function () {
-                    grid = vue.DAI01180Grid1;
-                    if (!!grid && vue.getLoginInfo().isLogOn) {
-                        clearInterval(timer);
-                        return resolve(grid);
-                    }
-                }, 100);
-            })
-            .then((grid) => {
-                //条件変更ハンドラ
-                vue.conditionChanged();
-            })
-            .catch(error => {
-                console.log(error);
-                if (!!grid) grid.hideLoading();
-
-                //失敗ダイアログ
-                $.dialogErr({
-                    title: "各種テーブル検索失敗",
-                    contents: "各種テーブル検索に失敗しました" + "<br/>" + error.message,
-                });
-            });
+            //条件変更ハンドラ
+            vue.conditionChanged();
         },
         onSummaryKindChanged: function(code, entities) {
             var vue = this;
             var grid = vue.DAI01180Grid1;
 
-            //条件別列変更
-            vue.changeColVisible();
+            var isCourseSummary = vue.viewModel.SummaryKind == "2";
 
-            //集計変更
-            grid.Group()[vue.viewModel.SummaryKind == "1" ? "expandAll" : "collapseAll"]();
-        },
-        changeColVisible: function(colModel) {
-            var vue = this;
-            var grid = vue.DAI01180Grid1;
-            var cols = colModel || _.cloneDeep(grid.options.colModel);
-
-            //コースＣＤ、配送コース名は得意先別時は非表示
-            cols.filter(v => [/*"コースＣＤ",*/"配送コース名"].includes(v.dataIndx))
-                .forEach(v => {
-                    v.hidden = vue.viewModel.SummaryKind == "1";
-                });
-            //得意先ＣＤ、得意先名は得意先別時は非表示
-            cols.filter(v => ["得意先ＣＤ","得意先名"].includes(v.dataIndx))
-                .forEach(v => {
-                    v.hidden = vue.viewModel.SummaryKind == "2";
-                });
-
-            //列定義更新
-            grid.options.colModel = cols;
+            //列タイトル変更
+            grid.options.colModel.find(c => c.dataIndx == "得意先名").title = isCourseSummary ? "コース名" : "得意先名";
+            grid.options.colModel.find(c => c.dataIndx == "締日").title = isCourseSummary ? "" : "締日";
             grid.refreshCM();
             grid.refresh();
+
+            //集計変更
+            grid.Group()[isCourseSummary ? "collapse" : "expand"](1);
         },
         onDateChanged: function(code, entity) {
             var vue = this;
@@ -544,9 +465,10 @@ export default {
         conditionChanged: function(callback) {
             var vue = this;
             var grid = vue.DAI01180Grid1;
+            console.log("1180 conditionChanged")
+
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.BushoCd || !vue.viewModel.DateStart) return;
-            if (!grid.options.colModel.some(v => v.custom)) return;
 
             var params = $.extend(true, {}, vue.viewModel);
 
@@ -580,29 +502,13 @@ export default {
         onAfterSearchFunc: function (grieVue, grid, res) {
             var vue = this;
 
-            //集計
-            var groupings = _(res)
-                .groupBy(v => v.得意先ＣＤ)
-                .values()
-                .value()
-                .map(r => {
-                    var ret = _.reduce(
-                            _.sortBy(r, ["得意先名"]),
-                            (acc, v, j) => {
-                                acc = _.isEmpty(acc) ? v : acc;
-                                return acc;
-                            },
-                            {}
-                    );
+            res.forEach(r => r.コース = r.コースＣＤ==null ? "コースなし" : (r.コースＣＤ + " " + r.コース名));
 
-                    ret.GroupKey = ret.日付 + " " + (ret.コースＣＤ==null ? "コースなし" : ret.コースＣＤ + " " + ret.コース名);
-                    return ret;
+            vue.footerButtons.find(v => v.id == "DAI01180Grid1_CSV").disabled = !res.length;
+            vue.footerButtons.find(v => v.id == "DAI01180Grid1_Excel").disabled = !res.length;
+            vue.footerButtons.find(v => v.id == "DAI01180Grid1_Print").disabled = !res.length;
 
-                })
-
-            groupings = _(groupings).sortBy(v => v.コースＣＤ * 1).sortBy(v => v.日付).sortBy(v => v.順 * 1).value();
-
-            return groupings;
+            return res;
         },
         CourseAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
@@ -643,6 +549,228 @@ export default {
         setNavigator: function(evt, ui) {
             var vue = this;
             console.log("setNavigator", evt, ui);
+        },
+        print: function() {
+            var vue = this;
+
+            //印刷用HTML全体適用CSS
+            var globalStyles = `
+                body {
+                    -webkit-print-color-adjust: exact;
+                }
+                div.title {
+                    width: 100%;
+                    display: flex;
+                    justify-content: center;
+                }
+                div.title > h3 {
+                    margin-top: 0px;
+                    margin-bottom: 0px;
+                }
+                table {
+                    table-layout: fixed;
+                    margin-left: 0px;
+                    margin-right: 0px;
+                    width: 100%;
+                    border-spacing: unset;
+                    border: solid 0px black;
+                }
+                th, td {
+                    font-family: "MS UI Gothic";
+                    font-size: 10pt;
+                    font-weight: normal;
+                    margin: 0px;
+                    padding-left: 3px;
+                    padding-right: 3px;
+                }
+                th {
+                    height: 25px;
+                    text-align: center;
+                }
+                td {
+                    height: 22px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                }
+            `;
+
+            var headerFunc = (header, idx, length) => {
+                return `
+                    <div class="title">
+                        <h3>* * * コース別入金一覧表 * * *</h3>
+                    </div>
+                    <table class="header-table" style="border-width: 0px">
+                        <thead>
+                            <tr>
+                                <th style="width: 10%; text-align: left;">${vue.viewModel.BushoCd}:${vue.viewModel.BushoNm}</th>
+                                <th style="width: 10%;"></th>
+                                <th style="width: 41%; text-align: left;">${vue.viewModel.SummaryKind == 2 ? "" : header.コース}</th>
+                                <th style="width: 10%;"></th>
+                                <th style="width: 15%;"></th>
+                                <th style="width: 8%;"></th>
+                                <th style="width: 6%;"></th>
+                            </tr>
+                            <tr>
+                                <th style="text-align: left;">${vue.viewModel.SummaryKind == 2 ? header.日付 : header.parentId}</th>
+                                <th></th>
+                                <th></th>
+                                <th>作成日</th>
+                                <th>${moment().format("YYYY年MM月DD日")}</th>
+                                <th>PAGE</th>
+                                <th style="text-align: right;">${idx + 1}/${length}</th>
+                            </tr>
+                        </thead>
+                    </table>
+                `;
+            };
+
+            var styleCourseSummary =`
+                table.DAI01180Grid1 tr:nth-child(1) th {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI01180Grid1 tr.group-row td {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.DAI01180Grid1 tr.group-summary td {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.DAI01180Grid1 tr.group-summary td:nth-child(2) {
+                    text-align: right;
+                    padding-right: 50px;
+                }
+                table.DAI01180Grid1 tr[level="0"].group-summary td {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.DAI01180Grid1 tr[level="0"].group-summary td:nth-child(2) {
+                    text-align: right;
+                    padding-right: 30px;
+                }
+                table.DAI01180Grid1 tr.grand-summary td {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.DAI01180Grid1 tr.grand-summary td:nth-child(2) {
+                    text-align: right;
+                }
+                table.DAI01180Grid1 tr.grand-summary td:nth-child(3) {
+                    text-align: left;
+                }
+                table.DAI01180Grid1 tr th:nth-child(1) {
+                    width: 4.5%;
+                }
+                table.DAI01180Grid1 tr th:nth-child(3) {
+                    width: 4.5%;
+                }
+                table.DAI01180Grid1 tr th:nth-child(n+4):nth-child(-n+12) {
+                    width: 6%;
+                }
+                table.DAI01180Grid1 tr th:nth-child(13) {
+                    width: 7%;
+                }
+            `;
+            var styleCustomers =`
+                table.DAI01180Grid1 tr:nth-child(1) th {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI01180Grid1 tr.group-summary td {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.DAI01180Grid1 tr.group-summary td:nth-child(2) {
+                    text-align: right;
+                    padding-right: 50px;
+                }
+                table.DAI01180Grid1 tr[level="0"].group-summary td {
+                    border-style: dotted;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.DAI01180Grid1 tr[level="0"].group-summary td:nth-child(2) {
+                    text-align: right;
+                    padding-right: 30px;
+                }
+                table.DAI01180Grid1 tr.grand-summary td {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.DAI01180Grid1 tr.grand-summary td:nth-child(2) {
+                    text-align: right;
+                }
+                table.DAI01180Grid1 tr.grand-summary td:nth-child(3) {
+                    text-align: left;
+                }
+                table.DAI01180Grid1 tr th:nth-child(1) {
+                    width: 4.5%;
+                }
+                table.DAI01180Grid1 tr th:nth-child(3) {
+                    width: 4.5%;
+                }
+                table.DAI01180Grid1 tr th:nth-child(n+4):nth-child(-n+12) {
+                    width: 6%;
+                }
+                table.DAI01180Grid1 tr th:nth-child(13) {
+                    width: 7%;
+                }
+            `;
+
+            var printable = $("<html>")
+                .append($("<head>").append($("<style>").text(globalStyles)))
+                .append(
+                    $("<body>")
+                        .append(
+                            vue.DAI01180Grid1.generateHtml(
+                                vue.viewModel.SummaryKind == 2 ? styleCourseSummary : styleCustomers,
+                                headerFunc,
+                                25,
+                                vue.viewModel.SummaryKind == 2 ? [false, true] : false,
+                                true,
+                                vue.viewModel.SummaryKind == 2 ? [true, false] : [false, true],
+                            )
+                        )
+                )
+                .prop("outerHTML")
+                ;
+
+            var printOptions = {
+                type: "raw-html",
+                style: "@media print { @page { size: A4 landscape; } }",
+                printable: printable,
+            };
+
+            printJS(printOptions);
+            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //$("#printJS").contents().find("html").html()
         },
     }
 }

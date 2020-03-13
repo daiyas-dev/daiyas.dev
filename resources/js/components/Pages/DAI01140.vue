@@ -876,7 +876,7 @@ export default {
                                         border-right-width: 0px;
                                         border-bottom-width: 1px;
                                     }
-                                    table.DAI01140Grid1 tr.summary td {
+                                    table.DAI01140Grid1 tr.grand-summary td {
                                         border-style: solid;
                                         border-left-width: 0px;
                                         border-top-width: 1px;
@@ -941,7 +941,6 @@ export default {
                                 `,
                                 headerFunc,
                                 32,
-                                1
                             )
                         )
                 )
