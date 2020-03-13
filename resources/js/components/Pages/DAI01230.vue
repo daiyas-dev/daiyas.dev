@@ -196,7 +196,6 @@ export default {
                                 return { text: "合計" };
                             } else {
                                 var el = $("<div>").addClass("d-flex")
-                                    .append($("<label>").css("width", "75px").css("text-align", "right").text(ui.rowData.主食副食名))
                                     .append($("<div>").css("margin-left", "4px").text(ui.rowData.主食副食名))
                                     ;
                                 return { text: el.prop("outerHTML") };
@@ -245,14 +244,20 @@ export default {
         onDeliveryDateChanged: function(code, entity) {
             var vue = this;
 
-            //条件変更ハンドラ
-            vue.conditionChanged();
+            //TODO:列定義更新
+            vue.refreshCols();
+
+            // //条件変更ハンドラ
+            // vue.conditionChanged();
         },
         onCourseKbnChanged: function(code, entity) {
             var vue = this;
 
-            //条件変更ハンドラ
-            vue.conditionChanged();
+            //TODO:列定義更新
+            vue.refreshCols();
+
+            // //条件変更ハンドラ
+            // vue.conditionChanged();
         },
         onBentoKbnChanged: function(code, entity) {
             var vue = this;
@@ -301,11 +306,10 @@ export default {
                                 res.map((v, i) => {
                                     return {
                                         title: v.部署名,
-                                        dataIndx: "持出数_" + v.主食ＣＤ,
+                                        dataIndx: "持出数_" + v.cd,
                                         dataType: "integer",
                                         format: "#,###",
                                         width: 75, maxWidth: 75, minWidth: 75,
-                                        //editable: ui => !ui.rowData[ui.dataIndx + "_実績"],
                                         render: ui => {
                                             if (!ui.cellData) {
                                                 ui.rowData[ui.dataIndx] = 0;
@@ -378,9 +382,10 @@ export default {
 
             //集計
             var groupings = _(res)
-                .groupBy(v => v.主食ＣＤ)
+                //.groupBy(v => v.主食ＣＤ)
                 .values()
                 .value()
+                .filter(v => (v.CHU注文数 != 0 || v.見込数 != 0))
                 .map(r => {
                     var ret = _.reduce(
                             _.sortBy(r, ["主食ＣＤ"]),
@@ -404,12 +409,12 @@ export default {
                                 delete acc.副食名;
 
                                 if(!!acc.主食ＣＤ && acc.主食ＣＤ != 0 && vue.viewModel.BentoKbn == 1){
-                                    acc["主食副食名"] = acc.主食名;
-                                    acc["持出数_" + v.主食ＣＤ] = !!v.CHU注文数 ? (acc["持出数_" + v.主食ＣＤ] || 0) + v.CHU注文数 * 1 : (acc["持出数_" + v.主食ＣＤ] || 0) + v.見込数 * 1;
+                                    acc["主食副食名"] = acc["主食名"];
+                                    acc["持出数_" + v.主食ＣＤ + "_" + v.部署名] = v.CHU注文数 == 0 ? (acc["持出数_" + v.主食ＣＤ + "_" + v.部署名] || 0) + v.見込数 * 1 : (acc["持出数_" + v.主食ＣＤ] || 0) + v.CHU注文数 * 1;
                                 }
                                 if(!!acc.副食ＣＤ && acc.副食ＣＤ != 0 && vue.viewModel.BentoKbn == 2){
-                                    acc["主食副食名"] = acc.副食名;
-                                    acc["持出数_" + v.副食ＣＤ] = !!v.CHU注文数 ? (acc["持出数_" + v.副食ＣＤ] || 0) + v.CHU注文数 * 1 : (acc["持出数_" + v.副食ＣＤ] || 0) + v.見込数 * 1;
+                                    acc["主食副食名"] = acc["副食名"];
+                                    acc["持出数_" + v.副食ＣＤ + "_" + v.部署名] = v.CHU注文数 == 0 ? (acc["持出数_" + v.副食ＣＤ + "_" + v.部署名] || 0) + v.見込数 * 1 : (acc["持出数_" + v.副食ＣＤ] || 0) + v.CHU注文数 * 1;
                                 }
 
                                 return acc;
@@ -417,14 +422,14 @@ export default {
                             {}
                     )
 
-                    // _.keys(ret).forEach(k => {
-                    //     if (k.startsWith("持出数_")) {
-                    //         var cd = k.replace("持出数_", "");
-
-                    //         ret["持出数_" + cd] = (ret["部署_" + cd + "_注文"] > 0 ? ret["部署_" + cd + "_注文"] : ret["部署_" + cd + "_見込"]) + "";
-                    //         ret["部署_" + cd + "_実績"] = ret["部署_" + cd + "_注文"] > 0;
-                    //     }
-                    // });
+                    _.keys(ret).forEach(k => {
+                        if (k.startsWith("持出数_")) {
+                            var cd = k.replace("持出数_", "");
+                            if(!!cd){
+                                ret["持出数_" + cd] = ret["持出数_" + cd ];
+                            }
+                        }
+                    });
 
                     return ret;
                 })
