@@ -890,7 +890,7 @@ export default {
                     select: true,
                 },
                 postRender: function(ui) {
-                    if (!!ui.column.tooltip) {
+                    if (!!ui.column.tooltip && !!ui.rowData[ui.dataIndx]) {
                         $(ui.cell).tooltip({
                             container: "body",
                             animation: false,
@@ -2349,33 +2349,121 @@ export default {
                     vue.exportData("", true);
                 };
 
-                this.grid.generateHtml = function(styles, header, maxRowsPerPage, summaryRowsCount) {
+                this.grid.generateHtml = function(styles, header, maxRowsPerPage, isShowGroupRow, isShowGroupSummaryRow, isGroupPageBreak) {
                     var grid = this;
                     var table = $($(grid.exportData({ format: "htm", render: true }))[3]).addClass(grid.vue.id);
                     var tableHeaders = table.find("tr").filter((i, v) => !!$(v).find("th").length).get();
                     var tableBodies = table.find("tr").filter((i, v) => !!$(v).find("td").length).get();
 
-                    if (!maxRowsPerPage) {
+                    var pdata = grid.pdata.filter(v => !v.pq_hidden);
+
+                    tableBodies.forEach((r, i) => {
+                        var rd = pdata[i];
+
+                        if (!rd) {
+                            //grand summary
+                            $(r).addClass("grand-summary");
+                        } else {
+                            if (!!rd.pq_gsummary) {
+                                $(r).addClass("group-summary");
+                                $(r).attr("level", rd.pq_level)
+                            } else if (rd.pq_level != undefined) {
+                                $(r).addClass("group-row");
+                                $(r).attr("level", rd.pq_level)
+                            }
+                        }
+                    });
+
+                    if (!maxRowsPerPage && !isGroupPageBreak) {
                         return $("<div>")
                             .append($("<style>").text(styles || ""))
                             .append(header || "")
                             .append(table)
                             ;
                     } else {
-                        if (!!summaryRowsCount) {
-                            var summary = _.remove(tableBodies, (v, i) => i > tableBodies.length - summaryRowsCount - 1);
-                            summary.forEach(el => $(el).addClass("summary"));
-                            tableBodies = _.concat(tableBodies, summary);
+                        var chunks = [];
+                        var headers = [];
+
+                        var isShow = r => {
+                            if ($(r).hasClass("group-row")) {
+                                if (_.isArray(isShowGroupRow)) {
+                                    return isShowGroupRow[$(r).attr("level") * 1];
+                                } else {
+                                    return isShowGroupRow;
+                                }
+                            } else if ($(r).hasClass("group-summary")) {
+                                if (_.isArray(isShowGroupSummaryRow)) {
+                                    return isShowGroupSummaryRow[$(r).attr("level") * 1];
+                                } else {
+                                    return isShowGroupSummaryRow;
+                                }
+                            } else {
+                                return true;
+                            }
+                        };
+
+                        var isBreak = r => {
+                            if ($(r).hasClass("group-row")) {
+                                if (_.isArray(isGroupPageBreak)) {
+                                    return isGroupPageBreak[$(r).attr("level") * 1];
+                                } else {
+                                    return isGroupPageBreak;
+                                }
+                            } else {
+                                return false;
+                            }
+                        };
+
+                        var dr = _.reduce(tableBodies, (a, r, i) => {
+                            if (isShow(r)) {
+                                a.push(r);
+                            }
+
+                            if (isBreak(r)) {
+                                headers.push(pdata[i]);
+
+                                if (isShow(r)) {
+                                    a.push(r);
+                                }
+
+                                if (!!a.length) {
+                                    var c;
+                                    if (!!maxRowsPerPage) {
+                                        c = _.chunk(_.cloneDeep(a), maxRowsPerPage);
+                                        if (c.length > 1) {
+                                            headers.push(..._.range(c.length - 1).map(v => _.last(headers)));
+                                        }
+                                    } else {
+                                        c = [_.cloneDeep(a)];
+                                    }
+                                    chunks.push(c);
+                                    a = [];
+                                }
+                            }
+                            return a;
+                        }, []);
+                        if (!!dr.length) {
+                            var c;
+                            if (!!maxRowsPerPage) {
+                                c = _.chunk(_.cloneDeep(dr), maxRowsPerPage);
+                                if (c.length > 1) {
+                                    headers.push(..._.range(c.length - 1).map(v => _.last(headers)));
+                                }
+                            } else {
+                                c = [_.cloneDeep(dr)];
+                            }
+                            chunks.push(c);
                         }
 
-                        var chunks = _.chunk(tableBodies, maxRowsPerPage);
+                        chunks = _(chunks).values().flatten().value();
+                        console.log("printable chunks", chunks, headers);
 
                         var ret = $("<div>")
                             .append($("<style>").text(styles || ""))
                             .append(
                                 chunks.map((chunk, i) => {
                                     var page = $("<div>").css("page-break-before", "always")
-                                        .append(!!header ? (_.isFunction(header) ? header(chunk, i, chunks.length) : header) : "")
+                                        .append(!!header ? (_.isFunction(header) ? header(headers[i], i, chunks.length) : header) : "")
                                         .append(
                                             $("<table>").addClass(grid.vue.id)
                                                 .append($("<thead>").append(tableHeaders))
