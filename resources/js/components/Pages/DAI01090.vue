@@ -241,7 +241,7 @@ export default {
             //配送日付の初期値 -> 当日
             //TODO
             // vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
-            vue.viewModel.DeliveryDate = moment("20190905").format("YYYY年MM月DD日");
+            vue.viewModel.DeliveryDate = moment("20190904").format("YYYY年MM月DD日");
 
             //watcher
             vue.$watch(
