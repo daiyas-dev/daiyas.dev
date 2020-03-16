@@ -148,7 +148,7 @@ export default {
     },
     data() {
         return $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "日時処理 > 持出数一覧表",
+            ScreenTitle: "日次処理 > 得意先別実績表",
             noViewModel: true,
             viewModel: {
                 BushoCd: null,
@@ -207,13 +207,27 @@ export default {
                     {
                         title: "コース名",
                         dataIndx: "コース名", dataType: "string", key: true,
+                        hidden: true,
+                        editable: false,
+                        fixed: true,
+                    },
+                    {
+                        title: "得意先ＣＤ",
+                        dataIndx: "得意先ＣＤ", dataType: "string", key: true,
+                        width: 60, minWidth: 60, maxWidth: 60,
+                        editable: false,
+                        fixed: true,
+                    },
+                    {
+                        title: "得意先名",
+                        dataIndx: "得意先名", dataType: "string", key: true,
                         width: 200, minWidth: 200,
                         editable: false,
                         fixed: true,
                         render: ui => {
                             if (ui.rowData.pq_grandsummary) {
                                 //集計行
-                                ui.rowData["コース名"] = "合計";
+                                ui.rowData["得意先名"] = "合計";
                                 return { text: "合計" };
                             }
                             return ui;
@@ -322,8 +336,110 @@ export default {
         onBushoChanged: function(code, entities) {
             var vue = this;
 
-            //検索条件変更
-            vue.conditionChanged();
+            //列定義更新
+            vue.refreshCols();
+        },
+        refreshCols: function() {
+            var vue = this;
+            var grid;
+
+            //PqGrid読込待ち
+            new Promise((resolve, reject) => {
+                var timer = setInterval(function () {
+                    grid = vue.DAI01220Grid1;
+                    if (!!grid && vue.getLoginInfo().isLogOn) {
+                        clearInterval(timer);
+                        return resolve(grid);
+                    }
+                }, 100);
+            })
+            .then((grid) => {
+                grid.showLoading();
+                axios.post("/DAI01220/ColSearch", { BushoCd: vue.viewModel.BushoCd })
+                    .then(response => {
+                        var res = _.cloneDeep(response.data);
+                        vue.ProductList = res;
+
+                        var newCols = grid.options.colModel.filter(v => !!v.fixed);
+                        var productCols = res.map((v, i) => {
+                            return {
+                                title: v.各種名称,
+                                custom: true,
+                                hasSummary: true,
+                                cd: v.商品区分,
+                                colModel: [
+                                    {
+                                        title: "個数",
+                                        dataIndx: "個数_" + v.商品区分,
+                                        dataType: "integer",
+                                        format: "#,###",
+                                        width: 60, maxWidth: 60, minWidth: 60,
+                                        render: ui => {
+                                            if (!ui.rowData[ui.dataIndx]) {
+                                                return { text: "" };
+                                            }
+                                            return ui;
+                                        },
+                                    },
+                                    {
+                                        title: "金額",
+                                        dataIndx: "金額_" + v.商品区分,
+                                        dataType: "integer",
+                                        format: "#,##0",
+                                        width: 60, maxWidth: 60, minWidth: 60,
+                                        render: ui => {
+                                            if (!ui.rowData[ui.dataIndx]) {
+                                                return { text: "" };
+                                            }
+                                            return ui;
+                                        },
+                                    },
+                                ],
+                            };
+                        });
+                        newCols = newCols.concat(productCols);
+
+                        //みそ汁追加
+                        newCols.push(
+                            {
+                                title: "みそ汁",
+                                dataIndx: "みそ汁",
+                                dataType: "string",
+                                width: 50, maxWidth: 50, minWidth: 50,
+                            }
+                        );
+
+                       //値引追加
+                        newCols.push(
+                            {
+                                title: "値引",
+                                dataIndx: "値引",
+                                dataType: "string",
+                                width: 50, maxWidth: 50, minWidth: 50,
+                            }
+                        );
+
+                        //列定義更新
+                        grid.options.colModel = newCols;
+                        grid.refreshCM();
+                        grid.refresh();
+
+                        if (!!grid) grid.hideLoading();
+
+                        //条件変更ハンドラ
+                        vue.conditionChanged();
+                    });
+            })
+            .catch(error => {
+                console.log(error);
+                if (!!grid) grid.hideLoading();
+
+                //失敗ダイアログ
+                $.dialogErr({
+                    title: "各種テーブル検索失敗",
+                    contents: "各種テーブル検索に失敗しました" + "<br/>" + error.message,
+                });
+            });
         },
         onDeliveryDateChanged: function(code, entity) {
             var vue = this;
@@ -349,33 +465,28 @@ export default {
             //フィルタ変更ハンドラ
             vue.filterChanged();
         },
-        conditionChanged: _.debounce(function(callback) {
+        conditionChanged: function(callback) {
             var vue = this;
             var grid = vue.DAI01220Grid1;
 
-            //PqGrid読込待ち
-            new Promise((resolve, reject) => {
-                var timer = setInterval(function () {
-                    grid = vue.DAI01220Grid1;
-                    if (!!grid && vue.getLoginInfo().isLogOn) {
-                        clearInterval(timer);
-                        return resolve(grid);
-                    }
-                }, 500);
-            })
-            .then((grid) => {
-                var params = $.extend(true, {}, vue.viewModel);
+            if (!grid || !vue.getLoginInfo().isLogOn) return;
+            if (!vue.viewModel.BushoCd || !vue.viewModel.DeliveryDate) return;
+            if (!grid.options.colModel.some(v => v.custom)) {
+                vue.refreshCols();
+            }
 
-                //配送日を"YYYYMMDD"形式に編集
-                params.DeliveryDate = params.DeliveryDate ? moment(params.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
+            var params = $.extend(true, {}, vue.viewModel);
 
-                //コース開始/終了はフィルタするので除外
-                delete params.CourseStart;
-                delete params.CourseEnd;
+            //配送日を"YYYYMMDD"形式に編集
+            params.DeliveryDate = params.DeliveryDate ? moment(params.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
 
-                grid.searchData(params, false, null, callback);
-            });
-        }, 300),
+            //コース開始/終了はフィルタするので除外
+            delete params.CourseStart;
+            delete params.CourseEnd;
+
+            grid.searchData(vue.searchParams, false, null, callback);
+        },
+
         filterChanged: function() {
             var vue = this;
             var grid = vue.DAI01220Grid1;
@@ -398,82 +509,74 @@ export default {
             grid.filter({ oper: "replace", mode: "AND", rules: rules });
         },
         onAfterSearchFunc: function (vue, grid, res) {
-            //集計単位取得
-            var items = _(res
-                .filter(v => v.CHU注文数 || v.見込数)
-                .map(v => [
-                    { Cd: v.主食ＣＤ * 1, Nm: v.主食略称 },
-                    { Cd: v.副食ＣＤ * 1, Nm: v.副食略称 }
-                ])
-            )
-            .flatten().uniqBy("Cd").sortBy("Cd").value()
-            .filter(v => !!v.Nm);
+            var vue = this;
 
-            //列定義初期化
-            grid.options.colModel = grid.options.colModel.filter(c => c.fixed);
-
-            //列定義に集計単位を設定
-            grid.options.colModel = grid.options.colModel.concat(items.map(v => {
-                return {
-                    title: v.Nm,
-                    dataIndx: "商品ＣＤ_" + v.Cd,
-                    dataType: "integer",
-                    format: "#,###",
-                    width: 60, maxWidth: 60, minWidth: 60,
-                    editable: false,
-                    render: ui => {
-                        if (!ui.rowData[ui.dataIndx]) {
-                            return { text: "" };
-                        }
-                        return ui;
-                    },
-                    summary: {
-                        type: "TotalInt",
-                    },
-                };
-            }));
-
-            //不足分を空列追加
-            grid.options.colModel = grid.options.colModel
-                .concat(
-                    _.range(16 - grid.options.colModel.filter(c => !c.hidden).length)
-                        .map(v => {
-                            return {
-                                title: "",
-                                dataIndx: "empty",
-                                dataType: "integer",
-                                format: "#,###",
-                                width: 60, maxWidth: 60, minWidth: 60,
-                                editable: false,
-                            };
-                        })
-                );
-
-            //列定義更新
-            grid.refreshCM();
-
+window.res=_.cloneDeep(res);
             //集計
-            var groupings = _.values(_.groupBy(res, v => v.コースＣＤ))
-                .map((r, i) => {
+            var groupings = _(res)
+                .groupBy(v => v.得意先ＣＤ)
+                .values()
+                .value()
+                .map(r => {
                     var ret = _.reduce(
-                            r,
+                            _.sortBy(r, ["得意先ＣＤ"]),
                             (acc, v, j) => {
-                                acc.コースＣＤ = v.コースＣＤ;
-                                acc.コース名 = v.コース名;
-                                items.forEach(item => {
-                                    acc["商品ＣＤ_" + item.Cd] = (acc["商品ＣＤ_" + item.Cd] || 0)
-                                                           + ([v.主食ＣＤ * 1, v.副食ＣＤ * 1].includes(item.Cd) ? (v.CHU注文数 * 1 || v.見込数 * 1) : 0);
-                                });
+                                acc = _.isEmpty(acc) ? v : acc;
+                                if (v.現金個数 * 1 > 0) {
+                                    acc["個数_" + v.商品区分] = (acc["個数_" + v.商品区分] || 0) + v.現金個数 * 1;
+                                    //acc["合計個数"] = (acc["合計個数"] || 0) + v.個数 * 1;
+                                }
+                                if (v.掛売個数 * 1 > 0) {
+                                    acc["個数_" + v.商品区分] = (acc["個数_" + v.商品区分] || 0) + v.掛売個数 * 1;
+                                }
+                                if (v.分配元数量 * 1 > 0) {
+                                    acc["個数_" + v.商品区分] = (acc["個数_" + v.商品区分] || 0) + v.分配元数量 * 1;
+                                }
+                                if (v.現金金額 * 1 > 0) {
+                                    acc["金額_" + v.商品区分] = (acc["金額_" + v.商品区分] || 0) + v.現金金額 * 1;
+                                }
+                                if (v.掛売金額 * 1 > 0) {
+                                    acc["金額_" + v.商品区分] = (acc["金額_" + v.商品区分] || 0) + v.掛売金額 * 1;
+                                }
+                                if (v.現金値引 * 1 > 0) {
+                                    acc["値引"] = (acc["値引"] || 0) + v.現金値引 * 1;
+                                }
+                                if (v.掛売値引 * 1 > 0) {
+                                    acc["値引"] = (acc["値引"] || 0) + v.掛売値引 * 1;
+                                }
 
+                                /*
+                                if (!!v.得意先単価JSON) {
+                                    var vals = JSON.parse(v.得意先単価JSON);
+                                    _.keys(vals).forEach(k => {
+                                        acc["単価_" + k] = vals[k];
+                                    });
+                                }
+
+                                if (!grid.options.colModel.some(c => c.sub1 == v.商品ＣＤ) && v.個数 * 1 > 0) {
+                                    acc["他"] = (acc["他"] || 0) + v.個数 * 1;
+                                }
+
+                                if (v.金額 * 1 > 0) {
+                                    acc["合計金額"] = (acc["合計金額"] || 0) + v.金額 * 1;
+                                }
+                                */
                                 return acc;
                             },
                             {}
                     );
 
+                    //ret.GroupKey = ret.コースＣＤ + " " + ret.コース名;
+                    //ret.配送コース名 = ret.コースＣＤ + " " + ret.コース名;
+
                     return ret;
-                });
+
+                })
+
+            groupings = _(groupings).sortBy(v => v.順 * 1).sortBy(v => v.コースＣＤ * 1).value();
 
             return groupings;
+
         },
         CourseAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
