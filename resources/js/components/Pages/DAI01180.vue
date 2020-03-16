@@ -427,7 +427,7 @@ export default {
             // vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
             // vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
             vue.viewModel.DateStart = moment("20190903").format("YYYY年MM月DD日");
-            vue.viewModel.DateEnd = moment("20190904").format("YYYY年MM月DD日");
+            vue.viewModel.DateEnd = moment("20190905").format("YYYY年MM月DD日");
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
