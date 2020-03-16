@@ -544,7 +544,6 @@ window.res=_.cloneDeep(res);
                                 if (v.掛売値引 * 1 > 0) {
                                     acc["値引"] = (acc["値引"] || 0) + v.掛売値引 * 1;
                                 }
-/*test */
                                 /*
                                 if (!!v.得意先単価JSON) {
                                     var vals = JSON.parse(v.得意先単価JSON);

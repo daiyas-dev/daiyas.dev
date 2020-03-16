@@ -47,7 +47,7 @@ class DAI01220Controller extends Controller
         $BushoCd = 101;
         $CourseCd = 101;
         $DateStart = "2019/05/07";
-        $DateEnd = "2019/05/07";
+        $DateEnd = "2019/05/08";
 
 
         $sql = "
