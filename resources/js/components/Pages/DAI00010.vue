@@ -2,7 +2,7 @@
     <form id="this.$options.name">
         <div class="row" style="display: flex; align-items: baseline;">
             <div class="col-md-3">
-                <p><a href="./client/win/DaiyasClientSetup.exe" download="ダイヤスクライアントセットアップ.exe">CTI連携用クライアントのダウンロード</a></p>
+                <p><a href="./client/win/DaiyasClientSetup.exe" download="ダイヤスクライアントセットアップ.exe">CTI連携用クライアントのダウンロード </a></p>
             </div>
             <div class="col-md-3">
                 <label>受電</label>
