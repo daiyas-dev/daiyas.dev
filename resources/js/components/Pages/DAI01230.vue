@@ -4,12 +4,7 @@
             <div class="col-md-1">
                 <label>部署</label>
             </div>
-            <div class="col-md-2">
-                <VueSelectBusho
-                    :onChangedFunc=onBushoChanged
-                />
-            </div>
-            <div class="col-md-9">
+            <div class="col-md-11">
                 <VueMultiSelect
                     id="BushoCd"
                     ref="VueMultiSelect_BushoCd"
@@ -76,7 +71,7 @@
             </div>
             <div class="col-md-5">
                 <VueMultiSelect
-                    id="BushoCd"
+                    id="FactoryCd"
                     ref="VueMultiSelect_FactoryCd"
                     :vmodel=viewModel
                     bind="FactoryCdArray"
@@ -93,9 +88,9 @@
             id="DAI01230Grid1"
             ref="DAI01230Grid1"
             dataUrl="/DAI01230/Search"
-            :query=this.viewModel
-            :SearchOnCreate=false
-            :SearchOnActivate=false
+            :query=this.searchParams
+            :SearchOnCreate=true
+            :SearchOnActivate=true
             :options=this.grid1Options
             :onAfterSearchFunc=this.onAfterSearchFunc
         />
@@ -135,20 +130,22 @@ export default {
         vm: Object,
     },
     computed: {
+        searchParams: function() {
+            return {
+                TargetDate: moment().format("YYYYMMDD"),
+            };
+        }
     },
     data() {
         return $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "日時処理 > 部署別製造数一覧表",
             noViewModel: true,
             viewModel: {
-                BushoCd: null,
-                BushoNm: null,
                 BushoCdArray: [],
                 DeliveryDate: null,
                 CourseKbn: null,
                 BentoKbn: null,
-                FactoryCdStart: null,
-                FactoryCdEnd: null,
+                FactoryCdArray: [],
             },
             DAI01230Grid1: null,
             grid1Options: {
@@ -239,12 +236,8 @@ export default {
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
+            //TODO:フィルター変更
 
-            //TODO:列定義更新
-            vue.refreshCols();
-
-            // //条件変更ハンドラ
-            // vue.conditionChanged();
         },
         onDeliveryDateChanged: function(code, entity) {
             var vue = this;
@@ -290,10 +283,9 @@ export default {
             .then((grid) => {
                 grid.showLoading();
                 //TODO:作業途中 /DAI01230/ColSearchしない。BushoCdArrayからとる。
-                var params = {BushoCd: vue.viewModel.BushoCd, FactoryCdStart: vue.viewModel.FactoryCdStart, FactoryCdEnd: vue.viewModel.FactoryCdEnd}
-
-                axios.post("/DAI01230/ColSearch", params)
-                    .then(response => {
+                //var params = {BushoCd: vue.viewModel.BushoCd, FactoryCdStart: vue.viewModel.FactoryCdStart, FactoryCdEnd: vue.viewModel.FactoryCdEnd}
+                // axios.post("/DAI01230/ColSearch", params)
+                //     .then(response => {
                         var res = _.cloneDeep(response.data);
 
                          var newCols = grid.options.colModel
@@ -342,7 +334,7 @@ export default {
 
                         //条件変更ハンドラ
                         vue.conditionChanged();
-                    });
+                    // });
             })
             .catch(error => {
                 console.log(error);
@@ -358,11 +350,14 @@ export default {
         conditionChanged: function(callback) {
             var vue = this;
             var grid = vue.DAI01230Grid1;
+            //TODO:かくにんちゅう
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
-            if (!vue.viewModel.BushoCd || !vue.viewModel.DeliveryDate || !vue.viewModel.CourseKbn || !vue.viewModel.BentoKbn ||
-                !vue.viewModel.FactoryCdStart || !vue.viewModel.FactoryCdEnd) return;
-            if (!grid.options.colModel.some(v => v.custom)) return;
+            // if (!vue.viewModel.BushoCd || !vue.viewModel.DeliveryDate || !vue.viewModel.CourseKbn || !vue.viewModel.BentoKbn ||
+            //     !vue.viewModel.FactoryCdStart || !vue.viewModel.FactoryCdEnd) return;
+            //if (!grid.options.colModel.some(v => v.custom)) return;
+
+            if (!vue.viewModel.DeliveryDate || !vue.viewModel.CourseKbn || !vue.viewModel.BentoKbn ) return;
 
             var params = $.extend(true, {}, vue.viewModel);
             //配送日を"YYYYMMDD"形式に編集

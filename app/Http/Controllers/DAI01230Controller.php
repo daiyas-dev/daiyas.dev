@@ -47,20 +47,15 @@ class DAI01230Controller extends Controller
      */
     public function Search($vm)
     {
-        $BushoCd = $vm->BushoCd;
-        $DeliveryDate = $vm->DeliveryDate;
-        $CourseKbn = $vm->CourseKbn;
-        $FactoryCdStart = $vm->FactoryCdStart;
-        $FactoryCdEnd = $vm->FactoryCdEnd;
+        $DeliveryDate = $vm->TargetDate;
 
-        $WhereFactory = "BUSYO.工場ＣＤ >= $FactoryCdStart AND BUSYO.工場ＣＤ <= $FactoryCdEnd";
-
+        $Utilities = new UtilitiesController();
+        $CourseKbn = $Utilities->SearchCourseKbnFromDate($vm)->コース区分;
 
         $sql = "
 WITH WITH_注文データ AS (
 SELECT * FROM 注文データ
         WHERE 注文区分 = 0
-            AND 部署ＣＤ = $BushoCd
             AND CONVERT(varchar, 注文日付, 112) = $DeliveryDate
             AND CONVERT(varchar, 配送日, 112)   = $DeliveryDate
 )
@@ -72,7 +67,6 @@ SELECT
 GROUP BY
     部署ＣＤ,  得意先ＣＤ ,日付, 商品ＣＤ
 HAVING CONVERT(VARCHAR, 日付, 112) = $DeliveryDate
-AND 部署ＣＤ = $BushoCd
 )
 
 ,WITH_注文予測 AS (
@@ -157,7 +151,6 @@ FROM
     INNER JOIN コーステーブル CT ON
         COU.コースＣＤ = CT.コースＣＤ
         AND COU.部署ＣＤ = CT.部署ＣＤ
-        AND CT.部署ＣＤ = $BushoCd
         AND COU.コース区分 = $CourseKbn
 
     LEFT JOIN 部署マスタ BUSYO  ON
@@ -181,9 +174,6 @@ FROM
     SEIZOHIN.商品ＣＤ = ISNULL(MOB.MOB商品ＣＤ,MOB.CHU商品ＣＤ)
 
     AND SEIZOHIN.既定製造パターン = ISNULL(HIBETSUP.製造パターン,TOKUISAKI.既定製造パターン)
-
-WHERE
-    $WhereFactory
 )
 
 SELECT
