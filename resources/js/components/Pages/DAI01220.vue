@@ -12,46 +12,43 @@
             <div class="col-md-1">
                 <label>配送日付</label>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-4">
                 <DatePickerWrapper
-                    id="DeliveryDate"
+                    id="DateStart"
                     ref="DatePicker_Date"
                     format="YYYY年MM月DD日"
                     dayViewHeaderFormat="YYYY年MM月"
                     :vmodel=viewModel
-                    bind="DeliveryDate"
+                    bind="DateStart"
                     :editable=true
-                    :onChangedFunc=onDeliveryDateChanged
+                    :onChangedFunc=onDateChanged
+                />
+                <label>～</label>
+                <DatePickerWrapper
+                    id="DateEnd"
+                    ref="DatePicker_Date"
+                    format="YYYY年MM月DD日"
+                    dayViewHeaderFormat="YYYY年MM月"
+                    :vmodel=viewModel
+                    bind="DateEnd"
+                    :editable=true
+                    :onChangedFunc=onDateChanged
                 />
             </div>
         </div>
         <div class="row">
             <div class="col-md-1">
-                <label>コース区分</label>
-            </div>
-            <div class="col-md-2">
-                <VueSelect
-                    id="CourseKbn"
-                    :vmodel=viewModel
-                    bind="CourseKbn"
-                    uri="/Utilities/GetCodeList"
-                    :params="{ cd: 19 }"
-                    :withCode=true
-                    :hasNull=false
-                    :onChangedFunc=onCourseKbnChanged
-                />
-            </div>
-            <div class="col-md-1">
-                <label>コース開始</label>
+                <label>コース</label>
             </div>
             <div class="col-md-5">
                 <PopupSelect
-                    id="CourseStart"
-                    ref="PopupSelect_CourseStart"
+                    id="CourseCd"
+                    ref="PopupSelect_CourseCd"
                     :vmodel=viewModel
-                    bind="CourseStart"
+                    bind="CourseCd"
                     dataUrl="/Utilities/GetCourseList"
                     :params='{ bushoCd: viewModel.BushoCd, courseKbn: viewModel.CourseKbn }'
+                    :dataListReset=true
                     title="コース一覧"
                     labelCd="コースCD"
                     labelCdNm="コース名"
@@ -63,39 +60,10 @@
                     :exceptCheck="[{ Cd: 0 }]"
                     :inputWidth=100
                     :nameWidth=300
-                    :onAfterChangedFunc=onCourseStartChanged
+                    :onAfterChangedFunc=onCourseCdChanged
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=CourseAutoCompleteFunc
                     :isPreload=true
-                />
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-1 offset-md-3">
-                <label>コース終了</label>
-            </div>
-            <div class="col-md-5">
-                <PopupSelect
-                    id="CourseEnd"
-                    ref="PopupSelect_CourseEnd"
-                    :vmodel=viewModel
-                    bind="CourseEnd"
-                    dataUrl="/Utilities/GetCourseList"
-                    :params='{ bushoCd: viewModel.BushoCd, courseKbn: viewModel.CourseKbn }'
-                    title="コース一覧"
-                    labelCd="コースCD"
-                    labelCdNm="コース名"
-                    :isShowName=true
-                    :isModal=true
-                    :editable=true
-                    :reuse=true
-                    :existsCheck=true
-                    :exceptCheck="[{ Cd: 9999 }]"
-                    :inputWidth=100
-                    :nameWidth=300
-                    :onAfterChangedFunc=onCourseEndChanged
-                    :isShowAutoComplete=true
-                    :AutoCompleteFunc=CourseAutoCompleteFunc
                 />
             </div>
         </div>
@@ -156,10 +124,10 @@ export default {
             viewModel: {
                 BushoCd: null,
                 BushoNm: null,
-                DeliveryDate: null,
+                DateStart: null,
+                DateEnd: null,
                 CourseKbn: null,
-                CourseStart: null,
-                CourseEnd: null,
+                CourseCd: null,
             },
             DAI01220Grid1: null,
             grid1Options: {
@@ -268,7 +236,8 @@ export default {
         },
         mountedFunc: function(vue) {
             //配送日付の初期値 -> 当日
-            vue.viewModel.DeliveryDate = moment();
+            vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
+            vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
         },
         setPrintOptions: function(grid) {
             var vue = this;
@@ -369,6 +338,7 @@ export default {
                 grid.showLoading();
                 axios.post("/DAI01220/ColSearch", { BushoCd: vue.viewModel.BushoCd })
                     .then(response => {
+                        var res = _.cloneDeep(response.data);
                         vue.ProductList = res;
                         var newCols = grid.options.colModel.filter(v => !!v.fixed);
                         var productCols = res.map((v, i) => {
@@ -477,7 +447,7 @@ export default {
                 });
             });
         },
-        onDeliveryDateChanged: function(code, entity) {
+        onDateChanged: function(code, entity) {
             var vue = this;
 
             //条件変更ハンドラ
@@ -489,7 +459,7 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        onCourseStartChanged: function(code, entity) {
+        onCourseCdChanged: function(code, entity) {
             var vue = this;
 
             //フィルタ変更ハンドラ
@@ -506,7 +476,7 @@ export default {
             var grid = vue.DAI01220Grid1;
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
-            if (!vue.viewModel.BushoCd || !vue.viewModel.DeliveryDate) return;
+            if (!vue.viewModel.BushoCd || !vue.viewModel.DateStart || !vue.viewModel.DateEnd) return;
             if (!grid.options.colModel.some(v => v.custom)) {
                 vue.refreshCols();
             }
@@ -514,13 +484,13 @@ export default {
             var params = $.extend(true, {}, vue.viewModel);
 
             //配送日を"YYYYMMDD"形式に編集
-            params.DeliveryDate = params.DeliveryDate ? moment(params.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
+            params.DateStart = params.DateStart ? moment(params.DateStart, "YYYY年MM月DD日").format("YYYYMMDD") : null;
+            params.DateEnd = params.DateEnd ? moment(params.DateEnd, "YYYY年MM月DD日").format("YYYYMMDD") : null;
 
-            //コース開始/終了はフィルタするので除外
-            delete params.CourseStart;
-            delete params.CourseEnd;
+            //コースはフィルタするので除外
+            delete params.CourseCd;
 
-            grid.searchData(vue.searchParams, false, null, callback);
+            grid.searchData(params, false, null, callback);
         },
 
         filterChanged: function() {
@@ -531,13 +501,9 @@ export default {
 
             var rules = [];
             var crules = [];
-            if (!!vue.viewModel.CourseStart) {
-                crules.push({ condition: "gte", value: vue.viewModel.CourseStart });
+            if (vue.viewModel.CourseCd != undefined && vue.viewModel.CourseCd != "") {
+                crules.push({ condition: "equal", value: vue.viewModel.CourseCd});
             }
-            if (!!vue.viewModel.CourseEnd) {
-                crules.push({ condition: "lte", value: vue.viewModel.CourseEnd });
-            }
-
             if (crules.length) {
                 rules.push({ dataIndx: "コースＣＤ", mode: "AND", crules: crules });
             }
@@ -570,18 +536,11 @@ export default {
                             },
                             {}
                     );
-
                     ret.GroupKey = ret.コースＣＤ + " " + ret.コース名;
-                    //ret.配送コース名 = ret.コースＣＤ + " " + ret.コース名;
-
                     return ret;
-
                 })
-
             groupings = _(groupings).sortBy(v => v.順 * 1).sortBy(v => v.コースＣＤ * 1).value();
-
             return groupings;
-
         },
         CourseAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;

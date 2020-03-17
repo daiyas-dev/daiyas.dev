@@ -43,12 +43,8 @@ class DAI01220Controller extends Controller
     public function Search($vm)
     {
         $BushoCd = $vm->BushoCd;
-        //テスト用に条件を固定
-        $BushoCd = 101;
-        $CourseCd = 101;
-        $DateStart = "2019/05/07";
-        $DateEnd = "2019/05/08";
-
+        $DateStart = $vm->DateStart;
+        $DateEnd = $vm->DateEnd;
 
         $sql = "
             WITH WITH_コーステーブル AS (
