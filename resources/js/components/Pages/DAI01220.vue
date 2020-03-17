@@ -99,6 +99,7 @@ TODO: コース担当者が休み等の場合に、コーステーブルに載�
             :SearchOnActivate=false
             :options=this.grid1Options
             :onAfterSearchFunc=this.onAfterSearchFunc
+            :autoToolTipDisabled=true
         />
     </form>
 </template>
@@ -162,9 +163,8 @@ export default {
                 fillHandle: "",
                 numberCell: { show: true, title: "No.", resizable: false, },
                 autoRow: false,
-                rowHtHead: 50,
                 rowHt: 35,
-                freezeCols: 1,
+                freezeCols: 4,
                 editable: false,
                 columnTemplate: {
                     editable: false,
@@ -221,6 +221,7 @@ export default {
                         title: "得意先名",
                         dataIndx: "得意先名", dataType: "string", key: true,
                         width: 200, minWidth: 200,
+                        tooltip: true,
                         editable: false,
                         fixed: true,
                         render: ui => {
@@ -379,7 +380,7 @@ export default {
                                         dataIndx: "個数_" + v.商品区分,
                                         dataType: "integer",
                                         format: "#,###",
-                                        width: 80, maxWidth: 80, minWidth: 80,
+                                        width: 60, maxWidth: 60, minWidth: 60,
                                         summary: {
                                             type: "TotalInt",
                                         },
@@ -418,7 +419,7 @@ export default {
                                 dataIndx: "みそ汁",
                                 dataType: "integer",
                                 format: "#,##0",
-                                width: 80, maxWidth: 80, minWidth: 80,
+                                width: 60, maxWidth: 60, minWidth: 60,
                                 summary: {
                                     type: "TotalInt",
                                 },
@@ -438,7 +439,7 @@ export default {
                                 dataIndx: "値引",
                                 dataType: "integer",
                                 format: "#,##0",
-                                width: 80, maxWidth: 80, minWidth: 80,
+                                width: 60, maxWidth: 60, minWidth: 60,
                                 summary: {
                                     type: "TotalInt",
                                 },
@@ -632,6 +633,7 @@ export default {
         },
         print: function() {
             var vue = this;
+            alert("印刷1");
 
             //印刷用HTML全体適用CSS
             var globalStyles = `
@@ -673,6 +675,7 @@ export default {
                     overflow: hidden;
                 }
             `;
+            alert("印刷2");
 
             var headerFunc = (header, idx, length) => {
                 return `
@@ -703,6 +706,7 @@ export default {
                     </table>
                 `;
             };
+            alert("印刷3");
 
             var styleCourseSummary =`
                 table.DAI01220Grid1 tr:nth-child(1) th {
@@ -823,7 +827,7 @@ export default {
                     width: 7%;
                 }
             `;
-
+            alert("印刷4");
             var printable = $("<html>")
                 .append($("<head>").append($("<style>").text(globalStyles)))
                 .append(
@@ -841,14 +845,15 @@ export default {
                 )
                 .prop("outerHTML")
                 ;
-
+            alert("印刷5");
             var printOptions = {
                 type: "raw-html",
                 style: "@media print { @page { size: A4 landscape; } }",
                 printable: printable,
             };
-
+            alert("印刷6");
             printJS(printOptions);
+            alert("印刷7");
             //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()
         },
