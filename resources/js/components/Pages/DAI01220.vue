@@ -1,4 +1,10 @@
-﻿<template>
+﻿<!--
+TODO: コース担当者が休み等の場合に、コーステーブルに載っていない得意先ＣＤに配送するケースがある。
+      集計は、コーステーブルで取得した、コースに属する得意先ＣＤに加え、
+      コースに載っていないが配送した得意先ＣＤを加えて表示するように改修する必要があるかもしれない。
+      改修の方針はダイヤス殿にて検討中。
+-->
+<template>
     <form id="this.$options.name">
         <div class="row">
             <div class="col-md-1">
@@ -67,6 +73,23 @@
                 />
             </div>
         </div>
+        <div class="row">
+            <div class="col-md-2">
+                <VueCheck
+                    id="VueCheck_IncNoJisseki"
+                    ref="VueCheck_IncNoJisseki"
+                    :vmodel=viewModel
+                    bind="IsIncNoJisseki"
+                    checkedCode="1"
+                    customContainerStyle="border: none;"
+                    :list="[
+                        {code: '0', name: '含む', label: '実績なしは出力しない'},
+                        {code: '1', name: '含まない', label: '実績なしは出力しない'},
+                    ]"
+                    :onChangedFunc=onIncNoJissekiChanged
+                />
+            </div>
+        </div>
         <PqGridWrapper
             id="DAI01220Grid1"
             ref="DAI01220Grid1"
@@ -128,6 +151,7 @@ export default {
                 DateEnd: null,
                 CourseKbn: null,
                 CourseCd: null,
+                IsIncNoJisseki:"0",
             },
             DAI01220Grid1: null,
             grid1Options: {
@@ -227,17 +251,19 @@ export default {
                 },
                 { visible: "true", value: "印刷", id: "DAI01020Grid1_Printout", disabled: false, shortcut: "F6",
                     onClick: function () {
-                        vue.DAI01220Grid1.print(vue.setPrintOptions);
-                        //TODO: 検索 + 印刷とするか？
-                        //vue.conditionChanged(() => vue.DAI01220Grid1.print(vue.setPrintOptions));
+                        vue.print();
                     }
                 }
             );
         },
         mountedFunc: function(vue) {
             //配送日付の初期値 -> 当日
-            vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
-            vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
+            //TODO:
+            // vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
+            // vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
+            vue.viewModel.DateStart = moment("20190507").format("YYYY年MM月DD日");
+            vue.viewModel.DateEnd = moment("20190508").format("YYYY年MM月DD日");
+
         },
         setPrintOptions: function(grid) {
             var vue = this;
@@ -425,6 +451,16 @@ export default {
                             }
                         );
 
+                       //実績ありフラグを追加
+                        newCols.push(
+                            {
+                                hidden: true,
+                                title: "実績",
+                                dataIndx: "実績",
+                                dataType: "integer",
+                            }
+                        );
+
                         //列定義更新
                         grid.options.colModel = newCols;
                         grid.refreshCM();
@@ -446,6 +482,12 @@ export default {
                     contents: "各種テーブル検索に失敗しました" + "<br/>" + error.message,
                 });
             });
+        },
+        onIncNoJissekiChanged: function(code, entity) {
+            var vue = this;
+
+            //フィルタ変更ハンドラ
+            vue.filterChanged();
         },
         onDateChanged: function(code, entity) {
             var vue = this;
@@ -507,6 +549,13 @@ export default {
             if (crules.length) {
                 rules.push({ dataIndx: "コースＣＤ", mode: "AND", crules: crules });
             }
+            //実績なしを除外するか？
+            if(vue.viewModel.IsIncNoJisseki == "1")
+            {
+                var crulesNoJisseki = [];
+                crulesNoJisseki.push({ condition: "equal", value: 1});
+                rules.push({ dataIndx: "実績", mode: "AND", crules: crulesNoJisseki});
+            }
 
             grid.filter({ oper: "replace", mode: "AND", rules: rules });
         },
@@ -531,6 +580,9 @@ export default {
                                     acc["金額_" + v.商品区分] = (acc["金額_" + v.商品区分] || 0) + v.掛売金額 * 1;
                                     acc["値引"] = (acc["値引"] || 0) + v.現金値引 * 1;
                                     acc["値引"] = (acc["値引"] || 0) + v.掛売値引 * 1;
+                                    if(acc["個数_" + v.商品区分]>0 || acc["金額_" + v.商品区分]>0 || acc["値引_" + v.商品区分]>0){
+                                        acc["実績"] = 1;
+                                    }
                                 }
                                 return acc;
                             },
@@ -577,6 +629,228 @@ export default {
                 ;
 
             return list;
+        },
+        print: function() {
+            var vue = this;
+
+            //印刷用HTML全体適用CSS
+            var globalStyles = `
+                body {
+                    -webkit-print-color-adjust: exact;
+                }
+                div.title {
+                    width: 100%;
+                    display: flex;
+                    justify-content: center;
+                }
+                div.title > h3 {
+                    margin-top: 0px;
+                    margin-bottom: 0px;
+                }
+                table {
+                    table-layout: fixed;
+                    margin-left: 0px;
+                    margin-right: 0px;
+                    width: 100%;
+                    border-spacing: unset;
+                    border: solid 0px black;
+                }
+                th, td {
+                    font-family: "MS UI Gothic";
+                    font-size: 10pt;
+                    font-weight: normal;
+                    margin: 0px;
+                    padding-left: 3px;
+                    padding-right: 3px;
+                }
+                th {
+                    height: 25px;
+                    text-align: center;
+                }
+                td {
+                    height: 22px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                }
+            `;
+
+            var headerFunc = (header, idx, length) => {
+                return `
+                    <div class="title">
+                        <h3>* * * 得意先別実績表 * * *</h3>
+                    </div>
+                    <table class="header-table" style="border-width: 0px">
+                        <thead>
+                            <tr>
+                                <th style="width: 10%; text-align: left;">${vue.viewModel.BushoCd}:${vue.viewModel.BushoNm}</th>
+                                <th style="width: 10%;"></th>
+                                <th style="width: 41%; text-align: left;">${vue.viewModel.SummaryKind == 2 ? "" : header.コース}</th>
+                                <th style="width: 10%;"></th>
+                                <th style="width: 15%;"></th>
+                                <th style="width: 8%;"></th>
+                                <th style="width: 6%;"></th>
+                            </tr>
+                            <tr>
+                                <th style="text-align: left;">${vue.viewModel.SummaryKind == 2 ? header.日付 : header.parentId}</th>
+                                <th></th>
+                                <th></th>
+                                <th>作成日</th>
+                                <th>${moment().format("YYYY年MM月DD日")}</th>
+                                <th>PAGE</th>
+                                <th style="text-align: right;">${idx + 1}/${length}</th>
+                            </tr>
+                        </thead>
+                    </table>
+                `;
+            };
+
+            var styleCourseSummary =`
+                table.DAI01220Grid1 tr:nth-child(1) th {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI01220Grid1 tr.group-row td {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.DAI01220Grid1 tr.group-summary td {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.DAI01220Grid1 tr.group-summary td:nth-child(2) {
+                    text-align: right;
+                    padding-right: 50px;
+                }
+                table.DAI01220Grid1 tr[level="0"].group-summary td {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.DAI01220Grid1 tr[level="0"].group-summary td:nth-child(2) {
+                    text-align: right;
+                    padding-right: 30px;
+                }
+                table.DAI01220Grid1 tr.grand-summary td {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.DAI01220Grid1 tr.grand-summary td:nth-child(2) {
+                    text-align: right;
+                }
+                table.DAI01220Grid1 tr.grand-summary td:nth-child(3) {
+                    text-align: left;
+                }
+                table.DAI01220Grid1 tr th:nth-child(1) {
+                    width: 4.5%;
+                }
+                table.DAI01220Grid1 tr th:nth-child(3) {
+                    width: 4.5%;
+                }
+                table.DAI01220Grid1 tr th:nth-child(n+4):nth-child(-n+12) {
+                    width: 6%;
+                }
+                table.DAI01220Grid1 tr th:nth-child(13) {
+                    width: 7%;
+                }
+            `;
+            var styleCustomers =`
+                table.DAI01220Grid1 tr:nth-child(1) th {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI01220Grid1 tr.group-summary td {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.DAI01220Grid1 tr.group-summary td:nth-child(2) {
+                    text-align: right;
+                    padding-right: 50px;
+                }
+                table.DAI01220Grid1 tr[level="0"].group-summary td {
+                    border-style: dotted;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.DAI01220Grid1 tr[level="0"].group-summary td:nth-child(2) {
+                    text-align: right;
+                    padding-right: 30px;
+                }
+                table.DAI01220Grid1 tr.grand-summary td {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.DAI01220Grid1 tr.grand-summary td:nth-child(2) {
+                    text-align: right;
+                }
+                table.DAI01220Grid1 tr.grand-summary td:nth-child(3) {
+                    text-align: left;
+                }
+                table.DAI01220Grid1 tr th:nth-child(1) {
+                    width: 4.5%;
+                }
+                table.DAI01220Grid1 tr th:nth-child(3) {
+                    width: 4.5%;
+                }
+                table.DAI01220Grid1 tr th:nth-child(n+4):nth-child(-n+12) {
+                    width: 6%;
+                }
+                table.DAI01220Grid1 tr th:nth-child(13) {
+                    width: 7%;
+                }
+            `;
+
+            var printable = $("<html>")
+                .append($("<head>").append($("<style>").text(globalStyles)))
+                .append(
+                    $("<body>")
+                        .append(
+                            vue.DAI01220Grid1.generateHtml(
+                                styleCustomers,
+                                headerFunc,
+                                25,
+                                [false, true],
+                                true,
+                                vue[true, false],
+                            )
+                        )
+                )
+                .prop("outerHTML")
+                ;
+
+            var printOptions = {
+                type: "raw-html",
+                style: "@media print { @page { size: A4 landscape; } }",
+                printable: printable,
+            };
+
+            printJS(printOptions);
+            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //$("#printJS").contents().find("html").html()
         },
     }
 }
