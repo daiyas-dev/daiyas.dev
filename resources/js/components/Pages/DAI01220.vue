@@ -116,6 +116,9 @@
 #DAI01220Grid1 .pq-group-toggle-none {
     display: none !important;
 }
+#DAI01220Grid1 .pq-group-icon {
+    display: none !important;
+}
 #DAI01220Grid1 .pq-td-div {
     display: flex;
     line-height: 13px !important;
@@ -191,6 +194,11 @@ export default {
                     on: true,
                     header: false,
                     grandSummary: true,
+                    indent: 20,
+                    dataIndx: ["GroupKey"],
+                    showSummary: [true],
+                    collapsed: [false],
+                    summaryInTitleRow: "collapsed",
                 },
                 summaryData: [
                 ],
@@ -198,15 +206,14 @@ export default {
                 ],
                 colModel: [
                     {
-                        title: "コースＣＤ",
-                        dataIndx: "コースＣＤ", dataType: "string", key: true,
+                        title: "GroupKey",
+                        dataIndx: "GroupKey", dataType: "string",
                         hidden: true,
-                        editable: false,
                         fixed: true,
                     },
                     {
-                        title: "コース名",
-                        dataIndx: "コース名", dataType: "string", key: true,
+                        title: "コースＣＤ",
+                        dataIndx: "コースＣＤ", dataType: "string", key: true,
                         hidden: true,
                         editable: false,
                         fixed: true,
@@ -229,6 +236,11 @@ export default {
                                 //集計行
                                 ui.rowData["得意先名"] = "合計";
                                 return { text: "合計" };
+                            }
+                            if (!!ui.rowData.pq_gsummary) {
+                                //小計行
+                                ui.rowData["得意先名"] = "小計";
+                                return { text: "小計" };
                             }
                             return ui;
                         },
@@ -357,9 +369,7 @@ export default {
                 grid.showLoading();
                 axios.post("/DAI01220/ColSearch", { BushoCd: vue.viewModel.BushoCd })
                     .then(response => {
-                        var res = _.cloneDeep(response.data);
                         vue.ProductList = res;
-
                         var newCols = grid.options.colModel.filter(v => !!v.fixed);
                         var productCols = res.map((v, i) => {
                             return {
@@ -373,10 +383,13 @@ export default {
                                         dataIndx: "個数_" + v.商品区分,
                                         dataType: "integer",
                                         format: "#,###",
-                                        width: 60, maxWidth: 60, minWidth: 60,
+                                        width: 80, maxWidth: 80, minWidth: 80,
+                                        summary: {
+                                            type: "TotalInt",
+                                        },
                                         render: ui => {
                                             if (!ui.rowData[ui.dataIndx]) {
-                                                return { text: "" };
+                                                return { text: "0" };
                                             }
                                             return ui;
                                         },
@@ -386,10 +399,13 @@ export default {
                                         dataIndx: "金額_" + v.商品区分,
                                         dataType: "integer",
                                         format: "#,##0",
-                                        width: 60, maxWidth: 60, minWidth: 60,
+                                        width: 80, maxWidth: 80, minWidth: 80,
+                                        summary: {
+                                            type: "TotalInt",
+                                        },
                                         render: ui => {
                                             if (!ui.rowData[ui.dataIndx]) {
-                                                return { text: "" };
+                                                return { text: "0" };
                                             }
                                             return ui;
                                         },
@@ -404,8 +420,18 @@ export default {
                             {
                                 title: "みそ汁",
                                 dataIndx: "みそ汁",
-                                dataType: "string",
-                                width: 50, maxWidth: 50, minWidth: 50,
+                                dataType: "integer",
+                                format: "#,##0",
+                                width: 80, maxWidth: 80, minWidth: 80,
+                                summary: {
+                                    type: "TotalInt",
+                                },
+                                render: ui => {
+                                    if (!ui.rowData[ui.dataIndx]) {
+                                        return { text: "0" };
+                                    }
+                                    return ui;
+                                },
                             }
                         );
 
@@ -414,8 +440,18 @@ export default {
                             {
                                 title: "値引",
                                 dataIndx: "値引",
-                                dataType: "string",
-                                width: 50, maxWidth: 50, minWidth: 50,
+                                dataType: "integer",
+                                format: "#,##0",
+                                width: 80, maxWidth: 80, minWidth: 80,
+                                summary: {
+                                    type: "TotalInt",
+                                },
+                                render: ui => {
+                                    if (!ui.rowData[ui.dataIndx]) {
+                                        return { text: "0" };
+                                    }
+                                    return ui;
+                                },
                             }
                         );
 
@@ -511,10 +547,9 @@ export default {
         onAfterSearchFunc: function (vue, grid, res) {
             var vue = this;
 
-window.res=_.cloneDeep(res);
             //集計
             var groupings = _(res)
-                .groupBy(v => v.得意先ＣＤ)
+                .groupBy(v => [v.コースＣＤ,v.得意先ＣＤ])
                 .values()
                 .value()
                 .map(r => {
@@ -522,50 +557,21 @@ window.res=_.cloneDeep(res);
                             _.sortBy(r, ["得意先ＣＤ"]),
                             (acc, v, j) => {
                                 acc = _.isEmpty(acc) ? v : acc;
-                                if (v.現金個数 * 1 > 0) {
+                                if (v.売掛現金区分 != 4) {
                                     acc["個数_" + v.商品区分] = (acc["個数_" + v.商品区分] || 0) + v.現金個数 * 1;
-                                    //acc["合計個数"] = (acc["合計個数"] || 0) + v.個数 * 1;
-                                }
-                                if (v.掛売個数 * 1 > 0) {
                                     acc["個数_" + v.商品区分] = (acc["個数_" + v.商品区分] || 0) + v.掛売個数 * 1;
-                                }
-                                if (v.分配元数量 * 1 > 0) {
                                     acc["個数_" + v.商品区分] = (acc["個数_" + v.商品区分] || 0) + v.分配元数量 * 1;
-                                }
-                                if (v.現金金額 * 1 > 0) {
                                     acc["金額_" + v.商品区分] = (acc["金額_" + v.商品区分] || 0) + v.現金金額 * 1;
-                                }
-                                if (v.掛売金額 * 1 > 0) {
                                     acc["金額_" + v.商品区分] = (acc["金額_" + v.商品区分] || 0) + v.掛売金額 * 1;
-                                }
-                                if (v.現金値引 * 1 > 0) {
                                     acc["値引"] = (acc["値引"] || 0) + v.現金値引 * 1;
-                                }
-                                if (v.掛売値引 * 1 > 0) {
                                     acc["値引"] = (acc["値引"] || 0) + v.掛売値引 * 1;
                                 }
-                                /*
-                                if (!!v.得意先単価JSON) {
-                                    var vals = JSON.parse(v.得意先単価JSON);
-                                    _.keys(vals).forEach(k => {
-                                        acc["単価_" + k] = vals[k];
-                                    });
-                                }
-
-                                if (!grid.options.colModel.some(c => c.sub1 == v.商品ＣＤ) && v.個数 * 1 > 0) {
-                                    acc["他"] = (acc["他"] || 0) + v.個数 * 1;
-                                }
-
-                                if (v.金額 * 1 > 0) {
-                                    acc["合計金額"] = (acc["合計金額"] || 0) + v.金額 * 1;
-                                }
-                                */
                                 return acc;
                             },
                             {}
                     );
 
-                    //ret.GroupKey = ret.コースＣＤ + " " + ret.コース名;
+                    ret.GroupKey = ret.コースＣＤ + " " + ret.コース名;
                     //ret.配送コース名 = ret.コースＣＤ + " " + ret.コース名;
 
                     return ret;

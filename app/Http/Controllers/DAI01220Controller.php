@@ -99,10 +99,9 @@ class DAI01220Controller extends Controller
                     INNER JOIN [商品マスタ]
                     ON 商品マスタ.商品ＣＤ = 売上データ明細.商品ＣＤ
                 WHERE
-                    コースＣＤ = $CourseCd
+                    部署ＣＤ = $BushoCd
                     AND 日付 >= '$DateStart'
                     AND 日付 <= '$DateEnd'
-                    AND 部署ＣＤ = $BushoCd
             )
             SELECT
                 WITH_コーステーブル.コースＣＤ
@@ -110,7 +109,7 @@ class DAI01220Controller extends Controller
                 , WITH_コーステーブル.ＳＥＱ
                 , WITH_コーステーブル.得意先ＣＤ
                 , WITH_コーステーブル.得意先名
-                , WITH_コーステーブル.売掛現金区分
+                , WITH_売上データ明細.売掛現金区分
                 , WITH_売上データ明細.日付
                 , WITH_売上データ明細.行Ｎｏ
                 , WITH_売上データ明細.明細行Ｎｏ
@@ -126,7 +125,9 @@ class DAI01220Controller extends Controller
                 , WITH_売上データ明細.商品区分
                 , WITH_売上データ明細.分配元数量
             FROM WITH_コーステーブル
-                    LEFT JOIN WITH_売上データ明細 ON WITH_売上データ明細.得意先ＣＤ=WITH_コーステーブル.得意先ＣＤ
+                    LEFT JOIN WITH_売上データ明細
+                        ON WITH_売上データ明細.得意先ＣＤ=WITH_コーステーブル.得意先ＣＤ
+                        AND WITH_売上データ明細.コースＣＤ=WITH_コーステーブル.コースＣＤ
             ORDER BY
                 WITH_コーステーブル.コースＣＤ
                 , WITH_コーステーブル.ＳＥＱ
