@@ -47,7 +47,8 @@ class DAI01230Controller extends Controller
      */
     public function Search($vm)
     {
-        $DeliveryDate = $vm->TargetDate;
+        $DeliveryDate = $vm->DeliveryDate;
+        $vm->targetDate = $DeliveryDate;
 
         $Utilities = new UtilitiesController();
         $CourseKbn = $Utilities->SearchCourseKbnFromDate($vm)->コース区分;
@@ -183,7 +184,8 @@ SELECT
 FROM WITH_コース別持出数
     LEFT JOIN 商品マスタ s1 ON s1.商品ＣＤ = WITH_コース別持出数.主食ＣＤ
     LEFT JOIN 商品マスタ s2 ON s2.商品ＣＤ = WITH_コース別持出数.副食ＣＤ
-
+WHERE
+    WITH_コース別持出数.主食ＣＤ IS NOT NULL OR WITH_コース別持出数.副食ＣＤ IS NOT NULL
 ORDER BY
     WITH_コース別持出数.部署ＣＤ
     , WITH_コース別持出数.得意先ＣＤ

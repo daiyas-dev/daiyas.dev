@@ -131,9 +131,8 @@ export default {
     },
     computed: {
         searchParams: function() {
-            return {
-                TargetDate: moment().format("YYYYMMDD"),
-            };
+            var date = !!this.viewModel.DeliveryDate ? moment(this.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD") : moment().format("YYYYMMDD");
+            return { DeliveryDate: date };
         }
     },
     data() {
@@ -189,7 +188,7 @@ export default {
                     {
                         title: "製造品名",
                         dataIndx: "主食副食名", dataType: "string",
-                        width: 200, maxWidth: 250, minWidth: 200,
+                        width: 150, maxWidth: 200, minWidth: 150,
                         editable: false,
                         render: ui => {
                             if (ui.rowData.pq_grandsummary) {
@@ -248,23 +247,17 @@ export default {
         onCourseKbnChanged: function(code, entity) {
             var vue = this;
 
-            //条件変更ハンドラ
-            vue.conditionChanged();
+            //TODO:不要？
         },
         onBentoKbnChanged: function(code, entity) {
             var vue = this;
 
-            //条件変更ハンドラ
-            vue.conditionChanged();
+            //TODO:表示変更
         },
         onFactoryChanged: function(code, entity) {
             var vue = this;
 
-            //TODO:列定義更新
-            vue.refreshCols();
-
-            // //条件変更ハンドラ
-            // vue.conditionChanged();
+            //TODO:フィルター変更
         },
         refreshCols: function() {
             var vue = this;
@@ -350,31 +343,88 @@ export default {
         conditionChanged: function(callback) {
             var vue = this;
             var grid = vue.DAI01230Grid1;
-            //TODO:かくにんちゅう
+            if (!grid || !vue.getLoginInfo().isLogOn || !vue.viewModel.DeliveryDate) return;
 
-            if (!grid || !vue.getLoginInfo().isLogOn) return;
-            // if (!vue.viewModel.BushoCd || !vue.viewModel.DeliveryDate || !vue.viewModel.CourseKbn || !vue.viewModel.BentoKbn ||
-            //     !vue.viewModel.FactoryCdStart || !vue.viewModel.FactoryCdEnd) return;
-            //if (!grid.options.colModel.some(v => v.custom)) return;
-
-            if (!vue.viewModel.DeliveryDate || !vue.viewModel.CourseKbn || !vue.viewModel.BentoKbn ) return;
-
-            var params = $.extend(true, {}, vue.viewModel);
+            var params = { DeliveryDate: vue.viewModel.DeliveryDate };
             //配送日を"YYYYMMDD"形式に編集
-            params.DeliveryDate = params.DeliveryDate ? moment(params.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
+            params.DeliveryDate = moment(params.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD");
 
             grid.searchData(params, false, null, callback);
         },
         onAfterSearchFunc: function (vue, grid, res) {
 
-            //TODO:01080を参考にする
             var vue = this;
+            var grid = vue.DAI01230Grid1;
             var bentoKbn = vue.viewModel.BentoKbn;
 
             //TODO:集計結果をもとに、列の設定
+            window.res = res;
+            var bushoCdList= _.keys(_.groupBy(res, v => v.部署ＣＤ)).filter(v => v.部署ＣＤ != 0);
+            var bushoNmList = _.keys(_.groupBy(res, v => v.部署名));
+            var colList = [{}];
+            for (var i = 0; i < bushoCdList.length; i++) {
+                if(!colList[0].部署ＣＤ){
+                    colList[0] = { 部署ＣＤ:bushoCdList[i], 部署名:bushoNmList[i], 主食ＣＤ: "", 副食ＣＤ: "" };
+                }else{
+                    colList.push({ 部署ＣＤ:bushoCdList[i], 部署名:bushoNmList[i], 主食ＣＤ: "", 副食ＣＤ: "" });
+                }
+            }
+
+            //列定義初期化
+            grid.options.colModel = grid.options.colModel.filter(c => c.fixed);
+
+            var newCols = grid.options.colModel
+                .concat(colList.map(v => {
+                    return {
+                        title: v.部署名,
+                        dataIndx: "持出数_" + "部署ＣＤ",
+                        dataType: "integer",
+                        format: "#,###",
+                        width: 80, maxWidth: 80, minWidth: 60,
+                        editable: false,
+                        render: ui => {
+                            if (!ui.cellData) {
+                                ui.rowData[ui.dataIndx] = 0;
+                                ui.text = 0;
+                            }
+                            return ui;
+                        },
+                        summary: {
+                            type: "TotalInt",
+                        },
+                    };
+                }));
+
+                newCols.push(
+                    {
+                        title: "合計",
+                        dataIndx: "持出数合計",
+                        dataType: "integer",
+                        format: "#,###",
+                        width: 80, maxWidth: 80, minWidth: 60,
+                        editable: false,
+                    }
+                );
+
+                //列定義更新
+                grid.options.colModel = newCols;
+                grid.refreshCM();
+                grid.refresh();
+
+                if (!!grid) grid.hideLoading();
+
+            //TODO:途中
+            // if(bentoKbn == 1){
+            //     res.filter(v => v.主食ＣＤ != 0);
+            // } else {
+            //     res.filter(v => v.副食ＣＤ != 0);
+            // }
+
+
+
             //集計
             var groupings = _(res)
-                //.groupBy(v => v.主食ＣＤ)
+                .groupBy(v => v.主食ＣＤ)
                 .values()
                 .value()
                 .filter(v => (v.CHU注文数 != 0 || v.見込数 != 0))
@@ -384,29 +434,23 @@ export default {
                             (acc, v, j) => {
                                 acc = _.isEmpty(acc) ? _.cloneDeep(v) : acc;
 
-                                //delete acc.部署ＣＤ;
-                                //delete acc.部署名;
                                 delete acc.得意先ＣＤ;
                                 delete acc.得意先名;
                                 delete acc.商品ＣＤ;
                                 delete acc.見込数;
                                 delete acc.規定製造パターン;
-                                //delete acc.副食ＣＤ;
-                                //delete acc.主食ＣＤ;
                                 delete acc.CHU商品ＣＤ;
                                 delete acc.CHU注文数;
                                 delete acc.部署グループ;
-                                //delete acc.工場ＣＤ;
-                                delete acc.主食名;
-                                delete acc.副食名;
 
                                 if(!!acc.主食ＣＤ && acc.主食ＣＤ != 0 && vue.viewModel.BentoKbn == 1){
                                     acc["主食副食名"] = acc["主食名"];
-                                    acc["持出数_" + v.主食ＣＤ + "_" + v.部署名] = v.CHU注文数 == 0 ? (acc["持出数_" + v.主食ＣＤ + "_" + v.部署名] || 0) + v.見込数 * 1 : (acc["持出数_" + v.主食ＣＤ] || 0) + v.CHU注文数 * 1;
+                                    acc["持出数_" + v.部署ＣＤ] = v.CHU注文数 == 0 ? (acc["持出数_" + v.部署ＣＤ] || 0) + v.見込数 * 1 : (acc["持出数_" + v.部署ＣＤ] || 0) + v.CHU注文数 * 1;
+
                                 }
                                 if(!!acc.副食ＣＤ && acc.副食ＣＤ != 0 && vue.viewModel.BentoKbn == 2){
                                     acc["主食副食名"] = acc["副食名"];
-                                    acc["持出数_" + v.副食ＣＤ + "_" + v.部署名] = v.CHU注文数 == 0 ? (acc["持出数_" + v.副食ＣＤ + "_" + v.部署名] || 0) + v.見込数 * 1 : (acc["持出数_" + v.副食ＣＤ] || 0) + v.CHU注文数 * 1;
+                                    acc["持出数_" + v.部署ＣＤ] = v.CHU注文数 == 0 ? (acc["持出数_" + v.部署ＣＤ] || 0) + v.見込数 * 1 : (acc["持出数_" + v.副食ＣＤ] || 0) + v.CHU注文数 * 1;
                                 }
 
                                 return acc;
@@ -418,7 +462,9 @@ export default {
                         if (k.startsWith("持出数_")) {
                             var cd = k.replace("持出数_", "");
                             if(!!cd){
-                                ret["持出数_" + cd] = ret["持出数_" + cd ];
+                                ret["持出数_" + cd] = ret["持出数_" + cd];
+                            }else{
+                                delete ret["持出数_" + cd];
                             }
                         }
                     });
