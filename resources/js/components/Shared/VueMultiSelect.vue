@@ -15,7 +15,7 @@
             :disabled=disabled
             :allowEmpty=hasNull
             :preselectFirst=!hasNull
-            @change="onChanged"
+            @input="onChanged"
             placeholder=""
             selectLabel="選択"
             selectedLabel="選択中"
@@ -147,7 +147,7 @@ export default {
                     }
 
                     if (this.onChangedFunc) {
-                        this.onChangedFunc(newVal[0].code, newVal[0], newVal);
+                        this.onChangedFunc(null, newVal);
                     }
                 }
             }
@@ -186,23 +186,11 @@ export default {
         },
         onChanged: function (event) {
             var vue = this;
-
-            var code = $(event.target).val();
-            var entity = _.find(vue.entities, v => v.code == code);
-
-            if (!!entity && !!vue.buddy) {
-                vue.vmodel[vue.buddy] = entity.name;
-            }
-
-            if (!!entity) {
-                var isInvalid = entity.invalid;
-                $(vue.$el)[isInvalid ? "addClass" : "removeClass"]("has-error");
-                vue.invalid = isInvalid;
-            }
+            console.log("vue-multiselect onchanged", vue.selected)
 
             //変更時関数が指定されていれば呼出
             if (vue.onChangedFunc) {
-                vue.onChangedFunc(code, entity, vue.entities);
+                vue.onChangedFunc(vue.selected, vue.entities);
             }
 
             return false;
