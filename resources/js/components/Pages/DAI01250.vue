@@ -46,6 +46,7 @@
             :SearchOnCreate=false
             :SearchOnActivate=false
             :options=this.grid1Options
+            :autoToolTipDisabled=true
         />
     </form>
 </template>
@@ -86,7 +87,7 @@ export default {
     },
     data() {
         return $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "日時処理 > 売上月計日計表",
+            ScreenTitle: "日時処理 > 未分配一覧表",
             noViewModel: true,
             viewModel: {
                 BushoCd: null,
@@ -102,7 +103,7 @@ export default {
                 fillHandle: "",
                 numberCell: { show: true, title: "No.", resizable: false, },
                 autoRow: false,
-                freezeCols: 1,
+                freezeCols: false,
                 editable: false,
                 columnTemplate: {
                     editable: false,
@@ -123,158 +124,109 @@ export default {
                 groupModel: {
                     on: true,
                     header: false,
-                    grandSummary: true,
+                    grandSummary: false,
                 },
                 summaryData: [
-                    { 日付:'合計', summaryRow: true, pq_fn:{TotalNum:'sum(B:B)', TotalPrice:'sum(C:C)'}},
                 ],
                 formulas: [
                     [
-                        "TotalNum",function(rowData){
-                            return rowData.現金個数*1 + rowData.売掛個数*1　+ rowData.チケット個数*1
+                        "得意先名",
+                        function(rowData){
+                            return _.padStart(rowData.得意先ＣＤ, 7, "0") + " " + rowData.得意先名;
                         }
                     ],
                     [
-                        "TotalPrice",function(rowData){
-                            return rowData.現金金額*1 + rowData.売掛金額*1　+ rowData.チケット金額*1
+                        "コース名",
+                        function(rowData){
+                            return _.padStart(rowData.コースＣＤ, 4, "0") + " " + rowData.コース名;
+                        }
+                    ],
+                    [
+                        "担当者名",
+                        function(rowData){
+                            return _.padStart(rowData.担当者ＣＤ, 4, "0") + " " + rowData.担当者名;
                         }
                     ]
                 ],
                 colModel: [
                     {
-                        title: "部署ＣＤ",
-                        dataIndx: "部署ＣＤ", dataType: "string", key: true,
-                        hidden: ui => !ui.Export,
+                        title: "得意先名",
+                        dataIndx: "得意先名", dataType: "string", key: true,
+                        width: 200, minWidth: 200,
+                        hidden: false,
                         editable: false,
-                        fixed: true,
-                    },
-                    {
-                        title: "部署名",
-                        dataIndx: "部署名", dataType: "string", key: true,
-                        hidden: ui => !ui.Export,
-                        editable: false,
-                        fixed: true,
+                        tooltip: true,
+                        fixed: false,
                     },
                     {
                         title: "日付",
                         dataIndx: "日付", dataType: "date", key: true, format: "yy/mm/dd",
+                        width: 100, maxWidth: 100, minWidth: 100,
+                        hidden: false,
+                        editable: false,
+                        fixed: false,
+                    },
+                    {
+                        title: "コース",
+                        dataIndx: "コース名", dataType: "string", key: true,
+                        width: 200, maxWidth: 200, minWidth: 200,
+                        hidden: false,
+                        editable: false,
+                        tooltip: true,
+                        fixed: true,
+                    },
+                    {
+                        title: "担当者",
+                        dataIndx: "担当者名", dataType: "string", key: true,
+                        width: 170, maxWidth: 170, minWidth: 170,
+                        hidden: false,
+                        editable: false,
+                        fixed: true,
+                    },
+                    {
+                        title: "商品",
+                        dataIndx: "商品名", dataType: "string", key: true,
+                        width: 160, maxWidth: 160, minWidth: 160,
+                        hidden: false,
+                        editable: false,
+                        fixed: true,
+                    },
+                    {
+                        title: "数量",
+                        dataIndx: "数量", dataType: "integer", key: true, format: "#,###",
+                        width: 80, maxWidth: 80, minWidth: 80,
                         hidden: false,
                         editable: false,
                         fixed: true,
                         render: ui => {
-                            if (ui.rowData.pq_grandsummary) {
-                                //集計行
-                                ui.rowData["日付"] = "合計";
-                                return { text: "合計" };
+                            if (!ui.rowData[ui.dataIndx]) {
+                                return { text: "0" };
                             }
                             return ui;
                         },
                     },
                     {
-                        title: "合計",
-                        dataIndx: "合計",
-                        colModel: [
-                        {
-                                title: "個数",
-                                dataIndx: "TotalNum", dataType: "integer", key: true, format: "#,###",
-                                hidden: false,
-                                editable: false,
-                                fixed: true,
-                                summary: {
-                                        type: "TotalInt",
-                                    },
+                        title: "入金額",
+                        dataIndx: "入金額", dataType: "integer", key: true, format: "#,###",
+                        width: 90, maxWidth: 90, minWidth: 90,
+                        hidden: false,
+                        editable: false,
+                        fixed: true,
+                        render: ui => {
+                            if (!ui.rowData[ui.dataIndx]) {
+                                return { text: "0" };
+                            }
+                            return ui;
                         },
-                        {
-                            title: "金額",
-                            dataIndx: "TotalPrice", dataType: "integer", key: true, format: "#,###",
-                            hidden: false,
-                            editable: false,
-                            fixed: true,
-                            summary: {
-                                    type: "TotalInt",
-                                },
-                        },
-                        ],
-                    },
-
-                    {
-                        title: "現金売上",
-                        dataIndx: "現金売上",
-                        colModel: [
-                        {
-                            title: "個数",
-                            dataIndx: "現金個数", dataType: "integer", key: true, format: "#,###",
-                            hidden: false,
-                            editable: false,
-                            fixed: true,
-                            summary: {
-                                    type: "TotalInt",
-                                },
-                        },
-                        {
-                                title: "金額",
-                                dataIndx: "現金金額", dataType: "integer", key: true, format: "#,###",
-                                hidden: false,
-                                editable: false,
-                                fixed: true,
-                                summary: {
-                                        type: "TotalInt",
-                                    },
-                        },
-                        ],
                     },
                     {
-                        title: "売掛売上",
-                        dataIndx: "売掛売上",
-                        colModel: [
-                        {
-                                title: "個数",
-                                dataIndx: "売掛個数", dataType: "integer", key: true, format: "#,###",
-                                hidden: false,
-                                editable: false,
-                                fixed: true,
-                                summary: {
-                                        type: "TotalInt",
-                                    },
-                            },
-                        {
-                            title: "金額",
-                            dataIndx: "売掛金額", dataType: "integer", key: true, format: "#,###",
-                            hidden: false,
-                            editable: false,
-                            fixed: true,
-                            summary: {
-                                    type: "TotalInt",
-                                },
-                        },
-                        ],
+                        title: "備考",
+                        dataIndx: "備考", dataType: "string", key: true,
+                        width: 120, minWidth: 120,
+                        hidden: false,
+                        editable: false,
+                        fixed: true,
                     },
-                    {
-                        title: "チケット売上",
-                        dataIndx: "チケット売上",
-                        colModel: [
-                        {
-                            title: "個数",
-                            dataIndx: "チケット個数", dataType: "integer", key: true, format: "#,###",
-                            hidden: false,
-                            editable: false,
-                            fixed: true,
-                            summary: {
-                                    type: "TotalInt",
-                                },
-                        },
-                        {
-                            title: "金額",
-                            dataIndx: "チケット金額", dataType: "integer", key: true, format: "#,###",
-                            hidden: false,
-                            editable: false,
-                            fixed: true,
-                            summary: {
-                                    type: "TotalInt",
-                                },
-                        },
-                        ],
-                    }
                 ],
             },
         });
