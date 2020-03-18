@@ -55,6 +55,8 @@ class DAI01220Controller extends Controller
                     , コーステーブル.得意先ＣＤ
                     , 得意先マスタ.得意先名
                     , 得意先マスタ.売掛現金区分
+					, コースマスタ.担当者ＣＤ
+					, 担当者マスタ.担当者名
                 FROM
                     [コーステーブル]
                     INNER JOIN [コースマスタ]
@@ -63,6 +65,8 @@ class DAI01220Controller extends Controller
                     INNER JOIN [得意先マスタ]
                         ON 得意先マスタ.得意先ＣＤ = コーステーブル.得意先ＣＤ
                         AND 得意先マスタ.部署ＣＤ = コーステーブル.部署ＣＤ
+                    INNER JOIN [担当者マスタ]
+                        ON 担当者マスタ.担当者ＣＤ = コースマスタ.担当者ＣＤ
                 WHERE
                     コーステーブル.部署ＣＤ = $BushoCd
                     AND (
@@ -105,6 +109,8 @@ class DAI01220Controller extends Controller
                 , WITH_コーステーブル.ＳＥＱ
                 , WITH_コーステーブル.得意先ＣＤ
                 , WITH_コーステーブル.得意先名
+                , WITH_コーステーブル.担当者ＣＤ
+                , WITH_コーステーブル.担当者名
                 , WITH_売上データ明細.売掛現金区分
                 , WITH_売上データ明細.日付
                 , WITH_売上データ明細.行Ｎｏ
