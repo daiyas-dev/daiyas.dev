@@ -47,6 +47,7 @@
                     :withCode=true
                     :hasNull=false
                     :onChangedFunc=onCourseKbnChanged
+                    :disabled=true
                 />
             </div>
         </div>
@@ -259,6 +260,18 @@ export default {
 
             //条件変更ハンドラ
             vue.conditionChanged();
+
+            //配送日からコース区分取得
+            var params = {TargetDate: vue.viewModel.DeliveryDate}
+            params.TargetDate = moment(params.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD");
+            axios.post("/DAI01230/CourseKbnSearch", params)
+                .then(res => {
+                    vue.viewModel.CourseKbn = res.data;
+                })
+                .catch(err => {
+                    console.log(err);
+                }
+            );
         },
         onCourseKbnChanged: function(code, entity) {
             var vue = this;

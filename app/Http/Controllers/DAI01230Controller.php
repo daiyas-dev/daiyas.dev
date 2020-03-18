@@ -43,6 +43,21 @@ class DAI01230Controller extends Controller
     }
 
     /**
+     *  CourseKbnSearch
+     */
+
+    public function CourseKbnSearch($vm)
+    {
+        $DeliveryDate = $vm->DeliveryDate;
+        $vm->targetDate = $DeliveryDate;
+
+        $Utilities = new UtilitiesController();
+        $CourseKbn = $Utilities->SearchCourseKbnFromDate($vm)->コース区分;
+
+        return response()->json($CourseKbn);
+    }
+
+    /**
      * Search
      */
     public function Search($vm)
