@@ -46,7 +46,6 @@
                     :params="{ cd: 19 }"
                     :withCode=true
                     :hasNull=false
-                    :onChangedFunc=onCourseKbnChanged
                     :disabled=true
                 />
             </div>
@@ -273,11 +272,6 @@ export default {
                 }
             );
         },
-        onCourseKbnChanged: function(code, entity) {
-            var vue = this;
-
-            //TODO:不要？
-        },
         onBentoKbnChanged: function(code, entity) {
             var vue = this;
 
@@ -382,11 +376,13 @@ export default {
                     var ret = _.reduce(
                         _.sortBy(r, [targetCd]),
                             (acc, v, j) => {
+                                acc["主食副食ＣＤ"] = v[targetCd];
                                 acc["主食副食名"] = v[targetNm];
                                 acc["持出数_" + v.部署ＣＤ] = (acc["持出数_" + v.部署ＣＤ] || 0)
                                      + (v.CHU注文数 == 0 ? v.見込数 * 1 : v.CHU注文数 * 1);
                                 acc["最小商品ＣＤ"] = !acc["最小商品ＣＤ"] ? (v.商品ＣＤ * 1)
                                     : (acc["最小商品ＣＤ"] > v.商品ＣＤ ? v.商品ＣＤ : acc["最小商品ＣＤ"]);
+                                acc["商品区分"] = v.商品区分;
 
                                 return acc;
                             },
@@ -396,7 +392,14 @@ export default {
                     return ret;
                 });
 
-            groupings = _(groupings).sortBy(["最小商品ＣＤ", targetCd]).value();
+            //副食の場合のみ
+            groupings = groupings.filter(v => {
+                var vals = _.keys(v).filter(k => k.startsWith("持出数_")).map(k => v[k]);
+                return vals.some(val => val != 0);
+            });
+
+            groupings = vue.viewModel.BentoKbn == "1" ?
+                _(groupings).sortBy(["商品区分", "最小商品ＣＤ"]).value() : _(groupings).sortBy(["商品区分", targetCd]).value();
 
             return groupings;
         },

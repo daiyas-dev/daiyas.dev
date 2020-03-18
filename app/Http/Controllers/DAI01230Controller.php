@@ -193,10 +193,12 @@ FROM
 )
 
 SELECT
-	WITH_コース別持出数.*
+    WITH_コース別持出数.*
+    ,s0.商品区分 商品区分
 	,s1.商品名 主食名
 	,s2.商品名 副食名
 FROM WITH_コース別持出数
+    LEFT JOIN 商品マスタ s0 ON s0.商品ＣＤ = WITH_コース別持出数.商品ＣＤ
     LEFT JOIN 商品マスタ s1 ON s1.商品ＣＤ = WITH_コース別持出数.主食ＣＤ
     LEFT JOIN 商品マスタ s2 ON s2.商品ＣＤ = WITH_コース別持出数.副食ＣＤ
 WHERE
