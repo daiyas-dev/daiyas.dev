@@ -7,9 +7,9 @@
             <div class="col-md-11">
                 <VueMultiSelect
                     id="BushoCd"
-                    ref="VueMultiSelect_BushoCd"
+                    ref="VueMultiSelect_Busho"
                     :vmodel=viewModel
-                    bind="BushoCdArray"
+                    bind="BushoArray"
                     uri="/Utilities/GetBushoList"
                     :hasNull=true
                     :withCode=true
@@ -71,16 +71,16 @@
             </div>
             <div class="col-md-5">
                 <VueMultiSelect
-                    id="FactoryCd"
-                    ref="VueMultiSelect_FactoryCd"
+                    id="KojoCd"
+                    ref="VueMultiSelect_Kojo"
                     :vmodel=viewModel
-                    bind="FactoryCdArray"
+                    bind="KojoArray"
                     uri="/Utilities/GetCodeList"
                     :params="{ cd: 37 }"
                     :hasNull=true
                     :withCode=true
                     customStyle="{ width: 200px; }"
-                    :onChangedFunc=onFactoryChanged
+                    :onChangedFunc=onKojoChanged
                 />
             </div>
         </div>
@@ -133,18 +133,26 @@ export default {
         searchParams: function() {
             var date = !!this.viewModel.DeliveryDate ? moment(this.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD") : moment().format("YYYYMMDD");
             return { DeliveryDate: date };
-        }
+        },
+        BushoCdArray: function() {
+            var vue = this;
+            return vue.viewModel.BushoArray.map(v => v.code);
+        },
+        KojoCdArray: function() {
+            var vue = this;
+            return vue.viewModel.KojoArray.map(v => v.code);
+        },
     },
     data() {
         return $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "日時処理 > 部署別製造数一覧表",
             noViewModel: true,
             viewModel: {
-                BushoCdArray: [],
+                BushoArray: [],
                 DeliveryDate: null,
                 CourseKbn: null,
                 BentoKbn: null,
-                FactoryCdArray: [],
+                KojoArray: [],
             },
             DAI01230Grid1: null,
             grid1Options: {
@@ -183,6 +191,17 @@ export default {
                 summaryData: [
                 ],
                 formulas: [
+                    [
+                        "持出数合計",
+                        function(rowData) {
+                            var grid = this;
+
+                            return _.sum(_.keys(rowData)
+                                .filter(k => k.startsWith("持出数"))
+                                .filter(k => !grid.options.colModel.find(c => c.dataIndx == k).hidden)
+                                .map(k => rowData[k]));
+                        },
+                    ]
                 ],
                 colModel: [
                     {
@@ -203,12 +222,6 @@ export default {
                             }
                         },
                         fixed: true,
-                    },
-                    {
-                        title: "合計",
-                        dataIndx: "持出数合計", dataType: "integer",
-                        width: 150, maxWidth: 150, minWidth: 150,
-                        editable: false,
                     },
                 ],
             },
@@ -231,12 +244,15 @@ export default {
         },
         mountedFunc: function(vue) {
             //配送日付の初期値 -> 当日
-            vue.viewModel.DeliveryDate = moment();
+            // vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
+            //TODO: テスト用初期日付
+            vue.viewModel.DeliveryDate = moment("20190904").format("YYYY年MM月DD日");
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
-            //TODO:フィルター変更
 
+            //列表示切替
+            vue.toggleCols();
         },
         onDeliveryDateChanged: function(code, entity) {
             var vue = this;
@@ -254,91 +270,21 @@ export default {
 
             //TODO:表示変更
         },
-        onFactoryChanged: function(code, entity) {
+        onKojoChanged: function(code, entity) {
             var vue = this;
 
-            //TODO:フィルター変更
+            //列表示切替
+            vue.toggleCols();
         },
-        refreshCols: function() {
+        toggleCols: function() {
             var vue = this;
-            var grid;
+            var grid = vue.DAI01230Grid1;
 
-            //PqGrid読込待ち
-            new Promise((resolve, reject) => {
-                var timer = setInterval(function () {
-                    grid = vue.DAI01230Grid1;
-                    if (!!grid && vue.getLoginInfo().isLogOn) {
-                        clearInterval(timer);
-                        return resolve(grid);
-                    }
-                }, 100);
-            })
-            .then((grid) => {
-                grid.showLoading();
-                //TODO:作業途中 /DAI01230/ColSearchしない。BushoCdArrayからとる。
-                //var params = {BushoCd: vue.viewModel.BushoCd, FactoryCdStart: vue.viewModel.FactoryCdStart, FactoryCdEnd: vue.viewModel.FactoryCdEnd}
-                // axios.post("/DAI01230/ColSearch", params)
-                //     .then(response => {
-                        var res = _.cloneDeep(response.data);
-
-                         var newCols = grid.options.colModel
-                            .filter(v => !!v.fixed)
-                            .concat(
-                                res.map((v, i) => {
-                                    return {
-                                        title: v.部署名,
-                                        dataIndx: "持出数_" + v.cd,
-                                        dataType: "integer",
-                                        format: "#,###",
-                                        width: 75, maxWidth: 75, minWidth: 75,
-                                        render: ui => {
-                                            if (!ui.cellData) {
-                                                ui.rowData[ui.dataIndx] = 0;
-                                                ui.text = 0;
-                                            }
-                                            if (ui.rowData[ui.dataIndx + "_注文"] > 0) {
-                                                ui.cls.push("order-value");
-                                            }
-                                            return ui;
-                                        },
-                                        summary: {
-                                            type: "TotalInt",
-                                        },
-                                        custom: true,
-                                    };
-                                }))
-
-                            newCols.push(
-                                {
-                                    title: "合計",
-                                    dataIndx: "持出数合計",
-                                    dataType: "integer",
-                                    format: "#,###",
-                                    width: 150, maxWidth: 150, minWidth: 150,
-                                }
-                            );
-
-                        //列定義更新
-                        grid.options.colModel = newCols;
-                        grid.refreshCM();
-                        grid.refresh();
-
-                        if (!!grid) grid.hideLoading();
-
-                        //条件変更ハンドラ
-                        vue.conditionChanged();
-                    // });
-            })
-            .catch(error => {
-                console.log(error);
-                if (!!grid) grid.hideLoading();
-
-                //失敗ダイアログ
-                $.dialogErr({
-                    title: "各種テーブル検索失敗",
-                    contents: "各種テーブル検索に失敗しました" + "<br/>" + error.message,
-                });
-            });
+            grid.options.colModel.forEach(c => c.hidden = (!!c.BushoCd && !!c.KojoCd) &&
+                !((!vue.BushoCdArray.length || vue.BushoCdArray.includes(c.BushoCd)) && (!vue.KojoCdArray.length || vue.KojoCdArray.includes(c.KojoCd)))
+            );
+            grid.refreshCM();
+            grid.refresh();
         },
         conditionChanged: function(callback) {
             var vue = this;
@@ -355,32 +301,26 @@ export default {
 
             var vue = this;
             var grid = vue.DAI01230Grid1;
-            var bentoKbn = vue.viewModel.BentoKbn;
 
-            //TODO:集計結果をもとに、列の設定
+            //TODO:
             window.res = res;
-            var bushoCdList= _.keys(_.groupBy(res, v => v.部署ＣＤ)).filter(v => v.部署ＣＤ != 0);
+
+            //集計結果をもとに、列の設定
+            var bushoCdList= _.keys(_.groupBy(res, v => v.部署ＣＤ));
             var bushoNmList = _.keys(_.groupBy(res, v => v.部署名));
-            var colList = [{}];
-            for (var i = 0; i < bushoCdList.length; i++) {
-                if(!colList[0].部署ＣＤ){
-                    colList[0] = { 部署ＣＤ:bushoCdList[i], 部署名:bushoNmList[i], 主食ＣＤ: "", 副食ＣＤ: "" };
-                }else{
-                    colList.push({ 部署ＣＤ:bushoCdList[i], 部署名:bushoNmList[i], 主食ＣＤ: "", 副食ＣＤ: "" });
-                }
-            }
+            var kojoCdList= _.values(_.groupBy(res, v => v.部署ＣＤ)).map(v => v[0].工場ＣＤ);
 
             //列定義初期化
-            grid.options.colModel = grid.options.colModel.filter(c => c.fixed);
+            grid.options.colModel = grid.options.colModel.filter(c => !!c.fixed);
 
             var newCols = grid.options.colModel
-                .concat(colList.map(v => {
+                .concat(bushoCdList.map((v, i) => {
                     return {
-                        title: v.部署名,
-                        dataIndx: "持出数_" + "部署ＣＤ",
+                        title: bushoNmList[i],
+                        dataIndx: "持出数_" + v,
                         dataType: "integer",
                         format: "#,###",
-                        width: 80, maxWidth: 80, minWidth: 60,
+                        width: 90, maxWidth: 90, minWidth: 60,
                         editable: false,
                         render: ui => {
                             if (!ui.cellData) {
@@ -392,87 +332,58 @@ export default {
                         summary: {
                             type: "TotalInt",
                         },
+                        BushoCd: v,
+                        KojoCd: kojoCdList[i],
                     };
                 }));
 
-                newCols.push(
-                    {
-                        title: "合計",
-                        dataIndx: "持出数合計",
-                        dataType: "integer",
-                        format: "#,###",
-                        width: 80, maxWidth: 80, minWidth: 60,
-                        editable: false,
-                    }
-                );
+            newCols.push(
+                {
+                    title: "合計",
+                    dataIndx: "持出数合計",
+                    dataType: "integer",
+                    format: "#,###",
+                    width: 80, maxWidth: 80, minWidth: 60,
+                    editable: false,
+                    summary: {
+                        type: "TotalInt",
+                    },
+                }
+            );
 
-                //列定義更新
-                grid.options.colModel = newCols;
-                grid.refreshCM();
-                grid.refresh();
+            //列定義更新
+            grid.options.colModel = newCols;
 
-                if (!!grid) grid.hideLoading();
-
-            //TODO:途中
-            // if(bentoKbn == 1){
-            //     res.filter(v => v.主食ＣＤ != 0);
-            // } else {
-            //     res.filter(v => v.副食ＣＤ != 0);
-            // }
-
-
+            //列表示切替
+            vue.toggleCols();
 
             //集計
-            var groupings = _(res)
-                .groupBy(v => v.主食ＣＤ)
+            var targetCd = vue.viewModel.BentoKbn == "1" ? "主食ＣＤ" : "副食ＣＤ" ;
+            var targetNm = vue.viewModel.BentoKbn == "1" ? "主食名" : "副食名" ;
+            var groupings = _(res.filter(v => v[targetCd] != 0))
+                .groupBy(v => vue.viewModel.BentoKbn == "1" ? v.主食ＣＤ : v.副食ＣＤ)
                 .values()
                 .value()
                 .filter(v => (v.CHU注文数 != 0 || v.見込数 != 0))
                 .map(r => {
                     var ret = _.reduce(
-                            _.sortBy(r, ["主食ＣＤ"]),
+                        _.sortBy(r, [targetCd]),
                             (acc, v, j) => {
-                                acc = _.isEmpty(acc) ? _.cloneDeep(v) : acc;
-
-                                delete acc.得意先ＣＤ;
-                                delete acc.得意先名;
-                                delete acc.商品ＣＤ;
-                                delete acc.見込数;
-                                delete acc.規定製造パターン;
-                                delete acc.CHU商品ＣＤ;
-                                delete acc.CHU注文数;
-                                delete acc.部署グループ;
-
-                                if(!!acc.主食ＣＤ && acc.主食ＣＤ != 0 && vue.viewModel.BentoKbn == 1){
-                                    acc["主食副食名"] = acc["主食名"];
-                                    acc["持出数_" + v.部署ＣＤ] = v.CHU注文数 == 0 ? (acc["持出数_" + v.部署ＣＤ] || 0) + v.見込数 * 1 : (acc["持出数_" + v.部署ＣＤ] || 0) + v.CHU注文数 * 1;
-
-                                }
-                                if(!!acc.副食ＣＤ && acc.副食ＣＤ != 0 && vue.viewModel.BentoKbn == 2){
-                                    acc["主食副食名"] = acc["副食名"];
-                                    acc["持出数_" + v.部署ＣＤ] = v.CHU注文数 == 0 ? (acc["持出数_" + v.部署ＣＤ] || 0) + v.見込数 * 1 : (acc["持出数_" + v.副食ＣＤ] || 0) + v.CHU注文数 * 1;
-                                }
+                                acc["主食副食名"] = v[targetNm];
+                                acc["持出数_" + v.部署ＣＤ] = (acc["持出数_" + v.部署ＣＤ] || 0)
+                                     + (v.CHU注文数 == 0 ? v.見込数 * 1 : v.CHU注文数 * 1);
+                                acc["最小商品ＣＤ"] = !acc["最小商品ＣＤ"] ? (v.商品ＣＤ * 1)
+                                    : (acc["最小商品ＣＤ"] > v.商品ＣＤ ? v.商品ＣＤ : acc["最小商品ＣＤ"]);
 
                                 return acc;
                             },
                             {}
-                    )
-
-                    _.keys(ret).forEach(k => {
-                        if (k.startsWith("持出数_")) {
-                            var cd = k.replace("持出数_", "");
-                            if(!!cd){
-                                ret["持出数_" + cd] = ret["持出数_" + cd];
-                            }else{
-                                delete ret["持出数_" + cd];
-                            }
-                        }
-                    });
+                    );
 
                     return ret;
-                })
+                });
 
-            //groupings = _(groupings).sortBy(v => v.主食ＣＤ * 1).sortBy(v => v.副食ＣＤ * 1).value();
+            groupings = _(groupings).sortBy(["最小商品ＣＤ", targetCd]).value();
 
             return groupings;
         },
