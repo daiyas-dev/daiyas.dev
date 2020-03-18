@@ -93,6 +93,7 @@
             :SearchOnActivate=true
             :options=this.grid1Options
             :onAfterSearchFunc=this.onAfterSearchFunc
+            :autoToolTipDisabled=true
         />
     </form>
 </template>
@@ -163,7 +164,7 @@ export default {
                 fillHandle: "",
                 numberCell: { show: true, title: "No.", resizable: false, },
                 autoRow: false,
-                rowHtHead: 50,
+                rowHtHead: 35,
                 rowHt: 35,
                 freezeCols: 1,
                 editable: false,
@@ -191,17 +192,6 @@ export default {
                 summaryData: [
                 ],
                 formulas: [
-                    [
-                        "持出数合計",
-                        function(rowData) {
-                            var grid = this;
-
-                            return _.sum(_.keys(rowData)
-                                .filter(k => k.startsWith("持出数"))
-                                .filter(k => !grid.options.colModel.find(c => c.dataIndx == k).hidden)
-                                .map(k => rowData[k]));
-                        },
-                    ]
                 ],
                 colModel: [
                     {
@@ -345,8 +335,18 @@ export default {
                     format: "#,###",
                     width: 80, maxWidth: 80, minWidth: 60,
                     editable: false,
-                    summary: {
-                        type: "TotalInt",
+                    render: ui => {
+                        var grid = eval("this");
+
+                        var sum = _.sum(_.keys(ui.rowData)
+                            .filter(k => k.startsWith("持出数_"))
+                            .filter(k => !grid.options.colModel.find(c => c.dataIndx == k).hidden)
+                            .map(k => ui.rowData[k] || 0)
+                            .map(v => _.isString(v) ? pq.deFormatNumber(v) : v)
+                        );
+
+                        ui.rowData[ui.dataIndx] = sum;
+                        return {text: pq.formatNumber(sum, "#,###")};
                     },
                 }
             );

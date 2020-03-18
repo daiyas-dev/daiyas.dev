@@ -214,7 +214,11 @@ export default {
             }
 
             //first focus
-            $(vue.$el).find(":input:first").focus();
+            var first = $(vue.$el).find(":input:first")
+            if (first.parent().hasClass("DatePickerWrapper")) {
+                first = first.siblings(".calendar-button");
+            }
+            first.focus();
         },
         resize: function(size) {
             var vue = vue;
