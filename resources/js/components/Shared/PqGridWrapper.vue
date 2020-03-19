@@ -2384,16 +2384,26 @@ export default {
                         var chunks = [];
                         var headers = [];
 
-                        var isShow = r => {
+                        var isShow = (r, p, a) => {
                             if ($(r).hasClass("group-row")) {
                                 if (_.isArray(isShowGroupRow)) {
-                                    return isShowGroupRow[$(r).attr("level") * 1];
+                                    var conf = isShowGroupRow[$(r).attr("level") * 1];
+                                    if (_.isFunction(conf)) {
+                                        return conf(r, p, a);
+                                    } else {
+                                        return conf;
+                                    }
                                 } else {
                                     return isShowGroupRow;
                                 }
                             } else if ($(r).hasClass("group-summary")) {
                                 if (_.isArray(isShowGroupSummaryRow)) {
-                                    return isShowGroupSummaryRow[$(r).attr("level") * 1];
+                                    var conf = isShowGroupSummaryRow[$(r).attr("level") * 1];
+                                    if (_.isFunction(conf)) {
+                                        return conf(r, p, a);
+                                    } else {
+                                        return conf;
+                                    }
                                 } else {
                                     return isShowGroupSummaryRow;
                                 }
@@ -2402,10 +2412,15 @@ export default {
                             }
                         };
 
-                        var isBreak = r => {
+                        var isBreak = (r, p, a) => {
                             if ($(r).hasClass("group-row")) {
                                 if (_.isArray(isGroupPageBreak)) {
-                                    return isGroupPageBreak[$(r).attr("level") * 1];
+                                    var conf = isGroupPageBreak[$(r).attr("level") * 1];
+                                    if (_.isFunction(conf)) {
+                                        return conf(r, p, a);
+                                    } else {
+                                        return conf;
+                                    }
                                 } else {
                                     return isGroupPageBreak;
                                 }
@@ -2415,16 +2430,10 @@ export default {
                         };
 
                         var dr = _.reduce(tableBodies, (a, r, i) => {
-                            if (isShow(r)) {
-                                a.push(r);
-                            }
+                            var p = pdata[i];
 
-                            if (isBreak(r)) {
-                                headers.push(pdata[i]);
-
-                                if (isShow(r)) {
-                                    a.push(r);
-                                }
+                            if (isBreak(r, p, a)) {
+                                headers.push(p);
 
                                 if (!!a.length) {
                                     var c;
@@ -2438,6 +2447,14 @@ export default {
                                     }
                                     chunks.push(c);
                                     a = [];
+
+                                    if (isShow(r, p, a)) {
+                                        a.push(r);
+                                    }
+                                }
+                            } else {
+                                if (isShow(r, p, a)) {
+                                    a.push(r);
                                 }
                             }
                             return a;
