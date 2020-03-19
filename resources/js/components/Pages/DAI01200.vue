@@ -43,14 +43,9 @@
         <PqGridWrapper
             id="DAI01200Grid1"
             ref="DAI01200Grid1"
-            dataUrl="/DAI01200/Search"
-            :query=this.searchParams
             :options=this.grid1Options
             :SearchOnCreate=false
             :SearchOnActivate=false
-            :onAfterSearchFunc=this.onAfterSearchFunc
-            :resizeFunc=this.gridResizeFunc
-            :onCellKeyDownFunc=onCellKeyDownFunc
         />
     </form>
 </template>
@@ -104,7 +99,7 @@ export default {
         var vue = this;
 
         return $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "日次処理 > 日配売上集計表",
+            ScreenTitle: "日時処理 > 移動入力",
             noViewModel: true,
             viewModel: {
                 BushoCd: null,
@@ -125,10 +120,14 @@ export default {
                 autoRow: false,
                 rowHt: 25,
                 rowHtSum: 25,
-                editable: true,
+                editable: false,
                 columnTemplate: {
                     editable: false,
-                    sortable: true,
+                    sortable: false,
+                },
+                dataModel: {
+                    location: "local",
+                    data: [],
                 },
                 filterModel: {
                     on: false,
@@ -140,121 +139,16 @@ export default {
                     on: false,
                     header: false,
                     headerMenu: false,
-                    dataIndx: ["CustomerIndex", "CustomerInfo"],
-                    titleDefault: "{0}",
-                    collapsed: [false],
-                    merge: true,
-                    showSummary: [false],
                     grandSummary: false,
-                    summaryEdit: false,
-                    icon: ["pq-group-toggle-none"],
                 },
                 summaryData: [],
                 mergeCells: [],
                 formulas: [
                     [
-                        "商品",
-                        function (rowData) {
-                            return _.padStart(rowData.商品ＣＤ, 3, " ") + ":" + rowData.商品名;
-                        }
                     ],
                 ],
                 colModel: [
-                    {
-                        title: "工場区分",
-                        dataIndx: "工場区分",
-                        hidden: true,
-                    },
-                    {
-                        title: "コースＣＤ",
-                        dataIndx: "コースＣＤ",
-                        hidden: true,
-                    },
-                    {
-                        title: "コース名",
-                        dataIndx: "コース名",
-                        dataType: "string",
-                        width: 200, maxWidth: 200, minWidth: 200,
-                        render: ui => {
-                            if (ui.rowData.summaryRow) {
-                                return { text: ui.rowData.コース名 };
-                            } else {
-                                if (!ui.Export) {
-                                    ui.style.push("align-items: flex-start;");
-                                }
-                                return { text: ui.rowData.コースＣＤ + "<br>" + ui.rowData.コース名 };
-                            }
-                        },
-                    },
-                    {
-                        title: "商品",
-                        dataIndx: "商品名",
-                        dataType: "string",
-                        width: 100, maxWidth: 100, minWidth: 100,
-                    },
-                    {
-                        title: "商品ＣＤ",
-                        dataIndx: "商品ＣＤ",
-                        hidden: true,
-                    },
-                    {
-                        title: "持出数",
-                        dataIndx: "持ち出し数",
-                        dataType: "integer",
-                        format: "#,###",
-                        width: 70, maxWidth: 70, minWidth: 70,
-                    },
-                    {
-                        title: "売上予定",
-                        dataIndx: "売上予定",
-                        dataType: "integer",
-                        format: "#,###",
-                        width: 70, maxWidth: 70, minWidth: 70,
-                    },
-                    {
-                        title: "工場追加",
-                        dataIndx: "受取数_工場",
-                        dataType: "integer",
-                        format: "#,###",
-                        width: 70, maxWidth: 70, minWidth: 70,
-                    },
-                    {
-                        title: "もらった",
-                        dataIndx: "受取数_一般",
-                        dataType: "integer",
-                        format: "#,###",
-                        width: 70, maxWidth: 70, minWidth: 70,
-                    },
-                    {
-                        title: "受取詳細",
-                        dataIndx: "受取詳細",
-                        dataType: "string",
-                        width: 200, minWidth: 200,
-                    },
-                    {
-                        title: "あげた",
-                        dataIndx: "引渡数",
-                        dataType: "integer",
-                        format: "#,###",
-                        width: 70, maxWidth: 70, minWidth: 70,
-                    },
-                    {
-                        title: "引渡詳細",
-                        dataIndx: "引渡詳細",
-                        dataType: "string",
-                        width: 200, minWidth: 200,
-                    },
-                    {
-                        title: "残数",
-                        dataIndx: "残数",
-                        dataType: "integer",
-                        format: "#,###",
-                        width: 70, maxWidth: 70, minWidth: 70,
-                    },
                 ],
-                rowDblClick: function (event, ui) {
-                    vue.showDetail(ui.rowData);
-                },
             },
         });
     },
@@ -283,58 +177,6 @@ export default {
         mountedFunc: function(vue) {
             // vue.viewModel.TargetDate = moment();
             vue.viewModel.TargetDate = moment("2019/09/04");    //TODO: debug
-
-            var grid = vue.DAI01200Grid1;
-
-            //watcher
-            vue.$watch(
-                "$refs.DAI01200Grid1.selectionRowCount",
-                cnt => {
-                    vue.footerButtons.find(v => v.id == "DAI01200Grid1_Detail").disabled = cnt == 0 || cnt > 1;
-                }
-            );
-
-            if (!!vue.CheckInterVal) clearInterval(vue.CheckInterVal);
-            //TODO:
-            // vue.CheckInterVal = setInterval(vue.updateCheck, 10000);
-
-            vue.$root.$on("DAI01200_updateCheck", vue.updateCheck);
-        },
-        updateCheck: function() {
-            var vue = this;
-            var grid = vue.DAI01200Grid1;
-
-            //更新チェック
-            if (!grid.getData().length) return;
-
-            var params = $.extend(true, {}, vue.viewModel);
-            //日付を"YYYYMMDD"形式に編集
-            params.TargetDate = params.TargetDate ? moment(params.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
-
-            var checkParams = _.cloneDeep(params);
-            checkParams.noCache = true;
-            axios.post("/DAI01200/UpdateCheck", checkParams)
-                .then(res => {
-                    if (res.data.最新修正日時 != vue.viewModel.UpdateDate) {
-                        vue.viewModel.UpdateDate = res.data.最新修正日時;
-                        grid.blinkDiff(res.data.list);
-                    }
-                })
-                .catch(err => {
-                    console.log(err);
-                });
-        },
-        gridResizeFunc: function(grid) {
-            var oldHeight = grid.options.height;
-            var newHeight = window.innerHeight
-                          - grid.widget().position().top
-                          - $("#footer-bar:visible").outerHeight()
-                          - 20;
-
-            if (_.round(newHeight) != _.round(oldHeight)) {
-                grid.options.height += (_.round(newHeight) - _.round(oldHeight));
-                grid.refresh();
-            }
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
@@ -367,7 +209,6 @@ export default {
         },
         onCourseKbnChanged: function(code, entity) {
             var vue = this;
-
             //条件変更ハンドラ
             vue.conditionChanged();
         },
@@ -388,16 +229,14 @@ export default {
             //キャッシュ無効
             params.noCache = true;
 
-            //更新チェック
-            var checkParams = _.cloneDeep(params);
-            checkParams.noCache = true;
-            axios.post("/DAI01200/UpdateCheck", checkParams)
+            axios.post("/DAI01200/Search", params)
                 .then(res => {
                     grid.hideLoading();
-                    if (!!force || res.data.最新修正日時 != vue.viewModel.UpdateDate) {
-                        vue.viewModel.UpdateDate = res.data.最新修正日時;
-                        grid.searchData(params, false, null, callback);
-                    }
+                    //移動データ
+                    window.resa=_.cloneDeep(res.data.CourseMeisaiData);
+                    vue.DAI01200Grid1.options.dataModel.data = res.data.CourseMeisaiData;
+                    window.resb=_.cloneDeep(vue.DAI01200Grid1.options.dataModel.data);
+                    vue.DAI01200Grid1.refreshDataAndView();
                 })
                 .catch(err => {
                     console.log(err);
@@ -407,10 +246,11 @@ export default {
                         contents: "データの検索に失敗しました<br/>",
                     });
                 });
+
         },
         onAfterSearchFunc: function (gridVue, grid, res) {
             var vue = this;
-
+/*
             //summaryDataの設定
             grid.options.summaryData = [];
             // _(res).groupBy(v => _.padStart(v.商品ＣＤ, 3, " ") + ":" + v.商品名)
@@ -446,7 +286,7 @@ export default {
                     grid.options.mergeCells.push(cells);
                     pos += v.length;
                 });
-
+*/
             return res;
         },
         setPrintOptions: function(grid) {
@@ -612,153 +452,6 @@ export default {
             grid.options.printOptions.printable = printable.prop("outerHTML");
 
             console.log(grid.options.printable);
-        },
-        onCellKeyDownFunc: function(grid, ui, event) {
-            var vue = this;
-
-            switch (event.key) {
-                case "Enter":
-                    vue.showDetail();
-                    return false;
-                case "ArrowUp":
-                    if (ui.rowIndx > 0) {
-                        grid.setSelection(null);
-                        grid.setSelection({rowIndx: ui.rowIndx - 1});
-                    }
-                    return false;
-                case "ArrowDown":
-                    if (ui.rowIndx < grid.getData().length - 1) {
-                        grid.setSelection(null);
-                        grid.setSelection({rowIndx: ui.rowIndx + 1});
-                    }
-                    return false;
-                default:
-                    return true;
-            }
-        },
-        showDetail: function(rowData) {
-            var vue = this;
-            var grid = vue.DAI01200Grid1;
-            if (!grid) return;
-
-            var params;
-
-            if (!rowData) {
-                var selection = grid.SelectRow().getSelection();
-
-                var rows = grid.SelectRow().getSelection();
-                if (rows.length != 1) return;
-
-                rowData = _.cloneDeep(rows[0].rowData);
-            }
-
-            var params = {
-                BushoCd: vue.viewModel.BushoCd,
-                BushoNm: vue.viewModel.BushoNm,
-                TargetDate: moment(vue.viewModel.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD"),
-                CourseKbn: vue.viewModel.CourseKbn,
-                CourseCd: rowData.コースＣＤ,
-                CourseNm: rowData.コース名,
-            };
-
-            grid.showLoading();
-
-            //事前情報取得
-            axios.all(
-                [
-                    //コースリストの取得
-                    axios.post("/Utilities/GetCourseList", { BushoCd: params.BushoCd, CourseKbn: params.CourseKbn, }),
-                    //商品リストの取得
-                    axios.post("/DAI01061/GetTargetProducts", { BushoCd: params.BushoCd, CourseKbn: params.CourseKbn, CourseCd: params.CourseCd, }),
-                ]
-            ).then(
-                axios.spread((responseCourse, responseProduct) => {
-                    var resCourse = responseCourse.data;
-                    var resProduct = responseProduct.data;
-
-                    var checkError = (res, name) => {
-                        if (res.onError && !!res.errors) {
-                            //メッセージリストに追加
-                            Object.values(res.errors).filter(v => v)
-                                .forEach(v => vue.$root.$emit("addMessage", v.replace(/(^\"|\"$)/g, "")));
-
-                            //ダイアログ
-                            $.dialogErr({ errObj: res });
-
-                            return false;
-                        } else if (res.onException) {
-                            //メッセージ追加
-                            vue.$root.$emit("addMessage", name +"リスト取得失敗(" + vue.page.ScreenTitle + ":" + res.message + ")");
-
-                            //ダイアログ
-                            $.dialogErr({
-                                title: "異常終了",
-                                contents: name +"リストの取得に失敗しました<br/>" + res.message,
-                            });
-
-                            return false;
-                        } else if (res == "") {
-                            //完了ダイアログ
-                            $.dialogErr({
-                                title: name +"リスト無し",
-                                contents: "該当データは存在しません" ,
-                            });
-
-                            return false;
-                        }
-
-                        return true;
-                    };
-
-                    if (!checkError(resCourse)) return;
-                    if (!checkError(resProduct)) return;
-
-                    //取得した結果を設定
-                    params.CourseList = resCourse;
-                    params.ProductList = resProduct;
-
-                    grid.hideLoading();
-
-                    PageDialog.show({
-                        pgId: "DAI01061",
-                        params: params,
-                        isModal: true,
-                        isChild: true,
-                        width: 800,
-                        height: 750,
-                        onBeforeClose: (event, ui) => {
-                            console.log("onBeforeClose", event, ui);
-
-                            if ($(window.event.target).attr("shortcut") == "ESC") return true;
-
-                            var dlg = $(event.target);
-                            var editting = dlg.find(".pq-grid")
-                                .map((i, v) => $(v).pqGrid("getInstance").grid)
-                                .get()
-                                .some(g => !_.isEmpty(g.getEditCell()));
-                            var isEscOnEditor = !!window.event && window.event.key == "Escape"
-                                && (
-                                    $(window.event.target).hasClass("target-input") ||
-                                    $(window.event.target).hasClass("pq-cell-editor")
-                                );
-
-                            return !editting && !isEscOnEditor;
-                        }
-                    });
-                })
-            )
-            .catch(error => {
-                grid.hideLoading();
-
-                //メッセージ追加
-                vue.$root.$emit("addMessage", "DB検索失敗(" + vue.ScreenTitle + ":" + error + ")");
-
-                //完了ダイアログ
-                $.dialogErr({
-                    title: "異常終了",
-                    contents: "DBの検索に失敗しました<br/>",
-                });
-            });
         },
     }
 }
