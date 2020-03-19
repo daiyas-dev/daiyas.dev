@@ -474,38 +474,22 @@ export default {
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
+
+            //条件変更ハンドラ
+            vue.conditionChanged();
         },
         onDateChanged: function() {
-            var vue = this;
-
-            //コース区分変更
-            axios.post(
-                "/Utilities/GetCourseKbnFromDateList",
-                {TargetDateList: vue.dateRange },
-            )
-                .then(res => {
-                    console.log(res);
-                    vue.viewModel.CourseKbnArray = _.uniq(res.data.map(v => v.コース区分));
-
-                    //条件変更ハンドラ
-                    vue.conditionChanged();
-                })
-                .catch(err => {
-                    console.log(err);
-                    $.dialogErr({
-                        title: "異常終了",
-                        contents: "祝日マスタの検索に失敗しました<br/>",
-                    });
-                });
-        },
-        onCourseChanged: function(code, entity, comp) {
             var vue = this;
 
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        onSeikyuChanged: function(code, entity, comp) {
+        onCourseChanged: function(code, entity, comp) {
             var vue = this;
+
+            if (!_.isEmpty(entity)) {
+                vue.viewModel.BushoCd = entity.部署ＣＤ;
+            }
 
             //条件変更ハンドラ
             vue.conditionChanged();
@@ -513,28 +497,17 @@ export default {
         onCustomerChanged: function(code, entity, comp) {
             var vue = this;
 
-            if (!!entity) {
+            if (!_.isEmpty(entity)) {
                 vue.viewModel.BushoCd = entity.部署CD;
             }
 
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        onJuchuChanged: function(code, entity, comp) {
-            var vue = this;
-
-            //条件変更ハンドラ
-            vue.conditionChanged();
-        },
-        onNyukinKindChanged: function() {
-            var vue = this;
-
-            //フィルタ変更ハンドラ
-            vue.filterChanged();
-        },
         conditionChanged: function(callback) {
             var vue = this;
             var grid = vue.DAI01140Grid1;
+            console.log("1140 conditionChanged")
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.DateStart || !vue.viewModel.DateEnd) return;
@@ -687,7 +660,7 @@ export default {
             }
 
             var list = dataList
-                .filter(v => !!vue.viewModel.BushoCd && !!vue.viewModel.CourseCd ? v.コースＣＤ == vue.viewModel.CourseCd : true)
+                .filter(v => (!!vue.viewModel.BushoCd && !!vue.viewModel.CourseCd) ? (v.部署CD == vue.viewModel.BushoCd && v.コースＣＤ == vue.viewModel.CourseCd) : true)
                 .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
                 .filter(v => {
                     return keyOR.length == 0
