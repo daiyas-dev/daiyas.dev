@@ -43,21 +43,6 @@ class DAI01230Controller extends Controller
     }
 
     /**
-     *  CourseKbnSearch
-     */
-
-    public function CourseKbnSearch($vm)
-    {
-        $DeliveryDate = $vm->DeliveryDate;
-        $vm->targetDate = $DeliveryDate;
-
-        $Utilities = new UtilitiesController();
-        $CourseKbn = $Utilities->SearchCourseKbnFromDate($vm)->コース区分;
-
-        return response()->json($CourseKbn);
-    }
-
-    /**
      * Search
      */
     public function Search($vm)
@@ -72,8 +57,8 @@ class DAI01230Controller extends Controller
 WITH WITH_注文データ AS (
 SELECT * FROM 注文データ
         WHERE 注文区分 = 0
-            AND CONVERT(varchar, 注文日付, 112) = $DeliveryDate
-            AND CONVERT(varchar, 配送日, 112)   = $DeliveryDate
+            AND 注文日付 = '$DeliveryDate'
+            AND 配送日 = '$DeliveryDate'
 )
 ,WITH_モバイル_予測入力 AS (
 SELECT
@@ -82,7 +67,7 @@ SELECT
     モバイル_予測入力
 GROUP BY
     部署ＣＤ,  得意先ＣＤ ,日付, 商品ＣＤ
-HAVING CONVERT(VARCHAR, 日付, 112) = $DeliveryDate
+HAVING 日付 = '$DeliveryDate'
 )
 
 ,WITH_注文予測 AS (
@@ -177,7 +162,7 @@ FROM
 
     LEFT JOIN 日別得意先製造パターン HIBETSUP on
         HIBETSUP.部署ＣＤ = CT.部署ＣＤ
-    AND CONVERT(varchar, HIBETSUP.製造日, 112) = $DeliveryDate
+    AND HIBETSUP.製造日 = '$DeliveryDate'
     AND HIBETSUP.コースＣＤ = CT.コースＣＤ
     AND HIBETSUP.得意先ＣＤ = CT.得意先ＣＤ
 
@@ -203,10 +188,17 @@ FROM WITH_コース別持出数
     LEFT JOIN 商品マスタ s2 ON s2.商品ＣＤ = WITH_コース別持出数.副食ＣＤ
 WHERE
     WITH_コース別持出数.主食ＣＤ IS NOT NULL OR WITH_コース別持出数.副食ＣＤ IS NOT NULL
-
                     ";
 
-        $DataList = DB::select($sql);
+        // $DataList = DB::select($sql);
+        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = null;
 
         return response()->json($DataList);
     }
