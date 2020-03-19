@@ -583,8 +583,6 @@ export default {
         },
         onAfterSearchFunc: function (vue, grid, res) {
             var vue = this;
-            // TODO:
-　　window.res=_.cloneDeep(res);
 
             //集計
             var groupings = _(res)
