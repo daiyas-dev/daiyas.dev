@@ -239,21 +239,37 @@ export default {
                         vue.conditionChanged();
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI01020Grid1_Printout", disabled: false, shortcut: "F6",
-                    onClick: function () {
-                        vue.DAI01250Grid1.print(vue.setPrintOptions);
-                        //TODO: 印刷の追加
+                // { visible: "true", value: "印刷", id: "DAI01020Grid1_Printout", disabled: false, shortcut: "F6",
+                //     onClick: function () {
+                //         vue.DAI01250Grid1.print(vue.setPrintOptions);
+                //         //TODO: 印刷の追加
 
+                //     }
+                // },
+                // { visible: "true", value: "CSV出力", id: "DAI01020Grid1_Csvout", disabled: false, shortcut: "F7",
+                //     onClick: function () {
+                //         vue.DAI01250Grid1.print(vue.setPrintOptions);
+                //         //TODO: ＣＳＶ出力追加
+
+                //     }
+                // },
+                {visible: "false"},
+                { visible: "true", value: "CSV", id: "DAI01250Grid1_CSV", disabled: false, shortcut: "F10",
+                    onClick: function () {
+                        vue.DAI01250Grid1.vue.exportData("csv", false, true);
                     }
                 },
-                { visible: "true", value: "CSV出力", id: "DAI01020Grid1_Csvout", disabled: false, shortcut: "F7",
+                { visible: "true", value: "Excel", id: "DAI01250Grid1_Excel", disabled: false, shortcut: "F9",
                     onClick: function () {
-                        vue.DAI01250Grid1.print(vue.setPrintOptions);
-                        //TODO: ＣＳＶ出力追加
-
+                        vue.DAI01250Grid1.vue.exportData("xlsx", false, true);
                     }
-                }
-            );
+                },
+                { visible: "true", value: "印刷", id: "DAI01250Grid1_Print", disabled: false, shortcut: "F11",
+                    onClick: function () {
+                        vue.print();
+                    }
+                },
+           );
         },
         mountedFunc: function(vue) {
             //配送日付の初期値 -> 当日
@@ -488,6 +504,151 @@ export default {
                 ;
 
             return list;
+        },
+        print: function() {
+            var vue = this;
+
+            //印刷用HTML全体適用CSS
+            var globalStyles = `
+                body {
+                    -webkit-print-color-adjust: exact;
+                }
+                div.title {
+                    width: 100%;
+                    display: flex;
+                    justify-content: center;
+                }
+                div.title > h3 {
+                    margin-top: 0px;
+                    margin-bottom: 0px;
+                }
+                table {
+                    table-layout: fixed;
+                    margin-left: 0px;
+                    margin-right: 0px;
+                    width: 100%;
+                    border-spacing: unset;
+                    border: solid 0px black;
+                }
+                th, td {
+                    font-family: "MS UI Gothic";
+                    font-size: 9pt;
+                    font-weight: normal;
+                    margin: 0px;
+                    padding-left: 3px;
+                    padding-right: 3px;
+                }
+                th {
+                    height: 35px;
+                    text-align: center;
+                }
+                td {
+                    height: 17px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                }
+            `;
+
+            var headerFunc = (chunk, idx, length) => {
+                return `
+                    <div class="title">
+                        <h3>* * * 未分配一覧表 * * *</h3>
+                    </div>
+                    <div class="header-table" style="border-width: 0px">
+                        <tr>
+                            <th style="width: 5.0%;">日付</th>
+                            <th style="width: 8.5%; text-align: center;">${vue.viewModel.DateStart}</th>
+                            <th style="width: 3.0%;">～</th>
+                            <th style="width: 8.5%; text-align: center;">${vue.viewModel.DateEnd}</th>
+                        </tr>
+                    </div>
+                    <table class="header-table" style="border-width: 0px">
+                        <thead>
+                            <tr>
+                                <th style="width: 6.5%; text-align: left;">部署</th>
+                                <th style="width: 5.0%; text-align: left;">${vue.viewModel.BushoCd}</th>
+                                <th style="width: 16.5%; text-align: left;">${vue.viewModel.BushoNm}</th>
+                                <th style="width: 46.0%;"></th>
+                                <th style="width: 6.0%;">作成日</th>
+                                <th style="width: 10.0%;">${moment().format("YYYY年MM月DD日")}</th>
+                                <th style="width: 5.0%;">PAGE</th>
+                                <th style="width: 5.0%; text-align: right;">${idx + 1}/${length}</th>
+                            </tr>
+                        </thead>
+                    </table>
+                `;
+            };
+
+            var printable = $("<html>")
+                .append($("<head>").append($("<style>").text(globalStyles)))
+                .append(
+                    $("<body>")
+                        .append(
+                            vue.DAI01250Grid1.generateHtml(
+                                `
+                                    table.DAI01250Grid1 tr:nth-child(1) th {
+                                        border-style: solid;
+                                        border-left-width: 0px;
+                                        border-top-width: 1px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 1px;
+                                    }
+                                    table.DAI01250Grid1 tr.grand-summary td {
+                                        border-style: solid;
+                                        border-left-width: 0px;
+                                        border-top-width: 1px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 1px;
+                                    }
+                                    table.DAI01250Grid1 tr th:nth-child(1) {
+                                        width: 22.5%;
+                                    }
+
+                                    table.DAI01250Grid1 tr th:nth-child(2) {
+                                        width: 7.5%;
+                                    }
+
+                                    table.DAI01250Grid1 tr th:nth-child(3) {
+                                        width: 13.5%;
+                                    }
+
+                                    table.DAI01250Grid1 tr th:nth-child(4) {
+                                        width: 12.0%;
+                                    }
+
+                                    table.DAI01250Grid1 tr th:nth-child(5) {
+                                        width: 11.5%;
+                                    }
+
+                                    table.DAI01250Grid1 tr th:nth-child(6) {
+                                        width: 6.5%;
+                                    }
+
+                                    table.DAI01250Grid1 tr th:nth-child(7) {
+                                        width: 8%;
+                                    }
+
+                                    table.DAI01250Grid1 tr th:nth-child(8) {
+                                        width: 18.5%;
+                                    }
+                                `,
+                                headerFunc,
+                                25,
+                            )
+                        )
+                )
+                .prop("outerHTML")
+                ;
+
+            var printOptions = {
+                type: "raw-html",
+                style: "@media print { @page { size: A4 landscape; } }",
+                printable: printable,
+            };
+
+            printJS(printOptions);
+            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //$("#printJS").contents().find("html").html()
         },
     }
 }
