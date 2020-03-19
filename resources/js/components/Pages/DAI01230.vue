@@ -156,6 +156,7 @@ export default {
                 KojoArray: [],
             },
             DAI01230Grid1: null,
+            result: [],
             grid1Options: {
                 selectionModel: { type: "cell", mode: "single", row: true },
                 showHeader: true,
@@ -264,8 +265,18 @@ export default {
         },
         onBentoKbnChanged: function(code, entity) {
             var vue = this;
+            var grid = vue.DAI01230Grid1;
 
-            //TODO:表示変更
+            if (!!vue.result.length) {
+                //結果の再編集
+                var ret = vue.editResult(vue.result);
+
+                //pqGridに設定
+                grid.options.dataModel.location = "local";
+                grid.options.dataModel.data = ret;
+                grid.refreshDataAndView();
+                grid.options.dataModel.location = "remote";
+            }
         },
         onKojoChanged: function(code, entity) {
             var vue = this;
@@ -282,6 +293,22 @@ export default {
             );
             grid.refreshCM();
             grid.refresh();
+
+            //todo:空列補完 とちゅう
+            var cols = grid.options.colModel;
+            if(cols.length < 7){
+                var empCol = _.range(0, (7 - cols.length))
+                    .map(v => {
+                        return {
+                            title: "", dataIndx: "空列" + v,
+                            width: 90, maxWidth: 90, minWidth: 90,
+                        };
+                    });
+
+                cols.push(...empCol);
+            }
+            //列定義更新
+            grid.options.colModel = cols;
         },
         conditionChanged: function(callback) {
             var vue = this;
@@ -295,16 +322,22 @@ export default {
             grid.searchData(params, false, null, callback);
         },
         onAfterSearchFunc: function (vue, grid, res) {
-
             var vue = this;
             var grid = vue.DAI01230Grid1;
 
-            //TODO:
-            window.res = res;
+            //検索結果の保持:
+            vue.result = _.cloneDeep(res);
+
+            //結果編集
+            return vue.editResult(res);
+        },
+        editResult: function (res) {
+            var vue = this;
+            var grid = vue.DAI01230Grid1;
 
             //集計結果をもとに、列の設定
             var bushoCdList= _.keys(_.groupBy(res, v => v.部署ＣＤ));
-            var bushoNmList = _.keys(_.groupBy(res, v => v.部署名));
+            var bushoNmList= _.values(_.groupBy(res, v => v.部署ＣＤ)).map(v => v[0].部署名);
             var kojoCdList= _.values(_.groupBy(res, v => v.部署ＣＤ)).map(v => v[0].工場ＣＤ);
 
             //列定義初期化
@@ -317,7 +350,7 @@ export default {
                         dataIndx: "持出数_" + v,
                         dataType: "integer",
                         format: "#,###",
-                        width: 90, maxWidth: 90, minWidth: 60,
+                        width: 90, maxWidth: 90, minWidth: 90,
                         editable: false,
                         render: ui => {
                             if (!ui.cellData) {
@@ -333,6 +366,19 @@ export default {
                         KojoCd: kojoCdList[i],
                     };
                 }));
+
+            //空列補完
+            if(newCols.length < 7){
+                var empCol = _.range(0, (7 - newCols.length))
+                    .map(v => {
+                        return {
+                            title: "", dataIndx: "空列" + v,
+                            width: 90, maxWidth: 90, minWidth: 90,
+                        };
+                    });
+
+                newCols.push(...empCol);
+            }
 
             newCols.push(
                 {
@@ -392,14 +438,12 @@ export default {
                     return ret;
                 });
 
-            //副食の場合のみ
             groupings = groupings.filter(v => {
                 var vals = _.keys(v).filter(k => k.startsWith("持出数_")).map(k => v[k]);
                 return vals.some(val => val != 0);
             });
 
-            groupings = vue.viewModel.BentoKbn == "1" ?
-                _(groupings).sortBy(["商品区分", "最小商品ＣＤ"]).value() : _(groupings).sortBy(["商品区分", targetCd]).value();
+            groupings = _(groupings).sortBy(["商品区分", vue.viewModel.BentoKbn == "1" ? "最小商品ＣＤ" : targetCd]).value();
 
             return groupings;
         },
