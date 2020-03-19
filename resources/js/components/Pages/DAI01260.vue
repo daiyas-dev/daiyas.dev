@@ -432,11 +432,21 @@ export default {
                 div.title > h3 {
                     margin-top: 0px;
                     margin-bottom: 0px;
-                    padding-left: 5px;
-                    padding-right: 5px;
+                    padding-left: 50px;
+                    padding-right: 50px;
+                    padding-top: 4px;
+                    padding-bottom: 4px;
                     border: solid 1px black;
-                    border-radius: 4px;
+                    border-radius: 6px;
                     background-color: cyan;
+                }
+                div.header-table {
+                    text-align: center;
+                    font-family: "MS UI Gothic";
+                    font-size: 9pt;
+                    font-weight: normal;
+                    padding-top: 2px;
+                    padding-bottom: 2px;
                 }
                 table {
                     table-layout: fixed;
@@ -455,11 +465,11 @@ export default {
                     padding-right: 3px;
                 }
                 th {
-                    height: 18px;
+                    height: 16px;
                     text-align: center;
                 }
                 td {
-                    height: 18px;
+                    height: 16px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
@@ -472,6 +482,16 @@ export default {
                 return `
                     <div class="title">
                         <h3>* * 得意先分配リスト * *</h3>
+                    </div>
+                    <div class="header-table" style="border-width: 0px">
+                        <tr>
+                            <th style="width: 5.0%;">対象範囲</th>
+                            (
+                            <th style="width: 8.5%; text-align: center;">${moment(vue.viewModel.DateStart, "YYYY年MM月DD日").format("YYYY/MM/DD")}</th>
+                            <th style="width: 3.0%;">～</th>
+                            <th style="width: 8.5%; text-align: center;">${moment(vue.viewModel.DateEnd, "YYYY年MM月DD日").format("YYYY/MM/DD")}</th>
+                            )
+                        </tr>
                     </div>
                     <table class="header-table" style="border-width: 0px">
                         <thead>
@@ -542,9 +562,64 @@ export default {
                                     table.DAI01260Grid1 tr th:nth-child(7) {
                                         width: 8.0%;
                                     }
-
                                     table.DAI01260Grid1 tr th:nth-child(8) {
                                         width: 8.0%;
+                                    }
+                                    table.header-table th {
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 1px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 0px;
+                                    }
+                                    table.header-table th:nth-child(4) {
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 0px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 0px;
+                                    }
+                                    table.header-table th:nth-child(8) {
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 1px;
+                                        border-right-width: 1px;
+                                        border-bottom-width: 0px;
+                                    }
+                                    table.DAI01260Grid1 thead:first-child th {
+                                        text-align: left;
+                                        padding-left: 5px;
+                                    }
+                                    table.DAI01260Grid1 {
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 0px;
+                                        border-right-width: 1px;
+                                        border-bottom-width: 1px;
+                                    }
+                                    table.DAI01260Grid1 tr:not(.group-row):not(.group-summary):not(:nth-child(1))  td:nth-child(n+4){
+                                        border-style: dashed;
+                                        border-left-width: 0px;
+                                        border-top-width: 1px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 0px;
+                                    }
+                                    table.DAI01260Grid1 tr.group-row + tr td:nth-child(n+4){
+                                        border-style: none !important;
+                                    }
+                                    table.DAI01260Grid1 tr.group-summary  td:nth-child(n+4) {
+                                        border-style: double;
+                                        border-left-width: 0px;
+                                        border-top-width: 3px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 0px;
+                                    }
+                                    table.DAI01260Grid1 tr.group-summary + tr td{
+                                        border-style: solid;
+                                        border-left-width: 0px;
+                                        border-top-width: 1px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 0px;
                                     }
                                 `,
                                 headerFunc,
