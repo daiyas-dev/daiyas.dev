@@ -198,9 +198,10 @@ export default {
                     {
                         title: "製造品名",
                         dataIndx: "主食副食名", dataType: "string",
-                        width: 150, maxWidth: 200, minWidth: 150,
+                        width: 200, minWidth: 200,
                         editable: false,
                         render: ui => {
+                            if (!!ui.Export) ui.cls = [];
                             if (ui.rowData.pq_grandsummary) {
                                 ui.rowData.CustomerName = "合計";
                                 ui.cls.push("justify-content-end");
@@ -226,11 +227,22 @@ export default {
                         vue.conditionChanged();
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI01230Grid1_Printout", disabled: false, shortcut: "F6",
+                {visible: "false"},
+                { visible: "true", value: "CSV", id: "DAI01230Grid1_CSV", disabled: true, shortcut: "F10",
                     onClick: function () {
-                        vue.DAI01230Grid1.print(vue.setPrintOptions);
+                        vue.DAI01230Grid1.vue.exportData("csv", false, true);
                     }
-                }
+                },
+                { visible: "true", value: "Excel", id: "DAI01230Grid1_Excel", disabled: true, shortcut: "F9",
+                    onClick: function () {
+                        vue.DAI01230Grid1.vue.exportData("xlsx", false, true);
+                    }
+                },
+                { visible: "true", value: "印刷", id: "DAI01230Grid1_Print", disabled: true, shortcut: "F11",
+                    onClick: function () {
+                        vue.print();
+                    }
+                },
             );
         },
         mountedFunc: function(vue) {
@@ -252,11 +264,9 @@ export default {
             vue.conditionChanged();
 
             //配送日からコース区分取得
-            var params = {TargetDate: vue.viewModel.DeliveryDate}
-            params.TargetDate = moment(params.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD");
-            axios.post("/DAI01230/CourseKbnSearch", params)
+            axios.post("/Utilities/GetCourseKbnFromDate", { TargetDate: moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD") })
                 .then(res => {
-                    vue.viewModel.CourseKbn = res.data;
+                    vue.viewModel.CourseKbn = res.data.コース区分;
                 })
                 .catch(err => {
                     console.log(err);
@@ -287,28 +297,21 @@ export default {
         toggleCols: function() {
             var vue = this;
             var grid = vue.DAI01230Grid1;
+            console.log("1230 toggleCols")
 
             grid.options.colModel.forEach(c => c.hidden = (!!c.BushoCd && !!c.KojoCd) &&
                 !((!vue.BushoCdArray.length || vue.BushoCdArray.includes(c.BushoCd)) && (!vue.KojoCdArray.length || vue.KojoCdArray.includes(c.KojoCd)))
             );
+
+            //表示列数
+            var visible = grid.options.colModel.filter(c => !_.has(c, "empIdx") && !c.hidden).length;
+
+            //空列補完
+            var base = 9;
+            grid.options.colModel.filter(c => _.has(c, "empIdx")).forEach(c => c.hidden = !(c.empIdx < (base - visible)));
+
             grid.refreshCM();
             grid.refresh();
-
-            //todo:空列補完 とちゅう
-            var cols = grid.options.colModel;
-            if(cols.length < 7){
-                var empCol = _.range(0, (7 - cols.length))
-                    .map(v => {
-                        return {
-                            title: "", dataIndx: "空列" + v,
-                            width: 90, maxWidth: 90, minWidth: 90,
-                        };
-                    });
-
-                cols.push(...empCol);
-            }
-            //列定義更新
-            grid.options.colModel = cols;
         },
         conditionChanged: function(callback) {
             var vue = this;
@@ -327,6 +330,10 @@ export default {
 
             //検索結果の保持:
             vue.result = _.cloneDeep(res);
+
+            vue.footerButtons.find(v => v.id == "DAI01230Grid1_CSV").disabled = !res.length;
+            vue.footerButtons.find(v => v.id == "DAI01230Grid1_Excel").disabled = !res.length;
+            vue.footerButtons.find(v => v.id == "DAI01230Grid1_Print").disabled = !res.length;
 
             //結果編集
             return vue.editResult(res);
@@ -350,7 +357,7 @@ export default {
                         dataIndx: "持出数_" + v,
                         dataType: "integer",
                         format: "#,###",
-                        width: 90, maxWidth: 90, minWidth: 90,
+                        width: 100, maxWidth: 100, minWidth: 100,
                         editable: false,
                         render: ui => {
                             if (!ui.cellData) {
@@ -368,17 +375,24 @@ export default {
                 }));
 
             //空列補完
-            if(newCols.length < 7){
-                var empCol = _.range(0, (7 - newCols.length))
-                    .map(v => {
-                        return {
-                            title: "", dataIndx: "空列" + v,
-                            width: 90, maxWidth: 90, minWidth: 90,
-                        };
-                    });
+            var empCol = _.range(0, 7)
+                .map(v => {
+                    return {
+                        title: "", dataIndx: "空列" + v,
+                        dataType: "string",
+                        width: 100, maxWidth: 100, minWidth: 100,
+                        hidden: true,
+                        render: ui => {
+                            if (!!ui.Export) {
+                                return { text: "" };
+                            }
+                            return ui;
+                        },
+                        empIdx: v,
+                    };
+                });
 
-                newCols.push(...empCol);
-            }
+            newCols.push(...empCol);
 
             newCols.push(
                 {
@@ -386,14 +400,17 @@ export default {
                     dataIndx: "持出数合計",
                     dataType: "integer",
                     format: "#,###",
-                    width: 80, maxWidth: 80, minWidth: 60,
+                    width: 120, maxWidth: 120, minWidth: 120,
                     editable: false,
                     render: ui => {
                         var grid = eval("this");
 
                         var sum = _.sum(_.keys(ui.rowData)
                             .filter(k => k.startsWith("持出数_"))
-                            .filter(k => !grid.options.colModel.find(c => c.dataIndx == k).hidden)
+                            .filter(k => {
+                                var col = grid.options.colModel.find(c => c.dataIndx == k);
+                                return !!col && !col.hidden;
+                            })
                             .map(k => ui.rowData[k] || 0)
                             .map(v => _.isString(v) ? pq.deFormatNumber(v) : v)
                         );
@@ -447,148 +464,140 @@ export default {
 
             return groupings;
         },
-        setPrintOptions: function(grid) {
+        print: function() {
             var vue = this;
 
-            //PqGrid Print options
-            grid.options.printOptions.printType = "raw-html";
-            grid.options.printOptions.printStyles = "@media print { @page { size: A4; } }";
+            //印刷用HTML全体適用CSS
+            var globalStyles = `
+                body {
+                    -webkit-print-color-adjust: exact;
+                }
+                div.title {
+                    width: 100%;
+                    display: flex;
+                    justify-content: center;
+                    margin-bottom: 10px;
+                }
+                div.title > h3 {
+                    margin-top: 0px;
+                    margin-bottom: 0px;
+                }
+                table {
+                    table-layout: fixed;
+                    margin-left: 0px;
+                    margin-right: 0px;
+                    width: 100%;
+                    border-spacing: unset;
+                    border: solid 0px black;
+                }
+                th, td {
+                    font-family: "MS UI Gothic";
+                    font-size: 11pt;
+                    font-weight: normal;
+                    margin: 0px;
+                    padding-left: 3px;
+                    padding-right: 3px;
+                }
+                th {
+                    height: 40px;
+                    text-align: center;
+                }
+                td {
+                    height: 40px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                }
+            `;
 
-            var table = $($(grid.exportData({ format: "htm", render: true }))[3]);
-            var tableHeaders = table.find("tr").filter((i, v) => !!$(v).find("th").length);
-            var tableBodies = table.find("tr").filter((i, v) => !!$(v).find("td").length);
+            var headerFunc = (header, idx, length) => {
+                return `
+                    <div class="title">
+                        <h3>* * 部署別製造数一覧表(${vue.viewModel.BentoKbn == 1 ? "主食" : "副食"}) * *</h3>
+                    </div>
+                    <table class="header-table" style="border-width: 0px">
+                        <thead>
+                            <tr>
+                                <th style="width: 5%;">日付</th>
+                                <th style="width: 25%;">${moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYY年MM月DD日 ddd曜日")}</th>
+                                <th style="width: 33%;"></th>
+                                <th style="width: 8%;">作成日</th>
+                                <th style="width: 15%;">${moment().format("YYYY/MM/DD")}</th>
+                                <th style="width: 8%;">PAGE</th>
+                                <th style="width: 6%; text-align: right;">${idx + 1}/${length}</th>
+                            </tr>
+                        </thead>
+                    </table>
+                `;
+            };
 
-            //optional: generate contents for multipages
-            var contents = [];
-            var maxRowsPerPage = 35;
-            _(tableBodies)
-                .groupBy(v => $(v).find("td:first").text())
-                .values()
-                .reduce((a, v, i, o) => {
-                    if (!_.isEmpty(a) && a.find(".data-table tr").length + v.length > maxRowsPerPage) {
-                        var page = _.cloneDeep(a);
-                        page.find("tr:last td").css("border-bottom-width", "1px");
-                        contents.push(page);
-                        a = {};
-                    }
-
-                    if (_.isEmpty(a)) {
-                        var pageHeader = `
-                                            <div class="title">
-                                                <h3>* * 部署別製造数一覧表 ${vue.viewModel.BentoKbn}* *</h3>
-                                            </div>
-                                            <table class="header-table">
-                                                <colgroup>
-                                                        <col style="width:5.0%;"></col>
-                                                        <col style="width:5.0%;"></col>
-                                                        <col style="width:7.5%;"></col>
-                                                        <col style="width:5.5%;"></col>
-                                                        <col style="width:5.5%;"></col>
-                                                        <col style="width:5.5%;"></col>
-                                                        <col style="width:5.5%;"></col>
-                                                        <col style="width:5.5%;"></col>
-                                                        <col style="width:5.5%;"></col>
-                                                        <col style="width:5.5%;"></col>
-                                                        <col style="width:5.5%;"></col>
-                                                        <col style="width:5.5%;"></col>
-                                                        <col style="width:5.5%;"></col>
-                                                        <col style="width:5.5%;"></col>
-                                                        <col style="width:5.5%;"></col>
-                                                        <col style="width:5.5%;"></col>
-                                                        <col style="width:5.5%;"></col>
-                                                        <col style="width:5.5%;"></col>
-                                                </colgroup>
-                                                <thead>
-                                                    <tr>
-                                                        <th>日付</th>
-                                                        <th colspan="5">${moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYY年MM月DD日 dddd")}</th>
-                                                    </tr>
-                                                    <tr>
-                                                        <th colspan="6" style="border-top-width: 0px !important;"></th>
-                                                        <th colspan="2">作成日</th>
-                                                        <th colspan="2">${moment().format("YYYY/MM/DD")}</th>
-                                                        <th>PAGE</th>
-                                                        <th>${contents.length + 1}</th>
-                                                    </tr>
-                                                </thead>
-                                            </table>
-                                        `;
-
-                        a = $("<div>").css("page-break-before", "always")
-                            .append(pageHeader)
-                            .append($("<table>").addClass("data-table").append(tableHeaders.prop("outerHTML")));
-                    }
-
-                    a.find(".data-table").append(v);
-
-                    if (_.last(o) == v) {
-                        var page = _.cloneDeep(a);
-                        page.find("tr:last td").css("border-bottom-width", "1px");
-                        contents.push(page);
-                    }
-
-                    return a;
-                }, {});
-
-            var styles =  `
-                                <style>
-                                    .grid-contents .title {
-                                        width: 100%;
-                                        display: inline-flex;
-                                        justify-content: center;
-                                        margin-bottom: 10px;
-                                    }
-                                    .grid-contents .title h3 {
-                                        text-align: center;
-                                        border: solid 1px black;
-                                        border-radius: 4px;
-                                        background-color: grey;
-                                        margin: 0px;
-                                        padding-left: 30px;
-                                        padding-right: 30px;
-                                    }
-                                    .grid-contents table {
-                                        width: 100%;
-                                        border-collapse:collapse;
-                                    }
-                                    .grid-contents .header-table tr th {
-                                        border-bottom: 0px;
-                                    }
-                                    .grid-contents tr th,
-                                    .grid-contents tr td
-                                    {
-                                        font-family: "MS UI Gothic" !important;
-                                        font-weight: normal !important;
-                                        line-height: normal !important;
-                                        border: solid 1px black;
-                                        margin: 0px;
-                                        padding: 0px;
-                                        padding-top: 1px;
-                                        padding-bottom: 1px;
-                                        padding-left: 3px;
-                                        padding-right: 3px;
-                                    }
-                                    .grid-contents tr th:nth-child(1) {
-                                        width: 17.5%;
-                                    }
-                                    .grid-contents tr th:nth-child(n+2) {
-                                        width: 5.5%;
-                                        text-align: center;
-                                    }
-                                    .grid-contents tr td:nth-child(1) {
-                                        font-size: 9pt !important;
-                                    }
-                                    .grid-contents tr td:nth-child(n+2) {
-                                        text-align: right;
-                                    }
-                                </style>
-                            `;
-
+            var maxRow = 21;
             var printable = $("<html>")
-                .append($("<head>").append(styles))
-                .append($("<body>").append($("<div>").addClass("grid-contents").append(contents)));
+                .append($("<head>").append($("<style>").text(globalStyles)))
+                .append(
+                    $("<body>")
+                        .append(
+                            vue.DAI01230Grid1.generateHtml(
+                                `
+                                    table.DAI01230Grid1 tr:nth-child(1) th {
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 1px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 0px;
+                                    }
+                                    table.DAI01230Grid1 tr th:last-child {
+                                        border-right-width: 1px;
+                                    }
+                                    table.DAI01230Grid1 tr td {
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 1px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 0px;
+                                    }
+                                    table.DAI01230Grid1 tr.grand-summary td {
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 1px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 1px;
+                                    }
+                                    table.DAI01230Grid1 tr td:last-child {
+                                        border-right-width: 1px;
+                                    }
+                                    table.DAI01230Grid1 tr:nth-child(odd) td {
+                                        background-color: lightgrey;
+                                    }
+                                    table.DAI01230Grid1 tr:nth-child(even) td {
+                                        background-color: white;
+                                    }
+                                    table.DAI01230Grid1 tr th:nth-child(1) {
+                                        width: 20.0%;
+                                    }
+                                    table.DAI01230Grid1 tr td:nth-child(1) {
+                                        padding-left: 10px;
+                                    }
+                                    table.DAI01230Grid1 tr td:nth-child(n+1) {
+                                        padding-right: 10px;
+                                    }
+                                `,
+                                headerFunc,
+                                maxRow,
+                            )
+                        )
+                )
+                .prop("outerHTML")
+                ;
 
-            grid.options.printOptions.printable = printable.prop("outerHTML");
+            var printOptions = {
+                type: "raw-html",
+                style: "@media print { @page { size: A4 ; } }",
+                printable: printable,
+            };
+
+            printJS(printOptions);
+            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //$("#printJS").contents().find("html").html()
         },
     }
 }

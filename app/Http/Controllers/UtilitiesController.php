@@ -1788,25 +1788,25 @@ ORDER BY
         $TargetDate = $request->targetDate ?? $request->TargetDate;
 
         $sql = "
-SELECT
-	D.対象日付,
-	D.コース区分,
-	各種テーブル.各種名称 AS コース区分名
-FROM (
-    SELECT
-        '$TargetDate' AS 対象日付,
-        CASE
-            WHEN (SELECT 対象日付 FROM 祝日マスタ WHERE 対象日付 = '$TargetDate') IS NOT NULL THEN 4
-            ELSE
-                CASE DATEPART(WEEKDAY, '$TargetDate')
-                    WHEN 1 THEN 3
-                    WHEN 7 THEN 2
-                    ELSE 1
-                END
-        END AS コース区分
-) D
-	LEFT OUTER JOIN 各種テーブル
-		ON 各種テーブル.行NO = D.コース区分 AND 各種テーブル.各種CD=19
+            SELECT
+                D.対象日付,
+                D.コース区分,
+                各種テーブル.各種名称 AS コース区分名
+            FROM (
+                SELECT
+                    '$TargetDate' AS 対象日付,
+                    CASE
+                        WHEN (SELECT 対象日付 FROM 祝日マスタ WHERE 対象日付 = '$TargetDate') IS NOT NULL THEN 4
+                        ELSE
+                            CASE DATEPART(WEEKDAY, '$TargetDate')
+                                WHEN 1 THEN 3
+                                WHEN 7 THEN 2
+                                ELSE 1
+                            END
+                    END AS コース区分
+            ) D
+                LEFT OUTER JOIN 各種テーブル
+                    ON 各種テーブル.行NO = D.コース区分 AND 各種テーブル.各種CD=19
         ";
 
         $Result = DB::selectOne($sql);
