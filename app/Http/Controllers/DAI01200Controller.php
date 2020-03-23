@@ -158,16 +158,14 @@ class DAI01200Controller extends Controller
                     , SUM(入金データ.値引) AS 値引
                 FROM
                     入金データ
-                    INNER JOIN 得意先マスタ ON 得意先マスタ.受注得意先ＣＤ = 1
                     INNER JOIN コーステーブル ON コーステーブル.得意先ＣＤ = 入金データ.得意先ＣＤ
                 WHERE
-                    入金データ.得意先ＣＤ = 得意先マスタ.得意先ＣＤ
-                    AND 入金データ.入金日付 >= '$DateStart'
+                    入金データ.入金日付 >= '$DateStart'
                     AND 入金データ.入金日付 <= '$DateEnd'
                     AND コーステーブル.部署ＣＤ = $BushoCd
                     AND コーステーブル.コースＣＤ = $CourseCd
                 GROUP BY
-                      コーステーブル.部署ＣＤ
+                    コーステーブル.部署ＣＤ
                     , コーステーブル.コースＣＤ
                     , 入金データ.入金日付
                     , 入金データ.入金区分
