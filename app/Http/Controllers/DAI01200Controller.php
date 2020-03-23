@@ -13,6 +13,32 @@ use Illuminate\Support\Facades\DB as IlluminateDB;
 class DAI01200Controller extends Controller
 {
     /**
+     *  getSyouhinKubunData
+     */
+    public function getSyouhinKubunData($vm)
+    {
+        $BushoCd = $vm->BushoCd;
+        $sql = "
+            SELECT
+                行NO AS 商品区分,
+                各種名称
+            FROM 各種テーブル
+            WHERE 各種CD=
+                (
+                    SELECT
+                        IIF(サブ各種CD2=2, 27, 14)
+                    FROM 各種テーブル
+                    WHERE 各種CD=26
+                    AND サブ各種CD1=$BushoCd
+                )
+                AND 行NO<=7
+            ORDER BY 各種CD,行NO
+        ";
+        $data = DB::select($sql);
+        return $data;
+    }
+
+    /**
      * GetCourseMeisaiData
      */
     public function GetCourseMeisaiData($request){
@@ -35,7 +61,8 @@ class DAI01200Controller extends Controller
                 FROM
                     コース別明細データ
                     LEFT JOIN コースマスタ
-                        ON コースマスタ.部署ＣＤ=コース別明細データ.部署CD
+                         ON コースマスタ.部署ＣＤ=コース別明細データ.部署CD
+                        AND コースマスタ.コースＣＤ=コース別明細データ.コースＣＤ
                     AND コースマスタ.担当者ＣＤ=コース別明細データ.配送担当者ＣＤ
                     INNER JOIN [担当者マスタ]
                     ON 担当者マスタ.担当者ＣＤ=コースマスタ.担当者ＣＤ
@@ -154,14 +181,16 @@ class DAI01200Controller extends Controller
      * Search
      */
     public function Search($request) {
-        $jsn= response()->json(
+        return response()->json(
             [
-                "UriageMeisaiData" => $this->GetUriageMeisaiData($request),
-                "NyukinData" => $this->GetNyukinData($request),
-                "CourseMeisaiData" => $this->GetCourseMeisaiData($request),
+                [
+                    "UriageMeisaiData" => $this->GetUriageMeisaiData($request),
+                    "NyukinData" => $this->GetNyukinData($request),
+                    "CourseMeisaiData" => $this->GetCourseMeisaiData($request),
+                    "SyouhinKubunData"=> $this->getSyouhinKubunData($request),
+                ]
             ]
         );
-        return $jsn;
     }
 
 //TODO:これより下はコピー元のコードのため、不要

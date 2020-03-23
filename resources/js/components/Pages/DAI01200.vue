@@ -43,9 +43,12 @@
         <PqGridWrapper
             id="DAI01200Grid1"
             ref="DAI01200Grid1"
+            dataUrl="/DAI01200/Search"
+            :query=this.searchParams
             :options=this.grid1Options
             :SearchOnCreate=false
             :SearchOnActivate=false
+            :onAfterSearchFunc=this.onAfterSearchFunc
         />
     </form>
 </template>
@@ -112,7 +115,8 @@ export default {
             },
             CheckInterVal: null,
             DAI01200Grid1: null,
-            ProductList: [],
+            UriageMeisaiData: [],
+            NyukinData: [],
             grid1Options: {
                 selectionModel: { type: "row", mode: "single", row: true },
                 numberCell: { show: false },
@@ -125,10 +129,6 @@ export default {
                     editable: false,
                     sortable: false,
                 },
-                dataModel: {
-                    location: "local",
-                    data: [],
-                },
                 filterModel: {
                     on: false,
                     header: false,
@@ -139,15 +139,164 @@ export default {
                     on: false,
                     header: false,
                     headerMenu: false,
-                    grandSummary: false,
                 },
                 summaryData: [],
                 mergeCells: [],
-                formulas: [
-                    [
-                    ],
-                ],
+                formulas: [],
                 colModel: [
+                    {
+                        title: "日付",
+                        dataIndx: "日付",
+                        width: 100, maxWidth: 100, minWidth: 100,
+                        hidden: false,
+                    },
+                    {
+                        title: "コースＣＤ",
+                        dataIndx: "コースＣＤ",
+                        width: 60, maxWidth: 60, minWidth: 60,
+                        hidden: false,
+                    },
+                    {
+                        title: "コース名",
+                        dataIndx: "コース名",
+                        dataType: "string",
+                        width: 200, maxWidth: 200, minWidth: 200,
+                    },
+                    {
+                        title: "担当者ＣＤ",
+                        dataIndx: "配送担当者ＣＤ",
+                        width: 60, maxWidth: 60, minWidth: 60,
+                        hidden: false,
+                    },
+                    {
+                        title: "担当者名",
+                        dataIndx: "担当者名",
+                        width: 60, maxWidth: 60, minWidth: 60,
+                        hidden: false,
+                    },
+                    {
+                        title: "行番号",
+                        dataIndx: "行番号",
+                        width: 60, maxWidth: 60, minWidth: 60,
+                    },
+                    {
+                        title: "商品区分ＣＤ",
+                        dataIndx: "商品区分ＣＤ",
+                        width: 60, maxWidth: 60, minWidth: 60,
+                    },
+                    {
+                        title: "商品区分",
+                        dataIndx: "商品名",
+                        dataType: "string",
+                        width: 100, maxWidth: 100, minWidth: 100,
+                    },
+                    {
+                        title: "持出数",
+                        dataIndx: "持出数",
+                        dataType: "integer",
+                        format: "#,###",
+                        width: 70, maxWidth: 70, minWidth: 70,
+                    },
+                    {
+                        title: "工場",
+                        dataIndx: "受取数_工場",
+                        dataType: "integer",
+                        format: "#,###",
+                        width: 70, maxWidth: 70, minWidth: 70,
+                    },
+                    {
+                        title: "もらった",
+                        dataIndx: "受取数_一般",
+                        dataType: "integer",
+                        format: "#,###",
+                        width: 70, maxWidth: 70, minWidth: 70,
+                    },
+                    {
+                        title: "やった",
+                        dataIndx: "引渡数",
+                        dataType: "integer",
+                        format: "#,###",
+                        width: 70, maxWidth: 70, minWidth: 70,
+                    },
+                    {
+                        title: "ボーナス",
+                        dataIndx: "引渡数",
+                        dataType: "integer",
+                        format: "#,###",
+                        width: 70, maxWidth: 70, minWidth: 70,
+                    },
+                    {
+                        title: "残数",
+                        dataIndx: "残数",
+                        dataType: "integer",
+                        format: "#,###",
+                        width: 70, maxWidth: 70, minWidth: 70,
+                    },
+                    {
+                        title: "売上数",
+                        dataIndx: "売上数",
+                        dataType: "integer",
+                        format: "#,###",
+                        width: 70, maxWidth: 70, minWidth: 70,
+                    },
+                    {
+                        title: "売上額",
+                        dataIndx: "売上額",
+                        dataType: "integer",
+                        format: "#,###",
+                        width: 70, maxWidth: 70, minWidth: 70,
+                    },
+                    {
+                        title: "その他",
+                        dataIndx: "その他",
+                        dataType: "integer",
+                        format: "#,###",
+                        width: 60, maxWidth: 60, minWidth: 60,
+                        hidden: false,
+                        render: ui => {
+                            if(ui.rowData.商品区分ＣＤ=="7")
+                            {
+                                return { text: "0" };
+                            }
+                        },
+                    },
+                    {
+                        title: "値引金額",
+                        dataIndx: "値引金額",
+                        dataType: "integer",
+                        format: "#,###",
+                        width: 60, maxWidth: 60, minWidth: 60,
+                        hidden: false,
+                        render: ui => {
+                            if(ui.rowData.商品区分ＣＤ=="7")
+                            {
+                                var UriageMeisaiData  = vue.UriageMeisaiData.filter(v=>(v.日付==ui.rowData.日付) && (v.コースＣＤ==ui.rowData.コースＣＤ))
+                                window.rese=_.cloneDeep(UriageMeisaiData);//TODO
+                                var NebikiKingaku=0;
+                                    console.log('ここから');
+                                _.forEach(UriageMeisaiData,r=>
+                                {
+                                    console.log(r);
+                                    console.log(r["値引金額"]);
+                                    if(r["値引金額"] !== undefined)
+                                    {
+                                        NebikiKingaku+=r["値引金額"] * 1;
+                                    }
+                                });
+                                window.resg=_.cloneDeep(NebikiKingaku);//TODO
+                                //alert(UriageMeisaiData[0].値引金額);
+                                return { text: NebikiKingaku.toString() };
+                            }
+                        },
+                    },
+                    {
+                        title: "総売上金額",
+                        dataIndx: "総売上金額",
+                        width: 200, maxWidth: 200, minWidth: 200,
+                        render: ui => {
+                            return {text:"<span style=\"width:95px;text-align:left;\">ほえほえ</span><span style=\"width:95px;text-align:right;\">1,000</span>"};
+                        },
+                    },
                 ],
             },
         });
@@ -228,14 +377,12 @@ export default {
             params.TargetDate = params.TargetDate ? moment(params.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
             //キャッシュ無効
             params.noCache = true;
-
+/*
             axios.post("/DAI01200/Search", params)
                 .then(res => {
                     grid.hideLoading();
                     //移動データ
-                    window.resa=_.cloneDeep(res.data.CourseMeisaiData);
                     vue.DAI01200Grid1.options.dataModel.data = res.data.CourseMeisaiData;
-                    window.resb=_.cloneDeep(vue.DAI01200Grid1.options.dataModel.data);
                     vue.DAI01200Grid1.refreshDataAndView();
                 })
                 .catch(err => {
@@ -246,36 +393,79 @@ export default {
                         contents: "データの検索に失敗しました<br/>",
                     });
                 });
-
+                */
+            grid.searchData(params, false, null, callback);
+            grid.hideLoading();
         },
         onAfterSearchFunc: function (gridVue, grid, res) {
             var vue = this;
-/*
-            //summaryDataの設定
-            grid.options.summaryData = [];
-            // _(res).groupBy(v => _.padStart(v.商品ＣＤ, 3, " ") + ":" + v.商品名)
-            _(res).groupBy(v => v.商品名)
-                .forIn((v, k) => {
-                    var summary = {
-                        summaryRow: true,
-                        "コース名": grid.options.summaryData.length ? "" : "合計",
-                        "商品名": k,
-                        pq_fn:{
-                            "持ち出し数": "SUMIF(D:D, '" + k + "', F:F)",
-                            "売上予定": "SUMIF(D:D, '" + k + "', G:G)",
-                            "受取数_工場": "SUMIF(D:D, '" + k + "', H:H)",
-                            "受取数_一般": "SUMIF(D:D, '" + k + "', I:I)",
-                            "引渡数": "SUMIF(D:D, '" + k + "', K:K)",
-                            "残数": "SUMIF(D:D, '" + k + "', M:M)",
-                        }
-                    };
+            var SyouhinKubunData = _.cloneDeep(res[0].SyouhinKubunData);
+            vue.UriageMeisaiData = _.cloneDeep(res[0].UriageMeisaiData);
+            vue.NyukinData = _.cloneDeep(res[0].NyukinData);
 
-                    grid.options.summaryData.push(summary);
+            //商品区分ごとの合計値を集計
+            var UriageSumData = _(vue.UriageMeisaiData)
+                .groupBy(v => [v.日付,v.コースＣＤ,v.商品区分])
+                .values()
+                .value()
+                .map(r => {
+                    var ret = _.reduce(r,(acc, v, j) => {
+                                acc = _.isEmpty(acc) ? v : acc;
+                                acc["個数"] = (acc["個数"] || 0) + v.現金個数 * 1;
+                                acc["個数"] = (acc["個数"] || 0) + v.掛売個数 * 1;
+                                acc["個数"] = (acc["個数"] || 0) + v.分配元数量 * 1;
+                                acc["金額"] = (acc["金額"] || 0) + v.現金金額 * 1;
+                                acc["金額"] = (acc["金額"] || 0) + v.掛売金額 * 1;
+                                acc["値引金額"] = (acc["値引金額"] || 0) + v.現金値引 * 1;
+                                acc["値引金額"] = (acc["値引金額"] || 0) + v.掛売値引 * 1;
+                                return acc;
+                            },
+                            {}
+                    );
+                    return ret;
+                })
+
+            window.resa=_.cloneDeep(res[0].SyouhinKubunData);//TODO
+            window.resb=_.cloneDeep(vue.UriageMeisaiData);//TODO
+            window.resc=_.cloneDeep(UriageSumData);//TODO
+            window.resd=_.cloneDeep(vue.NyukinData);//TODO
+
+            //明細行をコピーして、商品区分ごとにデータをセットする
+            var CourseMeisaiData=[];
+            res[0].CourseMeisaiData.map((v, i) => {
+                SyouhinKubunData.map((pv,pi) => {
+                    var StrIndex = pv.商品区分 =="1" ? "１"
+                                 : pv.商品区分 =="2" ? "２"
+                                 : pv.商品区分 =="3" ? "３"
+                                 : pv.商品区分 =="4" ? "４"
+                                 : pv.商品区分 =="5" ? "５"
+                                 : pv.商品区分 =="6" ? "６"
+                                 : pv.商品区分 =="7" ? "７"
+                                 : "" ;
+                    var RowData = _.cloneDeep(v);
+                    RowData.行番号=pi+1;
+                    RowData.商品区分ＣＤ=pv.商品区分;
+                    RowData.商品名=pv.各種名称;
+                    RowData.持出数=RowData["持出し個数" + StrIndex];
+                    RowData.受取数_工場=RowData["工場追加" + StrIndex];
+                    RowData.受取数_一般=RowData["もらった" + StrIndex];
+                    RowData.引渡数=RowData["やった" + StrIndex];
+                    RowData.ボーナス=RowData["見本" + StrIndex];
+                    RowData.残数=RowData["残数" + StrIndex];
+
+                    var UriageSumItem = UriageSumData.find(k => (k.日付==v.日付) && (k.コースＣＤ==v.コースＣＤ) && (k.商品区分 == pv.商品区分));
+                    if(!_.isEmpty(UriageSumItem))
+                    {
+                        RowData.売上数=UriageSumItem.個数;
+                        RowData.売上額=UriageSumItem.金額;
+                    }
+                    CourseMeisaiData.push(RowData);
                 });
+            });
 
             //mergeCellsの設定
             var pos = 0;
-            _(res).groupBy(v => v.コース名)
+            _(CourseMeisaiData).groupBy(v => [v.日付,v.コース名])
                 .forIn((v, k) => {
                     var cells = {
                         r1: pos,
@@ -286,8 +476,9 @@ export default {
                     grid.options.mergeCells.push(cells);
                     pos += v.length;
                 });
-*/
-            return res;
+
+
+            return CourseMeisaiData;
         },
         setPrintOptions: function(grid) {
             var vue = this;
