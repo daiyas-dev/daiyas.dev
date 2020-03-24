@@ -125,10 +125,6 @@ export default {
                     editable: false,
                     sortable: false,
                 },
-                dataModel: {
-                    location: "local",
-                    data: [],
-                },
                 filterModel: {
                     on: false,
                     header: false,

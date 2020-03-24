@@ -214,11 +214,15 @@ export default {
             }
 
             //first focus
-            var first = $(vue.$el).find(":input:first")
-            if (first.parent().hasClass("DatePickerWrapper")) {
-                first = first.siblings(".calendar-button");
+            if (vue.IsFirstFocus != false) {
+                var first = $(vue.$el).find(":input:first")
+                if (first.parent().hasClass("DatePickerWrapper")) {
+                    first = first.siblings(".calendar-button");
+                } else if (first.hasClass("ui-autocomplete-input")) {
+                    vue.$refs["PopupSelect_" + first.prop("id")].AutoCompleteFocusSkip = true;
+                }
+                first.focus();
             }
-            first.focus();
         },
         resize: function(size) {
             var vue = vue;
