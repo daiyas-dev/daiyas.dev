@@ -287,6 +287,28 @@ export default {
                             ui.cls.push("cell-positive-value");
                         }
                     }
+                    if (ui.column.zeroToEmpty != undefined) {
+                        if (value == 0) {
+                            if (_.isArray(ui.column.zeroToEmpty)) {
+                                if (!!ui.column.zeroToEmpty[!!ui.Export ? 1 : 0]) {
+                                    return { text: "" };
+                                }
+                            } else if (!!ui.column.zeroToEmpty) {
+                                return { text: "" };
+                            }
+                        }
+                    }
+                    if (ui.column.emptyToZero != undefined) {
+                        if (value == null || value == undefined) {
+                            if (_.isArray(ui.column.emptyToZero)) {
+                                if (!!ui.column.emptyToZero[!!ui.Export ? 1 : 0]) {
+                                    return { text: "0" };
+                                }
+                            } else if (!!ui.column.emptyToZero) {
+                                return { text: "0" };
+                            }
+                        }
+                    }
 
                     //nested objectからデータ取得出来るよう拡張
                     if (ui.dataIndx.includes(".") || !ui.rowData[ui.dataIndx]) {
@@ -947,7 +969,7 @@ export default {
                         grid.options.title = "件数: " + grid.getData().length;
                     }
                     if (vue.setCustomTitle) {
-                        grid.options.title = vue.setCustomTitle(grid.options.title);
+                        grid.options.title = vue.setCustomTitle(grid.options.title, grid);
                     }
                     grid._refreshTitle();
                 }
@@ -1112,6 +1134,9 @@ export default {
             complete: function(event, ui) {
                 var grid = this;
                 var vue = grid.options.vue;
+
+                //ツールチップ除去
+                $(".tooltip").tooltip("dispose");
 
                 //選択状態解除
                 if (!vue.keepSelect) {
@@ -2351,11 +2376,24 @@ export default {
 
                 this.grid.generateHtml = function(styles, header, maxRowsPerPage, isShowGroupRow, isShowGroupSummaryRow, isGroupPageBreak) {
                     var grid = this;
+
+                    var colModel = _.cloneDeep(grid.options.colModel);
+
+                    var printCol = grid.options.colModel.map(v => {
+                        if (v.hiddenOnExport != undefined) {
+                            v.hidden = v.hiddenOnExport;
+                        }
+                        return v;
+                    });
+                    grid.options.colModel = printCol;
+                    grid.refreshCM();
+                    grid.refresh();
+
                     var table = $($(grid.exportData({ format: "htm", render: true }))[3]).addClass(grid.vue.id);
                     var tableHeaders = table.find("tr").filter((i, v) => !!$(v).find("th").length).get();
                     var tableBodies = table.find("tr").filter((i, v) => !!$(v).find("td").length).get();
 
-                    var pdata = grid.pdata.filter(v => !v.pq_hidden);
+                    var pdata = _.cloneDeep(grid.pdata.filter(v => !v.pq_hidden));
 
                     tableBodies.forEach((r, i) => {
                         var rd = pdata[i];
@@ -2374,8 +2412,9 @@ export default {
                         }
                     });
 
+                    var ret = "";
                     if (!maxRowsPerPage && !isGroupPageBreak) {
-                        return $("<div>")
+                        ret = $("<div>")
                             .append($("<style>").text(styles || ""))
                             .append(header || "")
                             .append(table)
@@ -2475,7 +2514,7 @@ export default {
                         chunks = _(chunks).values().flatten().value();
                         console.log("printable chunks", chunks, headers);
 
-                        var ret = $("<div>")
+                        ret = $("<div>")
                             .append($("<style>").text(styles || ""))
                             .append(
                                 chunks.map((chunk, i) => {
@@ -2491,8 +2530,13 @@ export default {
                                 })
                             );
 
-                        return ret;
                     }
+
+                    grid.options.colModel = colModel;
+                    grid.refreshCM();
+                    grid.refresh();
+
+                    return ret;
                 };
 
                 //blink

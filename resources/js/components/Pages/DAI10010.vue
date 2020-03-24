@@ -190,7 +190,7 @@ export default {
     data() {
         var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "明細入力",
+            ScreenTitle: "売上明細入力",
             noViewModel: true,
             viewModel: {
                 BushoCd: null,
@@ -631,6 +631,12 @@ export default {
             var vue = this;
 
             if (!!vue.params.IsBunpai) {
+                comp.selectValue = vue.viewModel.CourseCd = vue.params.CourseCd;
+                comp.selectName = vue.viewModel.CourseNm = vue.params.CourseNm;
+            } else if (!!vue.params.IsSeikyu) {
+                comp.selectValue = vue.viewModel.CourseCd = vue.params.CourseCd;
+                comp.selectName = vue.viewModel.CourseNm = vue.params.CourseNm;
+            } else if (!!vue.params.IsSeikyuOutput) {
                 comp.selectValue = vue.viewModel.CourseCd = vue.params.CourseCd;
                 comp.selectName = vue.viewModel.CourseNm = vue.params.CourseNm;
             } else {

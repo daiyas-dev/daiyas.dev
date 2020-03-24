@@ -1835,6 +1835,36 @@ ORDER BY
     }
 
     /**
+     * GetSimeDateList
+     */
+    public function GetSimeDateList() {
+        $sql = "
+            SELECT DISTINCT
+                締日１ AS 締日
+            FROM
+                得意先マスタ
+            UNION
+            SELECT DISTINCT
+                締日２ AS 締日
+            FROM
+                得意先マスタ
+        ";
+
+        $Result = collect(DB::select($sql))
+            ->map(function ($val) {
+                $obj = (object)[];
+
+                $obj->Cd = $val->締日;
+                $obj->CdNm = $val->締日 == 99 ? '末日' : ($val->締日.'日締');
+
+                return $obj;
+            })
+            ->values();
+
+        return response()->json($Result);
+    }
+
+    /**
      * Push
      */
     public function Push($request)
