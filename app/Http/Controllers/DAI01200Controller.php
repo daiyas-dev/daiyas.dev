@@ -13,6 +13,32 @@ use Illuminate\Support\Facades\DB as IlluminateDB;
 class DAI01200Controller extends Controller
 {
     /**
+     *  getSyouhinKubunData
+     */
+    public function getSyouhinKubunData($vm)
+    {
+        $BushoCd = $vm->BushoCd;
+        $sql = "
+            SELECT
+                行NO AS 商品区分,
+                各種名称
+            FROM 各種テーブル
+            WHERE 各種CD=
+                (
+                    SELECT
+                        IIF(サブ各種CD2=2, 27, 14)
+                    FROM 各種テーブル
+                    WHERE 各種CD=26
+                    AND サブ各種CD1=$BushoCd
+                )
+                AND 行NO<=7
+            ORDER BY 各種CD,行NO
+        ";
+        $data = DB::select($sql);
+        return $data;
+    }
+
+    /**
      * GetCourseMeisaiData
      */
     public function GetCourseMeisaiData($request){
@@ -35,7 +61,8 @@ class DAI01200Controller extends Controller
                 FROM
                     コース別明細データ
                     LEFT JOIN コースマスタ
-                        ON コースマスタ.部署ＣＤ=コース別明細データ.部署CD
+                         ON コースマスタ.部署ＣＤ=コース別明細データ.部署CD
+                        AND コースマスタ.コースＣＤ=コース別明細データ.コースＣＤ
                     AND コースマスタ.担当者ＣＤ=コース別明細データ.配送担当者ＣＤ
                     INNER JOIN [担当者マスタ]
                     ON 担当者マスタ.担当者ＣＤ=コースマスタ.担当者ＣＤ
@@ -131,16 +158,14 @@ class DAI01200Controller extends Controller
                     , SUM(入金データ.値引) AS 値引
                 FROM
                     入金データ
-                    INNER JOIN 得意先マスタ ON 得意先マスタ.受注得意先ＣＤ = 1
                     INNER JOIN コーステーブル ON コーステーブル.得意先ＣＤ = 入金データ.得意先ＣＤ
                 WHERE
-                    入金データ.得意先ＣＤ = 得意先マスタ.得意先ＣＤ
-                    AND 入金データ.入金日付 >= '$DateStart'
+                    入金データ.入金日付 >= '$DateStart'
                     AND 入金データ.入金日付 <= '$DateEnd'
                     AND コーステーブル.部署ＣＤ = $BushoCd
                     AND コーステーブル.コースＣＤ = $CourseCd
                 GROUP BY
-                      コーステーブル.部署ＣＤ
+                    コーステーブル.部署ＣＤ
                     , コーステーブル.コースＣＤ
                     , 入金データ.入金日付
                     , 入金データ.入金区分
@@ -154,14 +179,16 @@ class DAI01200Controller extends Controller
      * Search
      */
     public function Search($request) {
-        $jsn= response()->json(
+        return response()->json(
             [
-                "UriageMeisaiData" => $this->GetUriageMeisaiData($request),
-                "NyukinData" => $this->GetNyukinData($request),
-                "CourseMeisaiData" => $this->GetCourseMeisaiData($request),
+                [
+                    "UriageMeisaiData" => $this->GetUriageMeisaiData($request),
+                    "NyukinData" => $this->GetNyukinData($request),
+                    "CourseMeisaiData" => $this->GetCourseMeisaiData($request),
+                    "SyouhinKubunData"=> $this->getSyouhinKubunData($request),
+                ]
             ]
         );
-        return $jsn;
     }
 
 //TODO:これより下はコピー元のコードのため、不要
