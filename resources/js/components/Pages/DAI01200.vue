@@ -239,6 +239,8 @@ export default {
                         dataType: "integer",
                         format: "#,###",
                         width: 70, maxWidth: 70, minWidth: 70,
+                        render: ui => {
+                        },
                     },
                     {
                         title: "売上額",
@@ -255,9 +257,8 @@ export default {
                         width: 60, maxWidth: 60, minWidth: 60,
                         hidden: false,
                         render: ui => {
-                            if(ui.rowData.行番号=="7"){
-                                //TODO:その他の計算処理を記述
-                                return { text: "0" };
+                            if(ui.rowData.行番号!="7"){
+                                return { text: "" };
                             }
                         },
                     },
@@ -269,20 +270,8 @@ export default {
                         width: 60, maxWidth: 60, minWidth: 60,
                         hidden: false,
                         render: ui => {
-                            if(ui.rowData.行番号=="7"){
-                                if (ui.rowData.summaryRow) {
-                                    return ui;
-                                }
-                                else{
-                                    var UriageMeisaiData  = vue.UriageMeisaiData.filter(v=>(v.日付==ui.rowData.日付) && (v.コースＣＤ==ui.rowData.コースＣＤ))
-                                    var NebikiKingaku=0;
-                                    _.forEach(UriageMeisaiData,r=>{
-                                        if(r["値引金額"] !== undefined){
-                                            NebikiKingaku+=r["値引金額"] * 1;
-                                        }
-                                    });
-                                    return { text: NebikiKingaku.toString() };
-                                }
+                            if(ui.rowData.行番号!="7"){
+                                return { text: "" };
                             }
                         },
                     },
@@ -294,15 +283,8 @@ export default {
                         width: 60, maxWidth: 60, minWidth: 60,
                         hidden: false,
                         render: ui => {
-                            if(ui.rowData.行番号=="7"){
-                                var UriageMeisaiData  = vue.UriageMeisaiData.filter(v=>(v.日付==ui.rowData.日付) && (v.コースＣＤ==ui.rowData.コースＣＤ))
-                                var NebikiKingaku=0;
-                                _.forEach(UriageMeisaiData,r=>{
-                                    if(r["個数"] !== undefined){
-                                        NebikiKingaku+=r["個数"] * 1;
-                                    }
-                                });
-                                return { text: NebikiKingaku.toString() };
+                            if(ui.rowData.行番号!="7"){
+                                return { text: "" };
                             }
                         },
                     },
@@ -315,154 +297,29 @@ export default {
                             var spanLeft="<span style=\"width:75px;text-align:left;\">";
                             var spanRight="<span style=\"width:75px;text-align:right;\">";
                             var spanClose="</span>";
-                            var UriageMeisaiData  = vue.UriageMeisaiData.filter(v=>(v.日付==ui.rowData.日付) && (v.コースＣＤ==ui.rowData.コースＣＤ))
-
-                            //値引金額の取得
-                            /*
-                            if(ui.rowData.行番号=="6"){
-                                //束売の場合は商品区分9の値引きを求める。
-                                _.forEach(UriageMeisaiData.filter(v=>(v.商品区分==9)),r=>{
-                                    if(r["値引金額"] !== undefined){
-                                        NebikiKingaku+=r["値引金額"] * 1;
-                                    }
-                                });
-                            }
-                            */
-
                             if(ui.rowData.行番号=="1"){
-                                //現金
-                                var sum=0;
-                                var nebiki=0;
-                                _.forEach(UriageMeisaiData,r=>{
-                                    if(1<=r["商品区分"] && r["商品区分"]<=7){
-                                        nebiki =r["現金値引"] * 1;
-                                        nebiki+=r["掛売値引"] * 1;
-                                    }
-                                    if(1<=r["商品区分"] && r["商品区分"]<=8){
-                                        if(r.売掛現金区分==="0"){
-                                            sum+=r["現金金額"] * 1;
-                                            sum-=nebiki;
-                                        }
-                                    }
-                                });
-                                return {text:spanLeft + "現金" + spanClose  + spanRight + sum.toString() + spanClose};
+                                return {text:spanLeft + "現金" + spanClose  + spanRight + pq.formatNumber(ui.rowData.総売上金額,"#,###") + spanClose};
                             }
                             else if(ui.rowData.行番号=="2"){
-                                //チケット
-                                var sum=0;
-                                var nebiki=0;
-                                _.forEach(UriageMeisaiData,r=>{
-                                    if(1<=r["商品区分"] && r["商品区分"]<=7)
-                                    {
-                                        nebiki =r["現金値引"] * 1;
-                                        nebiki+=r["掛売値引"] * 1;
-                                        if(r.売掛現金区分==="2"){
-                                            sum+=r["掛売金額"] * 1;
-                                            sum-=nebiki;
-                                        }
-                                    }
-                                });
-                                return {text:spanLeft + "チケット" + spanClose  + spanRight + sum.toString() + spanClose};
+                                return {text:spanLeft + "チケット" + spanClose  + spanRight + pq.formatNumber(ui.rowData.総売上金額,"#,###") + spanClose};
                             }
                             else if(ui.rowData.行番号=="3"){
-                                //ＢＶ
-                                var sum=0;
-                                var nebiki=0;
-                                _.forEach(UriageMeisaiData,r=>{
-                                    if(1<=r["商品区分"] && r["商品区分"]<=7)
-                                    {
-                                        nebiki =r["現金値引"] * 1;
-                                        nebiki+=r["掛売値引"] * 1;
-                                        if(r.売掛現金区分==="3"){
-                                            sum+=r["掛売金額"] * 1;
-                                            sum-=nebiki;
-                                        }
-                                    }
-                                });
-                                return {text:spanLeft + "ＢＶ" + spanClose  + spanRight + sum.toString() + spanClose};
+                                return {text:spanLeft + "ＢＶ" + spanClose  + spanRight + pq.formatNumber(ui.rowData.総売上金額,"#,###") + spanClose};
                             }
-
                             else if(ui.rowData.行番号=="4"){
-                                //掛売
-                                var sum=0;
-                                var nebiki=0;
-                                _.forEach(UriageMeisaiData,r=>{
-                                    if(1<=r["商品区分"] && r["商品区分"]<=7){
-                                        nebiki =r["現金値引"] * 1;
-                                        nebiki+=r["掛売値引"] * 1;
-                                    }
-                                    if(1<=r["商品区分"] && r["商品区分"]<=8){
-                                        if(r.売掛現金区分==="1"){
-                                            sum+=r["掛売金額"] * 1;
-                                            sum-=nebiki;
-                                        }
-                                    }
-                                });
-                                return {text:spanLeft + "掛売" + spanClose  + spanRight + sum.toString() + spanClose};
+                                return {text:spanLeft + "掛売" + spanClose  + spanRight + pq.formatNumber(ui.rowData.総売上金額,"#,###") + spanClose};
                             }
                             else if(ui.rowData.行番号=="5"){
-                                //総売
-                                var sum=0;
-                                var nebiki=0;
-                                var bonus=0;
-                                //ボーナス額の計算(行番号8と同等の処理)
-                                _.forEach(UriageMeisaiData,r=>{
-                                    if(1<=r["商品区分"] && r["商品区分"]<=7)
-                                    {
-                                        nebiki =r["現金値引"] * 1;
-                                        nebiki+=r["掛売値引"] * 1;
-                                        if(r.売掛現金区分==="4"){
-                                            bonus+=r["掛売金額"] * 1;
-                                            bonus-=nebiki;
-                                        }
-                                    }
-                                });
-                                //値引金額の取得
-                                _.forEach(UriageMeisaiData,r=>{
-                                    if(r["値引金額"]!==undefined){
-                                        nebiki+=r["値引金額"] * 1;
-                                    }
-                                });
-
-                                _.forEach(UriageMeisaiData,r=>{
-                                    if(1<=r["商品区分"] && r["商品区分"]<=8)
-                                    {
-                                        sum+=r["現金金額"] * 1;
-                                        sum+=r["掛売金額"] * 1;
-                                    }
-                                });
-
-                                return {text:spanLeft + "総売" + spanClose  + spanRight + (sum-bonus-nebiki).toString() + spanClose};
+                                return {text:spanLeft + "総売" + spanClose  + spanRight + pq.formatNumber(ui.rowData.総売上金額,"#,###") + spanClose};
                             }
                             else if(ui.rowData.行番号=="6"){
-                                //束売
-                                var sum=0;
-                                var nebiki=0;
-                                _.forEach(UriageMeisaiData,r=>{
-                                    if(r["商品区分"]==="9")
-                                    {
-                                        sum+=(r["現金金額"] * 1) - (r["現金値引"] * 1);
-                                        sum+=(r["掛売金額"] * 1) - (r["掛売値引"] * 1);
-                                    }
-                                });
-                                return {text:spanLeft + "束売り" + spanClose  + spanRight + sum.toString() + spanClose};
+                                return {text:spanLeft + "束売り" + spanClose  + spanRight + pq.formatNumber(ui.rowData.総売上金額,"#,###") + spanClose};
+                            }
+                            else if(ui.rowData.行番号=="7"){
+                                return "";
                             }
                             else if(ui.rowData.行番号=="8"){
-                                //ボーナス
-                                var sum=0;
-                                var nebiki=0;
-                                _.forEach(UriageMeisaiData,r=>{
-                                    if(1<=r["商品区分"] && r["商品区分"]<=7)
-                                    {
-                                        nebiki =r["現金値引"] * 1;
-                                        nebiki+=r["掛売値引"] * 1;
-                                        if(r.売掛現金区分==="4"){
-                                            sum+=r["掛売金額"] * 1;
-                                            sum-=nebiki;
-                                        }
-                                    }
-                                });
-                                return {text:spanLeft + "ボーナス" + spanClose  + spanRight + sum.toString() + spanClose};
+                                return {text:spanLeft + "ボーナス" + spanClose  + spanRight + pq.formatNumber(ui.rowData.総売上金額,"#,###") + spanClose};
                             }
                            else{
                                return ui;
@@ -505,27 +362,17 @@ export default {
                             if(ui.rowData.行番号=="1"){
                                 return {text:"配送員入金　"};
                             }
-                            else if(ui.rowData.行番号=="2"){
-                                return {text:HaisouinNyukin.toString()};
-                            }
                             else if(ui.rowData.行番号=="3"){
                                 return {text:"事務現金入金　"};
-                            }
-                            else if(ui.rowData.行番号=="4"){
-                                return {text:JimGenkinNyukin.toString()};
                             }
                             else if(ui.rowData.行番号=="5"){
                                 return {text:"振込入金　"};
                             }
-                            else if(ui.rowData.行番号=="6"){
-                                return {text:FurikomiNyukin.toString()};
-                            }
                             else if(ui.rowData.行番号=="7"){
                                 return {text:"入金合計　"};
                             }
-                            else if(ui.rowData.行番号=="8"){
-                                //TODO:集計を見直す。現金+VB+束売り+配送員入金+事務現金入金+振込入金
-                                return {text:(HaisouinNyukin+JimGenkinNyukin+FurikomiNyukin).toString()};
+                            else{
+                                return ui;
                             }
                         },
                     },
@@ -609,23 +456,6 @@ export default {
             params.TargetDate = params.TargetDate ? moment(params.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
             //キャッシュ無効
             params.noCache = true;
-/*
-            axios.post("/DAI01200/Search", params)
-                .then(res => {
-                    grid.hideLoading();
-                    //移動データ
-                    vue.DAI01200Grid1.options.dataModel.data = res.data.CourseMeisaiData;
-                    vue.DAI01200Grid1.refreshDataAndView();
-                })
-                .catch(err => {
-                    console.log(err);
-                    grid.hideLoading();
-                    $.dialogErr({
-                        title: "異常終了",
-                        contents: "データの検索に失敗しました<br/>",
-                    });
-                });
-                */
             grid.searchData(params, false, null, callback);
             grid.hideLoading();
         },
@@ -662,9 +492,44 @@ export default {
             window.resc=_.cloneDeep(UriageSumData);//TODO
             window.resd=_.cloneDeep(vue.NyukinData);//TODO
 
-            //明細行をコピーして、商品区分ごとにデータをセットする
             var CourseMeisaiData=[];
             res[0].CourseMeisaiData.map((v, i) => {
+                //日付・コース単位の売上明細データを取得
+                var UriageMeisaiData  = vue.UriageMeisaiData.filter(fv=>(fv.日付==v.日付) && (fv.コースＣＤ==v.コースＣＤ));
+
+                //集計用変数
+                var bonus=0;
+                var genkin=0;
+                var bv=0;
+                var tabauri=0;
+
+                //入金データの集計
+                var HaisouinNyukin=0;
+                var JimGenkinNyukin=0;
+                var FurikomiNyukin=0;
+                _.forEach(vue.NyukinData.filter(fv=>(fv.入金日付==v.日付) && (fv.コースＣＤ==v.コースＣＤ)),r=>{
+                    if(r["入金区分"]==0){
+                        JimGenkinNyukin += r["現金"]!==undefined ? r["現金"]*1 : 0;
+                        JimGenkinNyukin += r["小切手"]!==undefined ? r["小切手"]*1 : 0;
+                        JimGenkinNyukin += r["バークレー"]!==undefined ? r["バークレー"]*1 : 0;
+                        JimGenkinNyukin += r["その他"]!==undefined ? r["その他"]*1 : 0;
+                        JimGenkinNyukin += r["値引"]!==undefined ? r["値引"]*1 : 0;;
+
+                        FurikomiNyukin += r["振込"]!==undefined ? r["振込"]*1 : 0;
+                        FurikomiNyukin += r["相殺"]!==undefined ? r["相殺"]*1 : 0;;
+                    }
+                    else{
+                        HaisouinNyukin += r["現金"]!==undefined ? r["現金"]*1 : 0;
+                        HaisouinNyukin += r["小切手"]!==undefined ? r["小切手"]*1 : 0;
+                        HaisouinNyukin += r["振込"]!==undefined ? r["振込"]*1 : 0;
+                        HaisouinNyukin += r["バークレー"]!==undefined ? r["バークレー"]*1 : 0;
+                        HaisouinNyukin += r["その他"]!==undefined ? r["その他"]*1 : 0;
+                        HaisouinNyukin += r["相殺"]!==undefined ? r["相殺"]*1 : 0;
+                        HaisouinNyukin += r["値引"]!==undefined ? r["値引"]*1 : 0;
+                    }
+                });
+
+                //明細行をコピーして、商品区分ごとにデータをセットする
                 SyouhinKubunData.map((pv,pi) => {
                     var StrIndex = pv.商品区分 =="1" ? "１"
                                  : pv.商品区分 =="2" ? "２"
@@ -685,17 +550,186 @@ export default {
                     RowData.ボーナス=RowData["見本" + StrIndex];
                     RowData.残数=RowData["残数" + StrIndex];
 
+                    //売上数、売上額の追加
                     var UriageSumItem = UriageSumData.find(k => (k.日付==v.日付) && (k.コースＣＤ==v.コースＣＤ) && (k.商品区分 == pv.商品区分));
                     if(!_.isEmpty(UriageSumItem))
                     {
                         RowData.売上数=UriageSumItem.個数;
                         RowData.売上額=UriageSumItem.金額;
                     }
+                    else
+                    {
+                        RowData.売上数=0;
+                        RowData.売上額=0;
+                    }
+
+                    if(RowData.行番号==7)
+                    {
+                        //その他の計算
+                        RowData.その他=0;//TODO:その他の計算処理を記述
+
+                        //値引金額の計算
+                        var NebikiKingaku=0;
+                        _.forEach(UriageMeisaiData,r=>{
+                            if(r["値引金額"] !== undefined){
+                                NebikiKingaku+=r["値引金額"] * 1;
+                            }
+                        });
+                        RowData.値引金額=NebikiKingaku;
+
+                        //総売数の計算
+                        var UriageKosu=0;
+                        _.forEach(UriageMeisaiData,r=>{
+                            if(r["個数"] !== undefined){
+                                UriageKosu+=r["個数"] * 1;
+                            }
+                        });
+                        RowData.総売数=UriageKosu;
+                    }
+
+                    //総売上金額の作成
+                    if(RowData.行番号==1){
+                        //現金
+                        var sum=0;
+                        var nebiki=0;
+                        _.forEach(UriageMeisaiData,r=>{
+                            if(1<=r["商品区分"] && r["商品区分"]<=7){
+                                nebiki =r["現金値引"] * 1;
+                                nebiki+=r["掛売値引"] * 1;
+                            }
+                            if(1<=r["商品区分"] && r["商品区分"]<=8){
+                                if(r.売掛現金区分==="0"){
+                                    sum+=r["現金金額"] * 1;
+                                    sum-=nebiki;
+                                }
+                            }
+                        });
+                        RowData.総売上金額=sum;
+                        genkin=sum;
+                    }
+                    if(RowData.行番号==2){
+                        //チケット
+                        var sum=0;
+                        var nebiki=0;
+                        _.forEach(UriageMeisaiData,r=>{
+                            if(1<=r["商品区分"] && r["商品区分"]<=7){
+                                nebiki =r["現金値引"] * 1;
+                                nebiki+=r["掛売値引"] * 1;
+                                if(r.売掛現金区分==="2"){
+                                    sum+=r["掛売金額"] * 1;
+                                    sum-=nebiki;
+                                }
+                            }
+                        });
+                        RowData.総売上金額=sum;
+                    }
+                    if(RowData.行番号==3){
+                        //ＢＶ
+                        var sum=0;
+                        var nebiki=0;
+                        _.forEach(UriageMeisaiData,r=>{
+                            if(1<=r["商品区分"] && r["商品区分"]<=7)
+                            {
+                                nebiki =r["現金値引"] * 1;
+                                nebiki+=r["掛売値引"] * 1;
+                                if(r.売掛現金区分==="3"){
+                                    sum+=r["掛売金額"] * 1;
+                                    sum-=nebiki;
+                                }
+                            }
+                        });
+                        RowData.総売上金額=sum;
+                        bv=sum;
+                    }
+                    if(RowData.行番号==4){
+                        //掛売
+                        var sum=0;
+                        var nebiki=0;
+                        _.forEach(UriageMeisaiData,r=>{
+                            if(1<=r["商品区分"] && r["商品区分"]<=7){
+                                nebiki =r["現金値引"] * 1;
+                                nebiki+=r["掛売値引"] * 1;
+                            }
+                            if(1<=r["商品区分"] && r["商品区分"]<=8){
+                                if(r.売掛現金区分==="1"){
+                                    sum+=r["掛売金額"] * 1;
+                                    sum-=nebiki;
+                                }
+                            }
+                        });
+                        RowData.総売上金額=sum;
+                    }
+                    if(RowData.行番号==5){
+                        //ボーナス
+                        var sum=0;
+                        var nebiki=0;
+                        _.forEach(UriageMeisaiData,r=>{
+                            if(1<=r["商品区分"] && r["商品区分"]<=7)
+                            {
+                                nebiki =r["現金値引"] * 1;
+                                nebiki+=r["掛売値引"] * 1;
+                                if(r.売掛現金区分==="4"){
+                                    sum+=r["掛売金額"] * 1;
+                                    sum-=nebiki;
+                                }
+                            }
+                        });
+                        RowData.総売上金額=sum;
+                        bonus=sum;
+                    }
+                    if(RowData.行番号==5){
+                        //総売
+                        var sum=0;
+                        var nebiki=0;
+                        //値引金額の取得
+                        _.forEach(UriageMeisaiData,r=>{
+                            if(r["値引金額"]!==undefined){
+                                nebiki+=r["値引金額"] * 1;
+                            }
+                        });
+
+                        _.forEach(UriageMeisaiData,r=>{
+                            if(1<=r["商品区分"] && r["商品区分"]<=8)
+                            {
+                                sum+=r["現金金額"] * 1;
+                                sum+=r["掛売金額"] * 1;
+                            }
+                        });
+                        RowData.総売上金額=sum;
+                    }
+                    if(RowData.行番号==6){
+                        //束売
+                        var sum=0;
+                        var nebiki=0;
+                        _.forEach(UriageMeisaiData,r=>{
+                            if(r["商品区分"]==="9")
+                            {
+                                sum+=(r["現金金額"] * 1) - (r["現金値引"] * 1);
+                                sum+=(r["掛売金額"] * 1) - (r["掛売値引"] * 1);
+                            }
+                        });
+                        RowData.総売上金額=sum;
+                        tabauri=sum;
+                    }
+
+                    //入金の作成
+                    if(RowData.行番号==2){
+                        RowData.入金=HaisouinNyukin;
+                    }
+                    if(RowData.行番号==4){
+                        RowData.入金=JimGenkinNyukin;
+                    }
+                    if(RowData.行番号==6){
+                        RowData.入金=FurikomiNyukin;
+                    }
                     CourseMeisaiData.push(RowData);
                 });
                 //さらにもう1行追加
                 var RowData = _.cloneDeep(v);
                 RowData.行番号=SyouhinKubunData.length+1;
+                RowData.商品区分ＣＤ=SyouhinKubunData.length+1;
+                RowData.総売上金額=bonus;
+                RowData.入金=genkin + tabauri + HaisouinNyukin + JimGenkinNyukin + FurikomiNyukin + bv;
                 CourseMeisaiData.push(RowData);
             });
 
@@ -703,8 +737,6 @@ export default {
             var row_num=1;
             grid.options.summaryData = [];
              _(SyouhinKubunData).forIn((v, k) => {
-            window.rese=_.cloneDeep(k);//TODO
-
                     var summary = {
                         summaryRow: true,
                         "行番号":row_num++,
@@ -727,14 +759,16 @@ export default {
                             "入金": "SUMIF(G:G, '" + v["商品区分"] + "', U:U)",
                         }
                     };
-
                     grid.options.summaryData.push(summary);
                 });
             //もう1行追加
             var summary = {
                 summaryRow: true,
                 "行番号":row_num,
+                "商品区分ＣＤ": row_num,
                 pq_fn:{
+                    "総売上金額": "SUMIF(G:G, '" + row_num + "', T:T)",
+                    "入金": "SUMIF(G:G, '" + row_num + "', U:U)",
                 }
             };
             grid.options.summaryData.push(summary);
