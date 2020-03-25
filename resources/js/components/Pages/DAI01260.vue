@@ -476,9 +476,10 @@ export default {
             `;
 
             var headerFunc = (header, idx, length) => {
-                var courseKey = (header.pq_level == 0 ? header.コース : header.parentId).split(":");
+                var courseKey = (header.pq_level == 0 ? header.コース : header.parentId).split(/[:_]/);
                 var courseCd = courseKey[0];
                 var courseNm = courseKey[1];
+                console.log("1260 headerFunc", header, courseKey, courseCd, courseNm)
                 return `
                     <div class="title">
                         <h3>* * 得意先分配リスト * *</h3>
@@ -496,7 +497,7 @@ export default {
                     <table class="header-table" style="border-width: 0px">
                         <thead>
                             <tr>
-                                <th style="width: 15%;">${vue.viewModel.BushoCd}:${vue.viewModel.BushoNm}</th>
+                                <th style="width: 15%;">${vue.viewModel.BushoNm}</th>
                                 <th style="width: 5%;">${courseCd}</th>
                                 <th style="width: 15%;">${courseNm}</th>
                                 <th style="width: 26%;"></th>
