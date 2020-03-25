@@ -120,7 +120,7 @@ export default {
             NyukinData: [],
             grid1Options: {
                 selectionModel: { type: "row", mode: "single", row: true },
-                numberCell: { show: false },
+                numberCell: { show: true },
                 showTitle: false,
                 autoRow: false,
                 rowHt: 25,
@@ -137,9 +137,14 @@ export default {
                     hideRows: true,
                 },
                 groupModel: {
-                    on: false,
+                    on: true,
                     header: false,
-                    headerMenu: false,
+                    grandSummary: false,
+                    indent: 10,
+                    dataIndx: ["日付"],
+                    showSummary: [false],
+                    collapsed: [false],
+                    summaryInTitleRow: "expandAll",
                 },
                 summaryData: [],
                 mergeCells: [],
@@ -155,7 +160,7 @@ export default {
                         title: "コースＣＤ",
                         dataIndx: "コースＣＤ",
                         width: 60, maxWidth: 60, minWidth: 60,
-                        hidden: false,
+                        hidden: true,
                     },
                     {
                         title: "コース名",
@@ -487,10 +492,10 @@ export default {
                     return ret;
                 })
 
-            window.resa=_.cloneDeep(res[0].SyouhinKubunData);//TODO
-            window.resb=_.cloneDeep(vue.UriageMeisaiData);//TODO
-            window.resc=_.cloneDeep(UriageSumData);//TODO
-            window.resd=_.cloneDeep(vue.NyukinData);//TODO
+            window.resa=_.cloneDeep(res[0].SyouhinKubunData);//TODO:
+            window.resb=_.cloneDeep(vue.UriageMeisaiData);//TODO:
+            window.resc=_.cloneDeep(UriageSumData);//TODO:
+            window.resd=_.cloneDeep(vue.NyukinData);//TODO:
 
             var CourseMeisaiData=[];
             res[0].CourseMeisaiData.map((v, i) => {
@@ -774,20 +779,58 @@ export default {
             grid.options.summaryData.push(summary);
 
             //mergeCellsの設定
-            var pos = 0;
+/*
+            var pos = 1;
+            var header_rows=0;
+            var vDate="";
+                        window.resg=_.cloneDeep(CourseMeisaiData);//TODO:
+
             _(CourseMeisaiData).groupBy(v => [v.日付,v.コース名])
                 .forIn((v, k) => {
                     var cells = {
-                        r1: pos,
+                        r1: pos+header_rows,
                         c1: 2,
-                        rc: v.length,
+                        rc: 8,
                         cc: 1,
                     };
                     grid.options.mergeCells.push(cells);
-                    pos += v.length;
+                    pos += 8;
                 });
+*/
+            var pos = 1;
+            var idx = 0;
+            var g = _.groupBy(CourseMeisaiData, v => v.日付);
+            //g=_.sort(g,v=>v.日付);
+            window.rese=_.cloneDeep(g);//TODO:
+            _.forEach(g,k=>{
+                window.resk=_.cloneDeep(k);//TODO:
+                _.forEach(k,k2=>{
+                    console.log("r1-r2:" + (pos*1+idx*1) + " / " + (pos*1+idx*1+8));
+                    var cells = {
+                        r1: pos+idx,
+                        c1: 2,
+                        rc: 8,
+                        cc: 1,
+                    };
+                    grid.options.mergeCells.push(cells);
+                    pos += 8;
+                });
+                idx++;
+                console.log("idx:" + idx);
+            });
 
-
+/*
+                .forIn((v, k) => {
+                    var cells = {
+                        r1: pos+header_rows,
+                        c1: 2,
+                        rc: 8,
+                        cc: 1,
+                    };
+                    grid.options.mergeCells.push(cells);
+                    pos += 8;
+                });
+                */
             return CourseMeisaiData;
         },
         setPrintOptions: function(grid) {
