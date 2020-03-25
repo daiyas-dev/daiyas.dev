@@ -607,7 +607,9 @@ export default {
             vue.filterChanged();
 
             //ソート変更
-            grid.sort( { sorter: sorter });
+            if (!!grid) {
+                grid.sort( { sorter: sorter });
+            }
         },
         onSearchOptionsChanged: function(code, entities) {
             var vue = this;
