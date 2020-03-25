@@ -307,8 +307,8 @@ export default {
                     number: false,
                     type: "local",
                     sorter: [
-                        { dataIndx: "請求先ＣＤ", dir: "up" },
                         { dataIndx: "請求日付", dir: "up" },
+                        { dataIndx: "請求先ＣＤ", dir: "up" },
                     ],
                 },
                 groupModel: {
@@ -645,7 +645,9 @@ export default {
             vue.filterChanged();
 
             //ソート変更
-            grid.sort( { sorter: sorter });
+            if (!!grid) {
+                grid.sort( { sorter: sorter });
+            }
         },
         onSearchOptionsChanged: function(code, entities) {
             var vue = this;
@@ -1091,9 +1093,15 @@ export default {
                 `;
             };
 
-            //コース順の場合、一時的にGroupingを行う
+            var keys = [];
+            if (vue.viewModel.SimeKbn == "2") {
+                keys.push("請求日付");
+            }
             if (vue.viewModel.PrintOrder == "1") {
-                grid.Group().option({ "dataIndx": ["請求日付", "コース"] });
+                keys.push("コース");
+            }
+            if (!!keys.length) {
+                grid.Group().option({ "dataIndx": keys});
             }
 
             var printable = $("<html>")

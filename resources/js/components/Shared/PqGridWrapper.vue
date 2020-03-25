@@ -2479,7 +2479,10 @@ export default {
                                     if (!!maxRowsPerPage) {
                                         c = _.chunk(_.cloneDeep(a), maxRowsPerPage);
                                         if (c.length > 1) {
+                                            console.log("reins headers")
+                                            headers = _.dropRight(headers);
                                             headers.push(..._.range(c.length - 1).map(v => _.last(headers)));
+                                            headers.push(p);
                                         }
                                     } else {
                                         c = [_.cloneDeep(a)];
