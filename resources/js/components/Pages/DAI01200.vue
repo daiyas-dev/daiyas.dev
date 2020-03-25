@@ -532,6 +532,7 @@ export default {
             res[0].CourseMeisaiData.map((v, i) => {
                 //日付・コース単位の売上明細データを取得
                 var UriageMeisaiData  = vue.UriageMeisaiData.filter(fv=>(fv.日付==v.日付) && (fv.コースＣＤ==v.コースＣＤ));
+                window.rese=_.cloneDeep(UriageMeisaiData);//TODO:
 
                 //集計用変数
                 var bonus=0;
@@ -623,14 +624,15 @@ export default {
                         //総売数の計算
                         var UriageKosu=0;
                         _.forEach(UriageMeisaiData,r=>{
-                            if(r["個数"] !== undefined){
-                                UriageKosu+=r["個数"] * 1;
+                            if(1<=r["商品区分"] && r["商品区分"]<=7){
+                                UriageKosu+=r["現金個数"] * 1;
+                                UriageKosu+=r["掛売個数"] * 1;
+                                UriageKosu+=r["分配元数量"] * 1;
                             }
                         });
                         RowData.総売数=UriageKosu;
                     }
 
-                    //総売上金額の作成
                     if(RowData.行番号==1){
                         //現金
                         var sum=0;
@@ -738,7 +740,7 @@ export default {
                                 sum+=r["掛売金額"] * 1;
                             }
                         });
-                        RowData.総売上金額=sum;
+                        RowData.総売上金額=sum-bonus;
                     }
                     if(RowData.行番号==6){
                         //束売
