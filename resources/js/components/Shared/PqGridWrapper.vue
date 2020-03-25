@@ -2539,6 +2539,17 @@ export default {
                     return ret;
                 };
 
+                this.grid.getExcelColumnName = function(val, format) {
+                    var grid = this;
+                    var num = _.isInteger(val) ? val : grid.options.colModel.find(v => v.dataIndx == val).leftPos + 1;
+
+                    for (var nm = "", a = 1, b = 26; (num -= a) >= 0; a = b, b *= 26) {
+                        nm = String.fromCharCode(parseInt((num % b) / a) + 65) + nm;
+                    }
+
+                    return !!format ? (x => eval("`" + format + "`")).apply(nm) : nm;
+                };
+
                 //blink
                 this.grid.blinkCell = function(rowIndx, dataIndx) {
                     var grid = this;
