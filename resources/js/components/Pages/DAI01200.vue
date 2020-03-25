@@ -199,7 +199,7 @@ export default {
                     },
                     {
                         title: "担当者ＣＤ",
-                        dataIndx: "配送担当者ＣＤ",
+                        dataIndx: "担当者ＣＤ",
                         hidden: true,
                     },
                     {
@@ -209,7 +209,7 @@ export default {
                         hidden: false,
                         render: ui => {
                             if (!ui.rowData.pq_gtitle && ui.rowData.pq_level!=0 && !ui.rowData.summaryRow) {
-                                return ui.rowData.配送担当者ＣＤ +"<br/>"+ ui.rowData.担当者名;
+                                return ui.rowData.担当者ＣＤ +"<br/>"+ ui.rowData.担当者名;
                             }
                         },
                     },
@@ -457,24 +457,8 @@ export default {
         },
         onCourseCdChanged: function(code, entity) {
             var vue = this;
-
-            //フィルタ変更ハンドラ
-            vue.filterChanged();
-        },
-        filterChanged: function() {
-            var vue = this;
-            var grid = vue.DAI01200Grid1;
-            if (!grid) return;
-
-            var rules = [];
-            var crules = [];
-            if (vue.viewModel.CourseCd != undefined && vue.viewModel.CourseCd != "") {
-                crules.push({ condition: "equal", value: vue.viewModel.CourseCd});
-            }
-            if (crules.length) {
-                rules.push({ dataIndx: "コースＣＤ", mode: "AND", crules: crules });
-            }
-            grid.filter({ oper: "replace", mode: "AND", rules: rules });
+            //条件変更ハンドラ
+            vue.conditionChanged();
         },
         conditionChanged: function(callback, force) {
             var vue = this;

@@ -53,6 +53,7 @@ class DAI01200Controller extends Controller
      */
     public function GetCourseMeisaiData($request){
         $BushoCd = $request->BushoCd;
+        $CourseCd=$request->CourseCd;
         $DateStart = $request->DateStart;
         $DateEnd = $request->DateEnd;
 
@@ -61,13 +62,13 @@ class DAI01200Controller extends Controller
                 SELECT
                     コース別明細データ.*
                     ,コースマスタ.コース名
+                    ,コースマスタ.担当者ＣＤ
                     ,担当者マスタ.担当者名
                 FROM
                     コース別明細データ
                     LEFT JOIN コースマスタ
                          ON コースマスタ.部署ＣＤ=コース別明細データ.部署CD
                         AND コースマスタ.コースＣＤ=コース別明細データ.コースＣＤ
-                    AND コースマスタ.担当者ＣＤ=コース別明細データ.配送担当者ＣＤ
                     LEFT JOIN [担当者マスタ]
                     ON 担当者マスタ.担当者ＣＤ=コースマスタ.担当者ＣＤ
                 WHERE
@@ -75,6 +76,10 @@ class DAI01200Controller extends Controller
                     AND コース別明細データ.日付 >= '$DateStart'
                     AND コース別明細データ.日付 <= '$DateEnd'
                 ";
+        if($CourseCd!=null)
+        {
+            $sql.=" AND コース別明細データ.コースＣＤ = '$CourseCd'";
+        }
 
         //$data = DB::select($sql);
         //return $data;
