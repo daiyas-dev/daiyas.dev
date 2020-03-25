@@ -431,7 +431,7 @@ export default {
                 {visible: "false"},
                 { visible: "true", value: "印刷", id: "DAI01200Grid1_Printout", disabled: false, shortcut: "F6",
                     onClick: function () {
-                        vue.DAI01200Grid1.print(vue.setPrintOptions);
+                        vue.print();
                     }
                 }
             );
@@ -441,8 +441,8 @@ export default {
             //TODO:
             // vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
             // vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
-            vue.viewModel.DateStart = moment("2019/08/05");    //TODO: debug
-            vue.viewModel.DateEnd = moment("2019/08/09");    //TODO: debug
+            vue.viewModel.DateStart = moment("2018/07/06");    //TODO: debug
+            vue.viewModel.DateEnd = moment("2018/07/10");    //TODO: debug
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
@@ -602,7 +602,14 @@ export default {
                     if(RowData.行番号==7)
                     {
                         //その他の計算
-                        RowData.その他=0;//TODO:その他の計算処理を記述
+                        var sum=0;
+                        _.forEach(UriageMeisaiData,r=>{
+                            if(r["商品区分"]==8){
+                                sum+=r["現金金額"] * 1;
+                                sum+=r["掛売金額"] * 1;
+                            }
+                        });
+                        RowData.その他=sum;
 
                         //値引金額の計算
                         var NebikiKingaku=0;
@@ -810,6 +817,7 @@ export default {
             grid.options.summaryData.push(summary);
 
             //mergeCellsの設定
+            grid.options.mergeCells=[];
             var pos = 1;
             var idx = 0;
             var g = _.groupBy(_.filter(CourseMeisaiData,f=>f.行番号==1), v => v.日付);
@@ -823,7 +831,6 @@ export default {
                         cc: 1,
                     };
                     grid.options.mergeCells.push(cellsCourse);
-
                     var cellsTanto = {
                         r1: pos+idx,
                         c1: 4,
@@ -1072,11 +1079,11 @@ export default {
                     padding-right: 3px;
                 }
                 th {
-                    height: 12px;
+                    height: 11px;
                     text-align: center;
                 }
                 td {
-                    height: 12px;
+                    height: 11px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
@@ -1099,53 +1106,21 @@ export default {
                 }
             `;
             var headerFunc = (header, idx, length) => {
-                var courseCd = header.コース.split(" ")[0];
-                var courseNm = header.コース.split(" ")[1];
-                var tantoCd = vue.DAI01200Grid1.pdata.find(v => v.コースＣＤ==courseCd).担当者ＣＤ;
-                var tantoNm = vue.DAI01200Grid1.pdata.find(v => v.コースＣＤ==courseCd).担当者名;
+                console.log(header);//TODO:
                 return `
                     <div class="title">
-                        <h3><div class="report-title-area">得意先別実績表<div></h3>
+                        <h3><div class="report-title-area">日配売上集計表<div></h3>
                     </div>
                     <table class="header-table" style="border-width: 0px">
                         <thead>
                             <tr>
-                                <th style="width:  5%;">部署</th>
-                                <th style="width:  5%; text-align: right;">${vue.viewModel.BushoCd}</th>
-                                <th style="width: 18%;">${vue.viewModel.BushoNm}</th>
-                                <th style="width:  5%;" class="blank-cell"></th>
-                                <th style="width:  5%;" class="blank-cell"></th>
-                                <th style="width: 15%;" class="blank-cell"></th>
-                                <th style="width: 20%;" class="blank-cell"></th>
-                                <th style="width:  5%;" class="blank-cell"></th>
-                                <th style="width: 12%;" class="blank-cell"></th>
-                                <th style="width:  5%;" class="blank-cell"></th>
-                                <th style="width:  5%;" class="blank-cell"></th>
-                            </tr>
-                            <tr>
-                                <th>日付</th>
-                                <th colspan="2">${vue.viewModel.DateStart} ～ ${vue.viewModel.DateEnd}</th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                            </tr>
-                            <tr>
-                                <th>コース</th>
-                                <th style="text-align: right;">${courseCd}</th>
-                                <th>${courseNm}</th>
-                                <th>担当者</th>
-                                <th style="text-align: right;">${tantoCd}</th>
-                                <th>${tantoNm}</th>
-                                <th class="blank-cell"></th>
-                                <th>作成日</th>
-                                <th style="text-align: right;">${moment().format("YYYY年MM月DD日")}</th>
-                                <th>PAGE</th>
-                                <th style="text-align: right;">${idx + 1}</th>
+                                <th style="width:  5%;">日付</th>
+                                <th style="width: 10%; text-align: center;">${moment(header.日付, "YYYY年MM月DD日").format("YYYY年MM月DD日")}</th>
+                                <th style="width: 58%;" class="blank-cell"></th>
+                                <th style="width:  5%;">作成日</th>
+                                <th style="width: 10%; text-align: right;">${moment().format("YYYY年MM月DD日")}</th>
+                                <th style="width:  5%;">PAGE</th>
+                                <th style="width:  5%; text-align: right;">${idx + 1}</th>
                             </tr>
                         </thead>
                     </table>
@@ -1160,62 +1135,6 @@ export default {
                     border-collapse: collapse;
                     border:1px solid black;
                 }
-                table.DAI01200Grid1 tr th:nth-child(1)[rowspan="2"] {
-                    border-right: 0px;
-                    color: white;
-                    width: 5%;
-                }
-                table.DAI01200Grid1 tr th:nth-child(2)[rowspan="2"] {
-                    border-left: 0px;
-                    text-align:left;
-                }
-                table.DAI01200Grid1 tr td:nth-child(1) {
-                    border-right: 0px;
-                }
-                table.DAI01200Grid1 tr td:nth-child(2) {
-                    border-left: 0px;
-                }
-                table.DAI01200Grid1 tr th:nth-child(n+3)[colspan="2"] {
-                    width: 10%;
-                }
-                table.DAI01200Grid1 tr th:last-child {
-                    width: 5%;
-                }
-                table.DAI01200Grid1 tr th:nth-last-child(2) {
-                    width: 5%;
-                }
-            `;
-            var styleBench =`
-                table.DAI01200Grid1 tr.group-summary td {
-                    border: solid 1px black;
-                }
-                table.DAI01200Grid1 tr.grand-summary td:nth-child(2) {
-                    text-align: right;
-
-                table.DAI01200Grid1 tr.grand-summary td:nth-child(3) {
-                    text-align: left;
-                }
-                table.DAI01200Grid1 tr[level="0"].group-summary td {
-                    border-style: dotted;
-                    border-left-width: 0px;
-                    border-top-width: 1px;
-                    border-right-width: 0px;
-                    border-bottom-width: 0px;
-                }
-                table.DAI01200Grid1 tr[level="0"].group-summary td:nth-child(2) {
-                    text-align: right;
-                    padding-right: 30px;
-                }
-                table.DAI01200Grid1 tr.grand-summary td {
-                    border-style: solid;
-                    border-left-width: 0px;
-                    border-top-width: 1px;
-                    border-right-width: 0px;
-                    border-bottom-width: 0px;
-                }
-                table.DAI01200Grid1 tr th:nth-last-child(-n+2):nth-last-child(-n) {
-                    width: 10%;
-                }
             `;
 
             var printable = $("<html>")
@@ -1226,7 +1145,7 @@ export default {
                             vue.DAI01200Grid1.generateHtml(
                                 styleCustomers,
                                 headerFunc,
-                                36,
+                                40,
                                 false,
                                 false,
                                 true,
