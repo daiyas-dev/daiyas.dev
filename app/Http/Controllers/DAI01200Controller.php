@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
 use Illuminate\Support\Facades\DB as IlluminateDB;
+use PDO;
 
 class DAI01200Controller extends Controller
 {
@@ -34,8 +35,17 @@ class DAI01200Controller extends Controller
                 AND 行NO<=7
             ORDER BY 各種CD,行NO
         ";
-        $data = DB::select($sql);
-        return $data;
+        //$data = DB::select($sql);
+        //return $data;
+        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = null;
+        return $DataList;
     }
 
     /**
@@ -71,8 +81,17 @@ class DAI01200Controller extends Controller
                     AND コース別明細データ.日付 <= '$DateEnd'
                 ";
 
-        $data = DB::select($sql);
-        return $data;
+        //$data = DB::select($sql);
+        //return $data;
+        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = null;
+        return $DataList;
     }
 
     /**
@@ -120,8 +139,17 @@ class DAI01200Controller extends Controller
                     , uriage.売掛現金区分
                 ";
 
-        $data = DB::select($sql);
-        return $data;
+        //$data = DB::select($sql);
+        //return $data;
+        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = null;
+        return $DataList;
     }
 
     /**
@@ -164,8 +192,16 @@ class DAI01200Controller extends Controller
                     , 入金データ.入金区分
                 ";
 
-        $data = DB::select($sql);
-        return $data;
+        //$data = DB::select($sql);
+        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = null;
+        return $DataList;
     }
 
     /**
