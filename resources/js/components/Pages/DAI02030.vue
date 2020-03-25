@@ -590,6 +590,7 @@ export default {
         },
         onPrintOrderChanged: function(code, entities) {
             var vue = this;
+            var grid = vue.DAI02030Grid1;
 
             //ソート順変更
             var sorter = [
@@ -647,7 +648,6 @@ export default {
         conditionChanged: function(callback) {
             var vue = this;
             var grid = vue.DAI02030Grid1;
-            console.log("2030 conditionChanged")
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.TargetDate || !vue.viewModel.TargetDateMax) return;

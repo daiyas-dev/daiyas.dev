@@ -628,6 +628,7 @@ export default {
         },
         onPrintOrderChanged: function(code, entities) {
             var vue = this;
+            var grid = vue.DAI02030Grid1;
 
             //ソート順変更
             var sorter = [
