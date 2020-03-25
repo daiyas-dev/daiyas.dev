@@ -10,33 +10,60 @@
                 />
             </div>
             <div class="col-md-1">
-                <label>日付</label>
+                <label>配送日付</label>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-4">
                 <DatePickerWrapper
-                    id="TargetDate"
+                    id="DateStart"
                     ref="DatePicker_Date"
                     format="YYYY年MM月DD日"
                     dayViewHeaderFormat="YYYY年MM月"
                     :vmodel=viewModel
-                    bind="TargetDate"
+                    bind="DateStart"
                     :editable=true
-                    :onChangedFunc=onTargetDateChanged
+                    :onChangedFunc=onDateChanged
+                />
+                <label>～</label>
+                <DatePickerWrapper
+                    id="DateEnd"
+                    ref="DatePicker_Date"
+                    format="YYYY年MM月DD日"
+                    dayViewHeaderFormat="YYYY年MM月"
+                    :vmodel=viewModel
+                    bind="DateEnd"
+                    :editable=true
+                    :onChangedFunc=onDateChanged
                 />
             </div>
+        </div>
+        <div class="row">
             <div class="col-md-1">
-                <label>コース区分</label>
+                <label>コース</label>
             </div>
-            <div class="col-md-1">
-                <VueSelect
-                    id="CourseKbn"
+            <div class="col-md-5">
+                <PopupSelect
+                    id="CourseCd"
+                    ref="PopupSelect_CourseCd"
                     :vmodel=viewModel
-                    bind="CourseKbn"
-                    uri="/Utilities/GetCodeList"
-                    :params="{ cd: 19 }"
-                    :withCode=true
-                    :hasNull=false
-                    :onChangedFunc=onCourseKbnChanged
+                    bind="CourseCd"
+                    dataUrl="/Utilities/GetCourseList"
+                    :params='{ bushoCd: viewModel.BushoCd, courseKbn: viewModel.CourseKbn }'
+                    :dataListReset=true
+                    title="コース一覧"
+                    labelCd="コースCD"
+                    labelCdNm="コース名"
+                    :isShowName=true
+                    :isModal=true
+                    :editable=true
+                    :reuse=true
+                    :existsCheck=true
+                    :exceptCheck="[{ Cd: 0 }]"
+                    :inputWidth=100
+                    :nameWidth=300
+                    :onAfterChangedFunc=onCourseCdChanged
+                    :isShowAutoComplete=true
+                    :AutoCompleteFunc=CourseAutoCompleteFunc
+                    :isPreload=true
                 />
             </div>
         </div>
@@ -91,9 +118,9 @@ export default {
         searchParams: function() {
             return {
                 BushoCd: this.viewModel.BushoCd,
-                TargetDate: moment(this.viewModel.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD"),
+                DateStart: moment(this.viewModel.DateStart, "YYYY年MM月DD日").format("YYYYMMDD"),
+                DateEnd: moment(this.viewModel.DateEnd, "YYYY年MM月DD日").format("YYYYMMDD"),
                 CourseCd: this.viewModel.CourseCd,
-                TantoCd: this.viewModel.TantoCd,
             };
         }
     },
@@ -108,11 +135,9 @@ export default {
             viewModel: {
                 BushoCd: null,
                 BushoNm: null,
-                TargetDate: null,
-                CourseKbn: null,
-                UpdateDate: null,
-                test: null,
-                testKn: null,
+                DateStart: null,
+                DateEnd: null,
+                CourseCd: null,
             },
             CheckInterVal: null,
             DAI01200Grid1: null,
@@ -120,31 +145,34 @@ export default {
             NyukinData: [],
             grid1Options: {
                 selectionModel: { type: "row", mode: "single", row: true },
-                numberCell: { show: true },
+                showHeader: true,
                 showTitle: false,
+                numberCell: { show: false },
                 autoRow: false,
                 rowHt: 25,
                 rowHtSum: 25,
+                freezeCols: 8,
                 editable: false,
                 columnTemplate: {
                     editable: false,
                     sortable: false,
                 },
                 filterModel: {
-                    on: false,
+                    on: true,
+                    mode: "AND",
                     header: false,
                     menuIcon: false,
-                    hideRows: true,
+                    hideRows: false,
                 },
                 groupModel: {
                     on: true,
                     header: false,
                     grandSummary: false,
-                    indent: 10,
+                    indent: 20,
                     dataIndx: ["日付"],
-                    showSummary: [false],
+                    showSummary: [true],
                     collapsed: [false],
-                    summaryInTitleRow: "expandAll",
+                    summaryInTitleRow: "ExpandAll",
                 },
                 summaryData: [],
                 mergeCells: [],
@@ -153,48 +181,60 @@ export default {
                     {
                         title: "日付",
                         dataIndx: "日付",
-                        width: 100, maxWidth: 100, minWidth: 100,
-                        hidden: false,
+                        hidden: true,
+                        // render: ui => {
+                        //     return ui.rowData.日付 ? moment(ui.rowData.日付, "YYYY年MM月DD日").format("YYYY年MM月DD日") : null;
+                        // },
                     },
                     {
                         title: "コースＣＤ",
                         dataIndx: "コースＣＤ",
-                        width: 60, maxWidth: 60, minWidth: 60,
                         hidden: true,
                     },
                     {
                         title: "コース名",
                         dataIndx: "コース名",
                         dataType: "string",
-                        width: 200, maxWidth: 200, minWidth: 200,
+                        width: 200, minWidth: 200,
+                            /*
+                        render: ui => {
+                            if (!ui.rowData.summaryRow) {
+                                return ui.rowData.コースＣＤ +" "+ ui.rowData.コース名;
+                            }
+                        },
+                            */
                     },
                     {
                         title: "担当者ＣＤ",
                         dataIndx: "配送担当者ＣＤ",
-                        width: 60, maxWidth: 60, minWidth: 60,
-                        hidden: false,
+                        hidden: true,
                     },
                     {
                         title: "担当者名",
                         dataIndx: "担当者名",
-                        width: 60, maxWidth: 60, minWidth: 60,
+                        width: 120, maxWidth: 120, minWidth: 120,
                         hidden: false,
+                        render: ui => {
+                            if (!ui.rowData.summaryRow) {
+                                return ui.rowData.配送担当者ＣＤ +" "+ ui.rowData.担当者名;
+                            }
+                        },
                     },
                     {
                         title: "行番号",
                         dataIndx: "行番号",
-                        width: 60, maxWidth: 60, minWidth: 60,
+                        hidden: true,
                     },
                     {
                         title: "商品区分ＣＤ",
                         dataIndx: "商品区分ＣＤ",
-                        width: 60, maxWidth: 60, minWidth: 60,
+                        hidden: true,
                     },
                     {
                         title: "商品区分",
                         dataIndx: "商品区分名",
                         dataType: "string",
-                        width: 100, maxWidth: 100, minWidth: 100,
+                        width: 70, maxWidth: 70, minWidth: 70,
                     },
                     {
                         title: "持出数",
@@ -252,14 +292,14 @@ export default {
                         dataIndx: "売上額",
                         dataType: "integer",
                         format: "#,###",
-                        width: 70, maxWidth: 70, minWidth: 70,
+                        width: 90, maxWidth: 90, minWidth: 90,
                     },
                     {
                         title: "その他",
                         dataIndx: "その他",
                         dataType: "integer",
                         format: "#,###",
-                        width: 60, maxWidth: 60, minWidth: 60,
+                        width: 70, maxWidth: 70, minWidth: 70,
                         hidden: false,
                         render: ui => {
                             if(ui.rowData.行番号!="7"){
@@ -272,7 +312,7 @@ export default {
                         dataIndx: "値引金額",
                         dataType: "integer",
                         format: "#,###",
-                        width: 60, maxWidth: 60, minWidth: 60,
+                        width: 70, maxWidth: 70, minWidth: 70,
                         hidden: false,
                         render: ui => {
                             if(ui.rowData.行番号!="7"){
@@ -285,7 +325,7 @@ export default {
                         dataIndx: "総売数",
                         dataType: "integer",
                         format: "#,###",
-                        width: 60, maxWidth: 60, minWidth: 60,
+                        width: 70, maxWidth: 70, minWidth: 70,
                         hidden: false,
                         render: ui => {
                             if(ui.rowData.行番号!="7"){
@@ -297,7 +337,7 @@ export default {
                         title: "総売上金額",
                         dataIndx: "総売上金額",
                         hidden: false,
-                        width: 155, maxWidth: 155, minWidth: 155,
+                        width: 140, maxWidth: 140, minWidth: 140,
                         render: ui => {
                             var spanLeft="<span style=\"width:75px;text-align:left;\">";
                             var spanRight="<span style=\"width:75px;text-align:right;\">";
@@ -394,11 +434,7 @@ export default {
                     }
                 },
                 {visible: "false"},
-                { visible: "true", value: "明細入力", id: "DAI01200Grid1_Detail", disabled: true, shortcut: "Enter",
-                    onClick: function () {
-                        vue.showDetail();
-                    }
-                },
+                {visible: "false"},
                 {visible: "false"},
                 { visible: "true", value: "印刷", id: "DAI01200Grid1_Printout", disabled: false, shortcut: "F6",
                     onClick: function () {
@@ -408,8 +444,12 @@ export default {
             );
         },
         mountedFunc: function(vue) {
-            // vue.viewModel.TargetDate = moment();
-            vue.viewModel.TargetDate = moment("2019/09/04");    //TODO: debug
+            //配送日付の初期値 -> 当日
+            //TODO:
+            // vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
+            // vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
+            vue.viewModel.DateStart = moment("2019/08/05");    //TODO: debug
+            vue.viewModel.DateEnd = moment("2019/08/09");    //TODO: debug
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
@@ -417,33 +457,31 @@ export default {
             //検索条件変更
             vue.conditionChanged();
         },
-        onTargetDateChanged: function(code, entity) {
-            var vue = this;
-
-            //コース区分変更
-            axios.post(
-                "/Utilities/GetCourseKbnFromDate",
-                {TargetDate: moment(vue.viewModel.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD")}
-            )
-                .then(res => {
-                    console.log(res);
-                    vue.viewModel.CourseKbn = res.data.コース区分;
-
-                    //条件変更ハンドラ
-                    vue.conditionChanged();
-                })
-                .catch(err => {
-                    console.log(err);
-                    $.dialogErr({
-                        title: "異常終了",
-                        contents: "祝日マスタの検索に失敗しました<br/>",
-                    });
-                });
-        },
-        onCourseKbnChanged: function(code, entity) {
+        onDateChanged: function(code, entity) {
             var vue = this;
             //条件変更ハンドラ
             vue.conditionChanged();
+        },
+        onCourseCdChanged: function(code, entity) {
+            var vue = this;
+
+            //フィルタ変更ハンドラ
+            vue.filterChanged();
+        },
+        filterChanged: function() {
+            var vue = this;
+            var grid = vue.DAI01200Grid1;
+            if (!grid) return;
+
+            var rules = [];
+            var crules = [];
+            if (vue.viewModel.CourseCd != undefined && vue.viewModel.CourseCd != "") {
+                crules.push({ condition: "equal", value: vue.viewModel.CourseCd});
+            }
+            if (crules.length) {
+                rules.push({ dataIndx: "コースＣＤ", mode: "AND", crules: crules });
+            }
+            grid.filter({ oper: "replace", mode: "AND", rules: rules });
         },
         conditionChanged: function(callback, force) {
             var vue = this;
@@ -452,13 +490,13 @@ export default {
             console.log("conditionChanged", vue.viewModel);
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
-            if (!vue.viewModel.BushoCd || !vue.viewModel.TargetDate || !vue.viewModel.CourseKbn) return;
-
+            if (!vue.viewModel.BushoCd || !vue.viewModel.DateStart || !vue.viewModel.DateEnd) return;
             grid.showLoading();
 
             var params = $.extend(true, {}, vue.viewModel);
             //日付を"YYYYMMDD"形式に編集
-            params.TargetDate = params.TargetDate ? moment(params.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
+            params.DateStart = params.DateStart ? moment(params.DateStart, "YYYY年MM月DD日").format("YYYYMMDD") : null;
+            params.DateEnd = params.DateEnd ? moment(params.DateEnd, "YYYY年MM月DD日").format("YYYYMMDD") : null;
             //キャッシュ無効
             params.noCache = true;
             grid.searchData(params, false, null, callback);
@@ -772,66 +810,75 @@ export default {
                 "行番号":row_num,
                 "商品区分ＣＤ": row_num,
                 pq_fn:{
-                    "総売上金額": "SUMIF(G:G, '" + row_num + "', T:T)",
-                    "入金": "SUMIF(G:G, '" + row_num + "', U:U)",
+                    "総売上金額": "SUMIF(G:G, '" + row_num + "', "+ grid.getExcelColumnName("総売上金額","${nm}:${nm}") +")",
+                    "入金": "SUMIF(G:G, '" + row_num + "', "+ grid.getExcelColumnName("入金","${nm}:${nm}") +")",
                 }
             };
             grid.options.summaryData.push(summary);
 
             //mergeCellsの設定
-/*
-            var pos = 1;
-            var header_rows=0;
-            var vDate="";
-                        window.resg=_.cloneDeep(CourseMeisaiData);//TODO:
-
-            _(CourseMeisaiData).groupBy(v => [v.日付,v.コース名])
-                .forIn((v, k) => {
-                    var cells = {
-                        r1: pos+header_rows,
-                        c1: 2,
-                        rc: 8,
-                        cc: 1,
-                    };
-                    grid.options.mergeCells.push(cells);
-                    pos += 8;
-                });
-*/
             var pos = 1;
             var idx = 0;
-            var g = _.groupBy(CourseMeisaiData, v => v.日付);
-            //g=_.sort(g,v=>v.日付);
-            window.rese=_.cloneDeep(g);//TODO:
-            _.forEach(g,k=>{
-                window.resk=_.cloneDeep(k);//TODO:
-                _.forEach(k,k2=>{
-                    console.log("r1-r2:" + (pos*1+idx*1) + " / " + (pos*1+idx*1+8));
-                    var cells = {
-                        r1: pos+idx,
-                        c1: 2,
-                        rc: 8,
-                        cc: 1,
-                    };
-                    grid.options.mergeCells.push(cells);
-                    pos += 8;
-                });
-                idx++;
-                console.log("idx:" + idx);
-            });
+            // var g = _.groupBy(_.filter(CourseMeisaiData,f=>f.行番号==1), v => v.日付);
+            // g=_.sortBy(g, ["日付"]);
+            // _.forEach(g,k=>{
+            //     _.forEach(k,k2=>{
+            //         var cellsCourse = {
+            //             r1: pos+idx,
+            //             c1: 2,
+            //             rc: 8,
+            //             cc: 1,
+            //         };
+            //         grid.options.mergeCells.push(cellsCourse);
 
-/*
-                .forIn((v, k) => {
-                    var cells = {
-                        r1: pos+header_rows,
-                        c1: 2,
-                        rc: 8,
-                        cc: 1,
-                    };
-                    grid.options.mergeCells.push(cells);
-                    pos += 8;
-                });
-                */
+            //         var cellsTanto = {
+            //             r1: pos+idx,
+            //             c1: 4,
+            //             rc: 8,
+            //             cc: 1,
+            //         };
+            //         grid.options.mergeCells.push(cellsTanto);
+            //         pos += 8;
+            //     });
+            //     idx++;
+            // });
             return CourseMeisaiData;
+        },
+        CourseAutoCompleteFunc: function(input, dataList, comp) {
+            var vue = this;
+
+            if (!dataList.length) return [];
+
+            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
+            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
+
+            var wholeColumns = ["コース名", "担当者名"];
+
+            if ((input == comp.selectValue && comp.isUnique) || comp.isError) {
+                keyAND = keyOR = [];
+            }
+
+            var list = dataList
+                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
+                .filter(v => {
+                    return keyOR.length == 0
+                        || _.some(keyOR, k => v.コースＣＤ.startsWith(k))
+                        || _.some(keyOR, k => v.whole.includes(k))
+                })
+                .filter(v => {
+                    return keyAND.length == 0 || _.every(keyAND, k => v.whole.includes(k));
+                })
+                .map(v => {
+                    var ret = v;
+                    ret.label = v.コースＣＤ + " : " + v.コース名 + "【" + v.担当者名 + "】";
+                    ret.value = v.コースＣＤ;
+                    ret.text = v.コース名;
+                    return ret;
+                })
+                ;
+
+            return list;
         },
         setPrintOptions: function(grid) {
             var vue = this;
@@ -885,7 +932,7 @@ export default {
                                                 <thead>
                                                     <tr>
                                                         <th style="width: 5%;">日付</th>
-                                                        <th style="width: 15%;">${vue.viewModel.TargetDate}</th>
+                                                        <th style="width: 15%;">${vue.viewModel.DateStart}</th>
                                                         <th style="width: 52%; border-top-width: 0px !important;"> </th>
                                                         <th style="width: 16%;">${moment().format("YYYY年MM月DD日 HH:mm:ss")}</th>
                                                         <th style="width: 6%;">PAGE</th>

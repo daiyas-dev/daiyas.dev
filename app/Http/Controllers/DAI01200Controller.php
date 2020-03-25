@@ -53,13 +53,8 @@ class DAI01200Controller extends Controller
      */
     public function GetCourseMeisaiData($request){
         $BushoCd = $request->BushoCd;
-        $DateStart = $request->TargetDate;
-        $DateEnd = $request->TargetDate;
-        $CourseCd = $request->CourseCd;
-        //TODO:検索条件初期値を埋め込み
-        $BushoCd = 101;
-        $DateStart = "2019/08/05";
-        $DateEnd = "2019/08/09";
+        $DateStart = $request->DateStart;
+        $DateEnd = $request->DateEnd;
 
         //コース別明細データ.部署CDの「CD」は半角が正しいです。入力間違いではありません。
         $sql = "
@@ -99,13 +94,8 @@ class DAI01200Controller extends Controller
      */
     public function GetUriageMeisaiData($request){
         $BushoCd = $request->BushoCd;
-        $DateStart = $request->TargetDate;
-        $DateEnd = $request->TargetDate;
-        //TODO:検索条件初期値を埋め込み
-        $BushoCd = 101;
-        $DateStart = "2019/08/05";
-        $DateEnd = "2019/08/09";
-
+        $DateStart = $request->DateStart;
+        $DateEnd = $request->DateEnd;
         $sql = "
                 SELECT
                     日付
@@ -157,13 +147,8 @@ class DAI01200Controller extends Controller
      */
     public function GetNyukinData($request){
         $BushoCd = $request->BushoCd;
-        $DateStart = $request->TargetDate;
-        $DateEnd = $request->TargetDate;
-        $CourseCd = $request->CourseCd;
-        //TODO:検索条件初期値を埋め込み
-        $BushoCd = 101;
-        $DateStart = "2019/08/05";
-        $DateEnd = "2019/08/09";
+        $DateStart = $request->DateStart;
+        $DateEnd = $request->DateEnd;
 
         $sql = "
                 SELECT
