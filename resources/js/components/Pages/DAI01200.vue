@@ -49,8 +49,7 @@
             :SearchOnCreate=false
             :SearchOnActivate=false
             :onAfterSearchFunc=this.onAfterSearchFunc
-            :resizeFunc=this.gridResizeFunc
-            :onCellKeyDownFunc=onCellKeyDownFunc
+            :autoToolTipDisabled=true
         />
     </form>
 </template>
@@ -117,7 +116,8 @@ export default {
             },
             CheckInterVal: null,
             DAI01200Grid1: null,
-            ProductList: [],
+            UriageMeisaiData: [],
+            NyukinData: [],
             grid1Options: {
                 selectionModel: { type: "row", mode: "single", row: true },
                 numberCell: { show: false },
@@ -125,10 +125,10 @@ export default {
                 autoRow: false,
                 rowHt: 25,
                 rowHtSum: 25,
-                editable: true,
+                editable: false,
                 columnTemplate: {
                     editable: false,
-                    sortable: true,
+                    sortable: false,
                 },
                 filterModel: {
                     on: false,
@@ -140,79 +140,66 @@ export default {
                     on: false,
                     header: false,
                     headerMenu: false,
-                    dataIndx: ["CustomerIndex", "CustomerInfo"],
-                    titleDefault: "{0}",
-                    collapsed: [false],
-                    merge: true,
-                    showSummary: [false],
-                    grandSummary: false,
-                    summaryEdit: false,
-                    icon: ["pq-group-toggle-none"],
                 },
                 summaryData: [],
                 mergeCells: [],
-                formulas: [
-                    [
-                        "商品",
-                        function (rowData) {
-                            return _.padStart(rowData.商品ＣＤ, 3, " ") + ":" + rowData.商品名;
-                        }
-                    ],
-                ],
+                formulas: [],
                 colModel: [
                     {
-                        title: "工場区分",
-                        dataIndx: "工場区分",
-                        hidden: true,
+                        title: "日付",
+                        dataIndx: "日付",
+                        width: 100, maxWidth: 100, minWidth: 100,
+                        hidden: false,
                     },
                     {
                         title: "コースＣＤ",
                         dataIndx: "コースＣＤ",
-                        hidden: true,
+                        width: 60, maxWidth: 60, minWidth: 60,
+                        hidden: false,
                     },
                     {
                         title: "コース名",
                         dataIndx: "コース名",
                         dataType: "string",
                         width: 200, maxWidth: 200, minWidth: 200,
-                        render: ui => {
-                            if (ui.rowData.summaryRow) {
-                                return { text: ui.rowData.コース名 };
-                            } else {
-                                if (!ui.Export) {
-                                    ui.style.push("align-items: flex-start;");
-                                }
-                                return { text: ui.rowData.コースＣＤ + "<br>" + ui.rowData.コース名 };
-                            }
-                        },
                     },
                     {
-                        title: "商品",
-                        dataIndx: "商品名",
+                        title: "担当者ＣＤ",
+                        dataIndx: "配送担当者ＣＤ",
+                        width: 60, maxWidth: 60, minWidth: 60,
+                        hidden: false,
+                    },
+                    {
+                        title: "担当者名",
+                        dataIndx: "担当者名",
+                        width: 60, maxWidth: 60, minWidth: 60,
+                        hidden: false,
+                    },
+                    {
+                        title: "行番号",
+                        dataIndx: "行番号",
+                        width: 60, maxWidth: 60, minWidth: 60,
+                    },
+                    {
+                        title: "商品区分ＣＤ",
+                        dataIndx: "商品区分ＣＤ",
+                        width: 60, maxWidth: 60, minWidth: 60,
+                    },
+                    {
+                        title: "商品区分",
+                        dataIndx: "商品区分名",
                         dataType: "string",
                         width: 100, maxWidth: 100, minWidth: 100,
                     },
                     {
-                        title: "商品ＣＤ",
-                        dataIndx: "商品ＣＤ",
-                        hidden: true,
-                    },
-                    {
                         title: "持出数",
-                        dataIndx: "持ち出し数",
+                        dataIndx: "持出数",
                         dataType: "integer",
                         format: "#,###",
                         width: 70, maxWidth: 70, minWidth: 70,
                     },
                     {
-                        title: "売上予定",
-                        dataIndx: "売上予定",
-                        dataType: "integer",
-                        format: "#,###",
-                        width: 70, maxWidth: 70, minWidth: 70,
-                    },
-                    {
-                        title: "工場追加",
+                        title: "工場",
                         dataIndx: "受取数_工場",
                         dataType: "integer",
                         format: "#,###",
@@ -226,23 +213,18 @@ export default {
                         width: 70, maxWidth: 70, minWidth: 70,
                     },
                     {
-                        title: "受取詳細",
-                        dataIndx: "受取詳細",
-                        dataType: "string",
-                        width: 200, minWidth: 200,
-                    },
-                    {
-                        title: "あげた",
+                        title: "やった",
                         dataIndx: "引渡数",
                         dataType: "integer",
                         format: "#,###",
                         width: 70, maxWidth: 70, minWidth: 70,
                     },
                     {
-                        title: "引渡詳細",
-                        dataIndx: "引渡詳細",
-                        dataType: "string",
-                        width: 200, minWidth: 200,
+                        title: "ボーナス",
+                        dataIndx: "ボーナス",
+                        dataType: "integer",
+                        format: "#,###",
+                        width: 70, maxWidth: 70, minWidth: 70,
                     },
                     {
                         title: "残数",
@@ -251,10 +233,150 @@ export default {
                         format: "#,###",
                         width: 70, maxWidth: 70, minWidth: 70,
                     },
+                    {
+                        title: "売上数",
+                        dataIndx: "売上数",
+                        dataType: "integer",
+                        format: "#,###",
+                        width: 70, maxWidth: 70, minWidth: 70,
+                        render: ui => {
+                        },
+                    },
+                    {
+                        title: "売上額",
+                        dataIndx: "売上額",
+                        dataType: "integer",
+                        format: "#,###",
+                        width: 70, maxWidth: 70, minWidth: 70,
+                    },
+                    {
+                        title: "その他",
+                        dataIndx: "その他",
+                        dataType: "integer",
+                        format: "#,###",
+                        width: 60, maxWidth: 60, minWidth: 60,
+                        hidden: false,
+                        render: ui => {
+                            if(ui.rowData.行番号!="7"){
+                                return { text: "" };
+                            }
+                        },
+                    },
+                    {
+                        title: "値引金額",
+                        dataIndx: "値引金額",
+                        dataType: "integer",
+                        format: "#,###",
+                        width: 60, maxWidth: 60, minWidth: 60,
+                        hidden: false,
+                        render: ui => {
+                            if(ui.rowData.行番号!="7"){
+                                return { text: "" };
+                            }
+                        },
+                    },
+                    {
+                        title: "総売数",
+                        dataIndx: "総売数",
+                        dataType: "integer",
+                        format: "#,###",
+                        width: 60, maxWidth: 60, minWidth: 60,
+                        hidden: false,
+                        render: ui => {
+                            if(ui.rowData.行番号!="7"){
+                                return { text: "" };
+                            }
+                        },
+                    },
+                    {
+                        title: "総売上金額",
+                        dataIndx: "総売上金額",
+                        hidden: false,
+                        width: 155, maxWidth: 155, minWidth: 155,
+                        render: ui => {
+                            var spanLeft="<span style=\"width:75px;text-align:left;\">";
+                            var spanRight="<span style=\"width:75px;text-align:right;\">";
+                            var spanClose="</span>";
+                            if(ui.rowData.行番号=="1"){
+                                return {text:spanLeft + "現金" + spanClose  + spanRight + pq.formatNumber(ui.rowData.総売上金額,"#,###") + spanClose};
+                            }
+                            else if(ui.rowData.行番号=="2"){
+                                return {text:spanLeft + "チケット" + spanClose  + spanRight + pq.formatNumber(ui.rowData.総売上金額,"#,###") + spanClose};
+                            }
+                            else if(ui.rowData.行番号=="3"){
+                                return {text:spanLeft + "ＢＶ" + spanClose  + spanRight + pq.formatNumber(ui.rowData.総売上金額,"#,###") + spanClose};
+                            }
+                            else if(ui.rowData.行番号=="4"){
+                                return {text:spanLeft + "掛売" + spanClose  + spanRight + pq.formatNumber(ui.rowData.総売上金額,"#,###") + spanClose};
+                            }
+                            else if(ui.rowData.行番号=="5"){
+                                return {text:spanLeft + "総売" + spanClose  + spanRight + pq.formatNumber(ui.rowData.総売上金額,"#,###") + spanClose};
+                            }
+                            else if(ui.rowData.行番号=="6"){
+                                return {text:spanLeft + "束売り" + spanClose  + spanRight + pq.formatNumber(ui.rowData.総売上金額,"#,###") + spanClose};
+                            }
+                            else if(ui.rowData.行番号=="7"){
+                                return "";
+                            }
+                            else if(ui.rowData.行番号=="8"){
+                                return {text:spanLeft + "ボーナス" + spanClose  + spanRight + pq.formatNumber(ui.rowData.総売上金額,"#,###") + spanClose};
+                            }
+                           else{
+                               return ui;
+                           }
+                        },
+                    },
+                    {
+                        title: "入金",
+                        dataIndx: "入金",
+                        dataType: "integer",
+                        format: "#,###",
+                        width: 130, maxWidth: 130, minWidth: 130,
+                        hidden: false,
+                        render: ui => {
+                            var HaisouinNyukin=0;
+                            var JimGenkinNyukin=0;
+                            var FurikomiNyukin=0;
+                            _.forEach(vue.NyukinData.filter(v=>(v.入金日付==ui.rowData.日付)),r=>{
+                                if(r["入金区分"]==0){
+                                    JimGenkinNyukin += r["現金"]!==undefined ? r["現金"]*1 : 0;
+                                    JimGenkinNyukin += r["小切手"]!==undefined ? r["小切手"]*1 : 0;
+                                    JimGenkinNyukin += r["バークレー"]!==undefined ? r["バークレー"]*1 : 0;
+                                    JimGenkinNyukin += r["その他"]!==undefined ? r["その他"]*1 : 0;
+                                    JimGenkinNyukin += r["値引"]!==undefined ? r["値引"]*1 : 0;;
+
+                                    FurikomiNyukin += r["振込"]!==undefined ? r["振込"]*1 : 0;
+                                    FurikomiNyukin += r["相殺"]!==undefined ? r["相殺"]*1 : 0;;
+                                }
+                                else{
+                                    HaisouinNyukin += r["現金"]!==undefined ? r["現金"]*1 : 0;
+                                    HaisouinNyukin += r["小切手"]!==undefined ? r["小切手"]*1 : 0;
+                                    HaisouinNyukin += r["振込"]!==undefined ? r["振込"]*1 : 0;
+                                    HaisouinNyukin += r["バークレー"]!==undefined ? r["バークレー"]*1 : 0;
+                                    HaisouinNyukin += r["その他"]!==undefined ? r["その他"]*1 : 0;
+                                    HaisouinNyukin += r["相殺"]!==undefined ? r["相殺"]*1 : 0;
+                                    HaisouinNyukin += r["値引"]!==undefined ? r["値引"]*1 : 0;
+                                }
+                            });
+
+                            if(ui.rowData.行番号=="1"){
+                                return {text:"配送員入金　"};
+                            }
+                            else if(ui.rowData.行番号=="3"){
+                                return {text:"事務現金入金　"};
+                            }
+                            else if(ui.rowData.行番号=="5"){
+                                return {text:"振込入金　"};
+                            }
+                            else if(ui.rowData.行番号=="7"){
+                                return {text:"入金合計　"};
+                            }
+                            else{
+                                return ui;
+                            }
+                        },
+                    },
                 ],
-                rowDblClick: function (event, ui) {
-                    vue.showDetail(ui.rowData);
-                },
             },
         });
     },
@@ -283,58 +405,6 @@ export default {
         mountedFunc: function(vue) {
             // vue.viewModel.TargetDate = moment();
             vue.viewModel.TargetDate = moment("2019/09/04");    //TODO: debug
-
-            var grid = vue.DAI01200Grid1;
-
-            //watcher
-            vue.$watch(
-                "$refs.DAI01200Grid1.selectionRowCount",
-                cnt => {
-                    vue.footerButtons.find(v => v.id == "DAI01200Grid1_Detail").disabled = cnt == 0 || cnt > 1;
-                }
-            );
-
-            if (!!vue.CheckInterVal) clearInterval(vue.CheckInterVal);
-            //TODO:
-            // vue.CheckInterVal = setInterval(vue.updateCheck, 10000);
-
-            vue.$root.$on("DAI01200_updateCheck", vue.updateCheck);
-        },
-        updateCheck: function() {
-            var vue = this;
-            var grid = vue.DAI01200Grid1;
-
-            //更新チェック
-            if (!grid.getData().length) return;
-
-            var params = $.extend(true, {}, vue.viewModel);
-            //日付を"YYYYMMDD"形式に編集
-            params.TargetDate = params.TargetDate ? moment(params.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
-
-            var checkParams = _.cloneDeep(params);
-            checkParams.noCache = true;
-            axios.post("/DAI01200/UpdateCheck", checkParams)
-                .then(res => {
-                    if (res.data.最新修正日時 != vue.viewModel.UpdateDate) {
-                        vue.viewModel.UpdateDate = res.data.最新修正日時;
-                        grid.blinkDiff(res.data.list);
-                    }
-                })
-                .catch(err => {
-                    console.log(err);
-                });
-        },
-        gridResizeFunc: function(grid) {
-            var oldHeight = grid.options.height;
-            var newHeight = window.innerHeight
-                          - grid.widget().position().top
-                          - $("#footer-bar:visible").outerHeight()
-                          - 20;
-
-            if (_.round(newHeight) != _.round(oldHeight)) {
-                grid.options.height += (_.round(newHeight) - _.round(oldHeight));
-                grid.refresh();
-            }
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
@@ -367,7 +437,6 @@ export default {
         },
         onCourseKbnChanged: function(code, entity) {
             var vue = this;
-
             //条件変更ハンドラ
             vue.conditionChanged();
         },
@@ -387,55 +456,326 @@ export default {
             params.TargetDate = params.TargetDate ? moment(params.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
             //キャッシュ無効
             params.noCache = true;
-
-            //更新チェック
-            var checkParams = _.cloneDeep(params);
-            checkParams.noCache = true;
-            axios.post("/DAI01200/UpdateCheck", checkParams)
-                .then(res => {
-                    grid.hideLoading();
-                    if (!!force || res.data.最新修正日時 != vue.viewModel.UpdateDate) {
-                        vue.viewModel.UpdateDate = res.data.最新修正日時;
-                        grid.searchData(params, false, null, callback);
-                    }
-                })
-                .catch(err => {
-                    console.log(err);
-                    grid.hideLoading();
-                    $.dialogErr({
-                        title: "異常終了",
-                        contents: "データの検索に失敗しました<br/>",
-                    });
-                });
+            grid.searchData(params, false, null, callback);
+            grid.hideLoading();
         },
         onAfterSearchFunc: function (gridVue, grid, res) {
             var vue = this;
+            var SyouhinKubunData = _.cloneDeep(res[0].SyouhinKubunData);
+            vue.UriageMeisaiData = _.cloneDeep(res[0].UriageMeisaiData);
+            vue.NyukinData = _.cloneDeep(res[0].NyukinData);
+
+            //商品区分ごとの合計値を集計
+            var UriageSumData = _(vue.UriageMeisaiData)
+                .groupBy(v => [v.日付,v.コースＣＤ,v.商品区分])
+                .values()
+                .value()
+                .map(r => {
+                    var ret = _.reduce(r,(acc, v, j) => {
+                                acc = _.isEmpty(acc) ? v : acc;
+                                acc["個数"] = (acc["個数"] || 0) + v.現金個数 * 1;
+                                acc["個数"] = (acc["個数"] || 0) + v.掛売個数 * 1;
+                                acc["個数"] = (acc["個数"] || 0) + v.分配元数量 * 1;
+                                acc["金額"] = (acc["金額"] || 0) + v.現金金額 * 1;
+                                acc["金額"] = (acc["金額"] || 0) + v.掛売金額 * 1;
+                                acc["値引金額"] = (acc["値引金額"] || 0) + v.現金値引 * 1;
+                                acc["値引金額"] = (acc["値引金額"] || 0) + v.掛売値引 * 1;
+                                return acc;
+                            },
+                            {}
+                    );
+                    return ret;
+                })
+
+            window.resa=_.cloneDeep(res[0].SyouhinKubunData);//TODO
+            window.resb=_.cloneDeep(vue.UriageMeisaiData);//TODO
+            window.resc=_.cloneDeep(UriageSumData);//TODO
+            window.resd=_.cloneDeep(vue.NyukinData);//TODO
+
+            var CourseMeisaiData=[];
+            res[0].CourseMeisaiData.map((v, i) => {
+                //日付・コース単位の売上明細データを取得
+                var UriageMeisaiData  = vue.UriageMeisaiData.filter(fv=>(fv.日付==v.日付) && (fv.コースＣＤ==v.コースＣＤ));
+
+                //集計用変数
+                var bonus=0;
+                var genkin=0;
+                var bv=0;
+                var tabauri=0;
+
+                //入金データの集計
+                var HaisouinNyukin=0;
+                var JimGenkinNyukin=0;
+                var FurikomiNyukin=0;
+                _.forEach(vue.NyukinData.filter(fv=>(fv.入金日付==v.日付) && (fv.コースＣＤ==v.コースＣＤ)),r=>{
+                    if(r["入金区分"]==0){
+                        JimGenkinNyukin += r["現金"]!==undefined ? r["現金"]*1 : 0;
+                        JimGenkinNyukin += r["小切手"]!==undefined ? r["小切手"]*1 : 0;
+                        JimGenkinNyukin += r["バークレー"]!==undefined ? r["バークレー"]*1 : 0;
+                        JimGenkinNyukin += r["その他"]!==undefined ? r["その他"]*1 : 0;
+                        JimGenkinNyukin += r["値引"]!==undefined ? r["値引"]*1 : 0;;
+
+                        FurikomiNyukin += r["振込"]!==undefined ? r["振込"]*1 : 0;
+                        FurikomiNyukin += r["相殺"]!==undefined ? r["相殺"]*1 : 0;;
+                    }
+                    else{
+                        HaisouinNyukin += r["現金"]!==undefined ? r["現金"]*1 : 0;
+                        HaisouinNyukin += r["小切手"]!==undefined ? r["小切手"]*1 : 0;
+                        HaisouinNyukin += r["振込"]!==undefined ? r["振込"]*1 : 0;
+                        HaisouinNyukin += r["バークレー"]!==undefined ? r["バークレー"]*1 : 0;
+                        HaisouinNyukin += r["その他"]!==undefined ? r["その他"]*1 : 0;
+                        HaisouinNyukin += r["相殺"]!==undefined ? r["相殺"]*1 : 0;
+                        HaisouinNyukin += r["値引"]!==undefined ? r["値引"]*1 : 0;
+                    }
+                });
+
+                //明細行をコピーして、商品区分ごとにデータをセットする
+                SyouhinKubunData.map((pv,pi) => {
+                    var StrIndex = pv.商品区分 =="1" ? "１"
+                                 : pv.商品区分 =="2" ? "２"
+                                 : pv.商品区分 =="3" ? "３"
+                                 : pv.商品区分 =="4" ? "４"
+                                 : pv.商品区分 =="5" ? "５"
+                                 : pv.商品区分 =="6" ? "６"
+                                 : pv.商品区分 =="7" ? "７"
+                                 : "" ;
+                    var RowData = _.cloneDeep(v);
+                    RowData.行番号=pi+1;
+                    RowData.商品区分ＣＤ=pv.商品区分;
+                    RowData.商品区分名=pv.各種名称;
+                    RowData.持出数=RowData["持出し個数" + StrIndex];
+                    RowData.受取数_工場=RowData["工場追加" + StrIndex];
+                    RowData.受取数_一般=RowData["もらった" + StrIndex];
+                    RowData.引渡数=RowData["やった" + StrIndex];
+                    RowData.ボーナス=RowData["見本" + StrIndex];
+                    RowData.残数=RowData["残数" + StrIndex];
+
+                    //売上数、売上額の追加
+                    var UriageSumItem = UriageSumData.find(k => (k.日付==v.日付) && (k.コースＣＤ==v.コースＣＤ) && (k.商品区分 == pv.商品区分));
+                    if(!_.isEmpty(UriageSumItem))
+                    {
+                        RowData.売上数=UriageSumItem.個数;
+                        RowData.売上額=UriageSumItem.金額;
+                    }
+                    else
+                    {
+                        RowData.売上数=0;
+                        RowData.売上額=0;
+                    }
+
+                    if(RowData.行番号==7)
+                    {
+                        //その他の計算
+                        RowData.その他=0;//TODO:その他の計算処理を記述
+
+                        //値引金額の計算
+                        var NebikiKingaku=0;
+                        _.forEach(UriageMeisaiData,r=>{
+                            if(r["値引金額"] !== undefined){
+                                NebikiKingaku+=r["値引金額"] * 1;
+                            }
+                        });
+                        RowData.値引金額=NebikiKingaku;
+
+                        //総売数の計算
+                        var UriageKosu=0;
+                        _.forEach(UriageMeisaiData,r=>{
+                            if(r["個数"] !== undefined){
+                                UriageKosu+=r["個数"] * 1;
+                            }
+                        });
+                        RowData.総売数=UriageKosu;
+                    }
+
+                    //総売上金額の作成
+                    if(RowData.行番号==1){
+                        //現金
+                        var sum=0;
+                        var nebiki=0;
+                        _.forEach(UriageMeisaiData,r=>{
+                            if(1<=r["商品区分"] && r["商品区分"]<=7){
+                                nebiki =r["現金値引"] * 1;
+                                nebiki+=r["掛売値引"] * 1;
+                            }
+                            if(1<=r["商品区分"] && r["商品区分"]<=8){
+                                if(r.売掛現金区分==="0"){
+                                    sum+=r["現金金額"] * 1;
+                                    sum-=nebiki;
+                                }
+                            }
+                        });
+                        RowData.総売上金額=sum;
+                        genkin=sum;
+                    }
+                    if(RowData.行番号==2){
+                        //チケット
+                        var sum=0;
+                        var nebiki=0;
+                        _.forEach(UriageMeisaiData,r=>{
+                            if(1<=r["商品区分"] && r["商品区分"]<=7){
+                                nebiki =r["現金値引"] * 1;
+                                nebiki+=r["掛売値引"] * 1;
+                                if(r.売掛現金区分==="2"){
+                                    sum+=r["掛売金額"] * 1;
+                                    sum-=nebiki;
+                                }
+                            }
+                        });
+                        RowData.総売上金額=sum;
+                    }
+                    if(RowData.行番号==3){
+                        //ＢＶ
+                        var sum=0;
+                        var nebiki=0;
+                        _.forEach(UriageMeisaiData,r=>{
+                            if(1<=r["商品区分"] && r["商品区分"]<=7)
+                            {
+                                nebiki =r["現金値引"] * 1;
+                                nebiki+=r["掛売値引"] * 1;
+                                if(r.売掛現金区分==="3"){
+                                    sum+=r["掛売金額"] * 1;
+                                    sum-=nebiki;
+                                }
+                            }
+                        });
+                        RowData.総売上金額=sum;
+                        bv=sum;
+                    }
+                    if(RowData.行番号==4){
+                        //掛売
+                        var sum=0;
+                        var nebiki=0;
+                        _.forEach(UriageMeisaiData,r=>{
+                            if(1<=r["商品区分"] && r["商品区分"]<=7){
+                                nebiki =r["現金値引"] * 1;
+                                nebiki+=r["掛売値引"] * 1;
+                            }
+                            if(1<=r["商品区分"] && r["商品区分"]<=8){
+                                if(r.売掛現金区分==="1"){
+                                    sum+=r["掛売金額"] * 1;
+                                    sum-=nebiki;
+                                }
+                            }
+                        });
+                        RowData.総売上金額=sum;
+                    }
+                    if(RowData.行番号==5){
+                        //ボーナス
+                        var sum=0;
+                        var nebiki=0;
+                        _.forEach(UriageMeisaiData,r=>{
+                            if(1<=r["商品区分"] && r["商品区分"]<=7)
+                            {
+                                nebiki =r["現金値引"] * 1;
+                                nebiki+=r["掛売値引"] * 1;
+                                if(r.売掛現金区分==="4"){
+                                    sum+=r["掛売金額"] * 1;
+                                    sum-=nebiki;
+                                }
+                            }
+                        });
+                        RowData.総売上金額=sum;
+                        bonus=sum;
+                    }
+                    if(RowData.行番号==5){
+                        //総売
+                        var sum=0;
+                        var nebiki=0;
+                        //値引金額の取得
+                        _.forEach(UriageMeisaiData,r=>{
+                            if(r["値引金額"]!==undefined){
+                                nebiki+=r["値引金額"] * 1;
+                            }
+                        });
+
+                        _.forEach(UriageMeisaiData,r=>{
+                            if(1<=r["商品区分"] && r["商品区分"]<=8)
+                            {
+                                sum+=r["現金金額"] * 1;
+                                sum+=r["掛売金額"] * 1;
+                            }
+                        });
+                        RowData.総売上金額=sum;
+                    }
+                    if(RowData.行番号==6){
+                        //束売
+                        var sum=0;
+                        var nebiki=0;
+                        _.forEach(UriageMeisaiData,r=>{
+                            if(r["商品区分"]==="9")
+                            {
+                                sum+=(r["現金金額"] * 1) - (r["現金値引"] * 1);
+                                sum+=(r["掛売金額"] * 1) - (r["掛売値引"] * 1);
+                            }
+                        });
+                        RowData.総売上金額=sum;
+                        tabauri=sum;
+                    }
+
+                    //入金の作成
+                    if(RowData.行番号==2){
+                        RowData.入金=HaisouinNyukin;
+                    }
+                    if(RowData.行番号==4){
+                        RowData.入金=JimGenkinNyukin;
+                    }
+                    if(RowData.行番号==6){
+                        RowData.入金=FurikomiNyukin;
+                    }
+                    CourseMeisaiData.push(RowData);
+                });
+                //さらにもう1行追加
+                var RowData = _.cloneDeep(v);
+                RowData.行番号=SyouhinKubunData.length+1;
+                RowData.商品区分ＣＤ=SyouhinKubunData.length+1;
+                RowData.総売上金額=bonus;
+                RowData.入金=genkin + tabauri + HaisouinNyukin + JimGenkinNyukin + FurikomiNyukin + bv;
+                CourseMeisaiData.push(RowData);
+            });
 
             //summaryDataの設定
+            var row_num=1;
             grid.options.summaryData = [];
-            // _(res).groupBy(v => _.padStart(v.商品ＣＤ, 3, " ") + ":" + v.商品名)
-            _(res).groupBy(v => v.商品名)
-                .forIn((v, k) => {
+             _(SyouhinKubunData).forIn((v, k) => {
                     var summary = {
                         summaryRow: true,
+                        "行番号":row_num++,
                         "コース名": grid.options.summaryData.length ? "" : "合計",
-                        "商品名": k,
+                        "商品区分ＣＤ": v["商品区分"],
+                        "商品区分名": v["各種名称"],
                         pq_fn:{
-                            "持ち出し数": "SUMIF(D:D, '" + k + "', F:F)",
-                            "売上予定": "SUMIF(D:D, '" + k + "', G:G)",
-                            "受取数_工場": "SUMIF(D:D, '" + k + "', H:H)",
-                            "受取数_一般": "SUMIF(D:D, '" + k + "', I:I)",
-                            "引渡数": "SUMIF(D:D, '" + k + "', K:K)",
-                            "残数": "SUMIF(D:D, '" + k + "', M:M)",
+                            "持出数": "SUMIF(G:G, '" + v["商品区分"] + "', I:I)",
+                            "受取数_工場": "SUMIF(G:G, '" + v["商品区分"] + "', J:J)",
+                            "受取数_一般": "SUMIF(G:G, '" + v["商品区分"] + "', K:K)",
+                            "引渡数": "SUMIF(G:G, '" + v["商品区分"] + "', L:L)",
+                            "ボーナス": "SUMIF(G:G, '" + v["商品区分"] + "', M:M)",
+                            "残数": "SUMIF(G:G, '" + v["商品区分"] + "', N:N)",
+                            "売上数": "SUMIF(G:G, '" + v["商品区分"] + "', O:O)",
+                            "売上額": "SUMIF(G:G, '" + v["商品区分"] + "', P:P)",
+                            "その他": "SUMIF(G:G, '" + v["商品区分"] + "', Q:Q)",
+                            "値引金額": "SUMIF(G:G, '" + v["商品区分"] + "', R:R)",
+                            "総売数": "SUMIF(G:G, '" + v["商品区分"] + "', S:S)",
+                            "総売上金額": "SUMIF(G:G, '" + v["商品区分"] + "', T:T)",
+                            "入金": "SUMIF(G:G, '" + v["商品区分"] + "', U:U)",
                         }
                     };
-
                     grid.options.summaryData.push(summary);
                 });
+            //もう1行追加
+            var summary = {
+                summaryRow: true,
+                "行番号":row_num,
+                "商品区分ＣＤ": row_num,
+                pq_fn:{
+                    "総売上金額": "SUMIF(G:G, '" + row_num + "', T:T)",
+                    "入金": "SUMIF(G:G, '" + row_num + "', U:U)",
+                }
+            };
+            grid.options.summaryData.push(summary);
 
             //mergeCellsの設定
             var pos = 0;
-            _(res).groupBy(v => v.コース名)
+            _(CourseMeisaiData).groupBy(v => [v.日付,v.コース名])
                 .forIn((v, k) => {
                     var cells = {
                         r1: pos,
@@ -447,7 +787,8 @@ export default {
                     pos += v.length;
                 });
 
-            return res;
+
+            return CourseMeisaiData;
         },
         setPrintOptions: function(grid) {
             var vue = this;
@@ -612,153 +953,6 @@ export default {
             grid.options.printOptions.printable = printable.prop("outerHTML");
 
             console.log(grid.options.printable);
-        },
-        onCellKeyDownFunc: function(grid, ui, event) {
-            var vue = this;
-
-            switch (event.key) {
-                case "Enter":
-                    vue.showDetail();
-                    return false;
-                case "ArrowUp":
-                    if (ui.rowIndx > 0) {
-                        grid.setSelection(null);
-                        grid.setSelection({rowIndx: ui.rowIndx - 1});
-                    }
-                    return false;
-                case "ArrowDown":
-                    if (ui.rowIndx < grid.getData().length - 1) {
-                        grid.setSelection(null);
-                        grid.setSelection({rowIndx: ui.rowIndx + 1});
-                    }
-                    return false;
-                default:
-                    return true;
-            }
-        },
-        showDetail: function(rowData) {
-            var vue = this;
-            var grid = vue.DAI01200Grid1;
-            if (!grid) return;
-
-            var params;
-
-            if (!rowData) {
-                var selection = grid.SelectRow().getSelection();
-
-                var rows = grid.SelectRow().getSelection();
-                if (rows.length != 1) return;
-
-                rowData = _.cloneDeep(rows[0].rowData);
-            }
-
-            var params = {
-                BushoCd: vue.viewModel.BushoCd,
-                BushoNm: vue.viewModel.BushoNm,
-                TargetDate: moment(vue.viewModel.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD"),
-                CourseKbn: vue.viewModel.CourseKbn,
-                CourseCd: rowData.コースＣＤ,
-                CourseNm: rowData.コース名,
-            };
-
-            grid.showLoading();
-
-            //事前情報取得
-            axios.all(
-                [
-                    //コースリストの取得
-                    axios.post("/Utilities/GetCourseList", { BushoCd: params.BushoCd, CourseKbn: params.CourseKbn, }),
-                    //商品リストの取得
-                    axios.post("/DAI01061/GetTargetProducts", { BushoCd: params.BushoCd, CourseKbn: params.CourseKbn, CourseCd: params.CourseCd, }),
-                ]
-            ).then(
-                axios.spread((responseCourse, responseProduct) => {
-                    var resCourse = responseCourse.data;
-                    var resProduct = responseProduct.data;
-
-                    var checkError = (res, name) => {
-                        if (res.onError && !!res.errors) {
-                            //メッセージリストに追加
-                            Object.values(res.errors).filter(v => v)
-                                .forEach(v => vue.$root.$emit("addMessage", v.replace(/(^\"|\"$)/g, "")));
-
-                            //ダイアログ
-                            $.dialogErr({ errObj: res });
-
-                            return false;
-                        } else if (res.onException) {
-                            //メッセージ追加
-                            vue.$root.$emit("addMessage", name +"リスト取得失敗(" + vue.page.ScreenTitle + ":" + res.message + ")");
-
-                            //ダイアログ
-                            $.dialogErr({
-                                title: "異常終了",
-                                contents: name +"リストの取得に失敗しました<br/>" + res.message,
-                            });
-
-                            return false;
-                        } else if (res == "") {
-                            //完了ダイアログ
-                            $.dialogErr({
-                                title: name +"リスト無し",
-                                contents: "該当データは存在しません" ,
-                            });
-
-                            return false;
-                        }
-
-                        return true;
-                    };
-
-                    if (!checkError(resCourse)) return;
-                    if (!checkError(resProduct)) return;
-
-                    //取得した結果を設定
-                    params.CourseList = resCourse;
-                    params.ProductList = resProduct;
-
-                    grid.hideLoading();
-
-                    PageDialog.show({
-                        pgId: "DAI01061",
-                        params: params,
-                        isModal: true,
-                        isChild: true,
-                        width: 800,
-                        height: 750,
-                        onBeforeClose: (event, ui) => {
-                            console.log("onBeforeClose", event, ui);
-
-                            if ($(window.event.target).attr("shortcut") == "ESC") return true;
-
-                            var dlg = $(event.target);
-                            var editting = dlg.find(".pq-grid")
-                                .map((i, v) => $(v).pqGrid("getInstance").grid)
-                                .get()
-                                .some(g => !_.isEmpty(g.getEditCell()));
-                            var isEscOnEditor = !!window.event && window.event.key == "Escape"
-                                && (
-                                    $(window.event.target).hasClass("target-input") ||
-                                    $(window.event.target).hasClass("pq-cell-editor")
-                                );
-
-                            return !editting && !isEscOnEditor;
-                        }
-                    });
-                })
-            )
-            .catch(error => {
-                grid.hideLoading();
-
-                //メッセージ追加
-                vue.$root.$emit("addMessage", "DB検索失敗(" + vue.ScreenTitle + ":" + error + ")");
-
-                //完了ダイアログ
-                $.dialogErr({
-                    title: "異常終了",
-                    contents: "DBの検索に失敗しました<br/>",
-                });
-            });
         },
     }
 }

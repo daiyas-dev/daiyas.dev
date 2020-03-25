@@ -161,7 +161,7 @@ export default {
             return this.id + "_" + this._uid;
         },
         _style: function() {
-            return this.customStyle || "width:180px";
+            return this.customStyle || "width: unset;";
         },
     },
     created: function () {
