@@ -320,7 +320,7 @@ export default {
                         fixed: true,
                         render: ui => {
                             if (!ui.rowData.summaryRow) {
-                                return _.padStart(ui.rowData.対象CD, 10, " ") + "<br>" + ui.rowData.対象名;
+                                return _.padStart(ui.rowData.対象CD, 10, " ") + "\n" + ui.rowData.対象名;
                             }
                             return ui;
                         },
@@ -1158,11 +1158,13 @@ export default {
                 }
                 table.DAI01210Grid1 tbody td[rowspan] {
                     border-bottom-width: 1px;
-                    white-space: pre-wrap;
                     vertical-align: top;
                 }
                 table.DAI01210Grid1 tbody tr:nth-child(7n) td {
                     border-bottom-width: 1px;
+                }
+                table.DAI01210Grid1 tbody td p {
+                    margin: 0px;
                 }
             `;
 
@@ -1181,6 +1183,8 @@ export default {
                                 false,
                                 false,
                                 false,
+                                true,
+                                true,
                             )
                         )
                 )

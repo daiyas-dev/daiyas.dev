@@ -316,7 +316,7 @@ export default {
                 groupModel: {
                     on: true,
                     header: false,
-                    grandSummary: false,
+                    grandSummary: true,
                     indent: 0,
                     dataIndx: [],
                     showSummary: [true, true],
