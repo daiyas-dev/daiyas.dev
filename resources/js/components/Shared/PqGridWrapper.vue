@@ -2423,6 +2423,10 @@ export default {
 
                 this.grid.restructTable = function(pdata, tableBodies, tableHeaders, styles, header, maxRowsPerPage, isShowGroupRow, isShowGroupSummaryRow, isGroupPageBreak) {
                     var ret = "";
+
+                    //TODO: 暫定対応(10pt以下のフォントでの表示の代わりに、transform: scale(0.x)を用いる余地として、tdのcontentをdivでwrap)
+                    tableBodies.forEach(r => $(r).find("td").each((i, e) => $(e).html($("<div>").css("width", "100%").text($(e).html()))));
+
                     if (!maxRowsPerPage && !isGroupPageBreak) {
                         ret = $("<div>")
                             .append($("<style>").text(styles || ""))
