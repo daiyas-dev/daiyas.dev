@@ -15,6 +15,52 @@ class DAI02030Controller extends Controller
 {
 
     /**
+     * GetSimeDateList
+     */
+    public function GetSimeDateList($vm)
+    {
+        $BushoCd = $vm->BushoCd;
+        $TargetDate = $vm->TargetDate;
+
+        $sql = "
+			SELECT DISTINCT
+				FORMAT(SEIKYU.請求日付, 'dd') AS 締日
+			FROM
+				請求データ SEIKYU
+				INNER JOIN [得意先マスタ] TOK
+					ON	TOK.得意先ＣＤ = SEIKYU.請求先ＣＤ
+					AND TOK.得意先ＣＤ = TOK.請求先ＣＤ
+					AND TOK.締区分 = 2
+					AND (TOK.売掛現金区分 = 1 OR TOK.売掛現金区分 = 0)
+            WHERE
+            	SEIKYU.部署ＣＤ=$BushoCd
+			AND	(SEIKYU.請求日付 >= DATEADD(DD, 1, EOMONTH ('$TargetDate' , -1)) AND SEIKYU.請求日付 <= EOMONTH('$TargetDate'))
+			AND SEIKYU.請求日付 != EOMONTH('$TargetDate')
+            AND (
+                ISNULL(SEIKYU.[３回前残高], 0) + ISNULL(SEIKYU.前々回残高, 0) + ISNULL(SEIKYU.前回残高, 0) != 0
+                OR
+                SEIKYU.今回売上額 != 0
+            )
+            UNION
+            SELECT
+                99
+        ";
+
+        $Result = collect(DB::select($sql))
+            ->map(function ($val) {
+                $obj = (object) [];
+
+                $obj->Cd = $val->締日 * 1;
+                $obj->CdNm = $val->締日 == 99 ? '末日' : ($val->締日 * 1 . '日締');
+
+                return $obj;
+            })
+            ->values();
+
+        return response()->json($Result);
+    }
+
+    /**
      * Search
      */
     public function Search($vm)
