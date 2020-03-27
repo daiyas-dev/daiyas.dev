@@ -6,6 +6,7 @@
             </div>
             <div class="col-md-2">
                 <VueSelectBusho
+                    ref="VueSelectBusho"
                     :onChangedFunc=onBushoChanged
                 />
             </div>
@@ -57,9 +58,11 @@
                     ref="VueMultiSelect_SimeDate"
                     :vmodel=viewModel
                     bind="SimeDateArray"
-                    uri="/Utilities/GetSimeDateList"
+                    uri="/DAI02030/GetSimeDateList"
+                    :params='{ BushoCd: searchParams.BushoCd, TargetDate: searchParams.TargetDate }'
                     :hasNull=true
                     :onChangedFunc=onSimeDateChanged
+                    :ParamsChangedCheckFunc=SimeDateParamsChangedCheckFunc
                     :disabled=SimeDateDisabled
                 />
             </div>
@@ -626,6 +629,11 @@ export default {
             //フィルタ変更ハンドラ
             vue.filterChanged();
         },
+        SimeDateParamsChangedCheckFunc: function(newVal, oldVal) {
+            var vue = this;
+            var ret = !!newVal.BushoCd && !!newVal.TargetDate;
+            return ret;
+        },
         onPrintOrderChanged: function(code, entities) {
             var vue = this;
             var grid = vue.DAI02030Grid1;
@@ -688,7 +696,6 @@ export default {
         conditionChanged: function(callback) {
             var vue = this;
             var grid = vue.DAI02020Grid1;
-            console.log("2020 conditionChanged")
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.TargetDate || !vue.viewModel.TargetDateMax) return;
@@ -709,21 +716,27 @@ export default {
         filterChanged: function() {
             var vue = this;
             var grid = vue.DAI02020Grid1;
-            console.log("2020 filterChanged")
 
             if (!grid) return;
 
             var rules = [];
 
-            //締日
+            //請求日付
             if (vue.viewModel.SimeKbn == "2") {
                 if (!!vue.viewModel.SimeDateArray.length) {
                     var crules = vue.viewModel.SimeDateArray.map(d => {
-                        return { condition: "contain", mode: "OR", value: "/" + d.code + "/" };
+                        var date;
+                        if (d.code == 99) {
+                            date = moment(vue.searchParams.TargetDate).endOf("month").format("YYYY-MM-DD 00:00:00.000");
+                        } else {
+                            date = moment(vue.searchParams.TargetDate).startOf("month").add(d.code - 1, "day").format("YYYY-MM-DD 00:00:00.000");
+                        }
+                        return { condition: "equal", mode: "OR", value: date };
                     });
-                    rules.push({ dataIndx: "締日", crules: crules });
+                    rules.push({ dataIndx: "請求日付", crules: crules });
                 } else {
-                    rules.push({ dataIndx: "締日", condition: "contain", value: "99" });
+                    var date = moment(vue.searchParams.TargetDate).endOf("month").format("YYYY-MM-DD 00:00:00.000");
+                    rules.push({ dataIndx: "請求日付", condition: "equal", value: date });
                 }
             }
 
