@@ -2374,7 +2374,7 @@ export default {
                     vue.exportData("", true);
                 };
 
-                this.grid.generateHtml = function(styles, header, maxRowsPerPage, isShowGroupRow, isShowGroupSummaryRow, isGroupPageBreak) {
+                this.grid.generateHtml = function(styles, header, maxRowsPerPage, isShowGroupRow, isShowGroupSummaryRow, isGroupPageBreak, isShowGrandSummaryRow, bodyWrapper, headerWrapper) {
                     var grid = this;
 
                     var colModel = _.cloneDeep(grid.options.colModel);
@@ -2412,7 +2412,28 @@ export default {
                         }
                     });
 
+                    var ret = grid.restructTable(pdata, tableBodies, tableHeaders, styles, header, maxRowsPerPage, isShowGroupRow, isShowGroupSummaryRow, isGroupPageBreak, isShowGrandSummaryRow, bodyWrapper, headerWrapper);
+
+                    grid.options.colModel = colModel;
+                    grid.refreshCM();
+                    grid.refresh();
+
+                    return ret;
+                };
+
+                this.grid.restructTable = function(pdata, tableBodies, tableHeaders, styles, header, maxRowsPerPage, isShowGroupRow, isShowGroupSummaryRow, isGroupPageBreak, isShowGrandSummaryRow, bodyWrapper, headerWrapper) {
+                    var grid = this;
                     var ret = "";
+
+                    //TODO: 暫定対応(10pt以下のフォントでの表示の代わりに、transform: scale(0.x)を用いる余地として、tdのcontentをdivでwrap)
+                    if (!!bodyWrapper) {
+                        if (_.isBoolean(bodyWrapper)) {
+                            tableBodies.forEach(r => $(r).find("td").each((i, e) => $(e).html($("<p>").html($(e).html()))));
+                        } else if (_.isFunction(bodyWrapper)) {
+                            tableBodies.forEach(r => $(r).find("td").each((i, e) => $(e).html(bodyWrapper(e, r))));
+                        }
+                    }
+
                     if (!maxRowsPerPage && !isGroupPageBreak) {
                         ret = $("<div>")
                             .append($("<style>").text(styles || ""))
@@ -2446,6 +2467,8 @@ export default {
                                 } else {
                                     return isShowGroupSummaryRow;
                                 }
+                            } else if ($(r).hasClass("grand-summary")) {
+                                return isShowGrandSummaryRow != false;
                             } else {
                                 return true;
                             }
@@ -2515,6 +2538,7 @@ export default {
                         }
 
                         chunks = _(chunks).values().flatten().value();
+                        if (!chunks.length) chunks = [null];
                         console.log("printable chunks", chunks, headers);
 
                         ret = $("<div>")
@@ -2522,7 +2546,7 @@ export default {
                             .append(
                                 chunks.map((chunk, i) => {
                                     var page = $("<div>").css("page-break-before", "always")
-                                        .append(!!header ? (_.isFunction(header) ? header(headers[i], i, chunks.length) : header) : "")
+                                        .append(!!header ? (_.isFunction(header) ? header(headers[i], i, chunks.length, chunk, chunks) : header) : "")
                                         .append(
                                             $("<table>").addClass(grid.vue.id)
                                                 .append($("<thead>").append(tableHeaders))
@@ -2535,10 +2559,19 @@ export default {
 
                     }
 
-                    grid.options.colModel = colModel;
-                    grid.refreshCM();
-                    grid.refresh();
+                    return ret;
+                };
 
+                this.grid.generateHtmlFromJson = function(target, styles, header, maxRowsPerPage, keyArray, colArray, bodyWrapper, headerWrapper) {
+                    var grid = this;
+                    var json = target;
+                    if (!_.isArray(json)) json = [json];
+
+                    var keys =keyArray || _.keys(json[0]);
+                    var headers = $("<tr>").append(keys.map((k, i) => $("<th>").text(!!colArray ? colArray[i] : k))).get()
+                    var bodies = json.map(v => $("<tr>").append(keys.map(k => $("<td>").text(v[k]))).get(0));
+                    var ret = grid.restructTable(json, bodies, headers, styles, header, maxRowsPerPage, null, null, null, null, bodyWrapper, headerWrapper);
+                    console.log("generateHtmlFromJson", ret.prop("outerHTML"));
                     return ret;
                 };
 

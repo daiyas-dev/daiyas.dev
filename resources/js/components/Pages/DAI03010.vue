@@ -91,9 +91,9 @@ TODO: コース担当者が休み等の場合に、コーステーブルに載�
             </div>
         </div>
         <PqGridWrapper
-            id="DAI01220Grid1"
-            ref="DAI01220Grid1"
-            dataUrl="/DAI01220/Search"
+            id="DAI03010Grid1"
+            ref="DAI03010Grid1"
+            dataUrl="/DAI03010/Search"
             :query=this.viewModel
             :SearchOnCreate=false
             :SearchOnActivate=false
@@ -105,20 +105,20 @@ TODO: コース担当者が休み等の場合に、コーステーブルに載�
 </template>
 
 <style>
-#DAI01220Grid1 .pq-group-toggle-none {
+#DAI03010Grid1 .pq-group-toggle-none {
     display: none !important;
 }
-#DAI01220Grid1 .pq-group-icon {
+#DAI03010Grid1 .pq-group-icon {
     display: none !important;
 }
-#DAI01220Grid1 .pq-td-div {
+#DAI03010Grid1 .pq-td-div {
     display: flex;
     line-height: 13px !important;
     justify-content: center;
     align-items: center;
     height: 50px;
 }
-#DAI01220Grid1 .pq-td-div span {
+#DAI03010Grid1 .pq-td-div span {
     line-height: inherit;
     text-align: center;
 }
@@ -132,7 +132,7 @@ import PageBaseMixin from "@vcs/PageBaseMixin.vue";
 
 export default {
     mixins: [PageBaseMixin],
-    name: "DAI01220",
+    name: "DAI03010",
     components: {
     },
     props: {
@@ -143,7 +143,7 @@ export default {
     },
     data() {
         return $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "日次処理 > 得意先別実績表",
+            ScreenTitle: "月次処理 > 月次集計",
             noViewModel: true,
             viewModel: {
                 BushoCd: null,
@@ -154,7 +154,7 @@ export default {
                 CourseCd: null,
                 IsIncNoJisseki:"0",
             },
-            DAI01220Grid1: null,
+            DAI03010Grid1: null,
             grid1Options: {
                 selectionModel: { type: "cell", mode: "single", row: true },
                 showHeader: true,
@@ -266,12 +266,12 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "検索", id: "DAI01220Grid1_Search", disabled: false, shortcut: "F5",
+                { visible: "true", value: "検索", id: "DAI03010Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
                         vue.conditionChanged();
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI01220Grid1_Printout", disabled: false, shortcut: "F6",
+                { visible: "true", value: "印刷", id: "DAI01020Grid1_Printout", disabled: false, shortcut: "F6",
                     onClick: function () {
                         vue.print();
                     }
@@ -375,7 +375,7 @@ export default {
             //PqGrid読込待ち
             new Promise((resolve, reject) => {
                 var timer = setInterval(function () {
-                    grid = vue.DAI01220Grid1;
+                    grid = vue.DAI03010Grid1;
                     if (!!grid && vue.getLoginInfo().isLogOn) {
                         clearInterval(timer);
                         return resolve(grid);
@@ -384,7 +384,7 @@ export default {
             })
             .then((grid) => {
                 grid.showLoading();
-                axios.post("/DAI01220/ColSearch", { BushoCd: vue.viewModel.BushoCd })
+                axios.post("/DAI03010/ColSearch", { BushoCd: vue.viewModel.BushoCd })
                     .then(response => {
                         var res = _.cloneDeep(response.data);
                         vue.ProductList = res;
@@ -537,7 +537,7 @@ export default {
         },
         conditionChanged: function(callback) {
             var vue = this;
-            var grid = vue.DAI01220Grid1;
+            var grid = vue.DAI03010Grid1;
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.BushoCd || !vue.viewModel.DateStart || !vue.viewModel.DateEnd) return;
@@ -559,7 +559,7 @@ export default {
 
         filterChanged: function() {
             var vue = this;
-            var grid = vue.DAI01220Grid1;
+            var grid = vue.DAI03010Grid1;
 
             if (!grid) return;
 
@@ -715,8 +715,8 @@ export default {
             var headerFunc = (header, idx, length) => {
                 var courseCd = header.コース.split(" ")[0];
                 var courseNm = header.コース.split(" ")[1];
-                var tantoCd = vue.DAI01220Grid1.pdata.find(v => v.コースＣＤ==courseCd).担当者ＣＤ;
-                var tantoNm = vue.DAI01220Grid1.pdata.find(v => v.コースＣＤ==courseCd).担当者名;
+                var tantoCd = vue.DAI03010Grid1.pdata.find(v => v.コースＣＤ==courseCd).担当者ＣＤ;
+                var tantoNm = vue.DAI03010Grid1.pdata.find(v => v.コースＣＤ==courseCd).担当者名;
                 return `
                     <div class="title">
                         <h3><div class="report-title-area">得意先別実績表<div></h3>
@@ -767,67 +767,67 @@ export default {
             };
 
             var styleCustomers =`
-                table.DAI01220Grid1
-                table.DAI01220Grid1 tr,
-                table.DAI01220Grid1 th,
-                table.DAI01220Grid1 td {
+                table.DAI03010Grid1
+                table.DAI03010Grid1 tr,
+                table.DAI03010Grid1 th,
+                table.DAI03010Grid1 td {
                     border-collapse: collapse;
                     border:1px solid black;
                 }
-                table.DAI01220Grid1 tr th:nth-child(1)[rowspan="2"] {
+                table.DAI03010Grid1 tr th:nth-child(1)[rowspan="2"] {
                     border-right: 0px;
                     color: white;
                     width: 5%;
                 }
-                table.DAI01220Grid1 tr th:nth-child(2)[rowspan="2"] {
+                table.DAI03010Grid1 tr th:nth-child(2)[rowspan="2"] {
                     border-left: 0px;
                     text-align:left;
                 }
-                table.DAI01220Grid1 tr td:nth-child(1) {
+                table.DAI03010Grid1 tr td:nth-child(1) {
                     border-right: 0px;
                 }
-                table.DAI01220Grid1 tr td:nth-child(2) {
+                table.DAI03010Grid1 tr td:nth-child(2) {
                     border-left: 0px;
                 }
-                table.DAI01220Grid1 tr th:nth-child(n+3)[colspan="2"] {
+                table.DAI03010Grid1 tr th:nth-child(n+3)[colspan="2"] {
                     width: 10%;
                 }
-                table.DAI01220Grid1 tr th:last-child {
+                table.DAI03010Grid1 tr th:last-child {
                     width: 5%;
                 }
-                table.DAI01220Grid1 tr th:nth-last-child(2) {
+                table.DAI03010Grid1 tr th:nth-last-child(2) {
                     width: 5%;
                 }
             `;
             var styleBench =`
-                table.DAI01220Grid1 tr.group-summary td {
+                table.DAI03010Grid1 tr.group-summary td {
                     border: solid 1px black;
                 }
-                table.DAI01220Grid1 tr.grand-summary td:nth-child(2) {
+                table.DAI03010Grid1 tr.grand-summary td:nth-child(2) {
                     text-align: right;
 
-                table.DAI01220Grid1 tr.grand-summary td:nth-child(3) {
+                table.DAI03010Grid1 tr.grand-summary td:nth-child(3) {
                     text-align: left;
                 }
-                table.DAI01220Grid1 tr[level="0"].group-summary td {
+                table.DAI03010Grid1 tr[level="0"].group-summary td {
                     border-style: dotted;
                     border-left-width: 0px;
                     border-top-width: 1px;
                     border-right-width: 0px;
                     border-bottom-width: 0px;
                 }
-                table.DAI01220Grid1 tr[level="0"].group-summary td:nth-child(2) {
+                table.DAI03010Grid1 tr[level="0"].group-summary td:nth-child(2) {
                     text-align: right;
                     padding-right: 30px;
                 }
-                table.DAI01220Grid1 tr.grand-summary td {
+                table.DAI03010Grid1 tr.grand-summary td {
                     border-style: solid;
                     border-left-width: 0px;
                     border-top-width: 1px;
                     border-right-width: 0px;
                     border-bottom-width: 0px;
                 }
-                table.DAI01220Grid1 tr th:nth-last-child(-n+2):nth-last-child(-n) {
+                table.DAI03010Grid1 tr th:nth-last-child(-n+2):nth-last-child(-n) {
                     width: 10%;
                 }
             `;
@@ -837,7 +837,7 @@ export default {
                 .append(
                     $("<body>")
                         .append(
-                            vue.DAI01220Grid1.generateHtml(
+                            vue.DAI03010Grid1.generateHtml(
                                 styleCustomers,
                                 headerFunc,
                                 36,
