@@ -242,8 +242,10 @@ export default {
                                 ui.rowData["顧客名"] = "コース計";
                                 return { text: "コース計" };
                             }
-                            //TODO:確認中
-                            // ui.rowData["顧客名"] = "";
+                            if (!!ui.rowData.pq_gsummary && vue.viewModel.IsBikoOutput == 0) {
+                                ui.rowData["顧客名"] = "";
+                                return { text: "" };
+                            }
                             return ui;
                         },
                     },
@@ -854,7 +856,6 @@ export default {
             console.log("setNavigator", evt, ui);
         },
         print: function() {
-            //TODO:以下作業途中：01250参考
             var vue = this;
 
             //印刷用HTML全体適用CSS
@@ -870,18 +871,6 @@ export default {
                 div.title > h3 {
                     margin-top: 0px;
                     margin-bottom: 0px;
-                }
-                div.header-table {
-                    font-family: "MS UI Gothic";
-                    font-size: 11pt;
-                    font-weight: normal;
-                    margin: 0px;
-                    padding-left: 3px;
-                    padding-right: 3px;
-                    height: 22px;
-                }
-                div.header-table span {
-                    margin-right: 25px;
                 }
                 table {
                     table-layout: fixed;
@@ -915,11 +904,13 @@ export default {
                     margin-bottom: 0px;
                     padding-left: 3px;
                     padding-right: 3px;
-                    height: 22px;
                     width: 100%;
                 }
+                div.header > div {
+                	height: 18px;
+                }
                 div.header > div > div {
-                	margin-bottom: 5px;
+                	padding-bottom: 2px;
                 }
                 div.header span {
                     margin-right: 8px;
@@ -951,20 +942,19 @@ export default {
                 }
             `;
 
-            //TODO：配送日付の曜日
+            //TODO:ページ。受注情報含まない時。
             var weekday = ["日", "月", "火", "水", "木", "金", "土"];
             var target = new Date(moment(vue.viewModel.DeliveryDate, "YYYYMMDD"));
             var youbi = weekday[target.getDay()];
 
-            var headerForByCourse = (header, idx, length) => {
-                //TODO:コース名と曜日
+            var headerForByCourse = (header, idx, length, chunk, chunks) => {
                 return `
                     <div class="title">
-                        <h3>* * * 配送集計表 * * *</h3>
+                        <h3>* * * <span/>配送集計表<span/> * * *</h3>
                     </div>
                     <div class="header">
                         <div>
-                            <div id="a-box" style="margin-left:10px;">
+                            <div id="a-box" style="margin-left:20px;">
                                 ${vue.viewModel.BushoNm}
                             </div>
                             <div id="b-box"></div>
@@ -973,17 +963,17 @@ export default {
                                 <span>${moment().format("YYYY年MM月DD日")}</span>
                                 <span>PAGE</span>
                                 <span>${idx + 1}/</span>
-                                ${length}
+                                ${Math.ceil(header.children.length/22)}
                             </div>
                         </div>
                         <div style="clear: both;">
                             <div id="d-box">
-                                <div style="float: left;">${moment(vue.viewModel.DeliveryDate, "YYYYMMDD").format("YY/MM/DD")}(${youbi})</div>
-                                <div style="float: left; margin-left:10px;">${header.GroupKey.replace(/^\d{3}/,"")}</div>
+                                <div style="float: left;">${moment(vue.viewModel.DeliveryDate, "YYYYMMDD").format("YY/MM/DD")}（${youbi}）</div>
+                                <div style="float: left; margin-left:20px; font-size: 11pt !important;">${header.GroupKey.replace(/^\d{3}/,"")}</div>
 
                             </div>
                             <div id="e-box"></div>
-                            <div id="f-box">
+                            <div id="f-box" style="font-size: 9pt !important;">
                                 株式会社
                                 <span/>ダイヤス食品
                             </div>
@@ -1003,10 +993,9 @@ export default {
             };
 
             var headerForCourseSummary = (header, idx, length) => {
-                //TODO:コース名と曜日
                 return `
                     <div class="title">
-                        <h3>* * * 配送集計表 * * *</h3>
+                        <h3>* * * <span/>配送集計表<span/> * * *</h3>
                     </div>
                     <div class="header">
                         <div>
@@ -1024,10 +1013,10 @@ export default {
                         </div>
                         <div style="clear: both;">
                             <div id="d-box">
-                                <div style="float: left;">${moment(vue.viewModel.DeliveryDate, "YYYYMMDD").format("YY/MM/DD")}(${youbi})</div>
+                                <div style="float: left;">${moment(vue.viewModel.DeliveryDate, "YYYYMMDD").format("YY/MM/DD")}（${youbi}）</div>
                             </div>
                             <div id="e-box"></div>
-                            <div id="f-box">
+                            <div id="f-box" style="font-size: 9pt !important;">
                                 株式会社
                                 <span/>ダイヤス食品
                             </div>
@@ -1046,7 +1035,6 @@ export default {
                 `;
             };
 
-            //TODO:どちらもコース計の行が出ていない
             var styleByCourse =`
                 table.DAI01160Grid1 thead tr th {
                     border-style: solid;
@@ -1077,17 +1065,22 @@ export default {
                     border-bottom-width: 1px;
                 }
                 table.DAI01160Grid1 tr th:nth-child(2) {
-                    width: 20.0%;
-                }
-                table.DAI01160Grid1 tr th:nth-child(3) {
-                    width: 2.5%;
+                    width: 22.0%;
                 }
                 table.DAI01160Grid1 tr th:nth-child(4) {
-                    width: 10.0%;
+                    width: 9.0%;
                 }
+                table.DAI01160Grid1 tr th:nth-child(1) {
+                    width: 3.3%;
+                }
+                table.DAI01160Grid1 tr th:nth-child(3),
+                table.DAI01160Grid1 tr th:nth-child(21),
                 table.DAI01160Grid1 tr th:nth-child(26),
                 table.DAI01160Grid1 tr th:nth-child(27){
-                    width: 2.0%;
+                    width: 2.2%;
+                }
+                table.DAI01160Grid1 tr td:nth-child(4) {
+                    text-align: left;
                 }
                 table.DAI01160Grid1 tbody td {
                     height: 24px;
@@ -1102,10 +1095,6 @@ export default {
                     border-top-width: 0px;
                     border-right-width: 0px;
                     border-bottom-width: 0px;
-                }
-                table.DAI01160Grid1 tr.grand-summary td {
-                    border-style: none;
-                    color: transparent;
                 }
             `;
 
@@ -1138,17 +1127,20 @@ export default {
                     border-right-width: 1px;
                     border-bottom-width: 1px;
                 }
+                table.DAI01160Grid1 tr th:nth-child(1) {
+                    width: 3.3%;
+                }
                 table.DAI01160Grid1 tr th:nth-child(2) {
-                    width: 20.0%;
+                    width: 22.0%;
                 }
                 table.DAI01160Grid1 tr th:nth-child(3) {
-                    width: 2.5%;
+                    width: 2.2%;
                 }
                 table.DAI01160Grid1 tr th:nth-child(15) {
-                    width: 8.0%;
+                    width: 6.5%;
                 }
                 table.DAI01160Grid1 tr th:nth-child(16){
-                    width: 33.0%;
+                    width: 30.0%;
                 }
                 table.DAI01160Grid1 tbody td {
                     height: 25px;
@@ -1163,7 +1155,6 @@ export default {
                     border-right-width: 0px;
                     border-bottom-width: 1px;
                     text-align: right;
-                    padding-right: 10px;
                 }
                 table.DAI01160Grid1 tr.group-summary td:nth-child(3) {
                     border-style: solid;
@@ -1172,10 +1163,7 @@ export default {
                     border-right-width: 0px;
                     border-bottom-width: 1px;
                 }
-                table.DAI01160Grid1 tr.grand-summary td {
-                    border-style: none;
-                    color: transparent;
-                }            `;
+            `;
 
             var styleCourseSummary =`
 				#a-box, #d-box, #g-box {
@@ -1228,7 +1216,7 @@ export default {
                 table.DAI01160Grid1 td:nth-child(1) {
                     padding-left: 15px;
                 }                table.DAI01160Grid1 tbody td {
-                    height: 25px;
+                    height: 27px;
                 }
                 table.DAI01160Grid1 tr.grand-summary td:nth-child(1) {
                     text-align: right;
@@ -1250,6 +1238,7 @@ export default {
                                 vue.viewModel.SummaryKind == 2 ? true : false,
                                 true,
                                 vue.viewModel.SummaryKind == 2 ? false : true,
+                                vue.viewModel.SummaryKind == 2 ? true : false,
                             )
                         )
                 )
