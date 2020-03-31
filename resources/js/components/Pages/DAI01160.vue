@@ -230,6 +230,24 @@ export default {
                         dataIndx: "顧客名", dataType: "string",
                         width: 200, minWidth: 200, maxWidth: 200,
                         fixed: true,
+                        render: ui => {
+                            var vue = this;
+                            if (!!ui.rowData.pq_grandsummary && vue.viewModel.IsBikoOutput == 1) {
+                                //総計行
+                                ui.rowData["顧客名"] = "総計";
+                                return { text: "総計" };
+                            }
+                            if (!!ui.rowData.pq_gsummary && vue.viewModel.IsBikoOutput == 1) {
+                                //小計行
+                                ui.rowData["顧客名"] = "コース計";
+                                return { text: "コース計" };
+                            }
+                            if (!!ui.rowData.pq_gsummary && vue.viewModel.IsBikoOutput == 0) {
+                                ui.rowData["顧客名"] = "";
+                                return { text: "" };
+                            }
+                            return ui;
+                        },
                     },
                     {
                         title: "T",
@@ -269,6 +287,13 @@ export default {
                                 ui.rowData["配送コース名"] = ui.rowData.pq_gid;
                                 return { text: ui.rowData.pq_gid };
                             }
+                            var vue = this;
+                            if (!!ui.rowData.pq_grandsummary && vue.viewModel.SummaryKind == 2) {
+                                //総計行
+                                ui.rowData["配送コース名"] = "合計";
+                                return { text: "合計" };
+                            }
+                            ui.rowData["配送コース名"] = "";
                             return ui;
                         },
                     },
@@ -629,7 +654,7 @@ export default {
                 .forEach(v => {
                     v.hidden = vue.viewModel.SummaryKind == "1" &&
                                vue.viewModel.IsBikoOutput == "1" &&
-                               v.cd2eq0Idx > 10;
+                               v.cd2eq0Idx >= 10;
                 });
 
             //サブ各種CD2=1の列はコース合計 || 備考出力時は非表示
@@ -831,7 +856,6 @@ export default {
             console.log("setNavigator", evt, ui);
         },
         print: function() {
-            //TODO:以下作業途中：01250参考
             var vue = this;
 
             //印刷用HTML全体適用CSS
@@ -847,18 +871,6 @@ export default {
                 div.title > h3 {
                     margin-top: 0px;
                     margin-bottom: 0px;
-                }
-                div.header-table {
-                    font-family: "MS UI Gothic";
-                    font-size: 11pt;
-                    font-weight: normal;
-                    margin: 0px;
-                    padding-left: 3px;
-                    padding-right: 3px;
-                    height: 22px;
-                }
-                div.header-table span {
-                    margin-right: 25px;
                 }
                 table {
                     table-layout: fixed;
@@ -892,11 +904,13 @@ export default {
                     margin-bottom: 0px;
                     padding-left: 3px;
                     padding-right: 3px;
-                    height: 22px;
                     width: 100%;
                 }
+                div.header > div {
+                	height: 18px;
+                }
                 div.header > div > div {
-                	margin-bottom: 5px;
+                	padding-bottom: 2px;
                 }
                 div.header span {
                     margin-right: 8px;
@@ -928,20 +942,19 @@ export default {
                 }
             `;
 
-            //TODO：曜日
+            //TODO:ページ。受注情報含まない時。
             var weekday = ["日", "月", "火", "水", "木", "金", "土"];
             var target = new Date(moment(vue.viewModel.DeliveryDate, "YYYYMMDD"));
             var youbi = weekday[target.getDay()];
 
-            var headerFunc = (chunk, idx, length) => {
-                //TODO:コース名と曜日
+            var headerForByCourse = (header, idx, length, chunk, chunks) => {
                 return `
                     <div class="title">
-                        <h3>* * * 配送集計表 * * *</h3>
+                        <h3>* * * <span/>配送集計表<span/> * * *</h3>
                     </div>
                     <div class="header">
                         <div>
-                            <div id="a-box" style="margin-left:10px;">
+                            <div id="a-box" style="margin-left:20px;">
                                 ${vue.viewModel.BushoNm}
                             </div>
                             <div id="b-box"></div>
@@ -950,17 +963,17 @@ export default {
                                 <span>${moment().format("YYYY年MM月DD日")}</span>
                                 <span>PAGE</span>
                                 <span>${idx + 1}/</span>
-                                ${length}
+                                ${Math.ceil(header.children.length/22)}
                             </div>
                         </div>
                         <div style="clear: both;">
                             <div id="d-box">
-                                <div style="float: left;">${moment(vue.viewModel.DeliveryDate, "YYYYMMDD").format("YY/MM/DD")}(${youbi})</div>
-                                <div style="float: left; margin-left:10px;">そのページのコース名</div>
+                                <div style="float: left;">${moment(vue.viewModel.DeliveryDate, "YYYYMMDD").format("YY/MM/DD")}（${youbi}）</div>
+                                <div style="float: left; margin-left:20px; font-size: 11pt !important;">${header.GroupKey.replace(/^\d{3}/,"")}</div>
 
                             </div>
                             <div id="e-box"></div>
-                            <div id="f-box">
+                            <div id="f-box" style="font-size: 9pt !important;">
                                 株式会社
                                 <span/>ダイヤス食品
                             </div>
@@ -979,7 +992,49 @@ export default {
                 `;
             };
 
-            //TODO:どちらもコース計の行が出ていない
+            var headerForCourseSummary = (header, idx, length) => {
+                return `
+                    <div class="title">
+                        <h3>* * * <span/>配送集計表<span/> * * *</h3>
+                    </div>
+                    <div class="header">
+                        <div>
+                            <div id="a-box">
+                                ${vue.viewModel.BushoNm}
+                            </div>
+                            <div id="b-box"></div>
+                            <div id="c-box">
+                                <span>作成日</span>
+                                <span>${moment().format("YYYY年MM月DD日")}</span>
+                                <span>PAGE</span>
+                                <span>${idx + 1}/</span>
+                                ${length}
+                            </div>
+                        </div>
+                        <div style="clear: both;">
+                            <div id="d-box">
+                                <div style="float: left;">${moment(vue.viewModel.DeliveryDate, "YYYYMMDD").format("YY/MM/DD")}（${youbi}）</div>
+                            </div>
+                            <div id="e-box"></div>
+                            <div id="f-box" style="font-size: 9pt !important;">
+                                株式会社
+                                <span/>ダイヤス食品
+                            </div>
+                        </div>
+                        <div style="clear: both;">
+                            <div id="g-box"></div>
+                            <div id="h-box"></div>
+                            <div id="i-box">
+                                Tel
+                                <span/>0836-32-1113
+                                <span/>Fax
+                                <span/>0836-21-4700
+                            </div>
+                        </div>
+                    </div>
+                `;
+            };
+
             var styleByCourse =`
                 table.DAI01160Grid1 thead tr th {
                     border-style: solid;
@@ -1010,20 +1065,36 @@ export default {
                     border-bottom-width: 1px;
                 }
                 table.DAI01160Grid1 tr th:nth-child(2) {
-                    width: 20.0%;
-                }
-                table.DAI01160Grid1 tr th:nth-child(3) {
-                    width: 2.5%;
+                    width: 22.0%;
                 }
                 table.DAI01160Grid1 tr th:nth-child(4) {
-                    width: 10.0%;
+                    width: 9.0%;
                 }
+                table.DAI01160Grid1 tr th:nth-child(1) {
+                    width: 3.3%;
+                }
+                table.DAI01160Grid1 tr th:nth-child(3),
+                table.DAI01160Grid1 tr th:nth-child(21),
                 table.DAI01160Grid1 tr th:nth-child(26),
                 table.DAI01160Grid1 tr th:nth-child(27){
-                    width: 2.0%;
+                    width: 2.2%;
+                }
+                table.DAI01160Grid1 tr td:nth-child(4) {
+                    text-align: left;
                 }
                 table.DAI01160Grid1 tbody td {
                     height: 24px;
+                }
+                table.DAI01160Grid1 tr.group-summary td:nth-child(-n+3),
+                table.DAI01160Grid1 tr.group-summary td:nth-last-child(-n+6) {
+                    border-style: none;
+                }
+                table.DAI01160Grid1 tr.group-summary td:nth-last-child(7) {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
                 }
             `;
 
@@ -1056,20 +1127,100 @@ export default {
                     border-right-width: 1px;
                     border-bottom-width: 1px;
                 }
+                table.DAI01160Grid1 tr th:nth-child(1) {
+                    width: 3.3%;
+                }
                 table.DAI01160Grid1 tr th:nth-child(2) {
-                    width: 20.0%;
+                    width: 22.0%;
                 }
                 table.DAI01160Grid1 tr th:nth-child(3) {
-                    width: 2.5%;
+                    width: 2.2%;
                 }
                 table.DAI01160Grid1 tr th:nth-child(15) {
-                    width: 8.0%;
+                    width: 6.5%;
                 }
                 table.DAI01160Grid1 tr th:nth-child(16){
-                    width: 33.0%;
+                    width: 30.0%;
                 }
                 table.DAI01160Grid1 tbody td {
                     height: 25px;
+                }
+                table.DAI01160Grid1 tr.group-summary td:nth-child(1) {
+                    border-style: none;
+                }
+                table.DAI01160Grid1 tr.group-summary td:nth-child(2) {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                    text-align: right;
+                }
+                table.DAI01160Grid1 tr.group-summary td:nth-child(3) {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                }
+            `;
+
+            var styleCourseSummary =`
+				#a-box, #d-box, #g-box {
+					float: left;
+					width: 8%
+				}
+				#b-box, #e-box, #h-box {
+					float: left;
+					width: 52%;
+				}
+				table.DAI01160Grid1{
+					width: 90%;
+					margin-left: auto;
+					margin-right: auto;
+				}
+                table.DAI01160Grid1 thead tr th {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI01160Grid1 tr th:last-child {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 1px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI01160Grid1 tr td {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI01160Grid1 tr td:last-child {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 0px;
+                    border-right-width: 1px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI01160Grid1 tr th:nth-child(1) {
+                    width: 35.0%;
+                }
+                table.DAI01160Grid1 tr th:last-child {
+                    width: 8.0%;
+                }
+                table.DAI01160Grid1 td:nth-child(1) {
+                    padding-left: 15px;
+                }                table.DAI01160Grid1 tbody td {
+                    height: 27px;
+                }
+                table.DAI01160Grid1 tr.grand-summary td:nth-child(1) {
+                    text-align: right;
+                    padding-right: 10px;
                 }
             `;
 
@@ -1082,11 +1233,12 @@ export default {
                             vue.DAI01160Grid1.generateHtml(
                                 vue.viewModel.SummaryKind == 2 ? styleCourseSummary :
                                     (vue.viewModel.IsBikoOutput == 1 ? styleByCourseWithBiko : styleByCourse),
-                                headerFunc,
-                                vue.viewModel.SummaryKind == 2 ? 20 : (vue.viewModel.IsBikoOutput == 1 ? 22 : 23),
-                                vue.viewModel.SummaryKind == 2 ? [false, true] : false,
+                                vue.viewModel.SummaryKind == 2 ?　headerForCourseSummary : headerForByCourse,
+                                vue.viewModel.SummaryKind == 2 ? 19 : (vue.viewModel.IsBikoOutput == 1 ? 21 : 22),
+                                vue.viewModel.SummaryKind == 2 ? true : false,
                                 true,
-                                vue.viewModel.SummaryKind == 2 ? [true, false] : [false, true],
+                                vue.viewModel.SummaryKind == 2 ? false : true,
+                                vue.viewModel.SummaryKind == 2 ? true : false,
                             )
                         )
                 )
