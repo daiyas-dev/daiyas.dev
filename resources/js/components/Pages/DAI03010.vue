@@ -49,7 +49,8 @@
                 <label>最終処理日</label>
             </div>
             <div class="col-md-1">
-                <label>2019年07月</label>
+                <input class="form-control p-0 text-center label-blue" style="width: 120px;" type="text" :value=viewModel.LastUpdateDate readonly tabindex="-1">
+
             </div>
         </div>
         <div class="row">
@@ -147,6 +148,7 @@ export default {
                 BushoNm: null,
                 TargetDate: null,
                 Customer: null,
+                LastUpdateDate: null,
             },
             DAI03010Grid1: null,
             grid1Options: {
@@ -157,8 +159,9 @@ export default {
                 fillHandle: "",
                 numberCell: { show: true, title: "No.", resizable: false, },
                 autoRow: false,
+                rowHtHead:50,
                 rowHt: 35,
-                freezeCols: 7,
+                freezeCols: 5,
                 editable: false,
                 columnTemplate: {
                     editable: false,
@@ -184,114 +187,87 @@ export default {
                 formulas: [
                 ],
                 colModel: [
-                     {
-                        title: "",
-                        dataIndx: "集計対象",
-                        type: "checkbox",
-                        cbId: "IncludesSummary",
-                        width: 50, minWidth: 50, maxWidth: 50,
-                        align: "center",
-                        editable: true,
-                        editor: false,
-                        hiddenOnExport: true,
-                        render: ui => {
-                            if (ui.rowData.summaryRow) {
-                                return "";
-                            }
-                        },
-                    },
-                    {
-                        dataIndx: "IncludesSummary",
-                        dataType: "bool",
-                        align: "center",
-                        editable: true,
-                        cb: {
-                            header: true,
-                        },
-                        hidden: true,
-                    },
                    {
-                        title: "当月集計済",
+                        title: "集計済",
                         dataIndx: "当月集計済", dataType: "string",
                         width: 60, minWidth: 60, maxWidth: 60,
-                        hidden: false,
+                        align: "center",
                     },
                     {
-                        title: "部署ＣＤ",
+                        title: "部署<br/>ＣＤ",
                         dataIndx: "部署ＣＤ", dataType: "string",
                         width: 60, minWidth: 60, maxWidth: 60,
-                        hidden: false,
                     },
                     {
                         title: "部署名",
                         dataIndx: "部署名", dataType: "string",
-                        width: 60, minWidth: 60, maxWidth: 60,
+                        width: 120, minWidth: 120, maxWidth: 120,
                     },
                     {
-                        title: "請求先ＣＤ",
+                        title: "請求先<br/>ＣＤ",
                         dataIndx: "請求先ＣＤ", dataType: "string",
                         width: 60, minWidth: 60, maxWidth: 60,
-                        hidden: false,
                     },
                     {
                         title: "請求先名",
                         dataIndx: "請求先名", dataType: "string",
-                        width: 60, minWidth: 60, maxWidth: 60,
+                        width: 120, minWidth: 120,
+                        tooltip: true,
                     },
                     {
                         title: "前月残高",
                         dataIndx: "前月残高", dataType: "integer", format: "#,###",
-                        width: 75, minWidth: 75, maxWidth: 75,
+                        width: 85, minWidth: 85, maxWidth: 85,
                     },
                     {
-                        title: "今月入金額",
+                        title: "今月<br/>入金額",
                         dataIndx: "今月入金額", dataType: "integer", format: "#,###",
-                        width: 75, minWidth: 75, maxWidth: 75,
+                        width: 85, minWidth: 85, maxWidth: 85,
                     },
                     {
-                        title: "差引繰越額",
+                        title: "差引<br/>繰越額",
                         dataIndx: "差引繰越額", dataType: "integer", format: "#,###",
-                        width: 75, minWidth: 75, maxWidth: 75,
+                        width: 85, minWidth: 85, maxWidth: 85,
                     },
                     {
-                        title: "今月売上額",
+                        title: "今月<br/>売上額",
                         dataIndx: "今月売上額", dataType: "integer", format: "#,###",
-                        width: 75, minWidth: 75, maxWidth: 75,
+                        width: 85, minWidth: 85, maxWidth: 85,
                     },
                     {
-                        title: "今月残高",
+                        title: "今月<br/>残高",
                         dataIndx: "今月残高", dataType: "integer", format: "#,###",
-                        width: 75, minWidth: 75, maxWidth: 75,
+                        width: 85, minWidth: 85, maxWidth: 85,
                     },
                     {
-                        title: "予備金額１",
+                        title: "予備<br/>金額１",
                         dataIndx: "予備金額１", dataType: "integer", format: "#,###",
-                        width: 75, minWidth: 75, maxWidth: 75,
+                        width: 60, minWidth: 60, maxWidth: 60,
                     },
                     {
-                        title: "予備金額２",
+                        title: "予備<br/>金額２",
                         dataIndx: "予備金額２", dataType: "integer", format: "#,###",
-                        width: 75, minWidth: 75, maxWidth: 75,
+                        width: 60, minWidth: 60, maxWidth: 60,
                     },
                     {
-                        title: "予備ＣＤ１",
+                        title: "予備<br/>ＣＤ１",
                         dataIndx: "予備ＣＤ１", dataType: "string",
-                        width: 75, minWidth: 75, maxWidth: 75,
+                        width: 60, minWidth: 60, maxWidth: 60,
                     },
                     {
-                        title: "予備ＣＤ２",
+                        title: "予備<br/>ＣＤ２",
                         dataIndx: "予備ＣＤ２", dataType: "string",
-                        width: 75, minWidth: 75, maxWidth: 75,
+                        width: 60, minWidth: 60, maxWidth: 60,
                     },
                     {
-                        title: "修正担当者ＣＤ",
+                        title: "修正<br/>担当者<br/>ＣＤ",
                         dataIndx: "修正担当者ＣＤ", dataType: "string",
-                        width: 75, minWidth: 75, maxWidth: 75,
+                        width: 60, minWidth: 60, maxWidth: 60,
                     },
                     {
-                        title: "修正担当者名",
+                        title: "修正<br/>担当者名",
                         dataIndx: "修正担当者名", dataType: "string",
-                        width: 75, minWidth: 75, maxWidth: 75,
+                        width: 100, minWidth: 100, maxWidth: 100,
                     },
                 ],
             },
@@ -338,6 +314,10 @@ export default {
                             {
                                 uri: "/DAI03010/Save",
                                 params: {
+                                    BushoCd:vue.viewModel.BushoCd,
+                                    TargetDate:vue.viewModel.TargetDate,
+                                    ShoriKbn: vue.viewModel.ShoriKbn,
+                                    ShuseiTantoCd:vue.getLoginInfo()["uid"],
                                     SaveList: SaveList,
                                 },
                                 optional: vue.searchParams,
@@ -347,6 +327,8 @@ export default {
                                 done: {
                                     isShow: false,
                                     callback: (gridVue, grid, res)=>{
+                                        this.showLastUpdateDate();
+
                                         /*
                                         var compare = vue.mergeData(res.edited);
                                         var d = diff(vue.DAI01100Grid2.getPlainPData(), compare);
@@ -464,10 +446,29 @@ export default {
                 `;
         },
         onBushoChanged: function(code, entities) {
+            this.showLastUpdateDate();
+        },
+
+        showLastUpdateDate: function(){
             var vue = this;
 
-            //検索条件変更
-            vue.conditionChanged();
+            axios.post("/DAI03010/LastUpdateDateSearch", { BushoCd: vue.viewModel.BushoCd })
+                .then(response => {
+                    var res = _.cloneDeep(response.data);
+                    vue.viewModel.LastUpdateDate=moment(res.日付).format("YYYY年MM月");
+                    //検索条件変更
+                    vue.conditionChanged();
+                })
+            .catch(error => {
+                console.log(error);
+                if (!!grid) grid.hideLoading();
+
+                //失敗ダイアログ
+                $.dialogErr({
+                    title: "各種テーブル検索失敗",
+                    contents: "各種テーブル検索に失敗しました" + "<br/>" + error.message,
+                });
+            });
         },
         onDateChanged: function(code, entity) {
             var vue = this;
@@ -509,7 +510,7 @@ export default {
                 crules.push({ condition: "equal", value: vue.viewModel.CustomerCd});
             }
             if (crules.length) {
-                rules.push({ dataIndx: "得意先ＣＤ", mode: "AND", crules: crules });
+                rules.push({ dataIndx: "請求先ＣＤ", mode: "AND", crules: crules });
             }
 
             grid.filter({ oper: "replace", mode: "AND", rules: rules });

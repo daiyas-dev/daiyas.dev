@@ -12,6 +12,48 @@ use PDO;
 class DAI03010Controller extends Controller
 {
     /**
+     *  LastUpdateDateSearch
+     */
+    public function LastUpdateDateSearch($vm)
+    {
+        $BushoCd = $vm->BushoCd;
+        if($BushoCd == null)
+        {
+            $sql = "
+                SELECT TOP 1 日付
+                FROM 売掛データ
+                WHERE 請求先ＣＤ >= 0
+                AND 請求先ＣＤ <= 9999999
+                AND 日付 =
+                    ( SELECT MAX(DAMMY.日付) FROM 売掛データ DAMMY
+                        WHERE  DAMMY.請求先ＣＤ >= 0
+                        AND    DAMMY.請求先ＣＤ <= 9999999
+                    )
+            ";
+        }
+        else
+        {
+            $sql = "
+                SELECT TOP 1 日付
+                FROM 売掛データ
+                WHERE 請求先ＣＤ >= 0
+                AND 請求先ＣＤ <= 9999999
+                AND 日付 =
+                    ( SELECT MAX(DAMMY.日付) FROM 売掛データ DAMMY
+                        WHERE  DAMMY.請求先ＣＤ >= 0
+                        AND    DAMMY.請求先ＣＤ <= 9999999
+                        AND DAMMY.部署ＣＤ = $BushoCd
+                    )
+                AND 部署ＣＤ = $BushoCd
+            ";
+        }
+
+        $DataList = DB::selectOne($sql);
+
+        return response()->json($DataList);
+    }
+
+    /**
      * Search
      */
     public function Search($vm)
@@ -147,8 +189,8 @@ class DAI03010Controller extends Controller
             ,CASE WHEN WITH_当月売掛データ.日付 IS NULL THEN ISNULL(WITH_前回売掛データ.今月残高,0)-WITH_請求得意先別売上入金サマリ.今月入金額+WITH_請求得意先別売上入金サマリ.今月売上額 ELSE WITH_当月売掛データ.今月残高 END AS 今月残高
             ,CASE WHEN WITH_当月売掛データ.日付 IS NULL THEN 0 ELSE WITH_当月売掛データ.予備金額１ END AS 予備金額１
             ,CASE WHEN WITH_当月売掛データ.日付 IS NULL THEN 0 ELSE WITH_当月売掛データ.予備金額２ END AS 予備金額２
-            ,CASE WHEN WITH_当月売掛データ.日付 IS NULL THEN 0 ELSE WITH_当月売掛データ.差引繰越額 END AS 予備ＣＤ１
-            ,CASE WHEN WITH_当月売掛データ.日付 IS NULL THEN 0 ELSE WITH_当月売掛データ.差引繰越額 END AS 予備ＣＤ２
+            ,CASE WHEN WITH_当月売掛データ.日付 IS NULL THEN 0 ELSE WITH_当月売掛データ.予備ＣＤ１ END AS 予備ＣＤ１
+            ,CASE WHEN WITH_当月売掛データ.日付 IS NULL THEN 0 ELSE WITH_当月売掛データ.予備ＣＤ２ END AS 予備ＣＤ２
             ,CASE WHEN WITH_当月売掛データ.日付 IS NULL THEN NULL ELSE WITH_当月売掛データ.修正担当者ＣＤ END AS 修正担当者ＣＤ
             ,CASE WHEN WITH_当月売掛データ.日付 IS NULL THEN NULL ELSE 修正担当者.担当者名 END AS 修正担当者名
             ,CASE WHEN WITH_当月売掛データ.日付 IS NULL THEN NULL ELSE WITH_当月売掛データ.修正日 END AS 修正日
@@ -184,26 +226,40 @@ class DAI03010Controller extends Controller
             $params = $request->all();
 
             $date = Carbon::now()->format('Y-m-d H:i:s');
+            $BushoCd=$params['BushoCd'];
+            $ShoriKbn = $params['ShoriKbn'];
+            $ShuseiTantoCd=$params['ShuseiTantoCd'];
             $SaveList = $params['SaveList'];
-            foreach($SaveList as $SaveItem)
-            {
-                $rec['日付'] = $date;
-                $rec['部署ＣＤ'] = $SaveItem['部署ＣＤ'];
-                $rec['請求先ＣＤ'] = $SaveItem['請求先ＣＤ'];
-                $rec['前月残高'] = $SaveItem['前月残高'];
-                $rec['今月入金額'] = $SaveItem['今月入金額'];
-                $rec['差引繰越額'] = $SaveItem['差引繰越額'];
-                $rec['今月売上額'] = $SaveItem['今月売上額'];
-                $rec['今月残高'] = $SaveItem['今月残高'];
-                $rec['予備金額１'] = $SaveItem['予備金額１'];
-                $rec['予備金額２'] = $SaveItem['予備金額２'];
-                $rec['予備ＣＤ１'] = $SaveItem['予備ＣＤ１'];
-                $rec['予備ＣＤ２'] = $SaveItem['予備ＣＤ２'];
-                $rec['修正担当者ＣＤ'] = $SaveItem['修正担当者ＣＤ'];
-                $rec['修正日'] = $date;
-                売掛データ::insert($rec);
-            }
+            $TargetDate=$params['TargetDate'];
+            $TargetDate=preg_replace('/年|月/','/',$TargetDate);
+            $TargetDate.='01';
 
+            売掛データ::query()
+            ->where('部署ＣＤ', $BushoCd)
+            ->where('日付', $TargetDate)
+            ->delete();
+
+            if($ShoriKbn=='1')//処理区分が集計処理ならInsert処理を実施
+            {
+                foreach($SaveList as $SaveItem)
+                {
+                    $rec['日付'] = $TargetDate;
+                    $rec['部署ＣＤ'] = $SaveItem['部署ＣＤ'];
+                    $rec['請求先ＣＤ'] = $SaveItem['請求先ＣＤ'];
+                    $rec['前月残高'] = $SaveItem['前月残高'];
+                    $rec['今月入金額'] = $SaveItem['今月入金額'];
+                    $rec['差引繰越額'] = $SaveItem['差引繰越額'];
+                    $rec['今月売上額'] = $SaveItem['今月売上額'];
+                    $rec['今月残高'] = $SaveItem['今月残高'];
+                    $rec['予備金額１'] = $SaveItem['予備金額１'];
+                    $rec['予備金額２'] = $SaveItem['予備金額２'];
+                    $rec['予備ＣＤ１'] = $SaveItem['予備ＣＤ１'];
+                    $rec['予備ＣＤ２'] = $SaveItem['予備ＣＤ２'];
+                    $rec['修正担当者ＣＤ'] = $ShuseiTantoCd;
+                    $rec['修正日'] = $date;
+                    売掛データ::insert($rec);
+                }
+            }
             DB::commit();
         } catch (Exception $exception) {
             DB::rollBack();
@@ -212,6 +268,8 @@ class DAI03010Controller extends Controller
 
         return response()->json([
             'result' => true,
+            'lastupdatedate'=>$this->LastUpdateDateSearch($request),
+            'edited' => $this->Search($request),
         ]);
     }
 }
