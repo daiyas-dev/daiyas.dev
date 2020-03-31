@@ -316,6 +316,8 @@ export default {
             grid.filter({ oper: "replace", mode: "AND", rules: rules });
         },
         onAfterSearchFunc: function (vue, grid, res) {
+            console.log("1010", res)
+
             //集計単位取得
             var items = _(res
                 .filter(v => v.CHU注文数 || v.見込数)
@@ -355,10 +357,10 @@ export default {
             grid.options.colModel = grid.options.colModel
                 .concat(
                     _.range(16 - grid.options.colModel.filter(c => !c.hidden).length)
-                        .map(v => {
+                        .map((v, i) => {
                             return {
                                 title: "",
-                                dataIndx: "empty",
+                                dataIndx: "empty" + i,
                                 dataType: "integer",
                                 format: "#,###",
                                 width: 60, maxWidth: 60, minWidth: 60,

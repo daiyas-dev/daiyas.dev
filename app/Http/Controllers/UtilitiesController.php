@@ -827,7 +827,7 @@ ORDER BY
 
         $TargetDate = $request->targetDate ?? $request->TargetDate;
 
-        $CourseKbn = $request->courseKbn ?? $request->CourseKbn ?? (!!$TargetDate ? $this->SearchCourseKbnFromDate($request)->コース区分 : null);
+        $CourseKbn = ($request->courseKbn ?? $request->CourseKbn) ?? $request->CourseKbn ?? (!!$TargetDate ? $this->SearchCourseKbnFromDate($request)->コース区分 : null);
         $WhereCourseKbn = !!$CourseKbn ? " AND MC.コース区分=$CourseKbn" : "";
 
         $KeyWord = $request->KeyWord;
