@@ -530,7 +530,7 @@ export default {
             vue.footerButtons.push(
                 { visible: "true", value: "検索", id: "DAI02020Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
-                        vue.DAI02020Grid1.searchData(vue.searchParams);
+                        vue.conditionChanged(true);
                     }
                 },
                 {visible: "false"},
@@ -693,7 +693,7 @@ export default {
             //フィルタ変更ハンドラ
             vue.filterChanged();
         },
-        conditionChanged: function(callback) {
+        conditionChanged: function(force) {
             var vue = this;
             var grid = vue.DAI02020Grid1;
 
@@ -706,12 +706,11 @@ export default {
 
             if (!!vue.viewModel.BushoCd && !!vue.viewModel.CourseCd && vue.viewModel.BushoCd != vue.$refs.PopupSelect_Course.selectRow.部署ＣＤ) return;
 
-            if (!!grid.prevPostData && _.isEqual(grid.prevPostData, vue.searchParams)) {
-                console.log("same condition", _.isEqual(grid.prevPostData, vue.searchParams));
+            if (!force && !!grid.prevPostData && _.isEqual(grid.prevPostData, vue.searchParams)) {
                 return;
             }
 
-            grid.searchData(vue.searchParams, false, null, callback);
+            grid.searchData(vue.searchParams, false, null);
         },
         filterChanged: function() {
             var vue = this;

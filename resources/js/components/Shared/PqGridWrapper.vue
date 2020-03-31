@@ -2545,7 +2545,7 @@ export default {
                             .append($("<style>").text(styles || ""))
                             .append(
                                 chunks.map((chunk, i) => {
-                                    var page = $("<div>").css("page-break-before", "always")
+                                    var page = $("<div>").css("break-before", "page")
                                         .append(!!header ? (_.isFunction(header) ? header(headers[i], i, chunks.length, chunk, chunks) : header) : "")
                                         .append(
                                             $("<table>").addClass(grid.vue.id)
@@ -2562,13 +2562,13 @@ export default {
                     return ret;
                 };
 
-                this.grid.generateHtmlFromJson = function(target, styles, header, maxRowsPerPage, keyArray, colArray, bodyWrapper, headerWrapper) {
+                this.grid.generateHtmlFromJson = function(target, styles, header, maxRowsPerPage, isShowheader, keyArray, colArray, bodyWrapper, headerWrapper) {
                     var grid = this;
                     var json = target;
                     if (!_.isArray(json)) json = [json];
 
                     var keys =keyArray || _.keys(json[0]);
-                    var headers = $("<tr>").append(keys.map((k, i) => $("<th>").text(!!colArray ? colArray[i] : k))).get()
+                    var headers = !!isShowheader ? $("<tr>").append(keys.map((k, i) => $("<th>").text(!!colArray ? colArray[i] : k))).get() : [];
                     var bodies = json.map(v => $("<tr>").append(keys.map(k => $("<td>").text(v[k]))).get(0));
                     var ret = grid.restructTable(json, bodies, headers, styles, header, maxRowsPerPage, null, null, null, null, bodyWrapper, headerWrapper);
                     console.log("generateHtmlFromJson", ret.prop("outerHTML"));

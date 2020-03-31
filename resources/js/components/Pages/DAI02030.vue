@@ -1317,6 +1317,7 @@ export default {
                                         `,
                                         headerFunc,
                                         25,
+                                        true,
                                         [
                                             "日付",
                                             "食事区分名",

@@ -17,13 +17,11 @@ class DAI01010Controller extends Controller
     {
         $BushoCd = $vm->BushoCd;
         $CourseKbn = $vm->CourseKbn;
-        $CourseStart = $vm->CourseStart ?? 0;
-        $CourseEnd = $vm->CourseEnd ?? 9999;
         $DeliveryDate = $vm->DeliveryDate;
         //$DeliveryDate = Carbon::createFromFormat('Y年m月d日', $vm->DeliveryDate)->format('Ymd') ;
 
         //$WhereBusho = $BushoCd ? ("COU.部署ＣＤ = " . $BushoCd . " AND MOB_YOSOKU.部署CD IS NOT NULL AND") : "";
-        $WhereBusho = $BushoCd ? ("COU.部署ＣＤ = " . $BushoCd . " AND") : "";
+        $WhereBusho = $BushoCd ? "COU.部署ＣＤ = $BushoCd " : "";
         $WhereCourse = $CourseKbn ? ("AND COU.コース区分 = " . $CourseKbn) : "";
 
 
@@ -32,13 +30,13 @@ WITH WITH_注文データ AS (
 SELECT * FROM 注文データ
 		WHERE 注文区分 = 0
 		    AND 部署CD = $BushoCd
-		    AND CONVERT(varchar, 注文日付, 112) = $DeliveryDate
-		    AND CONVERT(varchar, 配送日, 112)   = $DeliveryDate
+		    AND 注文日付 = '$DeliveryDate'
+		    AND 配送日 = '$DeliveryDate'
 )
 ,WITH_モバイル_予測入力 AS (
 SELECT * FROM モバイル_予測入力
 		WHERE 部署CD = $BushoCd
-		    AND CONVERT(varchar, 日付, 112) = $DeliveryDate
+		    AND 日付 = '$DeliveryDate'
 )
 
 ,WITH_注文予測 AS (
@@ -148,8 +146,6 @@ FROM
 
 WHERE
     $WhereBusho
-    COU.コースＣＤ >= $CourseStart
-    AND COU.コースＣＤ <= $CourseEnd
     $WhereCourse
 )
 
