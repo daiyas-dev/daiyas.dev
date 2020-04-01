@@ -2481,10 +2481,10 @@ export default {
                                     if (_.isFunction(conf)) {
                                         return conf(r, p, a);
                                     } else {
-                                        return conf;
+                                        return conf && (!headers.length || !!a.length);
                                     }
                                 } else {
-                                    return isGroupPageBreak;
+                                    return isGroupPageBreak && (!headers.length || !!a.length);
                                 }
                             } else {
                                 return false;
