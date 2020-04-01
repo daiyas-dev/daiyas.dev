@@ -1053,10 +1053,10 @@ export default {
                     ? (header.pq_level == 0 ? (!!header.children.length ? header.children[0].コース : "") : header.コース).split(":")
                     : []
                     ;
-                var CourseCd = GroupInfo[0] || "";
-                var CourseNm = GroupInfo[1] || "";
-                var TantoCd = GroupInfo[2] || "";
-                var TantoNm = GroupInfo[3] || "";
+                var CourseCd = vue.viewModel.PrintOrder == "0" ? "" : (GroupInfo[0] || "");
+                var CourseNm = vue.viewModel.PrintOrder == "0" ? "" : (GroupInfo[1] || "");
+                var TantoCd = vue.viewModel.PrintOrder == "0" ? "" : (GroupInfo[2] || "");
+                var TantoNm = vue.viewModel.PrintOrder == "0" ? "" : (GroupInfo[3] || "");
 
                 return `
                     <table class="header-table" style="border-width: 0px">
