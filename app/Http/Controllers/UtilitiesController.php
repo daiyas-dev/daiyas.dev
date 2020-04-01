@@ -18,6 +18,7 @@ use App\Models\金融機関支店名称;
 use App\Models\消費税率マスタ;
 use App\Models\得意先履歴テーブル;
 use App\Models\得意先単価マスタ;
+use App\Models\請求データ;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
