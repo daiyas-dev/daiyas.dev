@@ -327,7 +327,7 @@ export default {
                 //         vue.DAI01160Grid1.searchData(params, false, null, () => vue.DAI01160Grid1.print(vue.setPrintOptions));
                 //     }
                 // },
-                { visible: "true", value: "印刷", id: "DAI01020Grid1_Print", disabled: false, shortcut: "F6",
+                { visible: "true", value: "印刷", id: "DAI01160Grid1_Print", disabled: false, shortcut: "F6",
                     onClick: function () {
                         vue.print();
                     }
@@ -336,7 +336,9 @@ export default {
         },
         mountedFunc: function(vue) {
             //配送日付の初期値 -> 当日
-            vue.viewModel.DeliveryDate = moment();
+            // vue.viewModel.DeliveryDate = moment();
+            //TODO:確認用削除予定
+            vue.viewModel.DeliveryDate = moment("20190904");
         },
         setPrintOptions: function(grid) {
             var vue = this;
@@ -468,10 +470,20 @@ export default {
                                             if (ui.rowData[ui.dataIndx] * 1 == 0) {
                                                 return { text: "" };
                                             }
+                                            if (vue.viewModel.IsIncludeJuchu == 0) {
+                                                return { text: "" };
+                                            }
+                                            //TODO:空列の合計は0表示
+                                            if (!!ui.rowData.pq_gsummary) {
+                                                if (!ui.cellData) {
+                                                    return { text: "0" };
+                                                }
+                                            }
+
                                             return ui;
                                         },
                                         summary: {
-                                            type: "TotalInt",
+                                            type: "TotalInt"
                                         },
                                         cd2eq0Idx: i,
                                         custom: true,
@@ -516,6 +528,10 @@ export default {
                                     if (ui.rowData[ui.dataIndx] * 1 == 0) {
                                         return { text: "" };
                                     }
+                                    if (vue.viewModel.IsIncludeJuchu == 0) {
+                                        return { text: "" };
+                                    }
+
                                     return ui;
                                 },
                                 summary: {
@@ -943,9 +959,6 @@ export default {
             `;
 
             //TODO:ページ。受注情報含まない時。
-            var weekday = ["日", "月", "火", "水", "木", "金", "土"];
-            var target = new Date(moment(vue.viewModel.DeliveryDate, "YYYYMMDD"));
-            var youbi = weekday[target.getDay()];
 
             var headerForByCourse = (header, idx, length, chunk, chunks) => {
                 return `
@@ -968,7 +981,7 @@ export default {
                         </div>
                         <div style="clear: both;">
                             <div id="d-box">
-                                <div style="float: left;">${moment(vue.viewModel.DeliveryDate, "YYYYMMDD").format("YY/MM/DD")}（${youbi}）</div>
+                                <div style="float: left;">${moment(vue.viewModel.DeliveryDate, "YYYYMMDD").format("YY/MM/DD(ddd)")}</div>
                                 <div style="float: left; margin-left:20px; font-size: 11pt !important;">${header.GroupKey.replace(/^\d{3}/,"")}</div>
 
                             </div>
@@ -1224,7 +1237,6 @@ export default {
                 }
             `;
 
-            //TODO:参考：DAI01180 複数のCSS
             var printable = $("<html>")
                 .append($("<head>").append($("<style>").text(globalStyles)))
                 .append(
