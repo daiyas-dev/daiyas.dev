@@ -434,19 +434,24 @@ export default {
                         vue.conditionChanged();
                     }
                 },
+                {visible: "false"},
+                {visible: "false"},
+                {visible: "false"},
+                {visible: "false"},
+                { visible: "true", value: "明細", id: "DAI03020Grid1_Detail", disabled: true, shortcut: "Enter",
+                    onClick: function () {
+                        vue.showDetail();
+                    }
+                },
+                {visible: "false"},
                 { visible: "true", value: "CSV", id: "DAI03020Grid1_CSV", disabled: true, shortcut: "F10",
                     onClick: function () {
                         vue.DAI03020Grid1.vue.exportData("csv", false, true);
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI03020Grid1_Print", disabled: true, shortcut: "F6",
+                { visible: "true", value: "印刷", id: "DAI03020Grid1_Print", disabled: true, shortcut: "F11",
                     onClick: function () {
                         vue.print();
-                    }
-                },
-                { visible: "true", value: "明細", id: "DAI03020Grid1_Detail", disabled: true, shortcut: "Enter",
-                    onClick: function () {
-                        vue.showDetail();
                     }
                 },
             );
