@@ -309,6 +309,14 @@ export default {
                         format: "yy/mm/dd",
                         align: "center",
                         width: 100, minWidth: 100, maxWidth: 100,
+                        render: ui => {
+                            var grid = vue.DAI03021GridMeisai;
+
+                            if (ui.rowIndx > 0 && grid.pdata[ui.rowIndx - 1].伝票日付 == ui.rowData.伝票日付) {
+                                return { text: "" };
+                            }
+                            return ui;
+                        },
                     },
                     {
                         title: "伝票No",
