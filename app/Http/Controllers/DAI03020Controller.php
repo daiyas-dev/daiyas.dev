@@ -1,4 +1,6 @@
 <?php
+//TODO:部署未指定でのSQL実行に時間がかかる。(部署別1分、コース別1.5分)
+//TODO:php.iniのmax_execution_timeの値(初期値30)を調整してタイムアウトしないようにする。
 
 namespace App\Http\Controllers;
 
@@ -6,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
 use Illuminate\Support\Carbon;
-//use PDO;
+use PDO;
 
 class DAI03020Controller extends Controller
 {
@@ -17,8 +19,7 @@ class DAI03020Controller extends Controller
     {
         $PrintOrder = $vm->PrintOrder;
         $sql = $PrintOrder==='0' ? $this->SearchSQLTokui($vm) : $this->SearchSQLCourse($vm);
-        $DataList = DB::select($sql);
-        /*
+        //$DataList = DB::select($sql);
         $dsn = 'sqlsrv:server=localhost;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
@@ -27,7 +28,6 @@ class DAI03020Controller extends Controller
         $stmt = $pdo->query($sql);
         $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $pdo = null;
-        */
         return response()->json($DataList);
     }
 

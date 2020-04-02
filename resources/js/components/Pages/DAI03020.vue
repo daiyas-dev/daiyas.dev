@@ -288,7 +288,7 @@ export default {
                                 return { text: text };
                             }
                             if (!!ui.Export) {
-                                return { text: "<span style=\"text-align:right;\">" + ui.rowData.請求先ＣＤ + "</span><span style=\"padding-left:5px;\">" + ui.rowData.得意先名 + "</span>"};
+                                return { text: ui.rowData.請求先ＣＤ + " " + ui.rowData.得意先名};
                             }
                         }
                     },
@@ -420,6 +420,9 @@ export default {
                         }
                     },
                 ],
+                rowDblClick: function (event, ui) {
+                    vue.showDetail(ui.rowData);
+                },
             },
         });
     },
@@ -431,6 +434,11 @@ export default {
                         vue.conditionChanged();
                     }
                 },
+                { visible: "true", value: "CSV", id: "DAI03020Grid1_CSV", disabled: false, shortcut: "F10",
+                    onClick: function () {
+                        vue.DAI03020Grid1.vue.exportData("csv", false, true);
+                    }
+                },
                 { visible: "true", value: "印刷", id: "DAI03020Grid1_Printout", disabled: false, shortcut: "F6",
                     onClick: function () {
                         vue.print();
@@ -438,7 +446,7 @@ export default {
                 },
                 { visible: "true", value: "明細", id: "DAI03020Grid1_Detail", disabled: false, shortcut: "Enter",
                     onClick: function () {
-                        vue.showDetail(false);
+                        vue.showDetail();
                     }
                 },
             );
@@ -687,31 +695,31 @@ export default {
             var vue = this;
             var grid = vue.DAI03020Grid1;
 
-            var params = null;
-            if (!isNew) {
-                var data;
-                if (!!rowData) {
-                    data = _.cloneDeep(rowData);
-                } else {
-                    var selection = grid.SelectRow().getSelection();
+            var data;
+            if (!!rowData) {
+                data = _.cloneDeep(rowData);
+            } else {
+                var selection = grid.SelectRow().getSelection();
 
-                    var rows = grid.SelectRow().getSelection();
-                    if (rows.length != 1) return;
+                var rows = grid.SelectRow().getSelection();
+                if (rows.length != 1) return;
 
-                    data = _.cloneDeep(rows[0].rowData);
-                }
-
-                var params = {
-                    BushoCd: vue.viewModel.BushoCd,
-                    BushoNm: vue.viewModel.BushoNm,
-                    TargetDate: vue.viewModel.DeliveryDate,
-                    CourseKbn: vue.viewModel.CourseKbn,
-                    CourseCd: vue.viewModel.CourseCd,
-                    CourseNm: vue.viewModel.CourseNm,
-                    CustomerCd: data.得意先ＣＤ,
-                    CustomerIndex: data.CustomerIndex,
-                };
+                data = _.cloneDeep(rows[0].rowData);
             }
+            var TargetDate=vue.viewModel.TargetDate + "01日";
+            var params = {
+                BushoCd: vue.viewModel.BushoCd,
+                BushoNm: vue.viewModel.BushoNm,
+                CustomerCd: data.請求先ＣＤ,
+                CustomerNm: data.得意先名,
+                TargetDate: TargetDate,
+                DateStart: TargetDate,
+                DateEnd: moment(TargetDate,"YYYY年MM月DD日").endOf('month').format("YYYY年MM月DD日"),
+                //SimeDate: data.締日１,
+                CourseCd: data.コースＣＤ,
+                CourseNm: data.コース名,
+                //CourseKbn: data.コース区分,
+            };
 
             PageDialog.show({
                 pgId: "DAI03021",
@@ -719,8 +727,8 @@ export default {
                 isModal: true,
                 isChild: true,
                 reuse: false,
-                width: 1000,
-                height: 600,
+                width: 900,
+                height: 725,
             });
         },
         print: function() {
