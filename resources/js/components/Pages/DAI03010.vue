@@ -281,12 +281,9 @@ export default {
                         vue.conditionChanged();
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI03010Grid1_Printout", disabled: false, shortcut: "F6",
-                    onClick: function () {
-                        vue.print();
-                    }
-                },
-                { visible: "true", value: "登録", id: "DAI03010Grid1_Update", disabled: false,shortcut: "F9",
+                {visible: "false"},
+                {visible: "false"},
+                { visible: "true", value: "登録", id: "DAI03010Grid1_Update", disabled: true,shortcut: "F9",
                     onClick: function () {
                         var grid = vue.DAI03010Grid1;
 
@@ -327,41 +324,19 @@ export default {
                                 done: {
                                     isShow: false,
                                     callback: (gridVue, grid, res)=>{
-                                        this.showLastUpdateDate();
-
-                                        /*
-                                        var compare = vue.mergeData(res.edited);
-                                        var d = diff(vue.DAI01100Grid2.getPlainPData(), compare);
-
-                                        _.forIn(d, (v, k) => {
-                                            var r = _.omitBy(v, (vv, kk) => vv == undefined);
-                                            if (_.isEmpty(r)) {
-                                                delete d[k];
-                                            } else {
-                                                d[k] = r;
-                                            }
-                                        })
-
-                                        if (_.isEmpty(d)) {
-                                            grid2.commit();
-                                        } else {
-                                            if (res.skipped) {
-                                                $.dialogInfo({
-                                                    title: "登録チェック",
-                                                    contents: "他で変更されたデータがあります。",
-                                                });
-                                            }
-
-                                            grid2.blinkDiff(compare, true);
-                                        }
-                                        */
-                                        return false;
                                     },
                                 },
                             }
                         );
                     }
-                }
+                },
+                {visible: "false"},
+                {visible: "false"},
+                { visible: "true", value: "印刷", id: "DAI03010Grid1_Print", disabled: true, shortcut: "F11",
+                    onClick: function () {
+                        vue.print();
+                    }
+                },
             );
         },
         mountedFunc: function(vue) {
@@ -446,18 +421,19 @@ export default {
                 `;
         },
         onBushoChanged: function(code, entities) {
-            this.showLastUpdateDate();
+            var vue = this;
+            //検索条件変更
+            vue.conditionChanged();
         },
 
         showLastUpdateDate: function(){
             var vue = this;
-
-            axios.post("/DAI03010/LastUpdateDateSearch", { BushoCd: vue.viewModel.BushoCd })
+            var tc = new Date().getTime();
+            axios.post("/DAI03010/LastUpdateDateSearch", { BushoCd: vue.viewModel.BushoCd,timestamp:tc})
                 .then(response => {
                     var res = _.cloneDeep(response.data);
+                    window.resdt=_.cloneDeep(res);//TODO:
                     vue.viewModel.LastUpdateDate=moment(res.日付).format("YYYY年MM月");
-                    //検索条件変更
-                    vue.conditionChanged();
                 })
             .catch(error => {
                 console.log(error);
@@ -465,8 +441,8 @@ export default {
 
                 //失敗ダイアログ
                 $.dialogErr({
-                    title: "各種テーブル検索失敗",
-                    contents: "各種テーブル検索に失敗しました" + "<br/>" + error.message,
+                    title: " 売掛データ検索失敗",
+                    contents: " 売掛データ検索に失敗しました" + "<br/>" + error.message,
                 });
             });
         },
@@ -486,7 +462,8 @@ export default {
             var vue = this;
             var grid = vue.DAI03010Grid1;
             if (!grid || !vue.getLoginInfo().isLogOn) return;
-            if (!vue.viewModel.BushoCd || !vue.viewModel.TargetDate) return;
+            if (!vue.viewModel.TargetDate) return;
+
             var params = $.extend(true, {}, vue.viewModel);
 
             //処理年月の1日から末日までの範囲を検索条件に指定する
@@ -517,6 +494,9 @@ export default {
         },
         onAfterSearchFunc: function (vue, grid, res) {
             var vue = this;
+            vue.footerButtons.find(v => v.id == "DAI03010Grid1_Update").disabled = !res.length;
+            vue.footerButtons.find(v => v.id == "DAI03010Grid1_Print").disabled = !res.length;
+            vue.showLastUpdateDate();
             return res;
         },
         CustomerAutoCompleteFunc: function(input, dataList, comp) {
