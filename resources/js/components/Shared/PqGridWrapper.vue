@@ -2391,7 +2391,7 @@ export default {
 
                     var table = $($(grid.exportData({ format: "htm", render: true }))[3]).addClass(grid.vue.id);
                     var tableHeaders = table.find("tr").filter((i, v) => !!$(v).find("th").length).get();
-                    var tableBodies = table.find("tr").filter((i, v) => !!$(v).find("td").length).get();
+                    var tableBodies = table.find("tr").filter((i, v) => !$(v).find("th").length).get();
 
                     var pdata = _.cloneDeep(grid.pdata.filter(v => !v.pq_hidden));
 

@@ -2,7 +2,9 @@
     <header class="TopMenu">
         <nav class="navbar navbar-expand navbar-dark bg-dark w-100 pt-0 pb-0">
             <div id="system-name" class="navbar-brand p-0">
-                <label class="sysname badge-primary m-0 pl-1 pr-1" style="cursor: pointer;" @click="goHome">{{systemName}}</label>
+                <label class="sysname badge-primary m-0 pl-0 pr-1" style="cursor: pointer;" @click="goHome">
+                    <img src="/images/daiyas256.png" alt="ロゴ" style="width: 30px; height: 30px;">{{systemName}}
+                </label>
             </div>
             <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#Navber" aria-controls="Navber" aria-expanded="false" aria-label="ナビゲーションの切替">
                 <span class="navbar-toggler-icon"></span>

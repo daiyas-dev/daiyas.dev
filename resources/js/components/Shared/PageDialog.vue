@@ -87,8 +87,8 @@ export default {
                                 var uniqueId = $(this).dialog("option").target.uniqueId;
                                 var vue = window[uniqueId].vue;
                                 var grid = $(vue.$el).find(".pq-grid").pqGrid("getInstance").grid;
-                                v.click(vue, grid);
-                                $(this).dialog("close");
+                                var ret = v.click(vue, grid);
+                                if (ret != false) $(this).dialog("close");
                             },
                         };
                     });
@@ -186,8 +186,8 @@ export default {
                             var uniqueId = $(this).dialog("option").target.uniqueId;
                             var vue = window[uniqueId].vue;
                             var grid = $(vue.$el).find(".pq-grid").pqGrid("getInstance").grid;
-                            v.click(vue, grid);
-                            $(this).dialog("close");
+                            var ret = v.click(vue, grid);
+                            if (ret!= false) $(this).dialog("close");
                         },
                     };
                 });
@@ -301,9 +301,8 @@ export default {
                                 var page = window[uniqueId] || window[pgId];
                                 var vue = page ? page.vue : null;
                                 var grid = page ? (page["Grid_" + uniqueId] || page[Object.keys(page).find(k => k.includes("Grid"))]): null;
-                                v.click(vue, grid);
-
-                                $(this).dialog("close");
+                                var ret = v.click(vue, grid);
+                                if (ret != false) $(this).dialog("close");
                             },
                         };
                     });

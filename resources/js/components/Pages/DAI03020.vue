@@ -279,7 +279,13 @@ export default {
                                 return { text: "合　計" };
                             }
                             if (!!ui.rowData.pq_gsummary) {
-                                return { text:vue.viewModel.PrintOrder==1?"コース計":"部署計"};
+                                var text = "";
+                                if (vue.viewModel.PrintOrder==0) {
+                                    text = "部署計";
+                                } else {
+                                    text = ui.rowData.pq_level == 0 ? "部署計" : "コース計"
+                                }
+                                return { text: text };
                             }
                             if (!!ui.Export) {
                                 return { text: "<span style=\"text-align:right;\">" + ui.rowData.請求先ＣＤ + "</span><span style=\"padding-left:5px;\">" + ui.rowData.得意先名 + "</span>"};
@@ -297,8 +303,9 @@ export default {
                         hidden: true,
                         hiddenOnExport: false,
                         render: ui => {
-                            if (!!ui.Export) {
-                                return { text: ui.rowData.コースＣＤ==null ? "コースなし" : ui.rowData.コースＣＤ + " " + ui.rowData.コース名};
+                            if (!!ui.Export && !ui.rowData.pq_gsummary) {
+                                var text = ui.rowData.コースＣＤ==null ? "コースなし" : (ui.rowData.コースＣＤ + " " + ui.rowData.コース名)
+                                return { text: text };
                             }
                         }
                     },
@@ -890,9 +897,9 @@ export default {
                                 styleCustomers,
                                 headerFunc,
                                 32,
-                                [false, false],
-                                [true, true],
-                                [true, true],
+                                vue.viewModel.PrintOrder == "1" ? [false, false] : false,
+                                vue.viewModel.PrintOrder == "1" ? [true, true] : true,
+                                vue.viewModel.PrintOrder == "1" ? [true, true] : true,
                             )
                         )
                 )
