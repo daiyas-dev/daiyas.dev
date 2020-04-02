@@ -140,6 +140,7 @@ class DAI03020Controller extends Controller
                     ,コーステーブル.コースＣＤ
                     ,コースマスタ.コース名
                     ,コースマスタ.担当者ＣＤ
+                    ,(SELECT 担当者名 FROM 担当者マスタ WHERE 担当者マスタ.担当者ＣＤ=コースマスタ.担当者ＣＤ)AS コース担当者名
                     ,売掛データ.部署ＣＤ
                     ,部署マスタ.部署名
                 FROM
