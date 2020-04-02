@@ -434,17 +434,17 @@ export default {
                         vue.conditionChanged();
                     }
                 },
-                { visible: "true", value: "CSV", id: "DAI03020Grid1_CSV", disabled: false, shortcut: "F10",
+                { visible: "true", value: "CSV", id: "DAI03020Grid1_CSV", disabled: true, shortcut: "F10",
                     onClick: function () {
                         vue.DAI03020Grid1.vue.exportData("csv", false, true);
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI03020Grid1_Printout", disabled: false, shortcut: "F6",
+                { visible: "true", value: "印刷", id: "DAI03020Grid1_Print", disabled: true, shortcut: "F6",
                     onClick: function () {
                         vue.print();
                     }
                 },
-                { visible: "true", value: "明細", id: "DAI03020Grid1_Detail", disabled: false, shortcut: "Enter",
+                { visible: "true", value: "明細", id: "DAI03020Grid1_Detail", disabled: true, shortcut: "Enter",
                     onClick: function () {
                         vue.showDetail();
                     }
@@ -456,6 +456,14 @@ export default {
             //TODO:
             // vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
             vue.viewModel.TargetDate = moment("20190801").format("YYYY年MM月DD日");
+
+            //watcher
+            vue.$watch(
+                "$refs.DAI03020Grid1.selectionRowCount",
+                cnt => {
+                    vue.footerButtons.find(v => v.id == "DAI03020Grid1_Detail").disabled = cnt == 0 || cnt > 1;
+                }
+            );
         },
         setPrintOptions: function(grid) {
             var vue = this;
@@ -615,6 +623,10 @@ export default {
                 r.GroupKey1 = r.部署ＣＤ + ":" + r.部署名;
                 r.GroupKey2 = r.コースＣＤ + ":" + r.コース名 + ":" + r.担当者ＣＤ + ":" + r.コース担当者名;
             });
+
+            vue.footerButtons.find(v => v.id == "DAI03020Grid1_CSV").disabled = !res.length;
+            vue.footerButtons.find(v => v.id == "DAI03020Grid1_Print").disabled = !res.length;
+
             return res;
         },
         CourseAutoCompleteFunc: function(input, dataList, comp) {
