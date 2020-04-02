@@ -65,6 +65,7 @@
             :SearchOnActivate=false
             :options=this.grid1Options
             :onAfterSearchFunc=this.onAfterSearchFunc
+            :autoToolTipDisabled=true
         />
     </form>
 </template>
@@ -186,6 +187,7 @@ export default {
                         width: 200, minWidth: 200,
                         editable: false,
                         fixed: true,
+                        tooltip: true,
                         render: ui => {
                             if (ui.rowData.pq_grandsummary) {
                                 //集計行

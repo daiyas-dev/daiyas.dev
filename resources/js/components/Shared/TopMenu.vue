@@ -255,7 +255,7 @@ export default {
             var hash = location.hash.replace(/\?.*$/, "");
 
             //homeと例外画面は除外
-            if (hash == "#/" || hash.includes("home") || hash.includes("Exception")) return;
+            if (hash == "#/" || hash.includes("home") || hash.includes("Exception") || hash.includes("UnderConstruction")) return;
 
             //hashでlinkを検索
             var link = $("ul a", this.$el).filter((i, v)=>v.href.includes(hash));

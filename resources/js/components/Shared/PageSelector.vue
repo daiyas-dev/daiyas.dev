@@ -248,6 +248,12 @@ export default {
         var component = vue.isSelector ? "CommonSelector" : vue._pgId;
         var componentVue = vue.$options.components[component];
 
+        if (!componentVue) {
+            vue.$root.$emit("setTitle", "開発中");
+            vue.$router.push("/UnderConstruction");
+            return;
+        }
+
         //tooltip消去
         $("body").find("[id^=tooltip]").tooltip("hide");
 
