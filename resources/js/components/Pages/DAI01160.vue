@@ -111,6 +111,7 @@
             :SearchOnActivate=false
             :options=this.grid1Options
             :onAfterSearchFunc=this.onAfterSearchFunc
+            :autoToolTipDisabled=true
         />
     </form>
 </template>
@@ -165,7 +166,7 @@ export default {
                 columnBorders: true,
                 fillHandle: "",
                 numberCell: { show: true, title: "No.", resizable: false, width: 35, },
-                autoRow: false,
+                autoRow: true,
                 rowHtHead: 50,
                 rowHt: 35,
                 freezeCols: 5,
@@ -230,6 +231,7 @@ export default {
                         dataIndx: "顧客名", dataType: "string",
                         width: 200, minWidth: 200, maxWidth: 200,
                         fixed: true,
+                        tooltip: true,
                         render: ui => {
                             var vue = this;
                             if (!!ui.rowData.pq_grandsummary && vue.viewModel.IsBikoOutput == 1) {
@@ -941,7 +943,6 @@ export default {
                     text-align: center;
                 }
                 td {
-                    height: 21px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
@@ -990,7 +991,7 @@ export default {
                 }
             `;
 
-            //TODO:ページ。受注情報含まない時。
+            //TODO:ページ数表示（コース毎に分母区切る）
 
             var headerForByCourse = (header, idx, length, chunk, chunks) => {
                 return `
@@ -1275,6 +1276,7 @@ export default {
                 }
             `;
 
+            //TODO:改頁するMaxRow値。備考に改行が含まれる場合、行高が大きくなるため、MaxRow値が変わる
             var printable = $("<html>")
                 .append($("<head>").append($("<style>").text(globalStyles)))
                 .append(
