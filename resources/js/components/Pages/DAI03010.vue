@@ -428,7 +428,7 @@ export default {
 
         showLastUpdateDate: function(){
             var vue = this;
-            var tc = new Date().getTime();
+            var tc = new Date().getTime();//axios実行時のキャッシュを無効にするため、現在のタイムスタンプを渡す
             axios.post("/DAI03010/LastUpdateDateSearch", { BushoCd: vue.viewModel.BushoCd,timestamp:tc})
                 .then(response => {
                     var res = _.cloneDeep(response.data);
