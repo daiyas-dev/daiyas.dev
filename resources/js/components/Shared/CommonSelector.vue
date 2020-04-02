@@ -20,7 +20,7 @@
 
 <style>
 .CommonSelector .pq-grid {
-    visibility: hidden;
+    visibility: visible;
 }
 .CommonSelector .pq-grid-cell.pq-focus {
     border: none !important;
@@ -73,9 +73,9 @@ export default {
             deep: true,
             handler: function(newVal) {
                 //先頭行を選択
-                var gridVue = this.$refs[this.gridId];
-                var grid = $(gridVue.$el).find(".pq-grid").pqGrid("getInstance").grid;
-                grid.setSelection({ rowIndx: 0 });
+                // var gridVue = this.$refs[this.gridId];
+                // var grid = $(gridVue.$el).find(".pq-grid").pqGrid("getInstance").grid;
+                // grid.setSelection({ rowIndx: 0 });
             },
         }
     },
@@ -87,7 +87,7 @@ export default {
             var comp = this;
 
             return {
-                selectionModel: { type: "row", mode: "single", row: true },
+                selectionModel: { type: "row", mode: "block", row: true },
                 scrollModel: { autoFit: true, timeout: 0 },
                 rowHtHead: 31,
                 rowHt: 35,
@@ -212,15 +212,54 @@ export default {
 
         //dialog open event handler
         parent.dialog({ open: (event, ui) => {
-            var grid = $(event.target).closest(".ui-dialog").find(".pq-grid").pqGrid("getInstance").grid;
-            grid.refreshToolbar();
-            grid.refreshView();
+            // console.log("CommonSelector dialog open")
+            // var grid = $(event.target).closest(".ui-dialog").find(".pq-grid").pqGrid("getInstance").grid;
+            // grid.refreshToolbar();
+            // grid.refreshView();
         }});
 
         //toolbarの置き換え
         var pqgrid = grid.pqGrid("getInstance").grid;
         pqgrid.options.toolbar = this.grid1Options.toolbar;
         pqgrid.refreshToolbar();
+
+        //コード及び名称以外の取得情報のカラム追加
+        vue.showColumns.forEach(c => {
+            //colModelに追加
+            var col = {
+                title:  c ? c.title : k,
+                hidden: !!c.hidden,
+                dataIndx: c.dataIndx,
+                dataType: c.dataType || "string",
+                width: c.width || null,
+                maxWidth: c.maxWidth || null,
+                minWidth: c.minWidth || null,
+            };
+
+            var prev = pqgrid.options.colModel.filter(c => c.dataIndx == col.dataIndx)[0];
+            if (!!prev) {
+                pqgrid.options.colModel[grid.options.colModel.indexOf(prev)] = col;
+            } else {
+                if (c.colIndx == undefined) {
+                    pqgrid.options.colModel.push(col);
+                } else {
+                    pqgrid.options.colModel.splice(c.colIndx, 0, col);
+                }
+            }
+        });
+
+        //キーワード検索用
+        pqgrid.options.colModel.push(
+            {
+                title:  "keyword",
+                dataIndx: "keyword",
+                dataType: "string",
+                hidden: true,
+            }
+        );
+
+        //colModel更新
+        pqgrid.refreshCM();
 
         this.focused();
     },
@@ -250,48 +289,6 @@ export default {
         onAfterSearchFunc: function (vue, grid, res) {
             var row = res[0];
 
-            //コード及び名称以外の取得情報のカラム追加
-            vue.$parent.showColumns.forEach(c => {
-                //colModelに追加
-                var col = {
-                    title:  c ? c.title : k,
-                    hidden: !!c.hidden,
-                    dataIndx: c.dataIndx,
-                    dataType: c.dataType || "string",
-                    width: c.width || null,
-                    maxWidth: c.maxWidth || null,
-                    minWidth: c.minWidth || null,
-                };
-
-                var prev = grid.options.colModel.filter(c => c.dataIndx == col.dataIndx)[0];
-                if (!!prev) {
-                    grid.options.colModel[grid.options.colModel.indexOf(prev)] = col;
-                } else {
-                    if (c.colIndx == undefined) {
-                        grid.options.colModel.push(col);
-                    } else {
-                        grid.options.colModel.splice(c.colIndx, 0, col);
-                    }
-                }
-            });
-
-            //キーワード検索用
-            grid.options.colModel.push(
-                {
-                    title:  "keyword",
-                    dataIndx: "keyword",
-                    dataType: "string",
-                    hidden: true,
-                }
-            );
-
-            //colModel更新
-            grid.refreshCM();
-            // if (vue.$parent.showColumns.length > 0) {
-            //     //colModel更新
-            //     grid.refreshCM();
-            // }
-
             //データ件数更新
             vue.$parent.$set(vue.$parent.$data, "count", res.length);
 
@@ -304,7 +301,7 @@ export default {
             }
 
             var result = res.map(v => {
-                v.keyword = "||" + _.values(v).join("||") + "||";
+                v.keyword = "||" + _.values(v).filter(v => !_.isObject(v)).join("||") + "||";
                 return v;
             });
 
@@ -316,27 +313,18 @@ export default {
             target.value = vue.keyword || "";
 
             $(target).on("input", (ev => {
+                console.log("SearchStrings input");
+                vue.keyword = ev.target.value;
+
                 if (!grid) return;
 
-                var keywords = ev.target.values.split(/ *, */g);
+                var keywords = vue.keyword.split(/ *, */g);
 
-            var rules = keywords.map(k => {
+                var rules = keywords.map(k => {
+                    return { condition: "contain", value: k };
+                });
 
-            });
-
-            var crules = [];
-            if (!!vue.viewModel.CourseStart) {
-                crules.push({ condition: "gte", value: vue.viewModel.CourseStart });
-            }
-            if (!!vue.viewModel.CourseEnd) {
-                crules.push({ condition: "lte", value: vue.viewModel.CourseEnd });
-            }
-
-            if (crules.length) {
-                rules.push({ dataIndx: "コースＣＤ", mode: "AND", crules: crules });
-            }
-
-                grid.filter({ oper: "replace", mode: "AND", rules: { dataIndx: "keyword", condition: "contain", value: vue.viewModel.CourseCd } });
+                grid.filter({ oper: "replace", mode: "AND", rules: [{ dataIndx: "keyword", mode: "AND", crules: rules }] });
             }));
 
             vue.selectRow(grid, target, target.value, 0);

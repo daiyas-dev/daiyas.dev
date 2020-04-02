@@ -109,9 +109,10 @@ export default {
                     if (options.callback) {
                         var grid = reuseTarget.wrapper.find(".pq-grid").pqGrid("getInstance").grid;
 
-                        //同一条件再検索
-                        grid.searchData();
-
+                        //再検索
+                        if (!_.isEqual(grid.prevPostData, grid.options.dataModel.postData)) {
+                            grid.searchData();
+                        }
                         grid.widget().css("visibility", "hidden");
                         options.callback(grid);
                     }

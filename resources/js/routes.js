@@ -119,6 +119,12 @@ export default [
         props: true,
     },
     {
+        path: "/UnderConstruction",
+        component: {
+            template: '<div class="d-flex" style="height: 100%;  justify-content: center; align-items: center;"><i class="fas fa-lg fa-hammer"></i>開発中</div>',
+        },
+    },
+    {
         path: "*",
         component: {
             //TODO: エラー画面へ

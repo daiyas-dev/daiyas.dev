@@ -84,6 +84,7 @@ import DAI01230 from "@vcp/DAI01230.vue";
 import DAI01250 from "@vcp/DAI01250.vue";
 import DAI01260 from "@vcp/DAI01260.vue";
 
+import DAI02010 from "@vcp/DAI02010.vue";
 import DAI02020 from "@vcp/DAI02020.vue";
 import DAI02021 from "@vcp/DAI02021.vue";
 import DAI02030 from "@vcp/DAI02030.vue";
@@ -195,6 +196,7 @@ export default {
         DAI01230,
         DAI01250,
         DAI01260,
+        DAI02010,
         DAI02020,
         DAI02021,
         DAI02030,
@@ -247,6 +249,12 @@ export default {
         var vue = this;
         var component = vue.isSelector ? "CommonSelector" : vue._pgId;
         var componentVue = vue.$options.components[component];
+
+        if (!componentVue) {
+            vue.$root.$emit("setTitle", "開発中");
+            vue.$router.push("/UnderConstruction");
+            return;
+        }
 
         //tooltip消去
         $("body").find("[id^=tooltip]").tooltip("hide");

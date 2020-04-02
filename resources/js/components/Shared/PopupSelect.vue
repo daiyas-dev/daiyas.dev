@@ -361,7 +361,7 @@ export default {
                 var vue = this;
                 // console.log("ps bindValue watcher:" + vue.bind, vue.bindValue);
                 if (vue.bindValue != vue.selectValue) {
-                    vue.setSelectValue(vue.bindValue, true);
+                    vue.setSelectValue(vue.bindValue, true, vue.selectRow);
                 }
             },
         },
@@ -609,6 +609,7 @@ export default {
             };
 
             var showSelector = function(dataUrl, params) {
+                params.NoLimit = true,
                 PageDialog.showSelector({
                     dataUrl: dataUrl,
                     params: params,
@@ -620,7 +621,7 @@ export default {
                     showColumns: vue.showColumns,
                     width: vue.popupWidth || null,
                     height: vue.popupHeight || null,
-                    reuse: true,//vue.reuse,
+                    reuse: vue.reuse,
                     callback: callback,
                     buttons: [
                         {
@@ -633,14 +634,23 @@ export default {
                                     return false;
                                 }
 
-                                var selection = grid.Selection().getSelection();
-                                if (selection.length > 0) {
-                                    var rowIndx = selection[0].rowIndx;
+                                var rowIndx = grid.SelectRow().getFirst();
+
+                                if (rowIndx != undefined) {
                                     var rowData = grid.getRowData({ rowIndx: rowIndx });
 
                                     //コード及び名称の指定された値を取得
                                     var value = rowData[vue.isGetName ? "CdNm" : "Cd"];
                                     var name  = rowData[vue.isGetName ? "Cd" : "CdNm"];
+
+                                    //保持データに設定
+                                    vue.selectRow = rowData;
+                                    vue.selectName = name;
+                                    vue.selectValue = value;
+
+                                    if (!_.find(vue.dataList, rowData)) {
+                                        vue.dataList.push(rowData);
+                                    }
 
                                     //画面項目に設定
                                     if (vue.vmodel && vue.bind) {
@@ -652,15 +662,14 @@ export default {
                                             _.forIn(vue.buddies, (v, k) => vue.vmodel[k] = rowData[v]);
                                         }
                                     }
+
+                                    if (!!vue.onAfterChangedFunc) {
+                                        vue.onAfterChangedFunc(value, rowData, vue);
+                                    }
+
                                     if (this.target) {
                                         this.target.val(value);
                                     }
-
-                                    //保持データに設定
-                                    vue.selectValue = value;
-                                    vue.selectName = name;
-                                    vue.selectRow = rowData;
-                                    vue.dataList = grid.getData();
                                 }
                             },
                         },

@@ -964,7 +964,7 @@ export default {
                     grid._refreshTitle();
                 } else {
                     if (!!grid.options.filterModel && !!grid.options.filterModel.rules && !!grid.options.filterModel.rules.length) {
-                        grid.options.title = "件数: " + grid.pdata.filter(v => v.pq_level == undefined).length + " / " + grid.getData().length + " [フィルタ中]";
+                        grid.options.title = "件数: " + grid.pdata.filter(v => !v.pq_hidden).length + " / " + grid.getData().length + " [フィルタ中]";
                     } else {
                         grid.options.title = "件数: " + grid.getData().length;
                     }

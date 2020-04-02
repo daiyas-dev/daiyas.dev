@@ -1000,7 +1000,7 @@ $WhereCourseCd
 
         $Count = $Result[0]->CNT;
         $CountMax = $request->CountMax ?? 100;
-        $SelectTop = $Count > $CountMax ? "TOP $CountMax" : "";
+        $SelectTop = !!$request->NoLimit ? "" : ($Count > $CountMax ? "TOP $CountMax" : "");
 
         $sql = "
 SELECT $SelectTop
