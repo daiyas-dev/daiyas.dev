@@ -18,6 +18,7 @@ use App\Models\金融機関支店名称;
 use App\Models\消費税率マスタ;
 use App\Models\得意先履歴テーブル;
 use App\Models\得意先単価マスタ;
+use App\Models\請求データ;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -518,20 +519,44 @@ ORDER BY
         $cds = $request->cds;
         $group = $request->group;
 
-        $query = 部署マスタ::query()
-            ->when(
-                $cds,
-                function ($q) use ($cds) {
-                    return $q->whereIn('部署CD', $cds);
-                }
-            )
-            ->when(
-                $group,
-                function($q) use($group) {
-                    return $q->where('部署グループ', $group);
-                });
+        $sql = "
+            SELECT
+                MB.*,
+                BK.銀行名 AS 金融機関1名称,
+                BB.支店名 AS 金融機関支店1名称,
+                KK.各種名称 AS 口座種別1名称,
+                BK2.銀行名 AS 金融機関2名称,
+                BB2.支店名 AS 金融機関支店2名称,
+                KK2.各種名称 AS 口座種別2名称
+            FROM 部署マスタ MB
+            LEFT JOIN 金融機関名称 BK
+            　ON　MB.金融機関CD1=BK.銀行CD
+            LEFT JOIN 金融機関支店名称 BB
+            　ON　MB.金融機関CD1=BB.銀行CD AND MB.金融機関支店CD1=BB.支店CD
+            LEFT JOIN 各種テーブル KK
+            　ON　'7'=KK.各種CD AND MB.口座種別1=KK.行NO
+            LEFT JOIN 金融機関名称 BK2
+            　ON　MB.金融機関CD2=BK2.銀行CD
+            LEFT JOIN 金融機関支店名称 BB2
+            　ON　MB.金融機関CD2=BB2.銀行CD AND MB.金融機関支店CD2=BB2.支店CD
+            LEFT JOIN 各種テーブル KK2
+            　ON　'7'=KK2.各種CD AND MB.口座種別2=KK2.行NO
+        ";
 
-        $BushoCdList = collect($query->get())
+        // $query = 部署マスタ::query()
+        //     ->when(
+        //         $cds,
+        //         function ($q) use ($cds) {
+        //             return $q->whereIn('部署CD', $cds);
+        //         }
+        //     )
+        //     ->when(
+        //         $group,
+        //         function($q) use($group) {
+        //             return $q->where('部署グループ', $group);
+        //         });
+
+        $BushoCdList = collect(DB::select($sql))
             ->map(function ($BushoCd) {
                 $vm = (object) $BushoCd;
 
@@ -803,7 +828,7 @@ ORDER BY
 
         $TargetDate = $request->targetDate ?? $request->TargetDate;
 
-        $CourseKbn = $request->courseKbn ?? $request->CourseKbn ?? (!!$TargetDate ? $this->SearchCourseKbnFromDate($request)->コース区分 : null);
+        $CourseKbn = ($request->courseKbn ?? $request->CourseKbn) ?? $request->CourseKbn ?? (!!$TargetDate ? $this->SearchCourseKbnFromDate($request)->コース区分 : null);
         $WhereCourseKbn = !!$CourseKbn ? " AND MC.コース区分=$CourseKbn" : "";
 
         $KeyWord = $request->KeyWord;
@@ -832,17 +857,17 @@ ORDER BY
             $orderBusho
         ";
 
-        //TODO: 高速化対応
-        // $dsn = 'sqlsrv:server=localhost;database=daiyas';
-        // $user = 'daiyas';
-        // $password = 'daiyas';
+        // TODO: 高速化対応
+        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
 
-        // $pdo = new PDO($dsn, $user, $password);
-        // $stmt = $pdo->query($sql);
-        // $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = null;
 
-        // $pdo = null;
-        $DataList = DB::select(DB::raw($sql));
+        // $DataList = DB::select(DB::raw($sql));
 
         return response()->json($DataList);
     }

@@ -242,7 +242,7 @@ var initVueApp = () => {
             this.adjustContentHeight();
 
             //システム名
-            this.$emit("setSystemName", "xxxxxxシステム");
+            this.$emit("setSystemName", "画面確認用");
         },
         beforeDestroy: function () {
             window.removeEventListener("resize", this.setWindowSize, false);
@@ -285,7 +285,7 @@ var targets = [
     //金融機関マスタ
     window.axios.post("/Utilities/GetBankList").then(res => watcher(res)),
     //得意先マスタ
-    window.axios.post("/Utilities/GetCustomerAndCourseList", { targetDate: moment().format("YYYYMMDD") }).then(res => watcher(res)),
+    //window.axios.post("/Utilities/GetCustomerAndCourseList", { targetDate: moment().format("YYYYMMDD") }).then(res => watcher(res)),
     window.axios.post("/Utilities/GetCustomerListForSelect", { CustomerCd: null, KeyWord: null }).then(res => watcher(res)),
 ];
 

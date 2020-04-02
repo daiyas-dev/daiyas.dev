@@ -12,7 +12,7 @@
             <div class="col-md-1">
                 <label>出力日付</label>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-8">
                 <DatePickerWrapper
                     id="DateStart"
                     ref="DatePicker_Date"
@@ -23,9 +23,7 @@
                     :editable=true
                     :onChangedFunc=onDateChanged
                 />
-            </div>
-            ～
-            <div class="col-md-2">
+                <label class="text-center ml-2 mr-2" style="width: auto;">～</label>
                 <DatePickerWrapper
                     id="DateEnd"
                     ref="DatePicker_Date"
@@ -157,7 +155,11 @@ export default {
                     },
                     {
                         title: "日付",
-                        dataIndx: "日付", dataType: "date", key: true, format: "yy/mm/dd",
+                        dataIndx: "日付", dataType: "date", key: true,
+                        format: ui => {
+                            ui = moment(ui).format("YYYY/MM/DD(ddd)");
+                            return ui;
+                        },
                         hidden: false,
                         editable: false,
                         fixed: true,
@@ -171,18 +173,18 @@ export default {
                         },
                     },
                     {
-                        title: "合計",
+                        title: " 合　計 ",
                         dataIndx: "合計",
                         colModel: [
                         {
-                                title: "個数",
-                                dataIndx: "TotalNum", dataType: "integer", key: true, format: "#,###",
-                                hidden: false,
-                                editable: false,
-                                fixed: true,
-                                summary: {
-                                        type: "TotalInt",
-                                    },
+                            title: "個数",
+                            dataIndx: "TotalNum", dataType: "integer", key: true, format: "#,###",
+                            hidden: false,
+                            editable: false,
+                            fixed: true,
+                            summary: {
+                                    type: "TotalInt",
+                                },
                         },
                         {
                             title: "金額",
@@ -287,11 +289,16 @@ export default {
                         vue.conditionChanged();
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI01020Grid1_Printout", disabled: false, shortcut: "F6",
-                    onClick: function () {
-                        vue.DAI01170Grid1.print(vue.setPrintOptions);
-                        //TODO: 印刷の追加
+                // { visible: "true", value: "印刷", id: "DAI01020Grid1_Printout", disabled: false, shortcut: "F6",
+                //     onClick: function () {
+                //         vue.DAI01170Grid1.print(vue.setPrintOptions);
+                //         //TODO: 印刷の追加
 
+                //     }
+                // },
+                { visible: "true", value: "印刷", id: "DAI01170Grid1_Print", disabled: false, shortcut: "F6",
+                    onClick: function () {
+                        vue.print();
                     }
                 },
                 { visible: "true", value: "CSV出力", id: "DAI01020Grid1_Csvout", disabled: false, shortcut: "F7",
@@ -305,8 +312,11 @@ export default {
         },
         mountedFunc: function(vue) {
             //配送日付の初期値 -> 当日
-            vue.viewModel.DateStart = moment();
-            vue.viewModel.DateEnd = moment();
+            // vue.viewModel.DateStart = moment();
+            // vue.viewModel.DateEnd = moment();
+            //TODO:確認用削除予定
+            vue.viewModel.DateStart = moment("20190801");
+            vue.viewModel.DateEnd = moment("20190904");
         },
         setPrintOptions: function(grid) {
             var vue = this;
@@ -536,6 +546,229 @@ export default {
                 ;
 
             return list;
+        },
+        print: function() {
+            var vue = this;
+
+            //印刷用HTML全体適用CSS
+            var globalStyles = `
+                body {
+                    -webkit-print-color-adjust: exact;
+                }
+                div.title {
+                    width: 100%;
+                    display: flex;
+                    justify-content: center;
+                    margin-bottom: 10px;
+                }
+                div.title > h3 {
+                    margin-top: 0px;
+                    margin-bottom: 0px;
+                }
+                table {
+                    table-layout: fixed;
+                    margin-left: 0px;
+                    margin-right: 0px;
+                    width: 100%;
+                    border-spacing: unset;
+                    border: solid 0px black;
+                }
+                th, td {
+                    font-family: "MS UI Gothic";
+                    font-size: 10pt;
+                    font-weight: normal;
+                    margin: 0px;
+                    padding-left: 3px;
+                    padding-right: 3px;
+                }
+                th {
+                    height: 22px;
+                    text-align: center;
+                }
+                td {
+                    height: 24px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                }
+            `;
+
+            var headerFunc = (header, idx, length) => {
+                return `
+                    <div class="title">
+                        <h3>* * * 売上日計月計表 * * *</h3>
+                    </div>
+                    <div class="header-table" style="border-width: 0px">
+                        <tr>
+                            <th style="width: 5.0%;">対象期間</th>
+                            <span>(</span>
+                            <th style="width: 8.5%; text-align: center;"><span>${moment(vue.viewModel.DateStart, "YYYY年MM月DD日").format("YYYY/MM/DD")}</span></th>
+                            <th style="width: 3.0%;"><span>～</span></th>
+                            <th style="width: 8.5%; text-align: center;"><span>${moment(vue.viewModel.DateEnd, "YYYY年MM月DD日").format("YYYY/MM/DD")}</span></th>
+                            <span>)</span>
+                        </tr>
+                    </div>
+                    <table class="header-table" style="border-width: 0px">
+                        <thead>
+                            <tr>
+                                <th style="width: 8%;">部署</th>
+                                <th style="width: 8%;">${vue.viewModel.BushoCd}</th>
+                                <th style="width: 22%;">${vue.viewModel.BushoNm}</th>
+                                <th style="width: 23%;"></th>
+                                <th style="width: 8%;">作成日</th>
+                                <th style="width: 17%;">${moment().format("YYYY年MM月DD日")}</th>
+                                <th style="width: 6%;">PAGE</th>
+                                <th style="width: 8%; text-align: right;">${idx + 1}/${length}</th>
+                            </tr>
+                        </thead>
+                    </table>
+                `;
+            };
+
+            var maxRow = 33;
+            var printable = $("<html>")
+                .append($("<head>").append($("<style>").text(globalStyles)))
+                .append(
+                    $("<body>")
+                        .append(
+                            vue.DAI01170Grid1.generateHtml(
+                                `
+                                    div.header-table{
+                                        text-align: center;
+                                        font-family: "MS UI Gothic";
+                                        font-size: 10pt;
+                                        margin-bottom: 12px;
+                                    }
+                                    div.header-table span{
+                                        margin-right: 5px;
+                                    }
+                                    table.header-table tr th {
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 1px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 0px;
+                                    }
+                                    table.header-table tr th {
+                                        padding-left: 8px;
+                                        padding-right: 8px;
+                                    }
+                                    table.header-table tr th:nth-child(2) {
+                                        text-align: right;
+                                    }
+                                    table.header-table tr th:nth-child(3) {
+                                        text-align: left;
+                                    }
+                                    table.header-table tr th:nth-child(4) {
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 0px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 0px;
+                                    }
+                                    table.header-table tr th:last-child {
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 1px;
+                                        border-right-width: 1px;
+                                        border-bottom-width: 0px;
+                                    }
+                                    table.DAI01170Grid1 tr:nth-child(1) th {
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 1px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 0px;
+                                    }
+                                    table.DAI01170Grid1 thead tr th {
+                                        height: 22px;
+                                    }
+                                    table.DAI01170Grid1 thead tr:first-child th:not(:first-child):before {
+                                        content: "＜－";
+                                    }
+                                    table.DAI01170Grid1 thead tr:first-child th:not(:first-child):after {
+                                        content: "－＞";
+                                    }
+                                    table.DAI01170Grid1 thead tr:nth-child(1) th:last-child {
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 1px;
+                                        border-right-width: 1px;
+                                        border-bottom-width: 0px;
+                                    }
+                                    table.DAI01170Grid1 thead tr:nth-child(2) th:last-child {
+                                        border-style: solid;
+                                        border-left-width: 0px;
+                                        border-top-width: 0px;
+                                        border-right-width: 1px;
+                                        border-bottom-width: 0px;
+                                    }
+                                    table.DAI01170Grid1 thead tr:nth-child(2) th:nth-child(odd) {
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 0px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 0px;
+                                    }
+                                    table.DAI01170Grid1 tr th:last-child {
+                                        border-right-width: 1px;
+                                    }
+                                    table.DAI01170Grid1 tr td {
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 1px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 0px;
+                                    }
+                                    table.DAI01170Grid1 tr.grand-summary td {
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 1px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 1px;
+                                    }
+                                    table.DAI01170Grid1 tr td:last-child {
+                                        border-right-width: 1px;
+                                    }
+                                    table.DAI01170Grid1 tr th:nth-child(1) {
+                                        width: 16.0%;
+                                    }
+                                    table.DAI01170Grid1 tr td:nth-child(1) {
+                                        padding-left: 10px;
+                                    }
+                                    table.DAI01170Grid1 tr td:nth-child(n+1) {
+                                        padding-right: 10px;
+                                    }
+                                    table.DAI01170Grid1 tr:last-child td {
+                                        border-bottom-width: 1px;
+                                    }
+                                    tr.grand-summary td:first-child {
+                                        text-align: center;
+                                        letter-spacing: 0.3em;
+                                    }
+                                    tr.grand-summary td:first-child:before {
+                                        content: "**";
+                                    }
+                                    tr.grand-summary td:first-child:after {
+                                        content: "**";
+                                    }
+                                `,
+                                headerFunc,
+                                maxRow,
+                            )
+                        )
+                )
+                .prop("outerHTML")
+                ;
+
+            var printOptions = {
+                type: "raw-html",
+                style: "@media print { @page { size: A4 ; } }",
+                printable: printable,
+            };
+
+            printJS(printOptions);
+            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //$("#printJS").contents().find("html").html()
         },
     }
 }

@@ -6,6 +6,7 @@
             </div>
             <div class="col-md-2">
                 <VueSelectBusho
+                    ref="VueSelectBusho"
                     :onChangedFunc=onBushoChanged
                 />
             </div>
@@ -57,9 +58,11 @@
                     ref="VueMultiSelect_SimeDate"
                     :vmodel=viewModel
                     bind="SimeDateArray"
-                    uri="/Utilities/GetSimeDateList"
+                    uri="/DAI02030/GetSimeDateList"
+                    :params='{ BushoCd: searchParams.BushoCd, TargetDate: searchParams.TargetDate }'
                     :hasNull=true
                     :onChangedFunc=onSimeDateChanged
+                    :ParamsChangedCheckFunc=SimeDateParamsChangedCheckFunc
                     :disabled=SimeDateDisabled
                 />
             </div>
@@ -527,7 +530,7 @@ export default {
             vue.footerButtons.push(
                 { visible: "true", value: "検索", id: "DAI02020Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
-                        vue.DAI02020Grid1.searchData(vue.searchParams);
+                        vue.conditionChanged(true);
                     }
                 },
                 {visible: "false"},
@@ -626,6 +629,11 @@ export default {
             //フィルタ変更ハンドラ
             vue.filterChanged();
         },
+        SimeDateParamsChangedCheckFunc: function(newVal, oldVal) {
+            var vue = this;
+            var ret = !!newVal.BushoCd && !!newVal.TargetDate;
+            return ret;
+        },
         onPrintOrderChanged: function(code, entities) {
             var vue = this;
             var grid = vue.DAI02030Grid1;
@@ -685,10 +693,9 @@ export default {
             //フィルタ変更ハンドラ
             vue.filterChanged();
         },
-        conditionChanged: function(callback) {
+        conditionChanged: function(force) {
             var vue = this;
             var grid = vue.DAI02020Grid1;
-            console.log("2020 conditionChanged")
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.TargetDate || !vue.viewModel.TargetDateMax) return;
@@ -699,31 +706,36 @@ export default {
 
             if (!!vue.viewModel.BushoCd && !!vue.viewModel.CourseCd && vue.viewModel.BushoCd != vue.$refs.PopupSelect_Course.selectRow.部署ＣＤ) return;
 
-            if (!!grid.prevPostData && _.isEqual(grid.prevPostData, vue.searchParams)) {
-                console.log("same condition", _.isEqual(grid.prevPostData, vue.searchParams));
+            if (!force && !!grid.prevPostData && _.isEqual(grid.prevPostData, vue.searchParams)) {
                 return;
             }
 
-            grid.searchData(vue.searchParams, false, null, callback);
+            grid.searchData(vue.searchParams, false, null);
         },
         filterChanged: function() {
             var vue = this;
             var grid = vue.DAI02020Grid1;
-            console.log("2020 filterChanged")
 
             if (!grid) return;
 
             var rules = [];
 
-            //締日
+            //請求日付
             if (vue.viewModel.SimeKbn == "2") {
                 if (!!vue.viewModel.SimeDateArray.length) {
                     var crules = vue.viewModel.SimeDateArray.map(d => {
-                        return { condition: "contain", mode: "OR", value: "/" + d.code + "/" };
+                        var date;
+                        if (d.code == 99) {
+                            date = moment(vue.searchParams.TargetDate).endOf("month").format("YYYY-MM-DD 00:00:00.000");
+                        } else {
+                            date = moment(vue.searchParams.TargetDate).startOf("month").add(d.code - 1, "day").format("YYYY-MM-DD 00:00:00.000");
+                        }
+                        return { condition: "equal", mode: "OR", value: date };
                     });
-                    rules.push({ dataIndx: "締日", crules: crules });
+                    rules.push({ dataIndx: "請求日付", crules: crules });
                 } else {
-                    rules.push({ dataIndx: "締日", condition: "contain", value: "99" });
+                    var date = moment(vue.searchParams.TargetDate).endOf("month").format("YYYY-MM-DD 00:00:00.000");
+                    rules.push({ dataIndx: "請求日付", condition: "equal", value: date });
                 }
             }
 
@@ -1041,10 +1053,10 @@ export default {
                     ? (header.pq_level == 0 ? (!!header.children.length ? header.children[0].コース : "") : header.コース).split(":")
                     : []
                     ;
-                var CourseCd = GroupInfo[0] || "";
-                var CourseNm = GroupInfo[1] || "";
-                var TantoCd = GroupInfo[2] || "";
-                var TantoNm = GroupInfo[3] || "";
+                var CourseCd = vue.viewModel.PrintOrder == "0" ? "" : (GroupInfo[0] || "");
+                var CourseNm = vue.viewModel.PrintOrder == "0" ? "" : (GroupInfo[1] || "");
+                var TantoCd = vue.viewModel.PrintOrder == "0" ? "" : (GroupInfo[2] || "");
+                var TantoNm = vue.viewModel.PrintOrder == "0" ? "" : (GroupInfo[3] || "");
 
                 return `
                     <table class="header-table" style="border-width: 0px">

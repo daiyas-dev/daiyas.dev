@@ -6,6 +6,7 @@
             </div>
             <div class="col-md-2">
                 <VueSelectBusho
+                    ref="VueSelectBusho"
                     :onChangedFunc=onBushoChanged
                 />
             </div>
@@ -57,9 +58,11 @@
                     ref="VueMultiSelect_SimeDate"
                     :vmodel=viewModel
                     bind="SimeDateArray"
-                    uri="/Utilities/GetSimeDateList"
+                    uri="/DAI02030/GetSimeDateList"
+                    :params='{ BushoCd: searchParams.BushoCd, TargetDate: searchParams.TargetDate }'
                     :hasNull=true
                     :onChangedFunc=onSimeDateChanged
+                    :ParamsChangedCheckFunc=SimeDateParamsChangedCheckFunc
                     :disabled=SimeDateDisabled
                 />
             </div>
@@ -277,6 +280,7 @@ export default {
             TargetDateMsg: null,
             TargetDateFormat: "YYYY年MM月DD日",
             TargetDateDayViewHeaderFormat: "YYYY年MM月",
+            BushoInfo: null,
             grid1Options: {
                 selectionModel: { type: "row", mode: "block", row: true, column: true, },
                 showHeader: true,
@@ -546,8 +550,12 @@ export default {
             //初期フィルタ
             vue.filterChanged();
         },
-        onBushoChanged: function(code, entities) {
+        onBushoChanged: function(code, entity, entities) {
             var vue = this;
+
+            if (!!entity) {
+                vue.BushoInfo = entity.info;
+            }
 
             //条件変更ハンドラ
             vue.conditionChanged();
@@ -587,6 +595,11 @@ export default {
 
             //フィルタ変更ハンドラ
             vue.filterChanged();
+        },
+        SimeDateParamsChangedCheckFunc: function(newVal, oldVal) {
+            var vue = this;
+            var ret = !!newVal.BushoCd && !!newVal.TargetDate;
+            return ret;
         },
         onPrintOrderChanged: function(code, entities) {
             var vue = this;
@@ -675,15 +688,22 @@ export default {
 
             var rules = [];
 
-            //締日
+            //請求日付
             if (vue.viewModel.SimeKbn == "2") {
                 if (!!vue.viewModel.SimeDateArray.length) {
                     var crules = vue.viewModel.SimeDateArray.map(d => {
-                        return { condition: "contain", mode: "OR", value: "/" + d.code + "/" };
+                        var date;
+                        if (d.code == 99) {
+                            date = moment(vue.searchParams.TargetDate).endOf("month").format("YYYY-MM-DD 00:00:00.000");
+                        } else {
+                            date = moment(vue.searchParams.TargetDate).startOf("month").add(d.code - 1, "day").format("YYYY-MM-DD 00:00:00.000");
+                        }
+                        return { condition: "equal", mode: "OR", value: date };
                     });
-                    rules.push({ dataIndx: "締日", crules: crules });
+                    rules.push({ dataIndx: "請求日付", crules: crules });
                 } else {
-                    rules.push({ dataIndx: "締日", condition: "contain", value: "99" });
+                    var date = moment(vue.searchParams.TargetDate).endOf("month").format("YYYY-MM-DD 00:00:00.000");
+                    rules.push({ dataIndx: "請求日付", condition: "equal", value: date });
                 }
             }
 
@@ -837,7 +857,7 @@ export default {
                 TargetDate: moment(data.請求日付).format("YYYY年MM月DD日"),
                 DateStart: moment(data.請求日範囲開始).format("YYYY年MM月DD日"),
                 DateEnd: moment(data.請求日範囲終了).format("YYYY年MM月DD日"),
-                SimeDate: data.締日,
+                SimeDate: data.締日１,
                 CourseCd: data.コースＣＤ,
                 CourseNm: data.コース名,
             };
@@ -861,9 +881,114 @@ export default {
                 body {
                     -webkit-print-color-adjust: exact;
                 }
-                h3 {
-                    margin-top: 0px;
-                    margin-bottom: 0px;
+                div{
+                    margin-bottom: 3px;
+                }
+                div.header{
+                    font-family: "MS UI Gothic";
+                    font-size: 10pt;
+                    font-weight: normal;
+                    justify-content: left;
+                    width: 100%;
+                }
+                .header-title{
+                	font-size: 18pt;
+                	font-weight: bold;
+                	letter-spacing: 16px;
+                }
+                .header-subtitle{
+                	font-size: 14pt;
+                	padding-bottom: 10px;
+                }
+                .header-seikyu-no{
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                    margin-top: 3px;
+                    padding-top: 3px;
+
+                }
+                span {
+                    padding-left: 8px;
+                }
+                div.header-tokuisaki {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                    padding-top: 12px;
+                    padding-bottom: 12px;
+                    margin-top: 3px;
+                    margin-bottom: 3px;
+                    font-size: 11pt;
+                    font-weight: bold;
+                }
+				#a-box {
+					float: left;
+					width: 58%
+				}
+				#b-box {
+					float: left;
+					width: 20%;
+				}
+				#c-box {
+					float: left;
+					width: 22%;
+				}
+				#d-box {
+					float: left;
+					width: 50%;
+				}
+				#e-box {
+					width: 6%;
+				}
+				#f-box {
+					float: right;
+					width: 42%;
+				}
+				#g-box {
+					clear: both;
+					float: left;
+					width: 58%;
+					padding-top: 45px;
+				}
+				#h-box {
+					float: right;
+					width: 42%;
+				}
+				#i-box {
+					float: left;
+					width: 35%;
+				}
+				#j-box {
+					float: right;
+					width: 55%;
+				}
+				#k-box {
+					float: left;
+					width: 90%;
+                    padding-bottom: 8px;
+				}
+				#l-box {
+					float: right;
+					width: 10%;
+	                padding-bottom: 8px;
+	                text-align: right;
+				}
+				#f-box > div{
+					padding-left: 14px;
+				}
+				#i-box {
+					padding-left: 14px;
+				}
+                table.header-table tbody th {
+                    text-align: center;
+                    font-family: "MS UI Gothic";
+                    font-size: 12pt;
+                    font-weight: normal;
                 }
                 table {
                     table-layout: fixed;
@@ -875,168 +1000,370 @@ export default {
                 }
                 th, td {
                     font-family: "MS UI Gothic";
-                    font-size: 9pt;
+                    font-size: 10pt;
                     font-weight: normal;
                     margin: 0px;
                     padding-left: 3px;
                     padding-right: 3px;
                 }
                 th {
-                    height: 16px;
+                    height: 21px;
                     text-align: center;
                 }
                 td {
-                    height: 16px;
+                    height: 21px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
+                table.header-table th {
+                    width: 12%;
+                }
+                table.header-table tbody tr th {
+                    text-align: right;
+                    padding-right: 10px;
+                }
+                table.header-table tr:first-child th {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.header-table tr:last-child th {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                    height: 26px;
+                }
+                table.header-table tr:first-child th:last-child {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 1px;
+                    border-bottom-width: 0px;
+                }
+                table.header-table tr:last-child th:last-child {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 1px;
+                    border-bottom-width: 1px;
+                }
+                table.header-table thead:first-child th:nth-child(4) {
+                    border-style: solid;
+                    border-left-width: 3px;
+                    border-top-width: 3px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.header-table thead:first-child th:nth-child(5) {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 3px;
+                    border-right-width: 2px;
+                    border-bottom-width: 0px;
+                }
+                table.header-table tr:last-child th:nth-child(4) {
+                    border-style: solid;
+                    border-left-width: 3px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 3px;
+                }
+                table.header-table tr:last-child th:nth-child(5) {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 2px;
+                    border-bottom-width: 3px;
+                }
             `;
 
-            var headerFunc = (header, idx, length) => {
-                var TargetDate = vue.viewModel.SimeKbn == "2"
-                    ? moment(header.pq_level == 0 ? header.請求日付 : header.parentId).format("YYYY年MM月DD日")
-                    : vue.viewModel.SimeKbn == "1"
-                        ? moment(vue.searchParams.TargetDate).format("YYYY年MM月DD日")
-                        : vue.viewModel.TargetDate
-                    ;
-                var GroupInfo = vue.viewModel.SimeKbn == "2"
-                    ? (header.pq_level == 0 ? (!!header.children.length ? header.children[0].コース : "") : header.コース).split(":")
-                    : []
-                    ;
-                var CourseCd = GroupInfo[0] || "";
-                var CourseNm = GroupInfo[1] || "";
-                var TantoCd = GroupInfo[2] || "";
-                var TantoNm = GroupInfo[3] || "";
+            axios.post("/DAI02030/GetMeisaiList", { SeikyuNoArray: grid.pdata.map(v => v.請求番号 * 1)})
+            .then(res => {
+                var group = _.groupBy(res.data, v => v.得意先ＣＤ);
 
-                return `
-                    <table class="header-table" style="border-width: 0px">
-                        <thead>
-                            <tr>
-                                <th style="width: 6%;">部署</th>
-                                <th style="width: 4%;">${vue.viewModel.BushoCd}</th>
-                                <th style="width: 12%;">${vue.viewModel.BushoNm}</th>
-                                <th style="width: 6%;"></th>
-                                <th style="width: 6%;"></th>
-                                <th style="width: 26%; vertical-align: top;" rowspan=2>
-                                    <h3 style="font-size: 16pt;">* * * 請求一覧表 * * *</h3>
-                                </th>
-                                <th style="width: 6%;"></th>
-                                <th style="width: 10%;"></th>
-                                <th style="width: 6%;"></th>
-                                <th style="width: 6%;"></th>
-                                <th style="width: 6%;"></th>
-                                <th style="width: 6%;"></th>
-                            </tr>
-                            <tr>
-                                <th>請求日付</th>
-                                <th colspan=2>${TargetDate}</th>
-                            </tr>
-                            <tr>
-                                <th>コース</th>
-                                <th>${CourseCd}</th>
-                                <th colspan=2>${CourseNm}</th>
-                            </tr>
-                            <tr>
-                                <th>担当者</th>
-                                <th>${TantoCd}</th>
-                                <th>${TantoNm}</th>
-                                <th>締区分</th>
-                                <th>${vue.viewModel.SimeKbnNm}</th>
-                                <th></th>
-                                <th>作成日</th>
-                                <th>${moment().format("YYYY年MM月DD日")}</th>
-                                <th>時間</th>
-                                <th>${moment().format("HH:mm:ss")}</th>
-                                <th>PAGE</th>
-                                <th style="text-align: right; padding-right: 10px;">${idx + 1}/${length}</th>
-                            </tr>
-                        </thead>
-                    </table>
-                `;
-            };
+                var printable = $("<html>")
+                    .append($("<head>").append($("<style>").text(globalStyles)))
+                    .append(
+                        $("<body>")
+                            .append(
+                                grid.pdata.map(r => {
+                                    var pdata = group[r.請求先ＣＤ] || [{}];
+                                    var summary = _.reduce(
+                                        pdata,
+                                        (a, v, k) => {
+                                            a.商品名 = "【 合 計 】";
+                                            a.数量 = (a.数量 || 0) + (v.数量 || 0) * 1;
+                                            a.金額 = (a.金額 || 0) + (!v.伝票Ｎｏ ? (v.金額 || 0) * 1 : 0);
+                                            a.入金金額 = (a.入金金額 || 0) + (!!v.伝票Ｎｏ ? (v.入金金額 || 0) * 1 : 0);
+                                            return a;
+                                        },
+                                        {}
+                                    );
+                                    pdata.push(summary);
+                                    pdata.forEach(v => {
+                                        v.数量 = pq.formatNumber(v.数量, "#,##0");
+                                        v.単価 = pq.formatNumber(v.単価, "#,##0");
+                                        v.金額 = pq.formatNumber(v.金額, "#,##0");
+                                        v.入金金額 = pq.formatNumber(v.入金金額, "#,##0");
+                                    });
 
-            //コース順の場合、一時的にGroupingを行う
-            if (vue.viewModel.PrintOrder == "1") {
-                grid.Group().option({ "dataIndx": ["請求日付", "コース"] });
-            }
+                                    var headerFunc = (header, idx, length, chunk, chunks) => {
+                                        return `
+                                            <div class="header">
+                                                <div>
+                                                    <div id="k-box">
+                                                        ｺｰﾄﾞNo.${r.請求先ＣＤ}
+                                                        <span/>-${r.コースＣＤ}
+                                                        <span/>(
+                                                        <span/>0
+                                                        <span>-0</span>
+                                                        <span>-0</span>
+                                                        )
+                                                    </div>
+                                                    <div id="l-box">
+                                                        ${idx + 1}
+                                                        /
+                                                        <span/>${length}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div id="a-box">
+                                                        </br></br>
+                                                        <div style="margin-bottom: 8px;">
+                                                            <span/>〒
+                                                            <span/>${r.郵便番号}
+                                                        </div>
+                                                        <div>
+                                                            ${r.住所１}
+                                                        </div>
+                                                        <br>
+                                                    </div>
+                                                    <div id="b-box">
+                                                        <div class="header-title">
+                                                            請求書
+                                                        </div>
+                                                        <div class="header-subtitle">
+                                                            (軽減税率対象)
+                                                        </div>
+                                                        <div style="margin-bottom: 8px;">
+                                                            株式会社<span/>ダイヤス食品
+                                                        </div>
+                                                    </div>
+                                                    <div id="c-box">
+                                                        <div>
+                                                            <span style="white-space: pre;">${moment(r.請求日付).format("  YY  年  MM  月  DD  日")}</span>
+                                                        </div>
+                                                        <div class="header-seikyu-no">
+                                                            <span/>請求番号
+                                                            <span/>${r.請求番号}
+                                                        </div>
+                                                    </div>
+                                                <div>
+                                                <div style="clear: both;">
+                                                    <div id="d-box">
+                                                        <div class="header-tokuisaki">
+                                                            ${r.得意先名}
+                                                            <span>様
+                                                        </div>
+                                                        <div>
+                                                            Tel
+                                                            <span/><span/>${r.電話番号１}
+                                                            <span/><span/>Fax
+                                                            <span/><span/>${r.ＦＡＸ１}
+                                                        </div>
+                                                        </br>
+                                                    </div>
+                                                    <div id="e-box">
+                                                    </div>
+                                                    <div id="f-box">
+                                                        <div>
+                                                            <span/>〒
+                                                            <span/>${vue.BushoInfo.郵便番号}
+                                                        </div>
+                                                        <div>
+                                                            ${vue.BushoInfo.住所}
+                                                        </div>
+                                                        <div>
+                                                            Tel
+                                                            <span/><span/>${vue.BushoInfo.電話番号}
+                                                        </div>
+                                                        <div>
+                                                            Fax
+                                                            <span/><span/>${vue.BushoInfo.FAX}
+                                                        </div>
+                                                    </div>
+                                                    <div id="g-box">
+                                                        <div style="margin-bottom: 8px;">
+                                                            毎度ありがとうございます。
+                                                        </div>
+                                                        <div>
+                                                            下記の通りご請求申し上げます。
+                                                        </div>
+                                                    </div>
+                                                    <div id="h-box">
+                                                        <div style="margin-bottom: 8px;">
+                                                            取引金融機関
+                                                        </div>
+                                                        <div id="i-box">
+                                                            <div>
+                                                                ${vue.BushoInfo.金融機関1名称}
+                                                            </div>
+                                                            <div>
+                                                                ${vue.BushoInfo.口座種別1名称}
+                                                                <span/><span/>${vue.BushoInfo.口座番号1}
+                                                            </div>
+                                                            <div>
+                                                                ${vue.BushoInfo.金融機関2名称}
+                                                            </div>
+                                                            <div>
+                                                                ${vue.BushoInfo.口座種別2名称}
+                                                                <span/><span/>${vue.BushoInfo.口座番号2}
+                                                            </div>
+                                                        </div>
+                                                        <div id="j-box">
+                                                            <div>
+                                                                <span/>${vue.BushoInfo.金融機関支店1名称}
+                                                            </div>
+                                                            <div>
+                                                                ${vue.BushoInfo.口座名義人1}
+                                                            </div>
+                                                            <div>
+                                                                <span/>${vue.BushoInfo.金融機関支店2名称}
+                                                            </div>
+                                                            <div>
+                                                                ${vue.BushoInfo.口座名義人1}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            <table class="header-table" style="border-width: 0px; margin-bottom: 20px;">
+                                                <thead>
+                                                    <tr>
+                                                        <th>前回請求額</th>
+                                                        <th>御入金額</th>
+                                                        <th>繰越金額</th>
+                                                        <th>御買上金額</th>
+                                                        <th>消費税</th>
+                                                        <th>今回請求額</th>
+                                                    </tr>
+                                                    <tr>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <th>${pq.formatNumber(r.前回請求残高, "#,###0")}</th>
+                                                    <th>${pq.formatNumber(r.今回入金額, "#,###0")}</th>
+                                                    <th>${pq.formatNumber(r.差引繰越額, "#,###0")}</th>
+                                                    <th>${pq.formatNumber(r.今回売上額, "#,###0")}</th>
+                                                    <th>${pq.formatNumber(r.消費税額, "#,###0")}</th>
+                                                    <th>${pq.formatNumber(r.今回請求額, "#,###0")}</th>
+                                                </tbody>
+                                            </table>
+                                            </div>
+                                        `;
+                                    };
 
-            var printable = $("<html>")
-                .append($("<head>").append($("<style>").text(globalStyles)))
-                .append(
-                    $("<body>")
-                        .append(
-                            grid.generateHtml(
-                                `
-                                    .header-table th {
-                                        border-style: solid;
-                                        border-left-width: 0px;
-                                        border-top-width: 1px;
-                                        border-right-width: 1px;
-                                        border-bottom-width: 0px;
-                                    }
-                                    .header-table tr th:first-child {
-                                        border-left-width: 1px;
-                                    }
-                                    .header-table tr:nth-child(1) th:nth-child(n+4) {
-                                        border-left-width: 0px;
-                                        border-top-width: 0px;
-                                        border-right-width: 0px;
-                                        border-bottom-width: 0px;
-                                    }
-                                    .header-table tr:nth-child(4) th:nth-child(6) {
-                                        border-top-width: 0px;
-                                    }
-                                    table.DAI02030Grid1 tr:nth-child(1) th {
-                                        border-style: solid;
-                                        border-left-width: 1px;
-                                        border-top-width: 1px;
-                                        border-right-width: 0px;
-                                        border-bottom-width: 1px;
-                                    }
-                                    table.DAI02030Grid1 tr th:last-child {
-                                        border-right-width: 1px;
-                                    }
-                                    table.DAI02030Grid1 tr td {
-                                        border-style: solid;
-                                        border-left-width: 1px;
-                                        border-top-width: 0px;
-                                        border-right-width: 0px;
-                                        border-bottom-width: 1px;
-                                    }
-                                    table.DAI02030Grid1 tr.grand-summary td {
-                                        border-style: solid;
-                                        border-left-width: 1px;
-                                        border-top-width: 0px;
-                                        border-right-width: 0px;
-                                        border-bottom-width: 1px;
-                                    }
-                                    table.DAI02030Grid1 tr td:last-child {
-                                        border-right-width: 1px;
-                                    }
-                                `,
-                                headerFunc,
-                                32,
-                                [false, false],
-                                [true, true],
-                                [true, true],
+                                    var html = grid.generateHtmlFromJson(
+                                        pdata,
+                                        `
+                                            .header-table th {
+                                                border-style: solid;
+                                                border-left-width: 0px;
+                                                border-top-width: 1px;
+                                                border-right-width: 1px;
+                                                border-bottom-width: 0px;
+                                            }
+                                            .header-table tr th:first-child {
+                                                border-left-width: 1px;
+                                            }
+                                            .header-table tr:nth-child(1) th:nth-child(n+4) {
+                                                border-left-width: 0px;
+                                                border-top-width: 0px;
+                                                border-right-width: 0px;
+                                                border-bottom-width: 0px;
+                                            }
+                                            .header-table tr:nth-child(4) th:nth-child(6) {
+                                                border-top-width: 0px;
+                                            }
+                                            table.DAI02030Grid1 tr:nth-child(1) th {
+                                                border-style: solid;
+                                                border-left-width: 1px;
+                                                border-top-width: 1px;
+                                                border-right-width: 0px;
+                                                border-bottom-width: 1px;
+                                            }
+                                            table.DAI02030Grid1 tr th:last-child {
+                                                border-right-width: 1px;
+                                            }
+                                            table.DAI02030Grid1 tr td {
+                                                border-style: solid;
+                                                border-left-width: 1px;
+                                                border-top-width: 0px;
+                                                border-right-width: 0px;
+                                                border-bottom-width: 1px;
+                                            }
+                                            table.DAI02030Grid1 tr.grand-summary td {
+                                                border-style: solid;
+                                                border-left-width: 1px;
+                                                border-top-width: 0px;
+                                                border-right-width: 0px;
+                                                border-bottom-width: 1px;
+                                            }
+                                            table.DAI02030Grid1 tr td:last-child {
+                                                border-right-width: 1px;
+                                            }
+                                        `,
+                                        headerFunc,
+                                        25,
+                                        true,
+                                        [
+                                            "日付",
+                                            "食事区分名",
+                                            "商品名",
+                                            "数量",
+                                            "単価",
+                                            "金額",
+                                            "入金金額",
+                                            "備考",
+                                        ],
+                                        [
+                                            "月日",
+                                            "区分",
+                                            "商品名称",
+                                            "食数",
+                                            "単価",
+                                            "買上額",
+                                            "入金額",
+                                            "備考",
+                                        ],
+                                    );
+                                    console.log("2030 seikyusho", html)
+                                    return html;
+                                })
                             )
-                        )
-                )
-                .prop("outerHTML")
-                ;
+                    )
+                    .prop("outerHTML")
+                    ;
 
-            //Grouping解除
-            grid.Group().option({ "dataIndx": [] });
+                var printOptions = {
+                    type: "raw-html",
+                    style: "@media print { @page { size: A4; } }",
+                    printable: printable,
+                };
 
-            var printOptions = {
-                type: "raw-html",
-                style: "@media print { @page { size: A4 landscape; } }",
-                printable: printable,
-            };
-
-            printJS(printOptions);
-            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
-            //$("#printJS").contents().find("html").html()
+                printJS(printOptions);
+                //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+                //$("#printJS").contents().find("html").html()
+            })
+            .catch(err => {
+                console.log(err);
+                $.dialogErr({
+                    title: "印刷失敗",
+                    contents: "請求明細の検索に失敗しました" + "<br/>" + err.message,
+                });
+            });
         },
     }
 }

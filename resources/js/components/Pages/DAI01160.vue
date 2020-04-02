@@ -111,6 +111,7 @@
             :SearchOnActivate=false
             :options=this.grid1Options
             :onAfterSearchFunc=this.onAfterSearchFunc
+            :autoToolTipDisabled=true
         />
     </form>
 </template>
@@ -165,7 +166,7 @@ export default {
                 columnBorders: true,
                 fillHandle: "",
                 numberCell: { show: true, title: "No.", resizable: false, width: 35, },
-                autoRow: false,
+                autoRow: true,
                 rowHtHead: 50,
                 rowHt: 35,
                 freezeCols: 5,
@@ -230,6 +231,25 @@ export default {
                         dataIndx: "顧客名", dataType: "string",
                         width: 200, minWidth: 200, maxWidth: 200,
                         fixed: true,
+                        tooltip: true,
+                        render: ui => {
+                            var vue = this;
+                            if (!!ui.rowData.pq_grandsummary && vue.viewModel.IsBikoOutput == 1) {
+                                //総計行
+                                ui.rowData["顧客名"] = "総計";
+                                return { text: "総計" };
+                            }
+                            if (!!ui.rowData.pq_gsummary && vue.viewModel.IsBikoOutput == 1) {
+                                //小計行
+                                ui.rowData["顧客名"] = "コース計";
+                                return { text: "コース計" };
+                            }
+                            if (!!ui.rowData.pq_gsummary && vue.viewModel.IsBikoOutput == 0) {
+                                ui.rowData["顧客名"] = "";
+                                return { text: "" };
+                            }
+                            return ui;
+                        },
                     },
                     {
                         title: "T",
@@ -269,6 +289,13 @@ export default {
                                 ui.rowData["配送コース名"] = ui.rowData.pq_gid;
                                 return { text: ui.rowData.pq_gid };
                             }
+                            var vue = this;
+                            if (!!ui.rowData.pq_grandsummary && vue.viewModel.SummaryKind == 2) {
+                                //総計行
+                                ui.rowData["配送コース名"] = "合計";
+                                return { text: "合計" };
+                            }
+                            ui.rowData["配送コース名"] = "";
                             return ui;
                         },
                     },
@@ -302,7 +329,7 @@ export default {
                 //         vue.DAI01160Grid1.searchData(params, false, null, () => vue.DAI01160Grid1.print(vue.setPrintOptions));
                 //     }
                 // },
-                { visible: "true", value: "印刷", id: "DAI01020Grid1_Print", disabled: false, shortcut: "F6",
+                { visible: "true", value: "印刷", id: "DAI01160Grid1_Print", disabled: false, shortcut: "F6",
                     onClick: function () {
                         vue.print();
                     }
@@ -311,7 +338,9 @@ export default {
         },
         mountedFunc: function(vue) {
             //配送日付の初期値 -> 当日
-            vue.viewModel.DeliveryDate = moment();
+            // vue.viewModel.DeliveryDate = moment();
+            //TODO:確認用削除予定
+            vue.viewModel.DeliveryDate = moment("20190904");
         },
         setPrintOptions: function(grid) {
             var vue = this;
@@ -441,12 +470,24 @@ export default {
                                         render: ui => {
                                             // hide zero
                                             if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                                //空列のコース計は0表示
+                                                if (!!ui.rowData.pq_gsummary) {
+                                                    return { text: "0" };
+                                                }
                                                 return { text: "" };
                                             }
+                                            if (vue.viewModel.IsIncludeJuchu == 0) {
+                                                //空列のコース計は0表示
+                                                if (!!ui.rowData.pq_gsummary) {
+                                                    return { text: "0" };
+                                                }
+                                                return { text: "" };
+                                            }
+
                                             return ui;
                                         },
                                         summary: {
-                                            type: "TotalInt",
+                                            type: "TotalInt"
                                         },
                                         cd2eq0Idx: i,
                                         custom: true,
@@ -489,8 +530,20 @@ export default {
                                 render: ui => {
                                     // hide zero
                                     if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                        //空列のコース計は0表示
+                                        if (!!ui.rowData.pq_gsummary) {
+                                            return { text: "0" };
+                                        }
                                         return { text: "" };
                                     }
+                                    if (vue.viewModel.IsIncludeJuchu == 0) {
+                                        //空列のコース計は0表示
+                                        if (!!ui.rowData.pq_gsummary) {
+                                            return { text: "0" };
+                                        }
+                                        return { text: "" };
+                                    }
+
                                     return ui;
                                 },
                                 summary: {
@@ -537,6 +590,17 @@ export default {
                                 dataType: "integer",
                                 format: "#,###",
                                 width: 100, maxWidth: 100, minWidth: 100,
+                                render: ui => {
+                                    // hide zero
+                                    if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                        //空列は0表示
+                                        return { text: "0" };
+                                    }
+                                    if (vue.viewModel.IsIncludeJuchu == 0) {
+                                        return { text: "0" };
+                                    }
+                                    return ui;
+                                },
                                 summary: {
                                     type: "TotalInt",
                                 },
@@ -552,6 +616,17 @@ export default {
                                 render: ui => {
                                     // hide zero
                                     if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                        //空列のコース計は0表示
+                                        if (!!ui.rowData.pq_gsummary) {
+                                            return { text: "0" };
+                                        }
+                                        return { text: "" };
+                                    }
+                                    if (vue.viewModel.IsIncludeJuchu == 0) {
+                                        //空列のコース計は0表示
+                                        if (!!ui.rowData.pq_gsummary) {
+                                            return { text: "0" };
+                                        }
                                         return { text: "" };
                                     }
                                     return ui;
@@ -565,7 +640,7 @@ export default {
                         newCols.push(
                             {
                                 title: "備考",
-                                dataIndx: "備考",
+                                dataIndx: "備考１",
                                 dataType: "string",
                                 width: 200, minWidth: 200,
                             }
@@ -629,7 +704,7 @@ export default {
                 .forEach(v => {
                     v.hidden = vue.viewModel.SummaryKind == "1" &&
                                vue.viewModel.IsBikoOutput == "1" &&
-                               v.cd2eq0Idx > 10;
+                               v.cd2eq0Idx >= 10;
                 });
 
             //サブ各種CD2=1の列はコース合計 || 備考出力時は非表示
@@ -660,7 +735,7 @@ export default {
                 });
 
             //備考の列はコース合計 || 備考非出力時は非表示
-            cols.filter(v => v.dataIndx == "備考")
+            cols.filter(v => v.dataIndx == "備考１")
                 .forEach(v => {
                     v.hidden = vue.viewModel.SummaryKind == "2" ||
                                vue.viewModel.IsBikoOutput == "0";
@@ -732,7 +807,7 @@ export default {
             var rules = [];
             var crules = [];
             if (vue.viewModel.CourseCd != undefined && vue.viewModel.CourseCd != "") {
-                crules.push({ condition: "gte", value: vue.viewModel.CourseCd * 1 });
+                crules.push({ condition: "equal", value: vue.viewModel.CourseCd * 1 });
             }
 
             if (crules.length) {
@@ -831,7 +906,6 @@ export default {
             console.log("setNavigator", evt, ui);
         },
         print: function() {
-            //TODO:以下作業途中：01250参考
             var vue = this;
 
             //印刷用HTML全体適用CSS
@@ -847,18 +921,6 @@ export default {
                 div.title > h3 {
                     margin-top: 0px;
                     margin-bottom: 0px;
-                }
-                div.header-table {
-                    font-family: "MS UI Gothic";
-                    font-size: 11pt;
-                    font-weight: normal;
-                    margin: 0px;
-                    padding-left: 3px;
-                    padding-right: 3px;
-                    height: 22px;
-                }
-                div.header-table span {
-                    margin-right: 25px;
                 }
                 table {
                     table-layout: fixed;
@@ -881,136 +943,354 @@ export default {
                     text-align: center;
                 }
                 td {
-                    height: 21px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
+                div.header{
+                    font-family: "MS UI Gothic";
+                    font-size: 10pt;
+                    font-weight: normal;
+                    margin-bottom: 0px;
+                    padding-left: 3px;
+                    padding-right: 3px;
+                    width: 100%;
+                }
+                div.header > div {
+                	height: 18px;
+                }
+                div.header > div > div {
+                	padding-bottom: 2px;
+                }
+                div.header span {
+                    margin-right: 8px;
+                }
+                span{
+                	padding-left: 8px;
+                }
+				#a-box, #d-box, #g-box {
+					float: left;
+					width: 25%
+				}
+				#b-box, #e-box, #h-box {
+					float: left;
+					width: 30%;
+				}
+				#c-box, #f-box, #i-box {
+					float: right;
+					width: 35%;
+				}
+				div #c-box{
+					text-align: right;
+                }
+                div #d-box {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                }
             `;
 
-            var headerFunc = (chunk, idx, length) => {
+            //TODO:ページ数表示（コース毎に分母区切る）
+
+            var headerForByCourse = (header, idx, length, chunk, chunks) => {
                 return `
                     <div class="title">
-                        <h3>* * * 配送集計表 * * *</h3>
+                        <h3>* * * <span/>配送集計表<span/> * * *</h3>
                     </div>
-                    <div class="header-table" style="border-width: 0px">
-                        <tr>
-                            <th style="width: 5.0%;">日付</th>
-                            <th style="width: 8.5%; text-align: center;">${moment(vue.viewModel.DateStart, "YYYY年MM月DD日").format("YYYY/MM/DD")}</th>
-                            <th style="width: 3.0%;">～</th>
-                            <th style="width: 8.5%; text-align: center;">${moment(vue.viewModel.DateEnd, "YYYY年MM月DD日").format("YYYY/MM/DD")}</th>
-                        </tr>
+                    <div class="header">
+                        <div>
+                            <div id="a-box" style="margin-left:20px;">
+                                ${vue.viewModel.BushoNm}
+                            </div>
+                            <div id="b-box"></div>
+                            <div id="c-box">
+                                <span>作成日</span>
+                                <span>${moment().format("YYYY年MM月DD日")}</span>
+                                <span>PAGE</span>
+                                <span>${idx + 1}/</span>
+                                ${Math.ceil(header.children.length/22)}
+                            </div>
+                        </div>
+                        <div style="clear: both;">
+                            <div id="d-box">
+                                <div style="float: left;">${moment(vue.viewModel.DeliveryDate, "YYYYMMDD").format("YY/MM/DD(ddd)")}</div>
+                                <div style="float: left; margin-left:20px; font-size: 11pt !important;">${header.GroupKey.replace(/^\d{3}/,"")}</div>
+
+                            </div>
+                            <div id="e-box"></div>
+                            <div id="f-box" style="font-size: 9pt !important;">
+                                株式会社
+                                <span/>ダイヤス食品
+                            </div>
+                        </div>
+                        <div style="clear: both;">
+                            <div id="g-box"></div>
+                            <div id="h-box"></div>
+                            <div id="i-box">
+                                Tel
+                                <span/>0836-32-1113
+                                <span/>Fax
+                                <span/>0836-21-4700
+                            </div>
+                        </div>
                     </div>
-                    <table class="header-table" style="border-width: 0px">
-                        <thead>
-                            <tr>
-                                <th style="width: 6.5%; text-align: left;">部署</th>
-                                <th style="width: 5.0%; text-align: left;">${vue.viewModel.BushoCd}</th>
-                                <th style="width: 16.5%; text-align: left;">${vue.viewModel.BushoNm}</th>
-                                <th style="width: 46.0%;"></th>
-                                <th style="width: 6.0%;">作成日</th>
-                                <th style="width: 10.0%;">${moment().format("YYYY年MM月DD日")}</th>
-                                <th style="width: 5.0%;">PAGE</th>
-                                <th style="width: 5.0%; text-align: right;">${idx + 1}/${length}</th>
-                            </tr>
-                        </thead>
-                    </table>
                 `;
             };
 
+            var headerForCourseSummary = (header, idx, length) => {
+                return `
+                    <div class="title">
+                        <h3>* * * <span/>配送集計表<span/> * * *</h3>
+                    </div>
+                    <div class="header">
+                        <div>
+                            <div id="a-box">
+                                ${vue.viewModel.BushoNm}
+                            </div>
+                            <div id="b-box"></div>
+                            <div id="c-box">
+                                <span>作成日</span>
+                                <span>${moment().format("YYYY年MM月DD日")}</span>
+                                <span>PAGE</span>
+                                <span>${idx + 1}/</span>
+                                ${length}
+                            </div>
+                        </div>
+                        <div style="clear: both;">
+                            <div id="d-box">
+                                <div style="float: left;">${moment(vue.viewModel.DeliveryDate, "YYYYMMDD").format("YY/MM/DD(ddd)")}</div>
+                            </div>
+                            <div id="e-box"></div>
+                            <div id="f-box" style="font-size: 9pt !important;">
+                                株式会社
+                                <span/>ダイヤス食品
+                            </div>
+                        </div>
+                        <div style="clear: both;">
+                            <div id="g-box"></div>
+                            <div id="h-box"></div>
+                            <div id="i-box">
+                                Tel
+                                <span/>0836-32-1113
+                                <span/>Fax
+                                <span/>0836-21-4700
+                            </div>
+                        </div>
+                    </div>
+                `;
+            };
+
+            var styleByCourse =`
+                table.DAI01160Grid1 thead tr th {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI01160Grid1 tr th:last-child {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 1px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI01160Grid1 tr td {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI01160Grid1 tr td:last-child {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 0px;
+                    border-right-width: 1px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI01160Grid1 tr th:nth-child(2) {
+                    width: 22.0%;
+                }
+                table.DAI01160Grid1 tr th:nth-child(4) {
+                    width: 9.0%;
+                }
+                table.DAI01160Grid1 tr th:nth-child(1) {
+                    width: 3.3%;
+                }
+                table.DAI01160Grid1 tr th:nth-child(3),
+                table.DAI01160Grid1 tr th:nth-child(21),
+                table.DAI01160Grid1 tr th:nth-child(26),
+                table.DAI01160Grid1 tr th:nth-child(27){
+                    width: 2.2%;
+                }
+                table.DAI01160Grid1 tr td:nth-child(3),
+                table.DAI01160Grid1 tr td:nth-child(21),
+                table.DAI01160Grid1 tr td:nth-child(26),
+                table.DAI01160Grid1 tr td:nth-child(27) {
+                    text-align: center;
+                }
+                table.DAI01160Grid1 tr td:nth-child(4) {
+                    text-align: left;
+                }
+                table.DAI01160Grid1 tbody td {
+                    height: 23px;
+                }
+                table.DAI01160Grid1 tr.group-summary td:nth-child(-n+3),
+                table.DAI01160Grid1 tr.group-summary td:nth-last-child(-n+6) {
+                    border-style: none;
+                }
+                table.DAI01160Grid1 tr.group-summary td:nth-last-child(7) {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+            `;
+
+            var styleByCourseWithBiko =`
+                table.DAI01160Grid1 thead tr th {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI01160Grid1 tr th:last-child {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 1px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI01160Grid1 tr td {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI01160Grid1 tr td:last-child {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 0px;
+                    border-right-width: 1px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI01160Grid1 tr th:nth-child(1) {
+                    width: 3.3%;
+                }
+                table.DAI01160Grid1 tr th:nth-child(2) {
+                    width: 22.0%;
+                }
+                table.DAI01160Grid1 tr th:nth-child(3) {
+                    width: 2.2%;
+                }
+                table.DAI01160Grid1 tr th:nth-child(15) {
+                    width: 6.5%;
+                }
+                table.DAI01160Grid1 tr th:nth-child(16){
+                    width: 30.0%;
+                }
+                table.DAI01160Grid1 tbody td {
+                    height: 25px;
+                }
+                table.DAI01160Grid1 tr.group-summary td:nth-child(1) {
+                    border-style: none;
+                }
+                table.DAI01160Grid1 tr.group-summary td:nth-child(2) {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                    text-align: right;
+                }
+                table.DAI01160Grid1 tr.group-summary td:nth-child(3) {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                }
+            `;
+
+            var styleCourseSummary =`
+				#a-box, #d-box, #g-box {
+					float: left;
+					width: 8%
+				}
+				#b-box, #e-box, #h-box {
+					float: left;
+					width: 52%;
+				}
+				table.DAI01160Grid1{
+					width: 90%;
+					margin-left: auto;
+					margin-right: auto;
+				}
+                table.DAI01160Grid1 thead tr th {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI01160Grid1 tr th:last-child {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 1px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI01160Grid1 tr td {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI01160Grid1 tr td:last-child {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 0px;
+                    border-right-width: 1px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI01160Grid1 tr th:nth-child(1) {
+                    width: 35.0%;
+                }
+                table.DAI01160Grid1 tr th:last-child {
+                    width: 8.0%;
+                }
+                table.DAI01160Grid1 td:nth-child(1) {
+                    padding-left: 15px;
+                }                table.DAI01160Grid1 tbody td {
+                    height: 27px;
+                }
+                table.DAI01160Grid1 tr.grand-summary td:nth-child(1) {
+                    text-align: right;
+                    padding-right: 10px;
+                }
+            `;
+
+            //TODO:改頁するMaxRow値。備考に改行が含まれる場合、行高が大きくなるため、MaxRow値が変わる
             var printable = $("<html>")
                 .append($("<head>").append($("<style>").text(globalStyles)))
                 .append(
                     $("<body>")
                         .append(
                             vue.DAI01160Grid1.generateHtml(
-                                `
-                                    table.DAI011600Grid1 tr:nth-child(1) th {
-                                        border-style: solid;
-                                        border-left-width: 1px;
-                                        border-top-width: 1px;
-                                        border-right-width: 0px;
-                                        border-bottom-width: 1px;
-                                    }
-                                    table.DAI01160Grid1 tr.grand-summary td {
-                                        border-style: solid;
-                                        border-left-width: 0px;
-                                        border-top-width: 1px;
-                                        border-right-width: 0px;
-                                        border-bottom-width: 1px;
-                                    }
-                                    // table.DAI01160Grid1 tr th:nth-child(1) {
-                                    //     width: 22.5%;
-                                    // }
-
-                                    // table.DAI01160Grid1 tr th:nth-child(2) {
-                                    //     width: 7.5%;
-                                    // }
-
-                                    // table.DAI01160Grid1 tr th:nth-child(3) {
-                                    //     width: 13.5%;
-                                    // }
-
-                                    // table.DAI01160Grid1 tr th:nth-child(4) {
-                                    //     width: 12.0%;
-                                    // }
-
-                                    // table.DAI01160Grid1 tr th:nth-child(5) {
-                                    //     width: 11.5%;
-                                    // }
-
-                                    // table.DAI01160Grid1 tr th:nth-child(6) {
-                                    //     width: 6.5%;
-                                    // }
-
-                                    // table.DAI01160Grid1 tr th:nth-child(7) {
-                                    //     width: 8%;
-                                    // }
-                                    table.DAI01160Grid1 tr th:last-child {
-                                        width: 18.5%;
-                                        border-style: solid;
-                                        border-left-width: 1px;
-                                        border-top-width: 1px;
-                                        border-right-width: 1px;
-                                        border-bottom-width: 1px;
-                                    }
-                                    table.DAI01160Grid1 tr td {
-                                        border-style: solid;
-                                        border-left-width: 1px;
-                                        border-top-width: 0px;
-                                        border-right-width: 0px;
-                                        border-bottom-width: 1px;
-                                    }
-                                    table.DAI01160Grid1 tr td:nth-child(8) {
-                                        border-style: solid;
-                                        border-left-width: 1px;
-                                        border-top-width: 0px;
-                                        border-right-width: 1px;
-                                        border-bottom-width: 1px;
-                                    }
-                                    table.header-table th {
-                                        border-style: solid;
-                                        border-left-width: 1px;
-                                        border-top-width: 1px;
-                                        border-right-width: 0px;
-                                        border-bottom-width: 0px;
-                                    }
-                                    table.header-table th:nth-child(4) {
-                                        border-style: solid;
-                                        border-left-width: 1px;
-                                        border-top-width: 0px;
-                                        border-right-width: 0px;
-                                        border-bottom-width: 0px;
-                                    }
-                                    table.header-table th:nth-child(8) {
-                                        border-style: solid;
-                                        border-left-width: 1px;
-                                        border-top-width: 1px;
-                                        border-right-width: 1px;
-                                        border-bottom-width: 0px;
-                                    }
-                                `,
-                                headerFunc,
-                                25,
+                                vue.viewModel.SummaryKind == 2 ? styleCourseSummary :
+                                    (vue.viewModel.IsBikoOutput == 1 ? styleByCourseWithBiko : styleByCourse),
+                                vue.viewModel.SummaryKind == 2 ?　headerForCourseSummary : headerForByCourse,
+                                vue.viewModel.SummaryKind == 2 ? 19 : (vue.viewModel.IsBikoOutput == 1 ? 21 : 22),
+                                vue.viewModel.SummaryKind == 2 ? true : false,
+                                true,
+                                vue.viewModel.SummaryKind == 2 ? false : true,
+                                vue.viewModel.SummaryKind == 2 ? true : false,
                             )
                         )
                 )
