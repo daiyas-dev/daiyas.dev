@@ -468,16 +468,18 @@ export default {
                                         render: ui => {
                                             // hide zero
                                             if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                                //空列のコース計は0表示
+                                                if (!!ui.rowData.pq_gsummary) {
+                                                    return { text: "0" };
+                                                }
                                                 return { text: "" };
                                             }
                                             if (vue.viewModel.IsIncludeJuchu == 0) {
-                                                return { text: "" };
-                                            }
-                                            //TODO:空列の合計は0表示
-                                            if (!!ui.rowData.pq_gsummary) {
-                                                if (!ui.cellData) {
+                                                //空列のコース計は0表示
+                                                if (!!ui.rowData.pq_gsummary) {
                                                     return { text: "0" };
                                                 }
+                                                return { text: "" };
                                             }
 
                                             return ui;
@@ -526,9 +528,17 @@ export default {
                                 render: ui => {
                                     // hide zero
                                     if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                        //空列のコース計は0表示
+                                        if (!!ui.rowData.pq_gsummary) {
+                                            return { text: "0" };
+                                        }
                                         return { text: "" };
                                     }
                                     if (vue.viewModel.IsIncludeJuchu == 0) {
+                                        //空列のコース計は0表示
+                                        if (!!ui.rowData.pq_gsummary) {
+                                            return { text: "0" };
+                                        }
                                         return { text: "" };
                                     }
 
@@ -578,6 +588,17 @@ export default {
                                 dataType: "integer",
                                 format: "#,###",
                                 width: 100, maxWidth: 100, minWidth: 100,
+                                render: ui => {
+                                    // hide zero
+                                    if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                        //空列は0表示
+                                        return { text: "0" };
+                                    }
+                                    if (vue.viewModel.IsIncludeJuchu == 0) {
+                                        return { text: "0" };
+                                    }
+                                    return ui;
+                                },
                                 summary: {
                                     type: "TotalInt",
                                 },
@@ -593,6 +614,17 @@ export default {
                                 render: ui => {
                                     // hide zero
                                     if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                        //空列のコース計は0表示
+                                        if (!!ui.rowData.pq_gsummary) {
+                                            return { text: "0" };
+                                        }
+                                        return { text: "" };
+                                    }
+                                    if (vue.viewModel.IsIncludeJuchu == 0) {
+                                        //空列のコース計は0表示
+                                        if (!!ui.rowData.pq_gsummary) {
+                                            return { text: "0" };
+                                        }
                                         return { text: "" };
                                     }
                                     return ui;
@@ -606,7 +638,7 @@ export default {
                         newCols.push(
                             {
                                 title: "備考",
-                                dataIndx: "備考",
+                                dataIndx: "備考１",
                                 dataType: "string",
                                 width: 200, minWidth: 200,
                             }
@@ -701,7 +733,7 @@ export default {
                 });
 
             //備考の列はコース合計 || 備考非出力時は非表示
-            cols.filter(v => v.dataIndx == "備考")
+            cols.filter(v => v.dataIndx == "備考１")
                 .forEach(v => {
                     v.hidden = vue.viewModel.SummaryKind == "2" ||
                                vue.viewModel.IsBikoOutput == "0";
@@ -1026,7 +1058,7 @@ export default {
                         </div>
                         <div style="clear: both;">
                             <div id="d-box">
-                                <div style="float: left;">${moment(vue.viewModel.DeliveryDate, "YYYYMMDD").format("YY/MM/DD")}（${youbi}）</div>
+                                <div style="float: left;">${moment(vue.viewModel.DeliveryDate, "YYYYMMDD").format("YY/MM/DD(ddd)")}</div>
                             </div>
                             <div id="e-box"></div>
                             <div id="f-box" style="font-size: 9pt !important;">
@@ -1092,11 +1124,17 @@ export default {
                 table.DAI01160Grid1 tr th:nth-child(27){
                     width: 2.2%;
                 }
+                table.DAI01160Grid1 tr td:nth-child(3),
+                table.DAI01160Grid1 tr td:nth-child(21),
+                table.DAI01160Grid1 tr td:nth-child(26),
+                table.DAI01160Grid1 tr td:nth-child(27) {
+                    text-align: center;
+                }
                 table.DAI01160Grid1 tr td:nth-child(4) {
                     text-align: left;
                 }
                 table.DAI01160Grid1 tbody td {
-                    height: 24px;
+                    height: 23px;
                 }
                 table.DAI01160Grid1 tr.group-summary td:nth-child(-n+3),
                 table.DAI01160Grid1 tr.group-summary td:nth-last-child(-n+6) {
