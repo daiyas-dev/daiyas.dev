@@ -288,7 +288,7 @@ export default {
                                 return { text: text };
                             }
                             if (!!ui.Export) {
-                                return { text: "<span style=\"text-align:right;\">" + ui.rowData.請求先ＣＤ + "</span><span style=\"padding-left:5px;\">" + ui.rowData.得意先名 + "</span>"};
+                                return { text: ui.rowData.請求先ＣＤ + " " + ui.rowData.得意先名};
                             }
                         }
                     },
@@ -420,6 +420,9 @@ export default {
                         }
                     },
                 ],
+                rowDblClick: function (event, ui) {
+                    vue.showDetail(ui.rowData);
+                },
             },
         });
     },
@@ -431,14 +434,24 @@ export default {
                         vue.conditionChanged();
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI03020Grid1_Printout", disabled: false, shortcut: "F6",
+                {visible: "false"},
+                {visible: "false"},
+                {visible: "false"},
+                {visible: "false"},
+                { visible: "true", value: "明細", id: "DAI03020Grid1_Detail", disabled: true, shortcut: "Enter",
                     onClick: function () {
-                        vue.print();
+                        vue.showDetail();
                     }
                 },
-                { visible: "true", value: "明細", id: "DAI03020Grid1_Detail", disabled: false, shortcut: "Enter",
+                {visible: "false"},
+                { visible: "true", value: "CSV", id: "DAI03020Grid1_CSV", disabled: true, shortcut: "F10",
                     onClick: function () {
-                        vue.showDetail(false);
+                        vue.DAI03020Grid1.vue.exportData("csv", false, true);
+                    }
+                },
+                { visible: "true", value: "印刷", id: "DAI03020Grid1_Print", disabled: true, shortcut: "F11",
+                    onClick: function () {
+                        vue.print();
                     }
                 },
             );
@@ -448,6 +461,14 @@ export default {
             //TODO:
             // vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
             vue.viewModel.TargetDate = moment("20190801").format("YYYY年MM月DD日");
+
+            //watcher
+            vue.$watch(
+                "$refs.DAI03020Grid1.selectionRowCount",
+                cnt => {
+                    vue.footerButtons.find(v => v.id == "DAI03020Grid1_Detail").disabled = cnt == 0 || cnt > 1;
+                }
+            );
         },
         setPrintOptions: function(grid) {
             var vue = this;
@@ -607,6 +628,10 @@ export default {
                 r.GroupKey1 = r.部署ＣＤ + ":" + r.部署名;
                 r.GroupKey2 = r.コースＣＤ + ":" + r.コース名 + ":" + r.担当者ＣＤ + ":" + r.コース担当者名;
             });
+
+            vue.footerButtons.find(v => v.id == "DAI03020Grid1_CSV").disabled = !res.length;
+            vue.footerButtons.find(v => v.id == "DAI03020Grid1_Print").disabled = !res.length;
+
             return res;
         },
         CourseAutoCompleteFunc: function(input, dataList, comp) {
@@ -687,31 +712,31 @@ export default {
             var vue = this;
             var grid = vue.DAI03020Grid1;
 
-            var params = null;
-            if (!isNew) {
-                var data;
-                if (!!rowData) {
-                    data = _.cloneDeep(rowData);
-                } else {
-                    var selection = grid.SelectRow().getSelection();
+            var data;
+            if (!!rowData) {
+                data = _.cloneDeep(rowData);
+            } else {
+                var selection = grid.SelectRow().getSelection();
 
-                    var rows = grid.SelectRow().getSelection();
-                    if (rows.length != 1) return;
+                var rows = grid.SelectRow().getSelection();
+                if (rows.length != 1) return;
 
-                    data = _.cloneDeep(rows[0].rowData);
-                }
-
-                var params = {
-                    BushoCd: vue.viewModel.BushoCd,
-                    BushoNm: vue.viewModel.BushoNm,
-                    TargetDate: vue.viewModel.DeliveryDate,
-                    CourseKbn: vue.viewModel.CourseKbn,
-                    CourseCd: vue.viewModel.CourseCd,
-                    CourseNm: vue.viewModel.CourseNm,
-                    CustomerCd: data.得意先ＣＤ,
-                    CustomerIndex: data.CustomerIndex,
-                };
+                data = _.cloneDeep(rows[0].rowData);
             }
+            var TargetDate=vue.viewModel.TargetDate + "01日";
+            var params = {
+                BushoCd: vue.viewModel.BushoCd,
+                BushoNm: vue.viewModel.BushoNm,
+                CustomerCd: data.請求先ＣＤ,
+                CustomerNm: data.得意先名,
+                TargetDate: TargetDate,
+                DateStart: TargetDate,
+                DateEnd: moment(TargetDate,"YYYY年MM月DD日").endOf('month').format("YYYY年MM月DD日"),
+                //SimeDate: data.締日１,
+                CourseCd: data.コースＣＤ,
+                CourseNm: data.コース名,
+                //CourseKbn: data.コース区分,
+            };
 
             PageDialog.show({
                 pgId: "DAI03021",
@@ -719,8 +744,8 @@ export default {
                 isModal: true,
                 isChild: true,
                 reuse: false,
-                width: 1000,
-                height: 600,
+                width: 900,
+                height: 725,
             });
         },
         print: function() {

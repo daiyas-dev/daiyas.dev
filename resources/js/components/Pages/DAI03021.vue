@@ -231,7 +231,7 @@ export default {
                 colModel: [
                     {
                         title: "前回請求残高",
-                        dataIndx: "前回請求残高",
+                        dataIndx: "前月残高",
                         dataType: "integer",
                         format: "#,###",
                         width: 100, minWidth: 100, maxWidth: 100,
@@ -322,7 +322,7 @@ export default {
                         title: "伝票No",
                         dataIndx: "伝票Ｎｏ",
                         dataType: "integer",
-                        width: 65, minWidth: 65, maxWidth: 65,
+                        width: 75, maxWidth: 75, minWidth: 75,
                         render: ui => {
                             if (!!ui.rowData.IsBikoRow) {
                                 return { text: "" };
@@ -363,7 +363,6 @@ export default {
                         dataType: "integer",
                         format: "#,##0",
                         width: 100, maxWidth: 100, minWidth: 100,
-                        editable: false,
                         render: ui => {
                             if (!!ui.rowData.伝票Ｎｏ) {
                                 return { text: !!ui.rowData.IsBikoRow
@@ -378,9 +377,6 @@ export default {
                         },
                     },
                 ],
-                rowDblClick: function (event, ui) {
-                    vue.showDetail(ui.rowData);
-                },
             },
         });
 
@@ -402,11 +398,7 @@ export default {
                 {visible: "false"},
                 {visible: "false"},
                 {visible: "false"},
-                { visible: vue.params.IsSeikyuOutput ? "false" : "true", value: "CSV", id: "DAI03021Grid1_CSV", disabled: true, shortcut: "F10",
-                    onClick: function () {
-                        vue.DAI03021Grid1.vue.exportData("csv", false, true);
-                    }
-                },
+                {visible: "false"},
                 {visible: "false"},
                 {visible: "false"},
             );
@@ -441,7 +433,7 @@ export default {
         },
         conditionChanged: function(force) {
             var vue = this;
-            console.log("2021 conditionChanged")
+            console.log("3021 conditionChanged")
 
             if (!vue.DAI03021GridSummary || !vue.DAI03021GridMeisai || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.BushoCd || !vue.viewModel.CustomerCd || !vue.viewModel.DateStart || !vue.viewModel.DateEnd) return;
@@ -457,7 +449,6 @@ export default {
             var vue = this;
             var gridSummary = vue.DAI03021GridSummary;
             var gridSeikyu = vue.DAI03021GridMeisai;
-
             if (!res.length || !res[0].SeikyuData) {
                 gridSummary.options.dataModel.data = [
                     {
@@ -485,8 +476,6 @@ export default {
                 gridSummary.options.dataModel.data = [res[0].SeikyuData];
                 gridSummary.refreshDataAndView();
             }
-
-            vue.footerButtons.find(v => v.id == "DAI03021Grid1_CSV").disabled = !res.length;
 
             return list;
         },
@@ -524,99 +513,7 @@ export default {
                     return ret;
                 })
                 ;
-
             return list;
-        },
-        showDetail: function(rowData) {
-            var vue = this;
-            var grid = vue.DAI03021GridMeisai;
-
-            var data;
-            if (!!rowData) {
-                data = _.cloneDeep(rowData);
-            } else {
-                var selection = grid.SelectRow().getSelection();
-
-                var rows = grid.SelectRow().getSelection();
-                if (rows.length != 1) return;
-
-                data = _.cloneDeep(rows[0].rowData);
-            }
-
-            if (!!data.伝票Ｎｏ) {
-                vue.showNyukin(data);
-            } else {
-                vue.showUriage(data);
-            }
-        },
-        showUriage: function(data) {
-            var vue = this;
-            var grid = vue.DAI03021GridMeisai;
-
-            var params = {
-                IsSeikyu: true,
-                BushoCd: vue.viewModel.BushoCd,
-                BushoNm: vue.viewModel.BushoNm,
-                TargetDate: moment(data.伝票日付).format("YYYY年MM月DD日"),
-                CourseKbn: data.コース区分,
-                CourseCd: data.コースＣＤ,
-                CourseNm: data.コース名,
-                CustomerCd: vue.viewModel.CustomerCd,
-                onSaveFunc: () => {
-                    grid.refreshDataAndView();
-                },
-            };
-
-            PageDialog.show({
-                pgId: "DAI10010",
-                params: params,
-                isModal: true,
-                isChild: true,
-                reuse: false,
-                width: 1000,
-                height: 600,
-            });
-        },
-        showNyukin: function(data) {
-            var vue = this;
-            var grid = vue.DAI03021GridMeisai;
-
-            var params = {
-                BushoCd: vue.viewModel.BushoCd,
-                TargetDate: moment(data.伝票日付).format("YYYY年MM月DD日"),
-                CustomerCd: vue.viewModel.CustomerCd,
-                onSaveFunc: () => {
-                    grid.refreshDataAndView();
-                },
-            };
-
-            PageDialog.show({
-                pgId: "DAI01130",
-                params: params,
-                isModal: true,
-                isChild: true,
-                reuse: false,
-                width: 900,
-                height: 725,
-                onBeforeClose: (event, ui) => {
-                    if ($(window.event.target).attr("shortcut") == "ESC") return true;
-
-                    var dlg = $(event.target);
-                    var editting = dlg.find(".pq-grid")
-                        .map((i, v) => $(v).pqGrid("getInstance").grid)
-                        .get()
-                        .some(g => !_.isEmpty(g.getEditCell()));
-                    var isEscOnEditor = !!window.event && window.event.key == "Escape"
-                        && (
-                            $(window.event.target).hasClass("target-input") ||
-                            $(window.event.target).hasClass("pq-cell-editor")
-                        );
-
-                    var canClose = !editting && !isEscOnEditor;
-
-                    return canClose;
-                }
-            });
         },
     }
 }

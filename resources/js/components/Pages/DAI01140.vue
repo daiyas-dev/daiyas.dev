@@ -787,6 +787,13 @@ export default {
                 div.title > h3 {
                     margin-top: 0px;
                     margin-bottom: 0px;
+                    padding-left: 50px;
+                    padding-right: 50px;
+                    padding-top: 4px;
+                    padding-bottom: 4px;
+                    border: solid 1px black;
+                    border-radius: 6px;
+                    background-color: cyan;
                 }
                 table {
                     table-layout: fixed;
@@ -815,16 +822,39 @@ export default {
                 }
             `;
 
+            //TODO:(西山)ヘッダー編集中。担当者名はpopupselectからとれる？
             var headerFunc = (chunk, idx, length) => {
                 return `
                     <div class="title">
-                        <h3>* * * 売上明細表 * * *</h3>
+                        <h3> 入金明細表 </h3>
                     </div>
                     <table class="header-table" style="border-width: 0px">
                         <thead>
                             <tr>
+                                <th style="width: 10%;">日付</th>
+                                <th style="width: 30%;">
+                                    ${moment(vue.viewModel.DateStart, "YYYYMMDD").format("YYYY年MM月DD日")}
+                                    ～
+                                    ${moment(vue.viewModel.DateEnd, "YYYYMMDD").format("YYYY年MM月DD日")}
+                                </th>
+                                <th style="width: 26%;"></th>
+                            </tr>
+                            <tr>
+                                <th style="width: 10%;">コース</th>
+                                <th style="width: 10%;">${vue.viewModel.CourseCd}</th>
+                                <th style="width: 20%;">${vue.viewModel.CourseNm}</th>
+                                <th style="width: 26%;"></th>
+                            </tr>
+                            <tr>
+                                <th style="width: 10%;">部署</th>
                                 <th style="width: 15%;">${vue.viewModel.BushoCd}:${vue.viewModel.BushoNm}</th>
-                                <th style="width: 46%;"></th>
+                                <th style="width: 26%;"></th>
+                            </tr>
+                            <tr>
+                                <th style="width: 10%;">担当者</th>
+                                <th style="width: 10%;">担当者CD</th>
+                                <th style="width: 20%;">担当者名</th>
+                                <th style="width: 20%;"></th>
                                 <th style="width: 10%;">作成日</th>
                                 <th style="width: 15%;">${moment().format("YYYY年MM月DD日")}</th>
                                 <th style="width: 8%;">PAGE</th>
@@ -922,7 +952,7 @@ export default {
 
             var printOptions = {
                 type: "raw-html",
-                style: "@media print { @page { size: A4 landscape; } }",
+                style: "@media print { @page { size: A4 ; } }",
                 printable: printable,
             };
 

@@ -44,6 +44,9 @@ class DAI01160Controller extends Controller
         $BushoCd = $vm->BushoCd;
         $DeliveryDate = $vm->DeliveryDate;
 
+        $IsIncludeJuchu = $vm->IsIncludeJuchu;
+        $Biko = ($IsIncludeJuchu == 1) ? "chumon.備考１+ chumon.備考２ + chumon.備考３ + chumon.備考４" : "tokui.備考１" ;
+
         $sql = "
 WITH コース区分判定 AS (
 	SELECT
@@ -73,7 +76,8 @@ WITH コース区分判定 AS (
 	where
 		部署ＣＤ=$BushoCd
 		and chumon.注文区分 = 0
-		AND chumon.注文日付 = '$DeliveryDate'
+        AND chumon.注文日付 = '$DeliveryDate'
+        AND chumon.現金個数 + chumon.掛売個数 > 0
 ),
 単価表示商品 AS (
 	SELECT
@@ -158,7 +162,7 @@ SELECT
 		when tokui.締日１ = 0
 		then '日'
 	end 締方法,
-	chumon.備考１+ chumon.備考２ + chumon.備考３ + chumon.備考４ AS 備考１,
+	$Biko AS 備考１,
 	chumon.商品ＣＤ,
 	chumon.予備金額１ as 単価,
 	isNULL(chumon.現金個数, 0) + isnull(chumon.掛売個数, 0) 個数,
