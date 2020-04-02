@@ -13,6 +13,7 @@
             :showContextMenu=false
             :onAfterSearchFunc=this.onAfterSearchFunc
             :onCompleteFunc=this.onCompleteFunc
+            :autoToolTipDisabled=true
         />
     </form>
 </template>
@@ -216,120 +217,6 @@ export default {
             grid.refreshView();
         }});
 
-        //keydown event handler
-        $(document).on("keydown", "*",  parent, (event) => {
-            var dlg = event.data;
-
-            try {
-                if (!dlg.dialog("isOpen")) {
-                    return true;
-                }
-            } catch(ex) {
-                return true;
-            }
-
-            var key = event.which;
-            var grid = dlg.closest(".ui-dialog").find(".pq-grid").pqGrid("getInstance").grid;
-
-            //if (!grid.pdata || grid.pdata.length == 0) return false;
-
-            var rowIndx = grid.Selection().getSelection().length ? grid.Selection().getSelection()[0].rowIndx : 0;
-
-            switch(key) {
-                case 9:     //Tab
-                    var selectBtn = dlg.closest(".ui-dialog")
-                                       .find(".ui-dialog-buttonpane .btn")
-                                       .filter((i, v) => $(v).text() == "選択");
-
-                    if (selectBtn.length == 1) {
-                        //選択ボタンがあればfocus
-                        selectBtn[0].focus();
-
-                        //イベントキャンセル
-                        return false;
-                    }
-                    break;
-                case 13:    //Enter
-                    if (event.target.name == "SearchStrings") {
-                        //toolbarの表示テキストが選択中の場合、次検索
-                        var target = event.target;
-                        target.searchIndex++;
-                        grid.options.vue.$parent.searchRow(grid, target, target.value, target.searchIndex);
-
-                        //イベントキャンセル
-                        return false;
-                    } else {
-                        var selectBtn = dlg.closest(".ui-dialog")
-                                           .find(".ui-dialog-buttonpane .btn")
-                                           .filter((i, v) => $(v).text() == "選択");
-
-                        if (selectBtn.length == 1) {
-                            //選択ボタンがあれば押下
-                            selectBtn[0].click();
-
-                            //イベントキャンセル
-                            return false;
-                        }
-                    }
-                    break;
-                case 27:    //ESC
-                    var closeBtn = dlg.closest(".ui-dialog")
-                                        .find(".ui-dialog-buttonpane .ui-button")
-                                        .filter((i, v) => $(v).text() == "閉じる");
-
-                    if (closeBtn.length == 1) {
-                        //閉じるボタンがあれば押下
-                        closeBtn[0].click();
-
-                        //イベントキャンセル
-                        return false;
-                    }
-                    break;
-                case 38:    //up
-                    //上の行に移動
-                    grid.setSelection({ rowIndx: rowIndx == 0 ? 0 : --rowIndx });
-                    return false;
-                    break;
-                case 40:    //down
-                    //下の行に移動
-                    grid.setSelection({ rowIndx: rowIndx == grid.pdata.length - 1 ? rowIndx : ++rowIndx });
-                    return false;
-                    break;
-                case 114:   //F3
-                    if (event.target.name == "SearchStrings") {
-                        //toolbarの表示テキストが選択中の場合、次検索
-                        var target = event.target;
-                        target.searchIndex++;
-                        grid.options.vue.$parent.selectRow(grid, target, target.value, target.searchIndex);
-                    } else {
-                        //toolbarの表示テキストを選択
-                        if (grid.options.showToolbar) {
-                            var target = grid.toolbar().find("[name=SearchStrings]")[0];
-                            target.focus();
-                        }
-                    }
-                    return false;
-                    break;
-                case 70:    //F
-                    if (!event.ctrlKey) return true;   //Ctrl + Fでなければ抜ける
-
-                    //toolbarの表示テキストを選択
-                    if (grid.options.showToolbar) {
-                        var target = grid.toolbar().find("[name=SearchStrings]")[0];
-                        target.focus();
-                    }
-
-                    return false;
-                    break;
-                default:
-                    if (event.currentTarget.name == "SearchStrings") {
-                        event.stopPropagation();
-                    }
-                    return true;
-                    break;
-            }
-        });
-
         //toolbarの置き換え
         var pqgrid = grid.pqGrid("getInstance").grid;
         pqgrid.options.toolbar = this.grid1Options.toolbar;
@@ -388,10 +275,22 @@ export default {
                 }
             });
 
-            if (vue.$parent.showColumns.length > 0) {
-                //colModel更新
-                grid.refreshCM();
-            }
+            //キーワード検索用
+            grid.options.colModel.push(
+                {
+                    title:  "keyword",
+                    dataIndx: "keyword",
+                    dataType: "string",
+                    hidden: true,
+                }
+            );
+
+            //colModel更新
+            grid.refreshCM();
+            // if (vue.$parent.showColumns.length > 0) {
+            //     //colModel更新
+            //     grid.refreshCM();
+            // }
 
             //データ件数更新
             vue.$parent.$set(vue.$parent.$data, "count", res.length);
@@ -404,6 +303,11 @@ export default {
                 grid.widget().css("visibility", "visible");
             }
 
+            var result = res.map(v => {
+                v.keyword = "||" + _.values(v).join("||") + "||";
+                return v;
+            });
+
             return res;
         },
         onCompleteFunc: function(grid, ui) {
@@ -412,8 +316,27 @@ export default {
             target.value = vue.keyword || "";
 
             $(target).on("input", (ev => {
-                console.log("SearchStrings input", ev.target.value);
-                vue.selectRow(grid, ev.target, ev.target.value, ev.target.searchIndex);
+                if (!grid) return;
+
+                var keywords = ev.target.values.split(/ *, */g);
+
+            var rules = keywords.map(k => {
+
+            });
+
+            var crules = [];
+            if (!!vue.viewModel.CourseStart) {
+                crules.push({ condition: "gte", value: vue.viewModel.CourseStart });
+            }
+            if (!!vue.viewModel.CourseEnd) {
+                crules.push({ condition: "lte", value: vue.viewModel.CourseEnd });
+            }
+
+            if (crules.length) {
+                rules.push({ dataIndx: "コースＣＤ", mode: "AND", crules: crules });
+            }
+
+                grid.filter({ oper: "replace", mode: "AND", rules: { dataIndx: "keyword", condition: "contain", value: vue.viewModel.CourseCd } });
             }));
 
             vue.selectRow(grid, target, target.value, 0);

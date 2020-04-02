@@ -195,6 +195,7 @@ export default {
         },
     },
     data() {
+        var vue = this;
         return $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "月次処理 > 売掛残高表",
             noViewModel: true,
@@ -215,9 +216,9 @@ export default {
                 fillHandle: "",
                 numberCell: { show: true, title: "No.", resizable: false, },
                 autoRow: false,
-                rowHtHead:50,
-                rowHt: 35,
-                freezeCols: 4,
+                rowHtHead:30,
+                rowHt: 30,
+                freezeCols: 6,
                 editable: false,
                 columnTemplate: {
                     editable: false,
@@ -236,7 +237,14 @@ export default {
                     type: "remote",
                 },
                 groupModel: {
-                    on: false,
+                    on: true,
+                    header: false,
+                    grandSummary: true,
+                    indent: 0,
+                    dataIndx: [],
+                    showSummary: [true,true],
+                    collapsed: [false,false],
+                    summaryInTitleRow: "collapsed",
                 },
                 summaryData: [
                 ],
@@ -245,49 +253,44 @@ export default {
                 colModel: [
                     {
                         title: "部署ＣＤ",
-                        dataIndx: "部署ＣＤ", dataType: "string",
+                        dataIndx: "部署ＣＤ", dataType: "string", align:"right",
                         width: 100, minWidth: 100, maxWidth: 100,
+                        hiddenOnExport: true,
                     },
                     {
                         title: "部署名",
                         dataIndx: "部署名", dataType: "string",
+                        hiddenOnExport: true,
                         width: 120, minWidth: 120, maxWidth: 120,
                     },
                     {
                         title: "請求先ＣＤ",
-                        dataIndx: "請求先ＣＤ", dataType: "string",
+                        dataIndx: "請求先ＣＤ", dataType: "string", align:"right",
                         width: 100, minWidth: 100, maxWidth: 100,
+                        hiddenOnExport: true,
                     },
                     {
                         title: "得意先名",
                         dataIndx: "得意先名", dataType: "string",
                         width: 120, minWidth: 120,
                         tooltip: true,
-                    },
-                    {
-                        title: "前月請求残高",
-                        dataIndx: "前月残高", dataType: "integer", format: "#,###",
-                        width: 120, minWidth: 120, maxWidth: 120,
-                    },
-                    {
-                        title: "今月入金額",
-                        dataIndx: "今月入金額", dataType: "integer", format: "#,###",
-                        width: 120, minWidth: 120, maxWidth: 120,
-                    },
-                    {
-                        title: "差引繰越額",
-                        dataIndx: "差引繰越額", dataType: "integer", format: "#,###",
-                        width: 120, minWidth: 120, maxWidth: 120,
-                    },
-                    {
-                        title: "今月売上額",
-                        dataIndx: "今月売上額", dataType: "integer", format: "#,###",
-                        width: 120, minWidth: 120, maxWidth: 120,
-                    },
-                    {
-                        title: "今月残高",
-                        dataIndx: "今月残高", dataType: "integer", format: "#,###",
-                        width: 120, minWidth: 120, maxWidth: 120,
+                        render: ui => {
+                            if (!!ui.rowData.pq_grandsummary) {
+                                return { text: "合　計" };
+                            }
+                            if (!!ui.rowData.pq_gsummary) {
+                                var text = "";
+                                if (vue.viewModel.PrintOrder==0) {
+                                    text = "部署計";
+                                } else {
+                                    text = ui.rowData.pq_level == 0 ? "部署計" : "コース計"
+                                }
+                                return { text: text };
+                            }
+                            if (!!ui.Export) {
+                                return { text: "<span style=\"text-align:right;\">" + ui.rowData.請求先ＣＤ + "</span><span style=\"padding-left:5px;\">" + ui.rowData.得意先名 + "</span>"};
+                            }
+                        }
                     },
                     {
                         title: "コースＣＤ",
@@ -295,9 +298,126 @@ export default {
                         hidden: true,
                     },
                     {
+                        title: "コース名",
+                        dataIndx: "コース名", dataType: "string",
+                        hidden: true,
+                        hiddenOnExport: false,
+                        render: ui => {
+                            if (!!ui.Export && !ui.rowData.pq_gsummary) {
+                                var text = ui.rowData.コースＣＤ==null ? "コースなし" : (ui.rowData.コースＣＤ + " " + ui.rowData.コース名)
+                                return { text: text };
+                            }
+                        }
+                    },
+                    {
+                        title: "前月請求残高",
+                        dataIndx: "前月残高", dataType: "integer", format: "#,###",
+                        width: 120, minWidth: 120, maxWidth: 120,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                        render: ui => {
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
+                            }
+                            return ui;
+                        },
+                    },
+                    {
+                        title: "今月入金額",
+                        dataIndx: "今月入金額", dataType: "integer", format: "#,###",
+                        width: 120, minWidth: 120, maxWidth: 120,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                        render: ui => {
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
+                            }
+                            return ui;
+                        },
+                    },
+                    {
+                        title: "差引繰越額",
+                        dataIndx: "差引繰越額", dataType: "integer", format: "#,###",
+                        width: 120, minWidth: 120, maxWidth: 120,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                        render: ui => {
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
+                            }
+                            return ui;
+                        },
+                    },
+                    {
+                        title: "今月売上額",
+                        dataIndx: "今月売上額", dataType: "integer", format: "#,###",
+                        width: 120, minWidth: 120, maxWidth: 120,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                        render: ui => {
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
+                            }
+                            return ui;
+                        },
+                    },
+                    {
+                        title: "今月残高",
+                        dataIndx: "今月残高", dataType: "integer", format: "#,###",
+                        width: 120, minWidth: 120, maxWidth: 120,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                        render: ui => {
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
+                            }
+                            return ui;
+                        },
+                    },
+                    {
                         title: "残高有無判定",
                         dataIndx: "残高有無判定", dataType: "bool",
                         hidden: true,
+                    },
+                    {
+                        title: "担当者ＣＤ",
+                        dataIndx: "担当者ＣＤ", dataType: "string",
+                        hidden: true,
+                    },
+                    {
+                        title: "コース担当者名",
+                        dataIndx: "コース担当者名", dataType: "string",
+                        hidden: true,
+                    },
+                    {
+                        title: "GroupKey1",
+                        dataIndx: "GroupKey1", dataType: "string",
+                        hidden:true,
+                        render: ui => {
+                            if (!ui.Export) {
+                                return { text:ui.rowData.GroupKey1.split(":")[0] + " " + ui.rowData.GroupKey1.split(":")[1]};
+                            }
+                        }
+                    },
+                    {
+                        title: "GroupKey2",
+                        dataIndx: "GroupKey2", dataType: "string",
+                        hidden:true,
+                        render: ui => {
+                            if (!ui.Export) {
+                                return { text:ui.rowData.GroupKey2.split(":")[0] + " " + ui.rowData.GroupKey2.split(":")[1]};
+                            }
+                        }
                     },
                 ],
             },
@@ -406,37 +526,31 @@ export default {
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
-
             //条件変更ハンドラ
             vue.conditionChanged();
         },
         onDateChanged: function(code, entity) {
             var vue = this;
-
             //条件変更ハンドラ
             vue.conditionChanged();
         },
         onShowZandakaNashiChanged: function(code, entity) {
             var vue = this;
-
             //フィルタ変更ハンドラ
             vue.filterChanged();
         },
         onCustomerChanged: function(code, entity) {
             var vue = this;
-
             //フィルタ変更ハンドラ
             vue.filterChanged();
         },
         onCourseCdChanged: function(code, entity) {
             var vue = this;
-
             //フィルタ変更ハンドラ
             vue.filterChanged();
         },
         onPrintOrderChanged: function(code, entities) {
             var vue = this;
-
             //条件変更ハンドラ
             vue.conditionChanged();
         },
@@ -451,10 +565,6 @@ export default {
             params.BushoArray = vue.BushoCdArray;//部署コードのみ渡す
 
             window.resc=_.cloneDeep(params);//TODO:
-
-            //処理年月の1日から末日までの範囲を検索条件に指定する
-            //params.DateStart = params.TargetDate ? moment(params.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
-            //params.DateEnd   = params.TargetDate ? moment(params.DateStart).endOf('month').format("YYYYMMDD") : null;
 
             //フィルタするパラメータは除外
             delete params.ShowZandakaNashi;
@@ -494,6 +604,8 @@ export default {
             //残高有無チェック
             _.map(res,r=>{
                 r.残高有無判定 = !(r.前月残高==0 && r.今月入金額==0 && r.今月売上額==0);
+                r.GroupKey1 = r.部署ＣＤ + ":" + r.部署名;
+                r.GroupKey2 = r.コースＣＤ + ":" + r.コース名 + ":" + r.担当者ＣＤ + ":" + r.コース担当者名;
             });
             return res;
         },
@@ -657,9 +769,6 @@ export default {
                     text-align: left;
                     border: solid 1px black;
                 }
-                table.header-table th.blank-cell {
-                    border:none;
-                }
                 div.report-title-area{
                     width:400px;
                     height:35px;
@@ -672,53 +781,63 @@ export default {
                 }
             `;
             var headerFunc = (header, idx, length) => {
-                var courseCd = header.コース.split(" ")[0];
-                var courseNm = header.コース.split(" ")[1];
-                var tantoCd = vue.DAI03020Grid1.pdata.find(v => v.コースＣＤ==courseCd).担当者ＣＤ;
-                var tantoNm = vue.DAI03020Grid1.pdata.find(v => v.コースＣＤ==courseCd).担当者名;
+                var bushoCd="";
+                var bushoNm="";
+                var courseCd="";
+                var courseNm="";
+                var tantoCd="";
+                var tantoNm="";
+                if(header.pq_level == 0)
+                {
+                    bushoCd = header.GroupKey1.split(":")[0];
+                    bushoNm = header.GroupKey1.split(":")[1];
+                    if(vue.viewModel.PrintOrder == "1")
+                    {
+                        var child=!!header.children.length ? header.children[0]:null;
+                        if(child!=null)
+                        {
+                            courseCd = child.GroupKey2.split(":")[0];
+                            courseNm = child.GroupKey2.split(":")[1];
+                            tantoCd = child.GroupKey2.split(":")[2];
+                            tantoNm = child.GroupKey2.split(":")[3];
+                        }
+                    }
+                }
+                else
+                {
+                    bushoCd = header.parentId.split(":")[0];
+                    bushoNm = header.parentId.split(":")[1];
+                    courseCd = header.GroupKey2.split(":")[0];
+                    courseNm = header.GroupKey2.split(":")[1];
+                    tantoCd = header.GroupKey2.split(":")[2];
+                    tantoNm = header.GroupKey2.split(":")[3];
+                }
                 return `
                     <div class="title">
-                        <h3><div class="report-title-area">得意先別実績表<div></h3>
+                        <h3><div class="report-title-area">売掛残高表<div></h3>
                     </div>
                     <table class="header-table" style="border-width: 0px">
                         <thead>
                             <tr>
-                                <th style="width:  5%;">部署</th>
-                                <th style="width:  5%; text-align: right;">${vue.viewModel.BushoCd}</th>
-                                <th style="width: 18%;">${vue.viewModel.BushoNm}</th>
-                                <th style="width:  5%;" class="blank-cell"></th>
-                                <th style="width:  5%;" class="blank-cell"></th>
-                                <th style="width: 15%;" class="blank-cell"></th>
-                                <th style="width: 20%;" class="blank-cell"></th>
-                                <th style="width:  5%;" class="blank-cell"></th>
-                                <th style="width: 12%;" class="blank-cell"></th>
-                                <th style="width:  5%;" class="blank-cell"></th>
-                                <th style="width:  5%;" class="blank-cell"></th>
+                                <th>日付</th>
+                                <th>${moment(vue.viewModel.TargetDate, "YYYY年MM月").format("YYYY年MM月")}</th>
                             </tr>
                             <tr>
-                                <th>日付</th>
-                                <th colspan="2">${vue.viewModel.TargetDate} ～ ${vue.viewModel.DateEnd}</th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
+                                <th>部署</th>
+                                <th>${bushoCd}</th>
+                                <th>${bushoNm}</th>
                             </tr>
                             <tr>
                                 <th>コース</th>
-                                <th style="text-align: right;">${courseCd}</th>
+                                <th>${courseCd}</th>
                                 <th>${courseNm}</th>
                                 <th>担当者</th>
-                                <th style="text-align: right;">${tantoCd}</th>
+                                <th>${tantoCd}</th>
                                 <th>${tantoNm}</th>
-                                <th class="blank-cell"></th>
                                 <th>作成日</th>
-                                <th style="text-align: right;">${moment().format("YYYY年MM月DD日")}</th>
+                                <th>${moment().format("YYYY年MM月DD日")}</th>
                                 <th>PAGE</th>
-                                <th style="text-align: right;">${idx + 1}</th>
+                                <th>${idx + 1}</th>
                             </tr>
                         </thead>
                     </table>
@@ -758,38 +877,16 @@ export default {
                     width: 5%;
                 }
             `;
-            var styleBench =`
-                table.DAI03020Grid1 tr.group-summary td {
-                    border: solid 1px black;
-                }
-                table.DAI03020Grid1 tr.grand-summary td:nth-child(2) {
-                    text-align: right;
 
-                table.DAI03020Grid1 tr.grand-summary td:nth-child(3) {
-                    text-align: left;
-                }
-                table.DAI03020Grid1 tr[level="0"].group-summary td {
-                    border-style: dotted;
-                    border-left-width: 0px;
-                    border-top-width: 1px;
-                    border-right-width: 0px;
-                    border-bottom-width: 0px;
-                }
-                table.DAI03020Grid1 tr[level="0"].group-summary td:nth-child(2) {
-                    text-align: right;
-                    padding-right: 30px;
-                }
-                table.DAI03020Grid1 tr.grand-summary td {
-                    border-style: solid;
-                    border-left-width: 0px;
-                    border-top-width: 1px;
-                    border-right-width: 0px;
-                    border-bottom-width: 0px;
-                }
-                table.DAI03020Grid1 tr th:nth-last-child(-n+2):nth-last-child(-n) {
-                    width: 10%;
-                }
-            `;
+            //Grouping再設定
+            var keys = [];
+            keys.push("GroupKey1");
+            if (vue.viewModel.PrintOrder == "1") {
+                keys.push("GroupKey2");
+            }
+            if (!!keys.length) {
+                grid.Group().option({"dataIndx": keys});
+            }
 
             var printable = $("<html>")
                 .append($("<head>").append($("<style>").text(globalStyles)))
@@ -799,20 +896,25 @@ export default {
                             vue.DAI03020Grid1.generateHtml(
                                 styleCustomers,
                                 headerFunc,
-                                36,
-                                false,
-                                true,
-                                true,
+                                32,
+                                vue.viewModel.PrintOrder == "1" ? [false, false] : false,
+                                vue.viewModel.PrintOrder == "1" ? [true, true] : true,
+                                vue.viewModel.PrintOrder == "1" ? [true, true] : true,
                             )
                         )
                 )
                 .prop("outerHTML")
                 ;
+
+            //Grouping解除
+            grid.Group().option({ "dataIndx": [] });
+
             var printOptions = {
                 type: "raw-html",
                 style: "@media print { @page { size: A4 landscape; } }",
                 printable: printable,
             };
+            //TODO: 印刷改ページの確認
             printJS(printOptions);
             //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()

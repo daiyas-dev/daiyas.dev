@@ -408,24 +408,24 @@ export default {
             var vue = this;
             // console.log("PopupSelect accountChanged");
 
-            if (vue.isPreload) {
-                if (!!vue.ParamsChangedCheckFunc && !vue.ParamsChangedCheckFunc(vue.params, vue.paramsPrev, vue)) {
-                    return;
-                }
+            // if (vue.isPreload) {
+            //     if (!!vue.ParamsChangedCheckFunc && !vue.ParamsChangedCheckFunc(vue.params, vue.paramsPrev, vue)) {
+            //         return;
+            //     }
 
-                vue.dataList = null;
-                // $(vue.$el).children().prop("disabled", true);
+            //     vue.dataList = null;
+            //     // $(vue.$el).children().prop("disabled", true);
 
-                vue.getDataList(vue.params, (res) => {
-                    if (vue.vmodel[vue.bind]) {
-                        vue.setSelectValue(vue.vmodel[vue.bind], true);
-                    }
-                });
-            } else {
-                if (vue.vmodel[vue.bind]) {
-                    vue.setSelectValue(vue.vmodel[vue.bind], true);
-                }
-            }
+            //     vue.getDataList(vue.params, (res) => {
+            //         if (vue.vmodel[vue.bind]) {
+            //             vue.setSelectValue(vue.vmodel[vue.bind], true);
+            //         }
+            //     });
+            // } else {
+            //     if (vue.vmodel[vue.bind]) {
+            //         vue.setSelectValue(vue.vmodel[vue.bind], true);
+            //     }
+            // }
         },
         onChange: function(event) {
             var vue = this;
@@ -620,7 +620,7 @@ export default {
                     showColumns: vue.showColumns,
                     width: vue.popupWidth || null,
                     height: vue.popupHeight || null,
-                    reuse: vue.reuse,
+                    reuse: true,//vue.reuse,
                     callback: callback,
                     buttons: [
                         {
@@ -629,6 +629,9 @@ export default {
                             shortcut: "Enter",
                             target: (params || {}).target,
                             click: function(gridVue, grid) {
+                                if (event.target.name == "SearchStrings" && event.type == "keydown" && (event.key == "Process" || event.which == 13)) {
+                                    return false;
+                                }
 
                                 var selection = grid.Selection().getSelection();
                                 if (selection.length > 0) {
