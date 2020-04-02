@@ -97,7 +97,7 @@ class DAI07020Controller extends Controller
                     ON  SHOHIN.商品ＣＤ = URIAGE_MEISAI.商品ＣＤ
             WHERE
                 TOKUISAKI.部署ＣＤ=$BushoCd
-                AND TOKUISAKI.得意先ＣＤ IN (11271, 13664, 13734)
+                --AND TOKUISAKI.得意先ＣＤ IN (11271, 13664, 13734)
                 --AND COU.コースＣＤ=102
             ORDER BY
                 CT.コースＣＤ
@@ -263,7 +263,7 @@ class DAI07020Controller extends Controller
                 ) SEIKYU
                 INNER JOIN 売上データ明細 URIAGE_MEISAI
                     ON  URIAGE_MEISAI.得意先ＣＤ = SEIKYU.得意先ＣＤ
-                    AND URIAGE_MEISAI.日付 >= SEIKYU.請求日付 AND URIAGE_MEISAI.日付 <= DATEADD(dd, -1, '$TargetDateFrom')
+                    AND URIAGE_MEISAI.日付 >= DATEADD(dd, 1, SEIKYU.請求日付) AND URIAGE_MEISAI.日付 <= DATEADD(dd, -1, '$TargetDateFrom')
             GROUP BY
                 URIAGE_MEISAI.得意先ＣＤ
         ";
@@ -371,7 +371,7 @@ class DAI07020Controller extends Controller
                 ) SEIKYU
                 INNER JOIN 入金データ NYUKIN
                     ON  NYUKIN.得意先ＣＤ = SEIKYU.得意先ＣＤ
-                    AND NYUKIN.入金日付 >= SEIKYU.請求日付 AND NYUKIN.入金日付 <= DATEADD(dd, -1, '$TargetDateFrom')
+                    AND NYUKIN.入金日付 >= DATEADD(dd, 1, SEIKYU.請求日付) AND NYUKIN.入金日付 <= DATEADD(dd, -1, '$TargetDateFrom')
             GROUP BY
                 NYUKIN.得意先ＣＤ
         ";

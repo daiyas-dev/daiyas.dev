@@ -857,17 +857,17 @@ ORDER BY
             $orderBusho
         ";
 
-        //TODO: 高速化対応
-        // $dsn = 'sqlsrv:server=localhost;database=daiyas';
-        // $user = 'daiyas';
-        // $password = 'daiyas';
+        // TODO: 高速化対応
+        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
 
-        // $pdo = new PDO($dsn, $user, $password);
-        // $stmt = $pdo->query($sql);
-        // $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = null;
 
-        // $pdo = null;
-        $DataList = DB::select(DB::raw($sql));
+        // $DataList = DB::select(DB::raw($sql));
 
         return response()->json($DataList);
     }
