@@ -595,8 +595,8 @@ export default {
             grid.filter({ oper: "replace", mode: "AND", rules: rules });
 
             //ボタン無効化制御
-            vue.footerButtons.find(v => v.id == "DAI03140Grid1_CSV").disabled = (grid.pdata.length==0);
-            vue.footerButtons.find(v => v.id == "DAI03140Grid1_Print").disabled = (grid.pdata.length==0);
+            //vue.footerButtons.find(v => v.id == "DAI03140Grid1_CSV").disabled = (grid.pdata.length==0);
+            //vue.footerButtons.find(v => v.id == "DAI03140Grid1_Print").disabled = (grid.pdata.length==0);
             return;
         },
         onAfterSearchFunc: function (vue, grid, res) {
@@ -608,8 +608,8 @@ export default {
             });
 
             //ボタン無効化制御
-            vue.footerButtons.find(v => v.id == "DAI03140Grid1_CSV").disabled = !res.length;
-            vue.footerButtons.find(v => v.id == "DAI03140Grid1_Print").disabled = !res.length;
+            //vue.footerButtons.find(v => v.id == "DAI03140Grid1_CSV").disabled = !res.length;
+            //vue.footerButtons.find(v => v.id == "DAI03140Grid1_Print").disabled = !res.length;
 
             return res;
         },
