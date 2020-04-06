@@ -168,7 +168,7 @@ export default {
                 numberCell: { show: true, title: "No.", resizable: false, width: 35, },
                 autoRow: true,
                 rowHtHead: 50,
-                rowHt: 35,
+                rowHtHead: 35,
                 freezeCols: 5,
                 editable: false,
                 columnTemplate: {
@@ -993,7 +993,7 @@ export default {
 
             //TODO:ページ数表示（コース毎に分母区切る）
 
-            var headerForByCourse = (header, idx, length, chunk, chunks) => {
+            var headerForByCourse = (header, idx, length, groupPage, groupLength) => {
                 return `
                     <div class="title">
                         <h3>* * * <span/>配送集計表<span/> * * *</h3>
@@ -1008,8 +1008,7 @@ export default {
                                 <span>作成日</span>
                                 <span>${moment().format("YYYY年MM月DD日")}</span>
                                 <span>PAGE</span>
-                                <span>${idx + 1}/</span>
-                                ${Math.ceil(header.children.length/22)}
+                                <span>${groupPage}/${groupLength}</span>
                             </div>
                         </div>
                         <div style="clear: both;">

@@ -17,14 +17,14 @@
             </div>
             <div class="col-md-2">
                 <DatePickerWrapper
-                    id="DeliveryDate"
+                    id="TargetDate"
                     ref="DatePicker_Date"
                     format="YYYY年MM月DD日"
                     dayViewHeaderFormat="YYYY年MM月"
                     :vmodel=viewModel
-                    bind="DeliveryDate"
+                    bind="TargetDate"
                     :editable=true
-                    :onChangedFunc=onDeliveryDateChanged
+                    :onChangedFunc=onTargetDateChanged
                 />
             </div>
             <div class="col-md-2">
@@ -148,6 +148,8 @@
             :onBeforeCellKeyDownFunc=onBeforeCellKeyDownFunc
             :setMoveNextCell=setMoveNextCell
             :freezeRightCols=2
+            :autoToolTipDisabled=true
+            :setCustomTitle=setGridTitle
         />
     </form>
 </template>
@@ -165,6 +167,11 @@ label {
 #Page_DAI07010 .CustomerSelect .select-name {
     color: royalblue;
 }
+#Page_DAI07010 .pq-summary-outer *:not(.tooltip):not(.arrow):not(.tooltip-inner) {
+    font-weight: bold;
+    color: black;
+    background-color: white !important;
+}
 </style>
 
 <script>
@@ -176,21 +183,28 @@ export default {
     components: {
     },
     computed: {
-        FormattedDeliveryDate: function() {
-            var vue = this;
-            return vue.viewModel.DeliveryDate ? moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
-        },
         FirstDay: function() {
             var vue = this;
-            var date = vue.viewModel.DeliveryDate ? moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日") : moment();
+            var date = vue.viewModel.TargetDate ? moment(vue.viewModel.TargetDate, "YYYY年MM月DD日") : moment();
             var first = vue.viewModel.Kind == "week" ? date.day(1) : date.date(1);
             return first.format("YYYYMMDD");
         },
         TargetDays: function() {
             var vue = this;
-            var last = vue.viewModel.Kind == "week" ? moment(vue.FirstDay).add(5, "days")
+            var last = vue.viewModel.Kind == "week" ? moment(vue.FirstDay).add(6, "days")
                         : moment(vue.FirstDay).add(1, "months").add(-1, "days");
             return last.diff(moment(vue.FirstDay), "days");
+        },
+        searchParams: function() {
+            var vue = this;
+            return {
+                BushoCd: vue.viewModel.BushoCd,
+                CourseCd: vue.viewModel.CourseCd,
+                CustomerCd: vue.viewModel.CustomerCd,
+                TargetDate: moment(vue.viewModel.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD"),
+                FirstDay: vue.FirstDay,
+                TargetDays: vue.TargetDays,
+            };
         },
     },
     watch: {
@@ -207,19 +221,13 @@ export default {
                 // vue.conditionChanged();
             }
         },
-        FirstDay: {
+        searchParams: {
+            deep: true,
             handler: function(newVal) {
                 var vue = this;
-                //条件変更ハンドラ
-                vue.conditionChanged();
-            }
-        },
-        TargetDays: {
-            handler: function(newVal) {
-                var vue = this;
-                //条件変更ハンドラ
-                vue.conditionChanged();
-            }
+                var disabled = !newVal.TargetDate || !newVal.CourseCd || !newVal.CustomerCd;
+                vue.footerButtons.find(v => v.id == "DAI07010Grid1_Search").disabled = disabled;
+            },
         },
     },
     data() {
@@ -232,7 +240,7 @@ export default {
                 CustomerInfo: null,
                 BushoCd: null,
                 BushoNm: null,
-                DeliveryDate: null,
+                TargetDate: null,
                 CourseKbn: null,
                 CustomerCd: null,
                 CustomerNm: null,
@@ -254,7 +262,6 @@ export default {
                 autoRow: false,
                 rowHtHead: 50,
                 rowHt: 30,
-                height: 400,
                 freezeCols: 4,
                 editable: true,
                 columnTemplate: {
@@ -397,11 +404,12 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "クリア", id: "DAI07010_Clear", disabled: false, shortcut: "F2",
+                { visible: "true", value: "再検索", id: "DAI07010Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
-                        //TODO: クリア
+                        vue.conditionChanged(true);
                     }
                 },
+                {visible: "false"},
                 { visible: "true", value: "前の得意先", id: "DAI07010_PrevCustomer", disabled: true, shortcut: "Alt + ←",
                     onClick: function () {
                         vue.$refs.PopupSelect_Customer.prevList();
@@ -414,16 +422,16 @@ export default {
                 },
                 { visible: "true", value: "前の週", id: "DAI07010_PrevRange", disabled: false, shortcut: "Alt + ↑",
                     onClick: function () {
-                        vue.viewModel.DeliveryDate =
-                            moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日")
+                        vue.viewModel.TargetDate =
+                            moment(vue.viewModel.TargetDate, "YYYY年MM月DD日")
                                 .add(vue.viewModel.Kind == "week" ? -7 : -1, vue.viewModel.Kind == "week" ? "days" : "months")
                                 .format("YYYY年MM月DD日");
                     }
                 },
                 { visible: "true", value: "次の週", id: "DAI07010_NextRange", disabled: false, shortcut: "Alt + ↓",
                     onClick: function () {
-                        vue.viewModel.DeliveryDate =
-                            moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日")
+                        vue.viewModel.TargetDate =
+                            moment(vue.viewModel.TargetDate, "YYYY年MM月DD日")
                                 .add(vue.viewModel.Kind == "week" ? 7 : 1, vue.viewModel.Kind == "week" ? "days" : "months")
                                 .format("YYYY年MM月DD日");
                     }
@@ -441,67 +449,43 @@ export default {
                         grid.updateRow({ rowList: rowList });
                     }
                 },
-                { visible: "true", value: "ダウンロード", id: "DAI07010_Download", disabled: false, shortcut: "F7",
-                    onClick: function () {
-                        //TODO: ダウンロード
-                    }
-                },
-                { visible: "true", value: "アップロード", id: "DAI07010_Upload", disabled: false, shortcut: "F8",
-                    onClick: function () {
-                        //アップロード
-                        var ele = $("<input>")
-                            .prop("type", "file")
-                            .prop("accept", ".csv, text/plain")
-                            .on("change", (event) => {
-                                    $.uploadFile(
-                                        event.target.files[0],
-                                        "/DAI07010/Upload",
-                                        (res) => vue.uploadCallback(res.data),
-                                    );
-                                }
-                            );
+                // { visible: "true", value: "ダウンロード", id: "DAI07010_Download", disabled: false, shortcut: "F7",
+                //     onClick: function () {
+                //         //TODO: ダウンロード
+                //     }
+                // },
+                // { visible: "true", value: "アップロード", id: "DAI07010_Upload", disabled: false, shortcut: "F8",
+                //     onClick: function () {
+                //         //アップロード
+                //         var ele = $("<input>")
+                //             .prop("type", "file")
+                //             .prop("accept", ".csv, text/plain")
+                //             .on("change", (event) => {
+                //                     $.uploadFile(
+                //                         event.target.files[0],
+                //                         "/DAI07010/Upload",
+                //                         (res) => vue.uploadCallback(res.data),
+                //                     );
+                //                 }
+                //             );
 
-                        ele[0].click();
-                    }
-                },
+                //         ele[0].click();
+                //     }
+                // },
+                {visible: "false"},
                 { visible: "true", value: "登録", id: "DAI07010Grid1_Save", disabled: false, shortcut: "F9, Ctrl + S",
                     onClick: function () {
-                        //TODO: 登録
-                        console.log("登録");
-                        return;
-
-                        //var targets = $.extend(true, {}, grid.createSaveParams());
-                        var targets = grid.getCellsByClass({cls: "pq-cell-dirty"})
-                            .map(v => {
-                                return {
-                                    "部署CD": v.rowData["部署CD"],
-                                    "コースＣＤ": v.rowData["コースＣＤ"],
-                                    "商品CD": v.dataIndx,
-                                    "個数": v.rowData[v.dataIndx],
-                                    "対象日付": v.rowData["対象日付"],
-                                };
-                            });
-                        var conditions = $.extend(true, {}, vue.viewModel);
-
-                        vue.DAI01020Grid1.saveData(
-                            {
-                                uri: "/DAI01020/Save",
-                                params: { targets: targets },
-                                //optional: { conditions: conditions },
-                                // done: {
-                                //     callback: (gridVue, grid, res) => {
-                                //         vue.DAI01020Grid1.searchData(params);
-                                //     },
-                                // },
-                            }
-                        );
-                    }
+                        vue.save();
+                    },
                 }
             );
         },
         mountedFunc: function(vue) {
             vue.viewModel.Kind = "week";
-            vue.viewModel.DeliveryDate = moment();
+
+            //TODO
+            // vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
+            vue.viewModel.TargetDate = moment("20190916").format("YYYY年MM月DD日");
 
             vue.beforeSearchCallback(vue.DAI07010Grid1, () => vue.DAI07010Grid1.refresh());
 
@@ -528,7 +512,7 @@ export default {
 
             //vue.getProductList(code);
         },
-        onDeliveryDateChanged: function(code, entities) {
+        onTargetDateChanged: function(code, entities) {
             var vue = this;
 
             //条件変更ハンドラ
@@ -537,16 +521,21 @@ export default {
         onCourseChanged: function(code, entity) {
             var vue = this;
 
+            vue.viewModel.TantoCd = !!entity ? entity.担当者ＣＤ : "";
+            vue.viewModel.TantoNm = !!entity ? entity.担当者名 : "";
+
             //条件変更ハンドラ
             vue.conditionChanged();
         },
         onCustomerChanged: function(code, entity) {
             var vue = this;
 
+            vue.viewModel.TelNo = !!entity ? entity.電話番号１ : "";
+
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        conditionChanged: function(noSearch) {
+        conditionChanged: function(force) {
             var vue = this;
             var grid = vue.DAI07010Grid1;
 
@@ -554,18 +543,12 @@ export default {
 
             if (vue.getLoginInfo().isLogOn
                 && vue.viewModel.BushoCd
-                && vue.viewModel.DeliveryDate
+                && vue.viewModel.TargetDate
                 && vue.viewModel.CourseCd
                 && vue.viewModel.CustomerCd
-                && noSearch != true
             ) {
-                var params = $.extend(true, {}, vue.viewModel);
-
-                params.FirstDay = vue.FirstDay;
-                params.TargetDays = vue.TargetDays;
-
-                grid.searchData(params, false, vue.beforeSearchCallback);
-            } else if (vue.viewModel.DeliveryDate) {
+                grid.searchData(vue.searchParams, false, vue.beforeSearchCallback);
+            } else if (vue.viewModel.TargetDate) {
                 vue.beforeSearchCallback(grid, () => grid.refresh());
             }
         },
@@ -800,8 +783,43 @@ export default {
         onAfterSearchFunc: function (gridVue, grid, res) {
             var vue = this;
 
+            return vue.editSearchResult(res);
+        },
+        editSearchResult: function (res) {
+            var vue = this;
+            var grid = vue.DAI07010Grid1;
+
+            var UriageDataList = _.values(_.groupBy(res[0].UriageDataList, v => v.商品CD))
+                .map(r => {
+                    var ret = _.reduce(
+                        r,
+                        (a, v, i) => {
+                            a.部署CD = v.部署CD;
+                            a.コースCD = v.コースCD;
+                            a.得意先CD = v.得意先CD;
+                            a.売掛現金区分 = v.売掛現金区分;
+                            a.商品CD = v.商品CD;
+                            a.商品名 = v.商品名;
+                            a.商品区分 = v.商品区分;
+                            a.食事区分 = v.食事区分;
+                            a.食事区分名 = v.食事区分名;
+                            a.単価 = v.単価;
+
+                            var d = moment(v.日付).format("YYYYMMDD");
+
+                            a[d] = (a[d] || 0) + v.現金個数 * 1 + v.掛売個数 * 1;
+                            a[d + "_情報"] = (a[d + "_情報"] || []);
+                            a[d + "_情報"].push(_.cloneDeep(v));
+
+                            return a;
+                        },
+                        {}
+                    );
+                    return ret;
+                });
+
             //コピーを0埋め
-            res = res.map(v => {
+            UriageDataList = UriageDataList.map(v => {
                 v["コピー"] = 0;
                 return v;
             });
@@ -815,7 +833,7 @@ export default {
                         && v.コピー != "0";
                 })
                 .forEach(v => {
-                    res.find(r => {
+                    UriageDataList.find(r => {
                         return v.部署CD == r.部署CD
                             && v.コースCD == r.コースCD
                             && v.得意先CD == r.得意先CD
@@ -823,7 +841,30 @@ export default {
                     }).コピー = v.コピー;
                 })
 
-            return res;
+            //請求済チェック
+            var CheckSeikyu = res[0].CheckSeikyu * 1;
+            var CheckKaikei = res[0].CheckKaikei * 1;
+
+            vue.checkMsg = !!CheckSeikyu ? "請求済" : !!CheckKaikei ? "会計処理済" : "";
+            vue.footerButtons.find(v => v.id == "DAI07010Grid1_Save").disabled = !!CheckSeikyu || !!CheckKaikei;
+
+            return UriageDataList;
+        },
+        setSearchResult: function (res, isBlink) {
+            var vue = this;
+            var grid = vue.DAI07010Grid1;
+
+            var ret = vue.editSearchResult(res);
+
+            if (!!isBlink) {
+                grid.blinkDiff(ret, true);
+            } else {
+                grid.setLocalData(ret)
+            }
+        },
+        setGridTitle: function(title, grid) {
+            var vue = this;
+            return title + (!!vue.checkMsg ? (" :" + "<span style='color: red;'>" + vue.checkMsg + "</span>") : "");
         },
         onCompleteFunc: function(grid, ui) {
             var vue = this;
@@ -1013,19 +1054,100 @@ export default {
                 && prev.BushoCd == res.BushoCd
                 && prev.CourseCd == res.CourseCd
                 && prev.CustomerCd == res.CustomerCd
-                //&& prev.DeliveryDate = "";  //TODO: excel format
+                //&& prev.TargetDate = "";  //TODO: excel format
             ) {
                 grid.refreshDataAndView();
             } else {
                 vue.conditionTrigger = false;
 
                 vue.viewModel.BushoCd = res.BushoCd;
-                //vue.viewModel.DeliveryDate = "";  //TODO: excel format
+                //vue.viewModel.TargetDate = "";  //TODO: excel format
                 vue.viewModel.CourseCd = res.CourseCd;
                 vue.viewModel.CustomerCd = res.CustomerCd;
 
                 vue.conditionTrigger = true;
             }
+        },
+        save: function() {
+            var vue = this;
+            var grid = vue.DAI07010Grid1;
+
+            var UpdateList = grid.getChanges().updateList;
+            var OldList = grid.getChanges().oldList;
+
+            var SaveList = _.flatten(
+                UpdateList.map((upd, i) => {
+                    var old = OldList[i];
+                    var list = _.keys(old).map(k => {
+                        return {
+                            "日付": k,
+                            "部署ＣＤ": upd.部署CD,
+                            "コースＣＤ": upd.コースCD,
+                            "行Ｎｏ": !!upd[k + "_情報"] ? upd[k + "_情報"][0].行Ｎｏ : null,
+                            "得意先ＣＤ": upd.得意先CD,
+                            "明細行Ｎｏ": !!upd[k + "_情報"] ? upd[k + "_情報"][0].明細行Ｎｏ : null,
+                            "受注Ｎｏ": 0,
+                            "配送担当者ＣＤ": vue.viewModel.TantoCd,
+                            "商品ＣＤ": upd.商品CD,
+                            "商品区分": upd.商品区分,
+                            "現金個数": upd.売掛現金区分 == 0 ? upd[k] * 1 : 0,
+                            "現金金額": upd.売掛現金区分 == 0 ? upd[k] * 1 * upd.単価 * 1 : 0,
+                            "現金値引": 0,
+                            "現金値引事由ＣＤ": 0,
+                            "掛売個数": upd.売掛現金区分 == 1 ? upd[k] * 1 : 0,
+                            "掛売金額": upd.売掛現金区分 == 1 ? upd[k] * 1 * upd.単価 * 1 : 0,
+                            "掛売値引": 0,
+                            "掛売値引事由ＣＤ": 0,
+                            "請求日付": null,
+                            "予備金額１": 0,
+                            "予備金額２": 0,
+                            "売掛現金区分": upd.売掛現金区分,
+                            "予備ＣＤ２": 0,
+                            "主食ＣＤ": 0,
+                            "副食ＣＤ": 0,
+                            "分配元数量": 0,
+                            "食事区分": upd.食事区分,
+                            "修正担当者ＣＤ": vue.getLoginInfo().uid,
+                            "修正日": !!upd[k + "_情報"] ? upd[k + "_情報"][0].修正日 : null,
+                        };
+                    });
+                    return list;
+                })
+            );
+
+            //保存実行
+            grid.saveData(
+                {
+                    uri: "/DAI07010/Save",
+                    params: {
+                        SaveList: SaveList,
+                    },
+                    optional: vue.searchParams,
+                    confirm: {
+                        isShow: true,
+                        title: "売上入力確認",
+                        message: "更新します。よろしいですか？",
+                    },
+                    done: {
+                        isShow: false,
+                        callback: (gridVue, grid, res)=>{
+                            if (!!res.edited) {
+                                $.dialogInfo({
+                                    title: "登録チェック",
+                                    contents: "他で変更されたデータがあります。",
+                                });
+
+                                //grid blink
+                                vue.setSearchResult(res.current, true);
+                            } else {
+                                vue.setSearchResult(res.current, false);
+                            }
+
+                            return false;
+                        },
+                    },
+                }
+            );
         },
     }
 }

@@ -2434,7 +2434,7 @@ export default {
                         }
                     }
 
-                    if (!maxRowsPerPage && !isGroupPageBreak) {
+                    if (!maxRowsPerPage && !isGroupPageBreak && !grid.options.autoRow) {
                         ret = $("<div>")
                             .append($("<style>").text(styles || ""))
                             .append(header || "")
@@ -2491,6 +2491,35 @@ export default {
                             }
                         };
 
+                        var splitChunks = (a, maxRowsPerPage) => {
+                            var c = [];
+                            if (!grid.options.autoRow) {
+                                c = _.chunk(_.cloneDeep(a), maxRowsPerPage);
+                            } else {
+                                _.reduce(
+                                    _.cloneDeep(a),
+                                    (acc, row, idx) => {
+                                        var rh = 1 + _.max($(row).find("td").map((i,e) => $(e).find("br").length));
+
+                                        if (acc.ri + rh > maxRowsPerPage) {
+                                            c.push(acc.chunks);
+                                            acc.ri = rh;
+                                            acc.chunks = [row];
+                                        } else {
+                                            acc.ri += rh;
+                                            acc.chunks.push(row);
+                                        }
+                                        return acc;
+                                    },
+                                    {
+                                        ri: 0,
+                                        chunks: [],
+                                    }
+                                );
+                            }
+                            return c;
+                        };
+
                         var dr = _.reduce(tableBodies, (a, r, i) => {
                             var p = pdata[i];
 
@@ -2500,9 +2529,9 @@ export default {
                                 if (!!a.length) {
                                     var c;
                                     if (!!maxRowsPerPage) {
-                                        c = _.chunk(_.cloneDeep(a), maxRowsPerPage);
+                                        c = splitChunks(a, maxRowsPerPage, headers);
+
                                         if (c.length > 1) {
-                                            console.log("reins headers")
                                             headers = _.dropRight(headers);
                                             headers.push(..._.range(c.length - 1).map(v => _.last(headers)));
                                             headers.push(p);
@@ -2527,7 +2556,7 @@ export default {
                         if (!!dr.length) {
                             var c;
                             if (!!maxRowsPerPage) {
-                                c = _.chunk(_.cloneDeep(dr), maxRowsPerPage);
+                                c = splitChunks(dr, maxRowsPerPage, headers);
                                 if (c.length > 1) {
                                     headers.push(..._.range(c.length - 1).map(v => _.last(headers)));
                                 }
@@ -2545,8 +2574,21 @@ export default {
                             .append($("<style>").text(styles || ""))
                             .append(
                                 chunks.map((chunk, i) => {
+                                    var groupLength = !!isGroupPageBreak ? _.groupBy(headers, v => v.pq_gid)[headers[i].pq_gid].length : chunks.length;
+                                    var groupPage = i + 1;
+                                    if (!!isGroupPageBreak) {
+                                        var gls = _.values(_.groupBy(headers, v => v.pq_gid)).map(v => v.length);
+                                        for (var gi in gls) {
+                                            if (groupPage - gls[gi] > 0) {
+                                                groupPage -= gls[gi];
+                                            } else {
+                                                break;
+                                            }
+                                        }
+                                    }
+
                                     var page = $("<div>").css("break-before", "page")
-                                        .append(!!header ? (_.isFunction(header) ? header(headers[i], i, chunks.length, chunk, chunks) : header) : "")
+                                        .append(!!header ? (_.isFunction(header) ? header(headers[i], i, chunks.length, groupPage, groupLength) : header) : "")
                                         .append(
                                             $("<table>").addClass(grid.vue.id)
                                                 .append($("<thead>").append(tableHeaders))
@@ -2584,6 +2626,17 @@ export default {
                     }
 
                     return !!format ? (x => eval("`" + format + "`")).apply(nm) : nm;
+                };
+
+                this.grid.setLocalData = function(data) {
+                    var grid = this;
+                    var vue = grid.options.vue;
+
+                    var location = grid.options.dataModel.location;
+                    grid.options.dataModel.location = "local";
+                    grid.options.dataModel.data = data;
+                    grid.refreshDataAndView();
+                    grid.options.dataModel.location = location;
                 };
 
                 //blink

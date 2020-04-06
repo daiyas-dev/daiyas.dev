@@ -152,6 +152,7 @@ export default {
                 CourseCd: null,
                 CourseNm: null,
             },
+            BushoInfo: null,
             DAI07020Grid1: null,
             grid1Options: {
                 selectionModel: { type: "cell", mode: "single", row: true },
@@ -335,8 +336,12 @@ export default {
             //TODO
             vue.viewModel.BushoCd = 501;
         },
-        onBushoChanged: function(code, entities) {
+        onBushoChanged: function(code, entity, entities) {
             var vue = this;
+
+            if (!!entity) {
+                vue.BushoInfo = entity.info;
+            }
 
             //検索条件変更
             vue.conditionChanged();
@@ -621,49 +626,43 @@ export default {
                 var TantoNm = vue.viewModel.PrintOrder == "0" ? "" : (GroupInfo[3] || "");
 
                 return `
-                    <table class="header-table" style="border-width: 0px">
-                        <thead>
-                            <tr>
-                                <th style="width: 6%;">部署</th>
-                                <th style="width: 4%;">${vue.viewModel.BushoCd}</th>
-                                <th style="width: 12%;">${vue.viewModel.BushoNm}</th>
-                                <th style="width: 6%;"></th>
-                                <th style="width: 6%;"></th>
-                                <th style="width: 26%; vertical-align: top;" rowspan=2>
-                                    <h3 style="font-size: 16pt;">* * * 請求一覧表 * * *</h3>
-                                </th>
-                                <th style="width: 6%;"></th>
-                                <th style="width: 10%;"></th>
-                                <th style="width: 6%;"></th>
-                                <th style="width: 6%;"></th>
-                                <th style="width: 6%;"></th>
-                                <th style="width: 6%;"></th>
-                            </tr>
-                            <tr>
-                                <th>請求日付</th>
-                                <th colspan=2>${TargetDate}</th>
-                            </tr>
-                            <tr>
-                                <th>コース</th>
-                                <th>${CourseCd}</th>
-                                <th colspan=2>${CourseNm}</th>
-                            </tr>
-                            <tr>
-                                <th>担当者</th>
-                                <th>${TantoCd}</th>
-                                <th>${TantoNm}</th>
-                                <th>締区分</th>
-                                <th>${vue.viewModel.SimeKbnNm}</th>
-                                <th></th>
-                                <th>作成日</th>
-                                <th>${moment().format("YYYY年MM月DD日")}</th>
-                                <th>時間</th>
-                                <th>${moment().format("HH:mm:ss")}</th>
-                                <th>PAGE</th>
-                                <th style="text-align: right; padding-right: 10px;">${idx + 1}/${length}</th>
-                            </tr>
-                        </thead>
-                    </table>
+                    <div class="title">
+                        <h3>* * * <span/>配送集計表<span/> * * *</h3>
+                    </div>
+                    <div class="header">
+                        <div>
+                            <div id="a-box">
+                                ${vue.viewModel.BushoNm}
+                            </div>
+                            <div id="b-box"></div>
+                            <div id="c-box">
+                                <span>作成日</span>
+                                <span>${moment().format("YYYY年MM月DD日")}</span>
+                                <span>PAGE</span>
+                                <span>${idx + 1}/</span>
+                                ${length}
+                            </div>
+                        </div>
+                        <div style="clear: both;">
+                            <div id="d-box">
+                                <div style="float: left;">${moment(vue.viewModel.DeliveryDate, "YYYYMMDD").format("YY/MM/DD(ddd)")}</div>
+                            </div>
+                            <div id="e-box"></div>
+                            <div id="f-box" style="font-size: 9pt !important;">
+                                ${vue.BushoInfo.会社名称}
+                            </div>
+                        </div>
+                        <div style="clear: both;">
+                            <div id="g-box"></div>
+                            <div id="h-box"></div>
+                            <div id="i-box">
+                                Tel
+                                <span/>${vue.BushoInfo.電話番号}
+                                <span/>Fax
+                                <span/>${vue.BushoInfo.FAX}
+                            </div>
+                        </div>
+                    </div>
                 `;
             };
 
