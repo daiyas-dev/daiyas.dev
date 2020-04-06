@@ -17,40 +17,36 @@ class DAI03010Controller extends Controller
     public function LastUpdateDateSearch($vm)
     {
         $BushoCd = $vm->BushoCd;
-        if($BushoCd == null)
-        {
-            $sql = "
-                SELECT TOP 1 日付
-                FROM 売掛データ
-                WHERE 請求先ＣＤ >= 0
-                AND 請求先ＣＤ <= 9999999
-                AND 日付 =
-                    ( SELECT MAX(DAMMY.日付) FROM 売掛データ DAMMY
-                        WHERE  DAMMY.請求先ＣＤ >= 0
-                        AND    DAMMY.請求先ＣＤ <= 9999999
-                    )
-            ";
+        if($BushoCd==null){
+            $sql_busho1="";
+            $sql_busho2="";
+        }else{
+            $sql_busho1=" AND DAMMY.部署ＣＤ = $BushoCd";
+            $sql_busho2=" AND 部署ＣＤ = $BushoCd";
         }
-        else
-        {
-            $sql = "
-                SELECT TOP 1 日付
-                FROM 売掛データ
-                WHERE 請求先ＣＤ >= 0
-                AND 請求先ＣＤ <= 9999999
-                AND 日付 =
-                    ( SELECT MAX(DAMMY.日付) FROM 売掛データ DAMMY
-                        WHERE  DAMMY.請求先ＣＤ >= 0
-                        AND    DAMMY.請求先ＣＤ <= 9999999
-                        AND DAMMY.部署ＣＤ = $BushoCd
-                    )
-                AND 部署ＣＤ = $BushoCd
+        $sql = "
+            SELECT TOP 1 日付
+            FROM 売掛データ
+            WHERE  日付 =
+                ( SELECT MAX(DAMMY.日付) FROM 売掛データ DAMMY
+                    WHERE  DAMMY.請求先ＣＤ >= 0
+                    AND    DAMMY.請求先ＣＤ <= 9999999
+                    $sql_busho1
+                )
+            $sql_busho2
             ";
-        }
 
-        $DataList = DB::selectOne($sql);
+        //$DataList = DB::selectOne($sql);
+        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
 
-        return response()->json($DataList);
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = null;
+
+        return response()->json($DataList[0]);
     }
 
     /**
@@ -61,6 +57,16 @@ class DAI03010Controller extends Controller
         $BushoCd = $vm->BushoCd;
         $DateStart = $vm->DateStart;
         $DateEnd = $vm->DateEnd;
+
+        if($BushoCd==null){
+            $sql_busho1="";
+            $sql_busho2="";
+            $sql_busho3="";
+        }else{
+            $sql_busho1=" AND 得意先マスタ.部署ＣＤ = $BushoCd";
+            $sql_busho2=" AND 得意先マスタ.部署ＣＤ = $BushoCd";
+            $sql_busho3=" AND 部署ＣＤ=$BushoCd";
+        }
 
         $sql = "
             WITH WITH_売上データ明細 AS(
@@ -110,7 +116,7 @@ class DAI03010Controller extends Controller
                 LEFT JOIN WITH_請求データ     ON WITH_請求データ.部署ＣＤ=得意先マスタ.部署ＣＤ     AND WITH_請求データ.請求先ＣＤ=得意先マスタ.請求先ＣＤ
                 LEFT JOIN WITH_入金データ     ON WITH_入金データ.部署ＣＤ=得意先マスタ.部署ＣＤ     AND WITH_入金データ.得意先ＣＤ=得意先マスタ.得意先ＣＤ
                 WHERE (得意先マスタ.売掛現金区分 = 0 OR 得意先マスタ.売掛現金区分 = 1 OR 得意先マスタ.売掛現金区分 = 2)
-                AND 得意先マスタ.部署ＣＤ = $BushoCd
+                $sql_busho1
                 GROUP BY 得意先マスタ.部署ＣＤ
                         ,得意先マスタ.請求先ＣＤ
             )
@@ -131,7 +137,7 @@ class DAI03010Controller extends Controller
                 FROM 得意先マスタ
                 WHERE (得意先マスタ.売掛現金区分 = 0 OR 得意先マスタ.売掛現金区分 = 1 OR 得意先マスタ.売掛現金区分 = 2)
                 AND 得意先マスタ.得意先ＣＤ = 得意先マスタ.請求先ＣＤ
-                AND 得意先マスタ.部署ＣＤ = $BushoCd
+                $sql_busho2
             )
             ,WITH_請求得意先別売上入金サマリ AS(
                 SELECT
@@ -161,7 +167,7 @@ class DAI03010Controller extends Controller
                     ,MAX(日付)AS 最終集計日
                 FROM 売掛データ
                 WHERE 日付< '$DateStart'
-                AND 部署ＣＤ=$BushoCd
+                $sql_busho3
                 GROUP BY 請求先ＣＤ
             )
             ,WITH_前回売掛データ AS(
@@ -268,8 +274,8 @@ class DAI03010Controller extends Controller
 
         return response()->json([
             'result' => true,
-            'lastupdatedate'=>$this->LastUpdateDateSearch($request),
-            'edited' => $this->Search($request),
+            //'lastupdatedate'=>$this->LastUpdateDateSearch($request),
+            //'edited' => $this->Search($request),
         ]);
     }
 }
