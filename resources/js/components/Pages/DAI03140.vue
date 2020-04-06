@@ -203,32 +203,19 @@ export default {
                     {
                         title: "GroupKey1",
                         dataIndx: "GroupKey1", dataType: "string",
-                        hidden:false,
-                    },
-                    {
-                        title: "部署ＣＤ",
-                        dataIndx: "部署ＣＤ", dataType: "string",
-                        width: 100, minWidth: 100, maxWidth: 100,
-                        hidden:true,
-                    },
-                    {
-                        title: "部署名",
-                        dataIndx: "部署名", dataType: "string",
-                        width: 120, minWidth: 120,
                         hidden:true,
                     },
                     {
                         title: "ＣＤ",
                         dataIndx: "得意先ＣＤ", dataType: "string",
                         width: 60, minWidth: 60, maxWidth: 60,
-                        render: ui => {
-                            return { text:ui.rowData.部署ＣＤ};
-                        }
+                        hidden:true,
                     },
                     {
                         title: "得意先名",
                         dataIndx: "得意先名", dataType: "string",
                         width: 120, minWidth: 120,
+                        hidden:true,
                         tooltip: true,
                         render: ui => {
                             if (!!ui.rowData.pq_grandsummary) {
@@ -237,13 +224,43 @@ export default {
                             if (!!ui.rowData.pq_gsummary) {
                                 return { text: "部署計" };
                             }
+                            return { text:ui };
+                        }
+                    },
+                    {
+                        title: "ＣＤ",
+                        dataIndx: "部署ＣＤ", dataType: "string",
+                        width: 60, minWidth: 60, maxWidth: 60,
+                        hidden:true,
+                        render: ui => {
+                            if (ui.rowData.pq_child_sum) {
+                                return{ text:ui.rowData.GroupKey1.split(":")[0]};
+                            }
+                        }
+                    },
+                    {
+                        title: "部署名",
+                        dataIndx: "部署名", dataType: "string",
+                        width: 120, minWidth: 120,
+                        tooltip: true,
+                        hidden:true,
+                        render: ui => {
+                            if (!!ui.rowData.pq_grandsummary) {
+                                return { text: "* * 合　計 * *" };
+                            }
+                            if (!!ui.rowData.pq_gsummary) {
+                                return { text: "部署計" };
+                            }
+                            if (ui.rowData.pq_child_sum) {
+                                return{ text:ui.rowData.GroupKey1.split(":")[1]};
+                            }
+                            return { text:ui };
                         }
                     },
                     {
                         title: "",
                         dataIndx: "部署計", dataType: "string",
                         width: 120, minWidth: 120, maxWidth: 120,
-                        hidden:true,
                         render: ui => {
                             return { text: "部署計" };
                         }
@@ -251,7 +268,7 @@ export default {
                     {
                         title: "前月末金額",
                         dataIndx: "前月末金額", dataType: "integer", format: "#,###",
-                        width: 120, minWidth: 120, maxWidth: 120,
+                        width: 100, minWidth: 100, maxWidth: 100,
                         summary: {
                             type: "TotalInt",
                         },
@@ -259,7 +276,7 @@ export default {
                     {
                         title: "売上合計",
                         dataIndx: "売上合計", dataType: "integer", format: "#,###",
-                        width: 120, minWidth: 120, maxWidth: 120,
+                        width: 100, minWidth: 100, maxWidth: 100,
                         summary: {
                             type: "TotalInt",
                         },
@@ -267,7 +284,7 @@ export default {
                     {
                         title: "入金合計",
                         dataIndx: "入金合計", dataType: "integer", format: "#,###",
-                        width: 120, minWidth: 120, maxWidth: 120,
+                        width: 100, minWidth: 100, maxWidth: 100,
                         summary: {
                             type: "TotalInt",
                         },
@@ -275,7 +292,7 @@ export default {
                     {
                         title: "売掛残",
                         dataIndx: "売掛残", dataType: "integer", format: "#,###",
-                        width: 120, minWidth: 120, maxWidth: 120,
+                        width: 100, minWidth: 100, maxWidth: 100,
                         summary: {
                             type: "TotalInt",
                         },
@@ -283,17 +300,17 @@ export default {
                     {
                         title: "売上金額",
                         dataIndx: "売上金額", dataType: "string", align: "right",
-                        width: 120, minWidth: 120, maxWidth: 120,
+                        width: 100, minWidth: 100, maxWidth: 100,
                         summary: {
                             type: "TotalInt",
                         },
                         render: ui => {
                             //売上金額、消費税額はそれぞれ3桁カンマ区切りで2段表示
-                            //消費税額は12文字固定長(左スペース詰め)で表示
+                            //消費税額は固定長10文字(左スペース詰め)で表示
                             if (ui.rowData.pq_grandsummary || ui.rowData.pq_gsummary || ui.rowData.pq_child_sum) {
                                 var uriage=ui.rowData.売上金額;
                                 var shiouhizei = ui.rowData.消費税額;
-                                var str_shiouhizei=("            " + shiouhizei).substr(-12);
+                                var str_shiouhizei=("          " + shiouhizei).substr(-10);
                                 str_shiouhizei = str_shiouhizei.replace(/\s/g, "&ensp;");
                                 return { text: uriage + "&nbsp;\n(" + str_shiouhizei +")" };
                             }
@@ -301,7 +318,7 @@ export default {
                             {
                                 var uriage=Number(ui.rowData.売上金額).toLocaleString();
                                 var shiouhizei = Number(ui.rowData.消費税額).toLocaleString();
-                                var str_shiouhizei=("            " + shiouhizei).substr(-12);
+                                var str_shiouhizei=("          " + shiouhizei).substr(-10);
                                 str_shiouhizei = str_shiouhizei.replace(/\s/g, "&ensp;");
                                 return { text: uriage + "&ensp;\n(" + str_shiouhizei + ")" };
                             }
@@ -310,7 +327,7 @@ export default {
                     {
                         title: "その他売上",
                         dataIndx: "その他売上", dataType: "integer", format: "#,###",
-                        width: 120, minWidth: 120, maxWidth: 120,
+                        width: 100, minWidth: 100, maxWidth: 100,
                         summary: {
                             type: "TotalInt",
                         },
@@ -318,7 +335,7 @@ export default {
                     {
                         title: "現金",
                         dataIndx: "現金", dataType: "integer", format: "#,###",
-                        width: 120, minWidth: 120, maxWidth: 120,
+                        width: 100, minWidth: 100, maxWidth: 100,
                         summary: {
                             type: "TotalInt",
                         },
@@ -326,7 +343,7 @@ export default {
                     {
                         title: "振込",
                         dataIndx: "振込", dataType: "integer", format: "#,###",
-                        width: 120, minWidth: 120, maxWidth: 120,
+                        width: 100, minWidth: 100, maxWidth: 100,
                         summary: {
                             type: "TotalInt",
                         },
@@ -334,7 +351,7 @@ export default {
                     {
                         title: "振替",
                         dataIndx: "振替", dataType: "integer", format: "#,###",
-                        width: 120, minWidth: 120, maxWidth: 120,
+                        width: 100, minWidth: 100, maxWidth: 100,
                         summary: {
                             type: "TotalInt",
                         },
@@ -342,7 +359,7 @@ export default {
                     {
                         title: "金券",
                         dataIndx: "金券", dataType: "integer", format: "#,###",
-                        width: 120, minWidth: 120, maxWidth: 120,
+                        width: 100, minWidth: 100, maxWidth: 100,
                         summary: {
                             type: "TotalInt",
                         },
@@ -350,7 +367,7 @@ export default {
                     {
                         title: "その他入金",
                         dataIndx: "その他入金", dataType: "integer", format: "#,###",
-                        width: 120, minWidth: 120, maxWidth: 120,
+                        width: 100, minWidth: 100, maxWidth: 100,
                         summary: {
                             type: "TotalInt",
                         },
@@ -358,7 +375,7 @@ export default {
                     {
                         title: "消費税額",
                         dataIndx: "消費税額", dataType: "integer", format: "#,###",
-                        width: 120, minWidth: 120, maxWidth: 120,
+                        hidden:true,
                         summary: {
                             type: "TotalInt",
                         },
@@ -503,18 +520,15 @@ export default {
             var grid = vue.DAI03140Grid1;
 
             //集計変更
-            grid.Group()[vue.viewModel.SummaryKind == "1" ? "expandAll":"collapseAll"]();
-
-            //列タイトル変更
-            /*
-            grid.options.colModel.find(c => c.dataIndx == "得意先名").title = isCourseSummary ? "コース名" : "得意先名";
-            grid.options.colModel.find(c => c.dataIndx == "締日").title = isCourseSummary ? "" : "締日";
+            var isExpand = vue.viewModel.SummaryKind == "1";
+            grid.options.colModel.find(c => c.dataIndx == "部署ＣＤ").hidden　=　isExpand;
+            grid.options.colModel.find(c => c.dataIndx == "部署名").hidden　=　isExpand;
+            grid.options.colModel.find(c => c.dataIndx == "部署計").hidden　=　isExpand;
+            grid.options.colModel.find(c => c.dataIndx == "得意先ＣＤ").hidden　=　!isExpand;
+            grid.options.colModel.find(c => c.dataIndx == "得意先名").hidden　=　!isExpand;
             grid.refreshCM();
             grid.refresh();
-            */
-
-            //集計変更
-            //grid.Group()[isCourseSummary ? "collapse" : "expand"](1);
+            grid.Group()[isExpand ? "expandAll":"collapseAll"]();
         },
         conditionChanged: function(callback) {
             var vue = this;
@@ -548,12 +562,13 @@ export default {
             }
 
             grid.filter({ oper: "replace", mode: "AND", rules: rules });
+
             return;
         },
         onAfterSearchFunc: function (vue, grid, res) {
             var vue = this;
 
-            //残高有無チェック
+            //グループキーの生成
             _.map(res,r=>{
                 r.GroupKey1 = r.部署ＣＤ + ":" + r.部署名;
             });
