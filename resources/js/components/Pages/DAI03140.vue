@@ -542,17 +542,7 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        onShowZandakaNashiChanged: function(code, entity) {
-            var vue = this;
-            //フィルタ変更ハンドラ
-            vue.filterChanged();
-        },
         onCustomerChanged: function(code, entity) {
-            var vue = this;
-            //フィルタ変更ハンドラ
-            vue.filterChanged();
-        },
-        onCourseCdChanged: function(code, entity) {
             var vue = this;
             //フィルタ変更ハンドラ
             vue.filterChanged();
@@ -578,7 +568,6 @@ export default {
             var vue = this;
             var grid = vue.DAI03140Grid1;
             if (!grid || !vue.getLoginInfo().isLogOn) return;
-            window.resd=_.cloneDeep(vue.viewModel);//TODO:
             if (!vue.viewModel.BushoArray || vue.viewModel.BushoArray.length==0) return;
             if (!vue.viewModel.TargetDate) return;
             var params = $.extend(true, {}, vue.viewModel);
@@ -592,23 +581,22 @@ export default {
             //フィルタするパラメータは除外
             delete params.SummaryKind;
 
-            window.resc=_.cloneDeep(params);//TODO:
-
             grid.searchData(params, false, null, callback);
         },
 
         filterChanged: function() {
             var vue = this;
             var grid = vue.DAI03140Grid1;
-
             var rules = [];
             //得意先指定
             if (vue.viewModel.CustomerCd != undefined && vue.viewModel.CustomerCd != "") {
                 rules.push({ dataIndx: "得意先ＣＤ",   condition: "equal", value: vue.viewModel.CustomerCd * 1 });
             }
-
             grid.filter({ oper: "replace", mode: "AND", rules: rules });
 
+            //ボタン無効化制御
+            vue.footerButtons.find(v => v.id == "DAI03140Grid1_CSV").disabled = (grid.pdata.length==0);
+            vue.footerButtons.find(v => v.id == "DAI03140Grid1_Print").disabled = (grid.pdata.length==0);
             return;
         },
         onAfterSearchFunc: function (vue, grid, res) {
@@ -619,6 +607,7 @@ export default {
                 r.GroupKey1 = r.部署ＣＤ + ":" + r.部署名;
             });
 
+            //ボタン無効化制御
             vue.footerButtons.find(v => v.id == "DAI03140Grid1_CSV").disabled = !res.length;
             vue.footerButtons.find(v => v.id == "DAI03140Grid1_Print").disabled = !res.length;
 
