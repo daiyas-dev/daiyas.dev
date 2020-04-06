@@ -207,28 +207,6 @@ export default {
                     },
                     {
                         title: "ＣＤ",
-                        dataIndx: "得意先ＣＤ", dataType: "string",
-                        width: 60, minWidth: 60, maxWidth: 60,
-                        hidden:true,
-                    },
-                    {
-                        title: "得意先名",
-                        dataIndx: "得意先名", dataType: "string",
-                        width: 120, minWidth: 120,
-                        hidden:true,
-                        tooltip: true,
-                        render: ui => {
-                            if (!!ui.rowData.pq_grandsummary) {
-                                return { text: "* * 合　計 * *" };
-                            }
-                            if (!!ui.rowData.pq_gsummary) {
-                                return { text: "部署計" };
-                            }
-                            return { text:ui };
-                        }
-                    },
-                    {
-                        title: "ＣＤ",
                         dataIndx: "部署ＣＤ", dataType: "string",
                         width: 60, minWidth: 60, maxWidth: 60,
                         hidden:true,
@@ -246,7 +224,7 @@ export default {
                         hidden:true,
                         render: ui => {
                             if (!!ui.rowData.pq_grandsummary) {
-                                return { text: "* * 合　計 * *" };
+                                return { text: "" };
                             }
                             if (!!ui.rowData.pq_gsummary) {
                                 return { text: "部署計" };
@@ -258,11 +236,75 @@ export default {
                         }
                     },
                     {
+                        title: "ＣＤ",
+                        dataIndx: "得意先ＣＤ", dataType: "string",
+                        width: 60, minWidth: 60, maxWidth: 60,
+                        hidden:true,
+                        render: ui => {
+                            if (!!ui.Export) {
+                                if (!!ui.rowData.pq_grandsummary) {
+                                }
+                                if (!!ui.rowData.pq_gsummary) {
+                                    var tokui = ui.rowData.parentId;
+                                    if(tokui!=null && tokui != undefined){
+                                        var tokuiCd=tokui.split(":")[0];
+                                        return{ text:tokuiCd};
+                                    }
+                                }else{
+                                    return { text:ui };
+                                }
+                            }else{
+                                if (!!ui.rowData.pq_grandsummary) {
+                                }
+                                if (!!ui.rowData.pq_gsummary) {
+                                }
+                                return { text:ui };
+                            }
+                        }
+                    },
+                    {
+                        title: "得意先名",
+                        dataIndx: "得意先名", dataType: "string",
+                        width: 120, minWidth: 120,
+                        hidden:true,
+                        tooltip: true,
+                        render: ui => {
+                            if (!!ui.Export) {
+                                if (!!ui.rowData.pq_grandsummary) {
+                                    return { text: "* * 合　計 * *" };
+                                }
+                                if (!!ui.rowData.pq_gsummary) {
+                                    var tokui = ui.rowData.parentId;
+                                    if(tokui!=null && tokui != undefined){
+                                        var tokuiNm=tokui.split(":")[1];
+                                        return{ text: "<span class=\"summary_caption1\">" + tokuiNm + "</span><span class=\"summary_caption2\">部署計</span>" };
+                                    }
+                                }else{
+                                    return { text:ui };
+                                }
+                            }else{
+                                if (!!ui.rowData.pq_grandsummary) {
+                                    return { text: "* * 合　計 * *" };
+                                }
+                                if (!!ui.rowData.pq_gsummary) {
+                                    return { text: "部署計" };
+                                }
+                                return { text:ui };
+                            }
+                        }
+                    },
+                    {
                         title: "",
                         dataIndx: "部署計", dataType: "string",
                         width: 120, minWidth: 120, maxWidth: 120,
                         render: ui => {
-                            return { text: "部署計" };
+                            if (!!ui.rowData.pq_grandsummary) {
+                                return { text: "* * 合　計 * *" };
+                            }
+                            else
+                            {
+                                return { text: "部署計" };
+                            }
                         }
                     },
                     {
@@ -518,9 +560,9 @@ export default {
         onSummaryKindChanged: function(code, entities) {
             var vue = this;
             var grid = vue.DAI03140Grid1;
-
-            //集計変更
             var isExpand = vue.viewModel.SummaryKind == "1";
+
+            //列表示変更
             grid.options.colModel.find(c => c.dataIndx == "部署ＣＤ").hidden　=　isExpand;
             grid.options.colModel.find(c => c.dataIndx == "部署名").hidden　=　isExpand;
             grid.options.colModel.find(c => c.dataIndx == "部署計").hidden　=　isExpand;
@@ -528,12 +570,16 @@ export default {
             grid.options.colModel.find(c => c.dataIndx == "得意先名").hidden　=　!isExpand;
             grid.refreshCM();
             grid.refresh();
+
+            //集計変更
             grid.Group()[isExpand ? "expandAll":"collapseAll"]();
         },
         conditionChanged: function(callback) {
             var vue = this;
             var grid = vue.DAI03140Grid1;
             if (!grid || !vue.getLoginInfo().isLogOn) return;
+            window.resd=_.cloneDeep(vue.viewModel);//TODO:
+            if (!vue.viewModel.BushoArray || vue.viewModel.BushoArray.length==0) return;
             if (!vue.viewModel.TargetDate) return;
             var params = $.extend(true, {}, vue.viewModel);
 
@@ -676,57 +722,25 @@ export default {
             var headerFunc = (header, idx, length) => {
                 var bushoCd="";
                 var bushoNm="";
-                var courseCd="";
-                var courseNm="";
-                var tantoCd="";
-                var tantoNm="";
-                if(header.pq_level == 0)
+                if(vue.viewModel.SummaryKind == "1")
                 {
                     bushoCd = header.GroupKey1.split(":")[0];
                     bushoNm = header.GroupKey1.split(":")[1];
-                    if(vue.viewModel.SummaryKind == "1")
-                    {
-                        var child=!!header.children.length ? header.children[0]:null;
-                        if(child!=null)
-                        {
-                            courseCd = child.GroupKey2.split(":")[0];
-                            courseNm = child.GroupKey2.split(":")[1];
-                            tantoCd = child.GroupKey2.split(":")[2];
-                            tantoNm = child.GroupKey2.split(":")[3];
-                        }
-                    }
-                }
-                else
-                {
-                    bushoCd = header.parentId.split(":")[0];
-                    bushoNm = header.parentId.split(":")[1];
-                    courseCd = header.GroupKey2.split(":")[0];
-                    courseNm = header.GroupKey2.split(":")[1];
-                    tantoCd = header.GroupKey2.split(":")[2];
-                    tantoNm = header.GroupKey2.split(":")[3];
                 }
                 return `
                     <div class="title">
-                        <h3><div class="report-title-area">売掛残高表<div></h3>
+                        <h3><div class="report-title-area">得意先別月間売上入金表<div></h3>
                     </div>
                     <table class="header-table" style="border-width: 0px">
                         <thead>
-                            <tr>
-                                <th>日付</th>
-                                <th>${moment(vue.viewModel.TargetDate, "YYYY年MM月").format("YYYY年MM月")}</th>
-                            </tr>
                             <tr>
                                 <th>部署</th>
                                 <th>${bushoCd}</th>
                                 <th>${bushoNm}</th>
                             </tr>
                             <tr>
-                                <th>コース</th>
-                                <th>${courseCd}</th>
-                                <th>${courseNm}</th>
-                                <th>担当者</th>
-                                <th>${tantoCd}</th>
-                                <th>${tantoNm}</th>
+                                <th>${moment(vue.viewModel.TargetDate, "YYYY年MM月").format("YYYY年MM月")}</th>
+                                <th class="blank-cell"></th>
                                 <th>作成日</th>
                                 <th>${moment().format("YYYY年MM月DD日")}</th>
                                 <th>PAGE</th>
@@ -745,41 +759,7 @@ export default {
                     border-collapse: collapse;
                     border:1px solid black;
                 }
-                table.DAI03140Grid1 tr th:nth-child(1)[rowspan="2"] {
-                    border-right: 0px;
-                    color: white;
-                    width: 5%;
-                }
-                table.DAI03140Grid1 tr th:nth-child(2)[rowspan="2"] {
-                    border-left: 0px;
-                    text-align:left;
-                }
-                table.DAI03140Grid1 tr td:nth-child(1) {
-                    border-right: 0px;
-                }
-                table.DAI03140Grid1 tr td:nth-child(2) {
-                    border-left: 0px;
-                }
-                table.DAI03140Grid1 tr th:nth-child(n+3)[colspan="2"] {
-                    width: 10%;
-                }
-                table.DAI03140Grid1 tr th:last-child {
-                    width: 5%;
-                }
-                table.DAI03140Grid1 tr th:nth-last-child(2) {
-                    width: 5%;
-                }
             `;
-
-            //Grouping再設定
-            var keys = [];
-            keys.push("GroupKey1");
-            if (vue.viewModel.SummaryKind == "1") {
-                keys.push("GroupKey2");
-            }
-            if (!!keys.length) {
-                grid.Group().option({"dataIndx": keys});
-            }
 
             var printable = $("<html>")
                 .append($("<head>").append($("<style>").text(globalStyles)))
@@ -789,18 +769,15 @@ export default {
                             vue.DAI03140Grid1.generateHtml(
                                 styleCustomers,
                                 headerFunc,
-                                32,
-                                vue.viewModel.SummaryKind == "1" ? [false, false] : false,
-                                vue.viewModel.SummaryKind == "1" ? [true, true] : true,
-                                vue.viewModel.SummaryKind == "1" ? [true, true] : true,
+                                16,
+                                vue.viewModel.SummaryKind == "1" ? false : true ,
+                                vue.viewModel.SummaryKind == "1" ? true  : false,
+                                vue.viewModel.SummaryKind == "1" ? true  : false,
                             )
                         )
                 )
                 .prop("outerHTML")
                 ;
-
-            //Grouping解除
-            grid.Group().option({ "dataIndx": [] });
 
             var printOptions = {
                 type: "raw-html",
