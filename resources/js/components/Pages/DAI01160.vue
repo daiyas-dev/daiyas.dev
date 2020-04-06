@@ -643,6 +643,7 @@ export default {
                                 dataIndx: "備考１",
                                 dataType: "string",
                                 width: 200, minWidth: 200,
+                                tooltip: true,
                             }
                         );
 
@@ -1196,6 +1197,9 @@ export default {
                 table.DAI01160Grid1 tbody td {
                     height: 25px;
                 }
+                table.DAI01160Grid1 tbody td:last-child {
+                    white-space: pre-wrap;
+                }
                 table.DAI01160Grid1 tr.group-summary td:nth-child(1) {
                     border-style: none;
                 }
@@ -1266,7 +1270,8 @@ export default {
                 }
                 table.DAI01160Grid1 td:nth-child(1) {
                     padding-left: 15px;
-                }                table.DAI01160Grid1 tbody td {
+                }
+                table.DAI01160Grid1 tbody td {
                     height: 27px;
                 }
                 table.DAI01160Grid1 tr.grand-summary td:nth-child(1) {

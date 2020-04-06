@@ -203,7 +203,7 @@ export default {
                         hidden: true,
                     },
                     {
-                        title: "担当者名",
+                        title: "担当者",
                         dataIndx: "担当者名",
                         width: 120, maxWidth: 120, minWidth: 120,
                         hidden: false,
@@ -1043,6 +1043,7 @@ export default {
                     width: 100%;
                     display: flex;
                     justify-content: center;
+                    margin-bottom: 20px;
                 }
                 div.title > h3 {
                     margin-top: 0px;
@@ -1058,24 +1059,37 @@ export default {
                 }
                 th, td {
                     font-family: "MS UI Gothic";
-                    font-size: 8pt;
+                    font-size: 9pt;
                     font-weight: normal;
                     margin: 0px;
                     padding-left: 3px;
                     padding-right: 3px;
                 }
                 th {
-                    height: 11px;
+                    height: 13.5px;
                     text-align: center;
                 }
                 td {
-                    height: 11px;
+                    height: 13.5px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
                 table.header-table th {
                     text-align: left;
-                    border: solid 1px black;
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.header-table th:nth-child(2),
+                table.header-table th:nth-child(7) {
+                    text-align: left;
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 1px;
+                    border-bottom-width: 0px;
                 }
                 table.header-table th.blank-cell {
                     border:none;
@@ -1087,7 +1101,7 @@ export default {
                     display:table-cell;
                     vertical-align: middle;
                     background-color: #c0ffff;
-                    border: 2px solid #000000;
+                    border: 1px solid #000000;
                     border-radius: 5px;
                 }
             `;
@@ -1095,18 +1109,18 @@ export default {
                 console.log(header);//TODO:
                 return `
                     <div class="title">
-                        <h3><div class="report-title-area">日配売上集計表<div></h3>
+                        <h3><div class="report-title-area">売上集計表<div></h3>
                     </div>
                     <table class="header-table" style="border-width: 0px">
                         <thead>
                             <tr>
                                 <th style="width:  5%;">日付</th>
-                                <th style="width: 10%; text-align: center;">${moment(header.日付, "YYYY年MM月DD日").format("YYYY年MM月DD日")}</th>
-                                <th style="width: 58%;" class="blank-cell"></th>
+                                <th style="width: 12%; text-align: center;">${moment(header.日付, "YYYY年MM月DD日").format("YYYY年MM月DD日")}</th>
+                                <th style="width: 55%;" class="blank-cell"></th>
                                 <th style="width:  5%;">作成日</th>
-                                <th style="width: 10%; text-align: right;">${moment().format("YYYY年MM月DD日")}</th>
+                                <th style="width: 11%; text-align: right;">${moment().format("YYYY年MM月DD日")}</th>
                                 <th style="width:  5%;">PAGE</th>
-                                <th style="width:  5%; text-align: right;">${idx + 1}</th>
+                                <th style="width:  5%; text-align: right;">${idx + 1}/${length}</th>
                             </tr>
                         </thead>
                     </table>
@@ -1120,6 +1134,131 @@ export default {
                 table.DAI01200Grid1 td {
                     border-collapse: collapse;
                     border:1px solid black;
+                }
+                table.header-table tr th{
+                    font-size: 10pt;
+                }
+                table.header-table tr,
+                table.header-table tr {
+                    height: 18px;
+                }
+                table.DAI01200Grid1 thead tr {
+                    height: 20px;
+                }
+                table.DAI01200Grid1 thead tr th:nth-child(1),
+                table.DAI01200Grid1 thead tr th:nth-child(15) {
+                    width: 12%;
+                }
+                table.DAI01200Grid1 thead tr th:nth-child(2) {
+                    width: 7.5%;
+                }
+                table.DAI01200Grid1 thead tr th:nth-child(3) {
+                    width: 5.6%;
+                }
+                table.DAI01200Grid1 thead tr th:nth-child(11) {
+                    width: 5.5%;
+                }
+                table.DAI01200Grid1 thead tr th:nth-child(12),
+                table.DAI01200Grid1 thead tr th:nth-child(13) {
+                    width: 6.2%;
+                }
+                table.DAI01200Grid1 thead tr th:nth-child(16) {
+                    width: 8%;
+                }
+                table.DAI01200Grid1 thead tr th {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI01200Grid1 thead tr th:last-child {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 1px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI01200Grid1 td:not([colspan]) {
+                    border-collapse: collapse;
+                    border: none;
+                }
+                table.DAI01200Grid1 tr:nth-child(8n+1) td:nth-child(1) {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                    vertical-align: top;
+                    white-space: pre-wrap;
+                }
+                table.DAI01200Grid1 tr:nth-child(8n+1) td:nth-child(2) {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                    vertical-align: top;
+                    white-space: pre-wrap;
+                }
+                table.DAI01200Grid1 tr:nth-child(8n+1) td:nth-child(n+3) {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.DAI01200Grid1 tr:not(:nth-child(8n+1)) td {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.DAI01200Grid1 tr:nth-child(8n) td {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI01200Grid1 tr:nth-child(8n+1) td:last-child,
+                table.DAI01200Grid1 tr:not(:nth-child(8n+1)) td:last-child {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 0px;
+                    border-right-width: 1px;
+                    border-bottom-width: 0px;
+                }
+                table.DAI01200Grid1 tr:nth-child(8n) td:last-child {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 0px;
+                    border-right-width: 1px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI01200Grid1 tbody tr td:nth-last-child(2) span {
+                    width: auto !important;
+                }
+                table.DAI01200Grid1 tbody tr td:nth-last-child(2) span:nth-child(2) {
+                    float: right;
+                }
+                table.DAI01200Grid1 tr.grand-summary:nth-child(8n+1) td:nth-child(-n+2) {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                    vertical-align: top;
+                }
+                table.DAI01200Grid1 tr.grand-summary:nth-child(8n+1) td:nth-child(1):before {
+                    content: " 【 ";
+                }
+                table.DAI01200Grid1 tr.grand-summary:nth-child(8n+1) td:nth-child(1):after {
+                    content: " 】";
+                }
+                table.DAI01200Grid1 tr.grand-summary:nth-child(8n+1) td:nth-child(1) {
+                    letter-spacing: 0.5em;
                 }
             `;
 
