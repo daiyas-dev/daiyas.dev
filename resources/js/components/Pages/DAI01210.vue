@@ -1031,6 +1031,8 @@ export default {
         print: function() {
             var vue = this;
 
+            //TODO:行高小さくしたい。合計ラベルの表示。0を表示するか否か。(31日の列も)。改頁未チェック。
+
             //印刷用HTML全体適用CSS
             var globalStyles = `
                 body {
@@ -1062,20 +1064,26 @@ export default {
                     padding-right: 3px;
                 }
                 th {
-                    height: 11px;
+                    height: 10px;
                     text-align: center;
                 }
                 td {
-                    height: 10px;
+                    height: 7px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
                 table.header-table th {
                     text-align: left;
-                    border: solid 1px black;
+                    border: unset;
                 }
-                table.header-table th.blank-cell {
-                    border:none;
+                table.header-table tr:nth-child(1) th ,
+                table.header-table tr:nth-child(3) th {
+                    text-align: left;
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
                 }
                 div.report-title-area{
                     width:400px;
@@ -1101,23 +1109,19 @@ export default {
                                 <th style="width: 8%;">${vue.viewModel.BushoCd}</th>
                                 <th style="width: 12%;">${vue.viewModel.BushoNm}</th>
                                 <th style="width: 46%;"></th>
-                                <th style="width: 6%;"></th>
-                                <th style="width: 10%;"></th>
-                                <th style="width: 6%;"></th>
-                                <th style="width: 6%;"></th>
+                                <th style="width: 6%;">作成日</th>
+                                <th style="width: 10%;">${moment().format("YYYY年MM月DD日")}</th>
+                                <th style="width: 6%;">PAGE</th>
+                                <th style="text-align: right; padding-right: 10px;">${idx + 1}/${length}</th>
                             </tr>
-                                <th>&nbsp</th>
                             <tr>
+                                <th>&nbsp</th>
                             </tr>
                             <tr>
                                 <th>日付</th>
                                 <th>${vue.viewModel.TargetDate}</th>
                                 <th></th>
                                 <th></th>
-                                <th>作成日</th>
-                                <th>${moment().format("YYYY年MM月DD日")}</th>
-                                <th>PAGE</th>
-                                <th style="text-align: right; padding-right: 10px;">${idx + 1}/${length}</th>
                             </tr>
                         </thead>
                     </table>
@@ -1125,6 +1129,57 @@ export default {
             };
 
             var styleCustomers =`
+                table.header-table tr:nth-child(1) th {
+                    text-align: left;
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                }
+                table.header-table tr:nth-child(1) th:nth-child(3),
+                table.header-table tr:nth-child(1) th:nth-child(8) {
+                    text-align: left;
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 1px;
+                    border-bottom-width: 1px;
+                }
+                table.header-table tr:nth-child(3) th:nth-child(1) {
+                    text-align: left;
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.header-table tr:nth-child(3) th:nth-child(2) {
+                    text-align: left;
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 1px;
+                    border-bottom-width: 0px;
+                }
+                table.header-table tr:nth-child(1) th:nth-child(4) ,
+                table.header-table tr:nth-child(3) th:nth-child(n+3) {
+                    border:none;
+                }
+                table.DAI01210Grid1 thead tr:nth-child(1) th {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI01210Grid1 thead tr:nth-child(1) th:last-child {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 1px;
+                    border-bottom-width: 1px;
+                }
                 table.DAI01210Grid1 th:nth-child(1) {
                     width: 9%;
                 }
@@ -1152,10 +1207,6 @@ export default {
                 table.DAI01210Grid1 th {
                     border-bottom-width: 1px;
                 }
-                table.DAI01210Grid1 tbody tr:nth-child(7n+1) td:nth-child(n+3),
-                table.DAI01210Grid1 tbody tr:not(:nth-child(7n+1)) td:nth-child(n+2)
-                {
-                }
                 table.DAI01210Grid1 tbody td[rowspan] {
                     border-bottom-width: 1px;
                     vertical-align: top;
@@ -1165,6 +1216,9 @@ export default {
                 }
                 table.DAI01210Grid1 tbody td p {
                     margin: 0px;
+                }
+                table.DAI01210Grid1 tbody td:not([colspan]) p {
+                    font-size: 6.5pt;
                 }
             `;
 
