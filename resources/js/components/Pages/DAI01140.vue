@@ -783,12 +783,13 @@ export default {
                     width: 100%;
                     display: flex;
                     justify-content: center;
+                    margin-bottom: 10px;
                 }
                 div.title > h3 {
                     margin-top: 0px;
                     margin-bottom: 0px;
-                    padding-left: 50px;
-                    padding-right: 50px;
+                    padding-left: 100px;
+                    padding-right: 100px;
                     padding-top: 4px;
                     padding-bottom: 4px;
                     border: solid 1px black;
@@ -812,11 +813,11 @@ export default {
                     padding-right: 3px;
                 }
                 th {
-                    height: 30px;
+                    height: 18px;
                     text-align: center;
                 }
                 td {
-                    height: 17px;
+                    height: 18px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
@@ -831,34 +832,29 @@ export default {
                     <table class="header-table" style="border-width: 0px">
                         <thead>
                             <tr>
-                                <th style="width: 10%;">日付</th>
-                                <th style="width: 30%;">
+                                <th style="width: 8%;">日付</th>
+                                <th style="width: 34%;" colspan="3">
                                     ${moment(vue.viewModel.DateStart, "YYYYMMDD").format("YYYY年MM月DD日")}
                                     ～
                                     ${moment(vue.viewModel.DateEnd, "YYYYMMDD").format("YYYY年MM月DD日")}
                                 </th>
-                                <th style="width: 26%;"></th>
+                                <th style="width: 68%;" colspan="7"></th>
                             </tr>
                             <tr>
-                                <th style="width: 10%;">コース</th>
+                                <th style="width: 8%;">コース</th>
                                 <th style="width: 10%;">${vue.viewModel.CourseCd}</th>
-                                <th style="width: 20%;">${vue.viewModel.CourseNm}</th>
-                                <th style="width: 26%;"></th>
+                                <th style="width: 24%;" colspan="2">${vue.viewModel.CourseNm}</th>
+                                <th style="width: 68%;" colspan="7"></th>
                             </tr>
                             <tr>
-                                <th style="width: 10%;">部署</th>
-                                <th style="width: 15%;">${vue.viewModel.BushoCd}:${vue.viewModel.BushoNm}</th>
-                                <th style="width: 26%;"></th>
-                            </tr>
-                            <tr>
-                                <th style="width: 10%;">担当者</th>
+                                <th style="width: 8%;">担当者</th>
                                 <th style="width: 10%;">担当者CD</th>
-                                <th style="width: 20%;">担当者名</th>
-                                <th style="width: 20%;"></th>
-                                <th style="width: 10%;">作成日</th>
-                                <th style="width: 15%;">${moment().format("YYYY年MM月DD日")}</th>
+                                <th style="width: 21%;" colspan="2">担当者名</th>
+                                <th style="width: 21%;" colspan="2"></th>
+                                <th style="width: 8%;">作成日</th>
+                                <th style="width: 16%;" colspan="2">${moment().format("YYYY年MM月DD日")}</th>
                                 <th style="width: 8%;">PAGE</th>
-                                <th style="width: 6%; text-align: right;">${idx + 1}/${length}</th>
+                                <th style="width: 8%; text-align: right;">${idx + 1}/${length}</th>
                             </tr>
                         </thead>
                     </table>
@@ -872,9 +868,44 @@ export default {
                         .append(
                             vue.DAI01140Grid1.generateHtml(
                                 `
+                                    table.header-table tr th{
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 1px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 0px;
+                                    }
+                                    table.header-table tr:nth-child(1) th:nth-child(3){
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 0px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 0px;
+                                    }
+                                    table.header-table tr:nth-child(2) th:nth-child(4){
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 0px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 0px;
+                                    }
+                                    table.header-table tr:nth-child(3) th:nth-child(4){
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 0px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 0px;
+                                    }
+                                    table.header-table tr:nth-child(3) th:last-child{
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 1px;
+                                        border-right-width: 1px;
+                                        border-bottom-width: 0px;
+                                    }
                                     table.DAI01140Grid1 tr:nth-child(1) th {
                                         border-style: solid;
-                                        border-left-width: 0px;
+                                        border-left-width: 1px;
                                         border-top-width: 1px;
                                         border-right-width: 0px;
                                         border-bottom-width: 1px;
@@ -887,59 +918,16 @@ export default {
                                         border-bottom-width: 1px;
                                     }
                                     table.DAI01140Grid1 tr th:nth-child(1) {
-                                        width: 8.5%;
+                                        width: 7.0%;
                                     }
-
                                     table.DAI01140Grid1 tr th:nth-child(2) {
-                                        width: 4.2%;
+                                        width: 20.0%;
                                     }
-
-                                    table.DAI01140Grid1 tr th:nth-child(3) {
-                                        width: 13.6%;
-                                    }
-
-                                    table.DAI01140Grid1 tr th:nth-child(4) {
-                                        width: 5.5%;
-                                    }
-
-                                    table.DAI01140Grid1 tr th:nth-child(5) {
-                                        width: 17.9%;
-                                    }
-
-                                    table.DAI01140Grid1 tr th:nth-child(6) {
-                                        width: 4.2%;
-                                    }
-
-                                    table.DAI01140Grid1 tr th:nth-child(7) {
-                                        width: 8.5%;
-                                    }
-
                                     table.DAI01140Grid1 tr th:nth-child(8) {
-                                        width: 4.2%;
+                                        width: 3.0%;
                                     }
-
                                     table.DAI01140Grid1 tr th:nth-child(9) {
-                                        width: 4.2%;
-                                    }
-
-                                    table.DAI01140Grid1 tr th:nth-child(10) {
-                                        width: 5.5%;
-                                    }
-
-                                    table.DAI01140Grid1 tr th:nth-child(11) {
-                                        width: 5.5%;
-                                    }
-
-                                    table.DAI01140Grid1 tr th:nth-child(12) {
-                                        width: 5.5%;
-                                    }
-
-                                    table.DAI01140Grid1 tr th:nth-child(13) {
-                                        width: 8.5%;
-                                    }
-
-                                    table.DAI01140Grid1 tr th:nth-child(14) {
-                                        width: 4.2%;
+                                        width: 15.0%;
                                     }
                                 `,
                                 headerFunc,
