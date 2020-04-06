@@ -578,6 +578,8 @@ export default {
             var vue = this;
             var grid = vue.DAI03140Grid1;
             if (!grid || !vue.getLoginInfo().isLogOn) return;
+            window.resd=_.cloneDeep(vue.viewModel);//TODO:
+            if (!vue.viewModel.BushoArray || vue.viewModel.BushoArray.length==0) return;
             if (!vue.viewModel.TargetDate) return;
             var params = $.extend(true, {}, vue.viewModel);
 
@@ -725,31 +727,6 @@ export default {
                     bushoCd = header.GroupKey1.split(":")[0];
                     bushoNm = header.GroupKey1.split(":")[1];
                 }
-                /*
-                if(header.pq_level == 0)
-                {
-                    if(vue.viewModel.SummaryKind == "1")
-                    {
-                        var child=!!header.children.length ? header.children[0]:null;
-                        if(child!=null)
-                        {
-                            courseCd = child.GroupKey2.split(":")[0];
-                            courseNm = child.GroupKey2.split(":")[1];
-                            tantoCd = child.GroupKey2.split(":")[2];
-                            tantoNm = child.GroupKey2.split(":")[3];
-                        }
-                    }
-                }
-                else
-                {
-                    bushoCd = header.parentId.split(":")[0];
-                    bushoNm = header.parentId.split(":")[1];
-                    courseCd = header.GroupKey2.split(":")[0];
-                    courseNm = header.GroupKey2.split(":")[1];
-                    tantoCd = header.GroupKey2.split(":")[2];
-                    tantoNm = header.GroupKey2.split(":")[3];
-                }
-                */
                 return `
                     <div class="title">
                         <h3><div class="report-title-area">得意先別月間売上入金表<div></h3>
