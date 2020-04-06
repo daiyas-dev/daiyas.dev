@@ -2496,7 +2496,7 @@ export default {
                             if (!grid.options.autoRow) {
                                 c = _.chunk(_.cloneDeep(a), maxRowsPerPage);
                             } else {
-                                _.reduce(
+                                var last = _.reduce(
                                     _.cloneDeep(a),
                                     (acc, row, idx) => {
                                         var rh = 1 + _.max($(row).find("td").map((i,e) => $(e).find("br").length));
@@ -2516,6 +2516,10 @@ export default {
                                         chunks: [],
                                     }
                                 );
+
+                                if (!!last.chunks.length) {
+                                    c.push(last.chunks);
+                                }
                             }
                             return c;
                         };
