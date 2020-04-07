@@ -22,19 +22,19 @@ export default {
             viewModel: {},
             footerButtons: [
                 {
-                    visible: "true", value: "終了", align: "right", shortcut: "F12",
+                    visible: "true", value: "再起動", align: "right", shortcut: "F12",
                     class: "btn-danger",
                     onClick: function() {
                         $.dialogConfirm({
                             title: "確認",
-                            contents: "終了してよろしいですか？",
+                            contents: "画面を再起動してよろしいですか？(※確認用 本来はシステム終了となります)",
                             buttons:[
                                 {
                                     text: "はい",
                                     class: "btn btn-primary",
                                     click: function(){
                                         $(this).dialog("close");
-                                        vue.$root.$emit("execLogOff");
+                                        location.reload();
                                     }
                                 },
                                 {
@@ -46,6 +46,27 @@ export default {
                                 },
                             ],
                         });
+                        // $.dialogConfirm({
+                        //     title: "確認",
+                        //     contents: "終了してよろしいですか？",
+                        //     buttons:[
+                        //         {
+                        //             text: "はい",
+                        //             class: "btn btn-primary",
+                        //             click: function(){
+                        //                 $(this).dialog("close");
+                        //                 vue.$root.$emit("execLogOff");
+                        //             }
+                        //         },
+                        //         {
+                        //             text: "いいえ",
+                        //             class: "btn btn-danger",
+                        //             click: function(){
+                        //                 $(this).dialog("close");
+                        //             }
+                        //         },
+                        //     ],
+                        // });
                     }
                 },
             ],

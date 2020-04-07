@@ -42,14 +42,14 @@
                 />
             </div>
             <div class="col-md-1">
-                <label>コース開始</label>
+                <label>コース</label>
             </div>
             <div class="col-md-5">
                 <PopupSelect
-                    id="CourseStart"
-                    ref="PopupSelect_CourseStart"
+                    id="CourseCd"
+                    ref="PopupSelect_CourseCd"
                     :vmodel=viewModel
-                    bind="CourseStart"
+                    bind="CourseCd"
                     dataUrl="/Utilities/GetCourseList"
                     :params='{ bushoCd: viewModel.BushoCd, courseKbn: viewModel.CourseKbn }'
                     :dataListReset=true
@@ -64,42 +64,10 @@
                     :exceptCheck="[{ Cd: 0 }]"
                     :inputWidth=100
                     :nameWidth=300
-                    :onAfterChangedFunc=onCourseStartChanged
+                    :onAfterChangedFunc=onCourseCdChanged
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=CourseAutoCompleteFunc
                     :isPreload=true
-                />
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-3">
-            </div>
-            <div class="col-md-1">
-                <label>コース終了</label>
-            </div>
-            <div class="col-md-5">
-                <PopupSelect
-                    id="CourseEnd"
-                    ref="PopupSelect_CourseEnd"
-                    :vmodel=viewModel
-                    bind="CourseEnd"
-                    dataUrl="/Utilities/GetCourseList"
-                    :params='{ bushoCd: viewModel.BushoCd, courseKbn: viewModel.CourseKbn }'
-                    :dataListReset=true
-                    title="コース一覧"
-                    labelCd="コースCD"
-                    labelCdNm="コース名"
-                    :isShowName=true
-                    :isModal=true
-                    :editable=true
-                    :reuse=true
-                    :existsCheck=true
-                    :exceptCheck="[{ Cd: 9999 }]"
-                    :inputWidth=100
-                    :nameWidth=300
-                    :onAfterChangedFunc=onCourseEndChanged
-                    :isShowAutoComplete=true
-                    :AutoCompleteFunc=CourseAutoCompleteFunc
                 />
             </div>
         </div>
@@ -159,8 +127,7 @@ export default {
                 BushoNm: null,
                 DeliveryDate: null,
                 CourseKbn: null,
-                CourseStart: null,
-                CourseEnd: null,
+                CourseCd: null,
             },
             DAI01010Grid1: null,
             grid1Options: {
@@ -264,13 +231,7 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        onCourseStartChanged: function(code, entity) {
-            var vue = this;
-
-            //フィルタ変更ハンドラ
-            vue.filterChanged();
-        },
-        onCourseEndChanged: function(code, entity) {
+        onCourseCdChanged: function(code, entity) {
             var vue = this;
 
             //フィルタ変更ハンドラ
@@ -289,8 +250,7 @@ export default {
             params.DeliveryDate = params.DeliveryDate ? moment(params.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
 
             //コース開始/終了はフィルタするので除外
-            delete params.CourseStart;
-            delete params.CourseEnd;
+            delete params.CourseCd;
 
             grid.searchData(params, false, null, callback);
         },
@@ -302,11 +262,8 @@ export default {
 
             var rules = [];
             var crules = [];
-            if (!!vue.viewModel.CourseStart) {
-                crules.push({ condition: "gte", value: vue.viewModel.CourseStart });
-            }
-            if (!!vue.viewModel.CourseEnd) {
-                crules.push({ condition: "lte", value: vue.viewModel.CourseEnd });
+            if (!!vue.viewModel.CourseCd) {
+                crules.push({ condition: "equal", value: vue.viewModel.CourseCd });
             }
 
             if (crules.length) {
