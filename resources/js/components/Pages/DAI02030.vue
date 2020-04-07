@@ -556,6 +556,7 @@ export default {
         },
         onBushoChanged: function(code, entity, entities) {
             var vue = this;
+            console.log("2030 bushoChanged")
 
             if (!!entity) {
                 vue.BushoInfo = entity.info;
