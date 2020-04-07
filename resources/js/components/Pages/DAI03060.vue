@@ -176,7 +176,7 @@ export default {
                 numberCell: { show: true, title: "No.", resizable: false, },
                 autoRow: false,
                 rowHt: 35,
-                freezeCols: 8,
+                freezeCols: 7,
                 editable: false,
                 columnTemplate: {
                     editable: false,
@@ -230,13 +230,16 @@ export default {
                     {
                         title: "コースＣＤ",
                         dataIndx: "コースＣＤ", dataType: "string",
-                        hidden:true,
+                        width: 60, minWidth: 60, maxWidth: 60,
+                        hidden:false,
                         fixed: true,
                     },
                     {
                         title: "コース名",
                         dataIndx: "コース名", dataType: "string",
-                        hidden:true,
+                        width: 200, minWidth: 200,
+                        tooltip: true,
+                        hidden:false,
                         fixed: true,
                     },
                     {
@@ -248,13 +251,7 @@ export default {
                     {
                         title: "担当者名",
                         dataIndx: "担当者名", dataType: "string",
-                        hidden:true,
-                        fixed: true,
-                    },
-                    {
-                        title: "コース名",
-                        dataIndx: "コース", dataType: "string",
-                        width: 200, minWidth: 200,
+                        width: 150, minWidth: 150,
                         tooltip: true,
                         hidden:false,
                         fixed: true,
@@ -267,9 +264,7 @@ export default {
                                 //小計行
                                 return { text: "小　計" };
                             }
-                            var course=ui.rowData.コースＣＤ + " " + ui.rowData.コース名;
-                            var tanto=ui.rowData.担当者名;
-                            return "<span style=\"width:60%;overflow:hidden;\">"+ course +"</span>" +  "<span>"+ tanto +"</span>";
+                            return ui;
                         },
                     },
                 ],
