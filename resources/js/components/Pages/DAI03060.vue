@@ -26,7 +26,7 @@
                 <DatePickerWrapper
                     id="TargetDate"
                     ref="DatePicker_Date"
-                    format="YYYY年MM月DD日"
+                    format="YYYY年MM月"
                     dayViewHeaderFormat="YYYY年MM月"
                     :vmodel=viewModel
                     bind="TargetDate"
