@@ -543,19 +543,6 @@ ORDER BY
             　ON　'7'=KK2.各種CD AND MB.口座種別2=KK2.行NO
         ";
 
-        // $query = 部署マスタ::query()
-        //     ->when(
-        //         $cds,
-        //         function ($q) use ($cds) {
-        //             return $q->whereIn('部署CD', $cds);
-        //         }
-        //     )
-        //     ->when(
-        //         $group,
-        //         function($q) use($group) {
-        //             return $q->where('部署グループ', $group);
-        //         });
-
         $BushoCdList = collect(DB::select($sql))
             ->map(function ($BushoCd) {
                 $vm = (object) $BushoCd;
@@ -1466,7 +1453,7 @@ AND Tel_DelFlg = 0
 
         $WhereCourseKbn =  $CourseKbn
                                 ? " AND MC.コース区分 = $CourseKbn"
-                                : $TargetDate
+                                : ($TargetDate
                                     ? "AND MC.コース区分 =
                                             CASE
                                                 WHEN (SELECT 対象日付 FROM 祝日マスタ WHERE 対象日付 = '$TargetDate') IS NOT NULL THEN 4
@@ -1477,7 +1464,7 @@ AND Tel_DelFlg = 0
                                                         ELSE 1
                                                     END
                                             END"
-                                    : "";
+                                    : "");
 
         $WhereGroupCustomer = $GroupCustomerCd ? "
              AND M1.得意先ＣＤ IN (

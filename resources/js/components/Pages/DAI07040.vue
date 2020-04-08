@@ -29,37 +29,23 @@
             <div class="col-md-1">
                 <label>コース</label>
             </div>
-            <div class="col-md-5">
-                <PopupSelect
+            <div class="col-md-11">
+                <VueMultiSelect
                     id="CourseCd"
-                    ref="PopupSelect_CourseCd"
+                    ref="VueMultiSelect_CourseCd"
                     :vmodel=viewModel
-                    bind="CourseCd"
-                    dataUrl="/Utilities/GetCourseList"
+                    bind="CourseCdArray"
+                    uri="/Utilities/GetCourseList"
                     :params='{ bushoCd: viewModel.BushoCd }'
-                    :isPreload=true
-                    :dataListReset=true
-                    title="コース一覧"
-                    labelCd="コースCD"
-                    labelCdNm="コース名"
-                    :isShowName=true
-                    :isModal=true
-                    :editable=true
-                    :reuse=true
-                    :existsCheck=true
-                    :exceptCheck="[{ Cd: 0 }]"
-                    :inputWidth=100
-                    :nameWidth=300
-                    :onAfterChangedFunc=onCourseCdChanged
-                    :isShowAutoComplete=true
-                    :AutoCompleteFunc=CourseAutoCompleteFunc
+                    :hasNull=true
+                    :onChangedFunc=onCourseCdChanged
                 />
             </div>
         </div>
         <PqGridWrapper
-            id="DAI07020Grid1"
-            ref="DAI07020Grid1"
-            dataUrl="/DAI07020/Search"
+            id="DAI07040Grid1"
+            ref="DAI07040Grid1"
+            dataUrl="/DAI07040/Search"
             :query=this.viewModel
             :SearchOnCreate=false
             :SearchOnActivate=false
@@ -71,32 +57,22 @@
 </template>
 
 <style>
-#DAI07020Grid1 .pq-group-toggle-none {
+#DAI07040Grid1 .pq-group-toggle-none {
     display: none !important;
 }
-#DAI07020Grid1 svg.pq-grid-overlay {
+#DAI07040Grid1 svg.pq-grid-overlay {
     display: block;
 }
-#DAI07020Grid1 .pq-grid-cell.holiday {
+#DAI07040Grid1 .pq-grid-cell.holiday {
     color: red;
 }
-#DAI07020Grid1 .info-col > * {
-    border-style: solid;
-    border-color: #a8c4dc;
-    border-width: 0px;
-    border-right-width: 1px;
+#DAI07040Grid1 .pq-summary-outer *:not(.tooltip):not(.arrow):not(.tooltip-inner) {
+    font-weight: bold;
+    color: black;
+    background-color: white !important;
 }
-#DAI07020Grid1 .info-col > *:last-child {
-    border-right-width: 0px;
-}
-#DAI07020Grid1 .biko-cell {
-    border-style: solid;
-    border-color: #a8c4dc;
-    border-width: 0px;
-    border-top-width: 1px;
-}
-#DAI07020Grid1 .pq-grid-cell {
-    align-items: flex-start;
+form[pgid="DAI07040"] .multiselect.CourseCd .multiselect__tags {
+    height: unset;
 }
 label{
     width: 80px;
@@ -108,7 +84,7 @@ import PageBaseMixin from "@vcs/PageBaseMixin.vue";
 
 export default {
     mixins: [PageBaseMixin],
-    name: "DAI07020",
+    name: "DAI07040",
     components: {
     },
     props: {
@@ -123,7 +99,7 @@ export default {
                 TargetDate: moment(vue.viewModel.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD"),
                 TargetDateFrom: moment(vue.viewModel.TargetDate, "YYYY年MM月DD日").day(1).format("YYYYMMDD"),
                 TargetDateTo: moment(vue.viewModel.TargetDate, "YYYY年MM月DD日").day(6).format("YYYYMMDD"),
-                CourseCd: vue.viewModel.CourseCd,
+                CourseCdArray: vue.viewModel.CourseCdArray,
             };
         },
     },
@@ -133,7 +109,7 @@ export default {
             handler: function(newVal) {
                 var vue = this;
                 var disabled = !newVal.TargetDate;
-                vue.footerButtons.find(v => v.id == "DAI07020Grid1_Search").disabled = disabled;
+                vue.footerButtons.find(v => v.id == "DAI07040Grid1_Search").disabled = disabled;
             },
         },
     },
@@ -141,7 +117,7 @@ export default {
         var vue = this;
 
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "個人宅 > 個人配送集計表",
+            ScreenTitle: "個人宅 > 週間曜日予定表",
             noViewModel: true,
             viewModel: {
                 BushoCd: null,
@@ -149,11 +125,10 @@ export default {
                 TargetDate: null,
                 TargetDateFrom: null,
                 TargetDateTo: null,
-                CourseCd: null,
-                CourseNm: null,
+                CourseCdArray: null,
             },
             BushoInfo: null,
-            DAI07020Grid1: null,
+            DAI07040Grid1: null,
             grid1Options: {
                 selectionModel: { type: "cell", mode: "single", row: true },
                 showHeader: true,
@@ -161,7 +136,9 @@ export default {
                 columnBorders: true,
                 fillHandle: "",
                 numberCell: { show: false, title: "No.", resizable: false, },
-                autoRow: true,
+                autoRow: false,
+                rowHtHead: 50,
+                rowHtSum: 50,
                 stripeRows: true,
                 freezeCols: 5,
                 editable: false,
@@ -182,51 +159,76 @@ export default {
                     type: "remote",
                 },
                 groupModel: {
-                    on: false,
+                    on: true,
                     header: false,
-                    grandSummary: false,
+                    grandSummary: true,
+                    dataIndx: ["商品"],
+                    showSummary: [true],
+                    collapsed: [true],
+                    summaryInTitleRow: "collapsed",
                 },
                 summaryData: [
                 ],
                 formulas: [
+                    [
+                        "商品",
+                        function(rowData) {
+                            return rowData.商品ＣＤ + ":" + rowData.商品名;
+                        },
+                    ],
+                    [
+                        "合計数量",
+                        function(rowData) {
+                            return _(rowData)
+                                .pickBy((v, k) => !!k && k.startsWith("数量_"))
+                                .values()
+                                .map(v => v * 1)
+                                .sum()
+                                ;
+                        },
+                    ],
+                    [
+                        "合計金額",
+                        function(rowData) {
+                            return _(rowData)
+                                .pickBy((v, k) => !!k && k.startsWith("金額_"))
+                                .values()
+                                .map(v => v * 1)
+                                .sum()
+                                ;
+                        },
+                    ],
                 ],
                 colModel: [
                     {
-                        title: "コースＣＤ",
-                        dataIndx: "コースＣＤ", dataType: "string",
-                        hidden: true,
-                    },
-                    {
-                        title: "コース名",
-                        dataIndx: "コース名", dataType: "string",
-                        hidden: true,
-                    },
-                    {
-                        title: "順",
-                        dataIndx: "順", dataType: "integer",
-                        width: 45, maxWidth: 45, minWidth: 45,
-                    },
-                    {
-                        title: "得意先",
-                        dataIndx: "得意先", dataType: "string",
-                        width: 150, minWidth: 150,
+                        title: "商品",
+                        dataIndx: "商品",
+                        dataType: "string",
+                        width: 200, minWidth: 200,
                         render: ui => {
-                            var text = $("<div>").addClass("w-100")
-                                .append($("<div>").text(ui.rowData.得意先ＣＤ))
-                                .append($("<div>").text(ui.rowData.得意先名))
-                                .append($("<div>").css("text-align", "right").text(ui.rowData.電話番号１))
-                                .prop("outerHTML")
-                                ;
-
-                            return { text: text };
+                            if (!!ui.rowData.pq_grandsummary) {
+                                (ui.cls || []).push("justify-content-end");
+                                return { text: "* * 出荷合計 * *" + "\n" + "* * 売上金額 * *"};
+                            }　else if (!!ui.rowData.pq_gsummary) {
+                                (ui.cls || []).push("justify-content-end");
+                                return { text: "コース計" };
+                            }　else if (ui.rowData.pq_level == 0) {
+                                return ui;
+                            } else {
+                                (ui.cls || []).push("pl-5");
+                                return { text: ui.rowData.コースＣＤ + ":" + ui.rowData.コース名 };
+                            }
                         },
                     },
                     {
-                        title: "区分",
-                        dataIndx: "食事区分名", dataType: "string",
-                        width: 45, maxWidth: 45, minWidth: 45,
+                        title: "コースＣＤ",
+                        dataIndx: "コースＣＤ",
+                        hidden: true,
                     },
                 ],
+                filter: function() {
+                    vue.dummy();
+                }
             },
         });
 
@@ -235,79 +237,82 @@ export default {
             .map(d => {
                 return {
                     title: d.format("M/D") + "<br>" + d.format("(ddd)"),
-                    dataIndx: d.format("MMDD"),
-                    dataType: "string",
+                    dataIndx: "数量_" + d.format("MMDD"),
+                    dataType: "integer",
+                    format: "#,##0",
+                    dateCol: true,
                     width: 75, maxWidth: 75, minWidth: 75,
+                    summary: {
+                        type: "TotalInt",
+                    },
+                    render: ui => {
+                        if (!!ui.rowData.pq_grandsummary) {
+                            var cnt = ui.rowData[ui.dataIndx];
+                            var val = ui.rowData[ui.dataIndx.replace("数量", "金額")];
+                            return { text: cnt + "\n" + val };
+                        }
+                        return ui;
+                    },
+                }
+            })
+        );
+
+        data.grid1Options.colModel.push(..._.range(0, 6)
+            .map(v => moment().day(1).add(v, "days"))
+            .map(d => {
+                return {
+                    title: d.format("M/D") + "<br>" + d.format("(ddd)"),
+                    dataIndx: "金額_" + d.format("MMDD"),
+                    dataType: "integer",
+                    format: "#,##0",
+                    hidden: true,
+                    dateCol: true,
+                    summary: {
+                        type: "TotalInt",
+                    },
                 }
             })
         );
 
         data.grid1Options.colModel.push(
             {
-                title: $("<span>").addClass("d-inline-block").addClass("w-100").addClass("info-col")
-                    .append($("<span>").text("").addClass("d-inline-block").css("width", "80px"))
-                    .append($("<span>").text("今週・売上").addClass("d-inline-block").css("width", "80px"))
-                    .append($("<span>").text("次週・売上").addClass("d-inline-block").css("width", "80px"))
-                    .append($("<span>").text("").addClass("d-inline-block").css("width", "calc(100% - 240px)"))
-                    .prop("outerHTML")
-                ,
-                colModel: [
-                    {
-                        title: $("<span>").addClass("d-inline-block").addClass("w-100").addClass("info-col")
-                            .append($("<span>").text("未集金").addClass("d-inline-block").css("width", "80px"))
-                            .append($("<span>").text("今週・請求").addClass("d-inline-block").css("width", "80px"))
-                            .append($("<span>").text("次週・請求").addClass("d-inline-block").css("width", "80px"))
-                            .append($("<span>").text("住所").addClass("d-inline-block").css("width", "calc(100% - 240px)"))
-                            .prop("outerHTML")
-                        ,
-                        dataIndx: "情報",
-                        dataType: "string",
-                        width: 500, minWidth: 500,
-                        render: ui => {
-                            var html = $("<div>").addClass("w-100")
-                                .append(
-                                    $("<div>").addClass("d-flex").addClass("info-col")
-                                        .append(
-                                            $("<div>").css("width", "100px")
-                                                .append(
-                                                    $("<div>").text(ui.rowData.締支払).addClass("text-center")
-                                                )
-                                                .append(
-                                                    $("<div>").text(pq.formatNumber(ui.rowData.未集金, "#,##0")).addClass("text-right").css("padding-right", "10px").css("font-weight", "bold")
-                                                )
-                                        )
-                                        .append(
-                                            $("<div>").css("width", "100px")
-                                                .append(
-                                                    $("<div>").text(pq.formatNumber(ui.rowData.今週売上, "#,##0")).addClass("text-right").css("padding-right", "10px").css("font-weight", "bold")
-                                                )
-                                                .append(
-                                                    $("<div>").text(pq.formatNumber(ui.rowData.今週請求, "#,##0")).addClass("text-right").css("padding-right", "10px").css("font-weight", "bold")
-                                                )
-                                        )
-                                        .append(
-                                            $("<div>").css("width", "100px")
-                                                .append(
-                                                    $("<div>").text(pq.formatNumber(ui.rowData.次週売上, "#,##0")).addClass("text-right").css("padding-right", "10px")
-                                                )
-                                                .append(
-                                                    $("<div>").text(pq.formatNumber(ui.rowData.次週請求, "#,##0")).addClass("text-right").css("padding-right", "10px")
-                                                )
-                                        )
-                                        .append(
-                                            $("<div>").text(ui.rowData.住所).css("width", "calc(100% - 300px)").css("padding-left", "10px")
-                                        )
-                                )
-                                .append($("<div>").text(ui.rowData.備考１).addClass("biko-cell"))
-                                .prop("outerHTML");
+                title: "合計",
+                dataIndx: "合計数量",
+                dataType: "integer",
+                format: "#,##0",
+                width: 100, maxWidth: 100, minWidth: 100,
+                summary: {
+                    type: "TotalInt",
+                },
+                render: ui => {
+                    if (!!ui.rowData.pq_grandsummary) {
+                        var cnt = ui.rowData[ui.dataIndx];
+                        var val = ui.rowData[ui.dataIndx.replace("数量", "金額")];
+                        return { text: cnt + "\n" + val };
+                    }
+                    return ui;
+                },
+            }
+        );
+        data.grid1Options.colModel.push(
+            {
+                title: "合計",
+                dataIndx: "合計金額",
+                dataType: "integer",
+                format: "#,##0",
+                hidden: true,
+                summary: {
+                    type: "TotalInt",
+                },
+            }
+        );
 
-                            return { text: html };
-                        },
-                    },
-                ],
-                width: 500, minWidth: 500,
-                custom: true,
-            },
+        data.grid1Options.colModel.push(
+            {
+                title: "備考",
+                dataIndx: "備考", dataType: "string",
+                width: 200, minWidth: 200,
+            }
         );
 
         return data;
@@ -315,12 +320,12 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "検索", id: "DAI07020Grid1_Search", disabled: false, shortcut: "F5",
+                { visible: "true", value: "検索", id: "DAI07040Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
                         vue.conditionChanged(true);
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI07020Grid1_Printout", disabled: false, shortcut: "F6",
+                { visible: "true", value: "印刷", id: "DAI07040Grid1_Printout", disabled: false, shortcut: "F6",
                     onClick: function () {
                         vue.print();
                     }
@@ -348,17 +353,25 @@ export default {
         },
         onTargetDateChanged: function(code, entity) {
             var vue = this;
-            var grid = vue.DAI07020Grid1;
+            var grid = vue.DAI07040Grid1;
 
             var days = _.range(0, 6).map(v => moment(vue.searchParams.TargetDate).day(1).add(v, "days"));
             var holidays = [];
 
             grid.options.colModel
-                .filter(c => !!c.dataIndx && c.dataIndx.match(/^\d+$/))
+                .filter(c => !!c.dataIndx && c.dataIndx.match(/^数量_\d+$/))
                 .forEach((c, i) => {
                     var d = days[i];
                     c.title = d.format("M/D") + "<br>" + d.format("(ddd)")
-                    c.dataIndx = d.format("MMDD");
+                    c.dataIndx = "数量_" + d.format("MMDD");
+                });
+
+            grid.options.colModel
+                .filter(c => !!c.dataIndx && c.dataIndx.match(/^金額_\d+$/))
+                .forEach((c, i) => {
+                    var d = days[i];
+                    c.title = d.format("M/D") + "<br>" + d.format("(ddd)")
+                    c.dataIndx = "金額_" + d.format("MMDD");
                 });
 
             grid.refreshCM();
@@ -374,7 +387,7 @@ export default {
         },
         conditionChanged: function(force) {
             var vue = this;
-            var grid = vue.DAI07020Grid1;
+            var grid = vue.DAI07040Grid1;
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.BushoCd || !vue.viewModel.TargetDate) return;
@@ -389,54 +402,44 @@ export default {
         },
         filterChanged: function() {
             var vue = this;
-            var grid = vue.DAI07020Grid1;
+            var grid = vue.DAI07040Grid1;
 
             if (!grid) return;
 
             var rules = [];
-            if (!!vue.viewModel.CourseCd) {
-                rules.push({ dataIndx: "コースＣＤ", condition: "equal", value: vue.viewModel.CourseCd });
+            if (!!vue.viewModel.CourseCdArray.length) {
+                var crules = vue.viewModel.CourseCdArray.map(v => {
+                    return { condition: "equal", mode: "OR", value: v.code };
+                });
+
+                rules = [{ dataIndx: "コースＣＤ", crules: crules }];
             }
 
             grid.filter({ oper: "replace", mode: "AND", rules: rules });
         },
         onAfterSearchFunc: function (vue, grid, res) {
             var DeliveryList = res[0].DeliveryList;
-            var SeikyuList = res[0].SeikyuList;
-            var UriageListDiff = res[0].UriageListDiff;
-            var NyukinListDiff = res[0].NyukinListDiff;
-            var UriageListThisWeek = res[0].UriageListThisWeek;
-            var NyukinListThisWeek = res[0].NyukinListThisWeek;
-            var UriageListNextWeek = res[0].UriageListNextWeek;
-            var NyukinListNextWeek = res[0].NyukinListNextWeek;
 
             //集計
             var groupings = _(DeliveryList)
-                .groupBy(v => v.コースＣＤ + "_" + v.順)
+                .groupBy(v => v.商品ＣＤ)
                 .values()
                 .map((g, i) => {
                     var rows = _(g)
-                        .groupBy(v => v.コースＣＤ + "_" + v.順 + "_" + v.食事区分)
+                        .groupBy(v => v.コースＣＤ)
                         .values()
                         .map((r, i) => {
                             var ret = _.reduce(
                                     r,
                                     (acc, v, j) => {
+                                        acc.商品ＣＤ = v.商品ＣＤ;
+                                        acc.商品名 = v.商品名;
                                         acc.コースＣＤ = v.コースＣＤ;
                                         acc.コース名 = v.コース名;
-                                        acc.順 = v.順;
-                                        acc.得意先ＣＤ = v.得意先ＣＤ;
-                                        acc.得意先名 = v.得意先名;
-                                        acc.電話番号１ = v.電話番号１;
-                                        acc.食事区分名 = v.食事区分名;
 
                                         var ymd = moment(v.日付).format("MMDD");
-                                        acc[ymd] = (!!acc[ymd] ? (acc[ymd] + "\n") : "")
-                                            + v.商品略称 + _.repeat("\n" + v.商品略称, (v.現金個数 + v.掛売個数 - 1));
-
-                                        acc.住所 = v.住所;
-                                        acc.備考１ = v.備考１;
-                                        acc.締支払 = v.締支払;
+                                        acc["数量_" + ymd] = (acc["数量_" + ymd] || 0) + v.数量 * 1;
+                                        acc["金額_" + ymd] = (acc["金額_" + ymd] || 0) + v.金額 * 1;
 
                                         return acc;
                                     },
@@ -449,58 +452,9 @@ export default {
                         .value()
                         ;
 
-                    if (rows.length < 3) {
-                        rows.push(..._.range(0, 3 - rows.length).map(v => {
-                            return {
-                                "コースＣＤ": g[0].コースＣＤ,
-                                "コース名": g[0].コース名,
-                                "順": g[0].順,
-                                "得意先ＣＤ": g[0].得意先ＣＤ,
-                                "得意先名": g[0].得意先名,
-                                "電話番号１": g[0].電話番号１,
-                                "食事区分名": null,
-                            };
-                        }));
-                    }
-
-                    var result = _.reduce(
-                        rows,
-                        (acc, r, i) => {
-                            if (_.isEmpty(acc)) {
-                                acc = r;
-                                return acc;
-                            }
-
-                            var dk = _.keys(acc).filter(k => k.match(/^\d+$/));
-                            var dv = dk.map(k => acc[k]);
-                            var max = _.max(dv.map(v => (v.match(/\n/g) || []).length));
-
-                            var add = (s, d, m) => !d ? s : (s + _.repeat("\n", m - (s.match(/\n/g) || []).length + 1) + d);
-
-                            dk.forEach(k => acc[k] = add(acc[k], r[k], max));
-                            acc.食事区分名 = add(acc.食事区分名, r.食事区分名, max);
-
-                            return acc;
-                        },
-                        {}
-                    );
-
-                    return result;
+                    return rows;
                 })
-                .map(r => {
-                    r.未集金 = ((SeikyuList.find(v => v.得意先ＣＤ == r.得意先ＣＤ) || {}).今回請求額 || 0) * 1
-                        + ((UriageListDiff.find(v => v.得意先ＣＤ == r.得意先ＣＤ) || {}).売上 || 0) * 1
-                        - ((NyukinListDiff.find(v => v.得意先ＣＤ == r.得意先ＣＤ) || {}).入金 || 0) * 1
-                        ;
-                    r.今週売上 = ((UriageListThisWeek.find(v => v.得意先ＣＤ == r.得意先ＣＤ) || {}).売上 || 0) * 1;
-                    r.今週請求 = r.未集金 + r.今週売上
-                        - ((NyukinListThisWeek.find(v => v.得意先ＣＤ == r.得意先ＣＤ) || {}).入金 || 0) * 1;
-                    r.次週売上 = ((UriageListNextWeek.find(v => v.得意先ＣＤ == r.得意先ＣＤ) || {}).売上 || 0) * 1;
-                    r.次週請求 =  r.今週請求 + r.次週売上
-                        - ((NyukinListNextWeek.find(v => v.得意先ＣＤ == r.得意先ＣＤ) || {}).入金 || 0) * 1;
-
-                    return r;
-                })
+                .flatten()
                 .value()
                 ;
 
@@ -543,9 +497,13 @@ export default {
 
             return list;
         },
+        dummy: function() {
+            var vue = this;
+            console.log("dummy")
+        },
         print: function() {
             var vue = this;
-            var grid = vue.DAI07020Grid1;
+            var grid = vue.DAI07040Grid1;
 
             //印刷用HTML全体適用CSS
             var globalStyles = `
@@ -666,7 +624,8 @@ export default {
                 `;
             };
 
-            grid.Group().option({ "on": true, "dataIndx": ["コースＣＤ"]});
+            var pq_close = grid.pdata.filter(v => !!v.pq_gtitle).map(v => v.pq_close);
+            grid.Group().collapseAll(0);
 
             var printable = $("<html>")
                 .append($("<head>").append($("<style>").text(globalStyles)))
@@ -694,47 +653,50 @@ export default {
                                     .header-table tr:nth-child(4) th:nth-child(6) {
                                         border-top-width: 0px;
                                     }
-                                    table.DAI02020Grid1 tr:nth-child(1) th {
+                                    table.DAI07040Grid1 tr:nth-child(1) th {
                                         border-style: solid;
                                         border-left-width: 1px;
                                         border-top-width: 1px;
                                         border-right-width: 0px;
                                         border-bottom-width: 1px;
                                     }
-                                    table.DAI02020Grid1 tr th:last-child {
+                                    table.DAI07040Grid1 tr th:last-child {
                                         border-right-width: 1px;
                                     }
-                                    table.DAI02020Grid1 tr td {
+                                    table.DAI07040Grid1 tr td {
                                         border-style: solid;
                                         border-left-width: 1px;
                                         border-top-width: 0px;
                                         border-right-width: 0px;
                                         border-bottom-width: 1px;
                                     }
-                                    table.DAI02020Grid1 tr.grand-summary td {
+                                    table.DAI07040Grid1 tr.grand-summary td {
                                         border-style: solid;
                                         border-left-width: 1px;
                                         border-top-width: 0px;
                                         border-right-width: 0px;
                                         border-bottom-width: 1px;
                                     }
-                                    table.DAI02020Grid1 tr td:last-child {
+                                    table.DAI07040Grid1 tr td:last-child {
                                         border-right-width: 1px;
                                     }
                                 `,
                                 headerFunc,
-                                10,
-                                false,
-                                false,
+                                26,
                                 true,
+                                false,
+                                false,
                             )
                         )
                 )
                 .prop("outerHTML")
                 ;
 
-            //Grouping解除
-            grid.Group().option({ "on": false });
+            pq_close.forEach((v, i) => {
+                if (!v) {
+                    grid.Group().expandTo(i + "");
+                }
+            });
 
             var printOptions = {
                 type: "raw-html",
