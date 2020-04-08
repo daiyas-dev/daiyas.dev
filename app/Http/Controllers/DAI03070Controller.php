@@ -14,27 +14,28 @@ class DAI03070Controller extends Controller
      */
     public function Search($vm)
     {
-        return $this->Search_Course($vm);
+        if($vm->PrintOrder==1){
+            //コース順
+            return $this->Search_Course($vm);
+        }else{
+            //得意先順
+            return $this->search_Tokui($vm);
+        }
     }
     public function search_Tokui($vm)
     {
         $DateStart = $vm->DateStart;
         $DateEnd = $vm->DateEnd;
 
+        //検索条件(部署ＣＤ)
         $BushoArray = $vm->BushoArray;
         $WhereBusho1="";
         if($BushoArray !=null && is_array($BushoArray) && 0<count($BushoArray))
         {
             $BushoList = implode(',',$BushoArray);
-            $WhereBusho1=" AND コースマスタ.部署ＣＤ IN( $BushoList )";
+            $WhereBusho1=" AND 得意先マスタ.部署ＣＤ IN( $BushoList )";
         }
-        /*
-        $WhereTokui="";
-        if($TokuiCd!=null)
-        {
-            $WhereTokui = " AND 売上データ明細.得意先ＣＤ=$TokuiCd ";
-        }
-        */
+
         $sql = "
                 WITH WITH_得意先集計 AS(
                     SELECT
@@ -57,14 +58,12 @@ class DAI03070Controller extends Controller
                         AND 売上データ明細.商品区分 >= 1
                         AND 売上データ明細.商品区分 <= 10
                         AND 売上データ明細.売掛現金区分 <> 3
-                    WHERE 得意先マスタ.得意先ＣＤ >= 0
-                        AND 得意先マスタ.得意先ＣＤ <= 999999
-                        AND 得意先マスタ.部署ＣＤ >= 101
-                        AND 得意先マスタ.部署ＣＤ <= 101
-                        AND (
+                    WHERE
+                         (
                             得意先マスタ.得意先ＣＤ = 得意先マスタ.受注得意先ＣＤ
                             OR 得意先マスタ.受注得意先ＣＤ = 0
-                        )
+                         )
+                        $WhereBusho1
                 )
                 SELECT
                      WITH_得意先集計.部署ＣＤ
@@ -95,6 +94,7 @@ class DAI03070Controller extends Controller
         $DateStart = $vm->DateStart;
         $DateEnd = $vm->DateEnd;
 
+        //検索条件(部署ＣＤ)
         $BushoArray = $vm->BushoArray;
         $WhereBusho1="";
         if($BushoArray !=null && is_array($BushoArray) && 0<count($BushoArray))
@@ -102,13 +102,14 @@ class DAI03070Controller extends Controller
             $BushoList = implode(',',$BushoArray);
             $WhereBusho1=" AND コースマスタ.部署ＣＤ IN( $BushoList )";
         }
-        /*
-        $WhereTokui="";
-        if($TokuiCd!=null)
+
+        //検索条件(コースＣＤ)
+        $WhereCourse1="";
+        if($vm->CourseCd!=null)
         {
-            $WhereTokui = " AND 売上データ明細.得意先ＣＤ=$TokuiCd ";
+            $WhereCourse1 = " AND コースマスタ.コースＣＤ = $vm->CourseCd";
         }
-        */
+
         $sql = "
                 WITH WITH_グループ集計 AS(
                     SELECT
@@ -133,20 +134,16 @@ class DAI03070Controller extends Controller
                             AND 売上データ明細.商品区分 >= 1
                             AND 売上データ明細.商品区分 <= 10
                             AND 売上データ明細.売掛現金区分 <> 3
-                            AND 売上データ明細.得意先ＣＤ >= 0
-                            AND 売上データ明細.得意先ＣＤ <= 999999
                         INNER JOIN [得意先マスタ]
                             ON 得意先マスタ.得意先ＣＤ = 売上データ明細.得意先ＣＤ
                             AND 売上データ明細.部署ＣＤ = 得意先マスタ.部署ＣＤ
                     WHERE
-                            コースマスタ.コースＣＤ >= 101
-                        AND コースマスタ.コースＣＤ <= 103
-                        AND コースマスタ.部署ＣＤ >= 101
-                        AND コースマスタ.部署ＣＤ <= 101
-                        AND (
-                                得意先マスタ.得意先ＣＤ = 得意先マスタ.受注得意先ＣＤ
-                                OR 得意先マスタ.受注得意先ＣＤ = 0
-                            )
+                         (
+                            得意先マスタ.得意先ＣＤ = 得意先マスタ.受注得意先ＣＤ
+                            OR 得意先マスタ.受注得意先ＣＤ = 0
+                         )
+                         $WhereBusho1
+                         $WhereCourse1
                     )
                     SELECT
                          WITH_グループ集計.部署ＣＤ
