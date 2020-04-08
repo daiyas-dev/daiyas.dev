@@ -10,6 +10,42 @@
                     :onChangedFunc=onBushoChanged
                 />
             </div>
+            <div class="col-md-3">
+                <label>締区分</label>
+                <VueOptions
+                    id="SimeKbn"
+                    ref="VueOptions_SimeKbn"
+                    customItemStyle="text-align: center; margin-right: 10px;"
+                    :vmodel=viewModel
+                    bind="SimeKbn"
+                    buddy="SimeKbnNm"
+                    :list="[
+                        {code: '0', name: '日締', label: '日締'},
+                        {code: '1', name: '週締', label: '週締'},
+                        {code: '2', name: '月締', label: '月締'},
+                    ]"
+                    :onChangedFunc=onSimeKbnChanged
+                />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1">
+                <label>締日</label>
+            </div>
+            <div class="col-md-11">
+                <VueMultiSelect
+                    id="SimeDate"
+                    ref="VueMultiSelect_SimeDate"
+                    :vmodel=viewModel
+                    bind="SimeDateArray"
+                    uri="/DAI02030/GetSimeDateList"
+                    :params='{ BushoCd: searchParams.BushoCd, TargetDate: searchParams.TargetDate }'
+                    :hasNull=true
+                    :onChangedFunc=onSimeDateChanged
+                    :ParamsChangedCheckFunc=SimeDateParamsChangedCheckFunc
+                    :disabled=SimeDateDisabled
+                />
+            </div>
         </div>
         <div class="row">
             <div class="col-md-1">

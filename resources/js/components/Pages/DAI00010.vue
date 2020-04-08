@@ -27,6 +27,7 @@
             </div>
             <div class="col-md-10">
                 <div class="tab-container p-2" style="border: groove;">
+                <p>※メニューパネルレイアウト調整中 上部メニューから機能をご選択下さい</p>
                     <nav>
                         <div class="nav nav-tabs" id="nav-tab" role="tablist">
                             <template v-for="(menu, idx) in menus">
@@ -147,7 +148,8 @@ export default {
             })
             .then(menus => {
                 console.log("DAI00010 setMenus", menus);
-                vue.menus = menus;
+                //TODO:
+                //vue.menus = menus;
             });
         },
         setCurrentPage: function() {

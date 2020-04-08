@@ -51,7 +51,20 @@
             <div class="col-md-1">
                 <label>締日</label>
             </div>
-            <div class="col-md-11">
+            <div class="col-md-1">
+                <input id="SimeDate" type="text" :value=viewModel.SimeDate class="form-control" :disabled="SimeDateDisabled" @keydown.enter="onSimeDateChanged">
+            </div>
+            <div class="col-md-1">
+                <label>末日：99</label>
+            </div>
+            <div class="col-md-1">
+                <label>最終締日</label>
+            </div>
+            <div class="col-md-1">
+                <input class="form-control p-0 text-center label-blue" style="width: 150px;" type="text" :value=viewModel.LastSimeDate readonly tabindex="-1">
+            </div>
+
+            <!-- <div class="col-md-11">
                 <VueSelect
                     id="SimeDate"
                     :vmodel=viewModel
@@ -61,7 +74,7 @@
                     :onChangedFunc=onSimeDateChanged
                     :disabled=SimeDateDisabled
                 />
-            </div>
+            </div> -->
         </div>
         <div class="row">
             <div class="col-md-1">
@@ -80,7 +93,7 @@
                 />
                 <label class="text-left pl-1">迄</label>
             </div>
-            <div class="col-md-3">
+            <!-- <div class="col-md-3">
                 <label>出力順</label>
                 <VueOptions
                     id="PrintOrder"
@@ -94,7 +107,7 @@
                     ]"
                     :onChangedFunc=onPrintOrderChanged
                 />
-            </div>
+            </div> -->
         </div>
         <div class="row">
             <div class="col-md-1">
@@ -368,15 +381,9 @@ export default {
                     },
                     {
                         title: "コード",
-                        dataIndx: "請求先ＣＤ",
+                        dataIndx: "得意先ＣＤ",
                         dataType: "integer",
                         width: 75, minWidth: 75, maxWidth: 75,
-                    },
-                    {
-                        title: "請求日付",
-                        dataIndx: "請求日付",
-                        dataType: "date",
-                        hidden: true,
                     },
                     {
                         title: "得意先名",
@@ -407,6 +414,14 @@ export default {
                                 }
                             }
                         },
+                    },
+                    {
+                        title: "請求日付",
+                        dataIndx: "請求日付",
+                        dataType: "date",
+                        format: "yy/mm/dd",
+                        align: "center",
+                        width: 100, minWidth: 100, maxWidth: 100,
                     },
                     {
                         title: "ＳＥＱ",
@@ -531,7 +546,7 @@ export default {
                     }
                 },
                 { visible: "false" } ,
-                { visible: "true", value: "実行", id: "DAI02010Grid1_Execute", disabled: false, shortcut: "F5",
+                { visible: "true", value: "実行", id: "DAI02010Grid1_ExecuteAll", disabled: false, shortcut: "F5",
                     onClick: function () {
                         var grid = vue.DAI02010Grid1;
 
@@ -553,17 +568,63 @@ export default {
                         );
                     }
                 },
+                { visible: "true", value: "個別実行", id: "DAI02010Grid1_ExecuteSingle", disabled: false, shortcut: "F6",
+                    onClick: function () {
+                        var grid = vue.DAI02010Grid1;
+                        var selection = grid.SelectRow().getSelection();
+                        var rows = grid.SelectRow().getSelection();
+
+                        if (rows.length != 1) return;
+
+                        var data = _.cloneDeep(rows[0].rowData);
+
+                        //保存実行
+                        grid.saveData(
+                            {
+                                uri: "/DAI02010/Save",
+                                params: {
+                                    CustomerList: data.得意先ＣＤ,
+                                },
+                                optional: vue.searchParams,
+                                confirm: {
+                                    isShow: false,
+                                },
+                                done: {
+                                    isShow: false,
+                                },
+                            }
+                        );
+                    }
+                },
+                { visible: "true", value: "個別解除", id: "DAI02010Grid1_ReleaseSingle", disabled: false, shortcut: "F7",
+                    onClick: function () {
+                        var grid = vue.DAI02010Grid1;
+                        var selection = grid.SelectRow().getSelection();
+                        var rows = grid.SelectRow().getSelection();
+
+                        if (rows.length != 1) return;
+
+                        var data = _.cloneDeep(rows[0].rowData);
+
+                        //保存実行
+                        grid.saveData(
+                            {
+                                uri: "/DAI02010/Release",
+                                params: {
+                                    CustomerList: data.得意先ＣＤ,
+                                },
+                                optional: vue.searchParams,
+                                confirm: {
+                                    isShow: false,
+                                },
+                                done: {
+                                    isShow: false,
+                                },
+                            }
+                        );
+                    }
+                },
                 { visible: "false" } ,
-                { visible: "true", value: "売上入力", id: "DAI02010Grid1_Uriage", disabled: true, shortcut: "F7",
-                    onClick: function () {
-                        vue.showUriage();
-                    }
-                },
-                { visible: "true", value: "入金入力", id: "DAI02010Grid1_Nyukin", disabled: true, shortcut: "F8",
-                    onClick: function () {
-                        vue.showNyukin();
-                    }
-                },
                 { visible: "true", value: "CSV", id: "DAI02010Grid1_CSV", disabled: true, shortcut: "F10",
                     onClick: function () {
                         vue.DAI02010Grid1.vue.exportData("csv", false, true);
@@ -582,21 +643,18 @@ export default {
             );
         },
         mountedFunc: function(vue) {
-            //TODO
-            // vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
-            // vue.viewModel.TargetDateMax = moment().format("YYYY年MM月DD日");
-            vue.viewModel.TargetDate = moment("20190831").format("YYYY年MM月DD日");
-            vue.viewModel.TargetDateMax = moment("20190831").format("YYYY年MM月DD日");
+            vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
+            vue.viewModel.TargetDateMax = moment().format("YYYY年MM月DD日");
 
-            //watcher
-            vue.$watch(
-                "$refs.DAI02010Grid1.selectionRowCount",
-                cnt => {
-                    vue.footerButtons.find(v => v.id == "DAI02010Grid1_Detail").disabled = cnt == 0 || cnt > 1;
-                    vue.footerButtons.find(v => v.id == "DAI02010Grid1_Uriage").disabled = cnt == 0 || cnt > 1;
-                    vue.footerButtons.find(v => v.id == "DAI02010Grid1_Nyukin").disabled = cnt == 0 || cnt > 1;
-                }
-            );
+            // //watcher
+            // vue.$watch(
+            //     "$refs.DAI02010Grid1.selectionRowCount",
+            //     cnt => {
+            //         vue.footerButtons.find(v => v.id == "DAI02010Grid1_Detail").disabled = cnt == 0 || cnt > 1;
+            //         vue.footerButtons.find(v => v.id == "DAI02010Grid1_Uriage").disabled = cnt == 0 || cnt > 1;
+            //         vue.footerButtons.find(v => v.id == "DAI02010Grid1_Nyukin").disabled = cnt == 0 || cnt > 1;
+            //     }
+            // );
 
             //初期フィルタ
             vue.filterChanged();
@@ -607,6 +665,26 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
+        showLastSimeDate: function(){
+            var vue = this;
+            var tc = new Date().getTime();//axios実行時のキャッシュを無効にするため、現在のタイムスタンプを渡す
+            axios.post("/DAI02010/LastSimeDateSearch", { BushoCd:vue.viewModel.BushoCd, SimeKbn:vue.viewModel.SimeKbn, timestamp:tc})
+                .then(response => {
+                    var res = _.cloneDeep(response.data);
+                    window.resdt=_.cloneDeep(res);//TODO:
+                    vue.viewModel.LastSimeDate=moment(res.日付).format("YYYY年MM月DD日");
+                })
+            .catch(error => {
+                console.log(error);
+                if (!!grid) grid.hideLoading();
+
+                //失敗ダイアログ
+                $.dialogErr({
+                    title: " 売掛データ検索失敗",
+                    contents: " 売掛データ検索に失敗しました" + "<br/>" + error.message,
+                });
+            });
+        },
         onSimeKbnChanged: function() {
             var vue = this;
 
@@ -615,6 +693,7 @@ export default {
             vue.TargetDateDayViewHeaderFormat = vue.viewModel.SimeKbn == "2" ? "YYYY年" : "YYYY年MM月";
 
             //締日MultiSelect状態変更
+            vue.viewModel.SimeDate = "0";
             vue.SimeDateDisabled = vue.viewModel.SimeKbn != "2";
 
             //フィルタ変更ハンドラ
@@ -639,10 +718,15 @@ export default {
         },
         onSimeDateChanged: function(entity, entities) {
             var vue = this;
+            var lastDay = moment(vue.viewModel.TargetDate, "YYYYMM01").endOf('month').format("DD");
 
-            vue.viewModel.TargetDateMax = vue.viewModel.SimeKbn == "2"
-                ? moment(vue.viewModel.TargetDate, vue.TargetDateFormat).format(vue.TargetDateFormat) + entity + "日"
-                : vue.viewModel.TargetDate;
+            if ((entity.target.value >= 1 && entity.target.value <= lastDay) || entity.target.value == 99) {
+                vue.viewModel.SimeDate = entity.target.value;
+                var simeDay = entity.target.value == 99 ? lastDay : entity.target.value;
+                vue.viewModel.TargetDateMax = vue.viewModel.SimeKbn == "2"
+                    ? moment(vue.viewModel.TargetDate, vue.TargetDateFormat).format(vue.TargetDateFormat) + simeDay + "日"
+                    : vue.viewModel.TargetDate;
+            }
 
             //フィルタ変更ハンドラ
             vue.filterChanged();
@@ -746,7 +830,7 @@ export default {
                 // } else {
                 //     rules.push({ dataIndx: "締日", condition: "contain", value: "99" });
                 // }
-                rules.push({ dataIndx: "締日", condition: "contain", value: "99" });
+                rules.push({ dataIndx: "締日", condition: "contain", value: "0" });
             }
 
             //残高無し表示
@@ -775,7 +859,7 @@ export default {
 
             //請求先
             if (!!vue.viewModel.CustomerCd && vue.$refs.PopupSelect_Customer.isValid) {
-                rules.push({ dataIndx: "請求先ＣＤ", condition: "equal", value: vue.viewModel.CustomerCd });
+                rules.push({ dataIndx: "得意先ＣＤ", condition: "equal", value: vue.viewModel.CustomerCd });
             }
 
             grid.filter({ oper: "replace", rules: rules });
@@ -786,6 +870,8 @@ export default {
             vue.footerButtons.find(v => v.id == "DAI02010Grid1_CSV").disabled = !res.length;
             vue.footerButtons.find(v => v.id == "DAI02010Grid1_Excel").disabled = !res.length;
             vue.footerButtons.find(v => v.id == "DAI02010Grid1_Print").disabled = !res.length;
+
+            vue.showLastSimeDate();
 
             return res;
         },

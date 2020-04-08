@@ -1,6 +1,7 @@
 ﻿<template>
     <VueSelect
         :id=_id
+        :ref=_id
         :vmodel=_vmodel
         :bind=_bind
         :buddy=_buddy
@@ -69,8 +70,10 @@ export default {
                     vue.ready = info.isLogOn;
                     vue._vmodel[vue._bind] = info.user.bushoCd;
                     vue._vmodel[vue._buddy] = info.user.bushoNm;
+
+                    var entity = _.find(vue.$refs.BushoCd.$data.entities, v => v.code == info.user.bushoCd);
                     if (vue.onChangedFunc) {
-                        vue.onChangedFunc(info.user.bushoCd)
+                        vue.onChangedFunc(info.user.bushoCd, entity);
                     }
                 }
             });
@@ -88,8 +91,9 @@ export default {
             if (vue._vmodel[vue._bind] != window.loginInfo.bushoCd) {
                 vue._vmodel[vue._bind] = window.loginInfo.bushoCd;
                 vue._vmodel[vue._buddy] = window.loginInfo.bushoNm;
+                var entity = _.find(vue.$refs.BushoCd.$data.entities, v => v.code == info.user.bushoCd);
                 if (vue.onChangedFunc) {
-                vue.onChangedFunc(window.loginInfo.bushoCd)
+                    vue.onChangedFunc(window.loginInfo.bushoCd, entity);
                 }
             }
         }
