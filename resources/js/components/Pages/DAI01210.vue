@@ -108,6 +108,7 @@
                     :onAfterChangedFunc=onCustomerChanged
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=CustomerAutoCompleteFunc
+                    :disabled='viewModel.PrintOrder == 1'
                 />
             </div>
             <div class="col-md-4">
@@ -119,7 +120,7 @@
                     dayViewHeaderFormat="YYYY年MM月"
                     :vmodel=viewModel
                     bind="RegistDate"
-                    :editable=true
+                    :editable='viewModel.PrintOrder == 0'
                     :onChangedFunc=onRegistDateChanged
                 />
             </div>
@@ -151,6 +152,7 @@
                     :isShowAutoComplete=true
                     :AutoCompleteNoLimit=true
                     :AutoCompleteFunc=TantoAutoCompleteFunc
+                    :disabled='viewModel.PrintOrder == 1'
                 />
             </div>
         </div>
@@ -404,9 +406,13 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (!ui.rowData[ui.dataIndx]) {
-                                return { text: "0" };
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
+                            // if (!ui.rowData[ui.dataIndx]) {
+                            //     return { text: "0" };
+                            // }
                             return ui;
                         },
                     },
@@ -420,9 +426,13 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (!ui.rowData[ui.dataIndx]) {
-                                return { text: "0" };
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
+                            // if (!ui.rowData[ui.dataIndx]) {
+                            //     return { text: "0" };
+                            // }
                             return ui;
                         },
                     },
@@ -436,9 +446,13 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (!ui.rowData[ui.dataIndx]) {
-                                return { text: "0" };
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
+                            // if (!ui.rowData[ui.dataIndx]) {
+                            //     return { text: "0" };
+                            // }
                             return ui;
                         },
                     },
@@ -452,9 +466,13 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (!ui.rowData[ui.dataIndx]) {
-                                return { text: "0" };
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
+                            // if (!ui.rowData[ui.dataIndx]) {
+                            //     return { text: "0" };
+                            // }
                             return ui;
                         },
                     },
@@ -468,9 +486,13 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (!ui.rowData[ui.dataIndx]) {
-                                return { text: "0" };
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
+                            // if (!ui.rowData[ui.dataIndx]) {
+                            //     return { text: "0" };
+                            // }
                             return ui;
                         },
                     },
@@ -484,9 +506,13 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (!ui.rowData[ui.dataIndx]) {
-                                return { text: "0" };
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
+                            // if (!ui.rowData[ui.dataIndx]) {
+                            //     return { text: "0" };
+                            // }
                             return ui;
                         },
                     },
@@ -611,9 +637,13 @@ export default {
                                     type: "TotalInt",
                                 },
                                 render: ui => {
-                                    if (!ui.rowData[ui.dataIndx]) {
-                                        return { text: "0" };
+                                    // hide zero
+                                    if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                        return { text: "" };
                                     }
+                                    // if (!ui.rowData[ui.dataIndx]) {
+                                    //     return { text: "0" };
+                                    // }
                                     return ui;
                                 },
                             }
@@ -631,9 +661,13 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (!ui.rowData[ui.dataIndx]) {
-                                return { text: "0" };
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
+                            // if (!ui.rowData[ui.dataIndx]) {
+                            //     return { text: "0" };
+                            // }
                             return ui;
                         },
                         hidden: true,
@@ -649,9 +683,13 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (!ui.rowData[ui.dataIndx]) {
-                                return { text: "0" };
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
+                            // if (!ui.rowData[ui.dataIndx]) {
+                            //     return { text: "0" };
+                            // }
                             return ui;
                         },
                         hidden: true,
@@ -667,9 +705,13 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (!ui.rowData[ui.dataIndx]) {
-                                return { text: "0" };
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
+                            // if (!ui.rowData[ui.dataIndx]) {
+                            //     return { text: "0" };
+                            // }
                             return ui;
                         },
                         hidden: true,
@@ -685,9 +727,13 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (!ui.rowData[ui.dataIndx]) {
-                                return { text: "0" };
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
+                            // if (!ui.rowData[ui.dataIndx]) {
+                            //     return { text: "0" };
+                            // }
                             return ui;
                         },
                         hidden: true,
@@ -703,9 +749,13 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (!ui.rowData[ui.dataIndx]) {
-                                return { text: "0" };
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
+                            // if (!ui.rowData[ui.dataIndx]) {
+                            //     return { text: "0" };
+                            // }
                             return ui;
                         },
                         hidden: true,
@@ -721,9 +771,13 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (!ui.rowData[ui.dataIndx]) {
-                                return { text: "0" };
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
+                            // if (!ui.rowData[ui.dataIndx]) {
+                            //     return { text: "0" };
+                            // }
                             return ui;
                         },
                         hidden: true,
@@ -829,7 +883,7 @@ export default {
 
                 return  {
                     summaryRow: true,
-                    "コース名": i == 0 ? "合計" : "",
+                    "対象名": i == 0 ? "合計" : "",
                     "商品名": p.商品名,
                     pq_fn: pqfn,
                 };
@@ -1031,7 +1085,7 @@ export default {
         print: function() {
             var vue = this;
 
-            //TODO:行高小さくしたい。合計ラベルの表示。0を表示するか否か。(31日の列も)。改頁未チェック。
+            //TODO:合計ラベルの表示。0を表示するか否か。(31日の列も)。改頁未チェック。
 
             //印刷用HTML全体適用CSS
             var globalStyles = `
@@ -1064,11 +1118,11 @@ export default {
                     padding-right: 3px;
                 }
                 th {
-                    height: 10px;
+                    height: 10.5px;
                     text-align: center;
                 }
                 td {
-                    height: 7px;
+                    height: 10.5px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
@@ -1129,6 +1183,9 @@ export default {
             };
 
             var styleCustomers =`
+                table.header-table tr th {
+                    height: 16px;
+                }
                 table.header-table tr:nth-child(1) th {
                     text-align: left;
                     border-style: solid;
@@ -1172,6 +1229,8 @@ export default {
                     border-top-width: 1px;
                     border-right-width: 0px;
                     border-bottom-width: 1px;
+                    height: 25px;
+                    line-height: 1.3;
                 }
                 table.DAI01210Grid1 thead tr:nth-child(1) th:last-child {
                     border-style: solid;
@@ -1218,7 +1277,17 @@ export default {
                     margin: 0px;
                 }
                 table.DAI01210Grid1 tbody td:not([colspan]) p {
-                    font-size: 6.5pt;
+                    font-size: 7.0pt;
+                }
+                table.DAI01210Grid1 tr.grand-summary:nth-child(7n+1) td:nth-child(1) p:before {
+                    content: " 【 ";
+                }
+                table.DAI01210Grid1 tr.grand-summary:nth-child(7n+1) td:nth-child(1) p:after {
+                    content: " 】";
+                }
+                table.DAI01210Grid1 tr.grand-summary:nth-child(7n+1) td:nth-child(1) p{
+                    margin-left: 10px;
+                    letter-spacing: 0.3em;
                 }
             `;
 
@@ -1250,7 +1319,7 @@ export default {
 
             var printOptions = {
                 type: "raw-html",
-                style: "@media print { @page { size: A4 landscape; } }",
+                style: "@media print { @page { size: A3 landscape; } }",
                 printable: printable,
             };
             printJS(printOptions);

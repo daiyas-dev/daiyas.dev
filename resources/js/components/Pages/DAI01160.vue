@@ -328,7 +328,7 @@ export default {
             );
         },
         mountedFunc: function(vue) {
-            // vue.viewModel.DeliveryDate = moment();
+            vue.viewModel.DeliveryDate = moment();
         },
         setPrintOptions: function(grid) {
             var vue = this;
