@@ -37,6 +37,25 @@
         </div>
         <div class="row">
             <div class="col-md-1">
+                <label>出力順</label>
+            </div>
+            <div class="col-md-5">
+                <VueOptions
+                    id="PrintOrder"
+                    ref="VueOptions_PrintOrder"
+                    customItemStyle="text-align: center; margin-right: 10px;"
+                    :vmodel=viewModel
+                    bind="PrintOrder"
+                    :list="[
+                        {code: '0', name: '得意先順', label: '0:得意先順'},
+                        {code: '1', name: 'コース順', label: '1:コース順'},
+                    ]"
+                    :onChangedFunc=onPrintOrderChanged
+                />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1">
                 <label>コース</label>
             </div>
             <div class="col-md-5">
@@ -165,6 +184,7 @@ export default {
                 TargetDate: null,
                 CourseCd: null,
                 CustomerCd: null,
+                PrintOrder: "0",
             },
             DAI03070Grid1: null,
             grid1Options: {
@@ -176,7 +196,7 @@ export default {
                 numberCell: { show: true, title: "No.", resizable: false, },
                 autoRow: false,
                 rowHt: 35,
-                freezeCols: 7,
+                freezeCols: 10,
                 editable: false,
                 columnTemplate: {
                     editable: false,
@@ -199,8 +219,8 @@ export default {
                     header: false,
                     grandSummary: true,
                     indent: 20,
-                    dataIndx: ["GroupKey1"],
-                    showSummary: [true],
+                    dataIndx: ["GroupKey1","GroupKey2"],
+                    showSummary:[true,true],
                     collapsed: [false],
                     summaryInTitleRow: "collapsed",
                 },
@@ -212,6 +232,12 @@ export default {
                     {
                         title: "GroupKey1",
                         dataIndx: "GroupKey1", dataType: "string",
+                        hidden:true,
+                        fixed: true,
+                    },
+                    {
+                        title: "GroupKey2",
+                        dataIndx: "GroupKey2", dataType: "string",
                         hidden:true,
                         fixed: true,
                     },
@@ -230,16 +256,13 @@ export default {
                     {
                         title: "コースＣＤ",
                         dataIndx: "コースＣＤ", dataType: "string",
-                        width: 60, minWidth: 60, maxWidth: 60,
-                        hidden:false,
+                        hidden:true,
                         fixed: true,
                     },
                     {
                         title: "コース名",
                         dataIndx: "コース名", dataType: "string",
-                        width: 200, minWidth: 200,
-                        tooltip: true,
-                        hidden:false,
+                        hidden:true,
                         fixed: true,
                     },
                     {
@@ -251,7 +274,20 @@ export default {
                     {
                         title: "担当者名",
                         dataIndx: "担当者名", dataType: "string",
-                        width: 150, minWidth: 150,
+                        hidden:true,
+                        fixed: true,
+                    },
+                    {
+                        title: "得意先ＣＤ",
+                        dataIndx: "得意先ＣＤ", dataType: "string",
+                        width: 60, minWidth: 60, maxWidth: 60,
+                        hidden:false,
+                        fixed: true,
+                    },
+                    {
+                        title: "得意先名",
+                        dataIndx: "得意先名", dataType: "string",
+                        width: 200, minWidth: 200,
                         tooltip: true,
                         hidden:false,
                         fixed: true,
@@ -260,9 +296,13 @@ export default {
                                 //集計行
                                 return { text: "合　計" };
                             }
-                            if (!!ui.rowData.pq_gsummary) {
+                            if (!!ui.rowData.pq_gsummary && !! ui.rowData.pq_level==1) {
                                 //小計行
-                                return { text: "小　計" };
+                                return { text: "コース　計" };
+                            }
+                            if (!!ui.rowData.pq_gsummary && !! ui.rowData.pq_level==0) {
+                                //小計行
+                                return { text: "部署　計" };
                             }
                             return ui;
                         },
@@ -454,6 +494,12 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
+        onPrintOrderChanged: function(code, entities) {
+            var vue = this;
+
+            //条件変更ハンドラ
+            vue.conditionChanged();
+        },
         onCourseCdChanged: function(code, entity) {
             var vue = this;
 
@@ -512,12 +558,12 @@ export default {
 
             //集計
             var groupings = _(res)
-                .groupBy(v => [v.部署ＣＤ,v.コースＣＤ])
+                .groupBy(v => [v.部署ＣＤ,v.コースＣＤ,v.得意先ＣＤ])
                 .values()
                 .value()
                 .map(r => {
                     var ret = _.reduce(
-                            _.sortBy(r, ["部署ＣＤ"]),
+                            r,
                             (acc, v, j) => {
                                 acc = _.isEmpty(acc) ? v : acc;
                                 acc["金額_" + v.売上データ明細月] = (acc["金額_" + v.売上データ明細月] || 0) + v.合計金額 * 1;
@@ -527,6 +573,7 @@ export default {
                             {}
                     );
                     ret.GroupKey1 = ret.部署ＣＤ + " " + ret.部署名;
+                    ret.GroupKey2 = ret.コースＣＤ + " " + ret.コース名;
                     return ret;
                 })
             return groupings;
