@@ -237,7 +237,14 @@ export default {
                 onTab: "nextEdit",
             },
             editorBegin: function(event, ui) {
-                // console.log("Editor Begin:" + ui.$editor.val());
+                console.log("Editor Begin", ui, ui.$editor);
+                if (ui.column.dataType == "integer") {
+                    ui.$editor.prop("inputmode ", "numeric");
+                } else if (ui.column.dataType == "float") {
+                    ui.$editor.prop("inputmode ", "decimal");
+                } else if (ui.column.dataType == "string") {
+                    ui.$editor.prop("inputmode ", "text");
+                }
             },
             editorEnd: function(event, ui) {
                 //getData呼出のcolumn取り違えと同様に、cell及びcell内コンポーネントの表示状態の制御にもバグあり
@@ -726,6 +733,13 @@ export default {
                             init:  function (ui){
                                 var $input = ui.$cell.find("input");
                                 $input.attr("autocomplete", "off");
+
+                                if (ui.column.dataType == "integer") {
+                                    $input.attr("type", "number");
+                                } else {
+                                    $input.attr("type", "text");
+                                }
+
                                 var config = ui.column.autocomplete;
 
                                 if (!!config.trigger && config.trigger(ui) == false) return;
@@ -1037,6 +1051,7 @@ export default {
 
                 if (grid.getData().length == 0) {
                     vue.selectionRowCount = 0;
+                    vue.isSelection = false;
                 }
 
                 //PqGrid-Toolbar設定
@@ -1170,9 +1185,16 @@ export default {
                 //console.log("grid click");
             },
             cellClick: function (event, ui) {
+                var grid = this;
+                var vue = grid.options.vue;
+
                 if (ui.$td.hasClass("autocomplete-cell") || ui.$td.hasClass("select-cell")) {
                     grid.editCell({rowIndx: ui.rowIndx, dataIndx: ui.dataIndx});
                 }
+                if (grid.options.selectionModel.type == "cell") {
+                    vue.isSelection = !!grid.Selection()._areas.length;
+                }
+
                 // var current = event.currentTarget;
                 // var original = event.originalEvent.target;
                 // var cb = ui.$td.has(":checkbox");
@@ -1211,8 +1233,6 @@ export default {
                 //console.log("grid scrollStop");
             },
             selectChange: function(event, ui) {
-                // console.log("grid selectChange");
-
                 var grid = this;
                 var vue = grid.options.vue;
                 var id = vue.id;
@@ -1342,7 +1362,7 @@ export default {
                 var grid = this;
                 var vue = grid.options.vue;
                 var cell = grid.getCell({rowIndx: ui.rowIndx, dataIndx: ui.dataIndx});
-                //console.log("beforeCellKeyDown: " + event.which);
+                // console.log("beforeCellKeyDown: " + event.which);
 
                 if (vue.onBeforeCellKeyDownFunc) {
                     var ret = vue.onBeforeCellKeyDownFunc(grid, ui, event);
@@ -1383,12 +1403,26 @@ export default {
             cellKeyDown: function(event, ui) {
                 var grid = this;
                 var vue = grid.options.vue;
-                var cell = this.getCell({rowIndx: ui.rowIndx, dataIndx: ui.dataIndx});
+                var $cell = grid.getCell({rowIndx: ui.rowIndx, dataIndx: ui.dataIndx});
                 //console.log("cellKeyDown: " + event.which);
 
                 if (vue.onCellKeyDownFunc) {
                     var ret = vue.onCellKeyDownFunc(grid, ui, event);
                     if (!ret) return false;
+                }
+
+                if (event.key == "Backspace") {
+                    //Backspace -> Delete
+                    $cell.trigger($.Event("keydown", {
+                            key: "Delete",
+                            keyCode: 46,
+                            which: 46,
+                            shiftKey: event.shiftKey,
+                            ctrlKey: event.ctrlKey,
+                            altKey: event.altKey,
+                        })
+                    );
+                    return false;
                 }
 
                 if (event.ctrlKey) {
@@ -3850,6 +3884,12 @@ export default {
     .pq-align-right.autocomplete-cell:before
     {
 	    left: 0px;
+    }
+
+    .pq-editor-inner input[type="number"]::-webkit-outer-spin-button,
+    .pq-editor-inner input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
     }
 </style>
 

@@ -318,7 +318,7 @@ export default {
 
                 if (!grid) return;
 
-                var keywords = vue.keyword.split(/ *, */g);
+                var keywords = vue.keyword.split(/[, 、]/g);
 
                 var rules = keywords.map(k => {
                     return { condition: "contain", value: k };
