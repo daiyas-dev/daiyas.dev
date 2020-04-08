@@ -129,7 +129,7 @@
             <div class="col-md-1">
                 <label>担当者ＣＤ</label>
             </div>
-            <div class="col-md-5">
+            <div class="col-md-4">
                 <PopupSelect
                     id="User"
                     ref="PopupSelect_User"
@@ -153,6 +153,21 @@
                     :AutoCompleteNoLimit=true
                     :AutoCompleteFunc=TantoAutoCompleteFunc
                     :disabled='viewModel.PrintOrder == 1'
+                />
+            </div>
+            <div class="col-md-3">
+                <VueCheck
+                    id="VueCheck_IncludeZero"
+                    ref="VueCheck_IncludeZero"
+                    :vmodel=viewModel
+                    bind="IsIncludeZero"
+                    checkedCode="1"
+                    customContainerStyle="border: none;"
+                    :list="[
+                        {code: '0', name: '含まない', label: 'チェック無し：0データを表示しない'},
+                        {code: '1', name: '含む', label: 'チェック有り：0データを表示する'},
+                    ]"
+                    :onChangedFunc=onIncludeZeroChanged
                 />
             </div>
         </div>
@@ -269,6 +284,7 @@ export default {
                 RegistDate: null,
                 TantoCd: null,
                 PrintOrder: "0",
+                IsIncludeZero: "0",
             },
             PrevBushoCd: null,
             ProductList: [],
@@ -289,10 +305,11 @@ export default {
                     sortable: false,
                 },
                 filterModel: {
-                    on: false,
+                    on: true,
+                    mode: "AND",
                     header: false,
                     menuIcon: false,
-                    hideRows: true,
+                    hideRows: false,
                 },
                 groupModel: {
                     on: false,
@@ -340,6 +357,13 @@ export default {
                         width: 75, maxWidth: 75, minWidth: 75,
                         fixed: true,
                     },
+                    {
+                        title: "有無",
+                        dataIndx: "売上データ明細有無",
+                        dataType: "string",
+                        hidden: true,
+                        fixed: true,
+                    },
                 ],
                 scroll: function (event, ui) {
                     var grid = this;
@@ -369,10 +393,11 @@ export default {
                     data: [],
                 },
                 filterModel: {
-                    on: false,
+                    on: true,
+                    mode: "AND",
                     header: false,
                     menuIcon: false,
-                    hideRows: true,
+                    hideRows: false,
                 },
                 groupModel: {
                     on: false,
@@ -410,9 +435,6 @@ export default {
                             if (ui.rowData[ui.dataIndx] * 1 == 0) {
                                 return { text: "" };
                             }
-                            // if (!ui.rowData[ui.dataIndx]) {
-                            //     return { text: "0" };
-                            // }
                             return ui;
                         },
                     },
@@ -430,9 +452,6 @@ export default {
                             if (ui.rowData[ui.dataIndx] * 1 == 0) {
                                 return { text: "" };
                             }
-                            // if (!ui.rowData[ui.dataIndx]) {
-                            //     return { text: "0" };
-                            // }
                             return ui;
                         },
                     },
@@ -450,9 +469,6 @@ export default {
                             if (ui.rowData[ui.dataIndx] * 1 == 0) {
                                 return { text: "" };
                             }
-                            // if (!ui.rowData[ui.dataIndx]) {
-                            //     return { text: "0" };
-                            // }
                             return ui;
                         },
                     },
@@ -470,9 +486,6 @@ export default {
                             if (ui.rowData[ui.dataIndx] * 1 == 0) {
                                 return { text: "" };
                             }
-                            // if (!ui.rowData[ui.dataIndx]) {
-                            //     return { text: "0" };
-                            // }
                             return ui;
                         },
                     },
@@ -490,9 +503,6 @@ export default {
                             if (ui.rowData[ui.dataIndx] * 1 == 0) {
                                 return { text: "" };
                             }
-                            // if (!ui.rowData[ui.dataIndx]) {
-                            //     return { text: "0" };
-                            // }
                             return ui;
                         },
                     },
@@ -510,11 +520,14 @@ export default {
                             if (ui.rowData[ui.dataIndx] * 1 == 0) {
                                 return { text: "" };
                             }
-                            // if (!ui.rowData[ui.dataIndx]) {
-                            //     return { text: "0" };
-                            // }
                             return ui;
                         },
+                    },
+                    {
+                        title: "有無",
+                        dataIndx: "売上データ明細有無",
+                        dataType: "string",
+                        hidden: true,
                     },
                 ],
                 scroll: function (event, ui) {
@@ -558,6 +571,7 @@ export default {
             vue.viewModel.TargetDate = moment("2019/09/04");    //TODO: debug
 
             vue.refreshCols();
+            vue.filterChanged();
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
@@ -641,9 +655,6 @@ export default {
                                     if (ui.rowData[ui.dataIndx] * 1 == 0) {
                                         return { text: "" };
                                     }
-                                    // if (!ui.rowData[ui.dataIndx]) {
-                                    //     return { text: "0" };
-                                    // }
                                     return ui;
                                 },
                             }
@@ -665,9 +676,6 @@ export default {
                             if (ui.rowData[ui.dataIndx] * 1 == 0) {
                                 return { text: "" };
                             }
-                            // if (!ui.rowData[ui.dataIndx]) {
-                            //     return { text: "0" };
-                            // }
                             return ui;
                         },
                         hidden: true,
@@ -687,9 +695,6 @@ export default {
                             if (ui.rowData[ui.dataIndx] * 1 == 0) {
                                 return { text: "" };
                             }
-                            // if (!ui.rowData[ui.dataIndx]) {
-                            //     return { text: "0" };
-                            // }
                             return ui;
                         },
                         hidden: true,
@@ -709,9 +714,6 @@ export default {
                             if (ui.rowData[ui.dataIndx] * 1 == 0) {
                                 return { text: "" };
                             }
-                            // if (!ui.rowData[ui.dataIndx]) {
-                            //     return { text: "0" };
-                            // }
                             return ui;
                         },
                         hidden: true,
@@ -731,9 +733,6 @@ export default {
                             if (ui.rowData[ui.dataIndx] * 1 == 0) {
                                 return { text: "" };
                             }
-                            // if (!ui.rowData[ui.dataIndx]) {
-                            //     return { text: "0" };
-                            // }
                             return ui;
                         },
                         hidden: true,
@@ -753,9 +752,6 @@ export default {
                             if (ui.rowData[ui.dataIndx] * 1 == 0) {
                                 return { text: "" };
                             }
-                            // if (!ui.rowData[ui.dataIndx]) {
-                            //     return { text: "0" };
-                            // }
                             return ui;
                         },
                         hidden: true,
@@ -775,9 +771,6 @@ export default {
                             if (ui.rowData[ui.dataIndx] * 1 == 0) {
                                 return { text: "" };
                             }
-                            // if (!ui.rowData[ui.dataIndx]) {
-                            //     return { text: "0" };
-                            // }
                             return ui;
                         },
                         hidden: true,
@@ -1085,8 +1078,6 @@ export default {
         print: function() {
             var vue = this;
 
-            //TODO:合計ラベルの表示。0を表示するか否か。(31日の列も)。改頁未チェック。
-
             //印刷用HTML全体適用CSS
             var globalStyles = `
                 body {
@@ -1325,6 +1316,28 @@ export default {
             printJS(printOptions);
             //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()
+        },
+        onIncludeZeroChanged: function(code, entity) {
+            var vue = this;
+
+            //フィルタ変更ハンドラ
+            vue.filterChanged();
+        },
+        filterChanged: function() {
+            var vue = this;
+            var grid1 = vue.DAI01210Grid1;
+            var grid2 = vue.DAI01210Grid2;
+
+            if (!grid1) return;
+
+            var rules = [];
+            //0データ非表示
+            if (vue.viewModel.IsIncludeZero == 0) {
+                rules.push({ dataIndx: "売上データ明細有無", condition: "equal", value: "1" });
+            }
+
+            grid1.filter({ oper: "replace", rules: rules });
+            grid2.filter({ oper: "replace", rules: rules });
         },
     }
 }
