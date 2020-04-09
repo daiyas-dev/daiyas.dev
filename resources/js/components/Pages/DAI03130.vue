@@ -93,14 +93,13 @@ export default {
     data() {
         var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "月次処理 > 商品売上一覧表",
+            ScreenTitle: "月次処理 > 売上報告書",
             noViewModel: true,
+            KaishaMei: null,
             viewModel: {
                 BushoArray: [],
-                BushoNm: null,
                 DateStart: null,
                 DateEnd: null,
-                ProductCd: null,
             },
             DAI03130Grid1: null,
             grid1Options: {
@@ -231,12 +230,6 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        onProductCdChanged: function(code, entity) {
-            var vue = this;
-
-            //フィルタ変更ハンドラ
-            vue.filterChanged();
-        },
         conditionChanged: function(callback) {
             var vue = this;
             var grid = vue.DAI03130Grid1;
@@ -252,31 +245,11 @@ export default {
             params.DateEnd = params.DateEnd ? moment(params.DateEnd, "YYYY年MM月DD日").format("YYYYMMDD") : null;
             params.BushoArray = vue.BushoCdArray;//部署コードのみ渡す
 
-            //フィルタするパラメータは除外
-            delete params.ProductCd;
-
             grid.searchData(params, false, null, callback);
         },
-        filterChanged: function() {
-            var vue = this;
-            var grid = vue.DAI03130Grid1;
-
-            if (!grid) return;
-
-            var rules = [];
-            var crules = [];
-            if (vue.viewModel.ProductCd != undefined && vue.viewModel.ProductCd != "") {
-                crules.push({ condition: "equal", value: vue.viewModel.ProductCd * 1 });
-                if (crules.length) {
-                    rules.push({ dataIndx: "商品ＣＤ", mode: "AND", crules: crules });
-                }
-            }
-
-            grid.filter({ oper: "replace", mode: "AND", rules: rules });
-        },
         onAfterSearchFunc: function (vue, grid, res) {
-            window.resa=_.cloneDeep(res);//TODO:
             var vue = this;
+            vue.KaishaMei=res[0].KaishaMei.会社名称;
             vue.footerButtons.find(v => v.id == "DAI03130Grid1_CSV").disabled = false;
             vue.footerButtons.find(v => v.id == "DAI03130Grid1_Excel").disabled = false;
             vue.footerButtons.find(v => v.id == "DAI03130Grid1_Print").disabled = false;
@@ -364,10 +337,8 @@ export default {
                     border:none;
                 }
             `;
-
+            window.resa=_.cloneDeep(vue.KaishaMei);//TODO:
             var headerFunc = (header, idx, length) => {
-                var bushoCd = header.ＧＫ部署.split(" ")[0];
-                var bushoNm = header.ＧＫ部署.split(" ")[1];
                 return `
                     <div class="title">
                         <h3>* * * 商品別売上一覧表 * * *</h3>
@@ -375,24 +346,16 @@ export default {
                     <table class="header-table" style="border-width: 0px">
                         <thead>
                             <tr>
-                                <th style="width: 10%;">部署</th>
-                                <th style="width: 10%; text-align: right;">${bushoCd}</th>
-                                <th style="width: 20%;">${bushoNm}</th>
-                                <th style="width: 10%;" class="blank-cell"></th>
-                                <th style="width: 10%;" class="blank-cell"></th>
-                                <th style="width: 10%;" class="blank-cell"></th>
-                                <th style="width: 10%;" class="blank-cell"></th>
-                                <th style="width: 10%;" class="blank-cell"></th>
+                                <th>集計範囲</th>
+                                <th> (${vue.viewModel.DateStart}</th>
+                                <th>～</th>
+                                <th>${vue.viewModel.DateEnd})</th>
                             </tr>
                             <tr>
-                                <th>${vue.viewModel.DateStart}</th>
-                                <th>～</th>
-                                <th>${vue.viewModel.DateEnd}</th>
-                                <th class="blank-cell"></th>
-                                <th>作成日</th>
-                                <th>${moment().format("YYYY年MM月DD日")}</th>
-                                <th>PAGE</th>
-                                <th style="text-align: right;">${idx + 1}</th>
+                                <th style="width: 10%;">${vue.KaishaMei}</th>
+                                <th style="width: 10%;" class="blank-cell"></th>
+                                <th style="width: 10%;" class="blank-cell"></th>
+                                <th style="width: 10%;" class="blank-cell"></th>
                             </tr>
                         </thead>
                     </table>
@@ -407,53 +370,6 @@ export default {
                     border-right-width: 0px;
                     border-bottom-width: 1px;
                 }
-                table.DAI03130Grid1 tr.group-summary td {
-                    border-style: solid;
-                    border-left-width: 0px;
-                    border-top-width: 1px;
-                    border-right-width: 0px;
-                    border-bottom-width: 0px;
-                }
-                table.DAI03130Grid1 tr.group-summary td:nth-child(2) {
-                    text-align: right;
-                    padding-right: 50px;
-                }
-                table.DAI03130Grid1 tr[level="0"].group-summary td {
-                    border-style: dotted;
-                    border-left-width: 0px;
-                    border-top-width: 1px;
-                    border-right-width: 0px;
-                    border-bottom-width: 0px;
-                }
-                table.DAI03130Grid1 tr[level="0"].group-summary td:nth-child(2) {
-                    text-align: right;
-                    padding-right: 30px;
-                }
-                table.DAI03130Grid1 tr.grand-summary td {
-                    border-style: solid;
-                    border-left-width: 0px;
-                    border-top-width: 1px;
-                    border-right-width: 0px;
-                    border-bottom-width: 0px;
-                }
-                table.DAI03130Grid1 tr.grand-summary td:nth-child(2) {
-                    text-align: right;
-                }
-                table.DAI03130Grid1 tr.grand-summary td:nth-child(3) {
-                    text-align: left;
-                }
-                table.DAI03130Grid1 tr th:nth-child(1) {
-                    width: 4.5%;
-                }
-                table.DAI03130Grid1 tr th:nth-child(3) {
-                    width: 4.5%;
-                }
-                table.DAI03130Grid1 tr th:nth-child(n+4):nth-child(-n+12) {
-                    width: 6%;
-                }
-                table.DAI03130Grid1 tr th:nth-child(13) {
-                    width: 7%;
-                }
             `;
 
             var printable = $("<html>")
@@ -464,10 +380,10 @@ export default {
                             vue.DAI03130Grid1.generateHtml(
                                 styleCustomers,
                                 headerFunc,
-                                36,
+                                20,
                                 false,
-                                true,
-                                true,
+                                false,
+                                false,
                             )
                         )
                 )
@@ -476,7 +392,7 @@ export default {
 
             var printOptions = {
                 type: "raw-html",
-                style: "@media print { @page { size: A4 portrait; } }",
+                style: "@media print { @page { size: A4 landscape; } }",
                 printable: printable,
             };
 
