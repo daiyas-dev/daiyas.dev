@@ -1,4 +1,7 @@
-﻿<template>
+﻿<!--
+TODO: 検索条件(商品名)は、件数が多いので、1件のみ選択してのfilterとして実装するか？確認
+-->
+<template>
     <form id="this.$options.name">
         <div class="row">
             <div class="col-md-1">
@@ -336,6 +339,10 @@ export default {
         },
         onAfterSearchFunc: function (vue, grid, res) {
             var vue = this;
+            vue.footerButtons.find(v => v.id == "DAI03120Grid1_CSV").disabled = false;
+            vue.footerButtons.find(v => v.id == "DAI03120Grid1_Excel").disabled = false;
+            vue.footerButtons.find(v => v.id == "DAI03120Grid1_Print").disabled = false;
+
             res.forEach(r => {
                     r.ＧＫ部署 = r.部署ＣＤ + " " + r.部署名;
                     r.平均 = r.数量==0 ? 0 : Math.floor(r.金額 / r.数量);
