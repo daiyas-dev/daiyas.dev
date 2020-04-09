@@ -231,7 +231,7 @@ class DAI01210Controller extends Controller
                     CROSS JOIN 商品区分マスタ
             )
 
-            select 集計データ.*, 日毎抽出データ.*, 合計, 平均, 土曜合計, 土曜平均, 日曜合計, 日曜平均
+            select 集計データ.*, 日毎抽出データ.*, 合計, 平均, 土曜合計, 土曜平均, 日曜合計, 日曜平均 ,過去明細有無.過去明細 as 売上データ明細有無
             from 集計データ
             left join 日毎抽出データ on 集計データ.対象CD = 日毎抽出データ.グループKEY and 集計データ.商品区分 = 日毎抽出データ.商品KEY
             left join 日毎合計抽出データ on 集計データ.対象CD = 日毎合計抽出データ.グループKEY and 集計データ.商品区分 = 日毎合計抽出データ.商品KEY
@@ -240,6 +240,13 @@ class DAI01210Controller extends Controller
             left join 土曜平均抽出データ on 集計データ.対象CD = 土曜平均抽出データ.グループKEY and 集計データ.商品区分 = 土曜平均抽出データ.商品KEY
             left join 日曜合計抽出データ on 集計データ.対象CD = 日曜合計抽出データ.グループKEY and 集計データ.商品区分 = 日曜合計抽出データ.商品KEY
             left join 日曜平均抽出データ on 集計データ.対象CD = 日曜平均抽出データ.グループKEY and 集計データ.商品区分 = 日曜平均抽出データ.商品KEY
+            left join (
+                select
+                    得意先ＣＤ,
+                    IIF(sum(現金個数 + 掛売個数) = 0, 0, 1) as 過去明細
+                from 売上データ明細
+                group by 得意先ＣＤ
+                ) as 過去明細有無　on 集計データ.対象CD = 得意先ＣＤ
             order by 集計データ.ソート順, 集計データ.ソート順2, 集計データ.行NO
         ";
 

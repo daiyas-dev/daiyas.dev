@@ -108,6 +108,7 @@
                     :onAfterChangedFunc=onCustomerChanged
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=CustomerAutoCompleteFunc
+                    :disabled='viewModel.PrintOrder == 1'
                 />
             </div>
             <div class="col-md-4">
@@ -119,7 +120,7 @@
                     dayViewHeaderFormat="YYYY年MM月"
                     :vmodel=viewModel
                     bind="RegistDate"
-                    :editable=true
+                    :editable='viewModel.PrintOrder == 0'
                     :onChangedFunc=onRegistDateChanged
                 />
             </div>
@@ -128,7 +129,7 @@
             <div class="col-md-1">
                 <label>担当者ＣＤ</label>
             </div>
-            <div class="col-md-5">
+            <div class="col-md-4">
                 <PopupSelect
                     id="User"
                     ref="PopupSelect_User"
@@ -151,6 +152,22 @@
                     :isShowAutoComplete=true
                     :AutoCompleteNoLimit=true
                     :AutoCompleteFunc=TantoAutoCompleteFunc
+                    :disabled='viewModel.PrintOrder == 1'
+                />
+            </div>
+            <div class="col-md-3">
+                <VueCheck
+                    id="VueCheck_IncludeZero"
+                    ref="VueCheck_IncludeZero"
+                    :vmodel=viewModel
+                    bind="IsIncludeZero"
+                    checkedCode="1"
+                    customContainerStyle="border: none;"
+                    :list="[
+                        {code: '0', name: '含まない', label: 'チェック無し：0データを表示しない'},
+                        {code: '1', name: '含む', label: 'チェック有り：0データを表示する'},
+                    ]"
+                    :onChangedFunc=onIncludeZeroChanged
                 />
             </div>
         </div>
@@ -267,6 +284,7 @@ export default {
                 RegistDate: null,
                 TantoCd: null,
                 PrintOrder: "0",
+                IsIncludeZero: "0",
             },
             PrevBushoCd: null,
             ProductList: [],
@@ -287,10 +305,11 @@ export default {
                     sortable: false,
                 },
                 filterModel: {
-                    on: false,
+                    on: true,
+                    mode: "AND",
                     header: false,
                     menuIcon: false,
-                    hideRows: true,
+                    hideRows: false,
                 },
                 groupModel: {
                     on: false,
@@ -338,6 +357,13 @@ export default {
                         width: 75, maxWidth: 75, minWidth: 75,
                         fixed: true,
                     },
+                    {
+                        title: "有無",
+                        dataIndx: "売上データ明細有無",
+                        dataType: "string",
+                        hidden: true,
+                        fixed: true,
+                    },
                 ],
                 scroll: function (event, ui) {
                     var grid = this;
@@ -367,10 +393,11 @@ export default {
                     data: [],
                 },
                 filterModel: {
-                    on: false,
+                    on: true,
+                    mode: "AND",
                     header: false,
                     menuIcon: false,
-                    hideRows: true,
+                    hideRows: false,
                 },
                 groupModel: {
                     on: false,
@@ -404,8 +431,9 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (!ui.rowData[ui.dataIndx]) {
-                                return { text: "0" };
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
                             return ui;
                         },
@@ -420,8 +448,9 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (!ui.rowData[ui.dataIndx]) {
-                                return { text: "0" };
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
                             return ui;
                         },
@@ -436,8 +465,9 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (!ui.rowData[ui.dataIndx]) {
-                                return { text: "0" };
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
                             return ui;
                         },
@@ -452,8 +482,9 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (!ui.rowData[ui.dataIndx]) {
-                                return { text: "0" };
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
                             return ui;
                         },
@@ -468,8 +499,9 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (!ui.rowData[ui.dataIndx]) {
-                                return { text: "0" };
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
                             return ui;
                         },
@@ -484,11 +516,18 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (!ui.rowData[ui.dataIndx]) {
-                                return { text: "0" };
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
                             return ui;
                         },
+                    },
+                    {
+                        title: "有無",
+                        dataIndx: "売上データ明細有無",
+                        dataType: "string",
+                        hidden: true,
                     },
                 ],
                 scroll: function (event, ui) {
@@ -532,6 +571,7 @@ export default {
             vue.viewModel.TargetDate = moment("2019/09/04");    //TODO: debug
 
             vue.refreshCols();
+            vue.filterChanged();
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
@@ -611,8 +651,9 @@ export default {
                                     type: "TotalInt",
                                 },
                                 render: ui => {
-                                    if (!ui.rowData[ui.dataIndx]) {
-                                        return { text: "0" };
+                                    // hide zero
+                                    if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                        return { text: "" };
                                     }
                                     return ui;
                                 },
@@ -631,8 +672,9 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (!ui.rowData[ui.dataIndx]) {
-                                return { text: "0" };
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
                             return ui;
                         },
@@ -649,8 +691,9 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (!ui.rowData[ui.dataIndx]) {
-                                return { text: "0" };
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
                             return ui;
                         },
@@ -667,8 +710,9 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (!ui.rowData[ui.dataIndx]) {
-                                return { text: "0" };
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
                             return ui;
                         },
@@ -685,8 +729,9 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (!ui.rowData[ui.dataIndx]) {
-                                return { text: "0" };
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
                             return ui;
                         },
@@ -703,8 +748,9 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (!ui.rowData[ui.dataIndx]) {
-                                return { text: "0" };
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
                             return ui;
                         },
@@ -721,8 +767,9 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (!ui.rowData[ui.dataIndx]) {
-                                return { text: "0" };
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
                             return ui;
                         },
@@ -829,7 +876,7 @@ export default {
 
                 return  {
                     summaryRow: true,
-                    "コース名": i == 0 ? "合計" : "",
+                    "対象名": i == 0 ? "合計" : "",
                     "商品名": p.商品名,
                     pq_fn: pqfn,
                 };
@@ -1031,8 +1078,6 @@ export default {
         print: function() {
             var vue = this;
 
-            //TODO:行高小さくしたい。合計ラベルの表示。0を表示するか否か。(31日の列も)。改頁未チェック。
-
             //印刷用HTML全体適用CSS
             var globalStyles = `
                 body {
@@ -1064,11 +1109,11 @@ export default {
                     padding-right: 3px;
                 }
                 th {
-                    height: 10px;
+                    height: 10.5px;
                     text-align: center;
                 }
                 td {
-                    height: 7px;
+                    height: 10.5px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
@@ -1129,6 +1174,9 @@ export default {
             };
 
             var styleCustomers =`
+                table.header-table tr th {
+                    height: 16px;
+                }
                 table.header-table tr:nth-child(1) th {
                     text-align: left;
                     border-style: solid;
@@ -1172,6 +1220,8 @@ export default {
                     border-top-width: 1px;
                     border-right-width: 0px;
                     border-bottom-width: 1px;
+                    height: 25px;
+                    line-height: 1.3;
                 }
                 table.DAI01210Grid1 thead tr:nth-child(1) th:last-child {
                     border-style: solid;
@@ -1218,7 +1268,17 @@ export default {
                     margin: 0px;
                 }
                 table.DAI01210Grid1 tbody td:not([colspan]) p {
-                    font-size: 6.5pt;
+                    font-size: 7.0pt;
+                }
+                table.DAI01210Grid1 tr.grand-summary:nth-child(7n+1) td:nth-child(1) p:before {
+                    content: " 【 ";
+                }
+                table.DAI01210Grid1 tr.grand-summary:nth-child(7n+1) td:nth-child(1) p:after {
+                    content: " 】";
+                }
+                table.DAI01210Grid1 tr.grand-summary:nth-child(7n+1) td:nth-child(1) p{
+                    margin-left: 10px;
+                    letter-spacing: 0.3em;
                 }
             `;
 
@@ -1250,12 +1310,34 @@ export default {
 
             var printOptions = {
                 type: "raw-html",
-                style: "@media print { @page { size: A4 landscape; } }",
+                style: "@media print { @page { size: A3 landscape; } }",
                 printable: printable,
             };
             printJS(printOptions);
             //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()
+        },
+        onIncludeZeroChanged: function(code, entity) {
+            var vue = this;
+
+            //フィルタ変更ハンドラ
+            vue.filterChanged();
+        },
+        filterChanged: function() {
+            var vue = this;
+            var grid1 = vue.DAI01210Grid1;
+            var grid2 = vue.DAI01210Grid2;
+
+            if (!grid1) return;
+
+            var rules = [];
+            //0データ非表示
+            if (vue.viewModel.IsIncludeZero == 0) {
+                rules.push({ dataIndx: "売上データ明細有無", condition: "equal", value: "1" });
+            }
+
+            grid1.filter({ oper: "replace", rules: rules });
+            grid2.filter({ oper: "replace", rules: rules });
         },
     }
 }

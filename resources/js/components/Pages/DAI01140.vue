@@ -813,17 +813,17 @@ export default {
                     padding-right: 3px;
                 }
                 th {
-                    height: 18px;
+                    height: 15.5px;
                     text-align: center;
                 }
                 td {
-                    height: 18px;
+                    height: 15.5px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
             `;
 
-            //TODO:(西山)ヘッダー編集中。担当者名はpopupselectからとれる？
+            //TODO:(西山)ヘッダー編集中。担当者名はpopupselectからとれる？合計ラベル表示。
             var headerFunc = (chunk, idx, length) => {
                 return `
                     <div class="title">
@@ -842,8 +842,8 @@ export default {
                             </tr>
                             <tr>
                                 <th style="width: 8%;">コース</th>
-                                <th style="width: 10%;">${vue.viewModel.CourseCd}</th>
-                                <th style="width: 24%;" colspan="2">${vue.viewModel.CourseNm}</th>
+                                <th style="width: 10%;">${!!vue.viewModel.CourseCd ? vue.viewModel.CourseCd : ""}</th>
+                                <th style="width: 24%;" colspan="2">${!!vue.viewModel.CourseNm ? vue.viewModel.CourseNm : ""}</th>
                                 <th style="width: 68%;" colspan="7"></th>
                             </tr>
                             <tr>
@@ -903,35 +903,68 @@ export default {
                                         border-right-width: 1px;
                                         border-bottom-width: 0px;
                                     }
-                                    table.DAI01140Grid1 tr:nth-child(1) th {
+                                    table.DAI01140Grid1 tr th ,
+                                    table.DAI01140Grid1 tr td {
                                         border-style: solid;
                                         border-left-width: 1px;
                                         border-top-width: 1px;
                                         border-right-width: 0px;
+                                        border-bottom-width: 0px;
+                                    }
+                                    table.DAI01140Grid1 tr th:last-child,
+                                    table.DAI01140Grid1 tr td:last-child {
+                                        border-style: solid;
+                                        border-left-width: 0px;
+                                        border-top-width: 1px;
+                                        border-right-width: 1px;
+                                        border-bottom-width: 0px;
+                                    }
+                                    table.DAI01140Grid1 tr:last-child td {
                                         border-bottom-width: 1px;
                                     }
-                                    table.DAI01140Grid1 tr.grand-summary td {
+                                    table.DAI01140Grid1 tr th:nth-child(2),
+                                    table.DAI01140Grid1 tr td:nth-child(2) td:not(:last-child) {
+                                        border-style: solid;
+                                        border-left-width: 0px;
+                                        border-top-width: 1px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 0px;
+                                    }
+                                    table.DAI01140Grid1 tr.grand-summary td:nth-child(2),
+                                    table.DAI01140Grid1 tr.grand-summary td:nth-child(4),
+                                    table.DAI01140Grid1 tr.grand-summary td:nth-child(5),
+                                    table.DAI01140Grid1 tr.grand-summary td:nth-child(8),
+                                    table.DAI01140Grid1 tr.grand-summary td:nth-child(9) {
                                         border-style: solid;
                                         border-left-width: 0px;
                                         border-top-width: 1px;
                                         border-right-width: 0px;
                                         border-bottom-width: 1px;
                                     }
+                                    table.DAI01140Grid1 tr.grand-summary td:nth-child(9) {
+                                        border-right-width: 1px;
+                                    }
                                     table.DAI01140Grid1 tr th:nth-child(1) {
                                         width: 7.0%;
                                     }
                                     table.DAI01140Grid1 tr th:nth-child(2) {
-                                        width: 20.0%;
+                                        width: 22.0%;
+                                    }
+                                    table.DAI01140Grid1 tr th:nth-child(3) {
+                                        width: 7.5%;
+                                    }
+                                    table.DAI01140Grid1 tr th:nth-child(7) {
+                                        width: 13.0%;
                                     }
                                     table.DAI01140Grid1 tr th:nth-child(8) {
-                                        width: 3.0%;
+                                        width: 4.5%;
                                     }
                                     table.DAI01140Grid1 tr th:nth-child(9) {
                                         width: 15.0%;
                                     }
                                 `,
                                 headerFunc,
-                                32,
+                                49,
                             )
                         )
                 )
