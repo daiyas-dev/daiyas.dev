@@ -96,8 +96,14 @@ class DAI04071Controller extends Controller
         ]);
 
         try {
-            if ($request->file('file')->isValid([])) {
-                $SavePath = $request->file->storeAs('images/BushoStamp', $FileName, 'public');
+            if ($request->file('file')->isValid([]))
+            {
+                // (ここから) 任意のフォルダにアップロードする処理を追加 --------
+                $SavePath=public_path().'\\images\\BushoStamp\\'.$FileName;
+                $spl = new \SplFileInfo($request->file);
+                move_uploaded_file($spl->getPathname(), $SavePath);
+                // (ここまで) 任意のフォルダにアップロードする処理を追加 --------
+                //$SavePath = $request->file->storeAs('images/BushoStamp', $FileName, 'public');
                 return response()->json([
                     'result' => true,
                     "path" => $SavePath,
