@@ -441,8 +441,8 @@ export default {
                     {
                         title: "平均",
                         dataIndx: "平均",
-                        dataType: "integer",
-                        format: "#,###",
+                        dataType: "float",
+                        format: "#,###.0",
                         width: 65, maxWidth: 65, minWidth: 65,
                         summary: {
                             type: "TotalInt",
@@ -475,8 +475,8 @@ export default {
                     {
                         title: "平均",
                         dataIndx: "土曜平均",
-                        dataType: "integer",
-                        format: "#,###",
+                        dataType: "float",
+                        format: "#,###.0",
                         width: 65, maxWidth: 65, minWidth: 65,
                         summary: {
                             type: "TotalInt",
@@ -509,8 +509,8 @@ export default {
                     {
                         title: "平均",
                         dataIndx: "日曜平均",
-                        dataType: "integer",
-                        format: "#,###",
+                        dataType: "float",
+                        format: "#,###.0",
                         width: 65, maxWidth: 65, minWidth: 65,
                         summary: {
                             type: "TotalInt",
@@ -798,6 +798,9 @@ export default {
 
             //条件変更ハンドラ
             vue.conditionChanged();
+
+            //フィルタ変更ハンドラ
+            vue.filterChanged();
         },
         onCourseChanged: function(code, entity, comp) {
             var vue = this;
@@ -1260,6 +1263,7 @@ export default {
                 table.DAI01210Grid1 tbody td[rowspan] {
                     border-bottom-width: 1px;
                     vertical-align: top;
+                    white-space: pre-wrap;
                 }
                 table.DAI01210Grid1 tbody tr:nth-child(7n) td {
                     border-bottom-width: 1px;
@@ -1332,7 +1336,7 @@ export default {
 
             var rules = [];
             //0データ非表示
-            if (vue.viewModel.IsIncludeZero == 0) {
+            if (vue.viewModel.PrintOrder == 0 && vue.viewModel.IsIncludeZero == 0) {
                 rules.push({ dataIndx: "売上データ明細有無", condition: "equal", value: "1" });
             }
 

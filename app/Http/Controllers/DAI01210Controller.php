@@ -77,7 +77,7 @@ class DAI01210Controller extends Controller
         $WhereRegistDate = isset($RegistDate) ? "AND (得意先マスタ.新規登録日 >= DATEADD(dd, 1, EOMONTH ('$RegistDate' , -1)) AND 得意先マスタ.新規登録日 <= EOMONTH('$RegistDate'))" : "";
 
         $TantoCd = $request->TantoCd;
-        $WhereTantoCd = isset($TantoCd) ? "AND 得意先マスタ.登録担当者ＣＤ = $TantoCd" : "";
+        $WhereTantoCd = isset($TantoCd) ? "AND 得意先マスタ.獲得営業者ＣＤ = $TantoCd" : "";
 
         $sql = "
             WITH
@@ -176,6 +176,26 @@ class DAI01210Controller extends Controller
                     LEFT JOIN 商品区分マスタ
                         ON 売上データ.商品区分 = 商品区分マスタ.商品区分
             ),
+            対象期間 AS
+            (
+                SELECT DATEADD(DAY, 1, EOMONTH ('$TargetDate' , -1)) AS STARTDATE
+                UNION ALL
+                SELECT DATEADD(DAY, 1, STARTDATE) FROM 対象期間
+                WHERE
+                    MONTH(STARTDATE) = MONTH('$TargetDate')
+            ),
+            対象期間曜日カウント AS
+            (
+                SELECT
+                    DATEPART(WEEKDAY, STARTDATE) AS PART,
+                    COUNT(*) AS CNT
+                FROM
+                    対象期間
+                WHERE
+                    MONTH(STARTDATE) = MONTH('$TargetDate')
+                GROUP BY
+                    DATEPART(WEEKDAY, STARTDATE)
+            ),
             日毎抽出データ AS (
                 select * from 抽出データ
                 PIVOT ( SUM( 個数 ) FOR 日付 in([1], [2], [3], [4], [5], [6], [7], [8], [9], [10],
@@ -189,32 +209,32 @@ class DAI01210Controller extends Controller
                 group by グループKEY, 商品KEY
             ),
             日毎平均抽出データ AS (
-                select グループKEY, 商品KEY, SUM(個数) / 31 as 平均
+                select グループKEY, 商品KEY, SUM(個数) / (SELECT DAY(EOMONTH('$TargetDate'))) as 平均
                 from 抽出データ
                 group by グループKEY, 商品KEY
             ),
             土曜合計抽出データ AS (
                 select グループKEY, 商品KEY, SUM(個数) as 土曜合計
                 from 抽出データ
-                where DATEPART(WEEKDAY,日付) = 7
+                where DATEPART(WEEKDAY, DATEADD(DAY, 日付 - 1, '$TargetDate')) = 7
                 group by グループKEY, 商品KEY
             ),
             土曜平均抽出データ AS (
-                select グループKEY, 商品KEY, SUM(個数) / 31 as 土曜平均
+                select グループKEY, 商品KEY, SUM(個数) / (SELECT CNT FROM 対象期間曜日カウント WHERE PART=7) as 土曜平均
                 from 抽出データ
-                where DATEPART(WEEKDAY,日付) = 7
+                where DATEPART(WEEKDAY, DATEADD(DAY, 日付 - 1, '$TargetDate')) = 7
                 group by グループKEY, 商品KEY
             ),
             日曜合計抽出データ AS (
                 select グループKEY, 商品KEY, SUM(個数) as 日曜合計
                 from 抽出データ
-                where DATEPART(WEEKDAY,日付) = 1
+                where DATEPART(WEEKDAY, DATEADD(DAY, 日付 - 1, '$TargetDate')) = 1
                 group by グループKEY, 商品KEY
             ),
             日曜平均抽出データ AS (
-                select グループKEY, 商品KEY, SUM(個数) / 31 as 日曜平均
+                select グループKEY, 商品KEY, SUM(個数) / (SELECT CNT FROM 対象期間曜日カウント WHERE PART=1) as 日曜平均
                 from 抽出データ
-                where DATEPART(WEEKDAY,日付) = 1
+                where DATEPART(WEEKDAY, DATEADD(DAY, 日付 - 1, '$TargetDate')) = 1
                 group by グループKEY, 商品KEY
             ),
             集計データ AS (

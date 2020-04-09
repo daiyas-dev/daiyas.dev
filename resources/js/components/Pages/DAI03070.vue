@@ -82,6 +82,7 @@
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=CourseAutoCompleteFunc
                     :isPreload=true
+                    :disabled='viewModel.PrintOrder != 1'
                 />
             </div>
         </div>
@@ -177,7 +178,7 @@ export default {
     },
     data() {
         return $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "月次処理 > コース別売上推移表",
+            ScreenTitle: "月次処理 > 得意先別売上推計表",
             noViewModel: true,
             viewModel: {
                 BushoArray: [],
@@ -219,7 +220,7 @@ export default {
                     header: false,
                     grandSummary: true,
                     indent: 20,
-                    dataIndx: ["GroupKey1","GroupKey2"],
+                    dataIndx: ["GroupKey1"],
                     showSummary:[true,true],
                     collapsed: [false],
                     summaryInTitleRow: "collapsed",
@@ -488,12 +489,6 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        onCustomerChanged: function(code, entity) {
-            var vue = this;
-
-            //条件変更ハンドラ
-            vue.conditionChanged();
-        },
         onPrintOrderChanged: function(code, entities) {
             var vue = this;
 
@@ -506,7 +501,7 @@ export default {
             //フィルタ変更ハンドラ
             vue.filterChanged();
         },
-        onCourseEndChanged: function(code, entity) {
+        onCustomerChanged: function(code, entity) {
             var vue = this;
 
             //フィルタ変更ハンドラ
@@ -531,8 +526,9 @@ export default {
             params.DateEnd    = params.TargetDate ? moment(params.DateStart).add(11, 'months').format("YYYYMMDD") : null;
             params.BushoArray = vue.BushoCdArray;//部署コードのみ渡す
 
-            //コースはフィルタするので除外
+            //フィルタするパラメータは除外
             delete params.CourseCd;
+            delete params.CustomerCd;
 
             grid.searchData(params, false, null, callback);
         },
@@ -544,11 +540,18 @@ export default {
 
             var rules = [];
             var crules = [];
+            if (vue.viewModel.CustomerCd != undefined && vue.viewModel.CustomerCd != "") {
+                crules.push({ condition: "equal", value: vue.viewModel.CustomerCd});
+                if (crules.length) {
+                    rules.push({ dataIndx: "得意先ＣＤ", mode: "AND", crules: crules });
+                }
+            }
+
             if (vue.viewModel.CourseCd != undefined && vue.viewModel.CourseCd != "") {
                 crules.push({ condition: "equal", value: vue.viewModel.CourseCd});
-            }
-            if (crules.length) {
-                rules.push({ dataIndx: "コースＣＤ", mode: "AND", crules: crules });
+                if (crules.length) {
+                    rules.push({ dataIndx: "コースＣＤ", mode: "AND", crules: crules });
+                }
             }
 
             grid.filter({ oper: "replace", mode: "AND", rules: rules });
@@ -558,7 +561,7 @@ export default {
 
             //集計
             var groupings = _(res)
-                .groupBy(v => [v.部署ＣＤ,v.コースＣＤ,v.得意先ＣＤ])
+                .groupBy(v => (vue.viewModel.PrintOrder==1) ? [v.部署ＣＤ,v.コースＣＤ,v.得意先ＣＤ] : [v.部署ＣＤ,v.得意先ＣＤ])
                 .values()
                 .value()
                 .map(r => {
@@ -576,9 +579,17 @@ export default {
                     ret.GroupKey2 = ret.コースＣＤ + " " + ret.コース名;
                     return ret;
                 })
-            return groupings;
 
-            return res;
+            //Grouping再設定
+            var keys = [];
+            keys.push("GroupKey1");
+            //コース別の場合はGroupKey2(コース)をグループキーに追加
+            if(vue.viewModel.PrintOrder==1){
+                keys.push("GroupKey2");
+            }
+            grid.Group().option({"dataIndx": keys});
+
+            return groupings;
         },
         CustomerAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
@@ -715,11 +726,41 @@ export default {
                 }
             `;
             var headerFunc = (header, idx, length) => {
-                var BushoCd = header.GroupKey1.split(" ")[0];
-                var BushoNm = header.GroupKey1.split(" ")[1];
+                window.resp=_.cloneDeep(header);//TODO
+                var BushoCd = "";
+                var BushoNm = "";
+                var CourseCd="";
+                var CourseNm="";
+                var TantoCd="";
+                var TantoNm="";
+                if(vue.viewModel.PrintOrder==1){
+                    //コース順
+                    if(header.pq_level==0)
+                    {
+                        BushoCd = header.GroupKey1.split(" ")[0];
+                        BushoNm = header.GroupKey1.split(" ")[1];
+                        CourseCd= header.children[0].GroupKey2.split(" ")[0];
+                        CourseNm= header.children[0].GroupKey2.split(" ")[1];
+                    }else{
+                        BushoCd = header.parentId.split(" ")[0];
+                        BushoNm = header.parentId.split(" ")[1];
+                        CourseCd= header.GroupKey2.split(" ")[0];
+                        CourseNm= header.GroupKey2.split(" ")[1];
+                    }
+                    TantoCd = vue.DAI03070Grid1.pdata.find(v => v.部署ＣＤ==BushoCd && v.コースＣＤ==CourseCd).担当者ＣＤ;
+                    TantoNm = vue.DAI03070Grid1.pdata.find(v => v.部署ＣＤ==BushoCd && v.コースＣＤ==CourseCd).担当者名;
+                }else{
+                    //部署順
+                    BushoCd = header.GroupKey1.split(" ")[0];
+                    BushoNm = header.GroupKey1.split(" ")[1];
+                    CourseCd="";
+                    CourseNm="";
+                    TantoCd="";
+                    TantoNm="";
+                }
                 return `
                     <div class="title">
-                        <h3><div class="report-title-area">＊＊＊　コース別売上推移表　＊＊＊
+                        <h3><div class="report-title-area">＊＊＊　得意先別売上推計表　＊＊＊
                     <div></h3>
                     </div>
                     <table class="header-table" style="border-width: 0px">
@@ -728,6 +769,26 @@ export default {
                                 <th style="width:  5%;">部署</th>
                                 <th style="width:  5%; text-align: right;">${BushoCd}</th>
                                 <th style="width: 18%;">${BushoNm}</th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                            </tr>
+                            <tr>
+                                <th>コース</th>
+                                <th>${CourseCd}</th>
+                                <th>${CourseNm}</th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                            </tr>
+                            <tr>
+                                <th style="width:  5%;">担当者</th>
+                                <th style="width:  5%; text-align: right;">${TantoCd}</th>
+                                <th style="width: 18%;">${TantoNm}</th>
                                 <th style="width:  5%;" class="blank-cell"></th>
                                 <th>作成日</th>
                                 <th style="text-align: right;">${moment().format("YYYY年MM月DD日")}</th>
