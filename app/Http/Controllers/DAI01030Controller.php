@@ -497,16 +497,18 @@ ORDER BY
                         ->max('明細行Ｎｏ') + 1;
                 }
 
-                $data = $rec;
-                $data['修正日'] = $date;
-                $data['明細行Ｎｏ'] = $no;
-                $data['備考１'] = $data['備考１'] ?? '';
-                $data['備考２'] = $data['備考２'] ?? '';
-                $data['備考３'] = $data['備考３'] ?? '';
-                $data['備考４'] = $data['備考４'] ?? '';
-                $data['備考５'] = $data['備考５'] ?? '';
+                if (!!isset($rec['現金個数']) && !!isset($rec['掛売個数'])) {
+                    $data = $rec;
+                    $data['修正日'] = $date;
+                    $data['明細行Ｎｏ'] = $no;
+                    $data['備考１'] = $data['備考１'] ?? '';
+                    $data['備考２'] = $data['備考２'] ?? '';
+                    $data['備考３'] = $data['備考３'] ?? '';
+                    $data['備考４'] = $data['備考４'] ?? '';
+                    $data['備考５'] = $data['備考５'] ?? '';
 
-                注文データ::insert($data);
+                    注文データ::insert($data);
+                }
             }
 
             if (count($skip) > 0) {
@@ -521,7 +523,8 @@ ORDER BY
 
         return response()->json([
             'result' => true,
-            "edited" => count($skip) > 0 ? $this->GetOrderList($request) : [],
+            "edited" => count($skip) > 0,
+            "current" => $this->GetOrderList($request),
         ]);
     }
 

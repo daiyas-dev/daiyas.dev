@@ -145,7 +145,7 @@ export default {
                 rowHtHead: 50,
                 rowHt: 35,
                 freezeCols: 1,
-                fillHandle: "",
+                fillHandle: "all",
                 numberCell: { show: true, title: "No.", resizable: false, },
                 autoRow: false,
                 editable: true,

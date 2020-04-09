@@ -433,7 +433,10 @@ export default {
         },
         onInput: _.debounce(function(event) {
             var vue = this;
-            vue.setSelectValue(event.target.value, true);
+            console.log("onInput", event);
+            if (!event.isComposing) {
+                vue.setSelectValue(event.target.value, true);
+            }
         }, 300),
         clearValue: function() {
             var vue = this;
@@ -1024,6 +1027,7 @@ export default {
         },
         getAutoCompleteList: function(key) {
             var vue = this;
+            console.log("getAutoCompleteList", key);
 
             try {
 
