@@ -6,6 +6,7 @@ use App\Models\部署マスタ;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
+use Exception;
 use Illuminate\Support\Carbon;
 
 class DAI04071Controller extends Controller
@@ -82,8 +83,37 @@ class DAI04071Controller extends Controller
      * UploadImage
      */
     public function UploadImage($request) {
-        $file = $request->file('file');
+        $BushoCd = $request->BushoCd;
+        $FileName = $BushoCd . '_' . Carbon::now()->format('YmdHis') . '.png';
 
-        return true;
+        $this->validate($request, [
+            'file' => [
+                'required',
+                'file',
+                'image',
+                'mimes:jpeg,png',
+            ]
+        ]);
+
+        try {
+            if ($request->file('file')->isValid([])) {
+                $SavePath = $request->file->storeAs('images/BushoStamp', $FileName, 'public');
+                return response()->json([
+                    'result' => true,
+                    "path" => $SavePath,
+                ]);
+            } else {
+                return response()->json([
+                    'result' => false,
+                    "message" => '画像がアップロードされていないか不正なデータです。',
+                ]);
+            }
+        } catch(Exception $ex) {
+            return response()->json([
+                'result' => false,
+                "message" => '保存に失敗しました。',
+            ]);
+        }
+
     }
 }

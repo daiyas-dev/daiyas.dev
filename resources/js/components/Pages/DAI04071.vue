@@ -109,7 +109,7 @@
                 <div v-else
                     class="droppable"
                     style="width: 85px; height: 85px; background-color: white;"
-                    data-url="/DAI04071/UploadImage"
+                    :data-url='"/DAI04071/UploadImage?BushoCd=" + viewModel.部署CD'
                 >
                 </div>
             </div>
