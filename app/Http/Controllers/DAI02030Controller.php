@@ -197,7 +197,7 @@ class DAI02030Controller extends Controller
 	            ,SEIKYU.請求日付
 		";
 
-        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
 
@@ -310,7 +310,7 @@ class DAI02030Controller extends Controller
                 ,MEISAI.伝票Ｎｏ
 		";
 
-        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
 

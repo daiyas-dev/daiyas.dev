@@ -181,7 +181,7 @@ class DAI02020Controller extends Controller
 	            ,SEIKYU.請求日付
 		";
 
-        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
 

@@ -34,7 +34,7 @@ class DAI01230Controller extends Controller
                 $WhereBusho
                 AND 工場ＣＤ >= $FactoryCdStart
                 AND 工場ＣＤ <= $FactoryCdEnd
-            ORDER by 工場ＣＤ　
+            ORDER by 工場ＣＤ
         ";
 
         $DataList = DB::select($sql);
@@ -191,7 +191,7 @@ WHERE
                     ";
 
         // $DataList = DB::select($sql);
-        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
 

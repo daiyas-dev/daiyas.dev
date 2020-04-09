@@ -43,7 +43,7 @@ class DAI01210Controller extends Controller
         ";
 
         $DataList = DB::select($sql);
-        // $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        // $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         // $user = 'daiyas';
         // $password = 'daiyas';
 
@@ -271,7 +271,7 @@ class DAI01210Controller extends Controller
         ";
 
         $DataList = DB::select($sql);
-        // $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        // $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         // $user = 'daiyas';
         // $password = 'daiyas';
 

@@ -161,7 +161,7 @@ ORDER BY
     , WITH_コース別持出数.コースＣＤ
         ";
 
-        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
 

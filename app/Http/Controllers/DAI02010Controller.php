@@ -47,7 +47,7 @@ class DAI02010Controller extends Controller
         ";
 
         //$DataList = DB::selectOne($sql);
-        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
 
@@ -216,7 +216,7 @@ class DAI02010Controller extends Controller
 
         //var_export($sql);
 
-        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
 
@@ -548,7 +548,7 @@ class DAI02010Controller extends Controller
         AND 請求先ＣＤ IN ($CustomerList)
         ";
 
-        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
 
@@ -579,7 +579,7 @@ class DAI02010Controller extends Controller
         AND 請求日付 = '$TargetDateMax'
         ";
 
-        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
 
@@ -607,7 +607,7 @@ class DAI02010Controller extends Controller
         AND 請求日付 = '$TargetDateMax'
         ";
 
-        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
 
@@ -665,7 +665,7 @@ class DAI02010Controller extends Controller
         AND B1.請求先ＣＤ = U1.得意先ＣＤ
         ";
 
-        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
 
@@ -728,7 +728,7 @@ class DAI02010Controller extends Controller
 
         //var_export($sql);
 
-        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
 
@@ -770,7 +770,7 @@ class DAI02010Controller extends Controller
         AND (U1.売掛現金区分 = 1)
         ";
 
-        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
 
@@ -812,7 +812,7 @@ class DAI02010Controller extends Controller
         AND N1.請求日付 = ''
         ";
 
-        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
 

@@ -94,7 +94,7 @@ class DAI01140Controller extends Controller
                 伝票Ｎｏ
         ";
 
-        // $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        // $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         // $user = 'daiyas';
         // $password = 'daiyas';
 
