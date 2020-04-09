@@ -76,7 +76,7 @@
                 >
             </div>
         </div>
-        <div class="row">
+        <div class="row align-items-start">
             <div class="col-md-1">
                 <label class="">電話番号</label>
             </div>
@@ -90,12 +90,28 @@
             <div class="col-md-1">
                 <label class="">FAX</label>
             </div>
-            <div class="col-md-1">
+            <div class="col-md-2">
                 <input class="form-control p-1" style="width: 120px;" type="tel"
                     v-model=viewModel.FAX
                     maxlength="12"
                     v-maxBytes=12
                 >
+            </div>
+            <div class="col-md-1">
+                <label class="">ロゴ/印鑑</label>
+            </div>
+            <div class="col-md-2">
+                <div v-if="IsExistImage"
+                    style="width: 85px; height: 85px; background-size: contain; background-repeat: no-repeat;"
+                    :style='"background-image: url(" + ImagePath + ");"'
+                >
+                </div>
+                <div v-else
+                    class="droppable"
+                    style="width: 85px; height: 85px; background-color: white;"
+                    data-url="/DAI04071/UploadImage"
+                >
+                </div>
             </div>
         </div>
         <div class="row">
@@ -562,6 +578,8 @@ export default {
         var data = $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "部署マスタメンテ詳細",
             noViewModel: true,
+            ImagePath: null,
+            IsExistImage: false,
             DAI04071Grid1: null,
             BankKeyWord: null,
             BankBranchKeyWord: null,
@@ -739,6 +757,13 @@ export default {
                 //修正時：ボタン制御
                 $("[shortcut='F3']").prop("disabled", false);
             }
+
+            vue.ImagePath = location.origin + "/images/BushoStamp/" + vue.viewModel.部署CD + ".png";
+
+            axios.get(vue.ImagePath)
+                .then(res => vue.IsExistImage = true)
+                .catch(err => vue.IsExistImage = false)
+                ;
         },
         onBushoCdChanged: function(code, entities) {
             var vue = this;

@@ -2642,14 +2642,14 @@ export default {
                     return ret;
                 };
 
-                this.grid.generateHtmlFromJson = function(target, styles, header, maxRowsPerPage, isShowheader, keyArray, colArray, bodyWrapper, headerWrapper) {
+                this.grid.generateHtmlFromJson = function(target, styles, header, maxRowsPerPage, isShowheader, byHtml, keyArray, colArray, bodyWrapper, headerWrapper) {
                     var grid = this;
                     var json = target;
                     if (!_.isArray(json)) json = [json];
 
                     var keys =keyArray || _.keys(json[0]);
                     var headers = !!isShowheader ? $("<tr>").append(keys.map((k, i) => $("<th>").text(!!colArray ? colArray[i] : k))).get() : [];
-                    var bodies = json.map(v => $("<tr>").append(keys.map(k => $("<td>").text(v[k]))).get(0));
+                    var bodies = json.map(v => $("<tr>").append(keys.map(k => !!byHtml ? $("<td>").html(v[k]) : $("<td>").text(v[k]))).get(0));
                     var ret = grid.restructTable(json, bodies, headers, styles, header, maxRowsPerPage, null, null, null, null, bodyWrapper, headerWrapper);
                     console.log("generateHtmlFromJson", ret.prop("outerHTML"));
                     return ret;
