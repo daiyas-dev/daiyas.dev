@@ -351,7 +351,7 @@ export default {
                         hiddenOnExport: true,
                     },
                     {
-                        title: "CD",
+                        title: "<span>CD</span>",
                         dataIndx: "得意先ＣＤ",
                         dataType: "integer",
                         width: 65, minWidth: 65, maxWidth: 65,
@@ -362,6 +362,12 @@ export default {
                         dataType: "string",
                         width: 200, minWidth: 200,
                         tooltip: true,
+                        render: ui => {
+                            if (!!ui.rowData.pq_grandsummary) {
+                                return { text: "合計" };
+                            }
+                            return ui;
+                        },
                     },
                     {
                         title: "伝票No",
@@ -406,7 +412,7 @@ export default {
                         width: 100, minWidth: 100,
                     },
                     {
-                        title: "CD",
+                        title: "<span>CD</span>",
                         dataIndx: "コースＣＤ",
                         dataType: "integer",
                         width: 50, minWidth: 50, maxWidth: 50,
@@ -825,7 +831,6 @@ export default {
                 }
             `;
 
-            //TODO:(西山)ヘッダー編集中。担当者名はpopupselectからとれる？合計ラベル表示。
             var headerFunc = (chunk, idx, length) => {
                 return `
                     <div class="title">
@@ -850,8 +855,8 @@ export default {
                             </tr>
                             <tr>
                                 <th style="width: 8%;">担当者</th>
-                                <th style="width: 10%;">担当者CD</th>
-                                <th style="width: 21%;" colspan="2">担当者名</th>
+                                <th style="width: 10%;">${!!vue.viewModel.TantoCd ? vue.viewModel.TantoCd : ""}</th>
+                                <th style="width: 21%;" colspan="2">${!!vue.viewModel.TantoNm ? vue.viewModel.TantoNm : ""}</th>
                                 <th style="width: 21%;" colspan="2"></th>
                                 <th style="width: 8%;">作成日</th>
                                 <th style="width: 16%;" colspan="2">${moment().format("YYYY年MM月DD日")}</th>
@@ -913,6 +918,14 @@ export default {
                                         border-right-width: 0px;
                                         border-bottom-width: 0px;
                                     }
+                                    table.DAI01140Grid1 tr th:nth-child(2),
+                                    table.DAI01140Grid1 tr td:nth-child(2) {
+                                        border-style: solid;
+                                        border-left-width: 0px;
+                                        border-top-width: 1px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 0px;
+                                    }
                                     table.DAI01140Grid1 tr th:last-child,
                                     table.DAI01140Grid1 tr td:last-child {
                                         border-style: solid;
@@ -923,14 +936,6 @@ export default {
                                     }
                                     table.DAI01140Grid1 tr:last-child td {
                                         border-bottom-width: 1px;
-                                    }
-                                    table.DAI01140Grid1 tr th:nth-child(2),
-                                    table.DAI01140Grid1 tr td:nth-child(2) td:not(:last-child) {
-                                        border-style: solid;
-                                        border-left-width: 0px;
-                                        border-top-width: 1px;
-                                        border-right-width: 0px;
-                                        border-bottom-width: 0px;
                                     }
                                     table.DAI01140Grid1 tr.grand-summary td:nth-child(2),
                                     table.DAI01140Grid1 tr.grand-summary td:nth-child(4),
@@ -950,19 +955,37 @@ export default {
                                         width: 7.0%;
                                     }
                                     table.DAI01140Grid1 tr th:nth-child(2) {
-                                        width: 22.0%;
+                                        width: 21.5%;
                                     }
                                     table.DAI01140Grid1 tr th:nth-child(3) {
-                                        width: 7.5%;
+                                        width: 8.0%;
+                                    }
+                                    table.DAI01140Grid1 tr th:nth-child(4) {
+                                        width: 11.5%;
                                     }
                                     table.DAI01140Grid1 tr th:nth-child(7) {
-                                        width: 13.0%;
+                                        width: 14.0%;
                                     }
                                     table.DAI01140Grid1 tr th:nth-child(8) {
                                         width: 4.5%;
                                     }
                                     table.DAI01140Grid1 tr th:nth-child(9) {
-                                        width: 15.0%;
+                                        width: 14.0%;
+                                    }
+                                    table.DAI01140Grid1 tr td {
+                                        padding-left: 5px;
+                                        padding-right: 5px;
+                                    }
+                                    table.DAI01140Grid1 thead span {
+                                        color: transparent;
+                                    }
+                                    table.DAI01140Grid1 tr th:nth-child(2),
+                                    table.DAI01140Grid1 tr th:last-child {
+                                        text-align: left;
+                                        padding-left: 20px;
+                                    }
+                                    table.DAI01140Grid1 tr.grand-summary td:nth-child(2) {
+                                        letter-spacing: 2.0em;
                                     }
                                 `,
                                 headerFunc,
