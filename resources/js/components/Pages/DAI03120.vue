@@ -427,101 +427,45 @@ export default {
                     white-space: nowrap;
                     overflow: hidden;
                 }
+                table.header-table th.blank-cell {
+                    border:none;
+                }
             `;
 
             var headerFunc = (header, idx, length) => {
+                var bushoCd = header.ＧＫ部署.split(" ")[0];
+                var bushoNm = header.ＧＫ部署.split(" ")[1];
                 return `
                     <div class="title">
-                        <h3>* * * コース別入金一覧表 * * *</h3>
+                        <h3>* * * 商品別売上一覧表 * * *</h3>
                     </div>
                     <table class="header-table" style="border-width: 0px">
                         <thead>
                             <tr>
-                                <th style="width: 10%; text-align: left;">${vue.viewModel.BushoCd}:${vue.viewModel.BushoNm}</th>
-                                <th style="width: 10%;"></th>
-                                <th style="width: 41%; text-align: left;">${vue.viewModel.SummaryKind == 2 ? "" : header.コース}</th>
-                                <th style="width: 10%;"></th>
-                                <th style="width: 15%;"></th>
-                                <th style="width: 8%;"></th>
-                                <th style="width: 6%;"></th>
+                                <th style="width: 10%;">部署</th>
+                                <th style="width: 10%; text-align: right;">${bushoCd}</th>
+                                <th style="width: 20%;">${bushoNm}</th>
+                                <th style="width: 10%;" class="blank-cell"></th>
+                                <th style="width: 10%;" class="blank-cell"></th>
+                                <th style="width: 10%;" class="blank-cell"></th>
+                                <th style="width: 10%;" class="blank-cell"></th>
+                                <th style="width: 10%;" class="blank-cell"></th>
                             </tr>
                             <tr>
-                                <th style="text-align: left;">${vue.viewModel.SummaryKind == 2 ? header.日付 : header.parentId}</th>
-                                <th></th>
-                                <th></th>
+                                <th>${vue.viewModel.DateStart}</th>
+                                <th>～</th>
+                                <th>${vue.viewModel.DateEnd}</th>
+                                <th class="blank-cell"></th>
                                 <th>作成日</th>
                                 <th>${moment().format("YYYY年MM月DD日")}</th>
                                 <th>PAGE</th>
-                                <th style="text-align: right;">${idx + 1}/${length}</th>
+                                <th style="text-align: right;">${idx + 1}</th>
                             </tr>
                         </thead>
                     </table>
                 `;
             };
 
-            var styleCourseSummary =`
-                table.DAI03120Grid1 tr:nth-child(1) th {
-                    border-style: solid;
-                    border-left-width: 0px;
-                    border-top-width: 1px;
-                    border-right-width: 0px;
-                    border-bottom-width: 1px;
-                }
-                table.DAI03120Grid1 tr.group-row td {
-                    border-style: solid;
-                    border-left-width: 0px;
-                    border-top-width: 1px;
-                    border-right-width: 0px;
-                    border-bottom-width: 0px;
-                }
-                table.DAI03120Grid1 tr.group-summary td {
-                    border-style: solid;
-                    border-left-width: 0px;
-                    border-top-width: 1px;
-                    border-right-width: 0px;
-                    border-bottom-width: 0px;
-                }
-                table.DAI03120Grid1 tr.group-summary td:nth-child(2) {
-                    text-align: right;
-                    padding-right: 50px;
-                }
-                table.DAI03120Grid1 tr[level="0"].group-summary td {
-                    border-style: solid;
-                    border-left-width: 0px;
-                    border-top-width: 1px;
-                    border-right-width: 0px;
-                    border-bottom-width: 0px;
-                }
-                table.DAI03120Grid1 tr[level="0"].group-summary td:nth-child(2) {
-                    text-align: right;
-                    padding-right: 30px;
-                }
-                table.DAI03120Grid1 tr.grand-summary td {
-                    border-style: solid;
-                    border-left-width: 0px;
-                    border-top-width: 1px;
-                    border-right-width: 0px;
-                    border-bottom-width: 0px;
-                }
-                table.DAI03120Grid1 tr.grand-summary td:nth-child(2) {
-                    text-align: right;
-                }
-                table.DAI03120Grid1 tr.grand-summary td:nth-child(3) {
-                    text-align: left;
-                }
-                table.DAI03120Grid1 tr th:nth-child(1) {
-                    width: 4.5%;
-                }
-                table.DAI03120Grid1 tr th:nth-child(3) {
-                    width: 4.5%;
-                }
-                table.DAI03120Grid1 tr th:nth-child(n+4):nth-child(-n+12) {
-                    width: 6%;
-                }
-                table.DAI03120Grid1 tr th:nth-child(13) {
-                    width: 7%;
-                }
-            `;
             var styleCustomers =`
                 table.DAI03120Grid1 tr:nth-child(1) th {
                     border-style: solid;
@@ -585,12 +529,12 @@ export default {
                     $("<body>")
                         .append(
                             vue.DAI03120Grid1.generateHtml(
-                                vue.viewModel.SummaryKind == 2 ? styleCourseSummary : styleCustomers,
+                                styleCustomers,
                                 headerFunc,
-                                25,
-                                vue.viewModel.SummaryKind == 2 ? [false, true] : false,
+                                36,
+                                false,
                                 true,
-                                vue.viewModel.SummaryKind == 2 ? [true, false] : [false, true],
+                                true,
                             )
                         )
                 )
@@ -599,7 +543,7 @@ export default {
 
             var printOptions = {
                 type: "raw-html",
-                style: "@media print { @page { size: A4 landscape; } }",
+                style: "@media print { @page { size: A4 portrait; } }",
                 printable: printable,
             };
 
