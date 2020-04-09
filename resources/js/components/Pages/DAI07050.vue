@@ -30,6 +30,26 @@
         </div>
         <div class="row">
             <div class="col-md-1">
+                <label>請求日付</label>
+            </div>
+            <div class="col-md-2">
+                <DatePickerWrapper
+                    id="TargetDate"
+                    ref="DatePicker_TargetDate"
+                    :format=TargetDateFormat
+                    :dayViewHeaderFormat=TargetDateDayViewHeaderFormat
+                    :vmodel=viewModel
+                    bind="TargetDate"
+                    :editable=true
+                    :onChangedFunc=onTargetDateChanged
+                />
+            </div>
+            <div class="col-md-4">
+                <label style="width: unset;">{{TargetDateMsg}}</label>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1">
                 <label>締日</label>
             </div>
             <div class="col-md-11">
@@ -38,7 +58,7 @@
                     ref="VueMultiSelect_SimeDate"
                     :vmodel=viewModel
                     bind="SimeDateArray"
-                    uri="/DAI02030/GetSimeDateList"
+                    uri="/DAI07050/GetSimeDateList"
                     :params='{ BushoCd: searchParams.BushoCd, TargetDate: searchParams.TargetDate }'
                     :hasNull=true
                     :onChangedFunc=onSimeDateChanged
@@ -49,37 +69,37 @@
         </div>
         <div class="row">
             <div class="col-md-1">
-                <label>請求日付</label>
+                <label>印字金額</label>
             </div>
-            <div class="col-md-2">
-                <DatePickerWrapper
-                    id="TargetDate"
-                    ref="DatePicker_TargetDate"
-                    format="YYYY年MM月DD日"
-                    dayViewHeaderFormat="YYYY年MM月"
+            <div class="col-md-3">
+                <VueOptions
+                    id="ValueKind"
+                    ref="VueOptions_ValueKind"
+                    customItemStyle="text-align: center; margin-right: 10px;"
                     :vmodel=viewModel
-                    bind="TargetDate"
-                    :editable=true
-                    :onChangedFunc=onTargetDateChanged
+                    bind="ValueKind"
+                    :list="[
+                        {code: '0', name: '請求金額', label: '請求金額'},
+                        {code: '1', name: 'お買上げ金額', label: 'お買上げ金額'},
+                    ]"
+                    :onChangedFunc=onValueKindChanged
                 />
             </div>
         </div>
         <div class="row">
             <div class="col-md-1">
-                <label>印字金額</label>
             </div>
-            <div class="col-md-3">
-                <VueOptions
-                    id="PrintValue"
-                    ref="VueOptions_PrintValue"
-                    customItemStyle="text-align: center; margin-right: 10px;"
+            <div class="col-md-11">
+                <VueCheckList
+                    id="SearchOptions"
                     :vmodel=viewModel
-                    bind="PrintValue"
+                    bind="SearchOptions"
+                    customTitleStyle="justify-content: center;"
+                    customContentStyle="width: auto; margin-right: 15px;"
                     :list="[
-                        {code: '0', name: '請求金額', label: '請求金額'},
-                        {code: '1', name: 'お買上げ金額', label: 'お買上げ金額'},
+                        {code: '1', name: 'マイナスも出力', label: 'マイナスも出力'},
                     ]"
-                    :onChangedFunc=onPrintValueChanged
+                    :onChangedFunc=onSearchOptionsChanged
                 />
             </div>
         </div>
@@ -137,7 +157,7 @@
                     bind="CustomerCd"
                     buddy="CustomerNm"
                     dataUrl="/Utilities/GetCustomerListForSelect"
-                    :params="{ BushoCd: !!viewModel.CourseCd ? viewModel.BushoCd : null, CourseCd: viewModel.CourseCd, KeyWord: null }"
+                    :params="{ BushoCd: viewModel.BushoCd, CourseCd: viewModel.CourseCd, KeyWord: null }"
                     :isPreload=true
                     title="得意先一覧"
                     labelCd="得意先CD"
@@ -157,23 +177,6 @@
                     :onAfterChangedFunc=onCustomerChanged
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=CustomerAutoCompleteFunc
-                />
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-1">
-            </div>
-            <div class="col-md-11">
-                <VueCheckList
-                    id="SearchOptions"
-                    :vmodel=viewModel
-                    bind="SearchOptions"
-                    customTitleStyle="justify-content: center;"
-                    customContentStyle="width: auto; margin-right: 15px;"
-                    :list="[
-                        {code: '1', name: 'マイナスも出力', label: 'マイナスも出力'},
-                    ]"
-                    :onChangedFunc=onSearchOptionsChanged
                 />
             </div>
         </div>
@@ -225,7 +228,10 @@ export default {
             var vue = this;
             return {
                 BushoCd: vue.viewModel.BushoCd,
-                TargetDate: moment(vue.viewModel.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD"),
+                SimeKbn: vue.viewModel.SimeKbn,
+                TargetDate: vue.calcTargetDate(),
+                CourseCd: vue.viewModel.CourseCd,
+                CustomerCd: vue.viewModel.CustomerCd,
             };
         },
     },
@@ -243,11 +249,14 @@ export default {
         var vue = this;
 
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "個人宅 > 個人領収書",
+            ScreenTitle: "個人宅 > 領収書",
             noViewModel: true,
             viewModel: {
                 BushoCd: null,
+                SimeKbn: 0,
+                SimeKbnNm: null,
                 TargetDate: null,
+                SimeDateArray: [],
                 CourseCd: null,
                 CourseNm: null,
                 CustomerCd: null,
@@ -255,6 +264,10 @@ export default {
                 SearchOptions: [],
             },
             DAI07050Grid1: null,
+            SimeDateDisabled: true,
+            TargetDateMsg: null,
+            TargetDateFormat: "YYYY年MM月DD日",
+            TargetDateDayViewHeaderFormat: "YYYY年MM月",
             BushoInfo: null,
             grid1Options: {
                 selectionModel: { type: "row", mode: "block", row: true, column: true, },
@@ -284,6 +297,8 @@ export default {
                     number: false,
                     type: "local",
                     sorter: [
+                        { dataIndx: "コースＣＤ", dir: "up" },
+                        { dataIndx: "ＳＥＱ", dir: "up" },
                         { dataIndx: "請求先ＣＤ", dir: "up" },
                         { dataIndx: "請求日付", dir: "up" },
                     ],
@@ -305,12 +320,6 @@ export default {
                         "コース",
                         function(rowData) {
                             return rowData.コースＣＤ + ":" + rowData.コース名 + ":" + rowData.担当者ＣＤ + ":" + rowData.担当者名;
-                        }
-                    ],
-                    [
-                        "前回請求残高",
-                        function(rowData) {
-                            return (rowData["３回前残高"] || 0) * 1 + (rowData["前々回残高"] || 0) * 1 + (rowData["前回残高"] || 0) * 1;
                         }
                     ],
                     [
@@ -337,12 +346,6 @@ export default {
                         dataIndx: "請求先ＣＤ",
                         dataType: "integer",
                         width: 75, minWidth: 75, maxWidth: 75,
-                    },
-                    {
-                        title: "請求日付",
-                        dataIndx: "請求日付",
-                        dataType: "date",
-                        hidden: true,
                     },
                     {
                         title: "得意先名",
@@ -381,6 +384,14 @@ export default {
                         hidden: true,
                     },
                     {
+                        title: "請求日付",
+                        dataIndx: "請求日付",
+                        dataType: "date",
+                        format: "yy/mm/dd",
+                        align: "center",
+                        width: 100, minWidth: 100, maxWidth: 100,
+                    },
+                    {
                         title: "支払方法",
                         dataIndx: "支払方法",
                         dataType: "string",
@@ -408,56 +419,20 @@ export default {
                         },
                     },
                     {
-                        title: "前回請求残高",
-                        dataIndx: "前回請求残高",
-                        dataType: "integer",
-                        format: "#,###",
-                        width: 100, minWidth: 100, maxWidth: 100,
-                        summary: {
-                            type: "TotalInt",
-                        },
-                        cautionNegative: true,
-                        zeroToEmpty: [true, false],
-                    },
-                    {
-                        title: "今回入金額",
-                        dataIndx: "今回入金額",
-                        dataType: "integer",
-                        format: "#,###",
-                        width: 100, minWidth: 100, maxWidth: 100,
-                        summary: {
-                            type: "TotalInt",
-                        },
-                        cautionNegative: true,
-                        zeroToEmpty: [true, false],
-                    },
-                    {
-                        title: "差引繰越額",
-                        dataIndx: "差引繰越額",
-                        dataType: "integer",
-                        format: "#,###",
-                        width: 100, minWidth: 100, maxWidth: 100,
-                        summary: {
-                            type: "TotalInt",
-                        },
-                        cautionNegative: true,
-                        zeroToEmpty: [true, false],
-                    },
-                    {
-                        title: "今回売上額",
-                        dataIndx: "今回売上額",
-                        dataType: "integer",
-                        format: "#,###",
-                        width: 100, minWidth: 100, maxWidth: 100,
-                        summary: {
-                            type: "TotalInt",
-                        },
-                        cautionNegative: true,
-                        zeroToEmpty: [true, false],
-                    },
-                    {
-                        title: "今回請求額",
+                        title: "請求金額",
                         dataIndx: "今回請求額",
+                        dataType: "integer",
+                        format: "#,###",
+                        width: 100, minWidth: 100, maxWidth: 100,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                        cautionNegative: true,
+                        zeroToEmpty: [true, false],
+                    },
+                    {
+                        title: "お買上げ金額",
+                        dataIndx: "今回売上額",
                         dataType: "integer",
                         format: "#,###",
                         width: 100, minWidth: 100, maxWidth: 100,
@@ -474,6 +449,9 @@ export default {
                         hidden: true,
                     },
                 ],
+                rowDblClick: function (event, ui) {
+                    vue.showDetail(ui.rowData);
+                },
             },
         });
 
@@ -484,9 +462,16 @@ export default {
             vue.footerButtons.push(
                 { visible: "true", value: "検索", id: "DAI07050Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
-                        vue.conditionChanged(true);
+                        vue.DAI07050Grid1.searchData(vue.searchParams);
                     }
                 },
+                {visible: "false"},
+                { visible: "true", value: "明細入力", id: "DAI07050Grid1_Detail", disabled: true, shortcut: "Enter",
+                    onClick: function () {
+                        vue.showDetail();
+                    }
+                },
+                {visible: "false"},
                 {visible: "false"},
                 { visible: "true", value: "印刷", id: "DAI07050Grid1_Print", disabled: true, shortcut: "F11",
                     onClick: function () {
@@ -498,17 +483,42 @@ export default {
         mountedFunc: function(vue) {
             //TODO
             // vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
-            vue.viewModel.TargetDate = moment("20190907").format("YYYY年MM月DD日");
+            vue.viewModel.TargetDate = moment("20190904").format("YYYY年MM月DD日");
+
+            //watcher
+            vue.$watch(
+                "$refs.DAI07050Grid1.selectionRowCount",
+                cnt => {
+                    vue.footerButtons.find(v => v.id == "DAI07050Grid1_Detail").disabled = cnt == 0 || cnt > 1;
+                }
+            );
 
             //初期フィルタ
             vue.filterChanged();
         },
         onBushoChanged: function(code, entity, entities) {
             var vue = this;
+            console.log("7050 bushoChanged")
 
             if (!!entity) {
                 vue.BushoInfo = entity.info;
             }
+
+            //条件変更ハンドラ
+            vue.conditionChanged();
+        },
+        onSimeKbnChanged: function() {
+            var vue = this;
+
+            //請求日付DatePicker option変更
+            vue.TargetDateFormat = vue.viewModel.SimeKbn == "2" ? "YYYY年MM月" : "YYYY年MM月DD日";
+            vue.TargetDateDayViewHeaderFormat = vue.viewModel.SimeKbn == "2" ? "YYYY年" : "YYYY年MM月";
+
+            //締日MultiSelect状態変更
+            vue.SimeDateDisabled = vue.viewModel.SimeKbn != "2";
+
+            //フィルタ変更ハンドラ
+            vue.filterChanged();
 
             //条件変更ハンドラ
             vue.conditionChanged();
@@ -519,9 +529,23 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        onPrintValueChanged: function(code, entities) {
+        onSimeDateChanged: function(entity, entities) {
+            var vue = this;
+
+            //フィルタ変更ハンドラ
+            vue.filterChanged();
+        },
+        SimeDateParamsChangedCheckFunc: function(newVal, oldVal) {
+            var vue = this;
+            var ret = !!newVal.BushoCd && !!newVal.TargetDate;
+            return ret;
+        },
+        onValueKindChanged: function(code, entities) {
             var vue = this;
             var grid = vue.DAI07050Grid1;
+
+            //フィルタ変更ハンドラ
+            vue.filterChanged();
         },
         onSearchOptionsChanged: function(code, entities) {
             var vue = this;
@@ -559,7 +583,7 @@ export default {
             //フィルタ変更ハンドラ
             vue.filterChanged();
         },
-        conditionChanged: function(force) {
+        conditionChanged: function(callback) {
             var vue = this;
             var grid = vue.DAI07050Grid1;
 
@@ -572,11 +596,12 @@ export default {
 
             if (!!vue.viewModel.BushoCd && !!vue.viewModel.CourseCd && vue.viewModel.BushoCd != vue.$refs.PopupSelect_Course.selectRow.部署ＣＤ) return;
 
-            if (!force && !!grid.prevPostData && _.isEqual(grid.prevPostData, vue.searchParams)) {
+            if (!!grid.prevPostData && _.isEqual(grid.prevPostData, vue.searchParams)) {
+                console.log("same condition", _.isEqual(grid.prevPostData, vue.searchParams));
                 return;
             }
 
-            grid.searchData(vue.searchParams, false, null);
+            grid.searchData(vue.searchParams, false, null, callback);
         },
         filterChanged: function() {
             var vue = this;
@@ -585,6 +610,41 @@ export default {
             if (!grid) return;
 
             var rules = [];
+
+            //請求日付
+            if (vue.viewModel.SimeKbn == "2") {
+                if (!!vue.viewModel.SimeDateArray.length) {
+                    var crules = vue.viewModel.SimeDateArray.map(d => {
+                        var date;
+                        if (d.code == 99) {
+                            date = moment(vue.searchParams.TargetDate).endOf("month").format("YYYY-MM-DD 00:00:00.000");
+                        } else {
+                            date = moment(vue.searchParams.TargetDate).startOf("month").add(d.code - 1, "day").format("YYYY-MM-DD 00:00:00.000");
+                        }
+                        return { condition: "equal", mode: "OR", value: date };
+                    });
+                    rules.push({ dataIndx: "請求日付", crules: crules });
+                }
+            }
+
+            //マイナスも出力
+            if (vue.viewModel.ValueKind == "0" && !vue.viewModel.SearchOptions.includes("1")) {
+                rules.push({
+                    dataIndx: "今回請求額",
+                    condition: "great",
+                    value: "0"
+                });
+            }
+
+            //コース
+            if (!!vue.viewModel.CourseCd && vue.$refs.PopupSelect_Course.isValid) {
+                rules.push({ dataIndx: "コースＣＤ", condition: "equal", value: vue.viewModel.CourseCd });
+            }
+
+            //請求先
+            if (!!vue.viewModel.CustomerCd && vue.$refs.PopupSelect_Customer.isValid) {
+                rules.push({ dataIndx: "請求先ＣＤ", condition: "equal", value: vue.viewModel.CustomerCd });
+            }
 
             grid.filter({ oper: "replace", rules: rules });
         },
@@ -669,10 +729,85 @@ export default {
 
             return list;
         },
+        calcTargetDate: function() {
+            var vue = this;
+
+            var ret;
+            vue.TargetDateMsg = null;
+
+            switch (vue.viewModel.SimeKbn)
+            {
+                case "0":   //日締
+                    ret = moment(vue.viewModel.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD");
+                    break;
+                case "1":   //週締
+                    //該当週の土曜
+                    var mt = moment(vue.viewModel.TargetDate, "YYYY年MM月DD日").day(6);
+                    ret = mt.format("YYYYMMDD");
+                    if (ret != moment(vue.viewModel.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD")) {
+                        vue.TargetDateMsg = mt.format("YYYY年MM月DD日") + "扱いで処理されます";
+                    }
+                    break;
+                case "2":
+                    //該当月
+                    ret = moment(vue.viewModel.TargetDate, "YYYY年MM月").startOf("month").format("YYYYMMDD");
+                    break;
+            }
+
+            return ret;
+        },
+        showDetail: function(rowData) {
+            var vue = this;
+            var grid = vue.DAI07050Grid1;
+
+            var data;
+            if (!!rowData) {
+                data = _.cloneDeep(rowData);
+            } else {
+                var selection = grid.SelectRow().getSelection();
+
+                var rows = grid.SelectRow().getSelection();
+                if (rows.length != 1) return;
+
+                data = _.cloneDeep(rows[0].rowData);
+            }
+
+            var params = {
+                IsSeikyuOutput: true,
+                BushoCd: vue.viewModel.BushoCd,
+                BushoNm: vue.viewModel.BushoNm,
+                CustomerCd: data.請求先ＣＤ,
+                CustomerNm: data.得意先名,
+                TargetDate: moment(data.請求日付).format("YYYY年MM月DD日"),
+                DateStart: moment(data.請求日範囲開始).format("YYYY年MM月DD日"),
+                DateEnd: moment(data.請求日範囲終了).format("YYYY年MM月DD日"),
+                SimeDate: data.締日１,
+                CourseCd: data.コースＣＤ,
+                CourseNm: data.コース名,
+            };
+
+            PageDialog.show({
+                pgId: "DAI02021",
+                params: params,
+                isModal: true,
+                isChild: true,
+                reuse: false,
+                width: 900,
+                height: 725,
+            });
+        },
         print: function() {
             var vue = this;
             var grid = vue.DAI07050Grid1;
 
+            if (!!vue.viewModel.BushoCd && !vue.BushoInfo) {
+                var entity = vue.$refs.VueSelectBusho.$refs.BushoCd.entities.find(v => v.code == vue.viewModel.BushoCd);
+
+                if (!entity) return
+                vue.BushoInfo = entity.info;
+            }
+
+            //TODO: 領収書のレイアウト用stylesheetを下記に追加
             //印刷用HTML全体適用CSS
             var globalStyles = `
                 body {
@@ -745,7 +880,11 @@ export default {
 				#f-box {
 					float: right;
 					width: 42%;
-				}
+                    -webkit-print-color-adjust: exact;
+                    background-size: contain;
+                    background-repeat: no-repeat;
+                    background-image: url(${location.origin}/images/BushoStamp/${vue.BushoInfo.部署CD}.png);
+                }
 				#g-box {
 					clear: both;
 					float: left;
@@ -878,289 +1017,141 @@ export default {
                 }
             `;
 
-            axios.post("/DAI07050/GetMeisaiList", { SeikyuNoArray: grid.pdata.map(v => v.請求番号 * 1)})
-            .then(res => {
-                var group = _.groupBy(res.data, v => v.得意先ＣＤ);
+            var target = grid.pdata.map(r => {
+                var layout = `
+                    <div>
+                        <div class="header">
+                            <div>
+                                <div id="k-box">
+                                    ｺｰﾄﾞNo.${r.請求先ＣＤ}
+                                    <span/>-${r.コースＣＤ}
+                                    <span/>(
+                                    <span/>0
+                                    <span>-0</span>
+                                    <span>-0</span>
+                                    )
+                                </div>
+                            </div>
+                            <div>
+                                <div id="a-box">
+                                    </br></br>
+                                    <div style="margin-bottom: 8px;">
+                                        <span/>〒
+                                        <span/>${r.郵便番号}
+                                    </div>
+                                    <div>
+                                        ${r.住所１}
+                                    </div>
+                                    <br>
+                                </div>
+                                <div id="b-box">
+                                    <div class="header-title">
+                                        領収書
+                                    </div>
+                                    <div class="header-subtitle">
+                                        (軽減税率対象)
+                                    </div>
+                                </div>
+                                <div id="c-box">
+                                    <div>
+                                        <span style="white-space: pre;">${moment(r.請求日付).format("  YY  年  MM  月  DD  日")}</span>
+                                    </div>
+                                    <div class="header-seikyu-no">
+                                        <span/>請求番号
+                                        <span/>${r.請求番号}
+                                    </div>
+                                </div>
+                            <div>
+                            <div style="clear: both;">
+                                <div id="d-box">
+                                    <div class="header-tokuisaki">
+                                        ${r.得意先名}
+                                        <span>様
+                                    </div>
+                                    <div>
+                                        Tel
+                                        <span/><span/>${r.電話番号１}
+                                        <span/><span/>Fax
+                                        <span/><span/>${r.ＦＡＸ１}
+                                    </div>
+                                    </br>
+                                </div>
+                                <div id="e-box">
+                                </div>
+                                <div id="f-box">
+                                    <div style="margin-bottom: 8px;">
+                                        ${vue.BushoInfo.会社名称}
+                                    </div>
+                                    <div>
+                                        <span/>〒
+                                        <span/>${vue.BushoInfo.郵便番号}
+                                    </div>
+                                    <div>
+                                        ${vue.BushoInfo.住所}
+                                    </div>
+                                    <div>
+                                        Tel
+                                        <span/><span/>${vue.BushoInfo.電話番号}
+                                    </div>
+                                    <div>
+                                        Fax
+                                        <span/><span/>${vue.BushoInfo.FAX}
+                                    </div>
+                                </div>
+                                <div id="g-box">
+                                    <div style="margin-bottom: 8px;">
+                                        毎度ありがとうございます。
+                                    </div>
+                                    <div>
+                                        下記の通りご請求申し上げます。
+                                    </div>
+                                </div>
+                            </div>
+                        <table class="header-table" style="border-width: 0px; margin-bottom: 20px;">
+                            <tbody>
+                                <tr>
+                                    <th> 金 額 </th>
+                                    <th>${pq.formatNumber(vue.viewModel.ValueKind == "0" ? r.今回請求額 : r.今回売上額, "#,###0")}</th>
+                                </tr>
+                            </tbody>
+                        </table>
+                        </div>
+                    <div>
+                `;
 
-                var printable = $("<html>")
-                    .append($("<head>").append($("<style>").text(globalStyles)))
-                    .append(
-                        $("<body>")
-                            .append(
-                                grid.pdata.map(r => {
-                                    var pdata = group[r.請求先ＣＤ] || [{}];
-                                    var summary = _.reduce(
-                                        pdata,
-                                        (a, v, k) => {
-                                            a.商品名 = "【 合 計 】";
-                                            a.数量 = (a.数量 || 0) + (v.数量 || 0) * 1;
-                                            a.金額 = (a.金額 || 0) + (!v.伝票Ｎｏ ? (v.金額 || 0) * 1 : 0);
-                                            a.入金金額 = (a.入金金額 || 0) + (!!v.伝票Ｎｏ ? (v.入金金額 || 0) * 1 : 0);
-                                            return a;
-                                        },
-                                        {}
-                                    );
-                                    pdata.push(summary);
-                                    pdata.forEach(v => {
-                                        v.数量 = pq.formatNumber(v.数量, "#,##0");
-                                        v.単価 = pq.formatNumber(v.単価, "#,##0");
-                                        v.金額 = pq.formatNumber(v.金額, "#,##0");
-                                        v.入金金額 = pq.formatNumber(v.入金金額, "#,##0");
-                                    });
-
-                                    var headerFunc = (header, idx, length, chunk, chunks) => {
-                                        return `
-                                            <div class="header">
-                                                <div>
-                                                    <div id="k-box">
-                                                        ｺｰﾄﾞNo.${r.請求先ＣＤ}
-                                                        <span/>-${r.コースＣＤ}
-                                                        <span/>(
-                                                        <span/>0
-                                                        <span>-0</span>
-                                                        <span>-0</span>
-                                                        )
-                                                    </div>
-                                                    <div id="l-box">
-                                                        ${idx + 1}
-                                                        /
-                                                        <span/>${length}
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <div id="a-box">
-                                                        </br></br>
-                                                        <div style="margin-bottom: 8px;">
-                                                            <span/>〒
-                                                            <span/>${r.郵便番号}
-                                                        </div>
-                                                        <div>
-                                                            ${r.住所１}
-                                                        </div>
-                                                        <br>
-                                                    </div>
-                                                    <div id="b-box">
-                                                        <div class="header-title">
-                                                            請求書
-                                                        </div>
-                                                        <div class="header-subtitle">
-                                                            (軽減税率対象)
-                                                        </div>
-                                                        <div style="margin-bottom: 8px;">
-                                                            株式会社<span/>ダイヤス食品
-                                                        </div>
-                                                    </div>
-                                                    <div id="c-box">
-                                                        <div>
-                                                            <span style="white-space: pre;">${moment(r.請求日付).format("  YY  年  MM  月  DD  日")}</span>
-                                                        </div>
-                                                        <div class="header-seikyu-no">
-                                                            <span/>請求番号
-                                                            <span/>${r.請求番号}
-                                                        </div>
-                                                    </div>
-                                                <div>
-                                                <div style="clear: both;">
-                                                    <div id="d-box">
-                                                        <div class="header-tokuisaki">
-                                                            ${r.得意先名}
-                                                            <span>様
-                                                        </div>
-                                                        <div>
-                                                            Tel
-                                                            <span/><span/>${r.電話番号１}
-                                                            <span/><span/>Fax
-                                                            <span/><span/>${r.ＦＡＸ１}
-                                                        </div>
-                                                        </br>
-                                                    </div>
-                                                    <div id="e-box">
-                                                    </div>
-                                                    <div id="f-box">
-                                                        <div>
-                                                            <span/>〒
-                                                            <span/>${vue.BushoInfo.郵便番号}
-                                                        </div>
-                                                        <div>
-                                                            ${vue.BushoInfo.住所}
-                                                        </div>
-                                                        <div>
-                                                            Tel
-                                                            <span/><span/>${vue.BushoInfo.電話番号}
-                                                        </div>
-                                                        <div>
-                                                            Fax
-                                                            <span/><span/>${vue.BushoInfo.FAX}
-                                                        </div>
-                                                    </div>
-                                                    <div id="g-box">
-                                                        <div style="margin-bottom: 8px;">
-                                                            毎度ありがとうございます。
-                                                        </div>
-                                                        <div>
-                                                            下記の通りご請求申し上げます。
-                                                        </div>
-                                                    </div>
-                                                    <div id="h-box">
-                                                        <div style="margin-bottom: 8px;">
-                                                            取引金融機関
-                                                        </div>
-                                                        <div id="i-box">
-                                                            <div>
-                                                                ${vue.BushoInfo.金融機関1名称}
-                                                            </div>
-                                                            <div>
-                                                                ${vue.BushoInfo.口座種別1名称}
-                                                                <span/><span/>${vue.BushoInfo.口座番号1}
-                                                            </div>
-                                                            <div>
-                                                                ${vue.BushoInfo.金融機関2名称}
-                                                            </div>
-                                                            <div>
-                                                                ${vue.BushoInfo.口座種別2名称}
-                                                                <span/><span/>${vue.BushoInfo.口座番号2}
-                                                            </div>
-                                                        </div>
-                                                        <div id="j-box">
-                                                            <div>
-                                                                <span/>${vue.BushoInfo.金融機関支店1名称}
-                                                            </div>
-                                                            <div>
-                                                                ${vue.BushoInfo.口座名義人1}
-                                                            </div>
-                                                            <div>
-                                                                <span/>${vue.BushoInfo.金融機関支店2名称}
-                                                            </div>
-                                                            <div>
-                                                                ${vue.BushoInfo.口座名義人1}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            <table class="header-table" style="border-width: 0px; margin-bottom: 20px;">
-                                                <thead>
-                                                    <tr>
-                                                        <th>前回請求額</th>
-                                                        <th>御入金額</th>
-                                                        <th>繰越金額</th>
-                                                        <th>御買上金額</th>
-                                                        <th>消費税</th>
-                                                        <th>今回請求額</th>
-                                                    </tr>
-                                                    <tr>
-                                                </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <th>${pq.formatNumber(r.前回請求残高, "#,###0")}</th>
-                                                    <th>${pq.formatNumber(r.今回入金額, "#,###0")}</th>
-                                                    <th>${pq.formatNumber(r.差引繰越額, "#,###0")}</th>
-                                                    <th>${pq.formatNumber(r.今回売上額, "#,###0")}</th>
-                                                    <th>${pq.formatNumber(r.消費税額, "#,###0")}</th>
-                                                    <th>${pq.formatNumber(r.今回請求額, "#,###0")}</th>
-                                                </tbody>
-                                            </table>
-                                            </div>
-                                        `;
-                                    };
-
-                                    var html = grid.generateHtmlFromJson(
-                                        pdata,
-                                        `
-                                            .header-table th {
-                                                border-style: solid;
-                                                border-left-width: 0px;
-                                                border-top-width: 1px;
-                                                border-right-width: 1px;
-                                                border-bottom-width: 0px;
-                                            }
-                                            .header-table tr th:first-child {
-                                                border-left-width: 1px;
-                                            }
-                                            .header-table tr:nth-child(1) th:nth-child(n+4) {
-                                                border-left-width: 0px;
-                                                border-top-width: 0px;
-                                                border-right-width: 0px;
-                                                border-bottom-width: 0px;
-                                            }
-                                            .header-table tr:nth-child(4) th:nth-child(6) {
-                                                border-top-width: 0px;
-                                            }
-                                            table.DAI07050Grid1 tr:nth-child(1) th {
-                                                border-style: solid;
-                                                border-left-width: 1px;
-                                                border-top-width: 1px;
-                                                border-right-width: 0px;
-                                                border-bottom-width: 1px;
-                                            }
-                                            table.DAI07050Grid1 tr th:last-child {
-                                                border-right-width: 1px;
-                                            }
-                                            table.DAI07050Grid1 tr td {
-                                                border-style: solid;
-                                                border-left-width: 1px;
-                                                border-top-width: 0px;
-                                                border-right-width: 0px;
-                                                border-bottom-width: 1px;
-                                            }
-                                            table.DAI07050Grid1 tr.grand-summary td {
-                                                border-style: solid;
-                                                border-left-width: 1px;
-                                                border-top-width: 0px;
-                                                border-right-width: 0px;
-                                                border-bottom-width: 1px;
-                                            }
-                                            table.DAI07050Grid1 tr td:last-child {
-                                                border-right-width: 1px;
-                                            }
-                                        `,
-                                        headerFunc,
-                                        25,
-                                        true,
-                                        [
-                                            "日付",
-                                            "食事区分名",
-                                            "商品名",
-                                            "数量",
-                                            "単価",
-                                            "金額",
-                                            "入金金額",
-                                            "備考",
-                                        ],
-                                        [
-                                            "月日",
-                                            "区分",
-                                            "商品名称",
-                                            "食数",
-                                            "単価",
-                                            "買上額",
-                                            "入金額",
-                                            "備考",
-                                        ],
-                                    );
-                                    console.log("7050 seikyusho", html)
-                                    return html;
-                                })
-                            )
-                    )
-                    .prop("outerHTML")
-                    ;
-
-                var printOptions = {
-                    type: "raw-html",
-                    style: "@media print { @page { size: A4; } }",
-                    printable: printable,
-                };
-
-                printJS(printOptions);
-                //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
-                //$("#printJS").contents().find("html").html()
-            })
-            .catch(err => {
-                console.log(err);
-                $.dialogErr({
-                    title: "印刷失敗",
-                    contents: "請求明細の検索に失敗しました" + "<br/>" + err.message,
-                });
+                return { contents: layout };
             });
+
+            var printable = $("<html>")
+                .append($("<head>").append($("<style>").text(globalStyles)))
+                .append(
+                    $("<body>").append(
+                        grid.generateHtmlFromJson(
+                            target,
+                            ``,
+                            null,
+                            5,
+                            false,
+                            true,
+                        )
+                    )
+                )
+                .prop("outerHTML")
+                ;
+
+            var printOptions = {
+                type: "raw-html",
+                style: "@media print { @page { size: A4; } }",
+                printable: printable,
+            };
+
+            //印鑑画像のロード待ち
+            $("<img>")
+                .attr("src", location.origin + "/images/BushoStamp/" + vue.BushoInfo.部署CD + ".png")
+                .on("load", () => printJS(printOptions));
+
+            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //$("#printJS").contents().find("html").html()
         },
     }
 }

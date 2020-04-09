@@ -77,4 +77,13 @@ class DAI04071Controller extends Controller
 
         return response()->json($BushoList);
     }
+
+    /**
+     * UploadImage
+     */
+    public function UploadImage($request) {
+        $file = $request->file('file');
+
+        return true;
+    }
 }

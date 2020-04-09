@@ -224,6 +224,9 @@ label {
 #Page_DAI01030 .CustomerSelect .select-name {
     color: royalblue;
 }
+#DAI01030Grid1 svg.pq-grid-overlay {
+    display: block;
+}
 </style>
 
 <script>
@@ -312,7 +315,7 @@ export default {
             CurrentOrder: null,
             DAI01030Grid1: null,
             grid1Options: {
-                selectionModel: { type: "row", mode: "single", row: true },
+                selectionModel: { type: "cell", mode: "block", row: true },
                 showHeader: true,
                 showToolbar: false,
                 toolbar: {
@@ -607,6 +610,12 @@ export default {
                     vue.footerButtons.find(v => v.id == "DAI01030Grid1_DeleteRow").disabled = cnt == 0 || cnt > 1;
                 }
             );
+            vue.$watch(
+                "$refs.DAI01030Grid1.isSelection",
+                isSelection => {
+                    vue.footerButtons.find(v => v.id == "DAI01030Grid1_DeleteRow").disabled = !isSelection;
+                }
+            );
 
             vue.viewModel.IsShowAll = false;
 
@@ -775,7 +784,7 @@ export default {
             };
         },
         autoEmptyRowCheckFunc: function(rowData) {
-            return !rowData["得意先ＣＤ"];
+            return !rowData["商品ＣＤ"];
         },
         toggleGridView: function() {
             var vue = this;
@@ -914,7 +923,7 @@ export default {
 
             var wholeColumns = ["得意先名", "得意先名略称", "得意先名カナ", "備考１", "備考２", "備考３"];
 
-            if ((input == comp.selectValue && comp.isUnique) || comp.isError) {
+            if ((input == comp.selectValue && comp.isUnique)) {
                 keyAND = keyOR = [];
             }
 
@@ -1016,14 +1025,14 @@ export default {
                         callback: (gridVue, grid, res)=>{
                             console.log("res", res);
 
-                            if (!!res.edited && !!res.edited.length) {
+                            if (!!res.edited) {
                                 $.dialogInfo({
                                     title: "登録チェック",
                                     contents: "他で変更されたデータがあります。",
                                 });
-                                grid.blinkDiff(res.edited);
+                                grid.blinkDiff(res.current);
                             } else {
-                                grid.commit();
+                                grid.setLocalData(res.current);
                                 vue.viewModel.IsEdit = true;
                             }
 
@@ -1108,14 +1117,12 @@ export default {
 
             grid = grid || vue.DAI01030Grid1;
 
-            if(!grid.SelectRow().getSelection().length){
+            if(!grid.Selection()._areas.length){
                 return;
             }
 
-            var rowList = grid.SelectRow().getSelection().map(v => _.pick(v, ["rowIndx"]));
-
-            //TODO: call controller Delete method
-            grid.deleteRow({ rowList: rowList });
+            var rowIndx = grid.Selection()._areas[0].r1;
+            grid.deleteRow({ rowIndx: rowIndx });
         },
         showCourse: function() {
             var vue = this;

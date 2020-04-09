@@ -25,7 +25,6 @@ class DAI03060Controller extends Controller
             $WhereBusho1=" AND コースマスタ.部署ＣＤ IN( $BushoList )";
         }
 
-        //TODO:検索条件を画面から受け取れるようにする
         $TokuiCd=$vm->CustomerCd;
         $WhereTokui="";
         if($TokuiCd!=null)
@@ -44,7 +43,7 @@ class DAI03060Controller extends Controller
                     , MONTH(売上データ明細.日付) as 売上データ明細月
                     , case
                         WHEN 現金金額 - 現金値引 + 掛売金額 - 掛売値引 is null
-                            THEN 0
+                        THEN 0
                         ELSE 現金金額 - 現金値引 + 掛売金額 - 掛売値引
                         END
                     as 合計金額

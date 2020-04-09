@@ -465,7 +465,7 @@ export default {
                 isModal: true,
                 isChild: true,
                 width: 1020,
-                height: 600,
+                height: 650,
             });
         },
         showNewDetail: function(rowData) {
