@@ -1,7 +1,4 @@
-﻿<!--
-TODO: 検索条件(商品名)は、件数が多いので、1件のみ選択してのfilterとして実装するか？確認
--->
-<template>
+﻿<template>
     <form id="this.$options.name">
         <div class="row">
             <div class="col-md-1">
@@ -23,7 +20,7 @@ TODO: 検索条件(商品名)は、件数が多いので、1件のみ選択し�
         </div>
         <div class="row">
             <div class="col-md-1">
-                <label>配達日付</label>
+                <label>処理日付</label>
             </div>
             <div class="col-md-4">
                 <DatePickerWrapper
@@ -46,36 +43,6 @@ TODO: 検索条件(商品名)は、件数が多いので、1件のみ選択し�
                     bind="DateEnd"
                     :editable=true
                     :onChangedFunc=onDateChanged
-                />
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-1">
-                <label>商品</label>
-            </div>
-            <div class="col-md-5">
-                <PopupSelect
-                    id="ProductCd"
-                    ref="PopupSelect_ProductCd"
-                    :vmodel=viewModel
-                    bind="ProductCd"
-                    dataUrl="/Utilities/GetCourseList"
-                    :params='{ bushoCd: viewModel.BushoCd, courseKbn: viewModel.CourseKbn }'
-                    :dataListReset=true
-                    title="コース一覧"
-                    labelCd="コースCD"
-                    labelCdNm="コース名"
-                    :isShowName=true
-                    :isModal=true
-                    :editable=true
-                    :reuse=true
-                    :existsCheck=true
-                    :exceptCheck="[{ Cd: 0 }]"
-                    :inputWidth=100
-                    :nameWidth=300
-                    :onAfterChangedFunc=onProductCdChanged
-                    :isShowAutoComplete=true
-                    :AutoCompleteFunc=CourseAutoCompleteFunc
                 />
             </div>
         </div>
@@ -133,8 +100,6 @@ export default {
                 BushoNm: null,
                 DateStart: null,
                 DateEnd: null,
-                SummaryKind: null,
-                CourseKbn: null,
                 ProductCd: null,
             },
             DAI03130Grid1: null,
@@ -171,7 +136,7 @@ export default {
                     header: false,
                     grandSummary: true,
                     indent: 10,
-                    dataIndx: ["ＧＫ部署"],
+                    dataIndx: [],
                     showSummary: [true],
                     collapsed: [false],
                     summaryInTitleRow: "collapsed",
@@ -182,35 +147,17 @@ export default {
                 ],
                 colModel: [
                     {
-                        title: "ＧＫ部署",
-                        dataIndx: "ＧＫ部署", dataType: "string",
-                        hidden: true,
-                    },
-                    {
                         title: "部署ＣＤ",
                         dataIndx: "部署ＣＤ", dataType: "string",
-                        hidden: true,
+                        width: 75, minWidth: 75, maxWidth: 75,
                     },
                     {
                         title: "部署名",
                         dataIndx: "部署名", dataType: "string",
-                        hidden: true,
-                    },
-                    {
-                        title: "商品ＣＤ",
-                        dataIndx: "商品ＣＤ", dataType: "string",
-                        width: 75, minWidth: 75, maxWidth: 75,
-                    },
-                    {
-                        title: "商品名",
-                        dataIndx: "商品名", dataType: "string",
-                        width: 100, minWidth: 100,
+                        width: 250, minWidth: 250, maxWidth: 250,
                         render: ui => {
                             if (!!ui.rowData.pq_grandsummary) {
                                 return { text: "合　計" };
-                            }
-                            if (!!ui.rowData.pq_gsummary) {
-                                return { text: "小　計" };
                             }
                             return { text:ui };
                         },
@@ -218,7 +165,7 @@ export default {
                     {
                         title: "数量",
                         dataIndx: "数量", dataType: "integer", format: "#,###",　
-                        width: 90, minWidth: 90, maxWidth: 90,
+                        width: 120, minWidth: 120, maxWidth: 120,
                         summary: {
                             type: "TotalInt",
                         },
@@ -226,20 +173,10 @@ export default {
                     {
                         title: "金額",
                         dataIndx: "金額", dataType: "integer", format: "#,###",　
-                        width: 90, minWidth: 90, maxWidth: 90,
+                        width: 120, minWidth: 120, maxWidth: 120,
                         summary: {
                             type: "TotalInt",
                         },
-                    },
-                    {
-                        title: "平均",
-                        dataIndx: "平均", dataType: "integer", format: "#,###",　
-                        width: 90, minWidth: 90, maxWidth: 90,
-                    },
-                    {
-                        title: "備考",
-                        dataIndx: "備考", dataType: "string",
-                        width: 100, minWidth: 100,
                     },
                 ],
             },
@@ -338,16 +275,12 @@ export default {
             grid.filter({ oper: "replace", mode: "AND", rules: rules });
         },
         onAfterSearchFunc: function (vue, grid, res) {
+            window.resa=_.cloneDeep(res);//TODO:
             var vue = this;
             vue.footerButtons.find(v => v.id == "DAI03130Grid1_CSV").disabled = false;
             vue.footerButtons.find(v => v.id == "DAI03130Grid1_Excel").disabled = false;
             vue.footerButtons.find(v => v.id == "DAI03130Grid1_Print").disabled = false;
-
-            res.forEach(r => {
-                    r.ＧＫ部署 = r.部署ＣＤ + " " + r.部署名;
-                    r.平均 = r.数量==0 ? 0 : Math.floor(r.金額 / r.数量);
-                });
-            return res;
+            return res[0].UriageData;
         },
         CourseAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
