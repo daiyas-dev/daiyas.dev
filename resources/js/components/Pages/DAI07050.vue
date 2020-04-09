@@ -249,7 +249,7 @@ export default {
         var vue = this;
 
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "個人宅 > 領収書",
+            ScreenTitle: "個人宅 > 領収書発行",
             noViewModel: true,
             viewModel: {
                 BushoCd: null,

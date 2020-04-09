@@ -45,7 +45,7 @@
                     ref="PopupSelect_Course"
                     :vmodel=viewModel
                     bind="CourseCd"
-                    :buddies='{ CourseNm: "コース名" }'
+                    :buddies='{ CourseNm: "コース名", TantoCd: "担当者ＣＤ", TantoNm: "担当者名" }'
                     dataUrl="/Utilities/GetCourseList"
                     :params='{ UserBushoCd: getLoginInfo().bushoCd }'
                     :isPreload=true
@@ -267,6 +267,8 @@ export default {
                 SeikyuNm: null,
                 CustomerCd: null,
                 CustomerNm: null,
+                TantoCd: null,
+                TantoNm: null,
                 JuchuCd: null,
                 JuchuNm: null,
                 ProductCd: null,
