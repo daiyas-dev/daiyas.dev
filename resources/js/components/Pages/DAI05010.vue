@@ -20,23 +20,6 @@
         </div>
         <div class="row">
             <div class="col-md-1">
-                <label>出力年月</label>
-            </div>
-            <div class="col-md-4">
-                <DatePickerWrapper
-                    id="TargetDate"
-                    ref="DatePicker_Date"
-                    format="YYYY年MM月"
-                    dayViewHeaderFormat="YYYY年MM月"
-                    :vmodel=viewModel
-                    bind="TargetDate"
-                    :editable=true
-                    :onChangedFunc=onDateChanged
-                />
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-1">
                 <label>コース</label>
             </div>
             <div class="col-md-5">
@@ -102,9 +85,9 @@
             </div>
         </div>
         <PqGridWrapper
-            id="DAI03060Grid1"
-            ref="DAI03060Grid1"
-            dataUrl="/DAI03060/Search"
+            id="DAI05010Grid1"
+            ref="DAI05010Grid1"
+            dataUrl="/DAI05010/Search"
             :query=this.viewModel
             :SearchOnCreate=false
             :SearchOnActivate=false
@@ -116,20 +99,20 @@
 </template>
 
 <style>
-#DAI03060Grid1 .pq-group-toggle-none {
+#DAI05010Grid1 .pq-group-toggle-none {
     display: none !important;
 }
-#DAI03060Grid1 .pq-group-icon {
+#DAI05010Grid1 .pq-group-icon {
     display: none !important;
 }
-#DAI03060Grid1 .pq-td-div {
+#DAI05010Grid1 .pq-td-div {
     display: flex;
     line-height: 13px !important;
     justify-content: center;
     align-items: center;
     height: 50px;
 }
-#DAI03060Grid1 .pq-td-div span {
+#DAI05010Grid1 .pq-td-div span {
     line-height: inherit;
     text-align: center;
 }
@@ -143,7 +126,7 @@ import PageBaseMixin from "@vcs/PageBaseMixin.vue";
 
 export default {
     mixins: [PageBaseMixin],
-    name: "DAI03060",
+    name: "DAI05010",
     components: {
     },
     props: {
@@ -158,7 +141,7 @@ export default {
     },
     data() {
         return $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "月次処理 > コース別売上推移表",
+            ScreenTitle: "随時処理 > 得意先別単価表",
             noViewModel: true,
             viewModel: {
                 BushoArray: [],
@@ -166,7 +149,7 @@ export default {
                 CourseCd: null,
                 CustomerCd: null,
             },
-            DAI03060Grid1: null,
+            DAI05010Grid1: null,
             grid1Options: {
                 selectionModel: { type: "cell", mode: "single", row: true },
                 showHeader: true,
@@ -212,27 +195,23 @@ export default {
                     {
                         title: "GroupKey1",
                         dataIndx: "GroupKey1", dataType: "string",
-                        hidden:true,
-                        fixed: true,
+                        hidden:false,
                     },
                     {
                         title: "部署ＣＤ",
                         dataIndx: "部署ＣＤ", dataType: "string",
-                        hidden:true,
-                        fixed: true,
+                        hidden:false,
                     },
                     {
                         title: "部署名",
                         dataIndx: "部署名", dataType: "string",
-                        hidden:true,
-                        fixed: true,
+                        hidden:false,
                     },
                     {
                         title: "コースＣＤ",
                         dataIndx: "コースＣＤ", dataType: "string",
                         width: 60, minWidth: 60, maxWidth: 60,
                         hidden:false,
-                        fixed: true,
                     },
                     {
                         title: "コース名",
@@ -240,32 +219,16 @@ export default {
                         width: 200, minWidth: 200,
                         tooltip: true,
                         hidden:false,
-                        fixed: true,
                     },
                     {
                         title: "担当者ＣＤ",
                         dataIndx: "担当者ＣＤ", dataType: "string",
-                        hidden:true,
-                        fixed: true,
+                        hidden:false,
                     },
                     {
                         title: "担当者名",
                         dataIndx: "担当者名", dataType: "string",
-                        width: 150, minWidth: 150,
-                        tooltip: true,
                         hidden:false,
-                        fixed: true,
-                        render: ui => {
-                            if (ui.rowData.pq_grandsummary) {
-                                //集計行
-                                return { text: "合　計" };
-                            }
-                            if (!!ui.rowData.pq_gsummary) {
-                                //小計行
-                                return { text: "小　計" };
-                            }
-                            return ui;
-                        },
                     },
                 ],
             },
@@ -274,12 +237,12 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "検索", id: "DAI03060Grid1_Search", disabled: false, shortcut: "F5",
+                { visible: "true", value: "検索", id: "DAI05010Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
                         vue.conditionChanged();
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI03060Grid1_Printout", disabled: false, shortcut: "F6",
+                { visible: "true", value: "印刷", id: "DAI05010Grid1_Printout", disabled: false, shortcut: "F6",
                     onClick: function () {
                         vue.print();
                     }
@@ -468,7 +431,7 @@ export default {
         },
         conditionChanged: function(callback) {
             var vue = this;
-            var grid = vue.DAI03060Grid1;
+            var grid = vue.DAI05010Grid1;
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.BushoArray || vue.viewModel.BushoArray.length==0) return;
@@ -492,7 +455,7 @@ export default {
         },
         filterChanged: function() {
             var vue = this;
-            var grid = vue.DAI03060Grid1;
+            var grid = vue.DAI05010Grid1;
 
             if (!grid) return;
 
@@ -511,6 +474,7 @@ export default {
             var vue = this;
 
             //集計
+            /*
             var groupings = _(res)
                 .groupBy(v => [v.部署ＣＤ,v.コースＣＤ])
                 .values()
@@ -530,6 +494,8 @@ export default {
                     return ret;
                 })
             return groupings;
+            */
+            return res;
         },
         CustomerAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
@@ -691,10 +657,10 @@ export default {
             };
 
             var styleCustomers =`
-                table.DAI03060Grid1
-                table.DAI03060Grid1 tr,
-                table.DAI03060Grid1 th,
-                table.DAI03060Grid1 td {
+                table.DAI05010Grid1
+                table.DAI05010Grid1 tr,
+                table.DAI05010Grid1 th,
+                table.DAI05010Grid1 td {
                     border-collapse: collapse;
                     border:1px solid black;
                 }
@@ -705,7 +671,7 @@ export default {
                 .append(
                     $("<body>")
                         .append(
-                            vue.DAI03060Grid1.generateHtml(
+                            vue.DAI05010Grid1.generateHtml(
                                 styleCustomers,
                                 headerFunc,
                                 32,
