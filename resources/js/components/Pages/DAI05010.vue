@@ -112,6 +112,9 @@
     align-items: center;
     height: 50px;
 }
+#DAI05010Grid1 .pq-grid-cell {
+    align-items: flex-start;
+}
 #DAI05010Grid1 .pq-td-div span {
     line-height: inherit;
     text-align: center;
@@ -145,7 +148,6 @@ export default {
             noViewModel: true,
             viewModel: {
                 BushoArray: [],
-                TargetDate: null,
                 CourseCd: null,
                 CustomerCd: null,
             },
@@ -157,9 +159,9 @@ export default {
                 columnBorders: true,
                 fillHandle: "",
                 numberCell: { show: true, title: "No.", resizable: false, },
-                autoRow: false,
+                autoRow: true,
                 rowHt: 35,
-                freezeCols: 7,
+                freezeCols: 10,
                 editable: false,
                 columnTemplate: {
                     editable: false,
@@ -180,11 +182,11 @@ export default {
                 groupModel: {
                     on: true,
                     header: false,
-                    grandSummary: true,
+                    grandSummary: false,
                     indent: 20,
-                    dataIndx: ["GroupKey1"],
-                    showSummary: [true],
-                    collapsed: [false],
+                    dataIndx: ["部署","コース"],
+                    showSummary: [false,false],
+                    collapsed: [false,false],
                     summaryInTitleRow: "collapsed",
                 },
                 summaryData: [
@@ -193,42 +195,65 @@ export default {
                 ],
                 colModel: [
                     {
-                        title: "GroupKey1",
-                        dataIndx: "GroupKey1", dataType: "string",
-                        hidden:false,
+                        title: "部署",
+                        dataIndx: "部署", dataType: "string",
+                        fixed: true,
+                        hidden:true,
                     },
                     {
                         title: "部署ＣＤ",
                         dataIndx: "部署ＣＤ", dataType: "string",
-                        hidden:false,
+                        fixed: true,
+                        hidden:true,
                     },
                     {
                         title: "部署名",
                         dataIndx: "部署名", dataType: "string",
-                        hidden:false,
+                        fixed: true,
+                        hidden:true,
+                    },
+                    {
+                        title: "コース",
+                        dataIndx: "コース", dataType: "string",
+                        fixed: true,
+                        hidden:true,
                     },
                     {
                         title: "コースＣＤ",
                         dataIndx: "コースＣＤ", dataType: "string",
-                        width: 60, minWidth: 60, maxWidth: 60,
-                        hidden:false,
+                        fixed: true,
+                        hidden:true,
                     },
                     {
                         title: "コース名",
                         dataIndx: "コース名", dataType: "string",
-                        width: 200, minWidth: 200,
-                        tooltip: true,
-                        hidden:false,
+                        fixed: true,
+                        hidden:true,
                     },
                     {
                         title: "担当者ＣＤ",
                         dataIndx: "担当者ＣＤ", dataType: "string",
-                        hidden:false,
+                        fixed: true,
+                        hidden:true,
                     },
                     {
                         title: "担当者名",
                         dataIndx: "担当者名", dataType: "string",
-                        hidden:false,
+                        fixed: true,
+                        hidden:true,
+                    },
+                    {
+                        title: "得意先ＣＤ",
+                        dataIndx: "得意先ＣＤ", dataType: "string",align:"right",
+                        width: 90, minWidth: 90, maxWidth: 90,
+                        fixed: true,
+                    },
+                    {
+                        title: "得意先名",
+                        dataIndx: "得意先名", dataType: "string",
+                        width: 180, minWidth: 180,
+                        tooltip: true,
+                        fixed: true,
                     },
                 ],
             },
@@ -340,90 +365,47 @@ export default {
         refreshCols: function() {
             console.log("refreshCols");//TODO:
             var vue = this;
-            if(!vue.viewModel.TargetDate)
-            {
-                return;
-            }
-            var DateStart = moment(vue.viewModel.TargetDate, "YYYY年MM月DD日").format("YYYY/MM/DD");
-            var DateEnd   = moment(DateStart).add(11, 'months').format("YYYYMMDD");
-            var ListAllMonth=vue.getListAllMonth(DateStart,DateEnd);
             var newCols = grid.options.colModel.filter(v => !!v.fixed);
-            ListAllMonth.map(r=>{
+            var i=1;
+            [...Array(5)].map(r=>{
                 newCols.push(
                     {
-                        title: r + "月",
-                        dataIndx: "金額_" + r,
+                        title: "商品",
+                        dataIndx: "商品_" + i,
+                        dataType: "string",
+                        width: 140, maxWidth: 140, minWidth: 140,
+                    }
+                );
+                newCols.push(
+                    {
+                        title: "単価",
+                        dataIndx: "単価_" + i,
                         dataType: "integer",
                         format: "#,##0",
-                        width: 90, maxWidth: 90, minWidth: 90,
-                        summary: {
-                            type: "TotalInt",
-                        },
+                        width: 70, maxWidth: 70, minWidth: 70,
                         render: ui => {
                             if (!ui.rowData[ui.dataIndx]) {
-                                return { text: "0" };
+                                return { text: "" };
                             }
                             return ui;
                         },
                     }
                 );
+                i++;
             });
-
-            //合計追加
-            newCols.push(
-                {
-                    title: "合計",
-                    dataIndx: "合計",
-                    dataType: "integer",
-                    format: "#,##0",
-                    width: 90, maxWidth: 90, minWidth: 90,
-                    summary: {
-                        type: "TotalInt",
-                    },
-                    render: ui => {
-                        if (!ui.rowData[ui.dataIndx]) {
-                            return { text: "0" };
-                        }
-                        return ui;
-                    },
-                }
-            );
 
             //列定義更新
             grid.options.colModel = newCols;
             grid.refreshCM();
             grid.refresh();
         },
-        getListAllMonth: function(params_start,params_end){
-            var ListAllDate=[];
-            var start = moment(params_start),
-            end = moment(params_end);
-            while(start.diff(end) <= 0){
-                ListAllDate.push(start.format('M'));
-                start.add(1, 'months');
-            }
-            return ListAllDate;
-        },
-        onDateChanged: function(code, entity) {
-            var vue = this;
-            //列定義更新
-            vue.refreshCols();
-            //条件変更ハンドラ
-            vue.conditionChanged();
-        },
         onCustomerChanged: function(code, entity) {
-            var vue = this;
-
-            //条件変更ハンドラ
-            vue.conditionChanged();
-        },
-        onCourseCdChanged: function(code, entity) {
             var vue = this;
 
             //フィルタ変更ハンドラ
             vue.filterChanged();
         },
-        onCourseEndChanged: function(code, entity) {
+        onCourseCdChanged: function(code, entity) {
             var vue = this;
 
             //フィルタ変更ハンドラ
@@ -435,7 +417,6 @@ export default {
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.BushoArray || vue.viewModel.BushoArray.length==0) return;
-            if (!vue.viewModel.TargetDate) return;
             if (!grid.options.colModel.some(v => v.custom)) {
                 vue.refreshCols();
             }
@@ -443,13 +424,11 @@ export default {
             var params = $.extend(true, {}, vue.viewModel);
 
             //検索パラメータの加工
-            //処理年月の1日から末日までの範囲を検索条件に指定する
-            params.DateStart  = params.TargetDate ? moment(params.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
-            params.DateEnd    = params.TargetDate ? moment(params.DateStart).add(11, 'months').format("YYYYMMDD") : null;
             params.BushoArray = vue.BushoCdArray;//部署コードのみ渡す
 
             //コースはフィルタするので除外
             delete params.CourseCd;
+            delete params.CustomerCd;
 
             grid.searchData(params, false, null, callback);
         },
@@ -460,42 +439,40 @@ export default {
             if (!grid) return;
 
             var rules = [];
-            var crules = [];
             if (vue.viewModel.CourseCd != undefined && vue.viewModel.CourseCd != "") {
-                crules.push({ condition: "equal", value: vue.viewModel.CourseCd});
+                var crules_Course = [];
+                crules_Course.push({ condition: "equal", value: vue.viewModel.CourseCd});
+                if (crules_Course.length) {
+                    rules.push({ dataIndx: "コースＣＤ", mode: "AND", crules: crules_Course });
+                }
             }
-            if (crules.length) {
-                rules.push({ dataIndx: "コースＣＤ", mode: "AND", crules: crules });
+            if (vue.viewModel.CustomerCd != undefined && vue.viewModel.CustomerCd != "") {
+                var crules_Customer = [];
+                crules_Customer.push({ condition: "equal", value: vue.viewModel.CustomerCd});
+                if (crules_Customer.length) {
+                    rules.push({ dataIndx: "得意先ＣＤ", mode: "AND", crules: crules_Customer });
+                }
             }
-
             grid.filter({ oper: "replace", mode: "AND", rules: rules });
         },
         onAfterSearchFunc: function (vue, grid, res) {
             var vue = this;
-
-            //集計
-            /*
-            var groupings = _(res)
-                .groupBy(v => [v.部署ＣＤ,v.コースＣＤ])
-                .values()
-                .value()
-                .map(r => {
-                    var ret = _.reduce(
-                            _.sortBy(r, ["部署ＣＤ"]),
-                            (acc, v, j) => {
-                                acc = _.isEmpty(acc) ? v : acc;
-                                acc["金額_" + v.売上データ明細月] = (acc["金額_" + v.売上データ明細月] || 0) + v.合計金額 * 1;
-                                acc["合計"] = (acc["合計"] || 0) + v.合計金額 * 1;
-                                return acc;
-                            },
-                            {}
-                    );
-                    ret.GroupKey1 = ret.部署ＣＤ + " " + ret.部署名;
-                    return ret;
-                })
+            var groupings = res[0].CourseData.map(r => {
+                    var priceData = res[0].PriceData.filter(k => k.部署ＣＤ==r.部署ＣＤ && k.コースＣＤ==r.コースＣＤ && k.得意先ＣＤ==r.得意先ＣＤ);
+                    _.chunk(priceData,5)
+                        .map(pr => {
+                            var i=1;
+                            pr.map(cr => {
+                                r["商品_" + i] = r["商品_" + i]==undefined ? cr.表示商品名 : r["商品_" + i] + "\n" + cr.表示商品名;
+                                r["単価_" + i ]= r["単価_" + i]==undefined ? cr.単価:r["単価_" + i ] + "\n" + cr.単価;
+                                i++;
+                            });
+                        });
+                    r.部署=r.部署ＣＤ + " " + r.部署名;
+                    r.コース=r.コースＣＤ + " " + r.コース名;
+                    return r;
+                });
             return groupings;
-            */
-            return res;
         },
         CustomerAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
@@ -632,8 +609,8 @@ export default {
                 }
             `;
             var headerFunc = (header, idx, length) => {
-                var BushoCd = header.GroupKey1.split(" ")[0];
-                var BushoNm = header.GroupKey1.split(" ")[1];
+                var BushoCd = header.部署.split(" ")[0];
+                var BushoNm = header.部署.split(" ")[1];
                 return `
                     <div class="title">
                         <h3><div class="report-title-area">＊＊＊　コース別売上推移表　＊＊＊
