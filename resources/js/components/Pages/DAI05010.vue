@@ -609,11 +609,29 @@ export default {
                 }
             `;
             var headerFunc = (header, idx, length) => {
-                var BushoCd = header.部署.split(" ")[0];
-                var BushoNm = header.部署.split(" ")[1];
+                var BushoCd = "";
+                var BushoNm = "";
+                var CourseCd="";
+                var CourseNm="";
+                var TantoCd="";
+                var TantoNm="";
+                if(header.pq_level==0)
+                {
+                    BushoCd = header.部署.split(" ")[0];
+                    BushoNm = header.部署.split(" ")[1];
+                    CourseCd= header.children[0].コース.split(" ")[0];
+                    CourseNm= header.children[0].コース.split(" ")[1];
+                }else{
+                    BushoCd = header.parentId.split(" ")[0];
+                    BushoNm = header.parentId.split(" ")[1];
+                    CourseCd= header.コース.split(" ")[0];
+                    CourseNm= header.コース.split(" ")[1];
+                }
+                TantoCd = vue.DAI05010Grid1.pdata.find(v => v.部署ＣＤ==BushoCd && v.コースＣＤ==CourseCd).担当者ＣＤ;
+                TantoNm = vue.DAI05010Grid1.pdata.find(v => v.部署ＣＤ==BushoCd && v.コースＣＤ==CourseCd).担当者名;
                 return `
                     <div class="title">
-                        <h3><div class="report-title-area">＊＊＊　コース別売上推移表　＊＊＊
+                        <h3><div class="report-title-area">＊＊＊　得意先単価表　＊＊＊
                     <div></h3>
                     </div>
                     <table class="header-table" style="border-width: 0px">
@@ -622,6 +640,15 @@ export default {
                                 <th style="width:  5%;">部署</th>
                                 <th style="width:  5%; text-align: right;">${BushoCd}</th>
                                 <th style="width: 18%;">${BushoNm}</th>
+                                <th colspan="8" class="blank-cell"></th>
+                            </tr>
+                            <tr>
+                                <th style="width:  5%;">コース</th>
+                                <th style="width:  5%; text-align: right;">${CourseCd}</th>
+                                <th style="width: 18%;">${CourseNm}</th>
+                                <th style="width:  5%;">担当者</th>
+                                <th style="width:  5%; text-align: right;">${TantoCd}</th>
+                                <th style="width: 18%;">${TantoNm}</th>
                                 <th style="width:  5%;" class="blank-cell"></th>
                                 <th>作成日</th>
                                 <th style="text-align: right;">${moment().format("YYYY年MM月DD日")}</th>
@@ -651,9 +678,9 @@ export default {
                             vue.DAI05010Grid1.generateHtml(
                                 styleCustomers,
                                 headerFunc,
-                                32,
+                                29,
                                 false,
-                                true,
+                                false,
                                 true,
                             )
                         )
