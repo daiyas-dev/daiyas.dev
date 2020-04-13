@@ -2446,7 +2446,7 @@ export default {
                         }
                     });
 
-                    var ret = grid.restructTable(pdata, tableBodies, tableHeaders, styles, header, maxRowsPerPage, isShowGroupRow, isShowGroupSummaryRow, isGroupPageBreak, isShowGrandSummaryRow, bodyWrapper, headerWrapper);
+                    var ret = grid.restructTable(pdata, tableBodies, tableHeaders, styles, header, maxRowsPerPage, isShowGroupRow, isShowGroupSummaryRow, isGroupPageBreak, isShowGrandSummaryRow, bodyWrapper, headerWrapper, table);
 
                     grid.options.colModel = colModel;
                     grid.refreshCM();
@@ -2455,7 +2455,7 @@ export default {
                     return ret;
                 };
 
-                this.grid.restructTable = function(pdata, tableBodies, tableHeaders, styles, header, maxRowsPerPage, isShowGroupRow, isShowGroupSummaryRow, isGroupPageBreak, isShowGrandSummaryRow, bodyWrapper, headerWrapper) {
+                this.grid.restructTable = function(pdata, tableBodies, tableHeaders, styles, header, maxRowsPerPage, isShowGroupRow, isShowGroupSummaryRow, isGroupPageBreak, isShowGrandSummaryRow, bodyWrapper, headerWrapper, table) {
                     var grid = this;
                     var ret = "";
 
