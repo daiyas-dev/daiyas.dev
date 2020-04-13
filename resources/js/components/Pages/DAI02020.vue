@@ -1173,12 +1173,29 @@ export default {
                                     table.DAI02020Grid1 tr td:last-child {
                                         border-right-width: 1px;
                                     }
+                                    table.DAI02020Grid1 tr.group-summary td:nth-child(2),
+                                    table.DAI02020Grid1 tr.group-summary td:nth-child(3),
+                                    table.DAI02020Grid1 tr.group-summary td:nth-child(4),
+                                    table.DAI02020Grid1 tr.group-summary td:nth-child(5),
+                                    table.DAI02020Grid1 tr.group-summary td:nth-child(6) {
+                                        border-left-width: 0px;
+                                    }
+                                    table.DAI02020Grid1 tr.grand-summary td:nth-child(2),
+                                    table.DAI02020Grid1 tr.grand-summary td:nth-child(3),
+                                    table.DAI02020Grid1 tr.grand-summary td:nth-child(4),
+                                    table.DAI02020Grid1 tr.grand-summary td:nth-child(5),
+                                    table.DAI02020Grid1 tr.grand-summary td:nth-child(6) {
+                                        border-left-width: 0px;
+                                    }
                                 `,
                                 headerFunc,
                                 32,
-                                [false, false],
-                                [true, true],
-                                [true, true],
+                                !!keys.length ?  keys.map(v => false) : null, //[false, false],
+                                [true, true],　//確認中（日締コース順の際、コース計をだしたい）
+                                // !!keys.length ?  keys.map(v => false) : null, //[true, true],
+                                // 月締コース順：!!keys.length ?  keys.map(v => [v]=="コース") : null,
+                                !!keys.length ?  keys.map(v => true) : null, //[true, true],
+                                //TODO:西山確認中
                             )
                         )
                 )
