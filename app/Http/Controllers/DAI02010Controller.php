@@ -77,6 +77,7 @@ class DAI02010Controller extends Controller
         try {
             $this->DeleteSeikyu($request);
             $this->InsertSeikyu($request);
+            $this->UpdateSeikyuNo($request);
             $this->UpdateUriage($request);
             $this->UpdateNyukin($request);
 
@@ -233,9 +234,14 @@ class DAI02010Controller extends Controller
      */
     public function SelectCustomerList($vm)
     {
+        $SimeKbn = $vm->SimeKbn;
+        $SimeDate = $vm->SimeDate;
         $BushoCd = $vm->BushoCd;
         $TargetDateMax = $vm->TargetDateMax;
         $CustomerList = is_array($vm->CustomerList) ? implode(",", $vm->CustomerList) : $vm->CustomerList;
+        $WhereSimeDate = $SimeKbn == 2
+            ? "AND (締日１= $SimeDate OR 締日２ = $SimeDate)"
+            : "";
 
         $sql = "
         WITH 更新前データ1 AS
@@ -252,7 +258,7 @@ class DAI02010Controller extends Controller
             ,T1.集金区分
             ,T1.税区分
             ,T1.部署ＣＤ
-            ,B1.請求先ＣＤ
+            ,T1.請求先ＣＤ
             ,B1.今回入金額
             ,B1.今回売上額
             ,B1.消費税額
@@ -264,14 +270,21 @@ class DAI02010Controller extends Controller
             ,CASE WHEN B1.請求先ＣＤ IS NULL THEN DATEADD(DAY, 1, DATEADD(MONTH, -1, '$TargetDateMax')) ELSE DATEADD(DAY, 1, B1.請求日付) END AS 請求日付
             ,CASE WHEN B1.請求先ＣＤ IS NOT NULL THEN ISNULL(B1.今回入金額, 0) ELSE 0 END AS num9
             ,CASE WHEN B1.請求先ＣＤ IS NOT NULL THEN ISNULL(B1.今回請求額, 0) ELSE 0 END AS num10
-            --,U1.得意先ＣＤ
         FROM
-            得意先マスタ T1
-
+            (
+            SELECT
+                *
+            FROM
+                得意先マスタ
+			WHERE
+                請求先ＣＤ IN ($CustomerList)
+            AND 締区分 IN ($SimeKbn)
+            $WhereSimeDate
+            ) T1
         --◆請求データ取得
         LEFT JOIN 請求データ B1 ON
             B1.部署ＣＤ = T1.部署ＣＤ
-        AND B1.請求先ＣＤ = T1.請求先ＣＤ
+        AND B1.請求先ＣＤ = T1.得意先ＣＤ
         AND B1.請求日付 =
             (
             SELECT
@@ -282,12 +295,10 @@ class DAI02010Controller extends Controller
                 DAMMY.請求先ＣＤ = B1.請求先ＣＤ
             AND DAMMY.請求日付 < '$TargetDateMax'
             )
-        WHERE
-            T1.請求先ＣＤ IN ($CustomerList)
         ),
 
 		売上データ明細_集計 AS (
-		SELECT U1.*
+		SELECT K1.請求先ＣＤ, U1.*
 		FROM
 		    更新前データ1 K1
         --◆売上データ明細取得
@@ -302,7 +313,8 @@ class DAI02010Controller extends Controller
                 ,SUM(掛売個数) AS 掛売個数
                 ,SUM(掛売金額) AS 掛売金額
                 ,SUM(掛売値引) AS 掛売値引
-            FROM 売上データ明細
+            FROM
+				売上データ明細
             WHERE
                 (売掛現金区分 = 1)
             AND 部署ＣＤ = $BushoCd
@@ -314,7 +326,7 @@ class DAI02010Controller extends Controller
 
 		入金データ_集計 AS (
 		--◆入金データ取得
-		SELECT N1.*
+		SELECT K1.請求先ＣＤ, N1.*
 		FROM
 		    更新前データ1 K1
         LEFT JOIN
@@ -343,46 +355,67 @@ class DAI02010Controller extends Controller
         SELECT
              請求日付
             ,部署ＣＤ
-            ,請求先ＣＤ
+            ,K1.請求先ＣＤ
             ,K1.得意先ＣＤ
             ,今回入金額
             ,今回売上額
             ,消費税額
             ,今回請求額
-            ,回収予定日
+            ,支払日
+			,締日１
+			,締日２
+			,支払サイト
             ,税区分
-            ,CASE WHEN (num1 != 0 AND num9 != 0) THEN CASE WHEN (num1 > num9) THEN num1 - num9 ELSE 0 END ELSE num1 END AS num1
+            ,ISNULL(U1.現金個数, 0) AS 現金個数
+            ,ISNULL(U1.現金金額, 0) AS 現金金額
+            ,ISNULL(U1.現金値引, 0) AS 現金値引
+            ,ISNULL(U1.掛売個数, 0) AS 掛売個数
+            ,ISNULL(U1.掛売金額, 0) AS 掛売金額
+            ,ISNULL(U1.掛売値引, 0) AS 掛売値引
+			,ISNULL(U2.掛売金額合計, 0) AS 掛売金額合計
+            ,ISNULL(N1.現金, 0) AS 現金
+			,ISNULL(N1.小切手, 0) AS 小切手
+			,ISNULL(N1.振込, 0) AS 振込
+			,ISNULL(N1.その他, 0) AS その他
+			,ISNULL(N1.バークレー, 0) AS バークレー
+			,ISNULL(N1.相殺, 0) AS 相殺
+			,ISNULL(N1.値引, 0) AS 値引
+			,num1
 			,num2
-            ,num10 AS num3
-            ,U1.現金個数
-            ,U1.現金金額
-            ,U1.現金値引
-            ,U1.掛売個数
-            ,U1.掛売金額
-            ,U1.掛売値引
-            ,CASE WHEN U1.得意先ＣＤ IS NOT NULL THEN ISNULL(U1.掛売金額 - U1.掛売値引, 0) ELSE 0 END AS num5
-            ,CASE WHEN U1.得意先ＣＤ IS NOT NULL THEN ISNULL(N1.現金 + N1.小切手 + N1.振込 + N1.その他 + N1.バークレー + N1.相殺 + N1.値引, 0) ELSE 0 END AS num4
-            ,num8
-            ,CASE WHEN (num1 != 0 AND num9 != 0) THEN CASE WHEN (num1 > num9) THEN 0 ELSE num9 - num1 END ELSE num9 END AS num9
-            ,num10
+			,num8
+			,num9
+			,num10
         FROM
             更新前データ1 K1
         --◆売上データ明細取得
         LEFT JOIN
             (
             SELECT
-                 得意先ＣＤ
-                ,SUM(現金個数) AS 現金個数
-                ,SUM(現金金額) AS 現金金額
-                ,SUM(現金値引) AS 現金値引
-                ,SUM(掛売個数) AS 掛売個数
-                ,SUM(掛売金額) AS 掛売金額
-                ,SUM(掛売値引) AS 掛売値引
+                得意先ＣＤ,
+                SUM(現金個数) AS 現金個数,
+                SUM(現金金額) AS 現金金額,
+                SUM(現金値引) AS 現金値引,
+                SUM(掛売個数) AS 掛売個数,
+                SUM(掛売金額) AS 掛売金額,
+                SUM(掛売値引) AS 掛売値引
             FROM
 				売上データ明細_集計
-            GROUP BY 得意先ＣＤ
+            GROUP BY
+                得意先ＣＤ
             ) U1 ON
                 U1.得意先ＣＤ = K1.得意先ＣＤ
+        --◆売上データ明細合計取得
+        LEFT JOIN
+            (
+            SELECT
+                請求先ＣＤ,
+                SUM(ISNULL(掛売金額, 0)) AS 掛売金額合計
+            FROM
+                売上データ明細_集計
+            GROUP BY
+                請求先ＣＤ
+            ) U2 ON
+                U2.請求先ＣＤ = K1.請求先ＣＤ
         --◆入金データ取得
         LEFT JOIN
             (
@@ -414,16 +447,17 @@ class DAI02010Controller extends Controller
             ,今回売上額
             ,消費税額
             ,今回請求額
-            ,回収予定日
-            ,num1
-            ,CASE WHEN (num2 != 0 AND num9 != 0) THEN CASE WHEN (num2 > num9) THEN num2 - num9 ELSE 0 END ELSE num2 END AS num2
-            ,CASE WHEN (num1 != 0) THEN num10 ELSE num3 END AS num3
-            ,num4
-            ,num5
-            ,CASE WHEN (税区分 = '0' AND num5 != 0) THEN num5 * 8 / 100 ELSE 0 END AS num6
+            ,支払日
+            ,CASE WHEN (締日１ = 99 OR 締日２ = 99) THEN DATEADD(MONTH, 支払サイト, '$TargetDateMax') ELSE '$TargetDateMax' END AS 回収予定日
+            ,税区分
+            ,CASE WHEN (num1 != 0 AND num9 != 0) THEN CASE WHEN (num1 > num9) THEN num1 - num9 ELSE 0 END ELSE num1 END AS num1
+			,num2
+            ,num10 AS num3
+			,CASE WHEN 得意先ＣＤ IS NOT NULL THEN CASE WHEN (請求先ＣＤ = 得意先ＣＤ) THEN 掛売金額合計 - 掛売値引 ELSE 掛売金額 - 掛売値引 END END AS num5
+            ,CASE WHEN 得意先ＣＤ IS NOT NULL THEN ISNULL(現金 + 小切手 + 振込 + その他 + バークレー + 相殺 + 値引, 0) ELSE 0 END AS num4
             ,num8
-            ,CASE WHEN (num2 != 0 AND num9 != 0) THEN CASE WHEN (num2 > num9) THEN 0 ELSE num9 - num2 END ELSE num9 END AS num9
-            ,CASE WHEN (num1 != 0) THEN num10 - num1 ELSE 0 END AS num10
+            ,CASE WHEN (num1 != 0 AND num9 != 0) THEN CASE WHEN (num1 > num9) THEN 0 ELSE num9 - num1 END ELSE num9 END AS num9
+            ,num10 -- - 掛売値引
         FROM
             更新前データ2
         ),
@@ -432,9 +466,60 @@ class DAI02010Controller extends Controller
         (
         SELECT
              請求日付
-            ,得意先ＣＤ
             ,部署ＣＤ
             ,請求先ＣＤ
+            ,得意先ＣＤ
+            ,今回入金額
+            ,今回売上額
+            ,消費税額
+            ,今回請求額
+            ,CASE WHEN (支払日 = 99) THEN EOMONTH(回収予定日) ELSE DATEADD(DAY, 支払日, EOMONTH(DATEADD(MONTH, -1, 回収予定日))) END AS 回収予定日
+            ,num1
+            ,CASE WHEN (num2 != 0 AND num9 != 0) THEN CASE WHEN (num2 > num9) THEN num2 - num9 ELSE 0 END ELSE num2 END AS num2
+			,num3
+            ,num4
+            ,num5
+            ,CASE WHEN (税区分 = '0' AND num5 != 0) THEN num5 * 8 / 100 ELSE 0 END AS num6
+            ,num8
+            ,CASE WHEN (num2 != 0 AND num9 != 0) THEN CASE WHEN (num2 > num9) THEN 0 ELSE num9 - num2 END ELSE num9 END AS num9
+            ,CASE WHEN (num1 != 0) THEN num10 - num1 ELSE num10 END AS num10
+        FROM
+            更新前データ3
+        ),
+
+        更新前データ5 AS
+        (
+        SELECT
+             請求日付
+            ,部署ＣＤ
+            ,請求先ＣＤ
+            ,得意先ＣＤ
+            ,今回入金額
+            ,今回売上額
+            ,消費税額
+            ,今回請求額
+            ,回収予定日
+            ,num1
+            ,num2
+            ,CASE WHEN (num1 != 0) THEN num10 ELSE num3 END AS num3
+            ,num4
+            ,num5
+            ,num6
+            ,CASE WHEN (num8 != 0 AND num9 != 0) AND (num8 <= num9) THEN num8 - num9 ELSE 0 END AS num7
+            ,CASE WHEN NOT(ISNULL(請求先ＣＤ, 0) != 0 AND 請求先ＣＤ != 得意先ＣＤ) THEN num8 ELSE num1 + num2 + num3 - num4 - 今回入金額 END AS num8
+            ,num9
+            ,num10
+        FROM
+            更新前データ4
+        ),
+
+        更新前データ6 AS
+        (
+        SELECT
+             請求日付
+            ,部署ＣＤ
+            ,請求先ＣＤ
+            ,得意先ＣＤ
             ,今回入金額
             ,今回売上額
             ,消費税額
@@ -446,21 +531,22 @@ class DAI02010Controller extends Controller
             ,num4
             ,num5
             ,num6
-            ,CASE WHEN (num8 != 0 AND num9 != 0) AND (num8 <= num9) THEN num8 - num9 ELSE 0 END AS num7
-            ,CASE WHEN NOT(請求先ＣＤ != 0 AND 請求先ＣＤ != 得意先ＣＤ) THEN num8 ELSE num1 + num2 + num3 - num4 - 今回入金額 END AS num8
-            ,num9
+            ,num7
+            ,num8
+            ,CASE WHEN NOT(ISNULL(請求先ＣＤ, 0) != 0 AND 請求先ＣＤ != 得意先ＣＤ) THEN num9 ELSE num8 + num5 + num6 + 今回売上額 + 消費税額 END AS num9
             ,num10
         FROM
-            更新前データ3
+            更新前データ5
         ),
 
-        更新前データ5 AS
+        更新前データ7 AS
         (
-        SELECT
-             請求日付
-            ,得意先ＣＤ
+		SELECT
+             CASE WHEN (num1 != 0 OR num2 != 0 OR (num3 != 0 OR num5 != 0) OR num4 != 0) THEN DENSE_RANK() OVER(ORDER BY 請求先ＣＤ) END AS 請求SEQ
+            ,請求日付
             ,部署ＣＤ
             ,請求先ＣＤ
+            ,得意先ＣＤ
             ,今回入金額
             ,今回売上額
             ,消費税額
@@ -474,21 +560,22 @@ class DAI02010Controller extends Controller
             ,num6
             ,num7
             ,num8
-            ,CASE WHEN NOT(請求先ＣＤ != 0 AND 請求先ＣＤ != 得意先ＣＤ) THEN num9 ELSE num8 + num5 + num6 + 今回売上額 + 消費税額 END AS num9
+            ,num9
             ,num10
             ,num1 + num2 + num3 - num4 - CASE WHEN 請求先ＣＤ IS NOT NULL AND 請求日付 = '$TargetDateMax' THEN 今回入金額 ELSE 0 END AS num11
             ,num1 + num2 + num3 - num4 AS num13
         FROM
-            更新前データ4
+            更新前データ6
         ),
 
         更新データ AS
         (
 		SELECT
-             請求日付
-            ,得意先ＣＤ
+             請求SEQ
+            ,請求日付
             ,部署ＣＤ
             ,請求先ＣＤ
+            ,得意先ＣＤ
             ,今回入金額
             ,今回売上額
             ,消費税額
@@ -506,10 +593,12 @@ class DAI02010Controller extends Controller
             ,num10
             ,num11
             ,num11 + num5 + num6 AS num12
-            ,CASE WHEN NOT(請求先ＣＤ != 0 AND 請求先ＣＤ != 得意先ＣＤ) THEN 0 ELSE num13 END AS num13
-            ,CASE WHEN NOT(請求先ＣＤ != 0 AND 請求先ＣＤ != 得意先ＣＤ) THEN 0 ELSE num13 + num5 END AS num14
+            ,CASE WHEN NOT(ISNULL(請求先ＣＤ, 0) != 0 AND 請求先ＣＤ != 得意先ＣＤ) THEN 0 ELSE num13 END AS num13
+            ,CASE WHEN NOT(ISNULL(請求先ＣＤ, 0) != 0 AND 請求先ＣＤ != 得意先ＣＤ) THEN 0 ELSE num13 + num5 END AS num14
         FROM
-            更新前データ5
+            更新前データ7
+        WHERE
+            請求先ＣＤ IS NOT NULL
         )
         ";
 
@@ -536,17 +625,26 @@ class DAI02010Controller extends Controller
      */
     public function DeleteSeikyu($vm)
     {
+        $SimeKbn = $vm->SimeKbn;
+        $SimeDate = $vm->SimeDate;
         $BushoCd = $vm->BushoCd;
         $TargetDateMax = $vm->TargetDateMax;
         $CustomerList = is_array($vm->CustomerList) ? implode(",", $vm->CustomerList) : $vm->CustomerList;
 
         $sql = "
-        DELETE 請求データ
+        DELETE FROM 請求データ
         WHERE
             請求日付 = '$TargetDateMax'
-        AND 部署ＣＤ = $BushoCd
-        AND 請求先ＣＤ IN ($CustomerList)
-        ";
+        AND 請求先ＣＤ IN (
+            SELECT
+                得意先ＣＤ
+            FROM
+                得意先マスタ
+            WHERE
+                締区分 IN ($SimeKbn)
+            AND (締日１= $SimeDate OR 締日２ = $SimeDate)
+            AND 請求先ＣＤ IN ($CustomerList)
+        )";
 
         $dsn = 'sqlsrv:server=localhost;database=daiyas';
         $user = 'daiyas';
@@ -554,10 +652,10 @@ class DAI02010Controller extends Controller
 
         $pdo = new PDO($dsn, $user, $password);
         $stmt = $pdo->query($sql);
-        //$DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $pdo = null;
 
-        //DB::delete($sql);
+        // DB::delete($sql);
     }
 
     /**
@@ -695,38 +793,29 @@ class DAI02010Controller extends Controller
         SELECT
 			 '$TargetDateMax' AS 請求日付
             ,部署ＣＤ
-            ,CASE WHEN NOT(請求先ＣＤ != 0 AND 請求先ＣＤ != 得意先ＣＤ) THEN 得意先ＣＤ ELSE 請求先ＣＤ END AS 請求先ＣＤ
-            ,U1.num1 AS [３回前残高]
+            ,CASE WHEN NOT(ISNULL(請求先ＣＤ, 0) != 0 AND 請求先ＣＤ != 得意先ＣＤ) THEN 請求先ＣＤ ELSE 得意先ＣＤ END AS 請求先ＣＤ
+            ,num1 AS [３回前残高]
             ,num2 AS 前々回残高
             ,num3 AS 前回残高
             ,num4 AS 今回入金額
-            ,CASE WHEN NOT(請求先ＣＤ != 0 AND 請求先ＣＤ != 得意先ＣＤ) THEN num11 ELSE num13 END AS 差引繰越額
+            ,CASE WHEN NOT(ISNULL(請求先ＣＤ, 0) != 0 AND 請求先ＣＤ != 得意先ＣＤ) THEN num11 ELSE num13 END AS 差引繰越額
             ,num5 AS 今回売上額
             ,num6 AS 消費税額
-            ,CASE WHEN NOT(請求先ＣＤ != 0 AND 請求先ＣＤ != 得意先ＣＤ) THEN num12 ELSE num14 END AS 今回請求額
+            ,CASE WHEN NOT(ISNULL(請求先ＣＤ, 0) != 0 AND 請求先ＣＤ != 得意先ＣＤ) THEN num12 ELSE num14 END AS 今回請求額
             ,FORMAT(請求日付, 'yyyyMMdd') AS 請求日範囲開始
             ,'$TargetDateMax' AS 請求日範囲終了
-            ,ROW_NUMBER() OVER(ORDER BY 請求日付, 部署ＣＤ, 請求先ＣＤ) + (Select 請求番号１ + 1 From 請求番号管理 WHERE 請求管理No = 1) AS 予備金額１
+            ,CASE WHEN 請求SEQ IS NOT NULL THEN DENSE_RANK() OVER(ORDER BY 請求SEQ) + (Select 請求番号１ From 請求番号管理 WHERE 請求管理No = 1) - (CASE WHEN (FIRST_VALUE(請求SEQ) OVER (ORDER BY 請求SEQ ASC) IS NULL) THEN 1 ELSE 0 END) ELSE 0 END AS 予備金額１
             ,0 AS 予備金額２
             ,回収予定日
             ,0 AS 予備ＣＤ１
             ,0 AS 予備ＣＤ２
-            ,'' AS 修正担当者ＣＤ
+            ,'1' AS 修正担当者ＣＤ
             ,'$date' AS 修正日
-		FROM 更新データ U1
-        WHERE
-			NOT EXISTS
-        (
-        SELECT *
         FROM
-            請求データ B1
-        WHERE
-            B1.請求先ＣＤ = U1.請求先ＣＤ
-        AND B1.請求日付 = U1.請求日付
-        AND B1.請求先ＣＤ IN ($CustomerList)
-        )";
+            更新データ U1
+        ";
 
-        //var_export($sql);
+        // var_export($sql);
 
         $dsn = 'sqlsrv:server=localhost;database=daiyas';
         $user = 'daiyas';
@@ -810,6 +899,32 @@ class DAI02010Controller extends Controller
         AND N1.部署ＣＤ = $BushoCd
         AND N1.得意先ＣＤ IN ($CustomerList)
         AND N1.請求日付 = ''
+        ";
+
+        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        //$DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = null;
+        // DB::update($sql);
+    }
+
+    /**
+     * UpdateSeikyuNo
+     */
+    public function UpdateSeikyuNo($vm)
+    {
+        $TargetDateMax = $vm->TargetDateMax;
+        $SelectData = $this->SelectCustomerList($vm);
+
+        $sql = "
+        $SelectData
+        UPDATE 請求番号管理
+        SET 請求番号１ = 請求番号１ + (SELECT MAX(ISNULL(請求SEQ, 0)) FROM 更新データ)
+        WHERE 請求管理No = 1
         ";
 
         $dsn = 'sqlsrv:server=localhost;database=daiyas';

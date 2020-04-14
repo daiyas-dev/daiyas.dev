@@ -281,6 +281,7 @@ export default {
                 TargetDate: null,
                 TargetDateMax: null,
                 SimeDate: 0,
+                LastSimeDate: null,
                 CourseCd: null,
                 CourseNm: null,
                 CustomerCd: null,
@@ -646,16 +647,6 @@ export default {
             vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
             vue.viewModel.TargetDateMax = moment().format("YYYY年MM月DD日");
 
-            // //watcher
-            // vue.$watch(
-            //     "$refs.DAI02010Grid1.selectionRowCount",
-            //     cnt => {
-            //         vue.footerButtons.find(v => v.id == "DAI02010Grid1_Detail").disabled = cnt == 0 || cnt > 1;
-            //         vue.footerButtons.find(v => v.id == "DAI02010Grid1_Uriage").disabled = cnt == 0 || cnt > 1;
-            //         vue.footerButtons.find(v => v.id == "DAI02010Grid1_Nyukin").disabled = cnt == 0 || cnt > 1;
-            //     }
-            // );
-
             //初期フィルタ
             vue.filterChanged();
         },
@@ -671,8 +662,9 @@ export default {
             axios.post("/DAI02010/LastSimeDateSearch", { BushoCd:vue.viewModel.BushoCd, SimeKbn:vue.viewModel.SimeKbn, timestamp:tc})
                 .then(response => {
                     var res = _.cloneDeep(response.data);
-                    window.resdt=_.cloneDeep(res);//TODO:
-                    vue.viewModel.LastSimeDate=moment(res.日付).format("YYYY年MM月DD日");
+                    window.resdt=_.cloneDeep(res);
+                    vue.viewModel.LastSimeDate=moment(res.請求日付).format("YYYY年MM月DD日");
+                    console.log("",vue.viewModel.LastSimeDate);
                 })
             .catch(error => {
                 console.log(error);
@@ -867,11 +859,12 @@ export default {
         onAfterSearchFunc: function (grieVue, grid, res) {
             var vue = this;
 
+            //最終締日
+            vue.showLastSimeDate();
+
             vue.footerButtons.find(v => v.id == "DAI02010Grid1_CSV").disabled = !res.length;
             vue.footerButtons.find(v => v.id == "DAI02010Grid1_Excel").disabled = !res.length;
             vue.footerButtons.find(v => v.id == "DAI02010Grid1_Print").disabled = !res.length;
-
-            vue.showLastSimeDate();
 
             return res;
         },
