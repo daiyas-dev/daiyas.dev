@@ -53,6 +53,7 @@
                     ref="PopupSelect_User"
                     :vmodel=viewModel
                     bind="TantoCd"
+                    :buddies='{ TantoNm: "担当者名" }'
                     dataUrl="/Utilities/GetTantoList"
                     :isPreload=true
                     title="担当者一覧"
@@ -67,6 +68,7 @@
                     :inputWidth=75
                     :nameWidth=150
                     :isShowAutoComplete=true
+                    :AutoCompleteFunc=TantoAutoCompleteFunc
                 />
             </div>
         </div>
@@ -260,6 +262,15 @@ export default {
                 vue.footerButtons.find(v => v.id == "DAI01110_Delete").disabled = !newVal;
             },
         },
+        "viewModel.CourseCd": {
+            handler: function(newVal) {
+                var vue = this;
+                if(!!newVal){
+                    var cd = DAI01110.$refs.PopupSelect_Course.selectRow.担当者ＣＤ;
+                    DAI01110.$refs.PopupSelect_User.setSelectValue(cd);
+                }
+            },
+        },
     },
     data() {
         var vue = this;
@@ -275,6 +286,7 @@ export default {
                 IsSaved: false,
                 LastEditor: null,
                 LastEditDate: null,
+                TantoCd: null,
             },
             CheckInterVal: null,
             ProductList: [],
@@ -1252,7 +1264,7 @@ export default {
                 ],
                 colModel: [
                     {
-                        title: "チケット",
+                        title: "バークレーヴァウチャーズチケット(弁当用)",
                         colModel: [
                             {
                                 title: "単価",
@@ -1416,6 +1428,42 @@ export default {
                     ret.label = v.コースＣＤ + " : " + v.コース名 + "【" + v.担当者名 + "】";
                     ret.value = v.コースＣＤ;
                     ret.text = v.コース名;
+                    return ret;
+                })
+                ;
+
+            return list;
+        },
+        TantoAutoCompleteFunc: function(input, dataList, comp) {
+            var vue = this;
+
+            if (!dataList.length) return [];
+
+            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
+            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
+
+            var wholeColumns = ["担当者名", "部署.部署名", "担当者名カナ"];
+
+            if ((input == comp.selectValue && comp.isUnique) || comp.isError) {
+                keyAND = keyOR = [];
+            }
+
+            var list = dataList
+                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
+                .filter(v => {
+                    return keyOR.length == 0
+                        || _.some(keyOR, k => v.担当者ＣＤ.startsWith(k))
+                        || _.some(keyOR, k => v.whole.includes(k))
+                })
+                .filter(v => {
+                    return keyAND.length == 0 || _.every(keyAND, k => v.whole.includes(k));
+                })
+                .map(v => {
+                    var ret = v;
+                    ret.label = v.担当者ＣＤ + " : " + v.担当者名 + "【" + (!!v.部署 ? v.部署.部署名 : "部署無し") + "】";
+                    ret.value = v.担当者ＣＤ;
+                    ret.text = v.担当者名;
                     return ret;
                 })
                 ;
@@ -1971,17 +2019,17 @@ export default {
                     </colgroup>
                     <thead>
                         <tr>
-                            <th colspan="12" style="border-top-width: 0px; border-left-width: 0px;"></th>
+                            <th colspan="11" style="border-top-width: 0px; border-left-width: 0px;"></th>
                             <th colspan="2">作成日</th>
-                            <th colspan="2">${moment().format("YYYY年MM月DD日")}</th>
+                            <th colspan="3">${moment().format("YYYY年MM月DD日")}</th>
                             <th>PAGE</th>
-                            <th>1</th>
+                            <th>1/1</th>
                         </tr>
                         <tr>
                             <th>日付</th>
                             <th colspan="5">${vue.viewModel.TargetDate}</th>
-                            <th colspan="6" style="border-top-width: 0px !important;"></th>
-                            <th>コース</th>
+                            <th colspan="5" style="border-top-width: 0px !important;"></th>
+                            <th colspan="2">コース</th>
                             <th>${vue.viewModel.CourseCd}</th>
                             <th colspan="4">${vue.viewModel.CourseNm}</th>
                         </tr>
@@ -1989,8 +2037,8 @@ export default {
                             <th>部署</th>
                             <th>${vue.viewModel.BushoCd}</th>
                             <th colspan="4">${vue.viewModel.BushoNm}</th>
-                            <th colspan="6" style="border-top-width: 0px !important;"></th>
-                            <th>担当者</th>
+                            <th colspan="5" style="border-top-width: 0px !important;"></th>
+                            <th colspan="2">担当者</th>
                             <th>${vue.viewModel.TantoCd}</th>
                             <th colspan="4">${vue.viewModel.TantoNm}</th>
                         </tr>
@@ -2066,7 +2114,28 @@ export default {
                             )
                         )
                         .append(vue.getGridHtml(vue.DAI01110GridSummary))
-                )
+                        .append(vue.getGridHtml(
+                            vue.DAI01110GridTicket,
+                                `
+                                    div table.DAI01110GridTicket {
+                                        width: 49.5%;
+                                        float: left;
+                                        margin-right: 5px;
+                                    }
+                                `
+                            )
+                        )
+                        .append(vue.getGridHtml(
+                            vue.DAI01110GridBV,
+                                `
+                                    div table.DAI01110GridBV {
+                                        width: 49.5%;
+                                        float: left;
+                                    }
+                                `
+                            )
+                        )
+                    )
                 .prop("outerHTML")
                 ;
 

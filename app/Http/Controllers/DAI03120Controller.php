@@ -17,12 +17,11 @@ class DAI03120Controller extends Controller
         $DateStart = $vm->DateStart;
         $DateEnd = $vm->DateEnd;
 
-        $BushoArray = $vm->BushoArray;
+        $BushoCd = $vm->BushoCd;
         $WhereBusho1="";
-        if($BushoArray !=null && is_array($BushoArray) && 0<count($BushoArray))
+        if($BushoCd != null)
         {
-            $BushoList = implode(',',$BushoArray);
-            $WhereBusho1=" AND URI.部署ＣＤ IN( $BushoList )";
+            $WhereBusho1=" AND URI.部署ＣＤ = $BushoCd";
         }
 
         $sql = "
@@ -42,8 +41,6 @@ class DAI03120Controller extends Controller
                 WHERE
                         URI.日付 >= '$DateStart'
                     AND URI.日付 <= '$DateEnd'
-                    AND URI.商品ＣＤ >= 0
-                    AND URI.商品ＣＤ <= 9999
                     AND URI.売掛現金区分 <> 4
                     AND URI.分配元数量 = 0
                     $WhereBusho1

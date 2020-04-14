@@ -7,16 +7,9 @@ TODO: 部署は1件(部署未指定(=全部署)あり、商品はマルチセレ
             <div class="col-md-1">
                 <label>部署</label>
             </div>
-            <div class="col-md-11">
-                <VueMultiSelect
-                    id="BushoCd"
-                    ref="VueMultiSelect_Busho"
-                    :vmodel=viewModel
-                    bind="BushoArray"
-                    uri="/Utilities/GetBushoList"
+            <div class="col-md-2">
+                <VueSelectBusho
                     :hasNull=true
-                    :withCode=true
-                    customStyle="{ width: 200px; }"
                     :onChangedFunc=onBushoChanged
                 />
             </div>
@@ -53,29 +46,17 @@ TODO: 部署は1件(部署未指定(=全部署)あり、商品はマルチセレ
             <div class="col-md-1">
                 <label>商品</label>
             </div>
-            <div class="col-md-5">
-                <PopupSelect
+            <div class="col-md-11">
+                <VueMultiSelect
                     id="ProductCd"
-                    ref="PopupSelect_ProductCd"
+                    ref="VueMultiSelect_Product"
                     :vmodel=viewModel
-                    bind="ProductCd"
-                    dataUrl="/Utilities/GetCourseList"
-                    :params='{ bushoCd: viewModel.BushoCd, courseKbn: viewModel.CourseKbn }'
-                    :dataListReset=true
-                    title="コース一覧"
-                    labelCd="コースCD"
-                    labelCdNm="コース名"
-                    :isShowName=true
-                    :isModal=true
-                    :editable=true
-                    :reuse=true
-                    :existsCheck=true
-                    :exceptCheck="[{ Cd: 0 }]"
-                    :inputWidth=100
-                    :nameWidth=300
-                    :onAfterChangedFunc=onProductCdChanged
-                    :isShowAutoComplete=true
-                    :AutoCompleteFunc=CourseAutoCompleteFunc
+                    bind="ProductArray"
+                    uri="/Utilities/GetProductList"
+                    :hasNull=true
+                    :withCode=true
+                    customStyle="{ width: 200px; }"
+                    :onChangedFunc=onProductCdChanged
                 />
             </div>
         </div>
@@ -118,9 +99,9 @@ export default {
         vm: Object,
     },
     computed: {
-        BushoCdArray: function() {
+        ProductCdArray: function() {
             var vue = this;
-            return vue.viewModel.BushoArray.map(v => v.code);
+            return vue.viewModel.ProductArray.map(v => v.code);
         },
     },
     data() {
@@ -129,12 +110,10 @@ export default {
             ScreenTitle: "月次処理 > 商品売上一覧表",
             noViewModel: true,
             viewModel: {
-                BushoArray: [],
-                BushoNm: null,
+                BushoCd: null,
+                ProductArray: [],
                 DateStart: null,
                 DateEnd: null,
-                SummaryKind: null,
-                CourseKbn: null,
                 ProductCd: null,
             },
             DAI03120Grid1: null,
@@ -204,7 +183,7 @@ export default {
                     {
                         title: "商品名",
                         dataIndx: "商品名", dataType: "string",
-                        width: 100, minWidth: 100,
+                        width: 250, minWidth: 250, maxWidth: 250,
                         render: ui => {
                             if (!!ui.rowData.pq_grandsummary) {
                                 return { text: "合　計" };
@@ -313,26 +292,29 @@ export default {
             //配達日付を"YYYYMMDD"形式に編集
             params.DateStart = params.DateStart ? moment(params.DateStart, "YYYY年MM月DD日").format("YYYYMMDD") : null;
             params.DateEnd = params.DateEnd ? moment(params.DateEnd, "YYYY年MM月DD日").format("YYYYMMDD") : null;
-            params.BushoArray = vue.BushoCdArray;//部署コードのみ渡す
 
             //フィルタするパラメータは除外
-            delete params.ProductCd;
+            delete params.ProductArray;
 
             grid.searchData(params, false, null, callback);
         },
         filterChanged: function() {
             var vue = this;
             var grid = vue.DAI03120Grid1;
+            console.log('filterChanged');
 
             if (!grid) return;
 
             var rules = [];
             var crules = [];
-            if (vue.viewModel.ProductCd != undefined && vue.viewModel.ProductCd != "") {
-                crules.push({ condition: "equal", value: vue.viewModel.ProductCd * 1 });
-                if (crules.length) {
-                    rules.push({ dataIndx: "商品ＣＤ", mode: "AND", crules: crules });
-                }
+            if (vue.viewModel.ProductArray != undefined && vue.viewModel.ProductArray.length>0) {
+                vue.ProductCdArray.map(r=>{
+                    var productCd = r * 1;
+                    crules.push({ condition: "equal", value: productCd });
+                });
+            }
+            if (crules.length) {
+                rules.push({ dataIndx: "商品ＣＤ", mode: "OR", crules: crules });
             }
 
             grid.filter({ oper: "replace", mode: "AND", rules: rules });
@@ -348,42 +330,6 @@ export default {
                     r.平均 = r.数量==0 ? 0 : Math.floor(r.金額 / r.数量);
                 });
             return res;
-        },
-        CourseAutoCompleteFunc: function(input, dataList, comp) {
-            var vue = this;
-
-            if (!dataList.length) return [];
-
-            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
-            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
-            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
-
-            var wholeColumns = ["コース名", "担当者名"];
-
-            if ((input == comp.selectValue && comp.isUnique) || comp.isError) {
-                keyAND = keyOR = [];
-            }
-
-            var list = dataList
-                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
-                .filter(v => {
-                    return keyOR.length == 0
-                        || _.some(keyOR, k => v.コースＣＤ.startsWith(k))
-                        || _.some(keyOR, k => v.whole.includes(k))
-                })
-                .filter(v => {
-                    return keyAND.length == 0 || _.every(keyAND, k => v.whole.includes(k));
-                })
-                .map(v => {
-                    var ret = v;
-                    ret.label = v.コースＣＤ + " : " + v.コース名 + "【" + v.担当者名 + "】";
-                    ret.value = v.コースＣＤ;
-                    ret.text = v.コース名;
-                    return ret;
-                })
-                ;
-
-            return list;
         },
         print: function() {
             var vue = this;
