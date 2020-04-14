@@ -102,16 +102,21 @@
             </div>
             <div class="col-md-2">
                 <div v-if="IsExistImage"
+                    class="droppable"
+                    :data-url='"/DAI04071/UploadImage?BushoCd=" + viewModel.部署CD'
+                    data-upload-callback="uploadLogoCallback"
                     style="width: 85px; height: 85px; background-size: contain; background-repeat: no-repeat;"
                     :style='"background-image: url(" + ImagePath + ");"'
                 >
                 </div>
                 <div v-else
                     class="droppable"
-                    style="width: 85px; height: 85px; background-color: white;"
                     :data-url='"/DAI04071/UploadImage?BushoCd=" + viewModel.部署CD'
+                    data-upload-callback="uploadLogoCallback"
+                    style="width: 85px; height: 85px; background-color: white;"
                 >
                 </div>
+                <span class="ml-1">{{!IsExistImage ? "未設定" : ImageFile == viewModel.部署CD + ".png" ? "登録済" : "未登録"}}</span>
             </div>
         </div>
         <div class="row">
@@ -520,6 +525,10 @@ export default {
             var vue = this;
             return vue.viewModel.IsNew == true ? "新規" : "修正";
         },
+        ImagePath: function() {
+            var vue = this;
+            return location.origin + "/images/BushoStamp/" + vue.ImageFile;
+        },
     },
     watch: {
         "viewModel.金融機関CD1": {
@@ -578,7 +587,7 @@ export default {
         var data = $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "部署マスタメンテ詳細",
             noViewModel: true,
-            ImagePath: null,
+            ImageFile: null,
             IsExistImage: false,
             DAI04071Grid1: null,
             BankKeyWord: null,
@@ -728,7 +737,12 @@ export default {
                         params.金融機関支店CD2 = params.金融機関支店CD2 || 0;
 
                         params.修正担当者CD = params.userId;
-                        params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
+                        params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
+
+                        //ロゴ/印鑑
+                        if (!!vue.IsExistImage && vue.ImageFile != vue.viewModel.部署CD + ".png") {
+                            params.ImageFile = vue.ImageFile;
+                        }
 
                         $(vue.$el).find(".has-error").removeClass("has-error");
 
@@ -758,7 +772,7 @@ export default {
                 $("[shortcut='F3']").prop("disabled", false);
             }
 
-            vue.ImagePath = location.origin + "/images/BushoStamp/" + vue.viewModel.部署CD + ".png";
+            vue.ImageFile = vue.viewModel.部署CD + ".png";
 
             axios.get(vue.ImagePath)
                 .then(res => vue.IsExistImage = true)
@@ -943,6 +957,18 @@ export default {
 
             //PopupSelect
             $(".select-name").val("");
+        },
+        uploadLogoCallback: function(res) {
+            var vue = this;
+
+            if (!!res.result) {
+                vue.ImageFile = res.file;
+            } else {
+                $.dialogErr({
+                    title: "アップロード失敗",
+                    contents: res.message,
+                });
+            }
         },
     }
 }
