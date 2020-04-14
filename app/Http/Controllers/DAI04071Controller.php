@@ -31,6 +31,13 @@ class DAI04071Controller extends Controller
                 ['部署CD' => $BushoCd],
                 $data
             );
+
+            if ($params['ImageFile']) {
+                $src = public_path() . '\\images\\BushoStamp\\' . $params['ImageFile'];
+                $dst = public_path() . '\\images\\BushoStamp\\' . $BushoCd . '.png';
+
+                rename($src, $dst);
+            }
         });
 
         $savedData = array_merge(['部署CD' => $params['部署CD']], $data);
@@ -98,15 +105,13 @@ class DAI04071Controller extends Controller
         try {
             if ($request->file('file')->isValid([]))
             {
-                // (ここから) 任意のフォルダにアップロードする処理を追加 --------
                 $SavePath=public_path().'\\images\\BushoStamp\\'.$FileName;
                 $spl = new \SplFileInfo($request->file);
                 move_uploaded_file($spl->getPathname(), $SavePath);
-                // (ここまで) 任意のフォルダにアップロードする処理を追加 --------
-                //$SavePath = $request->file->storeAs('images/BushoStamp', $FileName, 'public');
+
                 return response()->json([
                     'result' => true,
-                    "path" => $SavePath,
+                    "file" => $FileName,
                 ]);
             } else {
                 return response()->json([

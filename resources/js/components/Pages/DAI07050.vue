@@ -85,11 +85,7 @@
                     :onChangedFunc=onValueKindChanged
                 />
             </div>
-        </div>
-        <div class="row">
-            <div class="col-md-1">
-            </div>
-            <div class="col-md-11">
+            <div class="col-md-2">
                 <VueCheckList
                     id="SearchOptions"
                     :vmodel=viewModel
@@ -149,7 +145,7 @@
             <div class="col-md-1">
                 <label>得意先</label>
             </div>
-            <div class="col-md-11">
+            <div class="col-md-6">
                 <PopupSelect
                     id="CustomerSelect"
                     ref="PopupSelect_Customer"
@@ -178,6 +174,13 @@
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=CustomerAutoCompleteFunc
                 />
+            </div>
+            <div class="col-md-1">
+                <label style="width: unset;">空領収書発行</label>
+            </div>
+            <div class="col-md-3">
+                <label class="mr-1" style="width: unset;">枚数:</label>
+                <input type="number" class="form-control text-right" style="width: 60px;" v-model="EmptyPrintPages" min=1 max=99>
             </div>
         </div>
         <PqGridWrapper
@@ -210,6 +213,13 @@ label{
     width: 80px;
 }
 </style>
+<style scoped>
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    position: relative;
+    right: -10px;
+}
+</style>
 
 <script>
 import PageBaseMixin from "@vcs/PageBaseMixin.vue";
@@ -232,6 +242,9 @@ export default {
                 TargetDate: vue.calcTargetDate(),
                 CourseCd: vue.viewModel.CourseCd,
                 CustomerCd: vue.viewModel.CustomerCd,
+                UpdateUser: vue.getLoginInfo().uid,
+                EmptyPrintPages: vue.EmptyPrintPages,
+                EmptyPrintCount: vue.EmptyPrintPages * 5,
             };
         },
     },
@@ -269,6 +282,7 @@ export default {
             TargetDateFormat: "YYYY年MM月DD日",
             TargetDateDayViewHeaderFormat: "YYYY年MM月",
             BushoInfo: null,
+            EmptyPrintPages: 1,
             grid1Options: {
                 selectionModel: { type: "row", mode: "block", row: true, column: true, },
                 showHeader: true,
@@ -472,10 +486,38 @@ export default {
                     }
                 },
                 {visible: "false"},
-                {visible: "false"},
                 { visible: "true", value: "印刷", id: "DAI07050Grid1_Print", disabled: true, shortcut: "F11",
                     onClick: function () {
                         vue.print();
+                    }
+                },
+                {visible: "false"},
+                {visible: "false"},
+                {visible: "false"},
+                { visible: "true", value: "空領収書<br>印刷", id: "DAI07050Grid1_PrintEmpty", disabled: false, shortcut: "F10",
+                    onClick: function () {
+                        var params = _.cloneDeep(vue.searchParams);
+                        params.noCache = true;
+
+                        axios.post("/DAI07050/GetSeikyuNo", params)
+                            .then(res => {
+                                console.log("7050 GetSeikyuNo");
+                                var current = res.data.current;
+                                var list = _.range(current - params.EmptyPrintCount, current)
+                                    .map(v => {
+                                        return {
+                                            "請求日付": params.TargetDate,
+                                            "請求番号": v + 1,
+                                        };
+                                    });
+                                vue.print(list);
+                            })
+                            .catch(err => {
+                                $.dialogErr({
+                                    title: "発番失敗",
+                                    contents: "請求番号の発番に失敗しました",
+                                });
+                            });
                     }
                 },
             );
@@ -796,7 +838,7 @@ export default {
                 height: 725,
             });
         },
-        print: function() {
+        print: function(data) {
             var vue = this;
             var grid = vue.DAI07050Grid1;
 
@@ -1017,31 +1059,20 @@ export default {
                 }
             `;
 
-            var target = grid.pdata.map(r => {
+            var targetData = data || grid.pdata;
+
+            var target = data.map(r => {
                 var layout = `
                     <div>
                         <div class="header">
                             <div>
                                 <div id="k-box">
-                                    ｺｰﾄﾞNo.${r.請求先ＣＤ}
-                                    <span/>-${r.コースＣＤ}
-                                    <span/>(
-                                    <span/>0
-                                    <span>-0</span>
-                                    <span>-0</span>
-                                    )
+                                    ${!!r.請求先ＣＤ ? r.請求先ＣＤ + " - " + r.コースＣＤ : ""}
                                 </div>
                             </div>
                             <div>
                                 <div id="a-box">
                                     </br></br>
-                                    <div style="margin-bottom: 8px;">
-                                        <span/>〒
-                                        <span/>${r.郵便番号}
-                                    </div>
-                                    <div>
-                                        ${r.住所１}
-                                    </div>
                                     <br>
                                 </div>
                                 <div id="b-box">
@@ -1057,22 +1088,15 @@ export default {
                                         <span style="white-space: pre;">${moment(r.請求日付).format("  YY  年  MM  月  DD  日")}</span>
                                     </div>
                                     <div class="header-seikyu-no">
-                                        <span/>請求番号
-                                        <span/>${r.請求番号}
+                                        <span/>${!!r.請求先ＣＤ ? r.請求番号 : (moment(r.請求日付).format("YYMMDD") + " - " + r.請求番号)}
                                     </div>
                                 </div>
                             <div>
                             <div style="clear: both;">
                                 <div id="d-box">
                                     <div class="header-tokuisaki">
-                                        ${r.得意先名}
+                                        ${r.得意先名 || ""}
                                         <span>様
-                                    </div>
-                                    <div>
-                                        Tel
-                                        <span/><span/>${r.電話番号１}
-                                        <span/><span/>Fax
-                                        <span/><span/>${r.ＦＡＸ１}
                                     </div>
                                     </br>
                                 </div>
@@ -1111,7 +1135,7 @@ export default {
                             <tbody>
                                 <tr>
                                     <th> 金 額 </th>
-                                    <th>${pq.formatNumber(vue.viewModel.ValueKind == "0" ? r.今回請求額 : r.今回売上額, "#,###0")}</th>
+                                    <th>${!!r.請求先ＣＤ ? pq.formatNumber(vue.viewModel.ValueKind == "0" ? r.今回請求額 : r.今回売上額, "#,###0") : ""}</th>
                                 </tr>
                             </tbody>
                         </table>
