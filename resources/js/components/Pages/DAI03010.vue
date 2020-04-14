@@ -16,7 +16,7 @@
                 <label>処理区分</label>
             </div>
             <div class="col-md-2">
-                <VueSelect
+                <VueOptions
                     id="ShoriKbn"
                     ref="VueOptions_ShoriKbn"
                     customLabelStyle="text-align: center;"
