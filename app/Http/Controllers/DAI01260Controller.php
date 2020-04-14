@@ -130,7 +130,7 @@ class DAI01260Controller extends Controller
             ,   VW02.分配先得意先CD
         ";
 
-        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
 

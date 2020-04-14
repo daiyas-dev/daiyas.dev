@@ -845,7 +845,7 @@ ORDER BY
         ";
 
         // TODO: 高速化対応
-        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
 
@@ -892,7 +892,7 @@ $WhereCourseKbn
         ";
 
         //TODO: 高速化対応
-        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
 
@@ -1017,7 +1017,7 @@ $WhereCourseCd
 
         //TODO: 高速化対応
         // $DataList = DB::select($sql);
-        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
 
@@ -1550,7 +1550,7 @@ $OrderBy
         ";
 
         //TODO: 高速化対応
-        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
 

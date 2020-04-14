@@ -78,7 +78,7 @@ class DAI07040Controller extends Controller
                 , URIAGE_MEISAI.日付
         ";
 
-        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
 
@@ -131,7 +131,7 @@ class DAI07040Controller extends Controller
                 RK=1
         ";
 
-        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
 
@@ -176,7 +176,7 @@ class DAI07040Controller extends Controller
                 URIAGE_MEISAI.得意先ＣＤ
         ";
 
-        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
 
@@ -239,7 +239,7 @@ class DAI07040Controller extends Controller
                 URIAGE_MEISAI.得意先ＣＤ
         ";
 
-        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
 
@@ -284,7 +284,7 @@ class DAI07040Controller extends Controller
                 NYUKIN.得意先ＣＤ
         ";
 
-        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
 
@@ -347,7 +347,7 @@ class DAI07040Controller extends Controller
                 NYUKIN.得意先ＣＤ
         ";
 
-        $dsn = 'sqlsrv:server=localhost;database=daiyas';
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
 
