@@ -255,6 +255,7 @@ export default {
                 TargetDateMax: moment(vue.viewModel.TargetDateMax, "YYYY年MM月DD日").format("YYYYMMDD"),
                 CourseCd: vue.viewModel.CourseCd,
                 CustomerCd: vue.viewModel.CustomerCd,
+                TantoCd: vue.getLoginInfo()["uid"],
             };
         },
     },
@@ -672,8 +673,8 @@ export default {
 
                 //失敗ダイアログ
                 $.dialogErr({
-                    title: " 売掛データ検索失敗",
-                    contents: " 売掛データ検索に失敗しました" + "<br/>" + error.message,
+                    title: " 請求データ検索失敗",
+                    contents: " 請求データ検索に失敗しました" + "<br/>" + error.message,
                 });
             });
         },

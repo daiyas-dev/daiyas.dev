@@ -781,11 +781,8 @@ class DAI02010Controller extends Controller
     {
         $TargetDateMax = $vm->TargetDateMax;
         $date = Carbon::now()->format('Y-m-d H:i:s');
-        $CustomerList = is_array($vm->CustomerList) ? implode(",", $vm->CustomerList) : $vm->CustomerList;
         $SelectData = $this->SelectCustomerList($vm);
-
-        //$array_count = count($vm->$CustomerList);
-        //echo 'count : '.$array_count;
+        $TantoCd = $vm->TantoCd;
 
         $sql = "
         $SelectData
@@ -809,7 +806,7 @@ class DAI02010Controller extends Controller
             ,回収予定日
             ,0 AS 予備ＣＤ１
             ,0 AS 予備ＣＤ２
-            ,'1' AS 修正担当者ＣＤ
+            ,'$TantoCd' AS 修正担当者ＣＤ
             ,'$date' AS 修正日
         FROM
             更新データ U1
