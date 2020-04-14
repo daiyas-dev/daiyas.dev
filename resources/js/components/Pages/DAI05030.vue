@@ -174,8 +174,8 @@ export default {
                         tooltip: true,
                     },
                     {
-                        title: "前回請求残高",
-                        dataIndx: "前回残高", dataType: "integer", format: "#,###",
+                        title: "前月残高",
+                        dataIndx: "前月残高", dataType: "integer", format: "#,###",
                         width: 120, minWidth: 120, maxWidth: 120,
                         render: ui => {
                             // hide zero
@@ -186,8 +186,8 @@ export default {
                         },
                     },
                     {
-                        title: "今回入金額",
-                        dataIndx: "今回入金額", dataType: "integer", format: "#,###",
+                        title: "今月入金額",
+                        dataIndx: "今月入金額", dataType: "integer", format: "#,###",
                         width: 120, minWidth: 120, maxWidth: 120,
                         render: ui => {
                             // hide zero
@@ -210,8 +210,8 @@ export default {
                         },
                     },
                     {
-                        title: "今回売上額",
-                        dataIndx: "今回売上額", dataType: "integer", format: "#,###",
+                        title: "今月売上額",
+                        dataIndx: "今月売上額", dataType: "integer", format: "#,###",
                         width: 120, minWidth: 120, maxWidth: 120,
                         render: ui => {
                             // hide zero
@@ -222,8 +222,8 @@ export default {
                         },
                     },
                     {
-                        title: "今回請求額",
-                        dataIndx: "今回請求額", dataType: "integer", format: "#,###",
+                        title: "今月残高",
+                        dataIndx: "今月残高", dataType: "integer", format: "#,###",
                         editable: true,
                         width: 120, minWidth: 120, maxWidth: 120,
                         render: ui => {
@@ -283,8 +283,6 @@ export default {
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.BushoCd) return;
             if (!vue.viewModel.TargetDate) return;
-            if (!vue.viewModel.Shimebi) return;
-            if (!((0<=vue.viewModel.Shimebi && vue.viewModel.Shimebi<=31)||vue.viewModel.Shimebi==99)) return;
             var params = $.extend(true, {}, vue.viewModel);
 
             //フィルタするパラメータは除外
@@ -356,10 +354,6 @@ export default {
             {
                 return;
             }
-            if(vue.viewModel.Shimebi==null)
-            {
-                return;
-            }
 
             //登録データの作成
             var SaveList=[];
@@ -368,11 +362,11 @@ export default {
                 var SaveItem={};
                 SaveItem.請求先ＣＤ=r.請求先ＣＤ;
                 //SaveItem.前月残高=r.前月残高;
-                //SaveItem.今回入金額=r.今回入金額;
+                //SaveItem.今月入金額=r.今月入金額;
                 //SaveItem.差引繰越額=r.差引繰越額;
                 //SaveItem.今月売上額=r.今月売上額;
                 //SaveItem.今月残高=r.今月残高;
-                SaveItem.今回請求額=r.今回請求額===undefined?0:r.今回請求額;
+                SaveItem.今月残高=r.今月残高===undefined?0:r.今月残高;
                 SaveList.push(SaveItem);
                 window.ressvi=_.cloneDeep(SaveItem);//TODO:
             });
@@ -383,7 +377,6 @@ export default {
                     uri: "/DAI05030/Save",
                     params: {
                         BushoCd:vue.viewModel.BushoCd,
-                        Shimebi:vue.viewModel.Shimebi,
                         TargetDate:vue.viewModel.TargetDate,
                         ShuseiTantoCd:vue.getLoginInfo()["uid"],
                         SaveList: SaveList,
