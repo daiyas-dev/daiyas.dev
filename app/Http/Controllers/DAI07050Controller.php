@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\入金データ;
+use App\Models\空領収証発行;
 use App\Models\管理マスタ;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -227,5 +228,57 @@ class DAI07050Controller extends Controller
         // $DataList = DB::select(DB::raw($sql));
 
         return $DataList;
+    }
+
+    /**
+     * GetSeikyuNo
+     */
+    public function GetSeikyuNo($vm)
+    {
+        $TargetDate = $vm->TargetDate;
+        $EmptyPrintCount = $vm->EmptyPrintCount;
+        $UpdateUser = $vm->UpdateUser;
+
+        DB::beginTransaction();
+
+        $CurrentNo = $EmptyPrintCount;
+
+        try {
+
+            $date = Carbon::now()->format('Y-m-d H:i:s');
+
+            $r = 空領収証発行::query()
+                ->where('日付', $TargetDate)
+                ->get();
+
+            if (count($r) == 1) {
+                $rec = [
+                    "最大印刷番号" => $r[0]->最大印刷番号 + $EmptyPrintCount,
+                    "修正担当者ＣＤ" => $UpdateUser,
+                    "修正日" => $date,
+                ];
+
+                空領収証発行::query()
+                    ->where('日付', $TargetDate)
+                    ->update($rec);
+
+                $CurrentNo = $rec["最大印刷番号"];
+
+            } else {
+                空領収証発行::insert([
+                    "日付" => $TargetDate,
+                    "最大印刷番号" => $EmptyPrintCount,
+                    "修正担当者ＣＤ" => $UpdateUser,
+                    "修正日" => $date,
+                ]);
+            }
+
+            DB::commit();
+        } catch (Exception $exception) {
+            DB::rollBack();
+            throw $exception;
+        }
+
+        return response()->json(["current" => $CurrentNo]);
     }
 }
