@@ -4,23 +4,15 @@
             <div class="col-md-1">
                 <label>部署</label>
             </div>
-            <div class="col-md-11">
-                <VueMultiSelect
-                    id="BushoCd"
-                    ref="VueMultiSelect_Busho"
-                    :vmodel=viewModel
-                    bind="BushoArray"
-                    uri="/Utilities/GetBushoList"
-                    :hasNull=true
-                    :withCode=true
-                    customStyle="{ width: 200px; }"
+            <div class="col-md-2">
+                <VueSelectBusho
                     :onChangedFunc=onBushoChanged
                 />
             </div>
         </div>
         <div class="row">
             <div class="col-md-1">
-                <label>出力年月</label>
+                <label>請求年月</label>
             </div>
             <div class="col-md-2">
                 <DatePickerWrapper
@@ -34,24 +26,12 @@
                     :onChangedFunc=onDateChanged
                 />
             </div>
-        </div>
-        <div class="row">
             <div class="col-md-1">
-                <label>出力区分</label>
+                <label class="text-center">締日</label>
+                <input type="text" class="form-control" v-model="viewModel.Shimebi">
             </div>
-            <div class="col-md-3">
-                <VueOptions
-                    id="SummaryKind"
-                    ref="VueOptions_SummaryKind"
-                    customItemStyle="text-align: center; margin-right: 10px;"
-                    :vmodel=viewModel
-                    bind="SummaryKind"
-                    :list="[
-                        {code: '0', name: '部署計', label: '0:部署計'},
-                        {code: '1', name: '得意先別', label: '1:得意先別'},
-                    ]"
-                    :onChangedFunc=onSummaryKindChanged
-                />
+            <div class="col-md-1">
+                <label class="text-center">末日：99</label>
             </div>
         </div>
         <div class="row">
@@ -139,10 +119,6 @@ export default {
         vm: Object,
     },
     computed: {
-        BushoCdArray: function() {
-            var vue = this;
-            return vue.viewModel.BushoArray.map(v => v.code);
-        },
     },
     data() {
         var vue = this;
@@ -150,9 +126,9 @@ export default {
             ScreenTitle: "月次処理 > 請求残高設定",
             noViewModel: true,
             viewModel: {
-                BushoArray: [],
+                BushoCd: null,
+                Shimebi: null,
                 TargetDate: null,
-                SummaryKind: null,
                 CustomerCd: null,
             },
             DAI05020Grid1: null,
@@ -165,9 +141,9 @@ export default {
                 numberCell: { show: true, title: "No.", resizable: false, },
                 autoRow: false,
                 rowHtHead:30,
-                rowHt: 50,
-                rowHtSum: 50,
-                freezeCols: 6,
+                rowHt: 35,
+                rowHtSum: 35,
+                freezeCols: 2,
                 editable: false,
                 columnTemplate: {
                     editable: false,
@@ -186,14 +162,7 @@ export default {
                     type: "remote",
                 },
                 groupModel: {
-                    on: true,
-                    header: false,
-                    grandSummary: true,
-                    indent: 0,
-                    dataIndx: ["GroupKey1"],
-                    showSummary: [true],
-                    collapsed: [false],
-                    summaryInTitleRow: "collapsed",
+                    on: false,
                 },
                 summaryData: [
                 ],
@@ -201,225 +170,75 @@ export default {
                 ],
                 colModel: [
                     {
-                        title: "GroupKey1",
-                        dataIndx: "GroupKey1", dataType: "string",
-                        hidden:true,
-                    },
-                    {
-                        title: "ＣＤ",
-                        dataIndx: "部署ＣＤ", dataType: "string",
+                        title: "コード",
+                        dataIndx: "請求先ＣＤ", dataType: "string",
                         width: 60, minWidth: 60, maxWidth: 60,
-                        hidden:true,
-                        render: ui => {
-                            if (ui.rowData.pq_child_sum) {
-                                return{ text:ui.rowData.GroupKey1.split(":")[0]};
-                            }
-                        }
-                    },
-                    {
-                        title: "部署名",
-                        dataIndx: "部署名", dataType: "string",
-                        width: 120, minWidth: 120,
-                        tooltip: true,
-                        hidden:true,
-                        render: ui => {
-                            if (!!ui.rowData.pq_grandsummary) {
-                                return { text: "" };
-                            }
-                            if (!!ui.rowData.pq_gsummary) {
-                                return { text: "部署計" };
-                            }
-                            if (ui.rowData.pq_child_sum) {
-                                return{ text:ui.rowData.GroupKey1.split(":")[1]};
-                            }
-                            return { text:ui };
-                        }
-                    },
-                    {
-                        title: "ＣＤ",
-                        dataIndx: "得意先ＣＤ", dataType: "string",
-                        width: 60, minWidth: 60, maxWidth: 60,
-                        hidden:true,
-                        render: ui => {
-                            if (!!ui.Export) {
-                                if (!!ui.rowData.pq_grandsummary) {
-                                }
-                                if (!!ui.rowData.pq_gsummary) {
-                                    var tokui = ui.rowData.parentId;
-                                    if(tokui!=null && tokui != undefined){
-                                        var tokuiCd=tokui.split(":")[0];
-                                        return{ text:tokuiCd};
-                                    }
-                                }else{
-                                    return { text:ui };
-                                }
-                            }else{
-                                if (!!ui.rowData.pq_grandsummary) {
-                                }
-                                if (!!ui.rowData.pq_gsummary) {
-                                }
-                                return { text:ui };
-                            }
-                        }
                     },
                     {
                         title: "得意先名",
                         dataIndx: "得意先名", dataType: "string",
-                        width: 120, minWidth: 120,
-                        hidden:true,
+                        width: 120, minWidth: 120,maxWidth: 400,
                         tooltip: true,
-                        render: ui => {
-                            if (!!ui.Export) {
-                                if (!!ui.rowData.pq_grandsummary) {
-                                    return { text: "* * 合　計 * *" };
-                                }
-                                if (!!ui.rowData.pq_gsummary) {
-                                    var tokui = ui.rowData.parentId;
-                                    if(tokui!=null && tokui != undefined){
-                                        var tokuiNm=tokui.split(":")[1];
-                                        return{ text: "<span class=\"summary_caption1\">" + tokuiNm + "</span><span class=\"summary_caption2\">部署計</span>" };
-                                    }
-                                }else{
-                                    return { text:ui };
-                                }
-                            }else{
-                                if (!!ui.rowData.pq_grandsummary) {
-                                    return { text: "* * 合　計 * *" };
-                                }
-                                if (!!ui.rowData.pq_gsummary) {
-                                    return { text: "部署計" };
-                                }
-                                return { text:ui };
-                            }
-                        }
                     },
                     {
-                        title: "",
-                        dataIndx: "部署計", dataType: "string",
+                        title: "前回請求残高",
+                        dataIndx: "前回残高", dataType: "integer", format: "#,###",
                         width: 120, minWidth: 120, maxWidth: 120,
                         render: ui => {
-                            if (!!ui.rowData.pq_grandsummary) {
-                                return { text: "* * 合　計 * *" };
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
-                            else
-                            {
-                                return { text: "部署計" };
-                            }
-                        }
-                    },
-                    {
-                        title: "前月末金額",
-                        dataIndx: "前月末金額", dataType: "integer", format: "#,###",
-                        width: 100, minWidth: 100, maxWidth: 100,
-                        summary: {
-                            type: "TotalInt",
+                            return ui;
                         },
                     },
                     {
-                        title: "売上合計",
-                        dataIndx: "売上合計", dataType: "integer", format: "#,###",
-                        width: 100, minWidth: 100, maxWidth: 100,
-                        summary: {
-                            type: "TotalInt",
-                        },
-                    },
-                    {
-                        title: "入金合計",
-                        dataIndx: "入金合計", dataType: "integer", format: "#,###",
-                        width: 100, minWidth: 100, maxWidth: 100,
-                        summary: {
-                            type: "TotalInt",
-                        },
-                    },
-                    {
-                        title: "売掛残",
-                        dataIndx: "売掛残", dataType: "integer", format: "#,###",
-                        width: 100, minWidth: 100, maxWidth: 100,
-                        summary: {
-                            type: "TotalInt",
-                        },
-                    },
-                    {
-                        title: "売上金額",
-                        dataIndx: "売上金額", dataType: "string", align: "right",
-                        width: 100, minWidth: 100, maxWidth: 100,
-                        summary: {
-                            type: "TotalInt",
-                        },
+                        title: "今回入金額",
+                        dataIndx: "今回入金額", dataType: "integer", format: "#,###",
+                        width: 120, minWidth: 120, maxWidth: 120,
                         render: ui => {
-                            //売上金額、消費税額はそれぞれ3桁カンマ区切りで2段表示
-                            //消費税額は固定長10文字(左スペース詰め)で表示
-                            if (ui.rowData.pq_grandsummary || ui.rowData.pq_gsummary || ui.rowData.pq_child_sum) {
-                                var uriage=ui.rowData.売上金額;
-                                var shiouhizei = ui.rowData.消費税額;
-                                var str_shiouhizei=("          " + shiouhizei).substr(-10);
-                                str_shiouhizei = str_shiouhizei.replace(/\s/g, "&ensp;");
-                                return { text: uriage + "&nbsp;\n(" + str_shiouhizei +")" };
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
-                            else
-                            {
-                                var uriage=Number(ui.rowData.売上金額).toLocaleString();
-                                var shiouhizei = Number(ui.rowData.消費税額).toLocaleString();
-                                var str_shiouhizei=("          " + shiouhizei).substr(-10);
-                                str_shiouhizei = str_shiouhizei.replace(/\s/g, "&ensp;");
-                                return { text: uriage + "&ensp;\n(" + str_shiouhizei + ")" };
+                            return ui;
+                        },
+                    },
+                    {
+                        title: "差引繰越額",
+                        dataIndx: "差引繰越額", dataType: "integer", format: "#,###",
+                        width: 120, minWidth: 120, maxWidth: 120,
+                        render: ui => {
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
-                        }
-                    },
-                    {
-                        title: "その他売上",
-                        dataIndx: "その他売上", dataType: "integer", format: "#,###",
-                        width: 100, minWidth: 100, maxWidth: 100,
-                        summary: {
-                            type: "TotalInt",
+                            return ui;
                         },
                     },
                     {
-                        title: "現金",
-                        dataIndx: "現金", dataType: "integer", format: "#,###",
-                        width: 100, minWidth: 100, maxWidth: 100,
-                        summary: {
-                            type: "TotalInt",
+                        title: "今回売上額",
+                        dataIndx: "今回売上額", dataType: "integer", format: "#,###",
+                        width: 120, minWidth: 120, maxWidth: 120,
+                        render: ui => {
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
+                            }
+                            return ui;
                         },
                     },
                     {
-                        title: "振込",
-                        dataIndx: "振込", dataType: "integer", format: "#,###",
-                        width: 100, minWidth: 100, maxWidth: 100,
-                        summary: {
-                            type: "TotalInt",
-                        },
-                    },
-                    {
-                        title: "振替",
-                        dataIndx: "振替", dataType: "integer", format: "#,###",
-                        width: 100, minWidth: 100, maxWidth: 100,
-                        summary: {
-                            type: "TotalInt",
-                        },
-                    },
-                    {
-                        title: "金券",
-                        dataIndx: "金券", dataType: "integer", format: "#,###",
-                        width: 100, minWidth: 100, maxWidth: 100,
-                        summary: {
-                            type: "TotalInt",
-                        },
-                    },
-                    {
-                        title: "その他入金",
-                        dataIndx: "その他入金", dataType: "integer", format: "#,###",
-                        width: 100, minWidth: 100, maxWidth: 100,
-                        summary: {
-                            type: "TotalInt",
-                        },
-                    },
-                    {
-                        title: "消費税額",
-                        dataIndx: "消費税額", dataType: "integer", format: "#,###",
-                        hidden:true,
-                        summary: {
-                            type: "TotalInt",
+                        title: "今回請求額",
+                        dataIndx: "今回請求額", dataType: "integer", format: "#,###",
+                        editable: true,
+                        width: 120, minWidth: 120, maxWidth: 120,
+                        render: ui => {
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
+                            }
+                            return ui;
                         },
                     },
                 ],
@@ -439,14 +258,9 @@ export default {
                 {visible: "false"},
                 {visible: "false"},
                 {visible: "false"},
-                { visible: "true", value: "CSV", id: "DAI05020Grid1_CSV", disabled: true, shortcut: "F10",
+                { visible: "true", value: "更新", id: "DAI05020Grid1_Save", disabled: true, shortcut: "F9",
                     onClick: function () {
-                        vue.DAI05020Grid1.vue.exportData("csv", false, true);
-                    }
-                },
-                { visible: "true", value: "印刷", id: "DAI05020Grid1_Print", disabled: true, shortcut: "F11",
-                    onClick: function () {
-                        vue.print();
+                        vue.save();
                     }
                 },
             );
@@ -456,6 +270,7 @@ export default {
             //TODO:
             // vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
             vue.viewModel.TargetDate = moment("20190801").format("YYYY年MM月DD日");
+            vue.viewModel.Shimebi=10;
         },
         setPrintOptions: function(grid) {
             var vue = this;
@@ -547,39 +362,18 @@ export default {
             //フィルタ変更ハンドラ
             vue.filterChanged();
         },
-        onSummaryKindChanged: function(code, entities) {
-            var vue = this;
-            var grid = vue.DAI05020Grid1;
-            var isExpand = vue.viewModel.SummaryKind == "1";
-
-            //列表示変更
-            grid.options.colModel.find(c => c.dataIndx == "部署ＣＤ").hidden　=　isExpand;
-            grid.options.colModel.find(c => c.dataIndx == "部署名").hidden　=　isExpand;
-            grid.options.colModel.find(c => c.dataIndx == "部署計").hidden　=　isExpand;
-            grid.options.colModel.find(c => c.dataIndx == "得意先ＣＤ").hidden　=　!isExpand;
-            grid.options.colModel.find(c => c.dataIndx == "得意先名").hidden　=　!isExpand;
-            grid.refreshCM();
-            grid.refresh();
-
-            //集計変更
-            grid.Group()[isExpand ? "expandAll":"collapseAll"]();
-        },
         conditionChanged: function(callback) {
             var vue = this;
             var grid = vue.DAI05020Grid1;
             if (!grid || !vue.getLoginInfo().isLogOn) return;
-            if (!vue.viewModel.BushoArray || vue.viewModel.BushoArray.length==0) return;
+            if (!vue.viewModel.BushoCd) return;
             if (!vue.viewModel.TargetDate) return;
+            if (!vue.viewModel.Shimebi) return;
+            if (!((0<=vue.viewModel.Shimebi && vue.viewModel.Shimebi<=31)||vue.viewModel.Shimebi==99)) return;
             var params = $.extend(true, {}, vue.viewModel);
 
-            //検索パラメータの加工
-            //処理年月の1日から末日までの範囲を検索条件に指定する
-            params.DateStart = params.TargetDate ? moment(params.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
-            params.DateEnd   = params.TargetDate ? moment(params.DateStart).endOf('month').format("YYYYMMDD") : null;
-            params.BushoArray = vue.BushoCdArray;//部署コードのみ渡す
-
             //フィルタするパラメータは除外
-            delete params.SummaryKind;
+            delete params.CustomerCd;
 
             grid.searchData(params, false, null, callback);
         },
@@ -590,7 +384,7 @@ export default {
             var rules = [];
             //得意先指定
             if (vue.viewModel.CustomerCd != undefined && vue.viewModel.CustomerCd != "") {
-                rules.push({ dataIndx: "得意先ＣＤ",   condition: "equal", value: vue.viewModel.CustomerCd * 1 });
+                rules.push({ dataIndx: "請求先ＣＤ",   condition: "equal", value: vue.viewModel.CustomerCd * 1 });
             }
             grid.filter({ oper: "replace", mode: "AND", rules: rules });
 
@@ -602,14 +396,8 @@ export default {
         onAfterSearchFunc: function (vue, grid, res) {
             var vue = this;
 
-            //グループキーの生成
-            _.map(res,r=>{
-                r.GroupKey1 = r.部署ＣＤ + ":" + r.部署名;
-            });
-
             //ボタン無効化制御
-            //vue.footerButtons.find(v => v.id == "DAI05020Grid1_CSV").disabled = !res.length;
-            //vue.footerButtons.find(v => v.id == "DAI05020Grid1_Print").disabled = !res.length;
+            vue.footerButtons.find(v => v.id == "DAI05020Grid1_Save").disabled = !res.length;
 
             return res;
         },
@@ -777,6 +565,57 @@ export default {
             printJS(printOptions);
             //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()
+        },
+        save: function(){
+            var vue=this;
+            var grid = vue.DAI05020Grid1;
+            if(vue.viewModel.BushoCd==null)
+            {
+                return;
+            }
+            if(vue.viewModel.Shimebi==null)
+            {
+                return;
+            }
+
+            //登録データの作成
+            var SaveList=[];
+            _.forEach(grid.pdata,r=>{
+                window.resr=_.cloneDeep(r);//TODO:
+                var SaveItem={};
+                SaveItem.請求先ＣＤ=r.請求先ＣＤ;
+                //SaveItem.前月残高=r.前月残高;
+                //SaveItem.今回入金額=r.今回入金額;
+                //SaveItem.差引繰越額=r.差引繰越額;
+                //SaveItem.今月売上額=r.今月売上額;
+                //SaveItem.今月残高=r.今月残高;
+                SaveItem.今回請求額=r.今回請求額===undefined?0:r.今回請求額;
+                SaveList.push(SaveItem);
+                window.ressvi=_.cloneDeep(SaveItem);//TODO:
+            });
+
+            //登録実行
+            grid.saveData(
+                {
+                    uri: "/DAI05020/Save",
+                    params: {
+                        BushoCd:vue.viewModel.BushoCd,
+                        Shimebi:vue.viewModel.Shimebi,
+                        TargetDate:vue.viewModel.TargetDate,
+                        ShuseiTantoCd:vue.getLoginInfo()["uid"],
+                        SaveList: SaveList,
+                    },
+                    optional: vue.searchParams,
+                    confirm: {
+                        isShow: false,
+                    },
+                    done: {
+                        isShow: false,
+                        callback: (gridVue, grid, res)=>{
+                        },
+                    },
+                }
+            );
         },
     }
 }
