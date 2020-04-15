@@ -881,6 +881,13 @@ export default {
             var vue = this;
             var grid = vue.DAI02030Grid1;
 
+            if (!!vue.viewModel.BushoCd && !vue.BushoInfo) {
+                var entity = vue.$refs.VueSelectBusho.$refs.BushoCd.entities.find(v => v.code == vue.viewModel.BushoCd);
+
+                if (!entity) return
+                vue.BushoInfo = entity.info;
+            }
+
             //印刷用HTML全体適用CSS
             var globalStyles = `
                 body {
@@ -1094,7 +1101,7 @@ export default {
 
             axios.post("/DAI02030/GetMeisaiList", { SeikyuNoArray: grid.pdata.map(v => v.請求番号 * 1)})
             .then(res => {
-                var group = _.groupBy(res.data, v => v.得意先ＣＤ);
+                var group = _.groupBy(res.data, v => v.請求先ＣＤ);
 
                 var printable = $("<html>")
                     .append($("<head>").append($("<style>").text(globalStyles)))
@@ -1103,25 +1110,110 @@ export default {
                             .append(
                                 grid.pdata.map(r => {
                                     var pdata = group[r.請求先ＣＤ] || [{}];
-                                    var summary = _.reduce(
-                                        pdata,
-                                        (a, v, k) => {
-                                            a.商品名 = "【 合 計 】";
-                                            a.数量 = (a.数量 || 0) + (v.数量 || 0) * 1;
-                                            a.金額 = (a.金額 || 0) + (!v.伝票Ｎｏ ? (v.金額 || 0) * 1 : 0);
-                                            a.入金金額 = (a.入金金額 || 0) + (!!v.伝票Ｎｏ ? (v.入金金額 || 0) * 1 : 0);
-                                            return a;
-                                        },
-                                        {}
-                                    );
-                                    pdata.push(summary);
-                                    pdata.forEach((v, i) => {
-                                        v.日付 = i == 0 || pdata[i - 1].日付 != v.日付 ? v.日付 : "";
-                                        v.数量 = pq.formatNumber(v.数量, "#,##0");
-                                        v.単価 = pq.formatNumber(v.単価, "#,##0");
-                                        v.金額 = pq.formatNumber(v.金額, "#,##0");
-                                        v.入金金額 = pq.formatNumber(v.入金金額, "#,##0");
-                                    });
+                                    var target = [];
+
+                                    if (_.every(pdata, v => v.得意先ＣＤ == r.請求先ＣＤ)) {
+                                        var datas = _.cloneDeep(pdata);
+
+                                        var summary = _.reduce(
+                                            datas,
+                                            (a, v, k) => {
+                                                a.商品名 = "【 合 計 】";
+                                                a.数量 = (a.数量 || 0) + (v.数量 || 0) * 1;
+                                                a.金額 = (a.金額 || 0) + (!v.伝票Ｎｏ ? (v.金額 || 0) * 1 : 0);
+                                                a.入金金額 = (a.入金金額 || 0) + (!!v.伝票Ｎｏ ? (v.入金金額 || 0) * 1 : 0);
+                                                return a;
+                                            },
+                                            {}
+                                        );
+                                        datas.push(summary);
+                                        datas.forEach((v, i) => {
+                                            v.日付 = i == 0 || pdata[i - 1].日付 != v.日付 ? v.日付 : "";
+                                            v.数量 = pq.formatNumber(v.数量, "#,##0");
+                                            v.単価 = pq.formatNumber(v.単価, "#,##0");
+                                            v.金額 = pq.formatNumber(v.金額, "#,##0");
+                                            v.入金金額 = pq.formatNumber(v.入金金額, "#,##0");
+                                        });
+                                        target.push(datas);
+
+                                    } else {
+                                        var tg = _.groupBy(pdata, v => v.得意先ＣＤ);
+                                        var tk = _.sortBy(_.keys(tg), k => k != r.請求先ＣＤ ? 0 : 1);
+                                        var tsums = tk.map(k => {
+                                            var summary = _.reduce(
+                                                tg[k],
+                                                (a, v) => {
+                                                    a.商品名 = v.得意先名;
+                                                    a.区分 = "全";
+                                                    a.買上小計 = (a.買上小計 || 0) + (!v.伝票Ｎｏ ? (v.金額 || 0) * 1 : 0);
+                                                    a.入金小計 = (a.入金小計 || 0) + (!!v.伝票Ｎｏ ? (v.入金金額 || 0) * 1 : 0);
+                                                    return a;
+                                                },
+                                                {}
+                                            );
+                                            return summary;
+                                        });
+                                        var tgsum = _.reduce(
+                                            tsums,
+                                            (a, v) => {
+                                                a.商品名 = "【 合 計 】";
+                                                a.買上小計 = (a.買上小計 || 0) + v.買上小計;
+                                                a.入金小計 = (a.入金小計 || 0) + v.入金小計;
+                                                return a;
+                                            },
+                                            {}
+                                        );
+                                        var sums = tsums.concat(tgsum);
+                                        sums.forEach((v, i) => {
+                                            v.買上小計 = pq.formatNumber(v.買上小計, "#,##0");
+                                            v.入金小計 = pq.formatNumber(v.入金小計, "#,##0");
+                                        });
+                                        target = [sums];
+
+                                        var tgmeisai = tk.map(k => _.cloneDeep(tg[k])).map((m, i) => {
+                                            var title = { "商品名": m[0].得意先名 };
+                                            var summary = _.reduce(
+                                                m,
+                                                (a, v, k) => {
+                                                    a.商品名 = "【 小 計 】";
+                                                    a.数量 = (a.数量 || 0) + (v.数量 || 0) * 1;
+                                                    a.金額 = (a.金額 || 0) + (!v.伝票Ｎｏ ? (v.金額 || 0) * 1 : 0);
+                                                    a.入金金額 = (a.入金金額 || 0) + (!!v.伝票Ｎｏ ? (v.入金金額 || 0) * 1 : 0);
+                                                    return a;
+                                                },
+                                                {}
+                                            );
+                                            m.unshift(title);
+                                            m.push(summary);
+
+                                            if (i == tk.length - 1) {
+                                                console.log("gsum");
+                                                var gsum = _.reduce(
+                                                    pdata,
+                                                    (a, v) => {
+                                                        a.商品名 = "【 合 計 】";
+                                                        a.数量 = (a.数量 || 0) + (v.数量 || 0) * 1;
+                                                        a.金額 = (a.金額 || 0) + (!v.伝票Ｎｏ ? (v.金額 || 0) * 1 : 0);
+                                                        a.入金金額 = (a.入金金額 || 0) + (!!v.伝票Ｎｏ ? (v.入金金額 || 0) * 1 : 0);
+                                                        return a;
+                                                    },
+                                                    {}
+                                                );
+                                                m.push(gsum);
+                                            }
+                                            m.forEach((v, j) => {
+                                                v.日付 = j == 0 || m[j - 1].日付 != v.日付 ? v.日付 : "";
+                                                v.数量 = pq.formatNumber(v.数量, "#,##0");
+                                                v.単価 = pq.formatNumber(v.単価, "#,##0");
+                                                v.金額 = pq.formatNumber(v.金額, "#,##0");
+                                                v.入金金額 = pq.formatNumber(v.入金金額, "#,##0");
+                                            });
+
+                                            return m;
+                                        });
+
+                                        target.push(...tgmeisai);
+                                    }
 
                                     var headerFunc = (header, idx, length, chunk, chunks) => {
                                         return `
@@ -1277,104 +1369,127 @@ export default {
                                         `;
                                     };
 
-                                    var html = grid.generateHtmlFromJson(
-                                        pdata,
-                                        `
-                                            .header-table th {
-                                                border-style: solid;
-                                                border-left-width: 0px;
-                                                border-top-width: 1px;
-                                                border-right-width: 1px;
-                                                border-bottom-width: 0px;
-                                            }
-                                            .header-table tr th:first-child {
-                                                border-left-width: 1px;
-                                            }
-                                            .header-table tr:nth-child(1) th:nth-child(n+4) {
-                                                border-left-width: 0px;
-                                                border-top-width: 0px;
-                                                border-right-width: 0px;
-                                                border-bottom-width: 0px;
-                                            }
-                                            .header-table tr:nth-child(4) th:nth-child(6) {
-                                                border-top-width: 0px;
-                                            }
-                                            table.DAI02030Grid1 tr:nth-child(1) th {
-                                                border-style: solid;
-                                                border-left-width: 1px;
-                                                border-top-width: 1px;
-                                                border-right-width: 0px;
-                                                border-bottom-width: 1px;
-                                            }
-                                            table.DAI02030Grid1 tr th:last-child {
-                                                border-right-width: 1px;
-                                            }
-                                            table.DAI02030Grid1 tr th:nth-child(1),
-                                            table.DAI02030Grid1 tr th:nth-child(2) {
-                                                width: 7.0%;
-                                            }
-                                            table.DAI02030Grid1 tr th:nth-child(3),
-                                            table.DAI02030Grid1 tr th:nth-child(8) {
-                                                width: 25.0%;
-                                            }
-                                            table.DAI02030Grid1 tr th:nth-child(4),
-                                            table.DAI02030Grid1 tr th:nth-child(5) {
-                                                width: 8.0%;
-                                            }
-                                            table.DAI02030Grid1 tr td {
-                                                border-style: solid;
-                                                border-left-width: 1px;
-                                                border-top-width: 0px;
-                                                border-right-width: 0px;
-                                                border-bottom-width: 1px;
-                                            }
-                                            table.DAI02030Grid1 tr td:nth-child(1),
-                                            table.DAI02030Grid1 tr td:nth-child(2) {
-                                                text-align: center;
-                                            }
-                                            table.DAI02030Grid1 tr td:nth-child(4),
-                                            table.DAI02030Grid1 tr td:nth-child(5),
-                                            table.DAI02030Grid1 tr td:nth-child(6),
-                                            table.DAI02030Grid1 tr td:nth-child(7) {
-                                                text-align: right;
-                                            }
-                                            table.DAI02030Grid1 tr:last-child td:nth-child(3) {
-                                                text-align: center;
-                                            }
-                                            table.DAI02030Grid1 tr td:last-child {
-                                                border-right-width: 1px;
-                                            }
-                                            table.DAI02030Grid1 tbody tr {
-                                                height: 25px;
-                                            }
-                                        `,
-                                        headerFunc,
-                                        25,
-                                        true,
-                                        false,
-                                        [
-                                            "日付",
-                                            "食事区分名",
-                                            "商品名",
-                                            "数量",
-                                            "単価",
-                                            "金額",
-                                            "入金金額",
-                                            "備考",
-                                        ],
-                                        [
-                                            "月日",
-                                            "区分",
-                                            "商品名称",
-                                            "食数",
-                                            "単価",
-                                            "買上額",
-                                            "入金額",
-                                            "備考",
-                                        ],
-                                    );
-                                    console.log("2030 seikyusho", html)
-                                    return html;
+                                    var htmls = target.map((json, idx) => {
+                                        var html = grid.generateHtmlFromJson(
+                                            json,
+                                            `
+                                                .header-table th {
+                                                    border-style: solid;
+                                                    border-left-width: 0px;
+                                                    border-top-width: 1px;
+                                                    border-right-width: 1px;
+                                                    border-bottom-width: 0px;
+                                                }
+                                                .header-table tr th:first-child {
+                                                    border-left-width: 1px;
+                                                }
+                                                .header-table tr:nth-child(1) th:nth-child(n+4) {
+                                                    border-left-width: 0px;
+                                                    border-top-width: 0px;
+                                                    border-right-width: 0px;
+                                                    border-bottom-width: 0px;
+                                                }
+                                                .header-table tr:nth-child(4) th:nth-child(6) {
+                                                    border-top-width: 0px;
+                                                }
+                                                table.DAI02030Grid1 tr:nth-child(1) th {
+                                                    border-style: solid;
+                                                    border-left-width: 1px;
+                                                    border-top-width: 1px;
+                                                    border-right-width: 0px;
+                                                    border-bottom-width: 1px;
+                                                }
+                                                table.DAI02030Grid1 tr th:last-child {
+                                                    border-right-width: 1px;
+                                                }
+                                                table.DAI02030Grid1 tr th:nth-child(1),
+                                                table.DAI02030Grid1 tr th:nth-child(2) {
+                                                    width: 7.0%;
+                                                }
+                                                table.DAI02030Grid1 tr th:nth-child(3),
+                                                table.DAI02030Grid1 tr th:nth-child(8) {
+                                                    width: 25.0%;
+                                                }
+                                                table.DAI02030Grid1 tr th:nth-child(4),
+                                                table.DAI02030Grid1 tr th:nth-child(5) {
+                                                    width: 8.0%;
+                                                }
+                                                table.DAI02030Grid1 tr td {
+                                                    border-style: solid;
+                                                    border-left-width: 1px;
+                                                    border-top-width: 0px;
+                                                    border-right-width: 0px;
+                                                    border-bottom-width: 1px;
+                                                }
+                                                table.DAI02030Grid1 tr td:nth-child(1),
+                                                table.DAI02030Grid1 tr td:nth-child(2) {
+                                                    text-align: center;
+                                                }
+                                                table.DAI02030Grid1 tr td:nth-child(4),
+                                                table.DAI02030Grid1 tr td:nth-child(5),
+                                                table.DAI02030Grid1 tr td:nth-child(6),
+                                                table.DAI02030Grid1 tr td:nth-child(7) {
+                                                    text-align: right;
+                                                }
+                                                table.DAI02030Grid1 tr:last-child td:nth-child(3) {
+                                                    text-align: center;
+                                                }
+                                                table.DAI02030Grid1 tr td:last-child {
+                                                    border-right-width: 1px;
+                                                }
+                                                table.DAI02030Grid1 tbody tr {
+                                                    height: 25px;
+                                                }
+                                            `,
+                                            headerFunc,
+                                            25,
+                                            true,
+                                            false,
+                                            idx == 0 && target.length > 1
+                                                ? [
+                                                    "商品名",
+                                                    "区分",
+                                                    "買上小計",
+                                                    "入金小計",
+                                                    "備考",
+                                                ]
+                                                : [
+                                                    "日付",
+                                                    "食事区分名",
+                                                    "商品名",
+                                                    "数量",
+                                                    "単価",
+                                                    "金額",
+                                                    "入金金額",
+                                                    "備考",
+                                                ],
+                                            idx == 0 && target.length > 1
+                                                ? [
+                                                    "商品名称",
+                                                    "区分",
+                                                    "買上小計",
+                                                    "入金小計",
+                                                    "備考",
+                                                ]
+                                                : [
+                                                    "月日",
+                                                    "区分",
+                                                    "商品名称",
+                                                    "食数",
+                                                    "単価",
+                                                    "買上額",
+                                                    "入金額",
+                                                    "備考",
+                                                ],
+                                        );
+
+                                        return html;
+                                    })
+                                    .map(v => $(v.get(0)).prop("outerHTML"))
+                                    .join("")
+                                    ;
+                                    console.log("htmls", htmls);
+                                    return htmls;
                                 })
                             )
                     )

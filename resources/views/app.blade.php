@@ -6,7 +6,6 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="icon" type="image/vnd.microsoft.icon" href="favicon.ico" size="48x48">
     <link rel="stylesheet" href="{{ mix('css/app.css') }}" />
-    <link rel="stylesheet" href="{{ mix('css/daiyas.css') }}" />
     <script>
         window.Laravel = {};
         window.Laravel.csrfToken = "{{ csrf_token() }}";
@@ -41,6 +40,8 @@
     <script src="{{ mix('js/vendor.js') }}"></script>
     <script src="{{ mix('js/app.js') }}"></script>
     </body>
+    <!-- bootstrap/jquery-ui への再設定含む為、jsの後に読み込む -->
+    <link rel="stylesheet" href="{{ mix('css/daiyas.css') }}" />
     <!-- pqgridのimportでcssが強制的に読み込まれてしまうので、themeはその後に読み込む -->
     <link rel="stylesheet" href="{{ mix('css/pqgrid/themes/steelblue/pqgrid.css') }}" />
 </html>
