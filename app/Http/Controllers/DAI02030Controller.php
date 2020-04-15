@@ -121,6 +121,8 @@ class DAI02030Controller extends Controller
                 ,ISNULL(KAKU_SHIHA.各種名称,'') AS 支払方法
                 ,SEIKYU.回収予定日 AS 集金日
                 ,ISNULL(KAKU_SYUKIN.各種名称,'') AS 集金区分
+                ,TOK.支払サイト
+                ,TOK.支払日
             FROM
                 [請求データ] SEIKYU
                 INNER JOIN [得意先マスタ] TOK
@@ -221,8 +223,10 @@ class DAI02030Controller extends Controller
         $sql = "
             WITH 請求明細 AS (
                 SELECT
+                    IIF(得意先マスタ.請求先ＣＤ=0, 得意先マスタ.得意先ＣＤ, 得意先マスタ.請求先ＣＤ) AS 請求先ＣＤ,
                     売上データ明細.部署ＣＤ,
                     売上データ明細.得意先ＣＤ,
+					得意先マスタ.得意先名,
                     売上データ明細.コースＣＤ,
                     コースマスタ.コース名,
                     コースマスタ.コース区分,
@@ -254,8 +258,10 @@ class DAI02030Controller extends Controller
                     売上データ明細.売掛現金区分 = 1
                 UNION
                 SELECT
+                    IIF(得意先マスタ.請求先ＣＤ=0, 得意先マスタ.得意先ＣＤ, 得意先マスタ.請求先ＣＤ) AS 請求先ＣＤ,
                     入金データ.部署ＣＤ,
                     入金データ.得意先ＣＤ,
+					得意先マスタ.得意先名,
                     NULL AS コースＣＤ,
                     NULL AS コース名,
                     NULL AS コース区分,
@@ -299,7 +305,7 @@ class DAI02030Controller extends Controller
                 請求明細 MEISAI
                 INNER JOIN 請求データ SEIKYU
                     ON  MEISAI.部署ＣＤ = SEIKYU.部署ＣＤ
-                    AND MEISAI.得意先ＣＤ = SEIKYU.請求先ＣＤ
+                    AND MEISAI.請求先ＣＤ = SEIKYU.請求先ＣＤ
                     AND	MEISAI.伝票日付 >= SEIKYU.請求日範囲開始
                     AND	MEISAI.伝票日付 <= SEIKYU.請求日範囲終了
             WHERE

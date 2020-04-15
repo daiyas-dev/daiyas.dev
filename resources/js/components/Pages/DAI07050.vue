@@ -1061,7 +1061,7 @@ export default {
 
             var targetData = data || grid.pdata;
 
-            var target = data.map(r => {
+            var target = targetData.map(r => {
                 var layout = `
                     <div>
                         <div class="header">

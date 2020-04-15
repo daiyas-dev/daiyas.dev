@@ -2651,7 +2651,6 @@ export default {
                     var headers = !!isShowheader ? $("<tr>").append(keys.map((k, i) => $("<th>").text(!!colArray ? colArray[i] : k))).get() : [];
                     var bodies = json.map(v => $("<tr>").append(keys.map(k => !!byHtml ? $("<td>").html(v[k]) : $("<td>").text(v[k]))).get(0));
                     var ret = grid.restructTable(json, bodies, headers, styles, header, maxRowsPerPage, null, null, null, null, bodyWrapper, headerWrapper);
-                    console.log("generateHtmlFromJson", ret.prop("outerHTML"));
                     return ret;
                 };
 
