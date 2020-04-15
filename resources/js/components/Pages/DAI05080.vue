@@ -20,37 +20,6 @@
         </div>
         <div class="row">
             <div class="col-md-1">
-                <label>コース</label>
-            </div>
-            <div class="col-md-5">
-                <PopupSelect
-                    id="CourseCd"
-                    ref="PopupSelect_CourseCd"
-                    :vmodel=viewModel
-                    bind="CourseCd"
-                    dataUrl="/Utilities/GetCourseList"
-                    :params='{ bushoCd: viewModel.BushoCd, courseKbn: viewModel.CourseKbn }'
-                    :dataListReset=true
-                    title="コース一覧"
-                    labelCd="コースCD"
-                    labelCdNm="コース名"
-                    :isShowName=true
-                    :isModal=true
-                    :editable=true
-                    :reuse=true
-                    :existsCheck=true
-                    :exceptCheck="[{ Cd: 0 }]"
-                    :inputWidth=100
-                    :nameWidth=300
-                    :onAfterChangedFunc=onCourseCdChanged
-                    :isShowAutoComplete=true
-                    :AutoCompleteFunc=CourseAutoCompleteFunc
-                    :isPreload=true
-                />
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-1">
                 <label>得意先</label>
             </div>
             <div class="col-md-4">
@@ -148,7 +117,6 @@ export default {
             noViewModel: true,
             viewModel: {
                 BushoArray: [],
-                CourseCd: null,
                 CustomerCd: null,
             },
             DAI05080Grid1: null,
@@ -161,7 +129,7 @@ export default {
                 numberCell: { show: true, title: "No.", resizable: false, },
                 autoRow: true,
                 rowHt: 35,
-                freezeCols: 10,
+                freezeCols: 7,
                 editable: false,
                 columnTemplate: {
                     editable: false,
@@ -184,9 +152,9 @@ export default {
                     header: false,
                     grandSummary: false,
                     indent: 20,
-                    dataIndx: ["部署","コース"],
-                    showSummary: [false,false],
-                    collapsed: [false,false],
+                    dataIndx: ["部署"],
+                    showSummary: [false],
+                    collapsed: [false],
                     summaryInTitleRow: "collapsed",
                 },
                 summaryData: [
@@ -213,32 +181,14 @@ export default {
                         hidden:true,
                     },
                     {
-                        title: "コース",
-                        dataIndx: "コース", dataType: "string",
+                        title: "電話番号",
+                        dataIndx: "電話番号１", dataType: "string",
                         fixed: true,
                         hidden:true,
                     },
                     {
-                        title: "コースＣＤ",
-                        dataIndx: "コースＣＤ", dataType: "string",
-                        fixed: true,
-                        hidden:true,
-                    },
-                    {
-                        title: "コース名",
-                        dataIndx: "コース名", dataType: "string",
-                        fixed: true,
-                        hidden:true,
-                    },
-                    {
-                        title: "担当者ＣＤ",
-                        dataIndx: "担当者ＣＤ", dataType: "string",
-                        fixed: true,
-                        hidden:true,
-                    },
-                    {
-                        title: "担当者名",
-                        dataIndx: "担当者名", dataType: "string",
+                        title: "ＦＡＸ",
+                        dataIndx: "ＦＡＸ１", dataType: "string",
                         fixed: true,
                         hidden:true,
                     },
@@ -283,8 +233,6 @@ export default {
         mountedFunc: function(vue) {
             //日付の初期値 -> 当日
             //TODO:
-            vue.viewModel.TargetDate = moment("20190507").format("YYYY年MM月");
-            //vue.viewModel.CourseCd=101;
         },
         setPrintOptions: function(grid) {
             var vue = this;
@@ -410,12 +358,6 @@ export default {
             //フィルタ変更ハンドラ
             vue.filterChanged();
         },
-        onCourseCdChanged: function(code, entity) {
-            var vue = this;
-
-            //フィルタ変更ハンドラ
-            vue.filterChanged();
-        },
         conditionChanged: function(callback) {
             var vue = this;
             var grid = vue.DAI05080Grid1;
@@ -431,8 +373,7 @@ export default {
             //検索パラメータの加工
             params.BushoArray = vue.BushoCdArray;//部署コードのみ渡す
 
-            //コースはフィルタするので除外
-            delete params.CourseCd;
+            //フィルタするパラメータは除外
             delete params.CustomerCd;
 
             grid.searchData(params, false, null, callback);
@@ -444,13 +385,6 @@ export default {
             if (!grid) return;
 
             var rules = [];
-            if (vue.viewModel.CourseCd != undefined && vue.viewModel.CourseCd != "") {
-                var crules_Course = [];
-                crules_Course.push({ condition: "equal", value: vue.viewModel.CourseCd});
-                if (crules_Course.length) {
-                    rules.push({ dataIndx: "コースＣＤ", mode: "AND", crules: crules_Course });
-                }
-            }
             if (vue.viewModel.CustomerCd != undefined && vue.viewModel.CustomerCd != "") {
                 var crules_Customer = [];
                 crules_Customer.push({ condition: "equal", value: vue.viewModel.CustomerCd});
@@ -475,7 +409,6 @@ export default {
                             });
                         });
                     r.部署=r.部署ＣＤ + " " + r.部署名;
-                    r.コース=r.コースＣＤ + " " + r.コース名;
                     return r;
                 });
             return groupings;
@@ -512,42 +445,6 @@ export default {
                     ret.label = v.Cd + " : " + "【" + v.部署名 + "】" + v.CdNm;
                     ret.value = v.Cd;
                     ret.text = v.CdNm;
-                    return ret;
-                })
-                ;
-
-            return list;
-        },
-        CourseAutoCompleteFunc: function(input, dataList, comp) {
-            var vue = this;
-
-            if (!dataList.length) return [];
-
-            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
-            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
-            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
-
-            var wholeColumns = ["コース名", "担当者名"];
-
-            if ((input == comp.selectValue && comp.isUnique) || comp.isError) {
-                keyAND = keyOR = [];
-            }
-
-            var list = dataList
-                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
-                .filter(v => {
-                    return keyOR.length == 0
-                        || _.some(keyOR, k => v.コースＣＤ.startsWith(k))
-                        || _.some(keyOR, k => v.whole.includes(k))
-                })
-                .filter(v => {
-                    return keyAND.length == 0 || _.every(keyAND, k => v.whole.includes(k));
-                })
-                .map(v => {
-                    var ret = v;
-                    ret.label = v.コースＣＤ + " : " + v.コース名 + "【" + v.担当者名 + "】";
-                    ret.value = v.コースＣＤ;
-                    ret.text = v.コース名;
                     return ret;
                 })
                 ;
@@ -632,7 +529,19 @@ export default {
                             </tr>
                         `;
                     });
-
+                    var row=12-products.length;
+                    if(0<row){
+                        [...Array(row)].map(r=>{
+                            layout_product += `
+                                <tr>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                </tr>
+                            `;
+                        });
+                    }
                     var layout=`
                             <div>
                                 <div class="header">
@@ -649,8 +558,8 @@ export default {
                                                 </tr>
                                                 <tr>
                                                     <td>
-                                                        <div>Fax.</div>
-                                                        <div>Tel.</div>
+                                                        <div><span>Fax.</span><span>${r.ＦＡＸ１}</span></div>
+                                                        <div><span>Tel.</span><span>${r.電話番号１}</span></div>
                                                         <div>月　日　分</div>
                                                     </td>
                                                     <td>

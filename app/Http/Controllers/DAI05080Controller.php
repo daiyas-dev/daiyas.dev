@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
 use Illuminate\Support\Carbon;
+use PDO;
 
 class DAI05080Controller extends Controller
 {
@@ -16,7 +17,7 @@ class DAI05080Controller extends Controller
         if($BushoArray !=null && is_array($BushoArray) && 0<count($BushoArray))
         {
             $BushoList = implode(',',$BushoArray);
-            $WhereBusho1=" AND T1.部署CD IN( $BushoList )";
+            $WhereBusho1=" AND T1.部署ＣＤ IN( $BushoList )";
         }
 
         $sql = "
@@ -34,11 +35,17 @@ class DAI05080Controller extends Controller
                     0=0
                     $WhereBusho1
                 ORDER BY
-                     T1.得意先ＣＤ
-                    ,T3.商品ＣＤ
+                     T3.商品ＣＤ
             ";
 
-        $DataList = DB::select($sql);
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = null;
         return $DataList;
     }
     public function SearchCourse($vm)
@@ -48,7 +55,7 @@ class DAI05080Controller extends Controller
         if($BushoArray !=null && is_array($BushoArray) && 0<count($BushoArray))
         {
             $BushoList = implode(',',$BushoArray);
-            $WhereBusho1=" AND T1.部署CD IN( $BushoList )";
+            $WhereBusho1=" AND T1.部署ＣＤ IN( $BushoList )";
         }
 
         $sql = "
@@ -72,7 +79,14 @@ class DAI05080Controller extends Controller
                 ORDER BY
                     T1.得意先ＣＤ
             ";
-        $DataList = DB::select($sql);
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = null;
         return $DataList;
     }
 
