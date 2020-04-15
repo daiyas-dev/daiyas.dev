@@ -374,7 +374,7 @@ export default {
                         hidden: true,
                     },
                     {
-                        title: "コード",
+                        title: "<span>コード</span>",
                         dataIndx: "請求先ＣＤ",
                         dataType: "integer",
                         width: 75, minWidth: 75, maxWidth: 75,
@@ -393,7 +393,7 @@ export default {
                         tooltip: true,
                     },
                     {
-                        title: "コード",
+                        title: "<span>コード</span>",
                         dataIndx: "コースＣＤ",
                         dataType: "integer",
                         width: 75, minWidth: 75, maxWidth: 75,
@@ -443,7 +443,7 @@ export default {
                                     return { text: "合計" };
                                 }
                                 if (!!ui.rowData.pq_gsummary) {
-                                    return { text: ui.rowData.pq_level == 0 ? "請求日計" : "コース計" };
+                                    return { text: vue.viewModel.SimeKbn == "2" ? (ui.rowData.pq_level == 0 ? "請求日計" : "コース計") : "コース計" };
                                 }
                             }
                         },
@@ -640,7 +640,7 @@ export default {
         },
         onPrintOrderChanged: function(code, entities) {
             var vue = this;
-            var grid = vue.DAI02030Grid1;
+            var grid = vue.DAI02020Grid1;
 
             //ソート順変更
             var sorter = [
@@ -1053,7 +1053,7 @@ export default {
                         ? moment(vue.searchParams.TargetDate).format("YYYY年MM月DD日")
                         : vue.viewModel.TargetDate
                     ;
-                var GroupInfo = vue.viewModel.SimeKbn == "2"
+                var GroupInfo = vue.viewModel.PrintOrder == "1"
                     ? (header.pq_level == 0 ? (!!header.children.length ? header.children[0].コース : "") : header.コース).split(":")
                     : []
                     ;
@@ -1067,15 +1067,12 @@ export default {
                         <thead>
                             <tr>
                                 <th style="width: 6%;">部署</th>
-                                <th style="width: 4%;">${vue.viewModel.BushoCd}</th>
-                                <th style="width: 12%;">${vue.viewModel.BushoNm}</th>
-                                <th style="width: 6%;"></th>
-                                <th style="width: 6%;"></th>
-                                <th style="width: 26%; vertical-align: top;" rowspan=2>
-                                    <h3 style="font-size: 16pt;">* * * 請求一覧表 * * *</h3>
+                                <th style="width: 6%;">${vue.viewModel.BushoCd}</th>
+                                <th style="width: 15%;" colspan="2">${vue.viewModel.BushoNm}</th>
+                                <th style="width: 31%; vertical-align: top;" rowspan="3" colspan="6">
+                                    <h3 style="font-size: 16pt; text-align: right;">* * * 請求一覧表 * * *</h3>
                                 </th>
-                                <th style="width: 6%;"></th>
-                                <th style="width: 10%;"></th>
+                                <th style="width: 12%;"></th>
                                 <th style="width: 6%;"></th>
                                 <th style="width: 6%;"></th>
                                 <th style="width: 6%;"></th>
@@ -1083,20 +1080,20 @@ export default {
                             </tr>
                             <tr>
                                 <th>請求日付</th>
-                                <th colspan=2>${TargetDate}</th>
+                                <th colspan="2">${TargetDate}</th>
                             </tr>
                             <tr>
                                 <th>コース</th>
                                 <th>${CourseCd}</th>
-                                <th colspan=2>${CourseNm}</th>
+                                <th colspan="2">${CourseNm}</th>
                             </tr>
                             <tr>
                                 <th>担当者</th>
                                 <th>${TantoCd}</th>
-                                <th>${TantoNm}</th>
+                                <th colspan="2">${TantoNm}</th>
                                 <th>締区分</th>
                                 <th>${vue.viewModel.SimeKbnNm}</th>
-                                <th></th>
+                                <th colspan="3"></th>
                                 <th>作成日</th>
                                 <th>${moment().format("YYYY年MM月DD日")}</th>
                                 <th>時間</th>
@@ -1134,6 +1131,12 @@ export default {
                                         border-right-width: 1px;
                                         border-bottom-width: 0px;
                                     }
+                                    .header-table tr:nth-child(1) th {
+                                        border-bottom-width: 1px;
+                                    }
+                                    .header-table tr:nth-child(2) th {
+                                        border-top-width: 0px;
+                                    }
                                     .header-table tr th:first-child {
                                         border-left-width: 1px;
                                     }
@@ -1146,12 +1149,33 @@ export default {
                                     .header-table tr:nth-child(4) th:nth-child(6) {
                                         border-top-width: 0px;
                                     }
+                                    .header-table tr th:nth-child(3) {
+                                        text-align: left;
+                                    }
                                     table.DAI02020Grid1 tr:nth-child(1) th {
                                         border-style: solid;
                                         border-left-width: 1px;
                                         border-top-width: 1px;
                                         border-right-width: 0px;
                                         border-bottom-width: 1px;
+                                    }
+                                    table.DAI02020Grid1 tr th:nth-child(1) {
+                                        width: 6.0%
+                                    }
+                                    table.DAI02020Grid1 tr th:nth-child(2) {
+                                        width: 20.0%
+                                    }
+                                    table.DAI02020Grid1 tr th:nth-child(3) {
+                                        width: 4.0%
+                                    }
+                                    table.DAI02020Grid1 tr th:nth-child(4) {
+                                        width: 14.0%
+                                    }
+                                    table.DAI02020Grid1 tr th:nth-child(5) {
+                                        width: 6.0%
+                                    }
+                                    table.DAI02020Grid1 tr th:nth-child(6) {
+                                        width: 8.0%
                                     }
                                     table.DAI02020Grid1 tr th:last-child {
                                         border-right-width: 1px;
@@ -1162,6 +1186,24 @@ export default {
                                         border-top-width: 0px;
                                         border-right-width: 0px;
                                         border-bottom-width: 1px;
+                                    }
+                                    table.DAI02020Grid1 tr th span {
+                                        color: transparent;
+                                    }
+                                    table.DAI02020Grid1 tr th:nth-child(2),
+                                    table.DAI02020Grid1 tr th:nth-child(4) {
+                                        border-left-width: 0px;
+                                        text-align: left;
+                                        padding-left: 28px;
+                                    }
+                                    table.DAI02020Grid1 tr td:nth-child(2),
+                                    table.DAI02020Grid1 tr td:nth-child(4) {
+                                        border-left-width: 0px;
+                                        padding-left:3px;
+                                    }
+                                    table.DAI02020Grid1 tr td:nth-child(6) {
+                                        text-align: left;
+                                        padding-left:5px;
                                     }
                                     table.DAI02020Grid1 tr.grand-summary td {
                                         border-style: solid;
@@ -1190,12 +1232,9 @@ export default {
                                 `,
                                 headerFunc,
                                 32,
-                                !!keys.length ?  keys.map(v => false) : null, //[false, false],
-                                [true, true],　//確認中（日締コース順の際、コース計をだしたい）
-                                // !!keys.length ?  keys.map(v => false) : null, //[true, true],
-                                // 月締コース順：!!keys.length ?  keys.map(v => [v]=="コース") : null,
-                                !!keys.length ?  keys.map(v => true) : null, //[true, true],
-                                //TODO:西山確認中
+                                !!keys.length ?  keys.map(v => false) : null,
+                                [true, true],
+                                !!keys.length ?  keys.map(v => true) : null,
                             )
                         )
                 )

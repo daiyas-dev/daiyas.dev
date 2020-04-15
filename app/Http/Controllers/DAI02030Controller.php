@@ -121,6 +121,8 @@ class DAI02030Controller extends Controller
                 ,ISNULL(KAKU_SHIHA.各種名称,'') AS 支払方法
                 ,SEIKYU.回収予定日 AS 集金日
                 ,ISNULL(KAKU_SYUKIN.各種名称,'') AS 集金区分
+                ,TOK.支払サイト
+                ,TOK.支払日
             FROM
                 [請求データ] SEIKYU
                 INNER JOIN [得意先マスタ] TOK
