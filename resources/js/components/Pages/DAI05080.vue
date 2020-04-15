@@ -144,7 +144,7 @@ export default {
     },
     data() {
         return $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "随時処理 > 得意先別単価表",
+            ScreenTitle: "随時処理 > FAX注文書発行",
             noViewModel: true,
             viewModel: {
                 BushoArray: [],
@@ -255,6 +255,12 @@ export default {
                         tooltip: true,
                         fixed: true,
                     },
+                    {
+                        title: "商品_0",
+                        dataIndx: "商品_0", dataType: "string",
+                        hidden:true,
+                        fixed: true,
+                    },
                 ],
             },
         });
@@ -277,7 +283,6 @@ export default {
         mountedFunc: function(vue) {
             //日付の初期値 -> 当日
             //TODO:
-            console.log("mounted");//TODO:
             vue.viewModel.TargetDate = moment("20190507").format("YYYY年MM月");
             //vue.viewModel.CourseCd=101;
         },
@@ -458,7 +463,7 @@ export default {
         onAfterSearchFunc: function (vue, grid, res) {
             var vue = this;
             var groupings = res[0].CourseData.map(r => {
-                    var priceData = res[0].PriceData.filter(k => k.部署ＣＤ==r.部署ＣＤ && k.コースＣＤ==r.コースＣＤ && k.得意先ＣＤ==r.得意先ＣＤ);
+                    var priceData = res[0].PriceData.filter(k => k.部署ＣＤ==r.部署ＣＤ && k.得意先ＣＤ==r.得意先ＣＤ);
                     _.chunk(priceData,5)
                         .map(pr => {
                             var i=1;
@@ -466,6 +471,7 @@ export default {
                                 r["商品_" + i] = r["商品_" + i]==undefined ? cr.表示商品名 : r["商品_" + i] + "\n" + cr.表示商品名;
                                 r["単価_" + i ]= r["単価_" + i]==undefined ? cr.単価:r["単価_" + i ] + "\n" + cr.単価;
                                 i++;
+                                r["商品_0"] = r["商品_0"]==undefined ? cr.商品名 + "\\" + cr.単価 : r["商品_0"] + "\n" + cr.商品名 + "\\" + cr.単価;
                             });
                         });
                     r.部署=r.部署ＣＤ + " " + r.部署名;
@@ -550,8 +556,10 @@ export default {
         },
         print: function() {
             var vue = this;
+            var grid = vue.DAI05080Grid1;
 
             //印刷用HTML全体適用CSS
+            var targetData = grid.pdata;
             var globalStyles = `
                 body {
                     -webkit-print-color-adjust: exact;
@@ -608,78 +616,92 @@ export default {
                     border-radius: 5px;
                 }
             `;
-            var headerFunc = (header, idx, length) => {
-                var BushoCd = "";
-                var BushoNm = "";
-                var CourseCd="";
-                var CourseNm="";
-                var TantoCd="";
-                var TantoNm="";
-                if(header.pq_level==0)
-                {
-                    BushoCd = header.部署.split(" ")[0];
-                    BushoNm = header.部署.split(" ")[1];
-                    CourseCd= header.children[0].コース.split(" ")[0];
-                    CourseNm= header.children[0].コース.split(" ")[1];
-                }else{
-                    BushoCd = header.parentId.split(" ")[0];
-                    BushoNm = header.parentId.split(" ")[1];
-                    CourseCd= header.コース.split(" ")[0];
-                    CourseNm= header.コース.split(" ")[1];
-                }
-                TantoCd = vue.DAI05080Grid1.pdata.find(v => v.部署ＣＤ==BushoCd && v.コースＣＤ==CourseCd).担当者ＣＤ;
-                TantoNm = vue.DAI05080Grid1.pdata.find(v => v.部署ＣＤ==BushoCd && v.コースＣＤ==CourseCd).担当者名;
-                return `
-                    <div class="title">
-                        <h3><div class="report-title-area">＊＊＊　得意先単価表　＊＊＊
-                    <div></h3>
-                    </div>
-                    <table class="header-table" style="border-width: 0px">
-                        <thead>
-                            <tr>
-                                <th style="width:  5%;">部署</th>
-                                <th style="width:  5%; text-align: right;">${BushoCd}</th>
-                                <th style="width: 18%;">${BushoNm}</th>
-                                <th colspan="8" class="blank-cell"></th>
-                            </tr>
-                            <tr>
-                                <th style="width:  5%;">コース</th>
-                                <th style="width:  5%; text-align: right;">${CourseCd}</th>
-                                <th style="width: 18%;">${CourseNm}</th>
-                                <th style="width:  5%;">担当者</th>
-                                <th style="width:  5%; text-align: right;">${TantoCd}</th>
-                                <th style="width: 18%;">${TantoNm}</th>
-                                <th style="width:  5%;" class="blank-cell"></th>
-                                <th>作成日</th>
-                                <th style="text-align: right;">${moment().format("YYYY年MM月DD日")}</th>
-                                <th>PAGE</th>
-                                <th style="text-align: right;">${idx + 1}</th>
-                            </tr>
-                        </thead>
-                    </table>
-                `;
-            };
 
-            var styleCustomers =`
-                table.DAI05080Grid1
-                table.DAI05080Grid1 tr,
-                table.DAI05080Grid1 th,
-                table.DAI05080Grid1 td {
-                    border-collapse: collapse;
-                    border:1px solid black;
-                }
-            `;
+            var target = targetData.filter(k=>k.pq_level==undefined)
+                .map(r => {
+                    var products=r.商品_0.split("\n");
+                    var layout_product=``;
+                    products.map(pr=>{
+                        var product=pr.split("\\");
+                        layout_product += `
+                            <tr>
+                                <th>${product[0]}</th>
+                                <th>${product[1]}</th>
+                                <th></th>
+                                <th></th>
+                            </tr>
+                        `;
+                    });
+
+                    var layout=`
+                            <div>
+                                <div class="header">
+                                    <div>
+                                        <div>注文書</div>
+                                            <table style="width:100%;">
+                                                <tr>
+                                                    <td>
+                                                        <span>${r.得意先名}</span><span>様</span>
+                                                    </td>
+                                                    <td>
+                                                        A${r.得意先ＣＤ}A
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <div>Fax.</div>
+                                                        <div>Tel.</div>
+                                                        <div>月　日　分</div>
+                                                    </td>
+                                                    <td>
+                                                        <span>顧客コード</span><span>${r.得意先ＣＤ}</span>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                        <table class="header-table" style="border-width: 0px; margin-bottom: 20px;">
+                                            <thead>
+                                                <tr>
+                                                    <th>弁当名</th>
+                                                    <th>単価</th>
+                                                    <th>数量</th>
+                                                    <th>備考</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                ${layout_product}
+                                            </tbody>
+                                        </table>
+                                        <div style="float:left;">
+                                            <div>※本用紙をコピーしてお使い下さい。</div>
+                                            <div>※本注文書は、御社専用です。他のお客様に流用しないでください。</div>
+                                            <div>※ご注文、食数の変更はできるだけ午前９時１０分迄にお願いします。</div>
+                                        </div>
+                                        <div style="float:left;">
+                                            <div>株式会社ダイヤス食品</div>
+                                            <div>Fax.0836-21-4700</div>
+                                            <div>Tel.0836-32-1113</div>
+                                            <div>印刷日　${moment().format("YYYY/MM/DD")}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                    `;
+                    layout = layout + `<div style="clear:left"></div><hr noshade/>` + layout;//1ページに同じ内容を2つ表示する。
+                return { contents: layout };
+            });
+            window.res_tg = _.cloneDeep(target);//TODO:
 
             var printable = $("<html>")
                 .append($("<head>").append($("<style>").text(globalStyles)))
                 .append(
                     $("<body>")
                         .append(
-                            vue.DAI05080Grid1.generateHtml(
-                                styleCustomers,
-                                headerFunc,
-                                29,
-                                false,
+                            grid.generateHtmlFromJson(
+                                target,
+                                ``,
+                                null,
+                                1,
                                 false,
                                 true,
                             )
@@ -689,7 +711,7 @@ export default {
                 ;
             var printOptions = {
                 type: "raw-html",
-                style: "@media print { @page { size: A4 landscape; } }",
+                style: "@media print { @page { size: A4 portrait; } }",
                 printable: printable,
             };
             printJS(printOptions);

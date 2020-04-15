@@ -76,6 +76,7 @@ class DAI05010Controller extends Controller
                     ,WITH_コース.コースＣＤ
                     ,WITH_コース.ＳＥＱ
                     ,WITH_コース.得意先ＣＤ
+                    ,WITH_得意先単価.商品ＣＤ
             ";
 
         $DataList = DB::select($sql);
