@@ -505,6 +505,13 @@ export default {
             var vue = this;
             var grid = vue.DAI07040Grid1;
 
+            if (!!vue.viewModel.BushoCd && !vue.BushoInfo) {
+                var entity = vue.$refs.VueSelectBusho.$refs.BushoCd.entities.find(v => v.code == vue.viewModel.BushoCd);
+
+                if (!entity) return
+                vue.BushoInfo = entity.info;
+            }
+
             //印刷用HTML全体適用CSS
             var globalStyles = `
                 body {

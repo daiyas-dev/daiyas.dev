@@ -2,18 +2,7 @@
     <form id="this.$options.name">
         <div class="row">
             <div class="col-md-1">
-                <label>部署</label>
-            </div>
-            <div class="col-md-2">
-                <VueSelectBusho
-                    :hasNull=true
-                    :onChangedFunc=onBushoChanged
-                />
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-1">
-                <label>配達日付</label>
+                <label>対象日</label>
             </div>
             <div class="col-md-4">
                 <DatePickerWrapper
@@ -38,22 +27,149 @@
                     :onChangedFunc=onDateChanged
                 />
             </div>
+            <div class="col-md-1">
+            </div>
+            <div class="col-md-3">
+                <VueOptions
+                    id="Customer"
+                    ref="VueOptions_Customer"
+                    customItemStyle="text-align: center; margin-right: 10px;"
+                    :vmodel=viewModel
+                    bind="Customer"
+                    :list="[
+                        {code: '0', name: '全顧客', label: '0:全顧客'},
+                        {code: '1', name: '新規顧客', label: '1:新規顧客のみ'},
+                    ]"
+                    :onChangedFunc=onCustomerChanged
+                />
+            </div>
         </div>
         <div class="row">
             <div class="col-md-1">
-                <label>商品</label>
+                <label>新規登録日</label>
             </div>
-            <div class="col-md-11">
-                <VueMultiSelect
-                    id="ProductCd"
-                    ref="VueMultiSelect_Product"
+            <div class="col-md-4">
+                <DatePickerWrapper
+                    id="SaveDateStart"
+                    ref="DatePicker_SaveDate"
+                    format="YYYY年MM月DD日"
+                    dayViewHeaderFormat="YYYY年MM月"
                     :vmodel=viewModel
-                    bind="ProductArray"
-                    uri="/Utilities/GetProductList"
+                    bind="SaveDateStart"
+                    :editable=true
+                    :onChangedFunc=onDateChanged
+                />
+                <label>～</label>
+                <DatePickerWrapper
+                    id="SaveDateEnd"
+                    ref="DatePicker_SaveDate"
+                    format="YYYY年MM月DD日"
+                    dayViewHeaderFormat="YYYY年MM月"
+                    :vmodel=viewModel
+                    bind="SaveDateEnd"
+                    :editable=true
+                    :onChangedFunc=onDateChanged
+                />
+            </div>
+            <div class="col-md-1">
+            </div>
+            <VueCheck
+                id="VueCheck_ShowSyonin"
+                ref="VueCheck_ShowSyonin"
+                :vmodel=viewModel
+                bind="ShowSyonin"
+                checkedCode="1"
+                customContainerStyle="border: none;"
+                :list="[
+                    {code: '0', name: 'しない', label: '承認・仮承認'},
+                    {code: '1', name: 'する', label: '承認・仮承認'},
+                ]"
+                :onChangedFunc=onShowSyoninChanged
+            />
+        </div>
+        <div class="row">
+            <div class="col-md-1">
+                <label>部署</label>
+            </div>
+            <div class="col-md-5">
+                <VueOptions
+                    id="Busho"
+                    ref="VueOptions_Busho"
+                    customItemStyle="text-align: center; margin-right: 10px; border: none;"
+                    :vmodel=viewModel
+                    bind="Busho"
+                    :list="[
+                        {code: '0', name: '部署なし', label: '部署なし'},
+                        {code: '1', name: '全社', label: '全社　　'},
+                        {code: '2', name: '部署', label: '部署'},
+                    ]"
+                    :onChangedFunc=onBushoChanged
+                />
+                <VueSelectBusho
                     :hasNull=true
-                    :withCode=true
-                    customStyle="{ width: 200px; }"
-                    :onChangedFunc=onProductCdChanged
+                    :onChangedFunc=onBushoChanged
+                />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1">
+                <label>営業担当者</label>
+            </div>
+            <div class="col-md-5">
+                <PopupSelect
+                    id="EigyoTantoCd"
+                    ref="PopupSelect_EigyoTantoCd"
+                    :vmodel=viewModel
+                    bind="EigyoTantoCd"
+                    dataUrl="/Utilities/GetTantoList"
+                    :params='{ bushoCd: viewModel.BushoCd }'
+                    :dataListReset=true
+                    title="営業担当者"
+                    labelCd="営業担当者CD"
+                    labelCdNm="営業担当者名"
+                    :isShowName=true
+                    :isModal=true
+                    :editable=true
+                    :reuse=true
+                    :existsCheck=true
+                    :exceptCheck="[{ Cd: 0 }]"
+                    :inputWidth=100
+                    :nameWidth=300
+                    :onAfterChangedFunc=onEigyoTantoCdChanged
+                    :isShowAutoComplete=true
+                    :AutoCompleteFunc=TantoAutoCompleteFunc
+                    :isPreload=true
+                />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1">
+                <label>獲得営業者</label>
+            </div>
+            <div class="col-md-4">
+                <PopupSelect
+                    id="GetEigyoTantoCd"
+                    ref="PopupSelect_GetEigyoTantoCd"
+                    :vmodel=viewModel
+                    bind="GetEigyoTantoCd"
+                    dataUrl="/Utilities/GetTantoList"
+                    :params='{ bushoCd: viewModel.BushoCd }'
+                    :dataListReset=true
+                    title="獲得営業担当者"
+                    labelCd="獲得営業担当者CD"
+                    labelCdNm="獲得営業担当者名"
+                    :isShowName=true
+                    :isModal=true
+                    :editable=true
+                    :reuse=true
+                    :existsCheck=true
+                    :exceptCheck="[{ Cd: 0 }]"
+                    :inputWidth=100
+                    :nameWidth=300
+                    :onAfterChangedFunc=onEigyoTantoCdChanged
+                    :isShowAutoComplete=true
+                    :AutoCompleteFunc=TantoAutoCompleteFunc
+                    :isPreload=true
                 />
             </div>
         </div>
@@ -104,13 +220,17 @@ export default {
     data() {
         var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "月次処理 > 商品売上一覧表",
+            ScreenTitle: "随時処理 > 顧客売上表",
             noViewModel: true,
             viewModel: {
+                Customet: null,
+                Busho: null,
                 BushoCd: null,
                 ProductArray: [],
                 DateStart: null,
                 DateEnd: null,
+                SaveDateStart: null,
+                SaveDateEnd: null,
                 ProductCd: null,
             },
             DAI05100Grid1: null,
@@ -147,9 +267,9 @@ export default {
                     header: false,
                     grandSummary: true,
                     indent: 10,
-                    dataIndx: ["ＧＫ部署"],
-                    showSummary: [true],
-                    collapsed: [false],
+                    dataIndx: ["ＧＫ営業担当者", "ＧＫ獲得営業者", "得意先"],
+                    showSummary: [true, true, false],
+                    collapsed: [false, false, true],
                     summaryInTitleRow: "collapsed",
                 },
                 summaryData: [
@@ -158,9 +278,30 @@ export default {
                 ],
                 colModel: [
                     {
-                        title: "ＧＫ部署",
-                        dataIndx: "ＧＫ部署", dataType: "string",
-                        hidden: true,
+                        title: "営業担当者",
+                        dataIndx: "ＧＫ営業担当者", dataType: "string",
+                        width: 100, minWidth: 100, maxWidth: 100,
+                        render: ui => {
+                            if (ui.rowData.pq_level != 0) {
+                                return { text: "" };
+                            }
+                            return ui;
+                        },
+                    },
+                    {
+                        title: "獲得営業者",
+                        dataIndx: "ＧＫ獲得営業者", dataType: "string",
+                        width: 100, minWidth: 100, maxWidth: 100,
+                        render: ui => {
+                            switch (ui.rowData.pq_level) {
+                                case 0:
+                                    return { text: "" };
+                                case 1:
+                                    return ui;
+                                default:
+                                    return { text: "" };
+                            }
+                        },
                     },
                     {
                         title: "部署ＣＤ",
@@ -173,49 +314,66 @@ export default {
                         hidden: true,
                     },
                     {
-                        title: "商品ＣＤ",
-                        dataIndx: "商品ＣＤ", dataType: "string",
-                        width: 75, minWidth: 75, maxWidth: 75,
+                        title: "得意先",
+                        dataIndx: "得意先", dataType: "string",
+                        hidden: true,
                     },
                     {
-                        title: "商品名",
-                        dataIndx: "商品名", dataType: "string",
-                        width: 250, minWidth: 250, maxWidth: 250,
+                        title: "顧客",
+                        dataIndx: "得意先名", dataType: "string",
+                        width: 500, minWidth: 500, maxWidth: 500,
                         render: ui => {
                             if (!!ui.rowData.pq_grandsummary) {
-                                return { text: "合　計" };
+                                return { text: "**総合計**" };
                             }
                             if (!!ui.rowData.pq_gsummary) {
-                                return { text: "小　計" };
+                                switch (ui.rowData.pq_level) {
+                                    case 0:
+                                        return { text: "**営業担当合計**" };
+                                    case 1:
+                                        return { text: "**合計**" };
+                                    default:
+                                        return { text: "" };
+                                }
+                            }
+                            else
+                            {
+                                switch (ui.rowData.pq_level) {
+                                    case 2:
+                                        return { text: ui.rowData.得意先};
+                                }
                             }
                             return { text:ui };
                         },
                     },
                     {
-                        title: "数量",
-                        dataIndx: "数量", dataType: "integer", format: "#,###",　
+                        title: "稼働日",
+                        dataIndx: "稼働日", dataType: "integer", format: "#,###",　
                         width: 90, minWidth: 90, maxWidth: 90,
                         summary: {
                             type: "TotalInt",
                         },
                     },
                     {
-                        title: "金額",
-                        dataIndx: "金額", dataType: "integer", format: "#,###",　
+                        title: "食数合計",
+                        dataIndx: "食数合計", dataType: "integer", format: "#,###",　
                         width: 90, minWidth: 90, maxWidth: 90,
                         summary: {
                             type: "TotalInt",
                         },
                     },
                     {
-                        title: "平均",
-                        dataIndx: "平均", dataType: "integer", format: "#,###",　
+                        title: "食数平均",
+                        dataIndx: "食数平均", dataType: "integer", format: "0.0",　
                         width: 90, minWidth: 90, maxWidth: 90,
                     },
                     {
-                        title: "備考",
-                        dataIndx: "備考", dataType: "string",
-                        width: 100, minWidth: 100,
+                        title: "売上金額",
+                        dataIndx: "売上金額", dataType: "integer", format: "#,###",　
+                        width: 90, minWidth: 90, maxWidth: 90,
+                        summary: {
+                            type: "TotalInt",
+                        },
                     },
                 ],
             },
@@ -251,12 +409,11 @@ export default {
             );
         },
         mountedFunc: function(vue) {
-            //日付の初期値 -> 当日
-            //TODO:
-            // vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
-            // vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
-            vue.viewModel.DateStart = moment("20190401").format("YYYY年MM月DD日");
-            vue.viewModel.DateEnd = moment("20190430").format("YYYY年MM月DD日");
+            //日付の初期値 -> 当日moment(vue.viewModel.TargetDate, "YYYYMM01").endOf('month')
+            vue.viewModel.DateStart = moment("20190801").format("YYYY年MM月01日");
+            vue.viewModel.DateEnd = moment("20190801").endOf('month').format("YYYY年MM月DD日");
+            vue.viewModel.SaveDateStart = moment("20190801").format("YYYY年MM月01日");
+            vue.viewModel.SaveDateEnd = moment("20190801").endOf('month').format("YYYY年MM月DD日");
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
@@ -270,11 +427,57 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        onProductCdChanged: function(code, entity) {
+        onShowSyoninChanged: function(code, entity) {
+            var vue = this;
+            //フィルタ変更ハンドラ
+            vue.filterChanged();
+        },
+        onCustomerChanged: function(code, entity) {
+            var vue = this;
+            //フィルタ変更ハンドラ
+            vue.filterChanged();
+        },
+        onEigyoTantoCdChanged: function(code, entity) {
             var vue = this;
 
             //フィルタ変更ハンドラ
             vue.filterChanged();
+        },
+        TantoAutoCompleteFunc: function(input, dataList, comp) {
+            var vue = this;
+
+            if (!dataList.length) return [];
+
+            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
+            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
+
+            var wholeColumns = ["担当者名", "部署.部署名", "担当者名カナ"];
+
+            if ((input == comp.selectValue && comp.isUnique) || comp.isError) {
+                keyAND = keyOR = [];
+            }
+
+            var list = dataList
+                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
+                .filter(v => {
+                    return keyOR.length == 0
+                        || _.some(keyOR, k => v.担当者ＣＤ.startsWith(k))
+                        || _.some(keyOR, k => v.whole.includes(k))
+                })
+                .filter(v => {
+                    return keyAND.length == 0 || _.every(keyAND, k => v.whole.includes(k));
+                })
+                .map(v => {
+                    var ret = v;
+                    ret.label = v.担当者ＣＤ + " : " + v.担当者名 + "【" + (!!v.部署 ? v.部署.部署名 : "部署無し") + "】";
+                    ret.value = v.担当者ＣＤ;
+                    ret.text = v.担当者名;
+                    return ret;
+                })
+                ;
+
+            return list;
         },
         conditionChanged: function(callback) {
             var vue = this;
@@ -282,6 +485,7 @@ export default {
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.DateStart || !vue.viewModel.DateEnd) return;
+            if (!vue.viewModel.SaveDateStart || !vue.viewModel.SaveDateEnd) return;
 
             var params = $.extend(true, {}, vue.viewModel);
 
@@ -289,6 +493,8 @@ export default {
             //配達日付を"YYYYMMDD"形式に編集
             params.DateStart = params.DateStart ? moment(params.DateStart, "YYYY年MM月DD日").format("YYYYMMDD") : null;
             params.DateEnd = params.DateEnd ? moment(params.DateEnd, "YYYY年MM月DD日").format("YYYYMMDD") : null;
+            params.SaveDateStart = params.SaveDateStart ? moment(params.SaveDateStart, "YYYY年MM月DD日").format("YYYYMMDD") : null;
+            params.SaveDateEnd = params.SaveDateEnd ? moment(params.SaveDateEnd, "YYYY年MM月DD日").format("YYYYMMDD") : null;
 
             //フィルタするパラメータは除外
             delete params.ProductArray;
@@ -323,7 +529,9 @@ export default {
             vue.footerButtons.find(v => v.id == "DAI05100Grid1_Print").disabled = false;
 
             res.forEach(r => {
-                    r.ＧＫ部署 = r.部署ＣＤ + " " + r.部署名;
+                    r.ＧＫ営業担当者 = r.営業担当者ＣＤ + " " + r.営業担当者名;
+                    r.ＧＫ獲得営業者 = r.獲得営業者ＣＤ + " " + r.獲得営業者名;
+                    r.得意先 = r.得意先ＣＤ + " " + r.得意先名;
                     r.平均 = r.数量==0 ? 0 : Math.floor(r.金額 / r.数量);
                 });
             return res;
@@ -376,11 +584,13 @@ export default {
             `;
 
             var headerFunc = (header, idx, length) => {
-                var bushoCd = header.ＧＫ部署.split(" ")[0];
-                var bushoNm = header.ＧＫ部署.split(" ")[1];
+                var eigyoCd = header.ＧＫ営業担当者.split(" ")[0];
+                var eigyoNm = header.ＧＫ営業担当者.split(" ")[1];
+                var eigyoCd2 = header.ＧＫ獲得営業者.split(" ")[0];
+                var eigyoNm2 = header.ＧＫ獲得営業者.split(" ")[1];
                 return `
                     <div class="title">
-                        <h3>* * * 商品別売上一覧表 * * *</h3>
+                        <h3>* * * 顧客売上表 * * *</h3>
                     </div>
                     <table class="header-table" style="border-width: 0px">
                         <thead>
