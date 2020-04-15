@@ -123,7 +123,7 @@ export default {
     data() {
         var vue = this;
         return $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "月次処理 > 請求残高設定",
+            ScreenTitle: "随時処理 > 請求残高設定",
             noViewModel: true,
             viewModel: {
                 BushoCd: null,
