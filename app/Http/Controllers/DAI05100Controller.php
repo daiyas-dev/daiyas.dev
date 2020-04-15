@@ -77,6 +77,53 @@ class DAI05100Controller extends Controller
             $OrderByBusho TOKUISAKI.営業担当者ＣＤ, TOKUISAKI.獲得営業者ＣＤ, TOKUISAKI.得意先ＣＤ, URIAGE_MEISAI.日付
         ";
 
+        $sqlX = "
+SELECT
+	X.*
+	,BUSYO.部署名
+	,TANTO.担当者名 AS 営業担当者名
+	,TANTO2.担当者名 AS 獲得営業者名
+FROM (
+        SELECT
+            TOKUISAKI.部署ＣＤ
+            , TOKUISAKI.営業担当者ＣＤ
+            , TOKUISAKI.獲得営業者ＣＤ
+            , TOKUISAKI.得意先ＣＤ
+            , TOKUISAKI.得意先名
+            , SUM(URIAGE_MEISAI.現金個数 + URIAGE_MEISAI.掛売個数) AS 食数合計
+            , AVG(URIAGE_MEISAI.現金個数 + URIAGE_MEISAI.掛売個数) AS 食数平均
+            , SUM(URIAGE_MEISAI.現金金額 + URIAGE_MEISAI.掛売金額) AS 売上金額
+            , TOKUISAKI.新規登録日
+            , TOKUISAKI.状態区分
+        FROM
+            得意先マスタ TOKUISAKI
+            LEFT JOIN 売上データ明細 URIAGE_MEISAI ON
+                    URIAGE_MEISAI.得意先ＣＤ = TOKUISAKI.得意先ＣＤ
+                AND URIAGE_MEISAI.日付 >= '20190801'
+                AND URIAGE_MEISAI.日付 <= '20190831'
+                AND URIAGE_MEISAI.商品区分 IN (1, 2, 3, 7)
+        WHERE
+            0 = 0
+		GROUP BY
+            TOKUISAKI.部署ＣＤ
+            , TOKUISAKI.営業担当者ＣＤ
+            , TOKUISAKI.獲得営業者ＣＤ
+            , TOKUISAKI.得意先ＣＤ
+            , TOKUISAKI.得意先名
+            , TOKUISAKI.新規登録日
+            , TOKUISAKI.状態区分
+) X
+    LEFT JOIN 部署マスタ BUSYO ON
+            X.部署ＣＤ = BUSYO.部署CD
+    LEFT JOIN 担当者マスタ TANTO ON
+            X.営業担当者ＣＤ = TANTO.担当者ＣＤ
+    LEFT JOIN 担当者マスタ TANTO2 ON
+            X.獲得営業者ＣＤ = TANTO2.担当者ＣＤ
+ORDER BY
+    X.営業担当者ＣＤ, X.獲得営業者ＣＤ, X.得意先ＣＤ
+        ";
+
+
         //$DataList = DB::select($sql);
         $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
