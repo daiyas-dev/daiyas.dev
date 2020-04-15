@@ -405,7 +405,8 @@ export default {
                                 r["商品_" + i] = r["商品_" + i]==undefined ? cr.表示商品名 : r["商品_" + i] + "\n" + cr.表示商品名;
                                 r["単価_" + i ]= r["単価_" + i]==undefined ? cr.単価:r["単価_" + i ] + "\n" + cr.単価;
                                 i++;
-                                r["商品_0"] = r["商品_0"]==undefined ? cr.商品名 + "\\" + cr.単価 : r["商品_0"] + "\n" + cr.商品名 + "\\" + cr.単価;
+                                var strProduct = (cr.商品名==null ? "":cr.商品名) + "\\" + cr.単価;
+                                r["商品_0"] = r["商品_0"]==undefined ? strProduct : r["商品_0"] + "\n" + strProduct;
                             });
                         });
                     r.部署=r.部署ＣＤ + " " + r.部署名;
