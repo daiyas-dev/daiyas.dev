@@ -285,7 +285,7 @@ export default {
             // vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
             vue.viewModel.DateStart = moment("20190507").format("YYYY年MM月DD日");
             vue.viewModel.DateEnd = moment("20190508").format("YYYY年MM月DD日");
-            vue.viewModel.CourseCd=101;
+            //vue.viewModel.CourseCd=101;
         },
         setPrintOptions: function(grid) {
             var vue = this;
