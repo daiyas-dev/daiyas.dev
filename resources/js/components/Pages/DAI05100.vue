@@ -267,9 +267,9 @@ export default {
                     header: false,
                     grandSummary: true,
                     indent: 10,
-                    dataIndx: ["ＧＫ営業担当者", "ＧＫ獲得営業者", "得意先"],
-                    showSummary: [true, true, false],
-                    collapsed: [false, false, true],
+                    dataIndx: ["ＧＫ営業担当者", "ＧＫ獲得営業者"],
+                    showSummary: [true, true],
+                    collapsed: [false, false],
                     summaryInTitleRow: "collapsed",
                 },
                 summaryData: [
@@ -314,12 +314,12 @@ export default {
                         hidden: true,
                     },
                     {
-                        title: "得意先",
-                        dataIndx: "得意先", dataType: "string",
-                        hidden: true,
+                        title: "顧客ＣＤ",
+                        dataIndx: "得意先ＣＤ", dataType: "string",
+                        width: 75, minWidth: 75, maxWidth: 75, align: "right",
                     },
                     {
-                        title: "顧客",
+                        title: "顧客名",
                         dataIndx: "得意先名", dataType: "string",
                         width: 500, minWidth: 500, maxWidth: 500,
                         render: ui => {
@@ -334,13 +334,6 @@ export default {
                                         return { text: "**合計**" };
                                     default:
                                         return { text: "" };
-                                }
-                            }
-                            else
-                            {
-                                switch (ui.rowData.pq_level) {
-                                    case 2:
-                                        return { text: ui.rowData.得意先};
                                 }
                             }
                             return { text:ui };
@@ -364,7 +357,7 @@ export default {
                     },
                     {
                         title: "食数平均",
-                        dataIndx: "食数平均", dataType: "integer", format: "0.0",　
+                        dataIndx: "食数平均", dataType: "float", format: "#,###.0",　
                         width: 90, minWidth: 90, maxWidth: 90,
                     },
                     {
@@ -531,8 +524,6 @@ export default {
             res.forEach(r => {
                     r.ＧＫ営業担当者 = r.営業担当者ＣＤ + " " + r.営業担当者名;
                     r.ＧＫ獲得営業者 = r.獲得営業者ＣＤ + " " + r.獲得営業者名;
-                    r.得意先 = r.得意先ＣＤ + " " + r.得意先名;
-                    r.平均 = r.数量==0 ? 0 : Math.floor(r.金額 / r.数量);
                 });
             return res;
         },
