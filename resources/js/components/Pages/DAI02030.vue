@@ -1152,7 +1152,6 @@ export default {
                                                 },
                                                 {}
                                             );
-                                            //TODO:西山確認中
                                             summary.class = "tsums";
                                             return summary;
                                         });
@@ -1166,7 +1165,7 @@ export default {
                                             },
                                             {}
                                         );
-                                        tgsum.class = "grandsummary";
+                                        tgsum.class = "tsums-grandsummary";
                                         var sums = tsums.concat(tgsum);
                                         sums.forEach((v, i) => {
                                             v.買上小計 = pq.formatNumber(v.買上小計, "#,##0");
@@ -1222,6 +1221,7 @@ export default {
                                         target.push(...tgmeisai);
                                     }
 
+                                    //TODO:西山確認中:子得意先がある場合の、header-tableの金額非表示とページindex。
                                     var headerFunc = (header, idx, length, chunk, chunks) => {
                                         return `
                                             <div class="header">
@@ -1364,7 +1364,9 @@ export default {
                                                 </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <th>${pq.formatNumber(r.前回請求残高, "#,##0")}</th>
+                                                    <th>${target.length > 1 ?
+                                                        (idx == "0" ? pq.formatNumber(r.前回請求残高, "#,##0") : "")
+                                                        : pq.formatNumber(r.前回請求残高, "#,##0")}</th>
                                                     <th>${pq.formatNumber(r.今回入金額, "#,##0")}</th>
                                                     <th>${pq.formatNumber(r.差引繰越額, "#,##0")}</th>
                                                     <th>${pq.formatNumber(r.今回売上額, "#,##0")}</th>
@@ -1406,18 +1408,6 @@ export default {
                                         table.DAI02030Grid1 tr th:last-child {
                                             border-right-width: 1px;
                                         }
-                                        table.DAI02030Grid1 tr th:nth-child(1),
-                                        table.DAI02030Grid1 tr th:nth-child(2) {
-                                            width: 7.0%;
-                                        }
-                                        table.DAI02030Grid1 tr th:nth-child(3),
-                                        table.DAI02030Grid1 tr th:nth-child(8) {
-                                            width: 25.0%;
-                                        }
-                                        table.DAI02030Grid1 tr th:nth-child(4),
-                                        table.DAI02030Grid1 tr th:nth-child(5) {
-                                            width: 8.0%;
-                                        }
                                         table.DAI02030Grid1 tr td {
                                             border-style: solid;
                                             border-left-width: 1px;
@@ -1445,20 +1435,53 @@ export default {
                                         table.DAI02030Grid1 tbody tr {
                                             height: 25px;
                                         }
-                                    `;
-
-                                    var styleTsums =`
-                                        table.DAI02030Grid1 tr th {
-                                            background-color: pink;
+                                        th:first-child:nth-last-child(8),
+                                        th:first-child:nth-last-child(8) ~ th:nth-child(2) {
+                                            width: 7.0%;
                                         }
-                                    `;
+                                        th:first-child:nth-last-child(8) ~ th:nth-child(3),
+                                        th:first-child:nth-last-child(8) ~ th:nth-child(8) {
+                                            width: 25.0%;
+                                        }
+                                        th:first-child:nth-last-child(8) ~ th:nth-child(4),
+                                        th:first-child:nth-last-child(8) ~ th:nth-child(5) {
+                                            width: 8.0%;
+                                        }
+                                        th:first-child:nth-last-child(5) {
+                                            width: 40.0%;
+                                        }
+                                        th:first-child:nth-last-child(5) ~ th:nth-child(2) {
+                                            width: 8.0%;
+                                        }
+                                        th:first-child:nth-last-child(5) ~ th:nth-child(5) {
+                                            width: 22.0%;
+                                        }
+                                        tr.tsums td:nth-child(1){
+                                            text-align: left !important;
+                                        }
+                                        tr.tsums td:nth-child(3),
+                                        tr.tsums td:nth-child(4){
+                                            text-align: right !important;
+                                        }
+                                        tr.tsums-grandsummary td:nth-child(3){
+                                            text-align: right;
+                                        }
+                                        tr.tsums td:nth-child(5),
+                                        tr.tsums-grandsummary td:nth-child(5){
+                                            text-align: start !important;
+                                        }
+                                        tr.tsums-grandsummary td:nth-child(2){
+                                            border-left-width: 0;
+                                        }
+                                        `;
 
-                                    //TODO:西山確認中
                                     var htmls = target.map((json, idx) => {
                                         var html = grid.generateHtmlFromJson(
                                             json,
-                                            idx == 0 && target.length > 1 ? styleTsums : styleSeikyuMeisai,
+                                            styleSeikyuMeisai,
+                                            // idx == 0 && target.length > 1 ? styleTsums : styleSeikyuMeisai,
                                             headerFunc,
+                                            // idx == 0 && target.length > 1 ? TsumsheaderFunc : headerFunc,
                                             25,
                                             true,
                                             false,
