@@ -136,7 +136,9 @@ class AccountController extends Controller
     public function GetMenuList()
     {
         //search menus
-        $MenuList = DB::table('menus')->where('functionId', 'like', '%%')->get();
+        $MenuList = DB::table('menus')
+            // ->where('functionId', 'like', '%%')
+            ->get();
 
         return response()->json($MenuList);
     }

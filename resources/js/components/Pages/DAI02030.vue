@@ -1126,6 +1126,7 @@ export default {
                                             },
                                             {}
                                         );
+                                        summary.class = "grandsummary";
                                         datas.push(summary);
                                         datas.forEach((v, i) => {
                                             v.日付 = i == 0 || pdata[i - 1].日付 != v.日付 ? v.日付 : "";
@@ -1151,6 +1152,8 @@ export default {
                                                 },
                                                 {}
                                             );
+                                            //TODO:西山確認中
+                                            summary.class = "tsums";
                                             return summary;
                                         });
                                         var tgsum = _.reduce(
@@ -1163,6 +1166,7 @@ export default {
                                             },
                                             {}
                                         );
+                                        tgsum.class = "grandsummary";
                                         var sums = tsums.concat(tgsum);
                                         sums.forEach((v, i) => {
                                             v.買上小計 = pq.formatNumber(v.買上小計, "#,##0");
@@ -1183,6 +1187,8 @@ export default {
                                                 },
                                                 {}
                                             );
+                                            summary.class = "gsummary";
+
                                             m.unshift(title);
                                             m.push(summary);
 
@@ -1199,6 +1205,7 @@ export default {
                                                     },
                                                     {}
                                                 );
+                                                gsum.class = "grandsummary";
                                                 m.push(gsum);
                                             }
                                             m.forEach((v, j) => {
@@ -1369,78 +1376,88 @@ export default {
                                         `;
                                     };
 
+                                    var styleSeikyuMeisai =`
+                                        .header-table th {
+                                            border-style: solid;
+                                            border-left-width: 0px;
+                                            border-top-width: 1px;
+                                            border-right-width: 1px;
+                                            border-bottom-width: 0px;
+                                        }
+                                        .header-table tr th:first-child {
+                                            border-left-width: 1px;
+                                        }
+                                        .header-table tr:nth-child(1) th:nth-child(n+4) {
+                                            border-left-width: 0px;
+                                            border-top-width: 0px;
+                                            border-right-width: 0px;
+                                            border-bottom-width: 0px;
+                                        }
+                                        .header-table tr:nth-child(4) th:nth-child(6) {
+                                            border-top-width: 0px;
+                                        }
+                                        table.DAI02030Grid1 tr:nth-child(1) th {
+                                            border-style: solid;
+                                            border-left-width: 1px;
+                                            border-top-width: 1px;
+                                            border-right-width: 0px;
+                                            border-bottom-width: 1px;
+                                        }
+                                        table.DAI02030Grid1 tr th:last-child {
+                                            border-right-width: 1px;
+                                        }
+                                        table.DAI02030Grid1 tr th:nth-child(1),
+                                        table.DAI02030Grid1 tr th:nth-child(2) {
+                                            width: 7.0%;
+                                        }
+                                        table.DAI02030Grid1 tr th:nth-child(3),
+                                        table.DAI02030Grid1 tr th:nth-child(8) {
+                                            width: 25.0%;
+                                        }
+                                        table.DAI02030Grid1 tr th:nth-child(4),
+                                        table.DAI02030Grid1 tr th:nth-child(5) {
+                                            width: 8.0%;
+                                        }
+                                        table.DAI02030Grid1 tr td {
+                                            border-style: solid;
+                                            border-left-width: 1px;
+                                            border-top-width: 0px;
+                                            border-right-width: 0px;
+                                            border-bottom-width: 1px;
+                                        }
+                                        table.DAI02030Grid1 tr td:nth-child(1),
+                                        table.DAI02030Grid1 tr td:nth-child(2) {
+                                            text-align: center;
+                                        }
+                                        table.DAI02030Grid1 tr td:nth-child(4),
+                                        table.DAI02030Grid1 tr td:nth-child(5),
+                                        table.DAI02030Grid1 tr td:nth-child(6),
+                                        table.DAI02030Grid1 tr td:nth-child(7) {
+                                            text-align: right;
+                                        }
+                                        table.DAI02030Grid1 tr.gsummary td:nth-child(3),
+                                        table.DAI02030Grid1 tr.grandsummary td:nth-child(3) {
+                                            text-align: center;
+                                        }
+                                        table.DAI02030Grid1 tr td:last-child {
+                                            border-right-width: 1px;
+                                        }
+                                        table.DAI02030Grid1 tbody tr {
+                                            height: 25px;
+                                        }
+                                    `;
+
+                                    var styleTsums =`
+                                        table.DAI02030Grid1 tr th {
+                                            background-color: pink;
+                                        }
+                                    `;
+
+                                    //TODO:西山確認中
                                     var htmls = target.map((json, idx) => {
                                         var html = grid.generateHtmlFromJson(
                                             json,
-                                            `
-                                                .header-table th {
-                                                    border-style: solid;
-                                                    border-left-width: 0px;
-                                                    border-top-width: 1px;
-                                                    border-right-width: 1px;
-                                                    border-bottom-width: 0px;
-                                                }
-                                                .header-table tr th:first-child {
-                                                    border-left-width: 1px;
-                                                }
-                                                .header-table tr:nth-child(1) th:nth-child(n+4) {
-                                                    border-left-width: 0px;
-                                                    border-top-width: 0px;
-                                                    border-right-width: 0px;
-                                                    border-bottom-width: 0px;
-                                                }
-                                                .header-table tr:nth-child(4) th:nth-child(6) {
-                                                    border-top-width: 0px;
-                                                }
-                                                table.DAI02030Grid1 tr:nth-child(1) th {
-                                                    border-style: solid;
-                                                    border-left-width: 1px;
-                                                    border-top-width: 1px;
-                                                    border-right-width: 0px;
-                                                    border-bottom-width: 1px;
-                                                }
-                                                table.DAI02030Grid1 tr th:last-child {
-                                                    border-right-width: 1px;
-                                                }
-                                                table.DAI02030Grid1 tr th:nth-child(1),
-                                                table.DAI02030Grid1 tr th:nth-child(2) {
-                                                    width: 7.0%;
-                                                }
-                                                table.DAI02030Grid1 tr th:nth-child(3),
-                                                table.DAI02030Grid1 tr th:nth-child(8) {
-                                                    width: 25.0%;
-                                                }
-                                                table.DAI02030Grid1 tr th:nth-child(4),
-                                                table.DAI02030Grid1 tr th:nth-child(5) {
-                                                    width: 8.0%;
-                                                }
-                                                table.DAI02030Grid1 tr td {
-                                                    border-style: solid;
-                                                    border-left-width: 1px;
-                                                    border-top-width: 0px;
-                                                    border-right-width: 0px;
-                                                    border-bottom-width: 1px;
-                                                }
-                                                table.DAI02030Grid1 tr td:nth-child(1),
-                                                table.DAI02030Grid1 tr td:nth-child(2) {
-                                                    text-align: center;
-                                                }
-                                                table.DAI02030Grid1 tr td:nth-child(4),
-                                                table.DAI02030Grid1 tr td:nth-child(5),
-                                                table.DAI02030Grid1 tr td:nth-child(6),
-                                                table.DAI02030Grid1 tr td:nth-child(7) {
-                                                    text-align: right;
-                                                }
-                                                table.DAI02030Grid1 tr:last-child td:nth-child(3) {
-                                                    text-align: center;
-                                                }
-                                                table.DAI02030Grid1 tr td:last-child {
-                                                    border-right-width: 1px;
-                                                }
-                                                table.DAI02030Grid1 tbody tr {
-                                                    height: 25px;
-                                                }
-                                            `,
+                                            idx == 0 && target.length > 1 ? styleTsums : styleSeikyuMeisai,
                                             headerFunc,
                                             25,
                                             true,

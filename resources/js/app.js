@@ -275,6 +275,8 @@ var watcher = res => {
 };
 
 var targets = [
+    //メニューリスト
+    window.axios.post("/Account/GetMenuList").then(res => watcher(res)),
     //部署マスタ
     window.axios.post("/Utilities/GetBushoList").then(res => watcher(res)),
     //担当者マスタ
