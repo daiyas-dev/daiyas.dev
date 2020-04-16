@@ -176,7 +176,8 @@ export default {
             //メニュー取得処理のAjax呼び出し
             var url = "/Account/GetMenuList";
             var vue = this;
-            axios.post(url, userId)
+            // axios.post(url, userId)
+            axios.post(url)
                 .then(response => {
                     var list = response.data;
 
