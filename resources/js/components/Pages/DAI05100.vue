@@ -107,7 +107,6 @@
                 />
                 <VueSelectBusho
                     :hasNull=true
-                    :onChangedFunc=onBushoChanged
                 />
             </div>
         </div>
@@ -153,7 +152,7 @@
                     :vmodel=viewModel
                     bind="GetEigyoTantoCd"
                     dataUrl="/Utilities/GetTantoList"
-                    :params='{ bushoCd: viewModel.BushoCd }'
+                    :params='{ bushoCd: viewModel.BushoCd = viewModel.Busho == "2" ? viewModel.BushoCd : 0 }'
                     :dataListReset=true
                     title="獲得営業担当者"
                     labelCd="獲得営業担当者CD"
@@ -278,6 +277,16 @@ export default {
                 ],
                 colModel: [
                     {
+                        title: "営業担当者ＣＤ",
+                        dataIndx: "営業担当者ＣＤ", dataType: "string",
+                        hidden: true,
+                    },
+                    {
+                        title: "獲得営業者ＣＤ",
+                        dataIndx: "獲得営業者ＣＤ", dataType: "string",
+                        hidden: true,
+                    },
+                    {
                         title: "営業担当者",
                         dataIndx: "ＧＫ営業担当者", dataType: "string",
                         width: 100, minWidth: 100, maxWidth: 100,
@@ -342,7 +351,7 @@ export default {
                     {
                         title: "稼働日",
                         dataIndx: "稼働日", dataType: "integer", format: "#,###",　
-                        width: 90, minWidth: 90, maxWidth: 90,
+                        width: 100, minWidth: 100, maxWidth: 100,
                         summary: {
                             type: "TotalInt",
                         },
@@ -350,22 +359,60 @@ export default {
                     {
                         title: "食数合計",
                         dataIndx: "食数合計", dataType: "integer", format: "#,###",　
-                        width: 90, minWidth: 90, maxWidth: 90,
+                        width: 100, minWidth: 100, maxWidth: 100,
                         summary: {
                             type: "TotalInt",
+                        },
+                        render: ui => {
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "0" };
+                            }
+                            return ui;
                         },
                     },
                     {
                         title: "食数平均",
                         dataIndx: "食数平均", dataType: "float", format: "#,###.0",　
-                        width: 90, minWidth: 90, maxWidth: 90,
+                        width: 100, minWidth: 100, maxWidth: 100,
+                        // summary: {
+                        //     type: "TotalInt",
+                        // },
+                        render: ui => {
+                            if (ui.rowData[ui.dataIndx] * 1 == 0 || ui.rowData.食数合計 * 1 == 0 || ui.rowData.稼働日 * 1 == 0) {
+                                return { text: "0" };
+                            }
+                            else
+                            {
+                                var eatAvg = (ui.rowData.食数合計.replace(",", "") * 1) / (ui.rowData.稼働日.replace(",", "") * 1);
+                                var eatAvgFmt = eatAvg.toFixed(1).toString()
+                                if (!!ui.rowData.pq_grandsummary) {
+                                    return { text: eatAvgFmt };
+                                }
+                                if (!!ui.rowData.pq_gsummary) {
+                                    switch (ui.rowData.pq_level) {
+                                        case 0:
+                                            return { text: eatAvgFmt };
+                                        case 1:
+                                            return { text: eatAvgFmt };
+                                    }
+                                }
+                            }
+
+                            return ui;
+                        },
                     },
                     {
                         title: "売上金額",
                         dataIndx: "売上金額", dataType: "integer", format: "#,###",　
-                        width: 90, minWidth: 90, maxWidth: 90,
+                        width: 115, minWidth: 115, maxWidth: 115,
                         summary: {
                             type: "TotalInt",
+                        },
+                        render: ui => {
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "0" };
+                            }
+                            return ui;
                         },
                     },
                 ],
@@ -418,7 +465,7 @@ export default {
             var vue = this;
 
             //条件変更ハンドラ
-            vue.conditionChanged();
+            //vue.conditionChanged();
         },
         onShowSyoninChanged: function(code, entity) {
             var vue = this;
@@ -502,15 +549,12 @@ export default {
             if (!grid) return;
 
             var rules = [];
-            var crules = [];
-            if (vue.viewModel.ProductArray != undefined && vue.viewModel.ProductArray.length>0) {
-                vue.ProductCdArray.map(r=>{
-                    var productCd = r * 1;
-                    crules.push({ condition: "equal", value: productCd });
-                });
+
+            if (!!vue.viewModel.EigyoTantoCd) {
+                rules.push({ dataIndx: "営業担当者ＣＤ", condition: "equal", value: vue.viewModel.EigyoTantoCd });
             }
-            if (crules.length) {
-                rules.push({ dataIndx: "商品ＣＤ", mode: "OR", crules: crules });
+            if (!!vue.viewModel.GetEigyoTantoCd) {
+                rules.push({ dataIndx: "獲得営業者ＣＤ", condition: "equal", value: vue.viewModel.GetEigyoTantoCd });
             }
 
             grid.filter({ oper: "replace", mode: "AND", rules: rules });
