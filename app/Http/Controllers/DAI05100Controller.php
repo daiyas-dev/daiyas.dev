@@ -30,7 +30,7 @@ class DAI05100Controller extends Controller
         $WehreShowSyonin = $ShowSyonin == "1" ? "AND TOKUISAKI.状態区分 IN (10, 20)" : "";
         $WehreEigyoTantoCd = !!$EigyoTantoCd  ? "AND TOKUISAKI.営業担当者ＣＤ = $EigyoTantoCd" : "";
         $WehreGetEigyoTantoCd = !!$GetEigyoTantoCd  ? "AND TOKUISAKI.獲得営業者ＣＤ = $GetEigyoTantoCd" : "";
-        $WhereBusho = $Busho == "2" ? "AND TOKUISAKI.部署ＣＤ = $BushoCd" : "";
+        $WhereBusho = $Busho == "2" && !!$BushoCd ? "AND TOKUISAKI.部署ＣＤ = $BushoCd" : "";
         $OrderByBusho = $Busho == "2" ? "TOKUISAKI.部署ＣＤ," : "";
 
         $sql = "
