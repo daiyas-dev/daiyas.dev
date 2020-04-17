@@ -1221,163 +1221,6 @@ export default {
                                         target.push(...tgmeisai);
                                     }
 
-                                    //TODO:西山確認中:子得意先がある場合の、header-tableの金額非表示とページindex。
-                                    var headerFunc = (header, idx, length, chunk, chunks) => {
-                                        return `
-                                            <div class="header">
-                                                <div>
-                                                    <div id="k-box">
-                                                        ｺｰﾄﾞNo.${r.請求先ＣＤ}
-                                                        <span/>-${r.コースＣＤ != 0 ? r.コースＣＤ : ""}
-                                                        <span/>(
-                                                        <span/>${r.締日１}
-                                                        <span>- ${r.支払サイト}</span>
-                                                        <span>- ${r.支払日}</span>
-                                                        )
-                                                    </div>
-                                                    <div id="l-box">
-                                                        ${idx + 1}
-                                                        /
-                                                        <span/>${length}
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <div id="a-box">
-                                                        </br></br>
-                                                        <div style="margin-bottom: 8px;">
-                                                            <span/>〒
-                                                            <span/>${r.郵便番号}
-                                                        </div>
-                                                        <div>
-                                                            ${r.住所１}
-                                                        </div>
-                                                        <br>
-                                                    </div>
-                                                    <div id="b-box">
-                                                        <div class="header-title">
-                                                            請求書
-                                                        </div>
-                                                        <div class="header-subtitle">
-                                                            (軽減税率対象)
-                                                        </div>
-                                                        <div style="margin-bottom: 8px;">
-                                                            株式会社<span/>ダイヤス食品
-                                                        </div>
-                                                    </div>
-                                                    <div id="c-box">
-                                                        <div>
-                                                            <span style="white-space: pre;">${moment(r.請求日付).format("  YY  年  MM  月  DD  日")}</span>
-                                                        </div>
-                                                        <div class="header-seikyu-no">
-                                                            <span/>請求番号
-                                                            <span/>${r.請求番号}
-                                                        </div>
-                                                    </div>
-                                                <div>
-                                                <div style="clear: both;">
-                                                    <div id="d-box">
-                                                        <div class="header-tokuisaki">
-                                                            ${r.得意先名}
-                                                            <span>様
-                                                        </div>
-                                                        <div>
-                                                            Tel
-                                                            <span/><span/>${r.電話番号１}
-                                                            <span/><span/>Fax
-                                                            <span/><span/>${r.ＦＡＸ１}
-                                                        </div>
-                                                        </br>
-                                                    </div>
-                                                    <div id="e-box">
-                                                    </div>
-                                                    <div id="f-box">
-                                                        <div>
-                                                            <span/>〒
-                                                            <span/>${vue.BushoInfo.郵便番号}
-                                                        </div>
-                                                        <div>
-                                                            ${vue.BushoInfo.住所}
-                                                        </div>
-                                                        <div>
-                                                            Tel
-                                                            <span/><span/>${vue.BushoInfo.電話番号}
-                                                        </div>
-                                                        <div>
-                                                            Fax
-                                                            <span/><span/>${vue.BushoInfo.FAX}
-                                                        </div>
-                                                    </div>
-                                                    <div id="g-box">
-                                                        <div style="margin-bottom: 8px;">
-                                                            毎度ありがとうございます。
-                                                        </div>
-                                                        <div>
-                                                            下記の通りご請求申し上げます。
-                                                        </div>
-                                                    </div>
-                                                    <div id="h-box">
-                                                        <div style="margin-bottom: 8px;">
-                                                            取引金融機関
-                                                        </div>
-                                                        <div id="i-box">
-                                                            <div>
-                                                                ${vue.BushoInfo.金融機関1名称}
-                                                            </div>
-                                                            <div>
-                                                                ${vue.BushoInfo.口座種別1名称}
-                                                                <span/><span/>${vue.BushoInfo.口座番号1}
-                                                            </div>
-                                                            <div>
-                                                                ${vue.BushoInfo.金融機関2名称}
-                                                            </div>
-                                                            <div>
-                                                                ${vue.BushoInfo.口座種別2名称}
-                                                                <span/><span/>${vue.BushoInfo.口座番号2}
-                                                            </div>
-                                                        </div>
-                                                        <div id="j-box">
-                                                            <div>
-                                                                <span/>${vue.BushoInfo.金融機関支店1名称}
-                                                            </div>
-                                                            <div>
-                                                                ${vue.BushoInfo.口座名義人1}
-                                                            </div>
-                                                            <div>
-                                                                <span/>${vue.BushoInfo.金融機関支店2名称}
-                                                            </div>
-                                                            <div>
-                                                                ${vue.BushoInfo.口座名義人1}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            <table class="header-table" style="border-width: 0px; margin-bottom: 20px;">
-                                                <thead>
-                                                    <tr>
-                                                        <th>前回請求額</th>
-                                                        <th>御入金額</th>
-                                                        <th>繰越金額</th>
-                                                        <th>御買上金額</th>
-                                                        <th>消費税</th>
-                                                        <th>今回請求額</th>
-                                                    </tr>
-                                                    <tr>
-                                                </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <th>${target.length > 1 ?
-                                                        (idx == "0" ? pq.formatNumber(r.前回請求残高, "#,##0") : "")
-                                                        : pq.formatNumber(r.前回請求残高, "#,##0")}</th>
-                                                    <th>${pq.formatNumber(r.今回入金額, "#,##0")}</th>
-                                                    <th>${pq.formatNumber(r.差引繰越額, "#,##0")}</th>
-                                                    <th>${pq.formatNumber(r.今回売上額, "#,##0")}</th>
-                                                    <th>${pq.formatNumber(r.消費税額, "#,##0")}</th>
-                                                    <th>${pq.formatNumber(r.今回請求額, "#,##0")}</th>
-                                                </tbody>
-                                            </table>
-                                            </div>
-                                        `;
-                                    };
-
                                     var styleSeikyuMeisai =`
                                         .header-table th {
                                             border-style: solid;
@@ -1473,19 +1316,178 @@ export default {
                                         tr.tsums-grandsummary td:nth-child(2){
                                             border-left-width: 0;
                                         }
-                                        `;
+                                    `;
 
-                                    var htmls = target.map((json, idx) => {
+                                    var maxPage = _.sum(target.map(t => _.chunk(t, 25).length));
+                                    var htmls = target.map((json, tIdx) => {
+                                        //TODO:西山確認中:子得意先がある場合の、header-tableの金額非表示とページindex。
+                                        var headerFunc = (header, idx, length, chunk, chunks) => {
+                                            console.log("2030 header", header, idx, length, chunk, chunks)
+                                            return `
+                                                <div class="header">
+                                                    <div>
+                                                        <div id="k-box">
+                                                            ｺｰﾄﾞNo.${r.請求先ＣＤ}
+                                                            <span/>-${r.コースＣＤ != 0 ? r.コースＣＤ : ""}
+                                                            <span/>(
+                                                            <span/>${r.締日１}
+                                                            <span>- ${r.支払サイト}</span>
+                                                            <span>- ${r.支払日}</span>
+                                                            )
+                                                        </div>
+                                                        <div id="l-box">
+                                                            ${tIdx + idx + 1}
+                                                            /
+                                                            <span/>${maxPage}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <div id="a-box">
+                                                            </br></br>
+                                                            <div style="margin-bottom: 8px;">
+                                                                <span/>〒
+                                                                <span/>${r.郵便番号}
+                                                            </div>
+                                                            <div>
+                                                                ${r.住所１}
+                                                            </div>
+                                                            <br>
+                                                        </div>
+                                                        <div id="b-box">
+                                                            <div class="header-title">
+                                                                請求書
+                                                            </div>
+                                                            <div class="header-subtitle">
+                                                                (軽減税率対象)
+                                                            </div>
+                                                            <div style="margin-bottom: 8px;">
+                                                                株式会社<span/>ダイヤス食品
+                                                            </div>
+                                                        </div>
+                                                        <div id="c-box">
+                                                            <div>
+                                                                <span style="white-space: pre;">${moment(r.請求日付).format("  YY  年  MM  月  DD  日")}</span>
+                                                            </div>
+                                                            <div class="header-seikyu-no">
+                                                                <span/>請求番号
+                                                                <span/>${r.請求番号}
+                                                            </div>
+                                                        </div>
+                                                    <div>
+                                                    <div style="clear: both;">
+                                                        <div id="d-box">
+                                                            <div class="header-tokuisaki">
+                                                                ${r.得意先名}
+                                                                <span>様
+                                                            </div>
+                                                            <div>
+                                                                Tel
+                                                                <span/><span/>${r.電話番号１}
+                                                                <span/><span/>Fax
+                                                                <span/><span/>${r.ＦＡＸ１}
+                                                            </div>
+                                                            </br>
+                                                        </div>
+                                                        <div id="e-box">
+                                                        </div>
+                                                        <div id="f-box">
+                                                            <div>
+                                                                <span/>〒
+                                                                <span/>${vue.BushoInfo.郵便番号}
+                                                            </div>
+                                                            <div>
+                                                                ${vue.BushoInfo.住所}
+                                                            </div>
+                                                            <div>
+                                                                Tel
+                                                                <span/><span/>${vue.BushoInfo.電話番号}
+                                                            </div>
+                                                            <div>
+                                                                Fax
+                                                                <span/><span/>${vue.BushoInfo.FAX}
+                                                            </div>
+                                                        </div>
+                                                        <div id="g-box">
+                                                            <div style="margin-bottom: 8px;">
+                                                                毎度ありがとうございます。
+                                                            </div>
+                                                            <div>
+                                                                下記の通りご請求申し上げます。
+                                                            </div>
+                                                        </div>
+                                                        <div id="h-box">
+                                                            <div style="margin-bottom: 8px;">
+                                                                取引金融機関
+                                                            </div>
+                                                            <div id="i-box">
+                                                                <div>
+                                                                    ${vue.BushoInfo.金融機関1名称}
+                                                                </div>
+                                                                <div>
+                                                                    ${vue.BushoInfo.口座種別1名称}
+                                                                    <span/><span/>${vue.BushoInfo.口座番号1}
+                                                                </div>
+                                                                <div>
+                                                                    ${vue.BushoInfo.金融機関2名称}
+                                                                </div>
+                                                                <div>
+                                                                    ${vue.BushoInfo.口座種別2名称}
+                                                                    <span/><span/>${vue.BushoInfo.口座番号2}
+                                                                </div>
+                                                            </div>
+                                                            <div id="j-box">
+                                                                <div>
+                                                                    <span/>${vue.BushoInfo.金融機関支店1名称}
+                                                                </div>
+                                                                <div>
+                                                                    ${vue.BushoInfo.口座名義人1}
+                                                                </div>
+                                                                <div>
+                                                                    <span/>${vue.BushoInfo.金融機関支店2名称}
+                                                                </div>
+                                                                <div>
+                                                                    ${vue.BushoInfo.口座名義人1}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                <table class="header-table" style="border-width: 0px; margin-bottom: 20px;">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>前回請求額</th>
+                                                            <th>御入金額</th>
+                                                            <th>繰越金額</th>
+                                                            <th>御買上金額</th>
+                                                            <th>消費税</th>
+                                                            <th>今回請求額</th>
+                                                        </tr>
+                                                        <tr>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <th>${target.length > 1 ?
+                                                            (idx == "0" ? pq.formatNumber(r.前回請求残高, "#,##0") : "")
+                                                            : pq.formatNumber(r.前回請求残高, "#,##0")}</th>
+                                                        <th>${pq.formatNumber(r.今回入金額, "#,##0")}</th>
+                                                        <th>${pq.formatNumber(r.差引繰越額, "#,##0")}</th>
+                                                        <th>${pq.formatNumber(r.今回売上額, "#,##0")}</th>
+                                                        <th>${pq.formatNumber(r.消費税額, "#,##0")}</th>
+                                                        <th>${pq.formatNumber(r.今回請求額, "#,##0")}</th>
+                                                    </tbody>
+                                                </table>
+                                                </div>
+                                            `;
+                                        };
+
                                         var html = grid.generateHtmlFromJson(
                                             json,
                                             styleSeikyuMeisai,
-                                            // idx == 0 && target.length > 1 ? styleTsums : styleSeikyuMeisai,
+                                            // tIdx == 0 && target.length > 1 ? styleTsums : styleSeikyuMeisai,
                                             headerFunc,
-                                            // idx == 0 && target.length > 1 ? TsumsheaderFunc : headerFunc,
+                                            // tIdx == 0 && target.length > 1 ? TsumsheaderFunc : headerFunc,
                                             25,
                                             true,
                                             false,
-                                            idx == 0 && target.length > 1
+                                            tIdx == 0 && target.length > 1
                                                 ? [
                                                     "商品名",
                                                     "区分",
@@ -1503,7 +1505,7 @@ export default {
                                                     "入金金額",
                                                     "備考",
                                                 ],
-                                            idx == 0 && target.length > 1
+                                            tIdx == 0 && target.length > 1
                                                 ? [
                                                     "商品名称",
                                                     "区分",
