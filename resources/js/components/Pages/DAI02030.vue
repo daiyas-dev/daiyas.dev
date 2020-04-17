@@ -1112,7 +1112,7 @@ export default {
                                     var pdata = group[r.請求先ＣＤ] || [{}];
                                     var target = [];
 
-                                    if (_.every(pdata, v => v.得意先ＣＤ == r.請求先ＣＤ)) {
+                                    if (_.every(pdata, v => v.得意先ＣＤ == r.請求先ＣＤ || v.得意先ＣＤ == undefined)) {
                                         var datas = _.cloneDeep(pdata);
 
                                         var summary = _.reduce(
@@ -1320,7 +1320,7 @@ export default {
 
                                     var maxPage = _.sum(target.map(t => _.chunk(t, 25).length));
                                     var htmls = target.map((json, tIdx) => {
-                                        //TODO:西山確認中:子得意先がある場合の、header-tableの金額非表示とページindex。
+
                                         var headerFunc = (header, idx, length, chunk, chunks) => {
                                             console.log("2030 header", header, idx, length, chunk, chunks)
                                             return `
@@ -1465,13 +1465,23 @@ export default {
                                                     </thead>
                                                     <tbody>
                                                         <th>${target.length > 1 ?
-                                                            (idx == "0" ? pq.formatNumber(r.前回請求残高, "#,##0") : "")
+                                                            (tIdx + idx == "0" ? pq.formatNumber(r.前回請求残高, "#,##0") : "")
                                                             : pq.formatNumber(r.前回請求残高, "#,##0")}</th>
-                                                        <th>${pq.formatNumber(r.今回入金額, "#,##0")}</th>
-                                                        <th>${pq.formatNumber(r.差引繰越額, "#,##0")}</th>
-                                                        <th>${pq.formatNumber(r.今回売上額, "#,##0")}</th>
-                                                        <th>${pq.formatNumber(r.消費税額, "#,##0")}</th>
-                                                        <th>${pq.formatNumber(r.今回請求額, "#,##0")}</th>
+                                                        <th>${target.length > 1 ?
+                                                            (tIdx + idx == "0" ? pq.formatNumber(r.今回入金額, "#,##0") : "")
+                                                            : pq.formatNumber(r.今回入金額, "#,##0")}</th>
+                                                        <th>${target.length > 1 ?
+                                                            (tIdx + idx == "0" ? pq.formatNumber(r.差引繰越額, "#,##0") : "")
+                                                            : pq.formatNumber(r.差引繰越額, "#,##0")}</th>
+                                                        <th>${target.length > 1 ?
+                                                            (tIdx + idx == "0" ? pq.formatNumber(r.今回売上額, "#,##0") : "")
+                                                            : pq.formatNumber(r.今回売上額, "#,##0")}</th>
+                                                        <th>${target.length > 1 ?
+                                                            (tIdx + idx == "0" ? pq.formatNumber(r.消費税額, "#,##0") : "")
+                                                            : pq.formatNumber(r.消費税額, "#,##0")}</th>
+                                                        <th>${target.length > 1 ?
+                                                            (tIdx + idx == "0" ? pq.formatNumber(r.今回請求額, "#,##0") : "")
+                                                            : pq.formatNumber(r.今回請求額, "#,##0")}</th>
                                                     </tbody>
                                                 </table>
                                                 </div>
