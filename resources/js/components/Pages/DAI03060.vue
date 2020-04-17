@@ -228,7 +228,7 @@ export default {
                         fixed: true,
                     },
                     {
-                        title: "コースＣＤ",
+                        title: "<span>コースＣＤ</span>",
                         dataIndx: "コースＣＤ", dataType: "string",
                         width: 60, minWidth: 60, maxWidth: 60,
                         hidden:false,
@@ -249,7 +249,7 @@ export default {
                         fixed: true,
                     },
                     {
-                        title: "担当者名",
+                        title: "<span>担当者名</span>",
                         dataIndx: "担当者名", dataType: "string",
                         width: 150, minWidth: 150,
                         tooltip: true,
@@ -469,6 +469,7 @@ export default {
         conditionChanged: function(callback) {
             var vue = this;
             var grid = vue.DAI03060Grid1;
+            //TODO:西山確認中: 初期表示→部署選択→検索→エラー。また、現行は部署未選択でも検索可能。
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.BushoArray || vue.viewModel.BushoArray.length==0) return;
@@ -639,11 +640,11 @@ export default {
                     padding-right: 3px;
                 }
                 th {
-                    height: 12px;
+                    height: 16px;
                     text-align: center;
                 }
                 td {
-                    height: 12px;
+                    height: 16px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
@@ -660,9 +661,6 @@ export default {
                     text-align: center;
                     display:table-cell;
                     vertical-align: middle;
-                    background-color: #c0ffff;
-                    border: 2px solid #000000;
-                    border-radius: 5px;
                 }
             `;
             var headerFunc = (header, idx, length) => {
@@ -697,6 +695,51 @@ export default {
                 table.DAI03060Grid1 td {
                     border-collapse: collapse;
                     border:1px solid black;
+                }
+                table.header-table th,
+                table.DAI03060Grid1 tr th ,
+                table.DAI03060Grid1 tr td {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.header-table th:nth-child(3),
+                table.header-table th:last-child,
+                table.DAI03060Grid1 tr th:last-child,
+                table.DAI03060Grid1 tr td:last-child{
+                    border-right-width: 1px;
+                }
+                table.DAI03060Grid1 tr:last-child td{
+                    border-bottom-width: 1px;
+                }
+                table.DAI03060Grid1 tr th:nth-child(2),
+                table.DAI03060Grid1 tr td:nth-child(2),
+                table.DAI03060Grid1 tr th:nth-child(3),
+                table.DAI03060Grid1 tr td:nth-child(3){
+                    border-left-width: 0px;
+                }
+                table.DAI03060Grid1 thead span{
+                    color: transparent
+                }
+                table.DAI03060Grid1 tr:nth-child(1) th {
+                    white-space: nowrap;
+                }
+                table.DAI03060Grid1 th:nth-child(1) {
+                    width: 3.8%
+                }
+                table.DAI03060Grid1 th:nth-child(2) {
+                    width: 12%
+                }
+                table.DAI03060Grid1 th:nth-child(3) {
+                    width: 7%
+                }
+                table.DAI03060Grid1 tr td:nth-last-child(-n+13) {
+                    font-size: 7.5pt;
+                }
+                table.DAI03060Grid1 tr td:nth-child(1) {
+                    text-align: right;
                 }
             `;
 
