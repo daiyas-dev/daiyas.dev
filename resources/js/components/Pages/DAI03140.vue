@@ -444,7 +444,7 @@ export default {
                         vue.DAI03140Grid1.vue.exportData("csv", false, true);
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI03140Grid1_Print", disabled: true, shortcut: "F11",
+                { visible: "true", value: "印刷", id: "DAI03140Grid1_Print", disabled: false, shortcut: "F11",
                     onClick: function () {
                         vue.print();
                     }
@@ -678,7 +678,7 @@ export default {
                 }
                 th, td {
                     font-family: "MS UI Gothic";
-                    font-size: 8pt;
+                    font-size: 9pt;
                     font-weight: normal;
                     margin: 0px;
                     padding-left: 3px;
@@ -697,15 +697,15 @@ export default {
                     text-align: left;
                     border: solid 1px black;
                 }
+                table.header-table th.blank-cell {
+                    border:none;
+                }
                 div.report-title-area{
                     width:400px;
                     height:35px;
                     text-align: center;
                     display:table-cell;
                     vertical-align: middle;
-                    background-color: #c0ffff;
-                    border: 2px solid #000000;
-                    border-radius: 5px;
                 }
             `;
             var headerFunc = (header, idx, length) => {
@@ -718,22 +718,17 @@ export default {
                 }
                 return `
                     <div class="title">
-                        <h3><div class="report-title-area">得意先別月間売上入金表<div></h3>
+                        <h3><div class="report-title-area">＊ ＊ 得意先別月間売上入金表 ＊ ＊<div></h3>
                     </div>
                     <table class="header-table" style="border-width: 0px">
                         <thead>
                             <tr>
-                                <th>部署</th>
-                                <th>${bushoCd}</th>
-                                <th>${bushoNm}</th>
-                            </tr>
-                            <tr>
-                                <th>${moment(vue.viewModel.TargetDate, "YYYY年MM月").format("YYYY年MM月")}</th>
-                                <th class="blank-cell"></th>
-                                <th>作成日</th>
-                                <th>${moment().format("YYYY年MM月DD日")}</th>
-                                <th>PAGE</th>
-                                <th>${idx + 1}</th>
+                                <th style="width: 10%;">${moment(vue.viewModel.TargetDate, "YYYY年MM月").format("YYYY年MM月")}</th>
+                                <th style="width: 64%;" class="blank-cell"></th>
+                                <th style="width: 5%;">作成日</th>
+                                <th style="width: 10%;">${moment().format("YYYY年MM月DD日")}</th>
+                                <th style="width: 5%;">PAGE</th>
+                                <th style="width: 6%;">${idx + 1}/${length}</th>
                             </tr>
                         </thead>
                     </table>
@@ -747,6 +742,24 @@ export default {
                 table.DAI03140Grid1 td {
                     border-collapse: collapse;
                     border:1px solid black;
+                }
+                table.header-table th:not(.blank-cell),
+                table.DAI03140Grid1 th,
+                table.DAI03140Grid1 td {
+                    border-style : solid;
+                    border-left-width : 1px;
+                    border-top-width : 1px;
+                    border-right-width : 0px;
+                    border-bottom-width : 0px;
+                }
+                table.header-table th:not(.blank-cell):nth-child(1),
+                table.header-table th:not(.blank-cell):last-child,
+                table.DAI03140Grid1 th:last-child,
+                table.DAI03140Grid1 td:last-child {
+                    border-right-width : 1px;
+                }
+                table.DAI03140Grid1 tr:last-child td {
+                    border-bottom-width : 1px;
                 }
             `;
 
