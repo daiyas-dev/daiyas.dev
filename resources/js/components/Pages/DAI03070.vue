@@ -540,6 +540,7 @@ export default {
 
             var rules = [];
             var crules = [];
+            //TODO:西山確認中
             if (vue.viewModel.CustomerCd != undefined && vue.viewModel.CustomerCd != "") {
                 crules.push({ condition: "equal", value: vue.viewModel.CustomerCd});
                 if (crules.length) {
@@ -699,11 +700,11 @@ export default {
                     padding-right: 3px;
                 }
                 th {
-                    height: 12px;
+                    height: 15px;
                     text-align: center;
                 }
                 td {
-                    height: 12px;
+                    height: 15px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
@@ -720,9 +721,6 @@ export default {
                     text-align: center;
                     display:table-cell;
                     vertical-align: middle;
-                    background-color: #c0ffff;
-                    border: 2px solid #000000;
-                    border-radius: 5px;
                 }
             `;
             var headerFunc = (header, idx, length) => {
@@ -766,18 +764,18 @@ export default {
                     <table class="header-table" style="border-width: 0px">
                         <thead>
                             <tr>
-                                <th style="width:  5%;">部署</th>
-                                <th style="width:  5%; text-align: right;">${BushoCd}</th>
-                                <th style="width: 18%;">${BushoNm}</th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
+                                <th style="width: 5.5%;">部署</th>
+                                <th style="width: 5.5%; text-align: right;">${BushoCd}</th>
+                                <th style="width: 16%;">${BushoNm}</th>
+                                <th style="width: 42%;" class="blank-cell"></th>
+                                <th style="width: 4.5%;" class="blank-cell"></th>
+                                <th style="width: 9.5%;" class="blank-cell"></th>
+                                <th style="width: 4.5%;" class="blank-cell"></th>
+                                <th style="width: 5.5%;" class="blank-cell"></th>
                             </tr>
                             <tr>
                                 <th>コース</th>
-                                <th>${CourseCd}</th>
+                                <th style="text-align: right;">${CourseCd}</th>
                                 <th>${CourseNm}</th>
                                 <th class="blank-cell"></th>
                                 <th class="blank-cell"></th>
@@ -786,14 +784,14 @@ export default {
                                 <th class="blank-cell"></th>
                             </tr>
                             <tr>
-                                <th style="width:  5%;">担当者</th>
-                                <th style="width:  5%; text-align: right;">${TantoCd}</th>
-                                <th style="width: 18%;">${TantoNm}</th>
-                                <th style="width:  5%;" class="blank-cell"></th>
+                                <th>担当者</th>
+                                <th style="text-align: right;">${TantoCd}</th>
+                                <th>${TantoNm}</th>
+                                <th class="blank-cell"></th>
                                 <th>作成日</th>
                                 <th style="text-align: right;">${moment().format("YYYY年MM月DD日")}</th>
                                 <th>PAGE</th>
-                                <th style="text-align: right;">${idx + 1}</th>
+                                <th style="text-align: right;">${idx + 1}/${length}</th>
                             </tr>
                         </thead>
                     </table>
@@ -807,6 +805,54 @@ export default {
                 table.DAI03070Grid1 td {
                     border-collapse: collapse;
                     border:1px solid black;
+                }
+                table.header-table th:not(.blank-cell),
+                table.DAI03070Grid1 th,
+                table.DAI03070Grid1 td {
+                    border-style : solid;
+                    border-left-width : 1px;
+                    border-top-width : 1px;
+                    border-right-width : 0px;
+                    border-bottom-width : 0px;
+                }
+                table.header-table th:not(.blank-cell):nth-child(3),
+                table.header-table th:not(.blank-cell):last-child,
+                table.DAI03070Grid1 th:last-child,
+                table.DAI03070Grid1 td:last-child {
+                    border-right-width : 1px;
+                }
+                table.DAI03070Grid1 tr:last-child td {
+                    border-bottom-width : 1px;
+                }
+                table.DAI03070Grid1 th:nth-child(1) {
+                    width : 5%;
+                    color: transparent;
+                }
+                table.DAI03070Grid1 th:nth-child(2) {
+                    width : 20%;
+                    text-align: left;
+                    padding-left: 45px;
+                }
+                table.DAI03070Grid1 th:nth-child(15) {
+                    width : 6.5%;
+                }
+                table.DAI03070Grid1 th {
+                    white-space: nowrap;
+                }
+                table.DAI03070Grid1 th:nth-child(2),
+                table.DAI03070Grid1 td:nth-child(2) {
+                    border-left-width : 0px;
+                }
+                table.DAI03070Grid1 td:nth-child(1) {
+                    text-align : right;
+                    padding-right: 5px;
+                }
+                table.DAI03070Grid1 td:not(:nth-child(1)):not(:nth-child(2)) {
+                    font-size: 7pt;
+                }
+                table.DAI03070Grid1  tr.group-summary td:nth-child(2),
+                table.DAI03070Grid1  tr.grand-summary td:nth-child(2) {
+                    padding-left: 45px;
                 }
             `;
 
