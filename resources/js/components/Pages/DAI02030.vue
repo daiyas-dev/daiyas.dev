@@ -1479,9 +1479,7 @@ export default {
                                         var html = grid.generateHtmlFromJson(
                                             json,
                                             styleSeikyuMeisai,
-                                            // tIdx == 0 && target.length > 1 ? styleTsums : styleSeikyuMeisai,
                                             headerFunc,
-                                            // tIdx == 0 && target.length > 1 ? TsumsheaderFunc : headerFunc,
                                             25,
                                             true,
                                             false,

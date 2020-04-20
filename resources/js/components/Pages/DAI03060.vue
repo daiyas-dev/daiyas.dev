@@ -228,7 +228,7 @@ export default {
                         fixed: true,
                     },
                     {
-                        title: "<span>コースＣＤ</span>",
+                        title: "コースＣＤ",
                         dataIndx: "コースＣＤ", dataType: "string",
                         width: 60, minWidth: 60, maxWidth: 60,
                         hidden:false,
@@ -249,7 +249,7 @@ export default {
                         fixed: true,
                     },
                     {
-                        title: "<span>担当者名</span>",
+                        title: "担当者名",
                         dataIndx: "担当者名", dataType: "string",
                         width: 150, minWidth: 150,
                         tooltip: true,
@@ -640,11 +640,11 @@ export default {
                     padding-right: 3px;
                 }
                 th {
-                    height: 16px;
+                    height: 12px;
                     text-align: center;
                 }
                 td {
-                    height: 16px;
+                    height: 12px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
@@ -661,6 +661,9 @@ export default {
                     text-align: center;
                     display:table-cell;
                     vertical-align: middle;
+                    background-color: #c0ffff;
+                    border: 2px solid #000000;
+                    border-radius: 5px;
                 }
             `;
             var headerFunc = (header, idx, length) => {
