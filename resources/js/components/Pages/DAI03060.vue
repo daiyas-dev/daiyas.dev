@@ -679,11 +679,11 @@ export default {
                                 <th style="width:  5%;">部署</th>
                                 <th style="width:  5%; text-align: right;">${BushoCd}</th>
                                 <th style="width: 18%;">${BushoNm}</th>
-                                <th style="width:  61%;" class="blank-cell"></th>
-                                <th style="width:  5%;">作成日</th>
-                                <th style="text-align: right; width:  11%;">${moment().format("YYYY年MM月DD日")}</th>
-                                <th style="width:  5%;">PAGE</th>
-                                <th style="text-align: right; width:  5%;">${idx + 1}/${length}</th>
+                                <th style="width:  5%;" class="blank-cell"></th>
+                                <th>作成日</th>
+                                <th style="text-align: right;">${moment().format("YYYY年MM月DD日")}</th>
+                                <th>PAGE</th>
+                                <th style="text-align: right;">${idx + 1}</th>
                             </tr>
                         </thead>
                     </table>
