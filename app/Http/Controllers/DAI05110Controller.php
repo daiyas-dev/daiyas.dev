@@ -19,10 +19,6 @@ class DAI05110Controller extends Controller
         $DateEnd = $vm->DateEnd;
         $Customer = $vm->Customer;
         $ShowSyonin = $vm->ShowSyonin;
-        $EigyoTantoCd = $vm->EigyoTantoCd;
-        $GetEigyoTantoCd = $vm->GetEigyoTantoCd;
-        $Busho = $vm->Busho;
-        $BushoCd = $vm->BushoCd;
 
         $WehreCustomer = $Customer == "1" ? "AND CONVERT(VARCHAR, TOKUISAKI.新規登録日, 112) BETWEEN '$DateStart' AND DATEADD(DAY,-1,DATEADD(MONTH,1,'$DateStart'))" : "";
         $WehreShowSyonin = $ShowSyonin == "1" ? "AND TOKUISAKI.状態区分 IN (10, 20)" : "";
