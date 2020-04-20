@@ -7,7 +7,7 @@ use Illuminate\Support\Arr;
 use DB;
 use Illuminate\Support\Carbon;
 
-class DAI06020Controller extends Controller
+class DAI05050Controller extends Controller
 {
     /**
      * Search
