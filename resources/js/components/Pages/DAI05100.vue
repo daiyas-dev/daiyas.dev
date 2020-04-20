@@ -231,7 +231,6 @@ export default {
                 SaveDateStart: null,
                 SaveDateEnd: null,
                 ProductCd: null,
-                ShowSyonin:"0",
             },
             DAI05100Grid1: null,
             grid1Options: {
