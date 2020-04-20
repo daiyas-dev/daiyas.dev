@@ -469,6 +469,7 @@ export default {
         conditionChanged: function(callback) {
             var vue = this;
             var grid = vue.DAI03060Grid1;
+            //TODO: コントローラ高速化対応済　→2019年4月、部署101→　$DataList 93903件　→多いのでエラー
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.BushoArray || vue.viewModel.BushoArray.length==0) return;
@@ -632,7 +633,7 @@ export default {
                 }
                 th, td {
                     font-family: "MS UI Gothic";
-                    font-size: 8pt;
+                    font-size: 9pt;
                     font-weight: normal;
                     margin: 0px;
                     padding-left: 3px;
@@ -676,14 +677,14 @@ export default {
                     <table class="header-table" style="border-width: 0px">
                         <thead>
                             <tr>
-                                <th style="width:  5%;">部署</th>
-                                <th style="width:  5%; text-align: right;">${BushoCd}</th>
-                                <th style="width: 18%;">${BushoNm}</th>
-                                <th style="width:  5%;" class="blank-cell"></th>
-                                <th>作成日</th>
-                                <th style="text-align: right;">${moment().format("YYYY年MM月DD日")}</th>
-                                <th>PAGE</th>
-                                <th style="text-align: right;">${idx + 1}</th>
+                                <th style="width:  6%;">部署</th>
+                                <th style="width:  6%; text-align: right;">${BushoCd}</th>
+                                <th style="width: 19%;">${BushoNm}</th>
+                                <th style="width:  55%;" class="blank-cell"></th>
+                                <th style="width:  6%;">作成日</th>
+                                <th style="text-align: right; width:  11%;">${moment().format("YYYY年MM月DD日")}</th>
+                                <th style="width:  6%;">PAGE</th>
+                                <th style="text-align: right; width:  6%;">${idx + 1}/${length}</th>
                             </tr>
                         </thead>
                     </table>
@@ -697,6 +698,51 @@ export default {
                 table.DAI03060Grid1 td {
                     border-collapse: collapse;
                     border:1px solid black;
+                }
+                table.header-table th,
+                table.DAI03060Grid1 tr th ,
+                table.DAI03060Grid1 tr td {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.header-table th:nth-child(3),
+                table.header-table th:last-child,
+                table.DAI03060Grid1 tr th:last-child,
+                table.DAI03060Grid1 tr td:last-child{
+                    border-right-width: 1px;
+                }
+                table.DAI03060Grid1 tr:last-child td{
+                    border-bottom-width: 1px;
+                }
+                table.DAI03060Grid1 tr th:nth-child(2),
+                table.DAI03060Grid1 tr td:nth-child(2),
+                table.DAI03060Grid1 tr th:nth-child(3),
+                table.DAI03060Grid1 tr td:nth-child(3){
+                    border-left-width: 0px;
+                }
+                table.DAI03060Grid1 thead span{
+                    color: transparent
+                }
+                table.DAI03060Grid1 tr:nth-child(1) th {
+                    white-space: nowrap;
+                }
+                table.DAI03060Grid1 th:nth-child(1) {
+                    width: 3.8%
+                }
+                table.DAI03060Grid1 th:nth-child(2) {
+                    width: 13%
+                }
+                table.DAI03060Grid1 th:nth-child(3) {
+                    width: 7%
+                }
+                table.DAI03060Grid1 tr td:nth-last-child(-n+13) {
+                    font-size: 7.5pt;
+                }
+                table.DAI03060Grid1 tr td:nth-child(1) {
+                    text-align: right;
                 }
             `;
 
