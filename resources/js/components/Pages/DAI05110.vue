@@ -78,6 +78,7 @@
                 />
                 <VueSelectBusho
                     :hasNull=true
+                    :onChangedFunc=onBushoCdChanged
                 />
             </div>
         </div>
@@ -92,7 +93,7 @@
                     :vmodel=viewModel
                     bind="EigyoTantoCd"
                     dataUrl="/Utilities/GetTantoList"
-                    :params='{ bushoCd: viewModel.BushoCd }'
+                    :params='{ bushoCd: 0 }'
                     :dataListReset=true
                     title="営業担当者"
                     labelCd="営業担当者CD"
@@ -123,7 +124,7 @@
                     :vmodel=viewModel
                     bind="GetEigyoTantoCd"
                     dataUrl="/Utilities/GetTantoList"
-                    :params='{ bushoCd: viewModel.BushoCd = viewModel.Busho == "2" ? viewModel.BushoCd : 0 }'
+                    :params='{ bushoCd: 0 }'
                     :dataListReset=true
                     title="獲得営業担当者"
                     labelCd="獲得営業担当者CD"
@@ -250,16 +251,19 @@ export default {
                         title: "営業担当者ＣＤ",
                         dataIndx: "営業担当者ＣＤ", dataType: "string",
                         hidden: true,
+                        fixed: true,
                     },
                     {
                         title: "獲得営業者ＣＤ",
                         dataIndx: "獲得営業者ＣＤ", dataType: "string",
                         hidden: true,
+                        fixed: true,
                     },
                     {
                         title: "部署ＣＤ",
                         dataIndx: "部署ＣＤ", dataType: "string",
                         hidden: true,
+                        fixed: true,
                     },
                     {
                         title: "営業担当者",
@@ -353,14 +357,22 @@ export default {
             vue.viewModel.DateStart = moment("20190401").format("YYYY年MM月");
             vue.viewModel.DateEnd = moment("20190901").endOf('month').format("YYYY年MM月");
 
-console.log("refreshCols","");
             vue.refreshCols();
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
 
+            //部署コード未選択
+            vue.viewModel.BushoCd = 0;
+
             //条件変更ハンドラ
             vue.conditionChanged();
+        },
+        onBushoCdChanged: function(code, entities) {
+            var vue = this;
+
+            //条件変更ハンドラ
+            vue.filterChanged();
         },
         onDateChanged: function(code, entity) {
             var vue = this;
@@ -373,13 +385,13 @@ console.log("refreshCols","");
         },
         onShowSyoninChanged: function(code, entity) {
             var vue = this;
-            //フィルタ変更ハンドラ
-            vue.filterChanged();
+            //条件変更ハンドラ
+            vue.conditionChanged();
         },
         onCustomerChanged: function(code, entity) {
             var vue = this;
-            //フィルタ変更ハンドラ
-            vue.filterChanged();
+            //条件変更ハンドラ
+            vue.conditionChanged();
         },
         onEigyoTantoCdChanged: function(code, entity) {
             var vue = this;
@@ -449,10 +461,11 @@ console.log("refreshCols","");
 
             if (!grid) return;
 
-            vue.setSummaryRow();
-
             var rules = [];
 
+            if (!!vue.viewModel.BushoCd && vue.viewModel.Busho == 2) {
+                rules.push({ dataIndx: "部署ＣＤ", condition: "equal", value: vue.viewModel.BushoCd });
+            }
             if (!!vue.viewModel.EigyoTantoCd) {
                 rules.push({ dataIndx: "営業担当者ＣＤ", condition: "equal", value: vue.viewModel.EigyoTantoCd });
             }
@@ -461,34 +474,6 @@ console.log("refreshCols","");
             }
 
             grid.filter({ oper: "replace", mode: "AND", rules: rules });
-        },
-        setSummaryRow: function() {
-            var vue = this;
-            var grid1 = vue.DAI05110Grid1;
-
-            // //summaryDataの設定
-            // grid1.options.summaryData = vue.ProductList.map((p, i) => {
-            //     var pqfn = _.reduce(
-            //         grid1.options.colModel.filter(c => !c.fixed),
-            //         (acc, c) => {
-            //             acc[c.dataIndx] = "SUMIF(C:C, '"
-            //                 + p.商品区分 + "', "
-            //                 + grid1.getExcelColumnName(c.dataIndx, "${nm}:${nm}")
-            //                 + ")";
-            //             return acc;
-            //         },
-            //         {}
-            //     );
-
-            //     return  {
-            //         summaryRow: true,
-            //         "得意先名": i == 1 ? "新規客総合計" : "",
-            //         "商品名": p.商品名,
-            //         pq_fn: pqfn,
-            //     };
-            // });
-
-            grid1.refresh();
         },
         onAfterSearchFunc: function (vue, grid, res) {
             var vue = this;
@@ -505,8 +490,6 @@ console.log("refreshCols","");
         refreshCols: function(callback) {
             var vue = this;
             var grid1
-
-console.log("refreshCols", vue);
 
             //PqGrid読込待ち
             new Promise((resolve, reject) => {
@@ -575,22 +558,6 @@ console.log("refreshCols", vue);
                                 summary: {
                                     type: "TotalInt",
                                 },
-                                render: ui => {
-                                    if (ui.rowData.pq_grandsummary || ui.rowData.pq_gsummary)
-                                    {
-                                        // hide zero
-                                        if (ui.rowData[ui.dataIndx] * 1 == 0) {
-                                            return { text: "" };
-                                        }
-                                        return ui.rowData[ui.dataIndx] + "\n" + ui.rowData[ui.dataIndx.replace];
-                                    } else {
-                                        // hide zero
-                                        if (ui.rowData[ui.dataIndx] * 1 == 0) {
-                                            return { text: "" };
-                                        }
-                                        return ui;
-                                    }
-                                },
                             }
                         })
                     );
@@ -604,10 +571,31 @@ console.log("refreshCols", vue);
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
-                                return { text: "" };
+                            if (ui.rowData.pq_grandsummary || ui.rowData.pq_gsummary)
+                            {
+                                // hide zero
+                                if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                    return { text: "" };
+                                }
+                                return ui.rowData[ui.dataIndx] + "\n" + ui.rowData[ui.dataIndx.replace("金額", "新規客件数")];
+                            } else {
+                                // hide zero
+                                if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                    return { text: "" };
+                                }
+                                return ui;
                             }
-                            return ui;
+                        },
+                    },
+                ]);
+
+                newCols.push(...[
+                    {
+                        title: "累計",
+                        dataIndx: "累計_新規客件数", dataType: "integer", format: "#,###",
+                        hidden: true,
+                        summary: {
+                            type: "TotalInt",
                         },
                     },
                 ]);

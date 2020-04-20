@@ -24,11 +24,8 @@ class DAI05110Controller extends Controller
         $Busho = $vm->Busho;
         $BushoCd = $vm->BushoCd;
 
+        $WehreCustomer = $Customer == "1" ? "AND CONVERT(VARCHAR, TOKUISAKI.新規登録日, 112) BETWEEN '$DateStart' AND DATEADD(DAY,-1,DATEADD(MONTH,1,'$DateStart'))" : "";
         $WehreShowSyonin = $ShowSyonin == "1" ? "AND TOKUISAKI.状態区分 IN (10, 20)" : "";
-        $WehreEigyoTantoCd = !!$EigyoTantoCd  ? "AND TOKUISAKI.営業担当者ＣＤ = $EigyoTantoCd" : "";
-        $WehreGetEigyoTantoCd = !!$GetEigyoTantoCd  ? "AND TOKUISAKI.獲得営業者ＣＤ = $GetEigyoTantoCd" : "";
-        $WhereBusho = $Busho == "2" && !!$BushoCd ? "AND TOKUISAKI.部署ＣＤ = $BushoCd" : "";
-        $OrderByBusho = $Busho == "2" ? "TOKUISAKI.部署ＣＤ," : "";
 
         $sql = "
         WITH 売上データ AS
@@ -94,7 +91,7 @@ class DAI05110Controller extends Controller
             , SUM(CASE
                 WHEN CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) BETWEEN
                     DATEADD(MONTH,0,'$DateStart') AND
-                    DATEADD(DAY,0,DATEADD(MONTH,0,'20190930'))
+                    DATEADD(DAY,0,DATEADD(MONTH,0,'$DateEnd'))
                     THEN
                     (URIAGE_MEISAI.現金金額 + URIAGE_MEISAI.掛売金額)
                 ELSE 0
@@ -151,7 +148,7 @@ class DAI05110Controller extends Controller
         from
             売上データ明細 URIAGE_MEISAI
             inner join 得意先マスタ TOKUISAKI on
-            URIAGE_MEISAI.得意先ＣＤ = TOKUISAKI.得意先ＣＤ
+            URIAGE_MEISAI.得意先ＣＤ = TOKUISAKI.得意先ＣＤ --AND URIAGE_MEISAI.部署ＣＤ = TOKUISAKI.部署ＣＤ
             left join 部署マスタ BUSYO on
             URIAGE_MEISAI.部署ＣＤ = BUSYO.部署CD
             left join 担当者マスタ TANTO on
@@ -159,7 +156,10 @@ class DAI05110Controller extends Controller
             left join 担当者マスタ TANTO2 on
             TOKUISAKI.獲得営業者ＣＤ = TANTO2.担当者ＣＤ
         where
-            URIAGE_MEISAI.商品区分 IN (1,2,3,7) AND CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) BETWEEN '$DateStart' AND '$DateEnd'
+                URIAGE_MEISAI.商品区分 IN (1,2,3,7)
+            AND CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) BETWEEN '$DateStart' AND '$DateEnd'
+            $WehreCustomer
+            $WehreShowSyonin
         GROUP BY
              URIAGE_MEISAI.部署ＣＤ
             ,BUSYO.部署名
