@@ -210,7 +210,7 @@ export default {
                 columnBorders: true,
                 fillHandle: "",
                 numberCell: { show: true, title: "No.", resizable: false, width: 35, },
-                autoRow: false,
+                autoRow: true,
                 rowHtHead: 35,
                 rowHt: 35,
                 freezeCols: 0,
@@ -302,12 +302,12 @@ export default {
                         fixed: true,
                         render: ui => {
                             if (!!ui.rowData.pq_grandsummary) {
-                                return { text: "売上金額総合計" };
+                                return { text: "売上金額総合計&nbsp;\n新規客総合計" };
                             }
                             if (!!ui.rowData.pq_gsummary) {
                                 switch (ui.rowData.pq_level) {
                                     case 1:
-                                        return { text: "売上金額合計" };
+                                        return { text: "売上金額合計&nbsp;\n新規客計" };
                                     default:
                                         return { text: "" };
                                 }
@@ -543,11 +543,53 @@ console.log("refreshCols", vue);
                                     type: "TotalInt",
                                 },
                                 render: ui => {
-                                    // hide zero
-                                    if (ui.rowData[ui.dataIndx] * 1 == 0) {
-                                        return { text: "" };
+                                    if (ui.rowData.pq_grandsummary || ui.rowData.pq_gsummary)
+                                    {
+                                        // hide zero
+                                        if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                            return { text: "" };
+                                        }
+                                        return ui.rowData[ui.dataIndx] + "\n" + ui.rowData[ui.dataIndx.replace("金額", "新規客件数")];
+                                    } else {
+                                        // hide zero
+                                        if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                            return { text: "" };
+                                        }
+                                        return ui;
                                     }
-                                    return ui;
+                                },
+                            }
+                        })
+                    );
+
+                newCols.push(
+                        ...manths.map((m, i) => {
+                            var date = mt.startOf("month").add("month", 1);
+
+                            return {
+                                title: !!m ? (date.format("YYYY年MM月")) : "<br>",
+                                dataIndx: !!m ? "MONTH_" + m + "_新規客件数" : ("empty" + i),
+                                dataType: "integer",
+                                format: "#,##0",
+                                hidden: true,
+                                summary: {
+                                    type: "TotalInt",
+                                },
+                                render: ui => {
+                                    if (ui.rowData.pq_grandsummary || ui.rowData.pq_gsummary)
+                                    {
+                                        // hide zero
+                                        if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                            return { text: "" };
+                                        }
+                                        return ui.rowData[ui.dataIndx] + "\n" + ui.rowData[ui.dataIndx.replace];
+                                    } else {
+                                        // hide zero
+                                        if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                            return { text: "" };
+                                        }
+                                        return ui;
+                                    }
                                 },
                             }
                         })
