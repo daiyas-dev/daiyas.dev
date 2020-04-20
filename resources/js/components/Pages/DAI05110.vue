@@ -8,7 +8,7 @@
                 <DatePickerWrapper
                     id="DateStart"
                     ref="DatePicker_Date"
-                    format="YYYY年MM月DD日"
+                    format="YYYY年MM月"
                     dayViewHeaderFormat="YYYY年MM月"
                     :vmodel=viewModel
                     bind="DateStart"
@@ -19,7 +19,7 @@
                 <DatePickerWrapper
                     id="DateEnd"
                     ref="DatePicker_Date"
-                    format="YYYY年MM月DD日"
+                    format="YYYY年MM月"
                     dayViewHeaderFormat="YYYY年MM月"
                     :vmodel=viewModel
                     bind="DateEnd"
@@ -27,59 +27,30 @@
                     :onChangedFunc=onDateChanged
                 />
             </div>
-            <div class="col-md-1">
-            </div>
-            <div class="col-md-3">
-                <VueOptions
-                    id="Customer"
-                    ref="VueOptions_Customer"
-                    customItemStyle="text-align: center; margin-right: 10px;"
-                    :vmodel=viewModel
-                    bind="Customer"
-                    :list="[
-                        {code: '0', name: '全顧客', label: '0:全顧客'},
-                        {code: '1', name: '新規顧客', label: '1:新規顧客のみ'},
-                    ]"
-                    :onChangedFunc=onCustomerChanged
-                />
-            </div>
         </div>
         <div class="row">
             <div class="col-md-1">
-                <label>新規登録日</label>
             </div>
-            <div class="col-md-4">
-                <DatePickerWrapper
-                    id="SaveDateStart"
-                    ref="DatePicker_SaveDate"
-                    format="YYYY年MM月DD日"
-                    dayViewHeaderFormat="YYYY年MM月"
-                    :vmodel=viewModel
-                    bind="SaveDateStart"
-                    :editable=true
-                    :onChangedFunc=onDateChanged
-                />
-                <label>～</label>
-                <DatePickerWrapper
-                    id="SaveDateEnd"
-                    ref="DatePicker_SaveDate"
-                    format="YYYY年MM月DD日"
-                    dayViewHeaderFormat="YYYY年MM月"
-                    :vmodel=viewModel
-                    bind="SaveDateEnd"
-                    :editable=true
-                    :onChangedFunc=onDateChanged
-                />
-            </div>
-            <div class="col-md-1">
-            </div>
+            <VueCheck
+                id="VueCheck_Customer"
+                ref="VueCheck_Customer"
+                :vmodel=viewModel
+                bind="Customer"
+                checkedCode="1"
+                customContainerStyle="border: none;"
+                :list="[
+                    {code: '0', name: '全顧客', label: '新規顧客のみ'},
+                    {code: '1', name: '新規顧客', label: '新規顧客のみ'},
+                ]"
+                :onChangedFunc=onCustomerChanged
+            />
             <VueCheck
                 id="VueCheck_ShowSyonin"
                 ref="VueCheck_ShowSyonin"
                 :vmodel=viewModel
                 bind="ShowSyonin"
                 checkedCode="1"
-                customContainerStyle="border: none;"
+                customContainerStyle="margin-left: 50px; border: none;"
                 :list="[
                     {code: '0', name: 'しない', label: '承認・仮承認'},
                     {code: '1', name: 'する', label: '承認・仮承認'},
@@ -173,9 +144,9 @@
             </div>
         </div>
         <PqGridWrapper
-            id="DAI05100Grid1"
-            ref="DAI05100Grid1"
-            dataUrl="/DAI05100/Search"
+            id="DAI05110Grid1"
+            ref="DAI05110Grid1"
+            dataUrl="/DAI05110/Search"
             :query=this.viewModel
             :SearchOnCreate=false
             :SearchOnActivate=false
@@ -187,10 +158,10 @@
 </template>
 
 <style>
-#DAI05100Grid1 .pq-group-toggle-none {
+#DAI05110Grid1 .pq-group-toggle-none {
     display: none !important;
 }
-#DAI05100Grid1 .pq-group-icon {
+#DAI05110Grid1 .pq-group-icon {
     display: none !important;
 }
 label{
@@ -203,7 +174,7 @@ import PageBaseMixin from "@vcs/PageBaseMixin.vue";
 
 export default {
     mixins: [PageBaseMixin],
-    name: "DAI05100",
+    name: "DAI05110",
     components: {
     },
     props: {
@@ -219,21 +190,19 @@ export default {
     data() {
         var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "随時処理 > 顧客売上表",
+            ScreenTitle: "随時処理 > 顧客売上累計表",
             noViewModel: true,
             viewModel: {
-                Customet: null,
                 Busho: null,
                 BushoCd: null,
                 ProductArray: [],
                 DateStart: null,
                 DateEnd: null,
-                SaveDateStart: null,
-                SaveDateEnd: null,
                 ProductCd: null,
-                ShowSyonin:"0",
+                Customer: "0",
+                ShowSyonin: "0",
             },
-            DAI05100Grid1: null,
+            DAI05110Grid1: null,
             grid1Options: {
                 selectionModel: { type: "cell", mode: "single", row: true },
                 showHeader: true,
@@ -268,11 +237,11 @@ export default {
                     grandSummary: true,
                     indent: 10,
                     dataIndx: ["ＧＫ営業担当者", "ＧＫ獲得営業者"],
-                    showSummary: [true, true],
+                    showSummary: [false, true],
                     collapsed: [false, false],
                     summaryInTitleRow: "collapsed",
                 },
-                summaryData: [
+                summaryData: ["a", "b"
                 ],
                 formulas:[
                 ],
@@ -288,9 +257,15 @@ export default {
                         hidden: true,
                     },
                     {
+                        title: "部署ＣＤ",
+                        dataIndx: "部署ＣＤ", dataType: "string",
+                        hidden: true,
+                    },
+                    {
                         title: "営業担当者",
                         dataIndx: "ＧＫ営業担当者", dataType: "string",
-                        width: 100, minWidth: 100, maxWidth: 100,
+                        width: 90, minWidth: 90, maxWidth: 90,
+                        fixed: true,
                         render: ui => {
                             if (ui.rowData.pq_level != 0) {
                                 return { text: "" };
@@ -301,7 +276,8 @@ export default {
                     {
                         title: "獲得営業者",
                         dataIndx: "ＧＫ獲得営業者", dataType: "string",
-                        width: 100, minWidth: 100, maxWidth: 100,
+                        width: 90, minWidth: 90, maxWidth: 90,
+                        fixed: true,
                         render: ui => {
                             switch (ui.rowData.pq_level) {
                                 case 0:
@@ -314,106 +290,29 @@ export default {
                         },
                     },
                     {
-                        title: "部署ＣＤ",
-                        dataIndx: "部署ＣＤ", dataType: "string",
-                        hidden: true,
-                    },
-                    {
-                        title: "部署名",
-                        dataIndx: "部署名", dataType: "string",
-                        hidden: true,
-                    },
-                    {
                         title: "顧客ＣＤ",
                         dataIndx: "得意先ＣＤ", dataType: "string",
-                        width: 75, minWidth: 75, maxWidth: 75, align: "right",
+                        width: 70, minWidth: 70, maxWidth: 70, align: "right",
+                        fixed: true,
                     },
                     {
                         title: "顧客名",
                         dataIndx: "得意先名", dataType: "string",
-                        width: 500, minWidth: 500, maxWidth: 500,
+                        width: 300, minWidth: 300, maxWidth: 300,
+                        fixed: true,
                         render: ui => {
                             if (!!ui.rowData.pq_grandsummary) {
-                                return { text: "**総合計**" };
+                                return { text: "売上金額総合計" };
                             }
                             if (!!ui.rowData.pq_gsummary) {
                                 switch (ui.rowData.pq_level) {
-                                    case 0:
-                                        return { text: "**営業担当合計**" };
                                     case 1:
-                                        return { text: "**合計**" };
+                                        return { text: "売上金額合計" };
                                     default:
                                         return { text: "" };
                                 }
                             }
                             return { text:ui };
-                        },
-                    },
-                    {
-                        title: "稼働日",
-                        dataIndx: "稼働日", dataType: "integer", format: "#,###",　
-                        width: 100, minWidth: 100, maxWidth: 100,
-                        summary: {
-                            type: "TotalInt",
-                        },
-                    },
-                    {
-                        title: "食数合計",
-                        dataIndx: "食数合計", dataType: "integer", format: "#,###",　
-                        width: 100, minWidth: 100, maxWidth: 100,
-                        summary: {
-                            type: "TotalInt",
-                        },
-                        render: ui => {
-                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
-                                return { text: "0" };
-                            }
-                            return ui;
-                        },
-                    },
-                    {
-                        title: "食数平均",
-                        dataIndx: "食数平均", dataType: "float", format: "#,###.0",　
-                        width: 100, minWidth: 100, maxWidth: 100,
-                        // summary: {
-                        //     type: "TotalInt",
-                        // },
-                        render: ui => {
-                            if (ui.rowData[ui.dataIndx] * 1 == 0 || ui.rowData.食数合計 * 1 == 0 || ui.rowData.稼働日 * 1 == 0) {
-                                return { text: "0" };
-                            }
-                            else
-                            {
-                                var eatAvg = (ui.rowData.食数合計.replace(",", "") * 1) / (ui.rowData.稼働日.replace(",", "") * 1);
-                                var eatAvgFmt = eatAvg.toFixed(1).toString()
-                                if (!!ui.rowData.pq_grandsummary) {
-                                    return { text: eatAvgFmt };
-                                }
-                                if (!!ui.rowData.pq_gsummary) {
-                                    switch (ui.rowData.pq_level) {
-                                        case 0:
-                                            return { text: eatAvgFmt };
-                                        case 1:
-                                            return { text: eatAvgFmt };
-                                    }
-                                }
-                            }
-
-                            return ui;
-                        },
-                    },
-                    {
-                        title: "売上金額",
-                        dataIndx: "売上金額", dataType: "integer", format: "#,###",　
-                        width: 115, minWidth: 115, maxWidth: 115,
-                        summary: {
-                            type: "TotalInt",
-                        },
-                        render: ui => {
-                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
-                                return { text: "0" };
-                            }
-                            return ui;
                         },
                     },
                 ],
@@ -425,24 +324,24 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "検索", id: "DAI05100Grid1_Search", disabled: false, shortcut: "F5",
+                { visible: "true", value: "検索", id: "DAI05110Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
                         vue.conditionChanged();
                     }
                 },
                 {visible: "false"},
                 {visible: "false"},
-                { visible: "true", value: "CSV", id: "DAI05100Grid1_CSV", disabled: true, shortcut: "F10",
+                { visible: "true", value: "CSV", id: "DAI05110Grid1_CSV", disabled: true, shortcut: "F10",
                     onClick: function () {
-                        vue.DAI05100Grid1.vue.exportData("csv", false, true);
+                        vue.DAI05110Grid1.vue.exportData("csv", false, true);
                     }
                 },
-                { visible: "true", value: "Excel", id: "DAI05100Grid1_Excel", disabled: true, shortcut: "F9",
+                { visible: "true", value: "Excel", id: "DAI05110Grid1_Excel", disabled: true, shortcut: "F9",
                     onClick: function () {
-                        vue.DAI05100Grid1.vue.exportData("xlsx", false, true);
+                        vue.DAI05110Grid1.vue.exportData("xlsx", false, true);
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI05100Grid1_Print", disabled: true, shortcut: "F11",
+                { visible: "true", value: "印刷", id: "DAI05110Grid1_Print", disabled: true, shortcut: "F11",
                     onClick: function () {
                         vue.print();
                     }
@@ -451,10 +350,11 @@ export default {
         },
         mountedFunc: function(vue) {
             //日付の初期値 -> 当日moment(vue.viewModel.TargetDate, "YYYYMM01").endOf('month')
-            vue.viewModel.DateStart = moment("20190801").format("YYYY年MM月01日");
-            vue.viewModel.DateEnd = moment("20190801").endOf('month').format("YYYY年MM月DD日");
-            vue.viewModel.SaveDateStart = moment("20190801").format("YYYY年MM月01日");
-            vue.viewModel.SaveDateEnd = moment("20190801").endOf('month').format("YYYY年MM月DD日");
+            vue.viewModel.DateStart = moment("20190401").format("YYYY年MM月");
+            vue.viewModel.DateEnd = moment("20190901").endOf('month').format("YYYY年MM月");
+
+console.log("refreshCols","");
+            vue.refreshCols();
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
@@ -464,6 +364,9 @@ export default {
         },
         onDateChanged: function(code, entity) {
             var vue = this;
+
+            //列定義変更 + 条件変更ハンドラ
+            vue.refreshCols(vue.conditionChanged);
 
             //条件変更ハンドラ
             //vue.conditionChanged();
@@ -522,20 +425,17 @@ export default {
         },
         conditionChanged: function(callback) {
             var vue = this;
-            var grid = vue.DAI05100Grid1;
+            var grid = vue.DAI05110Grid1;
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.DateStart || !vue.viewModel.DateEnd) return;
-            if (!vue.viewModel.SaveDateStart || !vue.viewModel.SaveDateEnd) return;
 
             var params = $.extend(true, {}, vue.viewModel);
 
             //検索パラメータの加工
             //配達日付を"YYYYMMDD"形式に編集
-            params.DateStart = params.DateStart ? moment(params.DateStart, "YYYY年MM月DD日").format("YYYYMMDD") : null;
-            params.DateEnd = params.DateEnd ? moment(params.DateEnd, "YYYY年MM月DD日").format("YYYYMMDD") : null;
-            params.SaveDateStart = params.SaveDateStart ? moment(params.SaveDateStart, "YYYY年MM月DD日").format("YYYYMMDD") : null;
-            params.SaveDateEnd = params.SaveDateEnd ? moment(params.SaveDateEnd, "YYYY年MM月DD日").format("YYYYMMDD") : null;
+            params.DateStart = params.DateStart ? moment(params.DateStart, "YYYY年MM月01日").format("YYYYMMDD") : null;
+            params.DateEnd = params.DateEnd ? moment(params.DateEnd, "YYYY年MM月DD日").endOf('month').format("YYYYMMDD") : null;
 
             //フィルタするパラメータは除外
             delete params.ProductArray;
@@ -544,10 +444,12 @@ export default {
         },
         filterChanged: function() {
             var vue = this;
-            var grid = vue.DAI05100Grid1;
+            var grid = vue.DAI05110Grid1;
             console.log('filterChanged');
 
             if (!grid) return;
+
+            vue.setSummaryRow();
 
             var rules = [];
 
@@ -560,17 +462,127 @@ export default {
 
             grid.filter({ oper: "replace", mode: "AND", rules: rules });
         },
+        setSummaryRow: function() {
+            var vue = this;
+            var grid1 = vue.DAI05110Grid1;
+
+            // //summaryDataの設定
+            // grid1.options.summaryData = vue.ProductList.map((p, i) => {
+            //     var pqfn = _.reduce(
+            //         grid1.options.colModel.filter(c => !c.fixed),
+            //         (acc, c) => {
+            //             acc[c.dataIndx] = "SUMIF(C:C, '"
+            //                 + p.商品区分 + "', "
+            //                 + grid1.getExcelColumnName(c.dataIndx, "${nm}:${nm}")
+            //                 + ")";
+            //             return acc;
+            //         },
+            //         {}
+            //     );
+
+            //     return  {
+            //         summaryRow: true,
+            //         "得意先名": i == 1 ? "新規客総合計" : "",
+            //         "商品名": p.商品名,
+            //         pq_fn: pqfn,
+            //     };
+            // });
+
+            grid1.refresh();
+        },
         onAfterSearchFunc: function (vue, grid, res) {
             var vue = this;
-            vue.footerButtons.find(v => v.id == "DAI05100Grid1_CSV").disabled = false;
-            vue.footerButtons.find(v => v.id == "DAI05100Grid1_Excel").disabled = false;
-            vue.footerButtons.find(v => v.id == "DAI05100Grid1_Print").disabled = false;
+            vue.footerButtons.find(v => v.id == "DAI05110Grid1_CSV").disabled = false;
+            vue.footerButtons.find(v => v.id == "DAI05110Grid1_Excel").disabled = false;
+            vue.footerButtons.find(v => v.id == "DAI05110Grid1_Print").disabled = false;
 
             res.forEach(r => {
                     r.ＧＫ営業担当者 = r.営業担当者ＣＤ + " " + r.営業担当者名;
                     r.ＧＫ獲得営業者 = r.獲得営業者ＣＤ + " " + r.獲得営業者名;
                 });
             return res;
+        },
+        refreshCols: function(callback) {
+            var vue = this;
+            var grid1
+
+console.log("refreshCols", vue);
+
+            //PqGrid読込待ち
+            new Promise((resolve, reject) => {
+                var timer = setInterval(function () {
+                    grid1 = vue.DAI05110Grid1;
+                    if (!!grid1 && vue.getLoginInfo().isLogOn) {
+                        clearInterval(timer);
+                        return resolve(grid1);
+                    }
+                }, 100);
+            })
+            .then((grid1) => {
+                grid1.showLoading();
+
+                var max = 6;
+                var mt = moment(vue.viewModel.DateStart, "YYYY年MM月").add("month", -1);
+                var manths = _.range(1, moment(vue.viewModel.DateEnd, "YYYY年MM月").diff(mt, 'month') * 1 + 1);
+                var manthsMax = _.range(1, max + 1);
+                manths = manths.length >= max ? manthsMax : manths.concat(_.range(0, manths.length - max).fill(null));
+
+                var newCols = grid1.options.colModel
+                    .filter(v => !!v.fixed)
+                    .concat(
+                        ...manths.map((m, i) => {
+                            var date = mt.startOf("month").add("month", 1);
+
+                            return {
+                                title: !!m ? (date.format("YYYY年MM月")) : "<br>",
+                                dataIndx: !!m ? "MONTH_" + m + "_金額" : ("empty" + i),
+                                dataType: "integer",
+                                format: "#,##0",
+                                width: 90, maxWidth: 90, minWidth: 90,
+                                summary: {
+                                    type: "TotalInt",
+                                },
+                                render: ui => {
+                                    // hide zero
+                                    if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                        return { text: "" };
+                                    }
+                                    return ui;
+                                },
+                            }
+                        })
+                    );
+
+                newCols.push(...[
+                    {
+                        title: "累計",
+                        dataIndx: "累計_金額", dataType: "integer", format: "#,###",
+                        width: 100, minWidth: 100, maxWidth: 100,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                        render: ui => {
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
+                            }
+                            return ui;
+                        },
+                    },
+                ]);
+
+                //列定義更新
+                grid1.options.colModel = newCols;
+                grid1.refreshCM();
+                grid1.refresh();
+
+                if (!!grid1) grid1.hideLoading();
+
+                if (!!callback) callback();
+            })
+            .catch(error => {
+                console.log(error);
+                if (!!grid) grid.hideLoading();
+            });
         },
         print: function() {
             var vue = this;
@@ -620,13 +632,13 @@ export default {
             `;
 
             var headerFunc = (header, idx, length) => {
-                var eigyoCd = header.ＧＫ営業担当者.split(" ")[0];
-                var eigyoNm = header.ＧＫ営業担当者.split(" ")[1];
-                var eigyoCd2 = header.ＧＫ獲得営業者.split(" ")[0];
-                var eigyoNm2 = header.ＧＫ獲得営業者.split(" ")[1];
+                var eigyoCd = header.営業担当者.split(" ")[0];
+                var eigyoNm = header.営業担当者.split(" ")[1];
+                var eigyoCd2 = header.獲得営業者.split(" ")[0];
+                var eigyoNm2 = header.獲得営業者.split(" ")[1];
                 return `
                     <div class="title">
-                        <h3>* * * 顧客売上表 * * *</h3>
+                        <h3>* * * 顧客売上累計表 * * *</h3>
                     </div>
                     <table class="header-table" style="border-width: 0px">
                         <thead>
@@ -656,58 +668,58 @@ export default {
             };
 
             var styleCustomers =`
-                table.DAI05100Grid1 tr:nth-child(1) th {
+                table.DAI05110Grid1 tr:nth-child(1) th {
                     border-style: solid;
                     border-left-width: 0px;
                     border-top-width: 1px;
                     border-right-width: 0px;
                     border-bottom-width: 1px;
                 }
-                table.DAI05100Grid1 tr.group-summary td {
+                table.DAI05110Grid1 tr.group-summary td {
                     border-style: solid;
                     border-left-width: 0px;
                     border-top-width: 1px;
                     border-right-width: 0px;
                     border-bottom-width: 0px;
                 }
-                table.DAI05100Grid1 tr.group-summary td:nth-child(2) {
+                table.DAI05110Grid1 tr.group-summary td:nth-child(2) {
                     text-align: right;
                     padding-right: 50px;
                 }
-                table.DAI05100Grid1 tr[level="0"].group-summary td {
+                table.DAI05110Grid1 tr[level="0"].group-summary td {
                     border-style: dotted;
                     border-left-width: 0px;
                     border-top-width: 1px;
                     border-right-width: 0px;
                     border-bottom-width: 0px;
                 }
-                table.DAI05100Grid1 tr[level="0"].group-summary td:nth-child(2) {
+                table.DAI05110Grid1 tr[level="0"].group-summary td:nth-child(2) {
                     text-align: right;
                     padding-right: 30px;
                 }
-                table.DAI05100Grid1 tr.grand-summary td {
+                table.DAI05110Grid1 tr.grand-summary td {
                     border-style: solid;
                     border-left-width: 0px;
                     border-top-width: 1px;
                     border-right-width: 0px;
                     border-bottom-width: 0px;
                 }
-                table.DAI05100Grid1 tr.grand-summary td:nth-child(2) {
+                table.DAI05110Grid1 tr.grand-summary td:nth-child(2) {
                     text-align: right;
                 }
-                table.DAI05100Grid1 tr.grand-summary td:nth-child(3) {
+                table.DAI05110Grid1 tr.grand-summary td:nth-child(3) {
                     text-align: left;
                 }
-                table.DAI05100Grid1 tr th:nth-child(1) {
+                table.DAI05110Grid1 tr th:nth-child(1) {
                     width: 4.5%;
                 }
-                table.DAI05100Grid1 tr th:nth-child(3) {
+                table.DAI05110Grid1 tr th:nth-child(3) {
                     width: 4.5%;
                 }
-                table.DAI05100Grid1 tr th:nth-child(n+4):nth-child(-n+12) {
+                table.DAI05110Grid1 tr th:nth-child(n+4):nth-child(-n+12) {
                     width: 6%;
                 }
-                table.DAI05100Grid1 tr th:nth-child(13) {
+                table.DAI05110Grid1 tr th:nth-child(13) {
                     width: 7%;
                 }
             `;
@@ -717,7 +729,7 @@ export default {
                 .append(
                     $("<body>")
                         .append(
-                            vue.DAI05100Grid1.generateHtml(
+                            vue.DAI05110Grid1.generateHtml(
                                 styleCustomers,
                                 headerFunc,
                                 36,
