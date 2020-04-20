@@ -469,7 +469,7 @@ export default {
         conditionChanged: function(callback) {
             var vue = this;
             var grid = vue.DAI03060Grid1;
-            //TODO:西山確認中: 初期表示→部署選択→検索→エラー。また、現行は部署未選択でも検索可能。
+            //TODO: コントローラ高速化対応済　→2019年4月、部署101→　$DataList 93903件　→多いのでエラー
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.BushoArray || vue.viewModel.BushoArray.length==0) return;
@@ -633,7 +633,7 @@ export default {
                 }
                 th, td {
                     font-family: "MS UI Gothic";
-                    font-size: 8pt;
+                    font-size: 9pt;
                     font-weight: normal;
                     margin: 0px;
                     padding-left: 3px;
@@ -674,14 +674,14 @@ export default {
                     <table class="header-table" style="border-width: 0px">
                         <thead>
                             <tr>
-                                <th style="width:  5%;">部署</th>
-                                <th style="width:  5%; text-align: right;">${BushoCd}</th>
-                                <th style="width: 18%;">${BushoNm}</th>
-                                <th style="width:  61%;" class="blank-cell"></th>
-                                <th style="width:  5%;">作成日</th>
+                                <th style="width:  6%;">部署</th>
+                                <th style="width:  6%; text-align: right;">${BushoCd}</th>
+                                <th style="width: 19%;">${BushoNm}</th>
+                                <th style="width:  55%;" class="blank-cell"></th>
+                                <th style="width:  6%;">作成日</th>
                                 <th style="text-align: right; width:  11%;">${moment().format("YYYY年MM月DD日")}</th>
-                                <th style="width:  5%;">PAGE</th>
-                                <th style="text-align: right; width:  5%;">${idx + 1}/${length}</th>
+                                <th style="width:  6%;">PAGE</th>
+                                <th style="text-align: right; width:  6%;">${idx + 1}/${length}</th>
                             </tr>
                         </thead>
                     </table>
@@ -730,7 +730,7 @@ export default {
                     width: 3.8%
                 }
                 table.DAI03060Grid1 th:nth-child(2) {
-                    width: 12%
+                    width: 13%
                 }
                 table.DAI03060Grid1 th:nth-child(3) {
                     width: 7%

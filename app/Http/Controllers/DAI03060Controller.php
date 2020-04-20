@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
 use Illuminate\Support\Carbon;
+use PDO;
 
 class DAI03060Controller extends Controller
 {
@@ -75,7 +76,16 @@ class DAI03060Controller extends Controller
                     , コースマスタ.コースＣＤ
             ";
 
-        $DataList = DB::select($sql);
+        //TODO: 高速化対応
+        // $DataList = DB::select($sql);
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = null;
 
         return response()->json($DataList);
     }

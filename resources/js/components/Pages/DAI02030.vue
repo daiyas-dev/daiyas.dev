@@ -1464,24 +1464,12 @@ export default {
                                                     </tr>
                                                     </thead>
                                                     <tbody>
-                                                        <th>${target.length > 1 ?
-                                                            (tIdx + idx == "0" ? pq.formatNumber(r.前回請求残高, "#,##0") : "")
-                                                            : pq.formatNumber(r.前回請求残高, "#,##0")}</th>
-                                                        <th>${target.length > 1 ?
-                                                            (tIdx + idx == "0" ? pq.formatNumber(r.今回入金額, "#,##0") : "")
-                                                            : pq.formatNumber(r.今回入金額, "#,##0")}</th>
-                                                        <th>${target.length > 1 ?
-                                                            (tIdx + idx == "0" ? pq.formatNumber(r.差引繰越額, "#,##0") : "")
-                                                            : pq.formatNumber(r.差引繰越額, "#,##0")}</th>
-                                                        <th>${target.length > 1 ?
-                                                            (tIdx + idx == "0" ? pq.formatNumber(r.今回売上額, "#,##0") : "")
-                                                            : pq.formatNumber(r.今回売上額, "#,##0")}</th>
-                                                        <th>${target.length > 1 ?
-                                                            (tIdx + idx == "0" ? pq.formatNumber(r.消費税額, "#,##0") : "")
-                                                            : pq.formatNumber(r.消費税額, "#,##0")}</th>
-                                                        <th>${target.length > 1 ?
-                                                            (tIdx + idx == "0" ? pq.formatNumber(r.今回請求額, "#,##0") : "")
-                                                            : pq.formatNumber(r.今回請求額, "#,##0")}</th>
+                                                        <th>${tIdx + idx == "0" ? pq.formatNumber(r.前回請求残高, "#,##0") : ""}</th>
+                                                        <th>${tIdx + idx == "0" ? pq.formatNumber(r.今回入金額, "#,##0") : ""}</th>
+                                                        <th>${tIdx + idx == "0" ? pq.formatNumber(r.差引繰越額, "#,##0") : ""}</th>
+                                                        <th>${tIdx + idx == "0" ? pq.formatNumber(r.今回売上額, "#,##0") : ""}</th>
+                                                        <th>${tIdx + idx == "0" ? pq.formatNumber(r.消費税額, "#,##0") : ""}</th>
+                                                        <th>${tIdx + idx == "0" ? pq.formatNumber(r.今回請求額, "#,##0") : ""}</th>
                                                     </tbody>
                                                 </table>
                                                 </div>
