@@ -544,6 +544,7 @@ export default {
         },
         onCustomerChanged: function(code, entity) {
             var vue = this;
+            //TODO:西山確認中：フィルタ
             //フィルタ変更ハンドラ
             vue.filterChanged();
         },
@@ -653,6 +654,7 @@ export default {
         },
         print: function() {
             var vue = this;
+            //TODO:西山；印刷物確認未完
 
             //印刷用HTML全体適用CSS
             var globalStyles = `
