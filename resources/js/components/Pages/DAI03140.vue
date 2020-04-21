@@ -544,7 +544,7 @@ export default {
         },
         onCustomerChanged: function(code, entity) {
             var vue = this;
-            //TODO:西山確認中：フィルタ
+
             //フィルタ変更ハンドラ
             vue.filterChanged();
         },
@@ -772,7 +772,7 @@ export default {
                     width : 4%;
                 }
                 table.DAI03140Grid1 tr th:nth-child(2) {
-                    width : 13%;
+                    width : 14%;
                 }
                 table.DAI03140Grid1 tr td:nth-child(1) {
                     text-align :right;

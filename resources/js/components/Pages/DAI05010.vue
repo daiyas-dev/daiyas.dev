@@ -575,24 +575,24 @@ export default {
                 }
                 th, td {
                     font-family: "MS UI Gothic";
-                    font-size: 8pt;
+                    font-size: 9pt;
                     font-weight: normal;
                     margin: 0px;
                     padding-left: 3px;
                     padding-right: 3px;
                 }
                 th {
-                    height: 12px;
+                    height: 17px;
                     text-align: center;
                 }
                 td {
-                    height: 12px;
+                    height: 19px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
                 table.header-table th {
                     text-align: left;
-                    border: solid 1px black;
+                    border: solid 0px black;
                 }
                 table.header-table th.blank-cell {
                     border:none;
@@ -603,9 +603,6 @@ export default {
                     text-align: center;
                     display:table-cell;
                     vertical-align: middle;
-                    background-color: #c0ffff;
-                    border: 2px solid #000000;
-                    border-radius: 5px;
                 }
             `;
             var headerFunc = (header, idx, length) => {
@@ -634,7 +631,7 @@ export default {
                         <h3><div class="report-title-area">＊＊＊　得意先単価表　＊＊＊
                     <div></h3>
                     </div>
-                    <table class="header-table" style="border-width: 0px">
+                    <table class="header-table">
                         <thead>
                             <tr>
                                 <th style="width:  5%;">部署</th>
@@ -661,12 +658,58 @@ export default {
             };
 
             var styleCustomers =`
-                table.DAI05010Grid1
-                table.DAI05010Grid1 tr,
+                table.header-table th {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0x;
+                }
                 table.DAI05010Grid1 th,
                 table.DAI05010Grid1 td {
                     border-collapse: collapse;
-                    border:1px solid black;
+                    border: 0px solid black;
+                }
+                table.DAI05010Grid1 th,
+                table.DAI05010Grid1 td {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0x;
+                }
+                table.header-table tr:nth-child(1) th:nth-child(3),
+                table.header-table tr:nth-child(2) th:nth-child(6),
+                table.header-table tr:nth-child(2) th:last-child,
+                table.DAI05010Grid1 th:last-child,
+                table.DAI05010Grid1 td:last-child {
+                    border-right-width: 1px;
+                }
+                table.DAI05010Grid1 tr:last-child td {
+                    border-bottom-width: 1px;
+                }
+                table.DAI05010Grid1 th:nth-child(1) {
+                    width: 5%;
+                    color: transparent;
+                }
+                table.DAI05010Grid1 th:nth-child(2) {
+                    width: 15%;
+                    text-align: left;
+                    padding-left: 25px;
+                }
+                table.DAI05010Grid1 th:nth-child(4),
+                table.DAI05010Grid1 th:nth-child(6),
+                table.DAI05010Grid1 th:nth-child(8),
+                table.DAI05010Grid1 th:nth-child(10),
+                table.DAI05010Grid1 th:nth-child(12) {
+                    width: 3.5%;
+                }
+                table.DAI05010Grid1 th {
+                    white-space: nowrap;
+                }
+                table.DAI05010Grid1 th:nth-child(2),
+                table.DAI05010Grid1 td:nth-child(2) {
+                    border-left-width: 0px;
                 }
             `;
 
