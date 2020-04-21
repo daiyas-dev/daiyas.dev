@@ -8,7 +8,7 @@ use DB;
 use Illuminate\Support\Carbon;
 use PDO;
 
-class DAI05110Controller extends Controller
+class DAI05090Controller extends Controller
 {
     /**
      * Search

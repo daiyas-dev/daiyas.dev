@@ -145,9 +145,9 @@
             </div>
         </div>
         <PqGridWrapper
-            id="DAI05110Grid1"
-            ref="DAI05110Grid1"
-            dataUrl="/DAI05110/Search"
+            id="DAI05090Grid1"
+            ref="DAI05090Grid1"
+            dataUrl="/DAI05090/Search"
             :query=this.viewModel
             :SearchOnCreate=false
             :SearchOnActivate=false
@@ -159,10 +159,10 @@
 </template>
 
 <style>
-#DAI05110Grid1 .pq-group-toggle-none {
+#DAI05090Grid1 .pq-group-toggle-none {
     display: none !important;
 }
-#DAI05110Grid1 .pq-group-icon {
+#DAI05090Grid1 .pq-group-icon {
     display: none !important;
 }
 label{
@@ -175,7 +175,7 @@ import PageBaseMixin from "@vcs/PageBaseMixin.vue";
 
 export default {
     mixins: [PageBaseMixin],
-    name: "DAI05110",
+    name: "DAI05090",
     components: {
     },
     props: {
@@ -191,7 +191,7 @@ export default {
     data() {
         var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "随時処理 > 顧客売上累計表",
+            ScreenTitle: "随時処理 > 顧客売上推移表",
             noViewModel: true,
             viewModel: {
                 Busho: null,
@@ -203,7 +203,7 @@ export default {
                 Customer: "0",
                 ShowSyonin: "0",
             },
-            DAI05110Grid1: null,
+            DAI05090Grid1: null,
             grid1Options: {
                 selectionModel: { type: "cell", mode: "single", row: true },
                 showHeader: true,
@@ -328,24 +328,24 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "検索", id: "DAI05110Grid1_Search", disabled: false, shortcut: "F5",
+                { visible: "true", value: "検索", id: "DAI05090Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
                         vue.conditionChanged();
                     }
                 },
                 {visible: "false"},
                 {visible: "false"},
-                { visible: "true", value: "CSV", id: "DAI05110Grid1_CSV", disabled: true, shortcut: "F10",
+                { visible: "true", value: "CSV", id: "DAI05090Grid1_CSV", disabled: true, shortcut: "F10",
                     onClick: function () {
-                        vue.DAI05110Grid1.vue.exportData("csv", false, true);
+                        vue.DAI05090Grid1.vue.exportData("csv", false, true);
                     }
                 },
-                { visible: "true", value: "Excel", id: "DAI05110Grid1_Excel", disabled: true, shortcut: "F9",
+                { visible: "true", value: "Excel", id: "DAI05090Grid1_Excel", disabled: true, shortcut: "F9",
                     onClick: function () {
-                        vue.DAI05110Grid1.vue.exportData("xlsx", false, true);
+                        vue.DAI05090Grid1.vue.exportData("xlsx", false, true);
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI05110Grid1_Print", disabled: true, shortcut: "F11",
+                { visible: "true", value: "印刷", id: "DAI05090Grid1_Print", disabled: true, shortcut: "F11",
                     onClick: function () {
                         vue.print();
                     }
@@ -437,7 +437,7 @@ export default {
         },
         conditionChanged: function(callback) {
             var vue = this;
-            var grid = vue.DAI05110Grid1;
+            var grid = vue.DAI05090Grid1;
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.DateStart || !vue.viewModel.DateEnd) return;
@@ -456,7 +456,7 @@ export default {
         },
         filterChanged: function() {
             var vue = this;
-            var grid = vue.DAI05110Grid1;
+            var grid = vue.DAI05090Grid1;
             console.log('filterChanged');
 
             if (!grid) return;
@@ -477,9 +477,9 @@ export default {
         },
         onAfterSearchFunc: function (vue, grid, res) {
             var vue = this;
-            vue.footerButtons.find(v => v.id == "DAI05110Grid1_CSV").disabled = false;
-            vue.footerButtons.find(v => v.id == "DAI05110Grid1_Excel").disabled = false;
-            vue.footerButtons.find(v => v.id == "DAI05110Grid1_Print").disabled = false;
+            vue.footerButtons.find(v => v.id == "DAI05090Grid1_CSV").disabled = false;
+            vue.footerButtons.find(v => v.id == "DAI05090Grid1_Excel").disabled = false;
+            vue.footerButtons.find(v => v.id == "DAI05090Grid1_Print").disabled = false;
 
             res.forEach(r => {
                     r.ＧＫ営業担当者 = r.営業担当者ＣＤ + " " + r.営業担当者名;
@@ -494,7 +494,7 @@ export default {
             //PqGrid読込待ち
             new Promise((resolve, reject) => {
                 var timer = setInterval(function () {
-                    grid1 = vue.DAI05110Grid1;
+                    grid1 = vue.DAI05090Grid1;
                     if (!!grid1 && vue.getLoginInfo().isLogOn) {
                         clearInterval(timer);
                         return resolve(grid1);
@@ -698,58 +698,58 @@ export default {
             };
 
             var styleCustomers =`
-                table.DAI05110Grid1 tr:nth-child(1) th {
+                table.DAI05090Grid1 tr:nth-child(1) th {
                     border-style: solid;
                     border-left-width: 0px;
                     border-top-width: 1px;
                     border-right-width: 0px;
                     border-bottom-width: 1px;
                 }
-                table.DAI05110Grid1 tr.group-summary td {
+                table.DAI05090Grid1 tr.group-summary td {
                     border-style: solid;
                     border-left-width: 0px;
                     border-top-width: 1px;
                     border-right-width: 0px;
                     border-bottom-width: 0px;
                 }
-                table.DAI05110Grid1 tr.group-summary td:nth-child(2) {
+                table.DAI05090Grid1 tr.group-summary td:nth-child(2) {
                     text-align: right;
                     padding-right: 50px;
                 }
-                table.DAI05110Grid1 tr[level="0"].group-summary td {
+                table.DAI05090Grid1 tr[level="0"].group-summary td {
                     border-style: dotted;
                     border-left-width: 0px;
                     border-top-width: 1px;
                     border-right-width: 0px;
                     border-bottom-width: 0px;
                 }
-                table.DAI05110Grid1 tr[level="0"].group-summary td:nth-child(2) {
+                table.DAI05090Grid1 tr[level="0"].group-summary td:nth-child(2) {
                     text-align: right;
                     padding-right: 30px;
                 }
-                table.DAI05110Grid1 tr.grand-summary td {
+                table.DAI05090Grid1 tr.grand-summary td {
                     border-style: solid;
                     border-left-width: 0px;
                     border-top-width: 1px;
                     border-right-width: 0px;
                     border-bottom-width: 0px;
                 }
-                table.DAI05110Grid1 tr.grand-summary td:nth-child(2) {
+                table.DAI05090Grid1 tr.grand-summary td:nth-child(2) {
                     text-align: right;
                 }
-                table.DAI05110Grid1 tr.grand-summary td:nth-child(3) {
+                table.DAI05090Grid1 tr.grand-summary td:nth-child(3) {
                     text-align: left;
                 }
-                table.DAI05110Grid1 tr th:nth-child(1) {
+                table.DAI05090Grid1 tr th:nth-child(1) {
                     width: 4.5%;
                 }
-                table.DAI05110Grid1 tr th:nth-child(3) {
+                table.DAI05090Grid1 tr th:nth-child(3) {
                     width: 4.5%;
                 }
-                table.DAI05110Grid1 tr th:nth-child(n+4):nth-child(-n+12) {
+                table.DAI05090Grid1 tr th:nth-child(n+4):nth-child(-n+12) {
                     width: 6%;
                 }
-                table.DAI05110Grid1 tr th:nth-child(13) {
+                table.DAI05090Grid1 tr th:nth-child(13) {
                     width: 7%;
                 }
             `;
@@ -759,7 +759,7 @@ export default {
                 .append(
                     $("<body>")
                         .append(
-                            vue.DAI05110Grid1.generateHtml(
+                            vue.DAI05090Grid1.generateHtml(
                                 styleCustomers,
                                 headerFunc,
                                 36,
