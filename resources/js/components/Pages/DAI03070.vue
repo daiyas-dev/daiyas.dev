@@ -531,6 +531,7 @@ export default {
             delete params.CustomerCd;
 
             grid.searchData(params, false, null, callback);
+            this.filterChanged();
         },
         filterChanged: function() {
             var vue = this;
@@ -540,18 +541,20 @@ export default {
 
             var rules = [];
             //TODO:西山確認中
-            var CourseInputDisable = !vue.$refs.PopupSelect_CourseCd.isValid;
-            if (!CourseInputDisable && vue.viewModel.CourseCd != undefined && vue.viewModel.CourseCd != "") {
-                var crulesCourse = [];
-                crulesCourse.push({ condition: "equal", value: vue.viewModel.CourseCd});
-                if (crulesCourse.length) {
-                    rules.push({ dataIndx: "コースＣＤ", mode: "AND", crules: crulesCourse });
+            if(vue.viewModel.PrintOrder==1)
+            {
+                if (!vue.viewModel.CourseCd != undefined && vue.viewModel.CourseCd != "") {
+                    var crulesCourse = [];
+                    crulesCourse.push({ condition: "equal", value: vue.viewModel.CourseCd});
+                    if (0<crulesCourse.length) {
+                        rules.push({ dataIndx: "コースＣＤ", mode: "AND", crules: crulesCourse });
+                    }
                 }
             }
             if (vue.viewModel.CustomerCd != undefined && vue.viewModel.CustomerCd != "") {
                 var crulesCustomer = [];
                 crulesCustomer.push({ condition: "equal", value: vue.viewModel.CustomerCd});
-                if (crulesCustomer.length) {
+                if (0<crulesCustomer.length) {
                     rules.push({ dataIndx: "得意先ＣＤ", mode: "AND", crules: crulesCustomer });
                 }
             }
