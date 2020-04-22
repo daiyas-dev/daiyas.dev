@@ -8,7 +8,7 @@
                 <DatePickerWrapper
                     id="DateStart"
                     ref="DatePicker_Date"
-                    format="YYYY年MM月"
+                    format="YYYY年MM月DD日"
                     dayViewHeaderFormat="YYYY年MM月"
                     :vmodel=viewModel
                     bind="DateStart"
@@ -19,7 +19,7 @@
                 <DatePickerWrapper
                     id="DateEnd"
                     ref="DatePicker_Date"
-                    format="YYYY年MM月"
+                    format="YYYY年MM月DD日"
                     dayViewHeaderFormat="YYYY年MM月"
                     :vmodel=viewModel
                     bind="DateEnd"
@@ -27,30 +27,59 @@
                     :onChangedFunc=onDateChanged
                 />
             </div>
+            <div class="col-md-1">
+            </div>
+            <div class="col-md-3">
+                <VueOptions
+                    id="Customer"
+                    ref="VueOptions_Customer"
+                    customItemStyle="text-align: center; margin-right: 10px;"
+                    :vmodel=viewModel
+                    bind="Customer"
+                    :list="[
+                        {code: '0', name: '全顧客', label: '0:全顧客'},
+                        {code: '1', name: '新規顧客', label: '1:新規顧客のみ'},
+                    ]"
+                    :onChangedFunc=onCustomerChanged
+                />
+            </div>
         </div>
         <div class="row">
             <div class="col-md-1">
+                <label>新規登録日</label>
             </div>
-            <VueCheck
-                id="VueCheck_Customer"
-                ref="VueCheck_Customer"
-                :vmodel=viewModel
-                bind="Customer"
-                checkedCode="1"
-                customContainerStyle="border: none;"
-                :list="[
-                    {code: '0', name: '全顧客', label: '新規顧客のみ'},
-                    {code: '1', name: '新規顧客', label: '新規顧客のみ'},
-                ]"
-                :onChangedFunc=onCustomerChanged
-            />
+            <div class="col-md-4">
+                <DatePickerWrapper
+                    id="SaveDateStart"
+                    ref="DatePicker_SaveDate"
+                    format="YYYY年MM月DD日"
+                    dayViewHeaderFormat="YYYY年MM月"
+                    :vmodel=viewModel
+                    bind="SaveDateStart"
+                    :editable=true
+                    :onChangedFunc=onDateChanged
+                />
+                <label>～</label>
+                <DatePickerWrapper
+                    id="SaveDateEnd"
+                    ref="DatePicker_SaveDate"
+                    format="YYYY年MM月DD日"
+                    dayViewHeaderFormat="YYYY年MM月"
+                    :vmodel=viewModel
+                    bind="SaveDateEnd"
+                    :editable=true
+                    :onChangedFunc=onDateChanged
+                />
+            </div>
+            <div class="col-md-1">
+            </div>
             <VueCheck
                 id="VueCheck_ShowSyonin"
                 ref="VueCheck_ShowSyonin"
                 :vmodel=viewModel
                 bind="ShowSyonin"
                 checkedCode="1"
-                customContainerStyle="margin-left: 50px; border: none;"
+                customContainerStyle="border: none;"
                 :list="[
                     {code: '0', name: 'しない', label: '承認・仮承認'},
                     {code: '1', name: 'する', label: '承認・仮承認'},
@@ -78,7 +107,6 @@
                 />
                 <VueSelectBusho
                     :hasNull=true
-                    :onChangedFunc=onBushoCdChanged
                 />
             </div>
         </div>
@@ -93,7 +121,7 @@
                     :vmodel=viewModel
                     bind="EigyoTantoCd"
                     dataUrl="/Utilities/GetTantoList"
-                    :params='{ bushoCd: 0 }'
+                    :params='{ bushoCd: viewModel.BushoCd }'
                     :dataListReset=true
                     title="営業担当者"
                     labelCd="営業担当者CD"
@@ -124,7 +152,7 @@
                     :vmodel=viewModel
                     bind="GetEigyoTantoCd"
                     dataUrl="/Utilities/GetTantoList"
-                    :params='{ bushoCd: 0 }'
+                    :params='{ bushoCd: viewModel.BushoCd = viewModel.Busho == "2" ? viewModel.BushoCd : 0 }'
                     :dataListReset=true
                     title="獲得営業担当者"
                     labelCd="獲得営業担当者CD"
@@ -306,12 +334,12 @@ export default {
                         fixed: true,
                         render: ui => {
                             if (!!ui.rowData.pq_grandsummary) {
-                                return { text: "売上金額総合計&nbsp;\n新規客総合計" };
+                                return { text: "総合計" };
                             }
                             if (!!ui.rowData.pq_gsummary) {
                                 switch (ui.rowData.pq_level) {
                                     case 1:
-                                        return { text: "売上金額合計&nbsp;\n新規客計" };
+                                        return { text: "合計" };
                                     default:
                                         return { text: "" };
                                 }
@@ -354,8 +382,10 @@ export default {
         },
         mountedFunc: function(vue) {
             //日付の初期値 -> 当日moment(vue.viewModel.TargetDate, "YYYYMM01").endOf('month')
-            vue.viewModel.DateStart = moment("20190401").format("YYYY年MM月");
-            vue.viewModel.DateEnd = moment("20190901").endOf('month').format("YYYY年MM月");
+            vue.viewModel.DateStart = moment("20190430").format("YYYY年MM月01日");
+            vue.viewModel.DateEnd = moment("20190430").endOf('month').format("YYYY年MM月DD日");
+            vue.viewModel.SaveDateStart = moment("20190430").format("YYYY年MM月01日");
+            vue.viewModel.SaveDateEnd = moment("20190430").endOf('month').format("YYYY年MM月DD日");
 
             vue.refreshCols();
         },
@@ -378,7 +408,7 @@ export default {
             var vue = this;
 
             //列定義変更 + 条件変更ハンドラ
-            vue.refreshCols(vue.conditionChanged);
+            //vue.refreshCols(vue.conditionChanged);
 
             //条件変更ハンドラ
             //vue.conditionChanged();
@@ -504,59 +534,32 @@ export default {
             .then((grid1) => {
                 grid1.showLoading();
 
-                var max = 6;
-                var mt = moment(vue.viewModel.DateStart, "YYYY年MM月").add("month", -1);
-                var manths = _.range(1, moment(vue.viewModel.DateEnd, "YYYY年MM月").diff(mt, 'month') * 1 + 1);
-                var manthsMax = _.range(1, max + 1);
-                manths = manths.length >= max ? manthsMax : manths.concat(_.range(0, manths.length - max).fill(null));
+                var mt = moment(vue.viewModel.DateStart, "YYYY年MM月");
+                var days = _.range(1, mt.endOf("month").format("D") * 1 + 1);
+                var max = 31;
+                days = days.length == max ? days : days.concat(_.range(0, days.length - max).fill(null));
 
                 var newCols = grid1.options.colModel
                     .filter(v => !!v.fixed)
                     .concat(
-                        ...manths.map((m, i) => {
-                            var date = mt.startOf("month").add("month", 1);
+                        ...days.map((d, i) => {
+                            var date = mt.startOf("month").add("days", i);
 
                             return {
-                                title: !!m ? (date.format("YYYY年MM月")) : "<br>",
-                                dataIndx: !!m ? "MONTH_" + m + "_金額" : ("empty" + i),
+                                title: !!d ? (date.format("ddd") + "<br>" + d) : "<br>",
+                                dataIndx: !!d ? date.format("D") : ("empty" + i),
                                 dataType: "integer",
                                 format: "#,##0",
-                                width: 90, maxWidth: 90, minWidth: 90,
+                                width: 50, maxWidth: 50, minWidth: 50,
                                 summary: {
                                     type: "TotalInt",
                                 },
                                 render: ui => {
-                                    if (ui.rowData.pq_grandsummary || ui.rowData.pq_gsummary)
-                                    {
-                                        // hide zero
-                                        if (ui.rowData[ui.dataIndx] * 1 == 0) {
-                                            return { text: "" };
-                                        }
-                                        return ui.rowData[ui.dataIndx] + "\n" + ui.rowData[ui.dataIndx.replace("金額", "新規客件数")];
-                                    } else {
-                                        // hide zero
-                                        if (ui.rowData[ui.dataIndx] * 1 == 0) {
-                                            return { text: "" };
-                                        }
-                                        return ui;
+                                    // hide zero
+                                    if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                        return { text: "" };
                                     }
-                                },
-                            }
-                        })
-                    );
-
-                newCols.push(
-                        ...manths.map((m, i) => {
-                            var date = mt.startOf("month").add("month", 1);
-
-                            return {
-                                title: !!m ? (date.format("YYYY年MM月")) : "<br>",
-                                dataIndx: !!m ? "MONTH_" + m + "_新規客件数" : ("empty" + i),
-                                dataType: "integer",
-                                format: "#,##0",
-                                hidden: true,
-                                summary: {
-                                    type: "TotalInt",
+                                    return ui;
                                 },
                             }
                         })
@@ -564,38 +567,176 @@ export default {
 
                 newCols.push(...[
                     {
-                        title: "累計",
-                        dataIndx: "累計_金額", dataType: "integer", format: "#,###",
-                        width: 100, minWidth: 100, maxWidth: 100,
+                        title: "合計" + "<br>" + "(月～金)",
+                        dataIndx: "得意先平日合計", dataType: "integer", format: "#,###",
+                        width: 80, minWidth: 80, maxWidth: 80,
                         summary: {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (ui.rowData.pq_grandsummary || ui.rowData.pq_gsummary)
-                            {
-                                // hide zero
-                                if (ui.rowData[ui.dataIndx] * 1 == 0) {
-                                    return { text: "" };
-                                }
-                                return ui.rowData[ui.dataIndx] + "\n" + ui.rowData[ui.dataIndx.replace("金額", "新規客件数")];
-                            } else {
-                                // hide zero
-                                if (ui.rowData[ui.dataIndx] * 1 == 0) {
-                                    return { text: "" };
-                                }
-                                return ui;
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
                             }
+                            return ui;
                         },
                     },
                 ]);
 
                 newCols.push(...[
                     {
-                        title: "累計",
-                        dataIndx: "累計_新規客件数", dataType: "integer", format: "#,###",
+                        title: "平日日数",
+                        dataIndx: "得意先平日日数", dataType: "integer", format: "#,###",
                         hidden: true,
                         summary: {
                             type: "TotalInt",
+                        },
+                        render: ui => {
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
+                            }
+                            return ui;
+                        },
+                    },
+                ]);
+
+                newCols.push(...[
+                    {
+                        title: "平均" + "<br>" + "(月～金)",
+                        dataIndx: "得意先平日平均", dataType: "float", format: "#,###.0",
+                        width: 80, minWidth: 80, maxWidth: 80,
+                        render: ui => {
+                            if (!!ui.rowData.pq_grandsummary) {
+                                if (ui.rowData.得意先平日合計 * 1 == 0 || ui.rowData.得意先平日日数 * 1 == 0)
+                                {
+                                    return { text: "" };
+                                }
+                                else
+                                {
+                                    var avgVal = (ui.rowData.得意先平日合計.replace(",", "") * 1) / (ui.rowData.得意先平日日数.replace(",", "") * 1);
+                                    var avgValFmt = avgVal.toFixed(1).toString();
+                                    return { text: avgValFmt };
+                                }
+                            }
+                            if (!!ui.rowData.pq_gsummary) {
+                                switch (ui.rowData.pq_level) {
+                                    case 1:
+                                        if (ui.rowData.得意先平日合計 * 1 == 0 || ui.rowData.得意先平日日数 * 1 == 0)
+                                        {
+                                            return { text: "" };
+                                        }
+                                        else
+                                        {
+                                            var avgVal = (ui.rowData.得意先平日合計.replace(",", "") * 1) / (ui.rowData.得意先平日日数.replace(",", "") * 1);
+                                            var avgValFmt = avgVal.toFixed(1).toString();
+                                            return { text: avgValFmt };
+                                        }
+                                    default:
+                                        return { text: "" };
+                                }
+                            }
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
+                            }
+                            return ui;
+                        },
+                    },
+                ]);
+
+                newCols.push(...[
+                    {
+                        title: "合計",
+                        dataIndx: "得意先合計", dataType: "integer", format: "#,###",
+                        width: 80, minWidth: 80, maxWidth: 80,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                        render: ui => {
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
+                            }
+                            return ui;
+                        },
+                    },
+                ]);
+
+                newCols.push(...[
+                    {
+                        title: "平均",
+                        dataIndx: "得意先平均", dataType: "float", format: "#,###.0",
+                        width: 80, minWidth: 80, maxWidth: 80,
+                        render: ui => {
+                            if (!!ui.rowData.pq_grandsummary) {
+                                if (ui.rowData.得意先合計 * 1 == 0 || ui.rowData.得意先売上日数 * 1 == 0)
+                                {
+                                    return { text: "" };
+                                }
+                                else
+                                {
+                                    var avgVal = (ui.rowData.得意先合計.replace(",", "") * 1) / (ui.rowData.得意先売上日数.replace(",", "") * 1);
+                                    var avgValFmt = avgVal.toFixed(1).toString();
+                                    return { text: avgValFmt };
+                                }
+                            }
+                            if (!!ui.rowData.pq_gsummary) {
+                                switch (ui.rowData.pq_level) {
+                                    case 1:
+                                        if (ui.rowData.得意先合計 * 1 == 0 || ui.rowData.得意先売上日数 * 1 == 0)
+                                        {
+                                            return { text: "" };
+                                        }
+                                        else
+                                        {
+                                            var avgVal = (ui.rowData.得意先合計.replace(",", "") * 1) / (ui.rowData.得意先売上日数.replace(",", "") * 1);
+                                            var avgValFmt = avgVal.toFixed(1).toString();
+                                            return { text: avgValFmt };
+                                        }
+                                    default:
+                                        return { text: "" };
+                                }
+                            }
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
+                            }
+                            return ui;
+                        },
+                    },
+                ]);
+
+                newCols.push(...[
+                    {
+                        title: "売上日数",
+                        dataIndx: "得意先売上日数", dataType: "integer", format: "#,###",
+                        width: 80, minWidth: 80, maxWidth: 80,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                        render: ui => {
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
+                            }
+                            return ui;
+                        },
+                    },
+                ]);
+
+                newCols.push(...[
+                    {
+                        title: "売上金額",
+                        dataIndx: "得意先売上金額", dataType: "integer", format: "#,###",
+                        width: 80, minWidth: 80, maxWidth: 80,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                        render: ui => {
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
+                            }
+                            return ui;
                         },
                     },
                 ]);

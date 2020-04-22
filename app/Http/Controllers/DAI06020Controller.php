@@ -107,7 +107,7 @@ class DAI06020Controller extends Controller
                 $rec['担当者ＣＤ'] = $InsatsuTantoCd;
                 $rec['廃棄'] = 0;
                 $rec['修正日'] = $date;
-                $rec['修正担当者ＣＤ'] = $ShuseiTantoCd;
+                $rec['修正担当者ＣＤ'] = $InsatsuTantoCd;
                 チケット発行::insert($rec);
             }
             /*
