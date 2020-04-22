@@ -17,10 +17,12 @@ class DAI05090Controller extends Controller
     {
         $DateStart = $vm->DateStart;
         $DateEnd = $vm->DateEnd;
+        $SaveDateStart = $vm->SaveDateStart;
+        $SaveDateEnd = $vm->SaveDateEnd;
         $Customer = $vm->Customer;
         $ShowSyonin = $vm->ShowSyonin;
 
-        $WehreCustomer = $Customer == "1" ? "AND CONVERT(VARCHAR, TOKUISAKI.新規登録日, 112) BETWEEN '$DateStart' AND DATEADD(DAY,-1,DATEADD(MONTH,1,'$DateStart'))" : "";
+        $WehreCustomer = $Customer == "1" ? "AND CONVERT(VARCHAR, TOKUISAKI.新規登録日, 112) >= '$SaveDateStart' AND CONVERT(VARCHAR, TOKUISAKI.新規登録日, 112) <= '$SaveDateEnd'" : "";
         $WehreShowSyonin = $ShowSyonin == "1" ? "AND TOKUISAKI.状態区分 IN (10, 20)" : "";
 
         $sql = "
@@ -29,6 +31,7 @@ class DAI05090Controller extends Controller
         select
             URIAGE_MEISAI.部署ＣＤ
             , BUSYO.部署名
+            , URIAGE_MEISAI.日付
             , (STR(TOKUISAKI.営業担当者ＣＤ) + STR(TOKUISAKI.獲得営業者ＣＤ)) as 担当者ＣＤ
             , TOKUISAKI.営業担当者ＣＤ
             , TANTO.担当者名 as 営業担当者名
@@ -36,142 +39,134 @@ class DAI05090Controller extends Controller
             , TANTO2.担当者名 as 獲得営業者名
             , TOKUISAKI.得意先ＣＤ
             , TOKUISAKI.得意先名
-            , SUM(CASE
-                WHEN CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) BETWEEN
-                    DATEADD(MONTH,0,'$DateStart') AND
-                    DATEADD(DAY,-1,DATEADD(MONTH,1,'$DateStart'))
-                    THEN
-                    (URIAGE_MEISAI.現金金額 + URIAGE_MEISAI.掛売金額)
-                ELSE 0
-                END) AS MONTH_1_金額
-            , SUM(CASE
-                WHEN CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) BETWEEN
-                    DATEADD(MONTH,1,'$DateStart') AND
-                    DATEADD(DAY,-1,DATEADD(MONTH,2,'$DateStart'))
-                    THEN
-                    (URIAGE_MEISAI.現金金額 + URIAGE_MEISAI.掛売金額)
-                ELSE 0
-                END) AS MONTH_2_金額
-            , SUM(CASE
-                WHEN CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) BETWEEN
-                    DATEADD(MONTH,2,'$DateStart') AND
-                    DATEADD(DAY,-1,DATEADD(MONTH,3,'$DateStart'))
-                    THEN
-                    (URIAGE_MEISAI.現金金額 + URIAGE_MEISAI.掛売金額)
-                ELSE 0
-                END) AS MONTH_3_金額
-            , SUM(CASE
-                WHEN CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) BETWEEN
-                    DATEADD(MONTH,3,'$DateStart') AND
-                    DATEADD(DAY,-1,DATEADD(MONTH,4,'$DateStart'))
-                    THEN
-                    (URIAGE_MEISAI.現金金額 + URIAGE_MEISAI.掛売金額)
-                ELSE 0
-                END) AS MONTH_4_金額
-            , SUM(CASE
-                WHEN CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) BETWEEN
-                    DATEADD(MONTH,4,'$DateStart') AND
-                    DATEADD(DAY,-1,DATEADD(MONTH,5,'$DateStart'))
-                    THEN
-                    (URIAGE_MEISAI.現金金額 + URIAGE_MEISAI.掛売金額)
-                ELSE 0
-                END) AS MONTH_5_金額
-            , SUM(CASE
-                WHEN CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) BETWEEN
-                    DATEADD(MONTH,5,'$DateStart') AND
-                    DATEADD(DAY,-1,DATEADD(MONTH,6,'$DateStart'))
-                    THEN
-                    (URIAGE_MEISAI.現金金額 + URIAGE_MEISAI.掛売金額)
-                ELSE 0
-                END) AS MONTH_6_金額
-            , SUM(CASE
-                WHEN CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) BETWEEN
-                    DATEADD(MONTH,0,'$DateStart') AND
-                    DATEADD(DAY,0,DATEADD(MONTH,0,'$DateEnd'))
-                    THEN
-                    (URIAGE_MEISAI.現金金額 + URIAGE_MEISAI.掛売金額)
-                ELSE 0
-                END) AS 累計_金額
-            , CASE
-                WHEN TOKUISAKI.新規登録日 BETWEEN
-                    '$DateStart' AND
-                    DATEADD(DAY,-1,DATEADD(MONTH,1,'$DateStart'))
-                    THEN 1
-                ELSE 0
-                END AS MONTH_1_新規客件数
-            , CASE
-                WHEN TOKUISAKI.新規登録日 BETWEEN
-                    DATEADD(MONTH,1,'$DateStart') AND
-                    DATEADD(DAY,-1,DATEADD(MONTH,2,'$DateStart'))
-                    THEN 1
-                ELSE 0
-                END AS MONTH_2_新規客件数
-            , CASE
-                WHEN TOKUISAKI.新規登録日 BETWEEN
-                    DATEADD(MONTH,2,'$DateStart') AND
-                    DATEADD(DAY,-1,DATEADD(MONTH,3,'$DateStart'))
-                    THEN 1
-                ELSE 0
-                END AS MONTH_3_新規客件数
-            , CASE
-                WHEN TOKUISAKI.新規登録日 BETWEEN
-                    DATEADD(MONTH,3,'$DateStart') AND
-                    DATEADD(DAY,-1,DATEADD(MONTH,4,'$DateStart'))
-                    THEN 1
-                ELSE 0
-                END AS MONTH_4_新規客件数
-            , CASE
-                WHEN TOKUISAKI.新規登録日 BETWEEN
-                    DATEADD(MONTH,4,'$DateStart') AND
-                    DATEADD(DAY,-1,DATEADD(MONTH,5,'$DateStart'))
-                    THEN 1
-                ELSE 0
-                END AS MONTH_5_新規客件数
-            , CASE
-                WHEN TOKUISAKI.新規登録日 BETWEEN
-                    DATEADD(MONTH,5,'$DateStart') AND
-                    DATEADD(DAY,-1,DATEADD(MONTH,6,'$DateStart'))
-                    THEN 1
-                ELSE 0
-                END AS MONTH_6_新規客件数
-            , CASE
-                WHEN TOKUISAKI.新規登録日 BETWEEN
-                    '$DateStart' AND
-                    DATEADD(DAY,-1,DATEADD(MONTH,6,'$DateStart'))
-                    THEN 1
-                ELSE 0
-                END AS 累計_新規客件数
+            , URIAGE_MEISAI.現金個数
+            , URIAGE_MEISAI.掛売個数
+            , (URIAGE_MEISAI.現金個数 + URIAGE_MEISAI.掛売個数) as 売上個数
+            , URIAGE_MEISAI.現金金額
+            , URIAGE_MEISAI.掛売金額
+            , (URIAGE_MEISAI.現金金額 + URIAGE_MEISAI.掛売金額) as 売上金額
+            , TOKUISAKI.新規登録日
+            , TOKUISAKI.状態区分
         from
-            売上データ明細 URIAGE_MEISAI
-            inner join 得意先マスタ TOKUISAKI on
-            URIAGE_MEISAI.得意先ＣＤ = TOKUISAKI.得意先ＣＤ --AND URIAGE_MEISAI.部署ＣＤ = TOKUISAKI.部署ＣＤ
+
+            -- 2015/08/25 売上の無い得意先も表示する S.Nakahara Rep Start
+            --売上データ明細 URIAGE_MEISAI
+            --inner join 得意先マスタ TOKUISAKI on
+            --URIAGE_MEISAI.得意先ＣＤ = TOKUISAKI.得意先ＣＤ
+            --
+            得意先マスタ TOKUISAKI
+            left join 売上データ明細 URIAGE_MEISAI on
+                URIAGE_MEISAI.得意先ＣＤ = TOKUISAKI.得意先ＣＤ
+            and CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) >= '$DateStart'
+            and CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) <= '$DateEnd'
+            and URIAGE_MEISAI.商品区分 in (1,2,3,7)
+            -- 2015/08/25 売上の無い得意先も表示する S.Nakahara Rep End
+
             left join 部署マスタ BUSYO on
-            URIAGE_MEISAI.部署ＣＤ = BUSYO.部署CD
+                TOKUISAKI.部署ＣＤ = BUSYO.部署CD
             left join 担当者マスタ TANTO on
-            TOKUISAKI.営業担当者ＣＤ = TANTO.担当者ＣＤ
+                TOKUISAKI.営業担当者ＣＤ = TANTO.担当者ＣＤ
             left join 担当者マスタ TANTO2 on
-            TOKUISAKI.獲得営業者ＣＤ = TANTO2.担当者ＣＤ
+                TOKUISAKI.獲得営業者ＣＤ = TANTO2.担当者ＣＤ
         where
-                URIAGE_MEISAI.商品区分 IN (1,2,3,7)
-            AND CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) BETWEEN '$DateStart' AND '$DateEnd'
+            -- 2015/08/25 売上の無い得意先も表示する S.Nakahara Rep Start
+            --CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) >= '20190401'
+            --and CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) <= '20190430'
+            --
+            -- 2015/05/28 商品区分は(1,2,3,7)が対象 S.Nakahara Add Start 10⇒7に修正(別府)
+            --and URIAGE_MEISAI.商品区分 in (1,2,3,7)
+            -- 2015/05/28 商品区分は(1,2,3,7)が対象 S.Nakahara Add End
+            0 = 0
+            -- 2015/08/25 売上の無い得意先も表示する S.Nakahara Rep End
             $WehreCustomer
             $WehreShowSyonin
-        GROUP BY
-             URIAGE_MEISAI.部署ＣＤ
-            ,BUSYO.部署名
-            ,(STR(TOKUISAKI.営業担当者ＣＤ) + STR(TOKUISAKI.獲得営業者ＣＤ))
-            ,TOKUISAKI.営業担当者ＣＤ
-            ,TANTO.担当者名
-            ,TOKUISAKI.獲得営業者ＣＤ
-            ,TANTO2.担当者名
-            ,TOKUISAKI.得意先ＣＤ
-            ,TOKUISAKI.得意先名
-            ,TOKUISAKI.新規登録日
+        ),
+
+		日毎集計データ AS
+		(
+		SELECT
+			 部署ＣＤ
+			,営業担当者ＣＤ
+			,営業担当者名
+			,獲得営業者ＣＤ
+			,獲得営業者名
+			,得意先ＣＤ
+			,得意先名
+			,DAY(日付) AS 日
+			,IIF(DATEPART(WEEKDAY,日付) >= 2 AND DATEPART(WEEKDAY,日付) <= 6, 1, 0) AS 平日
+			,SUM(IIF(DATEPART(WEEKDAY,日付) >= 2 AND DATEPART(WEEKDAY,日付) <= 6, 売上個数, 0)) AS 平日売上個数
+			,SUM(売上個数) AS 売上個数
+			,SUM(ISNULL(売上個数, 0)) AS 得意先合計
+			,SUM(ISNULL(売上金額, 0)) AS 得意先売上金額
+		FROM
+			売上データ
+		GROUP BY
+			部署ＣＤ, 営業担当者ＣＤ, 営業担当者名, 獲得営業者ＣＤ, 獲得営業者名, 得意先ＣＤ, 得意先名, 日付
+		),
+
+		集計データ AS
+		(
+		SELECT
+			 部署ＣＤ
+			,営業担当者ＣＤ
+			,営業担当者名
+			,獲得営業者ＣＤ
+			,獲得営業者名
+			,得意先ＣＤ
+			,得意先名
+			,SUM(IIF(ISNULL(売上個数, 0) > 0, 1, 0)) AS 得意先売上日数
+			,SUM(平日) AS 得意先平日日数
+			,SUM(平日売上個数) AS 得意先平日合計
+			,SUM(得意先合計) AS 得意先合計
+			,SUM(得意先売上金額) AS 得意先売上金額
+		FROM
+			日毎集計データ
+		GROUP BY
+			部署ＣＤ, 営業担当者ＣＤ, 営業担当者名, 獲得営業者ＣＤ, 獲得営業者名, 得意先ＣＤ, 得意先名
+		),
+
+		ピボット集計データ AS
+		(
+		SELECT
+			 部署ＣＤ
+			,営業担当者ＣＤ
+			,営業担当者名
+			,獲得営業者ＣＤ
+			,獲得営業者名
+			,得意先ＣＤ
+			,得意先名
+			,日
+			,売上個数
+		FROM
+			日毎集計データ
+		),
+
+        日毎抽出データ AS
+		(
+        SELECT * FROM ピボット集計データ
+        PIVOT ( SUM( 売上個数 ) FOR 日 in([1], [2], [3], [4], [5], [6], [7], [8], [9], [10],
+                                            [11], [12], [13], [14], [15], [16], [17], [18], [19], [20],
+                                            [21], [22], [23], [24], [25], [26], [27], [28], [29], [30], [31]
+                                            )) AS ピボットテーブル
         )
 
-        SELECT * FROM 売上データ
-        order by
-            営業担当者ＣＤ,獲得営業者ＣＤ,得意先ＣＤ
+        SELECT
+            D.*,
+			S.得意先平日合計,
+			IIF(S.得意先平日日数 != 0, S.得意先平日合計 / S.得意先平日日数, 0) AS 得意先平日平均,
+			S.得意先平日日数,
+            S.得意先合計,
+            IIF(S.得意先売上日数 != 0, S.得意先合計 / S.得意先売上日数, 0) AS 得意先平均,
+            S.得意先売上日数,
+            S.得意先売上金額
+		FROM
+			日毎抽出データ D
+		LEFT JOIN 集計データ S ON
+			D.営業担当者ＣＤ = S.営業担当者ＣＤ
+		AND	D.獲得営業者ＣＤ = S.獲得営業者ＣＤ
+		AND	D.得意先ＣＤ = S.得意先ＣＤ
+        ORDER BY
+            D.営業担当者ＣＤ, D.獲得営業者ＣＤ, D.得意先ＣＤ
         ";
 
         //$DataList = DB::select($sql);
