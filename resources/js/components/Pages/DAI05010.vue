@@ -530,6 +530,9 @@ export default {
             var list = dataList
                 .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
                 .filter(v => {
+                    return vue.BushoCdArray.length > 0 ? _.some(vue.BushoCdArray, k => k == v.部署ＣＤ) : true;
+                })
+                .filter(v => {
                     return keyOR.length == 0
                         || _.some(keyOR, k => v.コースＣＤ.startsWith(k))
                         || _.some(keyOR, k => v.whole.includes(k))
@@ -586,7 +589,7 @@ export default {
                     text-align: center;
                 }
                 td {
-                    height: 19px;
+                    height: 18px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
@@ -636,21 +639,28 @@ export default {
                             <tr>
                                 <th style="width:  5%;">部署</th>
                                 <th style="width:  5%; text-align: right;">${BushoCd}</th>
-                                <th style="width: 18%;">${BushoNm}</th>
-                                <th colspan="8" class="blank-cell"></th>
-                            </tr>
-                            <tr>
-                                <th style="width:  5%;">コース</th>
-                                <th style="width:  5%; text-align: right;">${CourseCd}</th>
-                                <th style="width: 18%;">${CourseNm}</th>
-                                <th style="width:  5%;">担当者</th>
-                                <th style="width:  5%; text-align: right;">${TantoCd}</th>
-                                <th style="width: 18%;">${TantoNm}</th>
+                                <th style="width: 16%;">${BushoNm}</th>
                                 <th style="width:  5%;" class="blank-cell"></th>
+                                <th style="width:  5%;" class="blank-cell"></th>
+                                <th style="width: 16%;" class="blank-cell"></th>
+                                <th style="width: 31%;" class="blank-cell"></th>
+                                <th style="width:  5%;" class="blank-cell"></th>
+                                <th style="width: 11%;" class="blank-cell"></th>
+                                <th style="width:  5%;" class="blank-cell"></th>
+                                <th style="width:  6%;" class="blank-cell"></th>
+                         </tr>
+                            <tr>
+                                <th>コース</th>
+                                <th style="text-align: right;">${CourseCd}</th>
+                                <th>${CourseNm}</th>
+                                <th>担当者</th>
+                                <th style="text-align: right;">${TantoCd}</th>
+                                <th>${TantoNm}</th>
+                                <th class="blank-cell"></th>
                                 <th>作成日</th>
                                 <th style="text-align: right;">${moment().format("YYYY年MM月DD日")}</th>
                                 <th>PAGE</th>
-                                <th style="text-align: right;">${idx + 1}</th>
+                                <th style="text-align: right;">${idx + 1}/${length}</th>
                             </tr>
                         </thead>
                     </table>
