@@ -588,6 +588,9 @@ export default {
             var list = dataList
                 .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
                 .filter(v => {
+                    return vue.BushoCdArray.length > 0 ? _.some(vue.BushoCdArray, k => k == v.部署ＣＤ) : true;
+                })
+                .filter(v => {
                     return keyOR.length == 0
                         || _.some(keyOR, k => v.コースＣＤ.startsWith(k))
                         || _.some(keyOR, k => v.whole.includes(k))
