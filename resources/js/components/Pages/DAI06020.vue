@@ -43,17 +43,23 @@
                     :AutoCompleteFunc=CustomerAutoCompleteFunc
                 />
             </div>
-        </div>
-        <div class="row">
-            <div class="col-md-7">
-                <label>前チケット番号</label>
-                <input class="form-control p-0 text-center label-blue" style="width: 120px;" type="text" :value=viewModel.LastTicketNo readonly tabindex="-1">
+            <div class="col-md-4">
+                <label style="width: 120px;">前チケット番号</label>
+                <input class="form-control p-0 text-center label-blue" style="width: 80px;" type="text" :value=viewModel.LastTicketNo readonly tabindex="-1">
             </div>
         </div>
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-1">
                 <label>印刷枚数</label>
-                <input class="form-control p-0 text-center label-blue" style="width: 120px;" type="text" :value=viewModel.InsatsuMaisu>
+            </div>
+            <div class="col-md-4">
+                <input type="number" class="range"
+                    v-model="viewModel.InsatsuMaisu"
+                    style="width: 80px; padding-right: 0px; text-align: center; border: none; border-radius: 4px;"
+                    maxlength="2"
+                    min="1"
+                    @input="onValidPeriodChanged"
+                >枚
             </div>
         </div>
         <div class="row">
@@ -72,7 +78,6 @@
                         {code: '0', name: '印刷なし', label: '印刷あり'},
                         {code: '1', name: '印刷あり', label: '印刷あり'},
                     ]"
-                    :onChangedFunc=onChanged
                 />
                 <DatePickerWrapper
                     id="IssueDate"
@@ -87,9 +92,17 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-1">
                 <label>有効期間</label>
-                <input class="form-control p-0 text-center label-blue" style="width: 120px;" type="text" :value=viewModel.ValidPeriod @input="onValidPeriodChanged">ヶ月
+            </div>
+            <div class="col-md-4">
+                <input type="number" class="range"
+                    v-model="viewModel.ValidPeriod"
+                    style="width: 80px; padding-right: 0px; text-align: center; border: none; border-radius: 4px;"
+                    maxlength="2"
+                    min="1"
+                    @input="onValidPeriodChanged"
+                >ヶ月
             </div>
         </div>
         <div class="row">
@@ -108,7 +121,6 @@
                         {code: '0', name: '印刷なし', label: '印刷あり'},
                         {code: '1', name: '印刷あり', label: '印刷あり'},
                     ]"
-                    :onChangedFunc=onChanged
                 />
                 <DatePickerWrapper
                     id="ExpireDate"
@@ -117,8 +129,7 @@
                     dayViewHeaderFormat="YYYY年MM月DD日"
                     :vmodel=viewModel
                     bind="ExpireDate"
-                    :editable=true
-                    :onChangedFunc=onChanged
+                    :editable=false
                 />
             </div>
         </div>
@@ -135,7 +146,6 @@
                     :params="{ tantoCd: 20 }"
                     :withCode=true
                     :hasNull=false
-                    :onChangedFunc=onChanged
                 />
             </div>
         </div>
@@ -303,16 +313,13 @@ export default {
             //TODO:
             // vue.viewModel.IssueDate = moment().format("YYYY年MM月DD日");
             vue.viewModel.IssueDate = moment("20190903").format("YYYY年MM月DD日");
-        },
-        onChanged: function(code, entities) {
-            //TODO:ダミーイベントハンドラ
-            var vue = this;
+            vue.viewModel.InsatsuTantoCd=vue.getLoginInfo()["uid"];
         },
         onIssueDateChanged: function(code, entities) {
             this.UpdateExpireDate();
         },
         onValidPeriodChanged: function(code, entities) {
-            console.log("onValidPeriodChanged");
+            console.log("onValidPeriodChanged!");
             var vue = this;
             window.respc=_.cloneDeep(vue.viewModel);//TODO:
             //console.log("ValidPeriod="+vue.viewModel.ValidPeriod);
@@ -336,7 +343,7 @@ export default {
             var vue = this;
             console.log("onAfterSearchFunc");//TODO:
             window.resres=_.cloneDeep(res);//TODO:
-            vue.viewModel.LastTicketNo=res[0].チケット管理番号;
+            vue.viewModel.LastTicketNo=res[0].チケット管理番号 == null ? 0 : res[0].チケット管理番号;
             return res;
         },
         CustomerAutoCompleteFunc: function(input, dataList, comp) {
@@ -381,7 +388,7 @@ export default {
         {
             //発行日付と有効期限から有効期限日を求める
             var vue = this;
-            vue.viewModel.ExpireDate = moment(vue.viewModel.IssueDate,"YYYY年MM月DD日").add(vue.viewModel.ValidPeriod,'month').format("YYYY年MM月DD日");
+            vue.viewModel.ExpireDate = moment(vue.viewModel.IssueDate,"YYYY年MM月DD日").add(vue.viewModel.ValidPeriod,'month').add(-1,'day').format("YYYY年MM月DD日");
         },
         Save:function()
         {
