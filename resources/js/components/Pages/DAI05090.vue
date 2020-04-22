@@ -758,8 +758,6 @@ export default {
             if (!grid1 || !grid2 || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.DateStart || !vue.viewModel.DateEnd) return;
 
-            //vue.setSummaryRow();
-
             var params = $.extend(true, {}, vue.viewModel);
 
             //検索パラメータの加工
@@ -793,55 +791,6 @@ export default {
 
             grid1.filter({ oper: "replace", mode: "AND", rules: rules });
             grid2.filter({ oper: "replace", mode: "AND", rules: rules });
-        },
-        setSummaryRow: function() {
-            var vue = this;
-            var grid1 = vue.DAI05090Grid1;
-            var grid2 = vue.DAI05090Grid2;
-
-            //summaryDataの設定
-            grid1.options.summaryData = vue.ProductList.map((p, i) => {
-                var pqfn = _.reduce(
-                    grid1.options.colModel.filter(c => !c.fixed),
-                    (acc, c) => {
-                        acc[c.dataIndx] = "SUMIF(C:C, '"
-                            + p.商品区分 + "', "
-                            + grid1.getExcelColumnName(c.dataIndx, "${nm}:${nm}")
-                            + ")";
-                        return acc;
-                    },
-                    {}
-                );
-
-                return  {
-                    summaryRow: true,
-                    "対象名": i == 0 ? "合計" : "",
-                    "商品名": p.商品名,
-                    pq_fn: pqfn,
-                };
-            });
-
-            grid2.options.summaryData = vue.ProductList.map((p, i) => {
-                var pqfn = _.reduce(
-                    grid2.options.colModel.filter(c => !c.fixed),
-                    (acc, c) => {
-                        acc[c.dataIndx] = "SUMIF(B:B, '"
-                            + p.商品区分 + "', "
-                            + grid2.getExcelColumnName(c.dataIndx, "${nm}:${nm}")
-                            + ")";
-                        return acc;
-                    },
-                    {}
-                );
-
-                return  {
-                    summaryRow: true,
-                    pq_fn: pqfn,
-                };
-            });
-
-            grid1.refresh();
-            grid2.refresh();
         },
         checkGridChangedFunc: function(grid) {
             var vue = this;
@@ -1184,7 +1133,7 @@ export default {
                 var eigyoNm2 = header.獲得営業者.split(" ")[1];
                 return `
                     <div class="title">
-                        <h3>* * * 顧客売上累計表 * * *</h3>
+                        <h3>* * * 顧客売上推移表 * * *</h3>
                     </div>
                     <table class="header-table" style="border-width: 0px">
                         <thead>
