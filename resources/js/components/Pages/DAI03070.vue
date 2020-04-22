@@ -65,7 +65,7 @@
                     :vmodel=viewModel
                     bind="CourseCd"
                     dataUrl="/Utilities/GetCourseList"
-                    :params='{ bushoCd: viewModel.BushoCd, courseKbn: viewModel.CourseKbn }'
+                    :params='{ bushoCd: viewModel.BushoCd }'
                     :dataListReset=true
                     title="コース一覧"
                     labelCd="コースCD"
@@ -178,7 +178,7 @@ export default {
     },
     data() {
         return $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "月次処理 > 得意先別売上推計表",
+            ScreenTitle: "月次処理 > 得意先別売上推移表",
             noViewModel: true,
             viewModel: {
                 BushoArray: [],
@@ -531,6 +531,7 @@ export default {
             delete params.CustomerCd;
 
             grid.searchData(params, false, null, callback);
+            this.filterChanged();
         },
         filterChanged: function() {
             var vue = this;
@@ -539,22 +540,24 @@ export default {
             if (!grid) return;
 
             var rules = [];
-            var crules = [];
             //TODO:西山確認中
+            if(vue.viewModel.PrintOrder==1)
+            {
+                if (!vue.viewModel.CourseCd != undefined && vue.viewModel.CourseCd != "") {
+                    var crulesCourse = [];
+                    crulesCourse.push({ condition: "equal", value: vue.viewModel.CourseCd});
+                    if (0<crulesCourse.length) {
+                        rules.push({ dataIndx: "コースＣＤ", mode: "AND", crules: crulesCourse });
+                    }
+                }
+            }
             if (vue.viewModel.CustomerCd != undefined && vue.viewModel.CustomerCd != "") {
-                crules.push({ condition: "equal", value: vue.viewModel.CustomerCd});
-                if (crules.length) {
-                    rules.push({ dataIndx: "得意先ＣＤ", mode: "AND", crules: crules });
+                var crulesCustomer = [];
+                crulesCustomer.push({ condition: "equal", value: vue.viewModel.CustomerCd});
+                if (0<crulesCustomer.length) {
+                    rules.push({ dataIndx: "得意先ＣＤ", mode: "AND", crules: crulesCustomer });
                 }
             }
-
-            if (vue.viewModel.CourseCd != undefined && vue.viewModel.CourseCd != "") {
-                crules.push({ condition: "equal", value: vue.viewModel.CourseCd});
-                if (crules.length) {
-                    rules.push({ dataIndx: "コースＣＤ", mode: "AND", crules: crules });
-                }
-            }
-
             grid.filter({ oper: "replace", mode: "AND", rules: rules });
         },
         onAfterSearchFunc: function (vue, grid, res) {
@@ -647,6 +650,9 @@ export default {
 
             var list = dataList
                 .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
+                .filter(v => {
+                    return vue.BushoCdArray.length > 0 ? _.some(vue.BushoCdArray, k => k == v.部署ＣＤ) : true;
+                })
                 .filter(v => {
                     return keyOR.length == 0
                         || _.some(keyOR, k => v.コースＣＤ.startsWith(k))
@@ -758,7 +764,7 @@ export default {
                 }
                 return `
                     <div class="title">
-                        <h3><div class="report-title-area">＊＊＊　得意先別売上推計表　＊＊＊
+                        <h3><div class="report-title-area">＊＊＊　得意先別売上推移表　＊＊＊
                     <div></h3>
                     </div>
                     <table class="header-table" style="border-width: 0px">

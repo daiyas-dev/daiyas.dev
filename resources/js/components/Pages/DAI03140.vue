@@ -544,6 +544,7 @@ export default {
         },
         onCustomerChanged: function(code, entity) {
             var vue = this;
+
             //フィルタ変更ハンドラ
             vue.filterChanged();
         },
@@ -653,6 +654,7 @@ export default {
         },
         print: function() {
             var vue = this;
+            //TODO:西山；印刷物確認未完
 
             //印刷用HTML全体適用CSS
             var globalStyles = `
@@ -678,27 +680,23 @@ export default {
                 }
                 th, td {
                     font-family: "MS UI Gothic";
-                    font-size: 9pt;
+                    font-size: 8.5pt;
                     font-weight: normal;
                     margin: 0px;
                     padding-left: 3px;
                     padding-right: 3px;
                 }
                 th {
-                    height: 12px;
+                    height: 19px;
                     text-align: center;
                 }
                 td {
-                    height: 12px;
+                    height: 32px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
                 table.header-table th {
                     text-align: left;
-                    border: solid 1px black;
-                }
-                table.header-table th.blank-cell {
-                    border:none;
                 }
                 div.report-title-area{
                     width:400px;
@@ -723,12 +721,21 @@ export default {
                     <table class="header-table" style="border-width: 0px">
                         <thead>
                             <tr>
-                                <th style="width: 10%;">${moment(vue.viewModel.TargetDate, "YYYY年MM月").format("YYYY年MM月")}</th>
-                                <th style="width: 64%;" class="blank-cell"></th>
-                                <th style="width: 5%;">作成日</th>
-                                <th style="width: 10%;">${moment().format("YYYY年MM月DD日")}</th>
-                                <th style="width: 5%;">PAGE</th>
-                                <th style="width: 6%;">${idx + 1}/${length}</th>
+                                <th style="width: 6%;">${vue.viewModel.SummaryKind == "1" ? bushoCd : ""}</th>
+                                <th style="width: 10%;">${vue.viewModel.SummaryKind == "1" ? bushoNm : ""}</th>
+                                <th style="width: 59%;" class="blank-cell"></th>
+                                <th style="width: 5%;" class="blank-cell"></th>
+                                <th style="width: 10%;" class="blank-cell"></th>
+                                <th style="width: 5%;" class="blank-cell"></th>
+                                <th style="width: 5%;" class="blank-cell"></th>
+                           </tr>
+                            <tr>
+                                <th colspan=2>${moment(vue.viewModel.TargetDate, "YYYY年MM月").format("YYYY年MM月")}</th>
+                                <th class="blank-cell"></th>
+                                <th>作成日</th>
+                                <th>${moment().format("YYYY年MM月DD日")}</th>
+                                <th style="text-align: right;">PAGE</th>
+                                <th style="text-align: right;">${idx + 1}/${length}</th>
                             </tr>
                         </thead>
                     </table>
@@ -736,30 +743,50 @@ export default {
             };
 
             var styleCustomers =`
-                table.DAI03140Grid1
-                table.DAI03140Grid1 tr,
-                table.DAI03140Grid1 th,
                 table.DAI03140Grid1 td {
                     border-collapse: collapse;
                     border:1px solid black;
                 }
-                table.header-table th:not(.blank-cell),
-                table.DAI03140Grid1 th,
-                table.DAI03140Grid1 td {
+                table.DAI03140Grid1 th {
                     border-style : solid;
-                    border-left-width : 1px;
+                    border-left-width : 0px;
+                    border-top-width : 1px;
+                    border-right-width : 0px;
+                    border-bottom-width : 1px;
+                }
+                table.DAI03140Grid1 td {
+                    border-style : dotted;
+                    border-left-width : 0px;
                     border-top-width : 1px;
                     border-right-width : 0px;
                     border-bottom-width : 0px;
                 }
-                table.header-table th:not(.blank-cell):nth-child(1),
-                table.header-table th:not(.blank-cell):last-child,
-                table.DAI03140Grid1 th:last-child,
-                table.DAI03140Grid1 td:last-child {
-                    border-right-width : 1px;
+                table.DAI03140Grid1 tr.grand-summary td {
+                    border-style : solid;
+                    border-left-width : 0px;
+                    border-top-width : 1px;
+                    border-right-width : 0px;
+                    border-bottom-width : 0px;
                 }
-                table.DAI03140Grid1 tr:last-child td {
-                    border-bottom-width : 1px;
+                table.DAI03140Grid1 tr th:nth-child(1) {
+                    width : 4%;
+                }
+                table.DAI03140Grid1 tr th:nth-child(2) {
+                    width : 14%;
+                }
+                table.DAI03140Grid1 tr td:nth-child(1) {
+                    text-align :right;
+                }
+                table.DAI03140Grid1 tr.grand-summary td:nth-child(3):nth-last-child(12) {
+                    color: transparent;
+                }
+                table.DAI03140Grid1 tr.grand-summary td:nth-child(2):nth-last-child(13):after {
+                    content: "** 合 計 **";
+                    padding-left: 40px;
+                    letter-spacing: 0.3em;
+                }
+                table.DAI03140Grid1 tr.grand-summary td:nth-child(2):nth-last-child(12) {
+                    padding-left: 40px;
                 }
             `;
 

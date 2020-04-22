@@ -6,7 +6,6 @@
             </div>
             <div class="col-md-2">
                 <VueSelectBusho
-                    :onChangedFunc=onBushoChanged
                 />
             </div>
         </div>
@@ -44,17 +43,23 @@
                     :AutoCompleteFunc=CustomerAutoCompleteFunc
                 />
             </div>
-        </div>
-        <div class="row">
-            <div class="col-md-7">
-                <label>前チケット番号</label>
-                <input class="form-control p-0 text-center label-blue" style="width: 120px;" type="text" :value=viewModel.LastTicketNo readonly tabindex="-1">
+            <div class="col-md-4">
+                <label style="width: 120px;">前チケット番号</label>
+                <input class="form-control p-0 text-center label-blue" style="width: 80px;" type="text" :value=viewModel.LastTicketNo readonly tabindex="-1">
             </div>
         </div>
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-1">
                 <label>印刷枚数</label>
-                <input class="form-control p-0 text-center label-blue" style="width: 120px;" type="text" :value=viewModel.PrintNum>
+            </div>
+            <div class="col-md-4">
+                <input type="number" class="range"
+                    v-model="viewModel.InsatsuMaisu"
+                    style="width: 80px; padding-right: 0px; text-align: center; border: none; border-radius: 4px;"
+                    maxlength="2"
+                    min="1"
+                    @input="onValidPeriodChanged"
+                >枚
             </div>
         </div>
         <div class="row">
@@ -73,7 +78,6 @@
                         {code: '0', name: '印刷なし', label: '印刷あり'},
                         {code: '1', name: '印刷あり', label: '印刷あり'},
                     ]"
-                    :onChangedFunc=onIncNoJissekiChanged
                 />
                 <DatePickerWrapper
                     id="IssueDate"
@@ -83,14 +87,22 @@
                     :vmodel=viewModel
                     bind="IssueDate"
                     :editable=true
-                    :onChangedFunc=onDateChanged
+                    :onChangedFunc=onIssueDateChanged
                 />
             </div>
         </div>
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-1">
                 <label>有効期間</label>
-                <input class="form-control p-0 text-center label-blue" style="width: 120px;" type="text" :value=viewModel.ValidPeriod>ヶ月
+            </div>
+            <div class="col-md-4">
+                <input type="number" class="range"
+                    v-model="viewModel.ValidPeriod"
+                    style="width: 80px; padding-right: 0px; text-align: center; border: none; border-radius: 4px;"
+                    maxlength="2"
+                    min="1"
+                    @input="onValidPeriodChanged"
+                >ヶ月
             </div>
         </div>
         <div class="row">
@@ -109,7 +121,6 @@
                         {code: '0', name: '印刷なし', label: '印刷あり'},
                         {code: '1', name: '印刷あり', label: '印刷あり'},
                     ]"
-                    :onChangedFunc=onIncNoJissekiChanged
                 />
                 <DatePickerWrapper
                     id="ExpireDate"
@@ -118,8 +129,23 @@
                     dayViewHeaderFormat="YYYY年MM月DD日"
                     :vmodel=viewModel
                     bind="ExpireDate"
-                    :editable=true
-                    :onChangedFunc=onDateChanged
+                    :editable=false
+                />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1">
+                <label>印刷担当者</label>
+            </div>
+            <div class="col-md-2">
+                <VueSelect
+                    id="InsatsuTantoCd"
+                    :vmodel=viewModel
+                    bind="InsatsuTantoCd"
+                    uri="/Utilities/GetTantoList"
+                    :params="{ tantoCd: 20 }"
+                    :withCode=true
+                    :hasNull=false
                 />
             </div>
         </div>
@@ -184,7 +210,8 @@ export default {
             viewModel: {
                 BushoCd: null,
                 CustomerCd: null,
-                PrintNum:"5",
+                InsatsuMaisu:"5",
+                InsatsuTantoCd:null,
                 LastTicketNo:null,
                 IssueDate: null,
                 IsPrintIssueDate:"1",
@@ -241,40 +268,25 @@ export default {
                         tooltip: true,
                     },
                     {
-                        title: "得意先名カナ",
-                        dataIndx: "得意先名カナ", dataType: "string",
-                        width: 180, minWidth: 180, maxWidth: 180,
+                        title: "単価",
+                        dataIndx: "単価",
+                        dataType: "integer",
+                        format: "#,###",
+                        width: 100, minWidth: 100, maxWidth: 100,
                     },
                     {
-                        title: "郵便番号",
-                        dataIndx: "郵便番号", dataType: "string",
-                        width: 90, minWidth: 90, maxWidth: 90,
+                        title: "チケット数",
+                        dataIndx: "チケット枚数",
+                        dataType: "integer",
+                        format: "#,###",
+                        width: 100, minWidth: 100, maxWidth: 100,
                     },
                     {
-                        title: "住所１",
-                        dataIndx: "住所１", dataType: "string",
-                        width: 230, minWidth: 230, maxWidth: 230,
-                        tooltip: true,
-                    },
-                    {
-                        title: "電話番号",
-                        dataIndx: "電話番号1", dataType: "string",
-                        width: 120, minWidth: 120, maxWidth: 120,
-                    },
-                    {
-                        title: "売現区分",
-                        dataIndx: "売掛現金区分", dataType: "string",
-                        width: 80, minWidth: 80, maxWidth: 80,
-                    },
-                    {
-                        title: "締区分",
-                        dataIndx: "締区分", dataType: "string",
-                        width: 80, minWidth: 80, maxWidth: 80,
-                    },
-                    {
-                        title: "締日１",
-                        dataIndx: "締日１", dataType: "string",
-                        width: 80, minWidth: 80, maxWidth: 80,
+                        title: "サービス数",
+                        dataIndx: "サービスチケット枚数",
+                        dataType: "integer",
+                        format: "#,###",
+                        width: 100, minWidth: 100, maxWidth: 100,
                     },
                 ],
             },
@@ -288,22 +300,32 @@ export default {
                         vue.conditionChanged();
                     }
                 },
-                { visible: "true", value: "CSV", id: "DAI06020Grid1_Csv", disabled: false, shortcut: "F10",
+                { visible: "true", value: "実行", id: "DAI06020Grid1_Save", disabled: false, shortcut: "F6",
                     onClick: function () {
-                        vue.DAI06020Grid1.vue.exportData("csv");
+                        vue.Save();
                     }
                 }
             );
         },
         mountedFunc: function(vue) {
+            var vue = this;
             //日付の初期値 -> 当日
             //TODO:
-            //vue.viewModel.CourseCd=101;
-            var vue = this;
-            //条件変更ハンドラ
-            vue.conditionChanged();
+            // vue.viewModel.IssueDate = moment().format("YYYY年MM月DD日");
+            vue.viewModel.IssueDate = moment("20190903").format("YYYY年MM月DD日");
+            vue.viewModel.InsatsuTantoCd=vue.getLoginInfo()["uid"];
         },
-        onBushoChanged: function(code, entities) {
+        onIssueDateChanged: function(code, entities) {
+            this.UpdateExpireDate();
+        },
+        onValidPeriodChanged: function(code, entities) {
+            console.log("onValidPeriodChanged!");
+            var vue = this;
+            window.respc=_.cloneDeep(vue.viewModel);//TODO:
+            //console.log("ValidPeriod="+vue.viewModel.ValidPeriod);
+            this.UpdateExpireDate();
+        },
+        onCustomerChanged: function(code, entities) {
             var vue = this;
             //条件変更ハンドラ
             vue.conditionChanged();
@@ -313,11 +335,15 @@ export default {
             var grid = vue.DAI06020Grid1;
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.BushoCd) return;
+            if (!vue.viewModel.CustomerCd) return;
             var params = $.extend(true, {}, vue.viewModel);
             grid.searchData(params, false, null, callback);
         },
         onAfterSearchFunc: function (vue, grid, res) {
             var vue = this;
+            console.log("onAfterSearchFunc");//TODO:
+            window.resres=_.cloneDeep(res);//TODO:
+            vue.viewModel.LastTicketNo=res[0].チケット管理番号 == null ? 0 : res[0].チケット管理番号;
             return res;
         },
         CustomerAutoCompleteFunc: function(input, dataList, comp) {
@@ -357,6 +383,67 @@ export default {
                 ;
 
             return list;
+        },
+        UpdateExpireDate:function()
+        {
+            //発行日付と有効期限から有効期限日を求める
+            var vue = this;
+            vue.viewModel.ExpireDate = moment(vue.viewModel.IssueDate,"YYYY年MM月DD日").add(vue.viewModel.ValidPeriod,'month').add(-1,'day').format("YYYY年MM月DD日");
+        },
+        Save:function()
+        {
+            console.log("save");//TODO:
+            var vue=this;
+            var grid = vue.DAI06020Grid1;
+            if(vue.viewModel.BushoCd==null)
+            {
+                return;
+            }
+            if(vue.viewModel.CustomerCd==null)
+            {
+                return;
+            }
+            if(vue.viewModel.InsatsuMaisu==null)
+            {
+                return;
+            }
+
+            //登録データの作成
+            var SaveList=[];
+            _.forEach(grid.pdata,r=>{
+                var SaveItem={};
+                SaveItem.商品ＣＤ=r.商品ＣＤ;
+                SaveItem.単価=r.単価;
+                SaveList.push(SaveItem);
+            });
+
+            //登録実行
+            grid.saveData(
+                {
+                    uri: "/DAI06020/Save",
+                    params: {
+                        InsatsuMaisu:vue.viewModel.InsatsuMaisu,
+                        CustomerCd:vue.viewModel.CustomerCd,
+                        TicketNo:(vue.viewModel.LastTicketNo*1)+1,
+                        IssueDate:moment(vue.viewModel.IssueDate, "YYYY年MM月DD日").format("YYYYMMDD"),
+                        ExpireDate:moment(vue.viewModel.ExpireDate, "YYYY年MM月DD日").format("YYYYMMDD"),
+                        TicketSu:0,
+                        SvTicketSu:0.0,
+                        InsatsuTantoCd:vue.viewModel.InsatsuTantoCd,
+                        ShuseiTantoCd:vue.getLoginInfo()["uid"],
+                        SaveList: SaveList,
+                    },
+                    optional: vue.searchParams,
+                    confirm: {
+                        isShow: false,
+                    },
+                    done: {
+                        isShow: false,
+                        callback: (gridVue, grid, res)=>{
+                        },
+                    },
+                }
+            );
         },
     }
 }
