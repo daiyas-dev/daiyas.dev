@@ -606,7 +606,6 @@ export default {
                     padding-right: 15px;
                 }
                 div.title {
-                    width: 100%;
                     display: block;
                     text-align: center;
                 }
@@ -617,57 +616,57 @@ export default {
             `;
 
             var headerFunc = (header, idx, length) => {
-                var TargetDate = vue.viewModel.SimeKbn == "2"
-                    ? moment(header.pq_level == 0 ? header.請求日付 : header.parentId).format("YYYY年MM月DD日")
-                    : vue.viewModel.SimeKbn == "1"
-                        ? moment(vue.searchParams.TargetDate).format("YYYY年MM月DD日")
-                        : vue.viewModel.TargetDate
-                    ;
-                var GroupInfo = vue.viewModel.SimeKbn == "2"
-                    ? (header.pq_level == 0 ? (!!header.children.length ? header.children[0].コース : "") : header.コース).split(":")
-                    : []
-                    ;
-                var CourseCd = vue.viewModel.PrintOrder == "0" ? "" : (GroupInfo[0] || "");
-                var CourseNm = vue.viewModel.PrintOrder == "0" ? "" : (GroupInfo[1] || "");
-                var TantoCd = vue.viewModel.PrintOrder == "0" ? "" : (GroupInfo[2] || "");
-                var TantoNm = vue.viewModel.PrintOrder == "0" ? "" : (GroupInfo[3] || "");
+                // var TargetDate = vue.viewModel.SimeKbn == "2"
+                //     ? moment(header.pq_level == 0 ? header.請求日付 : header.parentId).format("YYYY年MM月DD日")
+                //     : vue.viewModel.SimeKbn == "1"
+                //         ? moment(vue.searchParams.TargetDate).format("YYYY年MM月DD日")
+                //         : vue.viewModel.TargetDate
+                //     ;
+                // var GroupInfo = vue.viewModel.SimeKbn == "2"
+                //     ? (header.pq_level == 0 ? (!!header.children.length ? header.children[0].コース : "") : header.コース).split(":")
+                //     : []
+                //     ;
+                // var CourseCd = vue.viewModel.PrintOrder == "0" ? "" : (GroupInfo[0] || "");
+                // var CourseNm = vue.viewModel.PrintOrder == "0" ? "" : (GroupInfo[1] || "");
+                // var TantoCd = vue.viewModel.PrintOrder == "0" ? "" : (GroupInfo[2] || "");
+                // var TantoNm = vue.viewModel.PrintOrder == "0" ? "" : (GroupInfo[3] || "");
 
                 return `
-                    <div class="title">
-                        <h3>* * * <span/>配送集計表<span/> * * *</h3>
-                    </div>
                     <div class="header">
-                        <div>
-                            <div id="a-box">
+                        <div style="float: left; width: 26%;">
+                            <div style="height: 34px;"></div>
+                            <div style="clear: left;" class="xxx">
+	                            <div style="float: left; width: 18%;">日付</div>
+	                            <div style="float: left; width: 80%;">${moment(vue.viewModel.TargetDate, "YYYYMMDD").format("YY年MM月DD日(ddd)")}</div>
+                            </div>
+                            <div style="clear: left;" class="xxx">
+	                            <div style="float: left; width: 18%;">コース</div>
+	                            <div style="float: left; width: 18%;">${vue.viewModel.CourseCd}</div>
+	                            <div style="float: left; width: 62%;">${vue.viewModel.CourseNm}</div>
+                            </div>
+                        </div>
+                        <div class="title" style="float: left; height: 70px; width: 47%">
+                            <h3>* * * <span></span>配送集計表<span></span> * * *</h3>
+                        </div>
+                        <div style="float: left; width: 27%">
+                            <div>
                                 ${vue.viewModel.BushoNm}
                             </div>
-                            <div id="b-box"></div>
-                            <div id="c-box">
-                                <span>作成日</span>
-                                <span>${moment().format("YYYY年MM月DD日")}</span>
-                                <span>PAGE</span>
-                                <span>${idx + 1}/</span>
-                                ${length}
-                            </div>
-                        </div>
-                        <div style="clear: both;">
-                            <div id="d-box">
-                                <div style="float: left;">${moment(vue.viewModel.DeliveryDate, "YYYYMMDD").format("YY/MM/DD(ddd)")}</div>
-                            </div>
-                            <div id="e-box"></div>
-                            <div id="f-box" style="font-size: 9pt !important;">
+                            <div style="font-size: 9pt !important;">
                                 ${vue.BushoInfo.会社名称}
                             </div>
-                        </div>
-                        <div style="clear: both;">
-                            <div id="g-box"></div>
-                            <div id="h-box"></div>
-                            <div id="i-box">
+                            <div>
                                 Tel
-                                <span/>${vue.BushoInfo.電話番号}
-                                <span/>Fax
-                                <span/>${vue.BushoInfo.FAX}
+                                <span></span>${vue.BushoInfo.電話番号}
+                                <span></span>Fax
+                                <span></span>${vue.BushoInfo.FAX}
                             </div>
+                        </div>
+                        <div style="float: left; width: 27%;"  class="xxx">
+                            <div style="float: left; width: 20%;">作成日</div>
+                            <div style="float: left; width: 38%;">${moment().format("YYYY年MM月DD日")}</div>
+                            <div style="float: left; width: 20%;">PAGE</div>
+                            <div style="float: left; width: 20%;">${idx + 1}/${length}</div>
                         </div>
                     </div>
                 `;
@@ -682,51 +681,100 @@ export default {
                         .append(
                             grid.generateHtml(
                                 `
-                                    .header-table th {
-                                        border-style: solid;
-                                        border-left-width: 0px;
-                                        border-top-width: 1px;
-                                        border-right-width: 1px;
-                                        border-bottom-width: 0px;
-                                    }
-                                    .header-table tr th:first-child {
-                                        border-left-width: 1px;
-                                    }
-                                    .header-table tr:nth-child(1) th:nth-child(n+4) {
-                                        border-left-width: 0px;
-                                        border-top-width: 0px;
-                                        border-right-width: 0px;
-                                        border-bottom-width: 0px;
-                                    }
-                                    .header-table tr:nth-child(4) th:nth-child(6) {
-                                        border-top-width: 0px;
-                                    }
-                                    table.DAI02020Grid1 tr:nth-child(1) th {
+                                    div.xxx > div{
                                         border-style: solid;
                                         border-left-width: 1px;
                                         border-top-width: 1px;
                                         border-right-width: 0px;
-                                        border-bottom-width: 1px;
+                                        border-bottom-width: 0px;
                                     }
-                                    table.DAI02020Grid1 tr th:last-child {
+                                    div.xxx > div:last-child {
                                         border-right-width: 1px;
                                     }
-                                    table.DAI02020Grid1 tr td {
+                                     table.DAI07020Grid1 thead tr:nth-child(1) th {
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 1px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 0px;
+                                    }
+                                    table.DAI07020Grid1 thead tr:nth-child(2) th {
                                         border-style: solid;
                                         border-left-width: 1px;
                                         border-top-width: 0px;
-                                        border-right-width: 0px;
-                                        border-bottom-width: 1px;
+                                        border-right-width: 1px;
+                                        border-bottom-width: 0px;
                                     }
-                                    table.DAI02020Grid1 tr.grand-summary td {
+                                    table.DAI07020Grid1 thead tr th:nth-child(10),
+                                    table.DAI07020Grid1 tr th:last-child {
+                                        border-right-width: 1px;
+                                    }
+                                    table.DAI07020Grid1 tr td {
                                         border-style: solid;
                                         border-left-width: 1px;
-                                        border-top-width: 0px;
+                                        border-top-width: 1px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 0px;
+                                    }
+                                    table.DAI07020Grid1 tr:last-child td {
+                                        border-bottom-width: 1px;
+                                    }
+                                    table.DAI07020Grid1 tr.grand-summary td {
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 1px;
                                         border-right-width: 0px;
                                         border-bottom-width: 1px;
                                     }
-                                    table.DAI02020Grid1 tr td:last-child {
+                                    table.DAI07020Grid1 tr td:last-child {
                                         border-right-width: 1px;
+                                    }
+                                    table.DAI07020Grid1 tr th:nth-child(1) {
+                                        width: 2.8%;
+                                    }
+                                    table.DAI07020Grid1 tr th:nth-child(2) {
+                                        width: 13%;
+                                    }
+                                    table.DAI07020Grid1 tr th:nth-child(3) {
+                                        width: 3.3%;
+                                    }
+                                    table.DAI07020Grid1 tr th:nth-child(4),
+                                    table.DAI07020Grid1 tr th:nth-child(5),
+                                    table.DAI07020Grid1 tr th:nth-child(6),
+                                    table.DAI07020Grid1 tr th:nth-child(7),
+                                    table.DAI07020Grid1 tr th:nth-child(8),
+                                    table.DAI07020Grid1 tr th:nth-child(9) {
+                                        width: 5.5%;
+                                    }
+                                    table.DAI07020Grid1 thead tr th:last-child > span > span,
+                                    table.DAI07020Grid1 td:nth-child(10) > div > div > div {
+                                        float: left;
+                                    }
+                                    table.DAI07020Grid1 thead tr th:last-child > span > span:nth-child(1),
+                                    table.DAI07020Grid1 thead tr th:last-child > span > span:nth-child(2),
+                                    table.DAI07020Grid1 thead tr th:last-child > span > span:nth-child(3),
+                                    table.DAI07020Grid1 td:nth-child(10) > div > div > div:nth-child(1),
+                                    table.DAI07020Grid1 td:nth-child(10) > div > div > div:nth-child(2),
+                                    table.DAI07020Grid1 td:nth-child(10) > div > div > div:nth-child(3) {
+                                        width: 14% !important;
+                                    }
+                                    table.DAI07020Grid1 thead tr:nth-child(1) th:last-child > span > span:nth-child(2){
+                                       margin-left: 14%;
+                                    }
+                                    table.DAI07020Grid1 td div.biko-cell {
+                                        border-style: solid;
+                                        border-width: 0px;
+                                        border-top-width: 1px;
+                                    }
+                                    table.DAI07020Grid1 td:nth-child(10) > div > div:last-child {
+                                        clear: left;
+                                    }
+                                    .header div:not(.title) {
+                                        font-size: 11px;
+                                    }
+                                    table.DAI07020Grid1 tbody div{
+                                        padding-top: 1px;
+                                        padding-bottom: 1px;
                                     }
                                 `,
                                 headerFunc,

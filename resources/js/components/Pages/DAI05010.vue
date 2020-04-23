@@ -608,7 +608,7 @@ export default {
                     vertical-align: middle;
                 }
             `;
-            var headerFunc = (header, idx, length) => {
+            var headerFunc = (header, idx, length, chunk, chunks) => {
                 var BushoCd = "";
                 var BushoNm = "";
                 var CourseCd="";
@@ -660,7 +660,7 @@ export default {
                                 <th>作成日</th>
                                 <th style="text-align: right;">${moment().format("YYYY年MM月DD日")}</th>
                                 <th>PAGE</th>
-                                <th style="text-align: right;">${idx + 1}/${length}</th>
+                                <th style="text-align: right;">${chunk}/${chunks}</th>
                             </tr>
                         </thead>
                     </table>
