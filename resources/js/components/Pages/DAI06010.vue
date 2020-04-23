@@ -289,6 +289,53 @@ export default {
                         dataIndx: "担当者名", dataType: "string",
                         width: 150, minWidth: 150, maxWidth: 150,
                     },
+                    /*
+                    {
+                        title: "捨",
+                        dataIndx: "廃棄",
+                        dataType: "bool",
+                        type: "checkBox",
+                        width: 50, minWidth: 50, maxWidth: 50,
+                        align: "center",
+                        editable: true,
+                        editor: false,
+                        hiddenOnExport: true,
+                        cb: {
+                            all: false, //header checkbox to affect checkboxes on all pages.
+                            header: true, //for header checkbox.
+                            check: "1", //check the checkbox when cell value is "YES".
+                            uncheck: "0" //uncheck when "NO".
+                        },
+                    },
+                    */
+                    /*
+                    {
+                        title: "捨",
+                        dataIndx: "廃棄対象",
+                        type: "checkbox",
+                        cbId: "IncludesSummary",
+                        width: 50, minWidth: 50, maxWidth: 50,
+                        align: "center",
+                        editable: true,
+                        editor: false,
+                        hiddenOnExport: true,
+                        render: ui => {
+                            if (ui.rowData.summaryRow) {
+                                return "";
+                            }
+                        },
+                    },
+                    {
+                        dataIndx: "IncludesSummary",
+                        dataType: "bool",
+                        align: "center",
+                        editable: true,
+                        cb: {
+                            header: true,
+                        },
+                        hidden: false,
+                    },
+                    */
                     {
                         title: "捨",
                         dataIndx: "廃棄対象",
@@ -322,21 +369,17 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "クリア", id: "DAI06010Grid1_Clear", disabled: false, shortcut: "F2",
-                    onClick: function () {
-                    }
-                },
                 { visible: "true", value: "検索", id: "DAI06010Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
                         vue.conditionChanged();
                     }
                 },
-                { visible: "true", value: "登録", id: "DAI06010Grid1_Save", disabled: false, shortcut: "F6",
+                { visible: "true", value: "登録", id: "DAI06010Grid1_Save", disabled: true, shortcut: "F6",
                     onClick: function () {
                         vue.save();
                     }
                 },
-                { visible: "true", value: "CSV", id: "DAI06010Grid1_Csv", disabled: false, shortcut: "F10",
+                { visible: "true", value: "CSV", id: "DAI06010Grid1_Csv", disabled: true, shortcut: "F10",
                     onClick: function () {
                         vue.DAI06010Grid1.vue.exportData("csv");
                     }
@@ -350,9 +393,9 @@ export default {
             vue.viewModel.DateEnd = moment().endOf('month').format("YYYY年MM月DD日");
 
             //TODO:開発用に条件を書き込む
-            vue.viewModel.CustomerCd="25997";
-            vue.viewModel.DateStart = moment("2019/04/01");
-            vue.viewModel.DateEnd = moment("2019/04/30");
+            vue.viewModel.CustomerCd="8";
+            //vue.viewModel.DateStart = moment("2019/04/01");
+            //vue.viewModel.DateEnd = moment("2019/04/30");
         },
         onChanged: function(code, entities) {
             var vue = this;
@@ -377,6 +420,10 @@ export default {
         },
         onAfterSearchFunc: function (vue, grid, res) {
             var vue = this;
+            //ボタン無効化制御
+            vue.footerButtons.find(v => v.id == "DAI06010Grid1_Save").disabled = !res.length;
+            vue.footerButtons.find(v => v.id == "DAI06010Grid1_Csv").disabled = !res.length;
+
             return res;
         },
         CustomerAutoCompleteFunc: function(input, dataList, comp) {
@@ -417,9 +464,50 @@ export default {
 
             return list;
         },
-        save()
+        save:function()
         {
+            var vue = this;
+            var grid = vue.DAI06010Grid1;
+            if(vue.viewModel.BushoCd==null)
+            {
+                return;
+            }
+            if(vue.viewModel.CustomerCd==null)
+            {
+                return;
+            }
 
+            //登録データの作成
+            var SaveList=[];
+            _.forEach(grid.pdata,r=>{
+                window.resr=_.cloneDeep(r);//TODO:
+                var SaveItem={};
+                SaveItem.TicketNo=r.チケット管理番号;
+                SaveItem.CustomerCd=r.得意先ＣＤ;
+                SaveItem.Dispose=r.IncludesSummary;
+                SaveList.push(SaveItem);
+                window.ressvi=_.cloneDeep(SaveItem);//TODO:
+            });
+
+            //登録実行
+            grid.saveData(
+                {
+                    uri: "/DAI06010/Save",
+                    params: {
+                        ShuseiTantoCd:vue.getLoginInfo()["uid"],
+                        SaveList: SaveList,
+                    },
+                    optional: vue.searchParams,
+                    confirm: {
+                        isShow: false,
+                    },
+                    done: {
+                        isShow: false,
+                        callback: (gridVue, grid, res)=>{
+                        },
+                    },
+                }
+            );
         },
     }
 }

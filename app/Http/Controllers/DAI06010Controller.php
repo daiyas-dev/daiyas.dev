@@ -78,4 +78,49 @@ class DAI06010Controller extends Controller
         $pdo = null;
         return $DataList;
     }
+    /**
+     * Save
+     */
+    public function Save($request)
+    {
+        DB::beginTransaction();
+
+        try {
+            $params = $request->all();
+            $date = Carbon::now()->format('Y-m-d H:i:s');
+            $ShuseiTantoCd=$params['ShuseiTantoCd'];
+            $SaveList = $params['SaveList'];
+
+            //更新実施
+            foreach($SaveList as $SaveItem)
+            {
+                $TicketNo=$SaveItem['TicketNo'];
+                $CustomerCd=$SaveItem['CustomerCd'];
+                $Dispose= 'false';
+                if($SaveItem['Dispose']!=null && $SaveItem['Dispose']){
+                    $Dispose= 'true';
+                }
+
+                $sql="
+                    UPDATE チケット発行
+                    SET  廃棄 = '$Dispose'
+                        , 修正担当者ＣＤ = $ShuseiTantoCd
+                        , 修正日 = '$date'
+                    WHERE 得意先ＣＤ = $CustomerCd
+                      AND チケット管理番号 = $TicketNo
+                ";
+                $result = DB::update($sql);
+            }
+            DB::commit();
+        } catch (Exception $exception) {
+            DB::rollBack();
+            throw $exception;
+        }
+
+        return response()->json([
+            'result' => true,
+            //'lastupdatedate'=>$this->LastUpdateDateSearch($request),
+            //'edited' => $this->Search($request),
+        ]);
+    }
 }
