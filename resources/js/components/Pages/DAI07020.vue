@@ -618,6 +618,7 @@ export default {
             grid.Group().option({ "on": true, "dataIndx": ["コースＣＤ"]});
 
             //TODO:行高可変のため改ページ設定未完、ページ数未確認。列：得意先、備考、住所　→長いもの途切れる。(現行も途切れている)
+            //TODO:印刷確認未完
             var headerFunc = (header, idx, length) => {
 
                 var CourseCd="";
@@ -630,16 +631,18 @@ export default {
                     CourseCd= header.コースＣＤ;
                     CourseNm= header.コース名;
                 }
+                var TargetDateFrom = moment(vue.viewModel.TargetDate, "YYYYMMDD").day(1).format("YYYY/MM/DD(ddd)");
+                var TargetDateTo = moment(vue.viewModel.TargetDate, "YYYYMMDD").day(6).format("YYYY/MM/DD(ddd)");
 
                 return `
                     <div class="header">
                         <div style="float: left; width: 26%;">
                             <div style="height: 34px;"></div>
-                            <div style="clear: left;" class="xxx">
+                            <div style="clear: left;" class="header-box">
 	                            <div style="float: left; width: 17%;">日付</div>
-	                            <div style="float: left; width: 79%;">${moment(vue.viewModel.TargetDate, "YYYYMMDD").format("YY年MM月DD日(ddd)")}</div>
+	                            <div style="float: left; width: 79%;">${moment(vue.viewModel.TargetDate, "YYYYMMDD").format("YY年MM月DD日")}</div>
                             </div>
-                            <div style="clear: left;" class="xxx">
+                            <div style="clear: left;" class="header-box">
 	                            <div style="float: left; width: 17%;">コース</div>
 	                            <div style="float: left; width: 17%;">${CourseCd}</div>
 	                            <div style="float: left; width: 60.6%;">${CourseNm}</div>
@@ -647,6 +650,11 @@ export default {
                         </div>
                         <div class="title" style="float: left; height: 70px; width: 47%">
                             <h3>* * * <span></span>配送集計表<span></span> * * *</h3>
+                            <div>
+                                ${TargetDateFrom}
+                                <span>～</span>
+                                ${TargetDateTo}
+                            </div>
                         </div>
                         <div style="float: left; width: 27%">
                             <div>
@@ -662,7 +670,7 @@ export default {
                                 <span></span>${vue.BushoInfo.FAX}
                             </div>
                         </div>
-                        <div style="float: left; width: 27%;"  class="xxx">
+                        <div style="float: left; width: 27%;"  class="header-box">
                             <div style="float: left; width: 19%;">作成日</div>
                             <div style="float: left; width: 37%;">${moment().format("YYYY年MM月DD日")}</div>
                             <div style="float: left; width: 18.9%;">PAGE</div>
@@ -679,7 +687,11 @@ export default {
                         .append(
                             grid.generateHtml(
                                 `
-                                    div.xxx > div{
+                                    div.title > div >span{
+                                        padding-left: 8px;
+                                        padding-right: 8px;
+                                    }
+                                    div.header-box > div{
                                         border-style: solid;
                                         border-left-width: 1px;
                                         border-top-width: 1px;
@@ -687,7 +699,7 @@ export default {
                                         border-bottom-width: 0px;
                                         padding-left: 3px;
                                     }
-                                    div.xxx > div:last-child {
+                                    div.header-box > div:last-child {
                                         border-right-width: 1px;
                                     }
                                      table.DAI07020Grid1 thead tr:nth-child(1) th {
