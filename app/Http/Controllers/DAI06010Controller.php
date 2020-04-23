@@ -22,7 +22,7 @@ class DAI06010Controller extends Controller
 
         //処理選択
         $sql_customer_cd="";
-        if ($vm->SearchCondition=="2" && $CustomerCd!=null) {
+        if ($vm->SearchType=="2" && $CustomerCd!=null) {
             $sql_customer_cd=" AND D1.得意先ＣＤ = $CustomerCd";
         }
 
@@ -43,6 +43,10 @@ class DAI06010Controller extends Controller
                     , チケット内数
                     , SV内数
                     , 単価
+                    , CASE 廃棄 WHEN 1 THEN 0 ELSE ISNULL(チケット内数,0)END AS 有効チケット枚数
+                    , CASE 廃棄 WHEN 1 THEN 0 ELSE ISNULL(SV内数,0)END AS 有効サービス枚数
+                    , CASE 廃棄 WHEN 1 THEN 0 ELSE 単価*ISNULL(チケット内数,0)END AS チケット金額
+                    , CASE 廃棄 WHEN 1 THEN 0 ELSE 単価*ISNULL(SV内数,0)END AS サービス金額
                     , D1.担当者ＣＤ
                     , M2.担当者名
                     , 廃棄
@@ -60,6 +64,7 @@ class DAI06010Controller extends Controller
                 ";
 
         //出力順
+        /*
         $order="";
         if ($vm->PrintOrder=="1") {
             $order=" order by M1.得意先名カナ";
@@ -67,6 +72,7 @@ class DAI06010Controller extends Controller
             $order=" order by D1.得意先ＣＤ,D1.発行日 DESC";
         }
         $sql.=$order;
+        */
 
         $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';

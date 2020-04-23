@@ -16,16 +16,16 @@
             </div>
             <div class="col-md-5">
                 <VueOptions
-                    id="SearchCondition"
-                    ref="VueOptions_SearchCondition"
+                    id="SearchType"
+                    ref="VueOptions_SearchType"
                     customItemStyle="text-align: center; margin-right: 10px;"
                     :vmodel=viewModel
-                    bind="SearchCondition"
+                    bind="SearchType"
                     :list="[
                         {code: '1', name: '部署全て', label: '1:部署全て'},
                         {code: '2', name: '得意先指定', label: '2:得意先指定'},
                     ]"
-                    :onChangedFunc=onChanged
+                    :onChangedFunc=onSearchTypeChanged
                 />
             </div>
         </div>
@@ -58,9 +58,10 @@
                     :existsCheck=true
                     :inputWidth=100
                     :nameWidth=250
-                    :onAfterChangedFunc=onChanged
+                    :onAfterChangedFunc=onCustomerChanged
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=CustomerAutoCompleteFunc
+                    :disabled='viewModel.SearchType != 2'
                 />
             </div>
         </div>
@@ -77,9 +78,9 @@
                     bind="IssuePeriod"
                     :list="[
                         {code: '1', name: '全期間', label: '1:全期間'},
-                        {code: '2', name: 'コース順', label: '2:範囲'},
+                        {code: '2', name: '範囲', label: '2:範囲'},
                     ]"
-                    :onChangedFunc=onChanged
+                    :onChangedFunc=onIssuePeriodChanged
                 />
             </div>
             <div class="col-md-4">
@@ -121,7 +122,7 @@
                         {code: '1', name: '顧客カナ順', label: '1:顧客カナ順'},
                         {code: '2', name: '発効日降順', label: '2:発効日降順'},
                     ]"
-                    :onChangedFunc=onChanged
+                    :onChangedFunc=onPrintOrderChanged
                 />
             </div>
         </div>
@@ -185,7 +186,7 @@ export default {
             noViewModel: true,
             viewModel: {
                 BushoCd: null,
-                SearchCondition:"2",
+                SearchType:"2",
                 CustomerCd: null,
                 IssuePeriod:"2",
                 DateStart:null,
@@ -200,10 +201,10 @@ export default {
                 columnBorders: true,
                 fillHandle: "",
                 numberCell: { show: true, title: "No.", resizable: false, },
-                autoRow: false,
+                autoRow: true,
                 rowHtHead: 40,
                 rowHt: 30,
-                freezeCols: 3,
+                freezeCols: 2,
                 editable: false,
                 columnTemplate: {
                     editable: false,
@@ -218,11 +219,17 @@ export default {
                 },
                 sortModel: {
                     on: true,
-                    cancel: false,
-                    type: "remote",
+                    cancel: true,
+                    type: "local",
+                    sorter:[
+                        { dataIndx: "得意先ＣＤ",dir: "up" },
+                        { dataIndx: "F発行日",dir: "down" }
+                    ],
                 },
                 groupModel: {
-                    on: false,
+                    on: true,
+                    header: false,
+                    grandSummary: true,
                 },
                 summaryData: [
                 ],
@@ -235,11 +242,6 @@ export default {
                         width: 90, minWidth: 90, maxWidth: 90,
                     },
                     {
-                        title: "得意先ＣＤ",
-                        dataIndx: "得意先ＣＤ", dataType: "string",align:"right",
-                        hidden:true,
-                    },
-                    {
                         title: "得意先名",
                         dataIndx: "得意先名", dataType: "string",
                         width: 280, minWidth: 280, maxWidth: 280,
@@ -248,46 +250,74 @@ export default {
                     {
                         title: "発効日付",
                         dataIndx: "F発行日", dataType: "string",
-                        width: 120, minWidth: 120, maxWidth: 120,
+                        width: 111, minWidth: 111, maxWidth: 111,
                     },
                     {
                         title: "有効期限",
                         dataIndx: "F有効期限", dataType: "string",
-                        width: 120, minWidth: 120, maxWidth: 120,
+                        width: 111, minWidth: 111, maxWidth: 111,
                     },
                     {
                         title: "印刷日時",
                         dataIndx: "F印刷日時", dataType: "string",
-                        width: 120, minWidth: 120, maxWidth: 120,
+                        width: 111, minWidth: 111, maxWidth: 111,
+                        render: ui => {
+                            if (ui.rowData.pq_grandsummary) {
+                                //集計行
+                                return { text: "チケット枚数計\nサービス枚数計" };
+                            }
+                            return ui;
+                        },
                     },
                     {
                         title: "単価",
                         dataIndx: "単価", dataType: "integer", format: "#,###",　
-                        width: 100, minWidth: 100, maxWidth: 100,
-                        summary: {
-                            type: "TotalInt",
+                        width: 111, minWidth: 111, maxWidth: 111,
+                        render: ui => {
+                            if (ui.rowData.pq_grandsummary) {
+                                //集計行
+                                var sv=ui.rowData.有効サービス枚数.replace(',','')*1;
+                                sv=sv.toFixed(1);//小数第1位までの表示
+                                sv=sv.toString().replace(/(\d)(?=(\d{3})+(\.\d+))/g , '$1,');//整数部を3桁毎カンマ区切り
+                                return { text: ui.rowData.有効チケット枚数+"\n"+sv };
+                            }
+                            return ui;
                         },
                     },
                     {
                         title: "券数",
                         dataIndx: "チケット内数", dataType: "integer", format: "#,###",　
-                        width: 100, minWidth: 100, maxWidth: 100,
+                        width: 111, minWidth: 111, maxWidth: 111,
                         summary: {
                             type: "TotalInt",
+                        },
+                        render: ui => {
+                            if (ui.rowData.pq_grandsummary) {
+                                //集計行
+                                return { text: "チケット金額計\nサービス金額計" };
+                            }
+                            return ui;
                         },
                     },
                     {
                         title: "サービス",
-                        dataIndx: "SV内数", dataType: "integer", format: "#,###",　
-                        width: 100, minWidth: 100, maxWidth: 100,
+                        dataIndx: "SV内数", dataType: "float", format: "#,###.0",　
+                        width: 111, minWidth: 111, maxWidth: 111,
                         summary: {
                             type: "TotalInt",
+                        },
+                        render: ui => {
+                            if (ui.rowData.pq_grandsummary) {
+                                //集計行
+                                return { text: ui.rowData.チケット金額+"\n"+ui.rowData.サービス金額 };
+                            }
+                            return ui;
                         },
                     },
                     {
                         title: "責任者",
                         dataIndx: "担当者名", dataType: "string",
-                        width: 150, minWidth: 150, maxWidth: 150,
+                        width: 111, minWidth: 111, maxWidth: 111,
                     },
                     /*
                     {
@@ -362,6 +392,48 @@ export default {
                         },
                         hidden: false,
                     },
+                    {
+                        title: "得意先ＣＤ",
+                        dataIndx: "得意先ＣＤ", dataType: "integer",
+                        hidden:true,
+                    },
+                    {
+                        title: "得意先名カナ",
+                        dataIndx: "得意先名カナ", dataType: "string",
+                        hidden:true,
+                    },
+                    {
+                        title: "有効チケット枚数",
+                        dataIndx: "有効チケット枚数", dataType: "integer", format: "#,###",　
+                        hidden:true,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                    },
+                    {
+                        title: "チケット金額",
+                        dataIndx: "チケット金額", dataType: "integer", format: "#,###",　
+                        hidden:true,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                    },
+                    {
+                        title: "有効サービス枚数",
+                        hidden:true,
+                        dataIndx: "有効サービス枚数", dataType: "float", format: "#,###.0",　
+                        summary: {
+                            type: "TotalInt",
+                        },
+                    },
+                    {
+                        title: "サービス金額",
+                        dataIndx: "サービス金額", dataType: "integer", format: "#,###",　
+                        hidden:true,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                    },
                 ],
             },
         });
@@ -393,9 +465,9 @@ export default {
             vue.viewModel.DateEnd = moment().endOf('month').format("YYYY年MM月DD日");
 
             //TODO:開発用に条件を書き込む
-            vue.viewModel.CustomerCd="8";
-            //vue.viewModel.DateStart = moment("2019/04/01");
-            //vue.viewModel.DateEnd = moment("2019/04/30");
+            //vue.viewModel.CustomerCd="8";
+            vue.viewModel.DateStart = moment("2009/03/31");
+            vue.viewModel.DateEnd = moment("2010/04/30");
         },
         onChanged: function(code, entities) {
             var vue = this;
@@ -406,11 +478,44 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
+        onSearchTypeChanged: function(code, entities) {
+            var vue = this;
+
+            //条件変更ハンドラ
+            vue.conditionChanged();
+        },
+        onCustomerChanged: function(code, entities) {
+            var vue = this;
+            //条件変更ハンドラ
+            vue.conditionChanged();
+        },
+        onIssuePeriodChanged: function(code, entities) {
+            var vue = this;
+
+            //条件変更ハンドラ
+            vue.conditionChanged();
+        },
+        onPrintOrderChanged: function(code, entities) {
+            var vue = this;
+            //ソートキーの変更
+            this.SortKeyChanged();
+        },
         conditionChanged: function(callback) {
             var vue = this;
             var grid = vue.DAI06010Grid1;
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.BushoCd) return;
+
+            //処理選択が「得意先指定」で、得意先未指定の場合は検索しない
+            if(vue.viewModel.SearchType==2 && !vue.viewModel.CustomerCd){
+                return;
+            }
+
+            //発行範囲が「範囲」で、範囲未指定の場合は検索しない
+            if(vue.viewModel.IssuePeriod==2 && (!vue.viewModel.DateStart || !vue.viewModel.DateEnd)){
+                return;
+            }
+
             var params = $.extend(true, {}, vue.viewModel);
             //パラメータの書式を調整
             params.DateStart=moment(params.DateStart,"YYYY年MM月DD日").format("YYYY/MM/DD");
@@ -420,10 +525,11 @@ export default {
         },
         onAfterSearchFunc: function (vue, grid, res) {
             var vue = this;
+            //ソートキーの変更
+            this.SortKeyChanged();
             //ボタン無効化制御
             vue.footerButtons.find(v => v.id == "DAI06010Grid1_Save").disabled = !res.length;
             vue.footerButtons.find(v => v.id == "DAI06010Grid1_Csv").disabled = !res.length;
-
             return res;
         },
         CustomerAutoCompleteFunc: function(input, dataList, comp) {
@@ -463,6 +569,21 @@ export default {
                 ;
 
             return list;
+        },
+        SortKeyChanged:function()
+        {
+            var vue = this;
+            var grid = vue.DAI06010Grid1;
+            var keys = [];
+
+            if(vue.viewModel.PrintOrder=='1')
+            {
+                keys.push({ dataIndx: "得意先名カナ",dir: "up" });
+            }else{
+                keys.push({ dataIndx: "得意先ＣＤ",dir: "up" });
+                keys.push({ dataIndx: "F発行日",dir: "down" });
+            }
+            grid.sort({"sorter": keys});
         },
         save:function()
         {
