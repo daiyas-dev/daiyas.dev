@@ -618,11 +618,18 @@ export default {
                 }
             `;
 
+            var eigyoNmKey1;
+            var eigyoNmKey2;
             var headerFunc = (header, idx, length) => {
-                var eigyoCd = header.ＧＫ営業担当者.split(" ")[0];
-                var eigyoNm = header.ＧＫ営業担当者.split(" ")[1];
-                var eigyoCd2 = header.ＧＫ獲得営業者.split(" ")[0];
-                var eigyoNm2 = header.ＧＫ獲得営業者.split(" ")[1];
+                if (header.pq_level == 0)
+                {
+                    eigyoNmKey1 = header.ＧＫ営業担当者.split(" ")[1];
+                    eigyoNmKey2 = eigyoNmKey1;
+                }
+                if (header.pq_level == 1)
+                {
+                    eigyoNmKey2 = header.ＧＫ獲得営業者.split(" ")[1];
+                }
                 return `
                     <div class="title">
                         <h3>* * * 顧客売上表 * * *</h3>
@@ -630,14 +637,12 @@ export default {
                     <table class="header-table" style="border-width: 0px">
                         <thead>
                             <tr>
-                                <th style="width: 10%;">部署</th>
-                                <th style="width: 10%; text-align: right;">${bushoCd}</th>
-                                <th style="width: 20%;">${bushoNm}</th>
-                                <th style="width: 10%;" class="blank-cell"></th>
-                                <th style="width: 10%;" class="blank-cell"></th>
-                                <th style="width: 10%;" class="blank-cell"></th>
-                                <th style="width: 10%;" class="blank-cell"></th>
-                                <th style="width: 10%;" class="blank-cell"></th>
+                                <th>営業担当者</th>
+                                <th>${eigyoNmKey1}</th>
+                                <th class="blank-cell"></th>
+                                <th>獲得営業担当者</th>
+                                <th>${eigyoNmKey2}</th>
+                                <th class="blank-cell"></th>
                             </tr>
                             <tr>
                                 <th>${vue.viewModel.DateStart}</th>
