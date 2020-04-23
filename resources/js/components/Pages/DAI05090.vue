@@ -172,17 +172,34 @@
                 />
             </div>
         </div>
-        <PqGridWrapper
-            id="DAI05090Grid1"
-            ref="DAI05090Grid1"
-            dataUrl="/DAI05090/Search"
-            :query=this.viewModel
-            :SearchOnCreate=false
-            :SearchOnActivate=false
-            :options=this.grid1Options
-            :autoToolTipDisabled=true
-            :onAfterSearchFunc=this.onAfterSearchFunc
-        />
+        <div class="row">
+            <div class="Grid1Container">
+                <PqGridWrapper
+                    id="DAI05090Grid1"
+                    ref="DAI05090Grid1"
+                    dataUrl="/DAI05090/Search"
+                    :query=this.viewModel
+                    :SearchOnCreate=false
+                    :SearchOnActivate=false
+                    :options=this.grid1Options
+                    :autoToolTipDisabled=true
+                    :onAfterSearchFunc=this.onAfterSearchFunc
+                    :resizeFunc=this.resizeGrid
+                    classes="ml-0 mr-0 mt-2"
+                />
+            </div>
+            <div class="Grid2Container">
+                <PqGridWrapper
+                    id="DAI05090Grid2"
+                    ref="DAI05090Grid2"
+                    :options=this.grid2Options
+                    :autoToolTipDisabled=true
+                    :resizeFunc=this.resizeGrid
+                    :setCustomTitle=this.setSummaryGridTitle
+                    classes="ml-0 mr-0 mt-2"
+                />
+            </div>
+        </div>
     </form>
 </template>
 
@@ -193,11 +210,27 @@
 #DAI05090Grid1 .pq-group-icon {
     display: none !important;
 }
+#DAI05090Grid2 .pq-group-toggle-none {
+    display: none !important;
+}
+#DAI05090Grid2 .pq-group-icon {
+    display: none !important;
+}
 label{
     width: 80px;
 }
 </style>
-
+<style scoped>
+.Grid1Container {
+    width: calc(100vw - 425px);
+    max-width: unset;
+}
+.Grid2Container {
+    position: absolute;
+    right: 18px;
+    width: auto;
+}
+</style>
 <script>
 import PageBaseMixin from "@vcs/PageBaseMixin.vue";
 
@@ -232,6 +265,7 @@ export default {
                 ShowSyonin: "0",
             },
             DAI05090Grid1: null,
+            DAI05090Grid2: null,
             grid1Options: {
                 selectionModel: { type: "cell", mode: "single", row: true },
                 showHeader: true,
@@ -242,7 +276,7 @@ export default {
                 autoRow: true,
                 rowHtHead: 35,
                 rowHt: 35,
-                freezeCols: 0,
+                freezeCols: 7,
                 editable: false,
                 columnTemplate: {
                     editable: false,
@@ -276,6 +310,12 @@ export default {
                 ],
                 colModel: [
                     {
+                        title: "部署ＣＤ",
+                        dataIndx: "部署ＣＤ", dataType: "string",
+                        hidden: true,
+                        fixed: true,
+                    },
+                    {
                         title: "営業担当者ＣＤ",
                         dataIndx: "営業担当者ＣＤ", dataType: "string",
                         hidden: true,
@@ -288,15 +328,10 @@ export default {
                         fixed: true,
                     },
                     {
-                        title: "部署ＣＤ",
-                        dataIndx: "部署ＣＤ", dataType: "string",
-                        hidden: true,
-                        fixed: true,
-                    },
-                    {
                         title: "営業担当者",
                         dataIndx: "ＧＫ営業担当者", dataType: "string",
                         width: 90, minWidth: 90, maxWidth: 90,
+                        hidden: true,
                         fixed: true,
                         render: ui => {
                             if (ui.rowData.pq_level != 0) {
@@ -309,6 +344,7 @@ export default {
                         title: "獲得営業者",
                         dataIndx: "ＧＫ獲得営業者", dataType: "string",
                         width: 90, minWidth: 90, maxWidth: 90,
+                        hidden: true,
                         fixed: true,
                         render: ui => {
                             switch (ui.rowData.pq_level) {
@@ -348,6 +384,255 @@ export default {
                         },
                     },
                 ],
+                scroll: function (event, ui) {
+                    var grid = this;
+
+                    $("body").find("[id^=tooltip]").tooltip("hide");
+
+                    vue.syncScroll(grid.scrollY());
+                },
+            },
+            grid2Options: {
+                selectionModel: { type: "cell", mode: "single", row: true },
+                numberCell: { show: false },
+                strNoRows: "",
+                autoRow: true,
+                rowHtHead: 35,
+                rowHt: 35,
+                width: 410,
+                editable: false,
+                columnTemplate: {
+                    editable: false,
+                    sortable: false,
+                },
+                dataModel: {
+                    location: "local",
+                    data: [],
+                },
+                filterModel: {
+                    on: true,
+                    mode: "AND",
+                    header: false,
+                    menuIcon: false,
+                    hideRows: false,
+                },
+                sortModel: {
+                    on: true,
+                    cancel: false,
+                    type: "remote",
+                },
+                groupModel: {
+                    on: true,
+                    header: false,
+                    grandSummary: true,
+                    indent: 0,
+                    dataIndx: ["ＧＫ営業担当者", "ＧＫ獲得営業者"],
+                    showSummary: [false, true],
+                    collapsed: [false, false],
+                    summaryInTitleRow: "collapsed",
+                },
+                summaryData: [],
+                mergeCells: [],
+                formulas: [
+                ],
+                colModel: [
+                    {
+                        title: "部署ＣＤ",
+                        dataIndx: "部署ＣＤ", dataType: "string",
+                        hidden: true,
+                        fixed: true,
+                    },
+                    {
+                        title: "営業担当者ＣＤ",
+                        dataIndx: "営業担当者ＣＤ", dataType: "string",
+                        hidden: true,
+                        fixed: true,
+                    },
+                    {
+                        title: "獲得営業者ＣＤ",
+                        dataIndx: "獲得営業者ＣＤ", dataType: "string",
+                        hidden: true,
+                        fixed: true,
+                    },
+                    {
+                        title: "営業担当者",
+                        dataIndx: "ＧＫ営業担当者", dataType: "string",
+                        hidden: true,
+                        render: ui => {
+                            return { text: "" };
+                        },
+                    },
+                    {
+                        title: "獲得営業者",
+                        dataIndx: "ＧＫ獲得営業者", dataType: "string",
+                        hidden: true,
+                        render: ui => {
+                            return { text: "" };
+                        },
+                    },
+                    {
+                        title: "合計" + "<br>" + "(月～金)",
+                        dataIndx: "得意先平日合計", dataType: "integer", format: "#,###",
+                        width: 80, minWidth: 80, maxWidth: 80,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                        render: ui => {
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
+                            }
+                            return ui;
+                        },
+                    },
+                    {
+                        title: "平日日数",
+                        dataIndx: "得意先平日日数", dataType: "integer", format: "#,###",
+                        hidden: true,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                        render: ui => {
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
+                            }
+                            return ui;
+                        },
+                    },
+                    {
+                        title: "平均" + "<br>" + "(月～金)",
+                        dataIndx: "得意先平日平均", dataType: "float", format: "#,###.0",
+                        width: 80, minWidth: 80, maxWidth: 80,
+                        render: ui => {
+                            if (!!ui.rowData.pq_grandsummary) {
+                                if (ui.rowData.得意先平日合計 * 1 == 0 || ui.rowData.得意先平日日数 * 1 == 0)
+                                {
+                                    return { text: "" };
+                                }
+                                else
+                                {
+                                    var avgVal = (ui.rowData.得意先平日合計.replace(",", "") * 1) / (ui.rowData.得意先平日日数.replace(",", "") * 1);
+                                    var avgValFmt = avgVal.toFixed(1).toString();
+                                    return { text: avgValFmt };
+                                }
+                            }
+                            if (!!ui.rowData.pq_gsummary) {
+                                switch (ui.rowData.pq_level) {
+                                    case 1:
+                                        if (ui.rowData.得意先平日合計 * 1 == 0 || ui.rowData.得意先平日日数 * 1 == 0)
+                                        {
+                                            return { text: "" };
+                                        }
+                                        else
+                                        {
+                                            var avgVal = (ui.rowData.得意先平日合計.replace(",", "") * 1) / (ui.rowData.得意先平日日数.replace(",", "") * 1);
+                                            var avgValFmt = avgVal.toFixed(1).toString();
+                                            return { text: avgValFmt };
+                                        }
+                                    default:
+                                        return { text: "" };
+                                }
+                            }
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
+                            }
+                            return ui;
+                        },
+                    },
+                    {
+                        title: "合計",
+                        dataIndx: "得意先合計", dataType: "integer", format: "#,###",
+                        width: 80, minWidth: 80, maxWidth: 80,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                        render: ui => {
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
+                            }
+                            return ui;
+                        },
+                    },
+                    {
+                        title: "平均",
+                        dataIndx: "得意先平均", dataType: "float", format: "#,###.0",
+                        width: 80, minWidth: 80, maxWidth: 80,
+                        render: ui => {
+                            if (!!ui.rowData.pq_grandsummary) {
+                                if (ui.rowData.得意先合計 * 1 == 0 || ui.rowData.得意先売上日数 * 1 == 0)
+                                {
+                                    return { text: "" };
+                                }
+                                else
+                                {
+                                    var avgVal = (ui.rowData.得意先合計.replace(",", "") * 1) / (ui.rowData.得意先売上日数.replace(",", "") * 1);
+                                    var avgValFmt = avgVal.toFixed(1).toString();
+                                    return { text: avgValFmt };
+                                }
+                            }
+                            if (!!ui.rowData.pq_gsummary) {
+                                switch (ui.rowData.pq_level) {
+                                    case 1:
+                                        if (ui.rowData.得意先合計 * 1 == 0 || ui.rowData.得意先売上日数 * 1 == 0)
+                                        {
+                                            return { text: "" };
+                                        }
+                                        else
+                                        {
+                                            var avgVal = (ui.rowData.得意先合計.replace(",", "") * 1) / (ui.rowData.得意先売上日数.replace(",", "") * 1);
+                                            var avgValFmt = avgVal.toFixed(1).toString();
+                                            return { text: avgValFmt };
+                                        }
+                                    default:
+                                        return { text: "" };
+                                }
+                            }
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
+                            }
+                            return ui;
+                        },
+                    },
+                    {
+                        title: "売上日数",
+                        dataIndx: "得意先売上日数", dataType: "integer", format: "#,###",
+                        width: 80, minWidth: 80, maxWidth: 80,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                        render: ui => {
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
+                            }
+                            return ui;
+                        },
+                    },
+                    {
+                        title: "売上金額",
+                        dataIndx: "得意先売上金額", dataType: "integer", format: "#,###",
+                        width: 80, minWidth: 80, maxWidth: 80,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                        render: ui => {
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
+                            }
+                            return ui;
+                        },
+                    },
+                ],
+                scroll: function (event, ui) {
+                    var grid = this;
+
+                    $("body").find("[id^=tooltip]").tooltip("hide");
+
+                    vue.syncScroll(grid.scrollY());
+                },
             },
         });
 
@@ -467,9 +752,10 @@ export default {
         },
         conditionChanged: function(callback) {
             var vue = this;
-            var grid = vue.DAI05090Grid1;
+            var grid1 = vue.DAI05090Grid1;
+            var grid2 = vue.DAI05090Grid2;
 
-            if (!grid || !vue.getLoginInfo().isLogOn) return;
+            if (!grid1 || !grid2 || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.DateStart || !vue.viewModel.DateEnd) return;
 
             var params = $.extend(true, {}, vue.viewModel);
@@ -482,14 +768,14 @@ export default {
             //フィルタするパラメータは除外
             delete params.ProductArray;
 
-            grid.searchData(params, false, null, callback);
+            grid1.searchData(params, false, null, callback);
         },
         filterChanged: function() {
             var vue = this;
-            var grid = vue.DAI05090Grid1;
-            console.log('filterChanged');
+            var grid1 = vue.DAI05090Grid1;
+            var grid2 = vue.DAI05090Grid2;
 
-            if (!grid) return;
+            if (!grid1 || !grid2) return;
 
             var rules = [];
 
@@ -503,8 +789,43 @@ export default {
                 rules.push({ dataIndx: "獲得営業者ＣＤ", condition: "equal", value: vue.viewModel.GetEigyoTantoCd });
             }
 
-            grid.filter({ oper: "replace", mode: "AND", rules: rules });
+            grid1.filter({ oper: "replace", mode: "AND", rules: rules });
+            grid2.filter({ oper: "replace", mode: "AND", rules: rules });
         },
+        checkGridChangedFunc: function(grid) {
+            var vue = this;
+            var grid2 = vue.DAI05090Grid2;
+
+            if (!grid2) return false;
+
+            return grid2.isChanged();
+        },
+        resizeGrid: function(grid) {
+            var vue = this;
+            var widget = grid.widget();
+
+            var oldH = widget.outerHeight();
+            var containerH = widget.closest(".body-content").outerHeight(true);
+            var otherH = _.sum(widget.closest(".row").siblings(".row").map((i, el) => $(el).outerHeight(true)));
+
+            var newH = containerH - otherH - 5;
+
+            if (_.round(newH) != _.round(oldH)) {
+                grid.options.height = newH;
+                grid.refresh();
+            }
+        },
+        setSummaryGridTitle: function(title) {
+            return "　";
+        },
+        syncScroll: _.debounce(function(val) {
+            var vue = this;
+            var grid1 = vue.DAI05090Grid1;
+            var grid2 = vue.DAI05090Grid2;
+
+            if (grid1.scrollY() != val) grid1.scrollY(val);
+            if (grid2.scrollY() != val) grid2.scrollY(val);
+        }, 0),
         onAfterSearchFunc: function (vue, grid, res) {
             var vue = this;
             vue.footerButtons.find(v => v.id == "DAI05090Grid1_CSV").disabled = false;
@@ -515,23 +836,29 @@ export default {
                     r.ＧＫ営業担当者 = r.営業担当者ＣＤ + " " + r.営業担当者名;
                     r.ＧＫ獲得営業者 = r.獲得営業者ＣＤ + " " + r.獲得営業者名;
                 });
+
+            var grid2 = vue.DAI05090Grid2;
+            grid2.options.dataModel.data = res;
+            grid2.refreshDataAndView();
+
             return res;
         },
         refreshCols: function(callback) {
             var vue = this;
-            var grid1
+            var grid1, grid2;
 
             //PqGrid読込待ち
             new Promise((resolve, reject) => {
                 var timer = setInterval(function () {
                     grid1 = vue.DAI05090Grid1;
-                    if (!!grid1 && vue.getLoginInfo().isLogOn) {
+                    grid2 = vue.DAI05090Grid2;
+                    if (!!grid1 && !!grid2 && vue.getLoginInfo().isLogOn) {
                         clearInterval(timer);
-                        return resolve(grid1);
+                        return resolve(grid1, grid2);
                     }
                 }, 100);
             })
-            .then((grid1) => {
+            .then((grid1, grid2) => {
                 grid1.showLoading();
 
                 var mt = moment(vue.viewModel.DateStart, "YYYY年MM月");
@@ -580,10 +907,9 @@ export default {
                             }
                             return ui;
                         },
+                        hidden: true,
+                        hiddenOnExport: false,
                     },
-                ]);
-
-                newCols.push(...[
                     {
                         title: "平日日数",
                         dataIndx: "得意先平日日数", dataType: "integer", format: "#,###",
@@ -598,10 +924,9 @@ export default {
                             }
                             return ui;
                         },
+                        hidden: true,
+                        hiddenOnExport: false,
                     },
-                ]);
-
-                newCols.push(...[
                     {
                         title: "平均" + "<br>" + "(月～金)",
                         dataIndx: "得意先平日平均", dataType: "float", format: "#,###.0",
@@ -641,10 +966,9 @@ export default {
                             }
                             return ui;
                         },
+                        hidden: true,
+                        hiddenOnExport: false,
                     },
-                ]);
-
-                newCols.push(...[
                     {
                         title: "合計",
                         dataIndx: "得意先合計", dataType: "integer", format: "#,###",
@@ -659,10 +983,9 @@ export default {
                             }
                             return ui;
                         },
+                        hidden: true,
+                        hiddenOnExport: false,
                     },
-                ]);
-
-                newCols.push(...[
                     {
                         title: "平均",
                         dataIndx: "得意先平均", dataType: "float", format: "#,###.0",
@@ -702,10 +1025,9 @@ export default {
                             }
                             return ui;
                         },
+                        hidden: true,
+                        hiddenOnExport: false,
                     },
-                ]);
-
-                newCols.push(...[
                     {
                         title: "売上日数",
                         dataIndx: "得意先売上日数", dataType: "integer", format: "#,###",
@@ -720,10 +1042,9 @@ export default {
                             }
                             return ui;
                         },
+                        hidden: true,
+                        hiddenOnExport: false,
                     },
-                ]);
-
-                newCols.push(...[
                     {
                         title: "売上金額",
                         dataIndx: "得意先売上金額", dataType: "integer", format: "#,###",
@@ -738,6 +1059,8 @@ export default {
                             }
                             return ui;
                         },
+                        hidden: true,
+                        hiddenOnExport: false,
                     },
                 ]);
 
@@ -747,6 +1070,7 @@ export default {
                 grid1.refresh();
 
                 if (!!grid1) grid1.hideLoading();
+                if (!!grid2) grid2.hideLoading();
 
                 if (!!callback) callback();
             })
@@ -802,26 +1126,31 @@ export default {
                 }
             `;
 
+            var eigyoNmKey1;
+            var eigyoNmKey2;
             var headerFunc = (header, idx, length) => {
-                var eigyoCd = header.営業担当者.split(" ")[0];
-                var eigyoNm = header.営業担当者.split(" ")[1];
-                var eigyoCd2 = header.獲得営業者.split(" ")[0];
-                var eigyoNm2 = header.獲得営業者.split(" ")[1];
+                if (header.pq_level == 0)
+                {
+                    eigyoNmKey1 = header.ＧＫ営業担当者.split(" ")[1];
+                    eigyoNmKey2 = eigyoNmKey1;
+                }
+                if (header.pq_level == 1)
+                {
+                    eigyoNmKey2 = header.ＧＫ獲得営業者.split(" ")[1];
+                }
                 return `
                     <div class="title">
-                        <h3>* * * 顧客売上累計表 * * *</h3>
+                        <h3>* * * 顧客売上推移表 * * *</h3>
                     </div>
                     <table class="header-table" style="border-width: 0px">
                         <thead>
                             <tr>
-                                <th style="width: 10%;">部署</th>
-                                <th style="width: 10%; text-align: right;">${bushoCd}</th>
-                                <th style="width: 20%;">${bushoNm}</th>
-                                <th style="width: 10%;" class="blank-cell"></th>
-                                <th style="width: 10%;" class="blank-cell"></th>
-                                <th style="width: 10%;" class="blank-cell"></th>
-                                <th style="width: 10%;" class="blank-cell"></th>
-                                <th style="width: 10%;" class="blank-cell"></th>
+                                <th>営業担当者</th>
+                                <th>${eigyoNmKey1}</th>
+                                <th class="blank-cell"></th>
+                                <th>獲得営業担当者</th>
+                                <th>${eigyoNmKey2}</th>
+                                <th class="blank-cell"></th>
                             </tr>
                             <tr>
                                 <th>${vue.viewModel.DateStart}</th>
