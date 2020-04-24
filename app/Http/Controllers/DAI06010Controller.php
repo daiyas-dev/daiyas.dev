@@ -49,7 +49,7 @@ class DAI06010Controller extends Controller
                     , CASE 廃棄 WHEN 1 THEN 0 ELSE 単価*ISNULL(SV内数,0)END AS サービス金額
                     , D1.担当者ＣＤ
                     , M2.担当者名
-                    , 廃棄
+                    , CASE 廃棄 WHEN 1 THEN 'YES' ELSE 'NO'END AS F廃棄
                     , M1.得意先名カナ
                 FROM
                     [チケット発行] D1
@@ -125,8 +125,6 @@ class DAI06010Controller extends Controller
 
         return response()->json([
             'result' => true,
-            //'lastupdatedate'=>$this->LastUpdateDateSearch($request),
-            //'edited' => $this->Search($request),
         ]);
     }
 }
