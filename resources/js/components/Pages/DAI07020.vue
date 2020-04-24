@@ -637,7 +637,7 @@ export default {
                 return `
                     <div class="header">
                         <div style="float: left; width: 26%;">
-                            <div style="height: 34px;"></div>
+                            <div style="height: 48px;"></div>
                             <div style="clear: left;" class="header-box">
 	                            <div style="float: left; width: 17%;">日付</div>
 	                            <div style="float: left; width: 79%;">${moment(vue.viewModel.TargetDate, "YYYYMMDD").format("YY年MM月DD日")}</div>
@@ -666,7 +666,9 @@ export default {
                             <div>
                                 Tel
                                 <span></span>${vue.BushoInfo.電話番号}
-                                <span></span>Fax
+                            </div>
+                            <div>
+                                Fax
                                 <span></span>${vue.BushoInfo.FAX}
                             </div>
                         </div>
@@ -687,7 +689,8 @@ export default {
                         .append(
                             grid.generateHtml(
                                 `
-                                    div.title > div >span{
+                                    div.title > div >span,
+                                    div.header > div > div > span {
                                         padding-left: 8px;
                                         padding-right: 8px;
                                     }
@@ -698,6 +701,7 @@ export default {
                                         border-right-width: 0px;
                                         border-bottom-width: 0px;
                                         padding-left: 3px;
+                                        height: 20px;
                                     }
                                     div.header-box > div:last-child {
                                         border-right-width: 1px;
@@ -775,6 +779,14 @@ export default {
                                     table.DAI07020Grid1 thead tr:nth-child(1) th:last-child > span > span:nth-child(2){
                                        margin-left: 14%;
                                     }
+                                    table.DAI07020Grid1 td:nth-child(10) > div > div > div {
+                                       border-style: solid;
+                                       border-width: 1px;
+                                       border-left-width: 0px;
+                                       border-top-width: 0px;
+                                       border-right-width: 1px;
+                                       border-bottom-width: 0px;
+                                    }
                                     table.DAI07020Grid1 td div.biko-cell {
                                         border-style: solid;
                                         border-width: 0px;
@@ -787,8 +799,8 @@ export default {
                                         font-size: 11px;
                                     }
                                     table.DAI07020Grid1 tbody div{
-                                        padding-top: 1px;
-                                        padding-bottom: 1px;
+                                        padding-top: 1.1px;
+                                        padding-bottom: 1.1px;
                                     }
                                 `,
                                 headerFunc,

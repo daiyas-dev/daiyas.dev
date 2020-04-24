@@ -699,7 +699,7 @@ export default {
                 }
                 th, td {
                     font-family: "MS UI Gothic";
-                    font-size: 8pt;
+                    font-size: 9pt;
                     font-weight: normal;
                     margin: 0px;
                     padding-left: 3px;
@@ -852,6 +852,10 @@ export default {
                 table.DAI03070Grid1 td:nth-child(1) {
                     text-align : right;
                     padding-right: 5px;
+                }
+                table.DAI03070Grid1 td:nth-child(1),
+                table.DAI03070Grid1 td:nth-child(2) {
+                    font-size: 8pt;
                 }
                 table.DAI03070Grid1 td:not(:nth-child(1)):not(:nth-child(2)) {
                     font-size: 7pt;
