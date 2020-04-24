@@ -19,14 +19,6 @@ class DAI06040Controller extends Controller
      */
     public function Search($vm)
     {
-        return response()->json($this->GetNyukinList($vm));
-    }
-
-    /**
-     * GetNyukinList
-     */
-    public function GetNyukinList($vm)
-    {
         $DateStart = $vm->DateStart;
         $DateEnd = $vm->DateEnd;
 
@@ -57,126 +49,312 @@ class DAI06040Controller extends Controller
         $WehreCustomerCd = !!$CustomerCd ? " AND 得意先マスタ.得意先ＣＤ = $CustomerCd" : " AND 得意先マスタ.請求先ＣＤ != 0";
 
         $sql = "
+        WITH COURSE_BASE AS
+        (
+        SELECT DISTINCT
+            TOK.部署CD ,
+            TOK.得意先CD ,
+            M_COURSE.コース区分,
+            M_COURSE.コースCD,
+            M_COURSE.コース名,
+            T_COURSE.ＳＥＱ,
+            CONVERT(varchar, TOK.部署CD) + '_' +
+            CONVERT(varchar, TOK.得意先CD) + '_' +
+            CONVERT(varchar, ISNULL(M_COURSE.コース区分, 0)) + '_' +
+            CONVERT(varchar, ISNULL(M_COURSE.コースCD, 0)) AS GROUPKEY
+        FROM (SELECT
+            *
+        FROM
+            得意先マスタ M1
+        WHERE
+            0=0
+            AND 得意先CD IN (
+                            SELECT 得意先CD
+                            FROM
+                                コーステーブル
+                            WHERE
+                                部署CD = $BushoCd
+                            AND コースCD BETWEEN 0 AND 9999
+                            AND 得意先CD BETWEEN 0 AND 9999999
+                            )
+            ) TOK
+            LEFT OUTER JOIN
+                (
+                    SELECT DISTINCT
+                         部署CD
+                        ,得意先CD
+                        ,コースCD
+                        ,ＳＥＱ
+                    FROM
+                        [コーステーブル]
+                ) T_COURSE ON
+                    TOK.部署CD = T_COURSE.部署CD
+                AND TOK.得意先CD = T_COURSE.得意先CD
+            LEFT OUTER JOIN
+                (
+                    SELECT DISTINCT 部署CD,コースCD,コース名,コース区分 FROM [コースマスタ]
+                ) M_COURSE ON
+                    T_COURSE.部署CD = M_COURSE.部署CD
+                AND T_COURSE.コースCD = M_COURSE.コースCD
+        ),
+
+        得意先コースマスタ AS
+        (
+        SELECT
+            COURSE_BASE.*
+        FROM
+            (
+                -- コース区分が最小のものを採用
+                SELECT DISTINCT 部署CD, 得意先CD,MIN(GROUPKEY) AS GROUPKEY FROM COURSE_BASE GROUP BY 部署CD, 得意先CD
+            ) MIN_COURSE, COURSE_BASE
+        WHERE
+            MIN_COURSE.GROUPKEY = COURSE_BASE.GROUPKEY
+        AND MIN_COURSE.部署CD   = COURSE_BASE.部署CD
+        ),
+
+        抽出データ AS
+        (
+        select
+             URIAGE_MEISAI.部署ＣＤ
+            ,BUSYO.部署名
+            ,COU.コースＣＤ
+            ,COU.コース名
+            ,COU.コース区分
+            ,COU.ＳＥＱ
+            ,URIAGE_MEISAI.得意先ＣＤ
+            ,TOKUISAKI.得意先名
+            ,URIAGE_MEISAI.商品ＣＤ
+            ,TOKUISAKI.得意先名 + '（' + SHOHIN.商品名 + '）' as 得意先商品名
+            ,URIAGE_MEISAI.日付
+            ,REPLACE(DATENAME(W, URIAGE_MEISAI.日付), '曜日', '') AS 曜日
+            ,URIAGE_MEISAI.売掛現金区分
+            ,(case when URIAGE_MEISAI.売掛現金区分 = 2
+              then URIAGE_MEISAI.掛売個数
+              when  URIAGE_MEISAI.売掛現金区分 = 4
+              then NULL end )as 弁当売上
+            ,(case when URIAGE_MEISAI.売掛現金区分 = 2
+              then NULL
+              when  URIAGE_MEISAI.売掛現金区分 = 4
+              then URIAGE_MEISAI.掛売個数 end) as 弁当売上SV
+            ,SHOHIN.商品区分
+            ,URIAGE_MEISAI.食事区分
+            ,(ISNULL(URIAGE_MEISAI.現金個数, 0) + ISNULL(URIAGE_MEISAI.掛売個数, 0)) as 個数
+        from
+            売上データ明細 URIAGE_MEISAI
+            inner join 商品マスタ SHOHIN on
+                URIAGE_MEISAI.商品ＣＤ = SHOHIN.商品ＣＤ
+            left join 部署マスタ BUSYO on
+                URIAGE_MEISAI.部署ＣＤ = BUSYO.部署CD
+            inner join 得意先コースマスタ COU on
+                URIAGE_MEISAI.得意先ＣＤ   = COU.得意先ＣＤ
+            left join 得意先マスタ TOKUISAKI on
+                URIAGE_MEISAI.得意先ＣＤ = TOKUISAKI.得意先ＣＤ
+        where
+            URIAGE_MEISAI.部署ＣＤ = $BushoCd
+        and CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) >= '$DateStart'
+        and CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) <= '$DateEnd'
+        and URIAGE_MEISAI.得意先ＣＤ >= 0
+        and URIAGE_MEISAI.得意先ＣＤ <= 9999999
+        and URIAGE_MEISAI.売掛現金区分 in (0, 1, 2, 4)
+        union
+        select distinct
+             BUSYO.部署ＣＤ
+            ,BUSYO.部署名
+            ,COU.コースＣＤ
+            ,COU.コース名
+            ,COU.コース区分
+            ,COU.ＳＥＱ
+            ,チケット調整.得意先ＣＤ as 得意先ＣＤ
+            ,TOKUISAKI.得意先名 as 得意先名
+            ,チケット調整.商品ＣＤ
+            ,TOKUISAKI.得意先名 + '（' + SHOHIN.商品名 + '）' as 得意先商品名
+            ,チケット調整.日付
+            ,REPLACE(DATENAME(W, チケット調整.日付), '曜日', '') AS 曜日
+            ,9999 as 	売掛現金区分
+            ,0 as 	弁当売上
+            ,0 as 	弁当売上SV
+            ,9999 as 	商品区分
+            ,9 as 	食事区分
+            ,0 as 	個数
+        from
+            チケット調整
+            inner join 得意先コースマスタ COU on
+                チケット調整.得意先ＣＤ = COU.得意先ＣＤ
+            left join 部署マスタ BUSYO on
+                COU.部署ＣＤ = BUSYO.部署CD
+            left join 得意先マスタ TOKUISAKI on
+                チケット調整.得意先ＣＤ = TOKUISAKI.得意先ＣＤ
+            inner join 商品マスタ SHOHIN on
+                チケット調整.商品ＣＤ = SHOHIN.商品ＣＤ
+            left outer join 売上データ明細 on
+                チケット調整.得意先ＣＤ = 売上データ明細.得意先ＣＤ
+                and CONVERT(VARCHAR, 売上データ明細.日付, 112) >= '$DateStart'
+                and CONVERT(VARCHAR, 売上データ明細.日付, 112) <= '$DateEnd'
+                and 売上データ明細.部署CD   = $BushoCd
+                and 売上データ明細.商品区分 = 9
+                and CONVERT(VARCHAR, 売上データ明細.日付, 112) >= チケット調整.日付
+                and CONVERT(VARCHAR, 売上データ明細.日付, 112) <= チケット調整.日付
+        where CONVERT(VARCHAR, チケット調整.日付, 112) >= '$DateStart'
+            and CONVERT(VARCHAR, チケット調整.日付, 112) <= '$DateEnd'
+            and 売上データ明細.日付 is null
+        ),
+
+        抽出データ2 AS
+        (
+        SELECT
+            T.得意先ＣＤ,
+            T.得意先名,
+            部署名,
+            コースＣＤ,
+            コース名,
+            コース区分,
+            ＳＥＱ,
+            商品区分,
+            個数,
+            IIF(((売掛現金区分 = 2 OR 売掛現金区分 = 4) AND 商品区分 != 9) OR 商品区分 = 9, T.日付, NULL) AS 日付,
+            IIF(((売掛現金区分 = 2 OR 売掛現金区分 = 4) AND 商品区分 != 9) OR 商品区分 = 9, T.曜日, NULL) AS 曜日,
+            IIF(((売掛現金区分 = 2 OR 売掛現金区分 = 4) AND 商品区分 != 9) OR 商品区分 = 9, T.弁当売上, NULL) AS 弁当売上,
+            IIF(((売掛現金区分 = 2 OR 売掛現金区分 = 4) AND 商品区分 != 9) OR 商品区分 = 9, T.弁当売上SV, NULL) AS 弁当売上SV,
+            IIF(((売掛現金区分 = 2 OR 売掛現金区分 = 4) AND 商品区分 != 9) OR 商品区分 = 9, C.発行日, NULL) AS 発行日,
+            IIF(((売掛現金区分 = 2 OR 売掛現金区分 = 4) AND 商品区分 != 9) OR 商品区分 = 9, C.曜日, NULL) AS 曜日2,
+            IIF(((売掛現金区分 = 2 OR 売掛現金区分 = 4) AND 商品区分 != 9) OR 商品区分 = 9, C.チケット内数, NULL) AS チケット内数,
+            IIF(((売掛現金区分 = 2 OR 売掛現金区分 = 4) AND 商品区分 != 9) OR 商品区分 = 9, C.SV内数, NULL) AS SV内数,
+            A.チケット減数 * -1 AS 調整,
+            A.SV減数 * -1.0 AS 調整SV,
+            Z.チケット残数,
+            Z.チケットSV
+        FROM
+            抽出データ T
+        LEFT JOIN
+            (
             SELECT
-                入金日付,
-                伝票Ｎｏ,
-                入金データ.得意先ＣＤ,
-                得意先マスタ.得意先名略称 AS 得意先名,
-                入金区分,
-                現金,
-                小切手,
-                振込,
-                バークレー,
-                その他,
-                相殺,
-                値引,
-            	(摘要 + 入金データ.備考) AS 備考,
-                COUT.コースＣＤ,
-                COUM.コース名
-            FROM
-                [入金データ]
-            INNER JOIN [得意先マスタ]
-                ON 得意先マスタ.得意先ＣＤ = 入金データ.得意先ＣＤ
-            LEFT OUTER JOIN [コーステーブル] COUT
-                ON COUT.得意先ＣＤ = 得意先マスタ.受注得意先ＣＤ
-                AND 得意先マスタ.部署ＣＤ = COUT.部署ＣＤ
-            LEFT OUTER JOIN [コースマスタ] COUM
-                ON COUM.コースＣＤ = COUT.コースＣＤ
-                AND 得意先マスタ.部署ＣＤ = COUM.部署ＣＤ
-                AND COUM.コース区分 IN (1, 2, 3, 4)
+                得意先ＣＤ,
+                CONVERT(VARCHAR, 発行日, 112) as 発行日,
+                REPLACE(DATENAME(W, 発行日), '曜日', '') AS 曜日,
+                MAX(チケット内数) as チケット内数,
+                MAX(SV内数)       as SV内数
+            FROM チケット発行 group by 得意先ＣＤ, 発行日
+            ) C ON
+                C.得意先ＣＤ = T.得意先ＣＤ
+            AND C.発行日 > DATEADD(day, -14, T.日付)
+            AND CONVERT(VARCHAR, C.発行日, 112) <= T.日付
+        LEFT JOIN
+            (
+            SELECT
+                得意先ＣＤ,
+                日付,
+                REPLACE(DATENAME(W, 日付), '曜日', '') AS 曜日,
+                チケット減数,
+                SV減数
+            FROM チケット調整
             WHERE
-                入金日付 >= '$DateStart' AND 入金日付 <= '$DateEnd'
-                $WehreBushoCd
-                $WehreCourseCd
-                $WehreCustomerCd
-            ORDER BY
-                入金日付,
-                伝票Ｎｏ
+                CONVERT(VARCHAR, 日付, 112) >= '$DateStart'
+            AND CONVERT(VARCHAR, 日付, 112) <= '$DateEnd'
+            ) A ON
+                A.得意先ＣＤ = T.得意先ＣＤ
+            AND A.日付 = T.日付
+        LEFT JOIN
+            (
+            select
+                T1.得意先ＣＤ
+                , ISNULL(チケット内数,0) - ISNULL(チケット弁当数,0) - ISNULL(チケット減数,0) as チケット残数
+                , cast(ISNULL(SV内数,0) as decimal(10,1)) - cast(ISNULL(SVチケット弁当数,0) as decimal(10,1)) - cast(ISNULL(SV減数,0) as decimal(10,1)) as チケットSV
+            from
+                (
+                select 得意先ＣＤ
+                from 得意先マスタ
+                ) T1
+                left outer join
+                (   -- チケット販売
+                select
+                    得意先ＣＤ
+                    , SUM(チケット内数) as チケット内数
+                    , SUM(SV内数) SV内数
+                from チケット発行
+                where
+                    CONVERT(VARCHAR, 発行日, 112) < '$DateStart'
+                    and 廃棄 = 0
+                group by 得意先ＣＤ
+                ) T0 on T0.得意先ＣＤ = T1.得意先ＣＤ
+                left outer join
+                (   -- チケットでの売上
+                select
+                    得意先ＣＤ
+                    , SUM(掛売個数) as チケット弁当数
+                from 売上データ明細
+                where
+                        CONVERT(VARCHAR, 日付, 112) < '$DateStart'
+                    and 売掛現金区分 = 2
+                    and 商品ＣＤ not in (select 商品ＣＤ from 商品マスタ where 商品区分 = 9)
+                group by 得意先ＣＤ
+                ) T2 on T1.得意先ＣＤ = T2.得意先ＣＤ
+                left outer join
+                (   -- サービスチケットでの売上
+                select
+                    得意先ＣＤ
+                    , SUM(掛売個数) as SVチケット弁当数
+                from 売上データ明細
+                where
+                        CONVERT(VARCHAR, 日付, 112) < '$DateStart'
+                    and 売掛現金区分 = 4
+                group by 得意先ＣＤ
+                ) T3 on T1.得意先ＣＤ = T3.得意先ＣＤ
+
+                left outer join
+                (   -- サービスチケットでの売上
+                select
+                    得意先ＣＤ
+                    , SUM(掛売個数) as チケット売上
+                from 売上データ明細
+                where
+                        CONVERT(VARCHAR, 日付, 112) < '$DateStart'
+                    and 売掛現金区分 = 4
+                group by 得意先ＣＤ
+                ) T4 on T1.得意先ＣＤ = T4.得意先ＣＤ
+                left outer join
+                (   -- チケット調整
+                select
+                    得意先ＣＤ
+                    , SUM(チケット減数) as チケット減数
+                    , SUM(SV減数) as SV減数
+                from チケット調整
+                where
+                    CONVERT(VARCHAR, 日付, 112) < '$DateStart'
+                group by 得意先ＣＤ
+                ) T5 on T1.得意先ＣＤ = T5.得意先ＣＤ
+            ) Z ON
+                Z.得意先ＣＤ = T.得意先ＣＤ
+        WHERE
+            T.日付 IS NOT NULL
+        )
+
+        SELECT
+            得意先ＣＤ,
+            得意先名,
+            日付,
+            曜日,
+            弁当売上,
+            IIF(商品区分 = 9, チケット内数 * 個数, NULL) AS チケット販売,
+            IIF(商品区分 = 9, SV内数 * 個数, NULL) AS チケット販売SV
+        FROM
+            抽出データ2
+        WHERE
+            得意先ＣＤ = 26018
+        ORDER BY
+            コースＣＤ, ＳＥＱ, 日付
         ";
 
-        // $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-        // $user = 'daiyas';
-        // $password = 'daiyas';
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
 
-        // $pdo = new PDO($dsn, $user, $password);
-        // $stmt = $pdo->query($sql);
-        // $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        // $pdo = null;
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = null;
 
-        $DataList = DB::select(DB::raw($sql));
+        // $DataList = DB::select(DB::raw($sql));
 
         return $DataList;
-    }
-
-    /**
-     * Save
-     */
-    public function Save($request)
-    {
-        $skip = [];
-
-        DB::beginTransaction();
-
-        try {
-            $params = $request->all();
-
-            $SaveList = $params['SaveList'];
-
-            $date = Carbon::now()->format('Y-m-d H:i:s');
-            foreach ($SaveList as $rec) {
-                if (isset($rec['伝票Ｎｏ']) && !!$rec['伝票Ｎｏ']) {
-                    $r = 入金データ::query()
-                        ->where('入金日付', $rec['入金日付'])
-                        ->where('伝票Ｎｏ', $rec['伝票Ｎｏ'])
-                        ->get();
-
-                    if (count($r) != 1) {
-                        $skip = collect($skip)->push(["target" => $rec, "current" => null]);
-                        continue;
-                    } else if ($rec['修正日'] != $r[0]->修正日) {
-                        $skip = collect($skip)->push(["target" => $rec, "current" => $r[0]]);
-                        continue;
-                    }
-
-                    //現金が0の場合は削除扱い
-                    if (!isset($rec['現金']) && !isset($rec['現金'])) {
-                        入金データ::query()
-                            ->where('入金日付', $rec['入金日付'])
-                            ->where('伝票Ｎｏ', $rec['伝票Ｎｏ'])
-                            ->delete();
-                    } else {
-                        $rec['修正日'] = $date;
-
-                        入金データ::query()
-                            ->where('入金日付', $rec['入金日付'])
-                            ->where('伝票Ｎｏ', $rec['伝票Ｎｏ'])
-                            ->update($rec);
-                    }
-                } else {
-                    $no = 管理マスタ::query()
-                        ->where('管理ＫＥＹ', 1)
-                        ->max('入金伝票Ｎｏ') + 1;
-
-                    管理マスタ::query()
-                        ->where('管理ＫＥＹ', 1)
-                        ->update(['入金伝票Ｎｏ' => $no]);
-
-                    $rec['伝票Ｎｏ'] = $no;
-                    $rec['修正日'] = $date;
-
-                    入金データ::insert($rec);
-                }
-            }
-
-            DB::commit();
-        } catch (Exception $exception) {
-            DB::rollBack();
-            throw $exception;
-        }
-
-        return response()->json([
-            'result' => true,
-            "edited" => $this->GetNyukinList($request),
-        ]);
     }
 }

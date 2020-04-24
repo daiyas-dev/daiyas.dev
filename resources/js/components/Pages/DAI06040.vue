@@ -106,66 +106,8 @@
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=CustomerAutoCompleteFunc
                 />
-<!--
-                <label class="text-center ml-2 mr-2" style="width: auto;">～</label>
-                <PopupSelect
-                    id="CustomerEndSelect"
-                    ref="PopupSelect_CustomerEnd"
-                    :vmodel=viewModel
-                    bind="CustomerEndCd"
-                    buddy="CustomerEndNm"
-                    dataUrl="/Utilities/GetCustomerListForSelect"
-                    :params="{ KeyWord: null }"
-                    :isPreload=true
-                    title="得意先一覧"
-                    labelCd="得意先CD"
-                    labelCdNm="得意先名"
-                    :showColumns='[
-                        { title: "部署名", dataIndx: "部署名", dataType: "string", width: 120, maxWidth: 120, minWidth: 120, colIndx: 0 },
-                    ]'
-                    :popupWidth=1000
-                    :popupHeight=600
-                    :isShowName=true
-                    :isModal=true
-                    :editable=true
-                    :reuse=true
-                    :existsCheck=true
-                    :inputWidth=150
-                    :nameWidth=250
-                    :onAfterChangedFunc=onCustomerChanged
-                    :isShowAutoComplete=true
-                    :AutoCompleteFunc=CustomerAutoCompleteFunc
-                />
--->
             </div>
         </div>
-<!--
-        <div class="row">
-            <div class="col-md-1">
-                <label>入金種別</label>
-            </div>
-            <div class="col-md-11">
-                <VueCheckList
-                    id="NyukinKind"
-                    :vmodel=viewModel
-                    bind="NyukinKind"
-                    :isGetName=true
-                    customTitleStyle="justify-content: center;"
-                    customContentStyle="width: auto; margin-right: 10px;"
-                    :list="[
-                        {code: '1', name: '現金', label: '現金'},
-                        {code: '2', name: '小切手', label: '小切手'},
-                        {code: '3', name: '振込', label: '振込'},
-                        {code: '4', name: '振替', label: '振替'},
-                        {code: '5', name: 'チケット入金', label: 'チケット入金'},
-                        {code: '6', name: '振込料', label: '振込料'},
-                        {code: '7', name: '値引', label: '値引'},
-                    ]"
-                    :onChangedFunc=onNyukinKindChanged
-                />
-            </div>
-        </div>
--->
         <PqGridWrapper
             id="DAI06040Grid1"
             ref="DAI06040Grid1"
@@ -255,7 +197,7 @@ export default {
         var vue = this;
 
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "チケット > チケット販売台数",
+            ScreenTitle: "チケット > チケット販売台帳",
             noViewModel: true,
             viewModel: {
                 BushoCd: null,
@@ -324,7 +266,6 @@ export default {
                         dataType: "integer",
                         width: 50, minWidth: 50, maxWidth: 50,
                         hidden: true,
-                        hiddenOnExport: true,
                     },
                     {
                         title: "コース名",
@@ -332,35 +273,18 @@ export default {
                         dataType: "string",
                         width: 150, minWidth: 150,
                         hidden: true,
-                        hiddenOnExport: true,
                     },
                     {
-                        title: "担当者ＣＤ",
-                        dataIndx: "担当者ＣＤ",
-                        dataType: "integer",
-                        width: 50, minWidth: 50, maxWidth: 50,
-                        hidden: true,
-                        hiddenOnExport: true,
-                    },
-                    {
-                        title: "担当者名",
-                        dataIndx: "担当者名",
-                        dataType: "string",
-                        width: 100, minWidth: 100,
-                        hidden: true,
-                        hiddenOnExport: true,
-                    },
-                    {
-                        title: "<span>CD</span>",
+                        title: "得意先ＣＤ",
                         dataIndx: "得意先ＣＤ",
                         dataType: "integer",
-                        width: 65, minWidth: 65, maxWidth: 65,
+                        width: 100, minWidth: 100, maxWidth: 100,
                     },
                     {
                         title: "得意先名",
                         dataIndx: "得意先名",
                         dataType: "string",
-                        width: 200, minWidth: 200,
+                        width: 300, minWidth: 300, maxWidth: 300,
                         tooltip: true,
                         render: ui => {
                             if (!!ui.rowData.pq_grandsummary) {
@@ -370,14 +294,8 @@ export default {
                         },
                     },
                     {
-                        title: "伝票No",
-                        dataIndx: "伝票Ｎｏ",
-                        dataType: "integer",
-                        width: 65, minWidth: 65, maxWidth: 65,
-                    },
-                    {
-                        title: "入金日付",
-                        dataIndx: "入金日付",
+                        title: "日付",
+                        dataIndx: "日付",
                         dataType: "date",
                         format: "yy/mm/dd",
                         align: "center",
@@ -390,14 +308,56 @@ export default {
                         },
                     },
                     {
-                        title: "入金種別",
-                        dataIndx: "入金種別",
+                        title: "曜日",
+                        dataIndx: "曜日",
                         dataType: "string",
-                        width: 100, minWidth: 100, maxWidth: 100,
+                        align: "center",
+                        width: 50, minWidth: 50, maxWidth: 50,
                     },
                     {
-                        title: "入金金額",
-                        dataIndx: "入金金額",
+                        title: "チケット販売",
+                        dataIndx: "チケット販売",
+                        dataType: "integer",
+                        format: "#,###",
+                        hidden: true,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                    },
+                    {
+                        title: "チケット販売SV",
+                        dataIndx: "チケット販売SV",
+                        dataType: "float",
+                        format: "#,###.0",
+                        hidden: true,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                    },
+                    {
+                        title: "チケット券販売",
+                        dataIndx: "チケット券販売",
+                        dataType: "string",
+                        align: "right",
+                        width: 150, minWidth: 150, maxWidth: 150,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                        render: ui => {
+                            var tiketSale = "";
+                            if (ui.rowData.チケット販売 * 1 != 0) {
+                                tiketSale = tiketSale + ui.rowData.チケット販売;
+                            }
+                            if (ui.rowData.チケット販売SV * 1 != 0)
+                            {
+                                tiketSale = tiketSale + "(" + ui.rowData.チケット販売SV + ")";
+                            }
+                            return { text: tiketSale };
+                        },
+                    },
+                    {
+                        title: "弁当売上",
+                        dataIndx: "弁当売上",
                         dataType: "integer",
                         format: "#,###",
                         width: 100, minWidth: 100, maxWidth: 100,
@@ -406,23 +366,24 @@ export default {
                         },
                     },
                     {
-                        title: "備考",
-                        dataIndx: "備考",
-                        dataType: "string",
-                        width: 100, minWidth: 100,
-                    },
-                    {
-                        title: "<span>CD</span>",
-                        dataIndx: "コースＣＤ",
+                        title: "調整",
+                        dataIndx: "調整",
                         dataType: "integer",
-                        width: 50, minWidth: 50, maxWidth: 50,
+                        format: "#,###",
+                        width: 100, minWidth: 100, maxWidth: 100,
+                        summary: {
+                            type: "TotalInt",
+                        },
                     },
                     {
-                        title: "コース名",
-                        dataIndx: "コース名",
-                        dataType: "string",
-                        width: 150, minWidth: 150,
-                        tooltip: true,
+                        title: "チケット残数",
+                        dataIndx: "チケット残数",
+                        dataType: "integer",
+                        format: "#,###",
+                        width: 100, minWidth: 100, maxWidth: 100,
+                        summary: {
+                            type: "TotalInt",
+                        },
                     },
                 ],
                 rowDblClick: function (event, ui) {
@@ -437,11 +398,6 @@ export default {
         createdFunc: function(vue) {
             vue.footerButtons.push(
                 {visible: "false"},
-                { visible: "true", value: "明細入力", id: "DAI06040Grid1_Detail", disabled: true, shortcut: "Enter",
-                    onClick: function () {
-                        vue.showDetail();
-                    }
-                },
                 { visible: "true", value: "検索", id: "DAI06040Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
                         vue.DAI06040Grid1.searchData(vue.searchParams);
@@ -469,8 +425,8 @@ export default {
             //TODO
             // vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
             // vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
-            vue.viewModel.DateStart = moment("20190902").format("YYYY年MM月DD日");
-            vue.viewModel.DateEnd = moment("20190917").format("YYYY年MM月DD日");
+            vue.viewModel.DateStart = moment("20190401").format("YYYY年MM月DD日");
+            vue.viewModel.DateEnd = moment("20190430").format("YYYY年MM月DD日");
 
             //watcher
             vue.$watch(
@@ -515,7 +471,7 @@ export default {
         conditionChanged: function(callback) {
             var vue = this;
             var grid = vue.DAI06040Grid1;
-            console.log("1140 conditionChanged")
+            console.log("6040 conditionChanged")
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.DateStart || !vue.viewModel.DateEnd) return;
@@ -554,60 +510,11 @@ export default {
         onAfterSearchFunc: function (grieVue, grid, res) {
             var vue = this;
 
-            var data = _.cloneDeep(res)
-                .filter(v => _.some(["現金", "小切手", "振込", "バークレー","その他", "相殺","値引"], k => v[k] != 0));
+            vue.footerButtons.find(v => v.id == "DAI06040Grid1_CSV").disabled = !res.length;
+            vue.footerButtons.find(v => v.id == "DAI06040Grid1_Excel").disabled = !res.length;
+            vue.footerButtons.find(v => v.id == "DAI06040Grid1_Print").disabled = !res.length;
 
-            var group = _.groupBy(data, v => v.得意先ＣＤ);
-            var sort = _.uniq(data.map(v => v.得意先ＣＤ));
-
-            var list = _(group).keys()
-                .sortBy(k => _.findIndex(sort, v => v == k))
-                .map(k => group[k])
-                .flatten()
-                .value();
-
-            // var dataList = _.flatten(
-            //     _.cloneDeep(res)
-            var dataList = _.flatten(list
-                .map(v => {
-                    var pick = kind => {
-                        if (!!v[kind] && v[kind] != "0") {
-                            var data = _.cloneDeep(v);
-                            data.入金種別 = kind == "現金" ? "現金" :
-                                           kind == "小切手" ? "小切手" :
-                                           kind == "振込" ? "振込" :
-                                           kind == "バークレー" ? "振替" :
-                                           kind == "その他" ? "チケット入金" :
-                                           kind == "相殺" ? "振込料" :
-                                           kind == "値引" ? "値引" : ""
-                                           ;
-                            data.入金金額 = data[kind];
-
-                            return data;
-                        } else {
-                            return null;
-                        }
-                    }
-
-                    var ret = [
-                        "現金",
-                        "小切手",
-                        "振込",
-                        "バークレー",
-                        "その他",
-                        "相殺",
-                        "値引",
-                    ].map(v => pick(v)).filter(v => !!v);
-
-                    return ret;
-                })
-            );
-
-            vue.footerButtons.find(v => v.id == "DAI06040Grid1_CSV").disabled = !dataList.length;
-            vue.footerButtons.find(v => v.id == "DAI06040Grid1_Excel").disabled = !dataList.length;
-            vue.footerButtons.find(v => v.id == "DAI06040Grid1_Print").disabled = !dataList.length;
-
-            return dataList;
+            return res;
         },
         onCompleteFunc: function(grid, ui) {
             var vue = this;
