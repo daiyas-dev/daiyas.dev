@@ -593,7 +593,7 @@ export default {
                 return `
                     <div class="title">
                         <h3>* * * <span/>週刊曜日予定表<span/> * * *</h3>
-                        <div>コース：${vue.viewModel.CourseCdArray.length > 0 ?
+                        <div>コース：${!!vue.viewModel.CourseCdArray && vue.viewModel.CourseCdArray.length > 0 ?
                             JSON.stringify(DAI07040.viewModel.CourseCdArray.map(v => v.code)).replace(/"|\[|]/g,"")
                             : "全コース"}</div>
                     </div>

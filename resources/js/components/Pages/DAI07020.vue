@@ -649,7 +649,7 @@ export default {
                             </div>
                         </div>
                         <div class="title" style="float: left; height: 70px; width: 47%">
-                            <h3>* * * <span></span>配送集計表<span></span> * * *</h3>
+                            <h3>* * * <span></span>配送集計表(個人宅)<span></span> * * *</h3>
                             <div>
                                 ${TargetDateFrom}
                                 <span>～</span>

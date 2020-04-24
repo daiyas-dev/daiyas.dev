@@ -643,11 +643,11 @@ export default {
                     padding-right: 3px;
                 }
                 th {
-                    height: 12px;
+                    height: 16px;
                     text-align: center;
                 }
                 td {
-                    height: 12px;
+                    height: 16px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
