@@ -62,6 +62,7 @@ export default {
         maxRec: Object,
         uniqueId: String,
         callback: Function,
+        selector: Function,
         query: Object,
         vm: Object,
     },
@@ -327,7 +328,11 @@ export default {
                 grid.filter({ oper: "replace", mode: "AND", rules: [{ dataIndx: "keyword", mode: "AND", crules: rules }] });
             }));
 
-            vue.selectRow(grid, target, target.value, 0);
+            if (!target.value && !!vue.selector) {
+                vue.selector(grid);
+            } else {
+                vue.selectRow(grid, target, target.value, 0);
+            }
         },
         searchRow: function(grid, target, str, idx, noSearch) {
             var vue = this;

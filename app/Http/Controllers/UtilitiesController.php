@@ -1338,6 +1338,65 @@ $WhereCourseCd
     }
 
     /**
+     * GetCustomerListWithTemp
+     */
+    public function GetCustomerListWithTemp($request) {
+        $BushoCd = $request->bushoCd ?? $request->BushoCd;
+        $CourseCd = $request->courseCd ?? $request->CourseCd;
+        $MngCd = $request->mngCd ?? $request->MngCd;
+
+        $sql = "
+            SELECT
+                C.*
+                ,得意先マスタ.得意先名
+            FROM (
+            SELECT
+                部署ＣＤ,
+                コースＣＤ,
+                ＳＥＱ,
+                0 AS 管理ＣＤ,
+                得意先ＣＤ,
+                修正担当者ＣＤ,
+                修正日
+            FROM
+                コーステーブル C
+            UNION ALL
+            SELECT
+                部署ＣＤ,
+                コースＣＤ,
+                ＳＥＱ,
+                管理ＣＤ,
+                得意先ＣＤ,
+                修正担当者ＣＤ,
+                修正日
+            FROM
+                コーステーブル一時 C
+            ) C
+                LEFT JOIN 得意先マスタ
+                    ON  得意先マスタ.部署ＣＤ = C.部署ＣＤ
+                    AND 得意先マスタ.得意先ＣＤ = C.得意先ＣＤ
+            WHERE
+                C.部署ＣＤ = $BushoCd
+            AND C.コースＣＤ = $CourseCd
+            AND C.管理ＣＤ = $MngCd
+            ORDER BY
+                C.ＳＥＱ
+        ";
+
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = null;
+        // $DataList = DB::select($sql);
+
+        return response()->json($DataList);
+    }
+
+    /**
      * GetGroupCustomerList
      */
     public function GetGroupCustomerList($request)

@@ -73,6 +73,9 @@ var dialogCustom = function(options) {
 
     var opt = $.extend(true, defOpt, options);
     opt.buttons = (options && options.buttons) ? options.buttons : opt.buttons;
+    if (!!options.opened) {
+        opt.open = options.opened;
+    }
 
     //errObj
     if (options && options.errObj) {

@@ -102,7 +102,7 @@
                 readOnly == true ? 'readOnly' : ''
             ]"
             :disabled="!isNameEditable"
-            :value="selectName"
+            v-model="selectName"
             :style='nameWidth ? ("width: " + nameWidth + "px") : ""'
         >
     </div>
@@ -360,8 +360,9 @@ export default {
             handler: function(newVal) {
                 var vue = this;
                 // console.log("ps bindValue watcher:" + vue.bind, vue.bindValue);
+                console.log("bindValue", vue._uid, vue.selectRow.Cd);
                 if (vue.bindValue != vue.selectValue) {
-                    vue.setSelectValue(vue.bindValue, true, vue.selectRow);
+                    vue.setSelectValue(vue.bindValue, true);
                 }
             },
         },
@@ -756,6 +757,7 @@ export default {
                             }
                             parent.$forceUpdate();
                         } else {
+                            console.log("ps setValue set vmodel", vue.selectValue, vue.selectRow)
                             vue.vmodel[vue.bind] = vue.selectValue;
                             if (vue.buddy) {
                                 vue.vmodel[vue.buddy] = vue.selectName;
@@ -957,8 +959,8 @@ export default {
 
                     if (!!vue.onGrid && !!vue.grid) {
                         $(vue.$el).trigger($.Event("keyup", {
-                            keyCode: 9,
-                            which: 9,
+                            keyCode: 13,
+                            which: 13,
                             isOnce: true,
                         }));
                     }
@@ -971,9 +973,9 @@ export default {
                         input.tooltip("dispose");
                     }
 
-                    if (!!vue.onGrid && input.val() != vue.selectValue) {
-                        vue.setSelectValue(input.val(), true);
-                    }
+                    // if (!!vue.onGrid && input.val() != vue.selectValue) {
+                    //     vue.setSelectValue(input.val(), true);
+                    // }
                 },
                 position: { my: "left top", at: "left bottom", collision: "flip" },
                 autoFocus: false,

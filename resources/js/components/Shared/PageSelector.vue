@@ -16,6 +16,7 @@
         :labelCd=this.labelCd
         :labelCdNm=this.labelCdNm
         :callback=this.callback
+        :selector=this.selector
         :uniqueId=this.uniqueId
         :isChild=this.isChild
         :isCodeOnly=this.isCodeOnly
@@ -132,7 +133,6 @@ import DAI05110 from "@vcp/DAI05110.vue";
 
 import DAI06010 from "@vcp/DAI06010.vue";
 import DAI06020 from "@vcp/DAI06020.vue";
-import DAI06030 from "@vcp/DAI06030.vue";
 import DAI06040 from "@vcp/DAI06040.vue";
 
 import DAI07010 from "@vcp/DAI07010.vue";
@@ -179,6 +179,7 @@ export default {
         labelCd: String,
         labelCdNm: String,
         callback: Function,
+        selector: Function,
         uniqueId: String,
         isSelector: Boolean,
         isChild: Boolean,
@@ -261,7 +262,6 @@ export default {
         DAI05110,
         DAI06010,
         DAI06020,
-        DAI06030,
         DAI06040,
         DAI07010,
         DAI07020,

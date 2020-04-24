@@ -71,6 +71,8 @@
             :isMultiRowSelectable=true
             :maxRowSelectCount=2
             :onAfterSearchFunc=onAfterSearchFunc
+            :autoToolTipDisabled=true
+            :keepSelect=true
         />
     </form>
 </template>
@@ -267,7 +269,7 @@ export default {
                 },
                 { visible: "true", value: "新規登録", id: "DAI04090Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
-                        //TODO: 登録
+                        vue.showDetail(null, true);
                     }
                 }
             );
@@ -310,7 +312,7 @@ export default {
             //フィルタ変更
             vue.filterChanged();
         }, 300),
-        conditionChanged: function() {
+        conditionChanged: function(force) {
             var vue = this;
             var grid = vue.DAI04090Grid1;
 
@@ -374,20 +376,23 @@ export default {
 
             return res;
         },
-        showDetail: function(rowData) {
+        showDetail: function(rowData, isNew) {
             var vue = this;
             var grid = vue.DAI04090Grid1;
             if (!grid) return;
 
             var params = {};
-            if (rowData) {
-                params.targets = [_.pick(_.cloneDeep(rowData), ["部署ＣＤ", "コースＣＤ", "管理ＣＤ"])];
-            } else {
-                var rows = grid.SelectRow().getSelection();
-                if (rows.length == 0 || rows.length > 2) return;
+            if (!isNew) {
+                if (rowData) {
+                    params.targets = [_.pick(_.cloneDeep(rowData), ["部署ＣＤ", "コースＣＤ", "管理ＣＤ"])];
+                } else {
+                    var rows = grid.SelectRow().getSelection();
+                    if (rows.length == 0 || rows.length > 2) return;
 
-                params.targets = _.cloneDeep(rows).map(v => _.pick(v.rowData, ["部署ＣＤ", "コースＣＤ", "管理ＣＤ"]));
+                    params.targets = _.cloneDeep(rows).map(v => _.pick(v.rowData, ["部署ＣＤ", "コースＣＤ", "管理ＣＤ"]));
+                }
             }
+            params.parent = vue;
 
             //DAI04091を子画面表示
             PageDialog.show({
@@ -398,6 +403,24 @@ export default {
                 resizable: false,
                 width: 1200,
                 height: 750,
+                onBeforeClose: (event, ui) => {
+                    if ($(window.event.target).attr("shortcut") == "ESC") return true;
+
+                    var dlg = $(event.target);
+                    var editting = dlg.find(".pq-grid")
+                        .map((i, v) => $(v).pqGrid("getInstance").grid)
+                        .get()
+                        .some(g => !_.isEmpty(g.getEditCell()));
+                    var isEscOnEditor = !!window.event && window.event.key == "Escape"
+                        && (
+                            $(window.event.target).hasClass("target-input") ||
+                            $(window.event.target).hasClass("pq-cell-editor")
+                        );
+
+                    var canClose = !editting && !isEscOnEditor;
+
+                    return canClose;
+                }
             });
         },
     }
