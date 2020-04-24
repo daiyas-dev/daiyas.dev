@@ -615,38 +615,46 @@ export default {
                 }
             `;
 
+            grid.Group().option({ "on": true, "dataIndx": ["コースＣＤ"]});
+
+            //TODO:行高可変のため改ページ設定未完、ページ数未確認。列：得意先、備考、住所　→長いもの途切れる。(現行も途切れている)
+            //TODO:印刷確認未完
             var headerFunc = (header, idx, length) => {
-                // var TargetDate = vue.viewModel.SimeKbn == "2"
-                //     ? moment(header.pq_level == 0 ? header.請求日付 : header.parentId).format("YYYY年MM月DD日")
-                //     : vue.viewModel.SimeKbn == "1"
-                //         ? moment(vue.searchParams.TargetDate).format("YYYY年MM月DD日")
-                //         : vue.viewModel.TargetDate
-                //     ;
-                // var GroupInfo = vue.viewModel.SimeKbn == "2"
-                //     ? (header.pq_level == 0 ? (!!header.children.length ? header.children[0].コース : "") : header.コース).split(":")
-                //     : []
-                //     ;
-                // var CourseCd = vue.viewModel.PrintOrder == "0" ? "" : (GroupInfo[0] || "");
-                // var CourseNm = vue.viewModel.PrintOrder == "0" ? "" : (GroupInfo[1] || "");
-                // var TantoCd = vue.viewModel.PrintOrder == "0" ? "" : (GroupInfo[2] || "");
-                // var TantoNm = vue.viewModel.PrintOrder == "0" ? "" : (GroupInfo[3] || "");
+
+                var CourseCd="";
+                var CourseNm="";
+                if(header.pq_level==0)
+                {
+                    CourseCd= header.children[0].コースＣＤ;
+                    CourseNm= header.children[0].コース名;
+                }else{
+                    CourseCd= header.コースＣＤ;
+                    CourseNm= header.コース名;
+                }
+                var TargetDateFrom = moment(vue.viewModel.TargetDate, "YYYYMMDD").day(1).format("YYYY/MM/DD(ddd)");
+                var TargetDateTo = moment(vue.viewModel.TargetDate, "YYYYMMDD").day(6).format("YYYY/MM/DD(ddd)");
 
                 return `
                     <div class="header">
                         <div style="float: left; width: 26%;">
                             <div style="height: 34px;"></div>
-                            <div style="clear: left;" class="xxx">
-	                            <div style="float: left; width: 18%;">日付</div>
-	                            <div style="float: left; width: 80%;">${moment(vue.viewModel.TargetDate, "YYYYMMDD").format("YY年MM月DD日(ddd)")}</div>
+                            <div style="clear: left;" class="header-box">
+	                            <div style="float: left; width: 17%;">日付</div>
+	                            <div style="float: left; width: 79%;">${moment(vue.viewModel.TargetDate, "YYYYMMDD").format("YY年MM月DD日")}</div>
                             </div>
-                            <div style="clear: left;" class="xxx">
-	                            <div style="float: left; width: 18%;">コース</div>
-	                            <div style="float: left; width: 18%;">${vue.viewModel.CourseCd}</div>
-	                            <div style="float: left; width: 62%;">${vue.viewModel.CourseNm}</div>
+                            <div style="clear: left;" class="header-box">
+	                            <div style="float: left; width: 17%;">コース</div>
+	                            <div style="float: left; width: 17%;">${CourseCd}</div>
+	                            <div style="float: left; width: 60.6%;">${CourseNm}</div>
                             </div>
                         </div>
                         <div class="title" style="float: left; height: 70px; width: 47%">
                             <h3>* * * <span></span>配送集計表<span></span> * * *</h3>
+                            <div>
+                                ${TargetDateFrom}
+                                <span>～</span>
+                                ${TargetDateTo}
+                            </div>
                         </div>
                         <div style="float: left; width: 27%">
                             <div>
@@ -662,17 +670,15 @@ export default {
                                 <span></span>${vue.BushoInfo.FAX}
                             </div>
                         </div>
-                        <div style="float: left; width: 27%;"  class="xxx">
-                            <div style="float: left; width: 20%;">作成日</div>
-                            <div style="float: left; width: 38%;">${moment().format("YYYY年MM月DD日")}</div>
-                            <div style="float: left; width: 20%;">PAGE</div>
-                            <div style="float: left; width: 20%;">${idx + 1}/${length}</div>
+                        <div style="float: left; width: 27%;"  class="header-box">
+                            <div style="float: left; width: 19%;">作成日</div>
+                            <div style="float: left; width: 37%;">${moment().format("YYYY年MM月DD日")}</div>
+                            <div style="float: left; width: 18.9%;">PAGE</div>
+                            <div style="float: left; width: 19%;">${idx + 1}/${length}</div>
                         </div>
                     </div>
                 `;
             };
-
-            grid.Group().option({ "on": true, "dataIndx": ["コースＣＤ"]});
 
             var printable = $("<html>")
                 .append($("<head>").append($("<style>").text(globalStyles)))
@@ -681,31 +687,39 @@ export default {
                         .append(
                             grid.generateHtml(
                                 `
-                                    div.xxx > div{
+                                    div.title > div >span{
+                                        padding-left: 8px;
+                                        padding-right: 8px;
+                                    }
+                                    div.header-box > div{
                                         border-style: solid;
                                         border-left-width: 1px;
                                         border-top-width: 1px;
                                         border-right-width: 0px;
                                         border-bottom-width: 0px;
+                                        padding-left: 3px;
                                     }
-                                    div.xxx > div:last-child {
+                                    div.header-box > div:last-child {
                                         border-right-width: 1px;
                                     }
                                      table.DAI07020Grid1 thead tr:nth-child(1) th {
                                         border-style: solid;
-                                        border-left-width: 1px;
+                                        border-left-width: 0px;
                                         border-top-width: 1px;
                                         border-right-width: 0px;
                                         border-bottom-width: 0px;
                                     }
+                                     table.DAI07020Grid1 thead tr:nth-child(1) th:nth-child(1) {
+                                        border-left-width: 1px;
+                                    }
                                     table.DAI07020Grid1 thead tr:nth-child(2) th {
                                         border-style: solid;
-                                        border-left-width: 1px;
+                                        border-left-width: 0px;
                                         border-top-width: 0px;
                                         border-right-width: 1px;
                                         border-bottom-width: 0px;
                                     }
-                                    table.DAI07020Grid1 thead tr th:nth-child(10),
+                                      table.DAI07020Grid1 thead tr th:nth-child(10),
                                     table.DAI07020Grid1 tr th:last-child {
                                         border-right-width: 1px;
                                     }
@@ -778,7 +792,7 @@ export default {
                                     }
                                 `,
                                 headerFunc,
-                                10,
+                                30,
                                 false,
                                 false,
                                 true,
