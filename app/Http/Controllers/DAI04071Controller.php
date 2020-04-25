@@ -32,7 +32,7 @@ class DAI04071Controller extends Controller
                 $data
             );
 
-            if ($params['ImageFile']) {
+            if (isset($params['ImageFile'])) {
                 $src = public_path() . '\\images\\BushoStamp\\' . $params['ImageFile'];
                 $dst = public_path() . '\\images\\BushoStamp\\' . $BushoCd . '.png';
 
