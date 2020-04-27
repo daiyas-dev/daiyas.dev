@@ -73,6 +73,7 @@
 }
 form[pgid="DAI07040"] .multiselect.CourseCd .multiselect__tags {
     height: unset;
+    padding-top: 10px;
 }
 label{
     width: 80px;
