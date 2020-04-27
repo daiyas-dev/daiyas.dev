@@ -117,6 +117,8 @@ import DAI04091 from "@vcp/DAI04091.vue";
 import DAI04130 from "@vcp/DAI04130.vue";
 import DAI04140 from "@vcp/DAI04140.vue";
 import DAI04141 from "@vcp/DAI04141.vue";
+import DAI04160 from "@vcp/DAI04160.vue";
+import DAI04161 from "@vcp/DAI04161.vue";
 import DAI04190 from "@vcp/DAI04190.vue";
 import DAI04191 from "@vcp/DAI04191.vue";
 import DAI04200 from "@vcp/DAI04200.vue";
@@ -249,6 +251,8 @@ export default {
         DAI04130,
         DAI04140,
         DAI04141,
+        DAI04160,
+        DAI04161,
         DAI04190,
         DAI04191,
         DAI04200,

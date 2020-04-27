@@ -1729,6 +1729,7 @@ export default {
                                         container: "body",
                                         animation: false,
                                         template: '<div class="tooltip text-overflow" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>',
+                                        html: true,
                                         placement: "auto",
                                         trigger: "hover",
                                         title: title,
