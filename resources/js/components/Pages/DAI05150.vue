@@ -15,6 +15,12 @@
                     style="width:200px"
                     :onChangedFunc=onBushoChanged
                 />
+                <!-- <VueSelectBusho
+                    :hasNull=true
+                    :withCode=true
+                    style="width:200px"
+                    :onChangedFunc=onBushoChanged
+                /> -->
             </div>
             <div class="col-md-5">
                 <label>受付日</label>
@@ -122,8 +128,8 @@
             id="DAI05150Grid1"
             ref="DAI05150Grid1"
             dataUrl="/DAI05150/GetClaimList"
-            :SearchOnCreate=false
-            :SearchOnActivate=false
+            :SearchOnCreate=true
+            :SearchOnActivate=true
             :options=grid1Options
             :onAfterSearchFunc=onAfterSearchFunc
             :autoToolTipDisabled=true
@@ -266,7 +272,7 @@ export default {
                                                     $("<div>").addClass("text-left").html("&nbsp").width(75)
                                                 )
                                                 .append(
-                                                    $("<div>").addClass("text-left").text(ui.rowData.得意先担当者)
+                                                    $("<div>").addClass("text-left").text(ui.rowData.顧客担当者名)
                                                 )
                                         )
                                         ;
@@ -387,12 +393,17 @@ export default {
                         vue.conditionChanged();
                     }
                 },
-                {visible: "false"},
+                { visible: "true", value: "印刷", id: "DAI05150_Print", disabled: false, shortcut: "F6",
+                    onClick: function () {
+                        vue.print();
+                    }
+                },
                 { visible: "true", value: "CSV", id: "DAI05150_Download", disabled: false, shortcut: "F7",
                     onClick: function () {
                         //TODO: ダウンロード
                     }
                 },
+                {visible: "false"},
                 { visible: "true", value: "詳細", id: "DAI05150Grid1_Detail", disabled: true, shortcut: "F8",
                     onClick: function () {
                         vue.showDetail();
@@ -404,21 +415,6 @@ export default {
                     }
                 },
                 {visible: "false"},
-                { visible: "true", value: "取込", id: "DAI05150_Get", disabled: false, shortcut: "F11",
-                    onClick: function () {
-                        axios.post("/DAI05150/GetHolidaysFromGov", {noCache: true})
-                            .then(res => {
-                                vue.conditionChanged();
-                            })
-                            .catch(err => {
-                                console.log(err);
-                                $.dialogErr({
-                                    title: "取込失敗",
-                                    contents: "内閣府提供 国民の祝日一覧の取得に失敗しました"
-                                });
-                            })
-                    }
-                },
             );
         },
         mountedFunc: function(vue) {
@@ -611,8 +607,8 @@ export default {
                 params: params,
                 isModal: true,
                 isChild: true,
-                width: 700,
-                height: 550,
+                width: 1200,
+                height: 700,
             });
         },
         showNewDetail: function(rowData) {
@@ -625,9 +621,12 @@ export default {
                 params: params,
                 isModal: true,
                 isChild: true,
-                width: 700,
-                height: 550,
+                width: 1200,
+                height: 700,
             });
+        },
+        print: function () {
+            //TODO
         },
     }
 }

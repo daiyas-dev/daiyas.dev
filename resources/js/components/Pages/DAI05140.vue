@@ -1,29 +1,90 @@
 <template>
     <form id="this.$options.name">
         <div class="row">
-            <div class="col-md-2">
-                <span class="badge badge-primary w-75 ModeLabel">{{ModeLabel}}</span>
+            <div class="col-md-3">
+                <label>クレームID</label>
+                <input type="text" id="ClaimID" class="form-control" v-model="viewModel.クレームID" readOnly>
             </div>
         </div>
         <div class="row">
             <div class="col-md-12">
-                <label>対象日付</label>
+                <label>受付日時</label>
                 <DatePickerWrapper
                     id="TargetDate"
                     ref="DatePicker_Date"
                     format="YYYY年MM月DD日"
                     dayViewHeaderFormat="YYYY年MM月"
                     :vmodel=viewModel
-                    bind="対象日付"
+                    bind="TargetDate"
                     :editable=true
+                />
+                <DatePickerWrapper
+                    id="TargetTime"
+                    ref="DatePicker_TargetTime"
+                    format="HH時mm分"
+                    dayViewHeaderFormat="YYYY年MM月"
+                    :vmodel=viewModel
+                    bind="TargetTime"
+                    :editable=true
+                    customStyle="width: 80px;"
+                />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1">
+                <label>部署</label>
+            </div>
+            <div class="col-md-2">
+                <VueSelect
+                    id="Busho"
+                    :vmodel=viewModel
+                    bind="BushoCd"
+                    uri="/Utilities/GetBushoList"
+                    :withCode=true
+                    style="width:200px"
+                    :onChangedFunc=onBushoChanged
                 />
             </div>
         </div>
         <div class="row">
             <div class="col-md-12">
-                <label class="">名称</label>
-                <input type="text" id="HolidayName" class="form-control"
-                    v-model="viewModel.名称"
+                <label>得意先</label>
+                <PopupSelect
+                    id="CustomerSelect"
+                    ref="PopupSelect_Customer"
+                    :vmodel=viewModel
+                    bind="CustomerCd"
+                    buddy="CustomerNm"
+                    dataUrl="/Utilities/GetCustomerListForSelect"
+                    :params="{ CustomerCd: null, KeyWord: null }"
+                    :isPreload=true
+                    title="得意先一覧"
+                    labelCd="得意先CD"
+                    labelCdNm="得意先名"
+                    :showColumns='[
+                        { title: "部署名", dataIndx: "部署名", dataType: "string", width: 120, maxWidth: 120, minWidth: 120, colIndx: 0 },
+                    ]'
+                    :popupWidth=1000
+                    :popupHeight=600
+                    :isShowName=true
+                    :isModal=true
+                    :editable=true
+                    :reuse=true
+                    :existsCheck=true
+                    :inputWidth=150
+                    :nameWidth=400
+                    :onAfterChangedFunc=onCustomerChanged
+                    :isShowAutoComplete=true
+                    :AutoCompleteFunc=CustomerAutoCompleteFunc
+                />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <label class="">得意先担当者</label>
+                <!-- TODO: 得意先選択時に得意先マスタに追加した得意先担当者から引っ張ってくる？ -->
+                <input type="text" id="CustomerTantoNm" class="form-control"
+                    v-model="viewModel.顧客担当者名"
                     maxlength=30
                     v-maxBytes=30
                 >
@@ -31,17 +92,246 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-                <label>対象部署</label>
-                <VueMultiSelect
-                    id="BushoCd"
-                    ref="VueMultiSelect_Busho"
+                <label>商品</label>
+                <PopupSelect
+                    id="ProductSelect"
+                    ref="PopupSelect_Product"
                     :vmodel=viewModel
-                    bind="BushoArray"
-                    uri="/Utilities/GetBushoList"
-                    :hasNull=true
+                    bind="商品コード"
+                    buddy="商品名"
+                    dataUrl="/Utilities/GetProductListForSelect"
+                    :params="{ ProductCd: null, KeyWord: ProductKeyWord }"
+                    :isPreload=true
+                    title="商品名一覧"
+                    labelCd="商品コード"
+                    labelCdNm="商品名"
+                    :showColumns='[
+                        { title: "商品区分", dataIndx: "商品区分", dataType: "string", width: 80, maxWidth: 80, minWidth: 80, colIndx: 2 },
+                        { title: "売価単価", dataIndx: "売価単価", dataType: "string", width: 80, maxWidth: 80, minWidth: 80, colIndx: 3 },
+                    ]'
+                    :popupWidth=600
+                    :popupHeight=600
+                    :isShowName=true
+                    :isModal=true
+                    :editable=true
+                    :reuse=true
+                    :existsCheck=true
+                    :exceptCheck="[{Cd: ''}, {Cd: '0'}]"
+                    :inputWidth=95
+                    :nameWidth=235
+                    :onChangeFunc=onProductChanged
+                    :isShowAutoComplete=true
+                    :AutoCompleteFunc=ProductAutoCompleteFunc
+                />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <label>クレーム区分</label>
+                <VueSelect
+                    id="ClaimKbn"
+                    :vmodel=viewModel
+                    bind="クレーム区分コード"
+                    uri="/Utilities/GetCodeList"
+                    :params="{ cd: 47 }"
                     :withCode=true
-                    customStyle="{ width: 200px; }"
-                    :onLoadFunc=onBushoLoaded
+                    :hasNull=true
+                    customStyle="{ width: 100px; }"
+                />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <label>クレーム内容</label>
+                <textarea class="form-control ml-1 mr-1 p-1" type="text" v-model=viewModel.クレーム内容 v-maxBytes="400">
+                </textarea>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <label>受付担当者</label>
+                <PopupSelect
+                    id="UketukeTanto"
+                    ref="PopupSelect_UketukeTanto"
+                    :vmodel=viewModel
+                    bind="受付担当者コード"
+                    buddy="受付担当者名"
+                    dataUrl="/Utilities/GetTantoListForSelect"
+                    :isPreload=true
+                    title="受付担当者一覧"
+                    labelCd="受付担当者コード"
+                    labelCdNm="受付担当者名"
+                    :showColumns='[
+                    ]'
+                    :isShowName=true
+                    :isModal=true
+                    :editable=true
+                    :reuse=true
+                    :existsCheck=true
+                    :inputWidth=80
+                    :nameWidth=160
+                    :isShowAutoComplete=true
+                    :AutoCompleteFunc=UketukeTantoAutoCompleteFunc
+                />
+            </div>
+            <div class="col-md-6">
+                <label>受付方法</label>
+                <VueSelect
+                    id="UketukeKind"
+                    :vmodel=viewModel
+                    bind="受付方法"
+                    uri="/Utilities/GetCodeList"
+                    :params="{ cd: 48 }"
+                    :withCode=true
+                    :hasNull=true
+                    customStyle="{ width: 100px; }"
+                />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <label>クレーム処理日</label>
+                <DatePickerWrapper
+                    id="TargetDate"
+                    ref="DatePicker_Date"
+                    format="YYYY年MM月DD日"
+                    dayViewHeaderFormat="YYYY年MM月"
+                    :vmodel=viewModel
+                    bind="TargetDate"
+                    :editable=true
+                />
+            </div>
+            <div class="col-md-6">
+                <label>処理担当者</label>
+                <PopupSelect
+                    id="ShoriTanto"
+                    ref="PopupSelect_ShoriTanto"
+                    :vmodel=viewModel
+                    bind="クレーム処理者コード"
+                    buddy="処理担当者名"
+                    dataUrl="/Utilities/GetTantoListForSelect"
+                    :isPreload=true
+                    title="処理担当者一覧"
+                    labelCd="処理担当者コード"
+                    labelCdNm="処理担当者名"
+                    :showColumns='[
+                    ]'
+                    :isShowName=true
+                    :isModal=true
+                    :editable=true
+                    :reuse=true
+                    :existsCheck=true
+                    :inputWidth=80
+                    :nameWidth=160
+                    :isShowAutoComplete=true
+                    :AutoCompleteFunc=ShoriTantoAutoCompleteFunc
+                />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-8">
+                <label>クレーム処理品</label>
+                <input class="form-control" type="text" v-model=viewModel.クレーム処理品 v-maxBytes="100" />
+            </div>
+            <div class="col-md-4">
+                <label>処理費用</label>
+                <!-- TODO: カンマ区切り整数 -->
+                <input class="form-control ml-1 mr-1 p-1" type="text" v-model=viewModel.クレーム処理費用 v-maxBytes="100" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <label>客先反応</label>
+                <textarea class="form-control ml-1 mr-1 p-1" type="text" v-model=viewModel.客先反応 v-maxBytes="400">
+                </textarea>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <label>原因部署</label>
+                <input class="form-control" type="text" v-model=viewModel.部門名 v-maxBytes="100" />
+            </div>
+            <div class="col-md-6">
+                <label>原因部署担当</label>
+                <VueSelect
+                    id="UketukeKind"
+                    :vmodel=viewModel
+                    bind="原因部署担当コード"
+                    uri="/Utilities/GetCodeList"
+                    :params="{ cd: 50 }"
+                    :withCode=true
+                    :hasNull=true
+                    customStyle="{ width: 100px; }"
+                />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <label>原因</label>
+                <textarea class="form-control ml-1 mr-1 p-1" type="text" v-model=viewModel.原因 v-maxBytes="400">
+                </textarea>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <label>原因記入者</label>
+                <PopupSelect
+                    id="GeninTanto"
+                    ref="PopupSelect_GeninTanto"
+                    :vmodel=viewModel
+                    bind="原因入力担当者コード"
+                    buddy="原因入力担当者名"
+                    dataUrl="/Utilities/GetTantoListForSelect"
+                    :isPreload=true
+                    title="原因入力担当者一覧"
+                    labelCd="原因入力担当者コード"
+                    labelCdNm="原因入力担当者名"
+                    :showColumns='[
+                    ]'
+                    :isShowName=true
+                    :isModal=true
+                    :editable=true
+                    :reuse=true
+                    :existsCheck=true
+                    :inputWidth=80
+                    :nameWidth=160
+                    :isShowAutoComplete=true
+                    :AutoCompleteFunc=GeninTantoAutoCompleteFunc
+                />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <label>対策</label>
+                <textarea class="form-control ml-1 mr-1 p-1" type="text" v-model=viewModel.対策 v-maxBytes="400">
+                </textarea>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <label>対策記入者</label>
+                <PopupSelect
+                    id="TaisakuTanto"
+                    ref="PopupSelect_TaisakuTanto"
+                    :vmodel=viewModel
+                    bind="対策入力担当者コード"
+                    buddy="対策入力担当者名"
+                    dataUrl="/Utilities/GetTantoListForSelect"
+                    :isPreload=true
+                    title="対策入力担当者一覧"
+                    labelCd="対策入力担当者コード"
+                    labelCdNm="対策入力担当者名"
+                    :showColumns='[
+                    ]'
+                    :isShowName=true
+                    :isModal=true
+                    :editable=true
+                    :reuse=true
+                    :existsCheck=true
+                    :inputWidth=80
+                    :nameWidth=160
+                    :isShowAutoComplete=true
+                    :AutoCompleteFunc=TaisakuTantoAutoCompleteFunc
                 />
             </div>
         </div>
@@ -122,44 +412,7 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "削除", id: "DAI05140_Delete", disabled: true, shortcut: "F3",
-                    onClick: function (evt) {
-                        if(!vue.searchParams.TargetDate) return;
-
-                        var params = _.cloneDeep(vue.searchParams);
-                        params.noCache = true;
-
-                        $.dialogConfirm({
-                            title: "マスタ削除確認",
-                            contents: "マスタを削除します。",
-                            buttons:[
-                                {
-                                    text: "はい",
-                                    class: "btn btn-primary",
-                                    click: function(){
-                                        axios.post("/DAI05140/Delete", params)
-                                            .then(res => {
-                                                DAI04160.conditionChanged();
-                                                $(this).dialog("close");
-                                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
-                                            })
-                                            .catch(err => {
-                                                console.log(err);
-                                            }
-                                        );
-                                    }
-                                },
-                                {
-                                    text: "いいえ",
-                                    class: "btn btn-danger",
-                                    click: function(){
-                                        $(this).dialog("close");
-                                    }
-                                },
-                            ],
-                        });
-                    }
-                },
+                { visible: "false" },
                 { visible: "true", value: "登録", id: "DAI05140Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         if(!vue.searchParams.TargetDate || !vue.searchParams.HolidayName){
@@ -205,10 +458,17 @@ export default {
                         });
                     }
                 },
+                { visible: "true", value: "印刷", id: "DAI05140Grid1_Print", disabled: false, shortcut: "F11",
+                    onClick: function () {
+                        vue.print();
+                    }
+                },
                 { visible: "false" },
             );
         },
         mountedFunc: function(vue) {
+            $(vue.$el).parents("div.body-content").addClass("Scrollable");
+
             vue.viewModel.TargetDate = vue.params.TargetDate || moment().format("YYYY年MM月DD日");
 
             if(this.params.IsNew == false || !this.params.IsNew){
@@ -216,12 +476,8 @@ export default {
                 $("[shortcut='F3']").prop("disabled", false);
             }
         },
-        onBushoLoaded: function(comp, entities) {
-            var vue = this;
-            if (!!vue.params.対象部署ＣＤ) {
-                comp.selected = entities.filter(e => vue.params.対象部署ＣＤ.split(/ *, */g).includes(e.code))
-                console.log("4061", comp.selected, entities);
-            }
+        print: function() {
+            //TODO:
         },
     }
 }
