@@ -24,7 +24,8 @@ class DAI05150Controller extends Controller
 				,CL.管轄部門コード
 				,KB.部署名 AS 管轄部門名
 				,CL.顧客コード
-				,TM.得意先名
+                ,TM.得意先名
+                ,CL.顧客担当者名
                 ,CK.各種名称 AS クレーム区分名
                 ,CL.クレーム内容
 				,ISNULL(GBK.各種名称, CL.部門名) AS 原因部署名
