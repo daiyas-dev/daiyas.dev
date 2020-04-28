@@ -569,7 +569,7 @@ export default {
                 }
                 th, td {
                     font-family: "MS UI Gothic";
-                    font-size: 10pt;
+                    font-size: 9pt;
                     font-weight: normal;
                     margin: 0px;
                     padding-left: 3px;
@@ -770,27 +770,42 @@ export default {
                                     }
                                     table.DAI07020Grid1 thead tr th:last-child > span > span:nth-child(1),
                                     table.DAI07020Grid1 thead tr th:last-child > span > span:nth-child(2),
-                                    table.DAI07020Grid1 thead tr th:last-child > span > span:nth-child(3),
-                                    table.DAI07020Grid1 td:nth-child(10) > div > div > div:nth-child(1),
-                                    table.DAI07020Grid1 td:nth-child(10) > div > div > div:nth-child(2),
-                                    table.DAI07020Grid1 td:nth-child(10) > div > div > div:nth-child(3) {
+                                    table.DAI07020Grid1 thead tr th:last-child > span > span:nth-child(3){
                                         width: 14% !important;
+                                    }
+                                    table.DAI07020Grid1 div.info-col > div{
+                                        width: 12% !important;
                                     }
                                     table.DAI07020Grid1 thead tr:nth-child(1) th:last-child > span > span:nth-child(2){
                                        margin-left: 14%;
                                     }
-                                    table.DAI07020Grid1 td:nth-child(10) > div > div > div {
+                                    div.info-col > * {
                                        border-style: solid;
                                        border-width: 1px;
                                        border-left-width: 0px;
                                        border-top-width: 0px;
                                        border-right-width: 1px;
                                        border-bottom-width: 0px;
+                                       text-align: right;
+                                    }
+                                    div.info-col > *:last-child {
+                                       border-right-width: 0px;
+                                       text-align: left;
+                                    }
+                                    table.DAI07020Grid1 div.info-col > div > div,
+                                    table.DAI07020Grid1 div.info-col > div,
+                                    table.DAI07020Grid1 div.biko-cell {
+                                       padding-right: 5px !important;
+                                       padding-left: 5px !important;
+                                    }
+                                    table.DAI07020Grid1 div.info-col > div:nth-child(1) > div:nth-child(1){
+                                       text-align: center;
                                     }
                                     table.DAI07020Grid1 td div.biko-cell {
                                         border-style: solid;
                                         border-width: 0px;
                                         border-top-width: 1px;
+                                        padding-top: 2px;
                                     }
                                     table.DAI07020Grid1 td:nth-child(10) > div > div:last-child {
                                         clear: left;
@@ -801,6 +816,33 @@ export default {
                                     table.DAI07020Grid1 tbody div{
                                         padding-top: 1.1px;
                                         padding-bottom: 1.1px;
+                                    }
+                                    table.DAI07020Grid1 th{
+                                        padding-top: 3px;
+                                        padding-bottom: 3px;
+                                        vertical-align: top;
+                                    }
+                                    table.DAI07020Grid1 th:nth-child(2){
+                                        text-align: left;
+                                    }
+                                    table.DAI07020Grid1 th:nth-child(3){
+                                        vertical-align: bottom;
+                                        padding-bottom: 8px;
+                                    }
+                                    table.DAI07020Grid1 td:nth-child(10){
+                                        vertical-align: top;
+                                        padding-top: 0px;
+                                    }
+                                    table.DAI07020Grid1 tr td:nth-child(1){
+                                        height: 50px !important;
+                                    }
+                                    table.DAI07020Grid1 td:nth-child(10) > div,
+                                    table.DAI07020Grid1 td:nth-child(10) > div > div:nth-child(1){
+                                        padding-top: 0px;
+                                    }
+                                    table.DAI07020Grid1 td:nth-child(10) {
+                                        padding-left: 0px;
+                                        padding-right: 0px;
                                     }
                                 `,
                                 headerFunc,
