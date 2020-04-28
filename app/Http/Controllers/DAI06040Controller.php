@@ -203,7 +203,7 @@ class DAI06040Controller extends Controller
         (
         SELECT
             T.得意先ＣＤ,
-            T.得意先名,
+            T.得意先商品名,
             部署名,
             コースＣＤ,
             コース名,
@@ -248,8 +248,8 @@ class DAI06040Controller extends Controller
                 SV減数
             FROM チケット調整
             WHERE
-                CONVERT(VARCHAR, 日付, 112) >= '$DateStart'
-            AND CONVERT(VARCHAR, 日付, 112) <= '$DateEnd'
+                CONVERT(VARCHAR, 日付, 112) >= '20190401'
+            AND CONVERT(VARCHAR, 日付, 112) <= '20190430'
             ) A ON
                 A.得意先ＣＤ = T.得意先ＣＤ
             AND A.日付 = T.日付
@@ -272,7 +272,7 @@ class DAI06040Controller extends Controller
                     , SUM(SV内数) SV内数
                 from チケット発行
                 where
-                    CONVERT(VARCHAR, 発行日, 112) < '$DateStart'
+                    CONVERT(VARCHAR, 発行日, 112) < '20190401'
                     and 廃棄 = 0
                 group by 得意先ＣＤ
                 ) T0 on T0.得意先ＣＤ = T1.得意先ＣＤ
@@ -283,7 +283,7 @@ class DAI06040Controller extends Controller
                     , SUM(掛売個数) as チケット弁当数
                 from 売上データ明細
                 where
-                        CONVERT(VARCHAR, 日付, 112) < '$DateStart'
+                        CONVERT(VARCHAR, 日付, 112) < '20190401'
                     and 売掛現金区分 = 2
                     and 商品ＣＤ not in (select 商品ＣＤ from 商品マスタ where 商品区分 = 9)
                 group by 得意先ＣＤ
@@ -295,7 +295,7 @@ class DAI06040Controller extends Controller
                     , SUM(掛売個数) as SVチケット弁当数
                 from 売上データ明細
                 where
-                        CONVERT(VARCHAR, 日付, 112) < '$DateStart'
+                        CONVERT(VARCHAR, 日付, 112) < '20190401'
                     and 売掛現金区分 = 4
                 group by 得意先ＣＤ
                 ) T3 on T1.得意先ＣＤ = T3.得意先ＣＤ
@@ -307,7 +307,7 @@ class DAI06040Controller extends Controller
                     , SUM(掛売個数) as チケット売上
                 from 売上データ明細
                 where
-                        CONVERT(VARCHAR, 日付, 112) < '$DateStart'
+                        CONVERT(VARCHAR, 日付, 112) < '20190401'
                     and 売掛現金区分 = 4
                 group by 得意先ＣＤ
                 ) T4 on T1.得意先ＣＤ = T4.得意先ＣＤ
@@ -319,27 +319,93 @@ class DAI06040Controller extends Controller
                     , SUM(SV減数) as SV減数
                 from チケット調整
                 where
-                    CONVERT(VARCHAR, 日付, 112) < '$DateStart'
+                    CONVERT(VARCHAR, 日付, 112) < '20190401'
                 group by 得意先ＣＤ
                 ) T5 on T1.得意先ＣＤ = T5.得意先ＣＤ
             ) Z ON
                 Z.得意先ＣＤ = T.得意先ＣＤ
         WHERE
             T.日付 IS NOT NULL
-        )
+        ),
 
-        SELECT
+		抽出データ3 AS
+        (
+        SELECT DISTINCT
+            IIF(商品区分=9, ROW_NUMBER() OVER (PARTITION BY コースＣＤ, ＳＥＱ, 得意先ＣＤ, 商品区分, 日付 ORDER BY 商品区分), NULL) AS ROWNUMBER,
+            コースＣＤ,
+			コース名,
+            ＳＥＱ,
             得意先ＣＤ,
-            得意先名,
+            得意先商品名,
             日付,
             曜日,
             弁当売上,
+            弁当売上SV,
+			調整,
+			調整SV,
+			チケット内数,
+			SV内数,
             IIF(商品区分 = 9, チケット内数 * 個数, NULL) AS チケット販売,
-            IIF(商品区分 = 9, SV内数 * 個数, NULL) AS チケット販売SV
+            IIF(商品区分 = 9, SV内数 * 個数, NULL) AS チケット販売SV,
+			MAX(チケット残数) OVER (PARTITION BY ＳＥＱ ORDER BY ＳＥＱ ASC) AS チケット残数,
+			MAX(チケットSV) OVER (PARTITION BY ＳＥＱ ORDER BY ＳＥＱ ASC) AS チケット残数SV
         FROM
             抽出データ2
+		WHERE
+			日付 IS NOT NULL
+        ),
+
+        抽出データ4 AS
+        (
+        SELECT
+            コースＣＤ,
+			MIN(コース名) AS コース名,
+            ＳＥＱ,
+            得意先ＣＤ,
+            MIN(得意先商品名) AS 得意先商品名,
+            日付,
+            曜日,
+            SUM(チケット販売) AS チケット販売,
+            SUM(チケット販売SV) AS チケット販売SV,
+            SUM(弁当売上) AS 弁当売上,
+            SUM(弁当売上SV) AS 弁当売上SV,
+            SUM(調整) AS 調整,
+            SUM(調整SV) AS 調整SV,
+			SUM(チケット内数) AS チケット内数,
+			SUM(SV内数) AS SV内数,
+            MAX(ISNULL(チケット残数, 0)) AS チケット残数,
+            MAX(ISNULL(チケット残数SV, 0)) AS チケット残数SV,
+            SUM(SUM(ISNULL(チケット販売, 0))) OVER (PARTITION BY ＳＥＱ ORDER BY ＳＥＱ, 日付) AS チケット販売累計,
+            SUM(SUM(ISNULL(チケット販売SV, 0))) OVER (PARTITION BY ＳＥＱ ORDER BY ＳＥＱ, 日付) AS チケット販売累計SV,
+            SUM(SUM(ISNULL(弁当売上, 0))) OVER (PARTITION BY ＳＥＱ ORDER BY ＳＥＱ, 日付) AS 弁当売上累計,
+            SUM(SUM(ISNULL(弁当売上SV, 0))) OVER (PARTITION BY ＳＥＱ ORDER BY ＳＥＱ, 日付) AS 弁当売上累計SV
+        FROM
+            抽出データ3
         WHERE
-            得意先ＣＤ = 26018
+            ROWNUMBER = 1 OR ROWNUMBER IS NULL
+        GROUP BY
+            コースＣＤ, ＳＥＱ, 得意先ＣＤ, 日付, 曜日
+        )
+
+        SELECT
+            コースＣＤ,
+			コース名,
+            得意先ＣＤ,
+            得意先商品名,
+            日付,
+            曜日,
+            チケット販売,
+            チケット販売SV,
+			弁当売上,
+			弁当売上SV,
+			調整,
+			調整SV,
+			チケット内数,
+			SV内数,
+            チケット販売累計 + チケット残数 - 弁当売上累計 AS チケット残数,
+            チケット販売累計SV + チケット残数SV - 弁当売上累計SV AS チケット残数SV
+        FROM
+            抽出データ4
         ORDER BY
             コースＣＤ, ＳＥＱ, 日付
         ";

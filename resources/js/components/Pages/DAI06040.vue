@@ -124,16 +124,11 @@
 </template>
 
 <style>
-#DAI06040Grid1 svg.pq-grid-overlay {
-    display: block;
+#DAI06040Grid1 .pq-group-toggle-none {
+    display: none !important;
 }
-#DAI06040Grid1 .pq-grid-cell.holiday {
-    color: red;
-}
-#DAI06040Grid1 .pq-summary-outer *:not(.tooltip):not(.arrow):not(.tooltip-inner) {
-    font-weight: bold;
-    color: black;
-    background-color: white !important;
+#DAI06040Grid1 .pq-group-icon {
+    display: none !important;
 }
 label{
     width: 80px;
@@ -223,12 +218,12 @@ export default {
             DAI06040Grid1: null,
             ProductList: [],
             grid1Options: {
-                selectionModel: { type: "row", mode: "block", row: true, column: true, },
+                selectionModel: { type: "cell", mode: "single", row: true },
                 showHeader: true,
                 showToolbar: false,
                 columnBorders: true,
-                rowHtHead: 25,
-                rowHt: 25,
+                rowHtHead: 35,
+                rowHt: 35,
                 fillHandle: "",
                 numberCell: { show: true, title: "No.", resizable: false, width: 45 },
                 autoRow: false,
@@ -244,10 +239,20 @@ export default {
                     menuIcon: false,
                     hideRows: false,
                 },
+                sortModel: {
+                    on: true,
+                    cancel: false,
+                    type: "remote",
+                },
                 groupModel: {
                     on: true,
                     header: false,
                     grandSummary: true,
+                    indent: 10,
+                    dataIndx: ["コース名", "得意先商品名"],
+                    showSummary: [false, true],
+                    collapsed: [false, false],
+                    summaryInTitleRow: "collapsed",
                 },
                 summaryData: [
                 ],
@@ -271,26 +276,35 @@ export default {
                         title: "コース名",
                         dataIndx: "コース名",
                         dataType: "string",
-                        width: 150, minWidth: 150,
-                        hidden: true,
+                        width: 150, minWidth: 150, maxWidth: 150,
+                        render: ui => {
+                            if (ui.rowData.pq_level != 0) {
+                                return { text: "" };
+                            }
+                            return ui;
+                        },
                     },
                     {
                         title: "得意先ＣＤ",
                         dataIndx: "得意先ＣＤ",
                         dataType: "integer",
                         width: 100, minWidth: 100, maxWidth: 100,
+                        hidden: true,
                     },
                     {
-                        title: "得意先名",
-                        dataIndx: "得意先名",
+                        title: "得意先（商品）",
+                        dataIndx: "得意先商品名",
                         dataType: "string",
-                        width: 300, minWidth: 300, maxWidth: 300,
-                        tooltip: true,
+                        width: 150, minWidth: 150, maxWidth: 150,
                         render: ui => {
-                            if (!!ui.rowData.pq_grandsummary) {
-                                return { text: "合計" };
+                            switch (ui.rowData.pq_level) {
+                                case 0:
+                                    return { text: "" };
+                                case 1:
+                                    return ui;
+                                default:
+                                    return { text: "" };
                             }
-                            return ui;
                         },
                     },
                     {
@@ -299,10 +313,13 @@ export default {
                         dataType: "date",
                         format: "yy/mm/dd",
                         align: "center",
-                        width: 100, minWidth: 100, maxWidth: 100,
+                        width: 120, minWidth: 120, maxWidth: 120,
                         render: ui => {
                             if (!!ui.Export && !ui.rowData.pq_grandsummary) {
                                 return { text: moment(ui.rowData[ui.dataIndx]).format("YYYY/MM/DD") };
+                            }
+                            if (!!ui.rowData.pq_gsummary) {
+                                return { text: "合計" };
                             }
                             return ui;
                         },
@@ -313,16 +330,6 @@ export default {
                         dataType: "string",
                         align: "center",
                         width: 50, minWidth: 50, maxWidth: 50,
-                    },
-                    {
-                        title: "チケット販売",
-                        dataIndx: "チケット販売",
-                        dataType: "integer",
-                        format: "#,###",
-                        hidden: true,
-                        summary: {
-                            type: "TotalInt",
-                        },
                     },
                     {
                         title: "チケット販売SV",
@@ -336,7 +343,7 @@ export default {
                     },
                     {
                         title: "チケット券販売",
-                        dataIndx: "チケット券販売",
+                        dataIndx: "チケット販売",
                         dataType: "string",
                         align: "right",
                         width: 150, minWidth: 150, maxWidth: 150,
@@ -344,15 +351,25 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            var tiketSale = "";
+                            var valSale = "";
                             if (ui.rowData.チケット販売 * 1 != 0) {
-                                tiketSale = tiketSale + ui.rowData.チケット販売;
+                                valSale = ui.rowData.チケット販売;
                             }
                             if (ui.rowData.チケット販売SV * 1 != 0)
                             {
-                                tiketSale = tiketSale + "(" + ui.rowData.チケット販売SV + ")";
+                                valSale = valSale + "(" + (ui.rowData.チケット販売SV * 1).toFixed(1) + ")";
                             }
-                            return { text: tiketSale };
+                            return { text: valSale };
+                        },
+                    },
+                    {
+                        title: "弁当売上SV",
+                        dataIndx: "弁当売上SV",
+                        dataType: "float",
+                        format: "#,###.0",
+                        hidden: true,
+                        summary: {
+                            type: "TotalInt",
                         },
                     },
                     {
@@ -360,7 +377,28 @@ export default {
                         dataIndx: "弁当売上",
                         dataType: "integer",
                         format: "#,###",
-                        width: 100, minWidth: 100, maxWidth: 100,
+                        width: 150, minWidth: 150, maxWidth: 150,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                        render: ui => {
+                            var valSale = "";
+                            if (ui.rowData.弁当売上 * 1 != 0) {
+                                valSale = ui.rowData.弁当売上;
+                            }
+                            if (ui.rowData.弁当売上SV * 1 != 0)
+                            {
+                                valSale = valSale + "(" + (ui.rowData.弁当売上SV * 1).toFixed(1) + ")";
+                            }
+                            return { text: valSale };
+                        },
+                    },
+                    {
+                        title: "調整SV",
+                        dataIndx: "調整SV",
+                        dataType: "float",
+                        format: "#,###.0",
+                        hidden: true,
                         summary: {
                             type: "TotalInt",
                         },
@@ -370,19 +408,51 @@ export default {
                         dataIndx: "調整",
                         dataType: "integer",
                         format: "#,###",
-                        width: 100, minWidth: 100, maxWidth: 100,
+                        width: 150, minWidth: 150, maxWidth: 150,
                         summary: {
                             type: "TotalInt",
                         },
+                        render: ui => {
+                            var valSale = "";
+                            if (ui.rowData.調整 * 1 != 0) {
+                                valSale = ui.rowData.調整;
+                            }
+                            if (ui.rowData.調整SV * 1 != 0)
+                            {
+                                valSale = valSale + "(" + (ui.rowData.調整SV * 1).toFixed(1) + ")";
+                            }
+                            return { text: valSale };
+                        },
+                    },
+                    {
+                        title: "チケット残数SV",
+                        dataIndx: "チケット残数SV",
+                        dataType: "float",
+                        format: "#,###.0",
+                        hidden: true,
                     },
                     {
                         title: "チケット残数",
                         dataIndx: "チケット残数",
                         dataType: "integer",
                         format: "#,###",
-                        width: 100, minWidth: 100, maxWidth: 100,
-                        summary: {
-                            type: "TotalInt",
+                        width: 150, minWidth: 150, maxWidth: 150,
+                        render: ui => {
+                            if (!!ui.rowData.pq_gsummary) {
+                                return { text: "" };
+                            }
+                            else
+                            {
+                                var valSale = "0";
+                                if (ui.rowData.チケット残数 * 1 != 0) {
+                                    valSale = ui.rowData.チケット残数;
+                                }
+                                if (ui.rowData.チケット残数SV * 1 != 0)
+                                {
+                                    valSale = valSale + "(" + (ui.rowData.チケット残数SV * 1).toFixed(1) + ")";
+                                }
+                                return { text: valSale };
+                            }
                         },
                     },
                 ],
@@ -513,6 +583,11 @@ export default {
             vue.footerButtons.find(v => v.id == "DAI06040Grid1_CSV").disabled = !res.length;
             vue.footerButtons.find(v => v.id == "DAI06040Grid1_Excel").disabled = !res.length;
             vue.footerButtons.find(v => v.id == "DAI06040Grid1_Print").disabled = !res.length;
+
+            res.forEach(r => {
+                    r.得意先商品名 = r.得意先ＣＤ + " " + r.得意先商品名;
+                    // r.日付 = moment(r.日付).format("YYYY/MM/DD") + "　　" + r.曜日;
+                });
 
             return res;
         },
