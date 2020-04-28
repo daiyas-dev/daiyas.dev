@@ -637,16 +637,16 @@ export default {
                     <table class="header-table">
                         <thead>
                             <tr>
-                                <th style="width:  5%;">部署</th>
-                                <th style="width:  5%; text-align: right;">${BushoCd}</th>
-                                <th style="width: 16%;">${BushoNm}</th>
-                                <th style="width:  5%;" class="blank-cell"></th>
-                                <th style="width:  5%;" class="blank-cell"></th>
-                                <th style="width: 16%;" class="blank-cell"></th>
-                                <th style="width: 31%;" class="blank-cell"></th>
-                                <th style="width:  5%;" class="blank-cell"></th>
+                                <th style="width:  5.5%;">部署</th>
+                                <th style="width:  5.5%; text-align: right;">${BushoCd}</th>
+                                <th style="width: 17%;">${BushoNm}</th>
+                                <th style="width:  5.5%;" class="blank-cell"></th>
+                                <th style="width:  5.5%;" class="blank-cell"></th>
+                                <th style="width: 17%;" class="blank-cell"></th>
+                                <th style="width: 28%;" class="blank-cell"></th>
+                                <th style="width:  5.5%;" class="blank-cell"></th>
                                 <th style="width: 11%;" class="blank-cell"></th>
-                                <th style="width:  5%;" class="blank-cell"></th>
+                                <th style="width:  5.5%;" class="blank-cell"></th>
                                 <th style="width:  6%;" class="blank-cell"></th>
                          </tr>
                             <tr>

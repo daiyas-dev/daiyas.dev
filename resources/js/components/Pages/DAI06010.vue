@@ -262,9 +262,16 @@ export default {
                         dataIndx: "F印刷日時", dataType: "string",
                         width: 111, minWidth: 111, maxWidth: 111,
                         render: ui => {
-                            if (ui.rowData.pq_grandsummary) {
-                                //集計行
-                                return { text: "チケット枚数計\nサービス枚数計" };
+                            if(ui.Export) {
+                                if (ui.rowData.pq_grandsummary) {
+                                   return "";
+                                }
+                            }
+                            else{
+                                if (ui.rowData.pq_grandsummary) {
+                                    //集計行
+                                    return { text: "チケット枚数計\nサービス枚数計" };
+                                }
                             }
                             return ui;
                         },
@@ -274,12 +281,19 @@ export default {
                         dataIndx: "単価", dataType: "integer", format: "#,###",　
                         width: 111, minWidth: 111, maxWidth: 111,
                         render: ui => {
-                            if (ui.rowData.pq_grandsummary) {
-                                //集計行
-                                var sv=ui.rowData.有効サービス枚数.replace(',','')*1;
-                                sv=sv.toFixed(1);//小数第1位までの表示
-                                sv=sv.toString().replace(/(\d)(?=(\d{3})+(\.\d+))/g , '$1,');//整数部を3桁毎カンマ区切り
-                                return { text: ui.rowData.有効チケット枚数+"\n"+sv };
+                            if(ui.Export) {
+                                if (ui.rowData.pq_grandsummary) {
+                                   return "";
+                                }
+                            }
+                            else{
+                                if (ui.rowData.pq_grandsummary) {
+                                    //集計行
+                                    var sv=ui.rowData.有効サービス枚数.replace(',','')*1;
+                                    sv=sv.toFixed(1);//小数第1位までの表示
+                                    sv=sv.toString().replace(/(\d)(?=(\d{3})+(\.\d+))/g , '$1,');//整数部を3桁毎カンマ区切り
+                                    return { text: ui.rowData.有効チケット枚数+"\n"+sv };
+                                }
                             }
                             return ui;
                         },
@@ -292,11 +306,18 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (ui.rowData.pq_grandsummary) {
-                                //集計行
-                                return { text: "チケット金額計\nサービス金額計" };
+                            if(ui.Export) {
+                                if (ui.rowData.pq_grandsummary) {
+                                   return "";
+                                }
                             }
-                            return ui;
+                            else{
+                                if (ui.rowData.pq_grandsummary) {
+                                    //集計行
+                                    return { text: "チケット金額計\nサービス金額計" };
+                                }
+                                return ui;
+                            }
                         },
                     },
                     {
@@ -307,9 +328,16 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            if (ui.rowData.pq_grandsummary) {
-                                //集計行
-                                return { text: ui.rowData.チケット金額+"\n"+ui.rowData.サービス金額 };
+                            if(ui.Export) {
+                                if (ui.rowData.pq_grandsummary) {
+                                   return "";
+                                }
+                            }
+                            else{
+                                if (ui.rowData.pq_grandsummary) {
+                                    //集計行
+                                    return { text: ui.rowData.チケット金額+"\n"+ui.rowData.サービス金額 };
+                                }
                             }
                             return ui;
                         },
@@ -319,31 +347,11 @@ export default {
                         dataIndx: "担当者名", dataType: "string",
                         width: 111, minWidth: 111, maxWidth: 111,
                     },
-                    /*
-                    {
-                        title: "捨",
-                        dataIndx: "廃棄",
-                        dataType: "bool",
-                        type: "checkBox",
-                        width: 50, minWidth: 50, maxWidth: 50,
-                        align: "center",
-                        editable: true,
-                        editor: false,
-                        hiddenOnExport: true,
-                        cb: {
-                            all: false, //header checkbox to affect checkboxes on all pages.
-                            header: true, //for header checkbox.
-                            check: "1", //check the checkbox when cell value is "YES".
-                            uncheck: "0" //uncheck when "NO".
-                        },
-                    },
-                    */
-                    /*
                     {
                         title: "捨",
                         dataIndx: "廃棄対象",
                         type: "checkbox",
-                        cbId: "IncludesSummary",
+                        cbId: "F廃棄",
                         width: 50, minWidth: 50, maxWidth: 50,
                         align: "center",
                         editable: true,
@@ -356,41 +364,18 @@ export default {
                         },
                     },
                     {
-                        dataIndx: "IncludesSummary",
-                        dataType: "bool",
-                        align: "center",
-                        editable: true,
-                        cb: {
-                            header: true,
-                        },
-                        hidden: false,
-                    },
-                    */
-                    {
                         title: "捨",
-                        dataIndx: "廃棄対象",
-                        type: "checkbox",
-                        cbId: "IncludesSummary",
-                        width: 50, minWidth: 50, maxWidth: 50,
-                        align: "center",
-                        editable: true,
-                        editor: false,
-                        hiddenOnExport: true,
-                        render: ui => {
-                            if (ui.rowData.summaryRow) {
-                                return "";
-                            }
-                        },
-                    },
-                    {
-                        dataIndx: "IncludesSummary",
-                        dataType: "bool",
+                        dataIndx: "F廃棄",
+                        dataType: "string",
                         align: "center",
                         editable: true,
                         cb: {
                             header: true,
+                            check: "YES",
+                            uncheck: "NO",
                         },
-                        hidden: false,
+                        hidden: true,
+                        hiddenOnExport: false,
                     },
                     {
                         title: "得意先ＣＤ",
@@ -453,7 +438,7 @@ export default {
                 },
                 { visible: "true", value: "CSV", id: "DAI06010Grid1_Csv", disabled: true, shortcut: "F10",
                     onClick: function () {
-                        vue.DAI06010Grid1.vue.exportData("csv");
+                        vue.DAI06010Grid1.vue.exportData("csv",null,true);
                     }
                 }
             );
@@ -593,19 +578,14 @@ export default {
             {
                 return;
             }
-            if(vue.viewModel.CustomerCd==null)
-            {
-                return;
-            }
 
             //登録データの作成
             var SaveList=[];
             _.forEach(grid.pdata,r=>{
-                window.resr=_.cloneDeep(r);//TODO:
                 var SaveItem={};
                 SaveItem.TicketNo=r.チケット管理番号;
                 SaveItem.CustomerCd=r.得意先ＣＤ;
-                SaveItem.Dispose=r.IncludesSummary;
+                SaveItem.Dispose=(r.F廃棄=="YES");
                 SaveList.push(SaveItem);
                 window.ressvi=_.cloneDeep(SaveItem);//TODO:
             });

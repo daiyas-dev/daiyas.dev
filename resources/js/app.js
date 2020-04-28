@@ -236,6 +236,14 @@ var initVueApp = () => {
             document.addEventListener("mouseup", this.touchMove, false);
             document.addEventListener("touchstart", this.touchStart, false);
             document.addEventListener("touchmove", this.touchMove, false);
+            window.addEventListener("dragover", function (e) {
+                e = e || event;
+                e.preventDefault();
+            }, false);
+            window.addEventListener("drop", function (e) {
+                e = e || event;
+                e.preventDefault();
+            }, false);
         },
         mounted: function () {
             //contentのサイズ調整

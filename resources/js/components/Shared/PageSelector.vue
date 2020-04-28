@@ -16,6 +16,7 @@
         :labelCd=this.labelCd
         :labelCdNm=this.labelCdNm
         :callback=this.callback
+        :selector=this.selector
         :uniqueId=this.uniqueId
         :isChild=this.isChild
         :isCodeOnly=this.isCodeOnly
@@ -116,6 +117,8 @@ import DAI04091 from "@vcp/DAI04091.vue";
 import DAI04130 from "@vcp/DAI04130.vue";
 import DAI04140 from "@vcp/DAI04140.vue";
 import DAI04141 from "@vcp/DAI04141.vue";
+import DAI04160 from "@vcp/DAI04160.vue";
+import DAI04161 from "@vcp/DAI04161.vue";
 import DAI04190 from "@vcp/DAI04190.vue";
 import DAI04191 from "@vcp/DAI04191.vue";
 import DAI04200 from "@vcp/DAI04200.vue";
@@ -130,8 +133,12 @@ import DAI05090 from "@vcp/DAI05090.vue";
 import DAI05100 from "@vcp/DAI05100.vue";
 import DAI05110 from "@vcp/DAI05110.vue";
 
+import DAI05140 from "@vcp/DAI05140.vue";
+import DAI05150 from "@vcp/DAI05150.vue";
+
 import DAI06010 from "@vcp/DAI06010.vue";
 import DAI06020 from "@vcp/DAI06020.vue";
+import DAI06030 from "@vcp/DAI06030.vue";
 import DAI06040 from "@vcp/DAI06040.vue";
 
 import DAI07010 from "@vcp/DAI07010.vue";
@@ -178,6 +185,7 @@ export default {
         labelCd: String,
         labelCdNm: String,
         callback: Function,
+        selector: Function,
         uniqueId: String,
         isSelector: Boolean,
         isChild: Boolean,
@@ -246,6 +254,8 @@ export default {
         DAI04130,
         DAI04140,
         DAI04141,
+        DAI04160,
+        DAI04161,
         DAI04190,
         DAI04191,
         DAI04200,
@@ -258,8 +268,11 @@ export default {
         DAI05090,
         DAI05100,
         DAI05110,
+        DAI05140,
+        DAI05150,
         DAI06010,
         DAI06020,
+        DAI06030,
         DAI06040,
         DAI07010,
         DAI07020,

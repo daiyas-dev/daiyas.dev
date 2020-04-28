@@ -362,7 +362,7 @@ export default {
                                 var shiouhizei = Number(ui.rowData.消費税額).toLocaleString();
                                 var str_shiouhizei=("          " + shiouhizei).substr(-10);
                                 str_shiouhizei = str_shiouhizei.replace(/\s/g, "&ensp;");
-                                return { text: uriage + "&ensp;\n(" + str_shiouhizei + ")" };
+                                return { text: uriage + "&nbsp;\n(" + str_shiouhizei + ")" };
                             }
                         }
                     },
@@ -654,7 +654,6 @@ export default {
         },
         print: function() {
             var vue = this;
-            //TODO:西山；印刷物確認未完
 
             //印刷用HTML全体適用CSS
             var globalStyles = `
@@ -680,7 +679,7 @@ export default {
                 }
                 th, td {
                     font-family: "MS UI Gothic";
-                    font-size: 8.5pt;
+                    font-size: 9pt;
                     font-weight: normal;
                     margin: 0px;
                     padding-left: 3px;
@@ -755,7 +754,7 @@ export default {
                     border-bottom-width : 1px;
                 }
                 table.DAI03140Grid1 td {
-                    border-style : dotted;
+                    border-style : dashed;
                     border-left-width : 0px;
                     border-top-width : 1px;
                     border-right-width : 0px;
@@ -769,10 +768,11 @@ export default {
                     border-bottom-width : 0px;
                 }
                 table.DAI03140Grid1 tr th:nth-child(1) {
-                    width : 4%;
+                    width : 4.2%;
                 }
                 table.DAI03140Grid1 tr th:nth-child(2) {
-                    width : 14%;
+                    width : 16%;
+                    padding-left: 5px;
                 }
                 table.DAI03140Grid1 tr td:nth-child(1) {
                     text-align :right;
@@ -787,6 +787,13 @@ export default {
                 }
                 table.DAI03140Grid1 tr.grand-summary td:nth-child(2):nth-last-child(12) {
                     padding-left: 40px;
+                }
+                table.DAI03140Grid1 tr td:not(:nth-child(1)):not(:nth-child(2)) {
+                    text-align : right;
+                }
+                table.DAI03140Grid1 tr th:nth-child(7):nth-last-child(7),
+                table.DAI03140Grid1 tr th:nth-child(8):nth-last-child(7) {
+                    width: 8.3%;
                 }
             `;
 

@@ -83,6 +83,7 @@ export default {
         params: Object,
         list: Array,
         func: Function,
+        onLoadFunc: Function,
         onChangedFunc: Function,
         withCode: Boolean,
         customStyle: String,
@@ -127,6 +128,10 @@ export default {
         entities: {
             deep: true,
             handler: function(newVal) {
+                var comp = this;
+                if (this.onLoadFunc) {
+                    this.onLoadFunc(comp, newVal);
+                }
                 if (!this.hasNull && newVal.length && !_.find(newVal, { code: this.vmodel[this.bind]})) {
                     // console.log("VueMultiSelect eintities watcher invalid code", this.vmodel[this.bind]);
                     if (this.isShowInvalid) {
@@ -186,7 +191,7 @@ export default {
         },
         onChanged: function (event) {
             var vue = this;
-            console.log("vue-multiselect onchanged", vue.selected)
+            // console.log("vue-multiselect onchanged", vue.selected)
 
             //変更時関数が指定されていれば呼出
             if (vue.onChangedFunc) {

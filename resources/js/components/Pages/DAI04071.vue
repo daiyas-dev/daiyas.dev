@@ -963,11 +963,13 @@ export default {
 
             if (!!res.result) {
                 vue.ImageFile = res.file;
+                vue.IsExistImage = true;
             } else {
                 $.dialogErr({
                     title: "アップロード失敗",
                     contents: res.message,
                 });
+                vue.IsExistImage = false;
             }
         },
     }

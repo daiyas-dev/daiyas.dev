@@ -7,6 +7,7 @@ use App\Models\BaseModel;
 /**
  * @property string $対象日付
  * @property string $名称
+ * @property string $対象部署ＣＤ
  * @property int $修正担当者ＣＤ
  * @property string $修正日
  */
@@ -43,6 +44,6 @@ class 祝日マスタ extends BaseModel
     /**
      * @var array
      */
-    protected $fillable = ['名称', '修正担当者ＣＤ', '修正日'];
+    protected $fillable = ['名称', '対象部署ＣＤ', '修正担当者ＣＤ', '修正日'];
 
 }

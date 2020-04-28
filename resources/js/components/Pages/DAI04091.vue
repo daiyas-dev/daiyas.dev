@@ -130,7 +130,7 @@
                     bind="MngCd"
                     :buddies='{ Kind: "一時フラグ", KindNm: "種別", StartDate: "適用開始日", EndDate: "適用終了日", Memo: "備考" }'
                     dataUrl="/Utilities/GetCourseTableMngForMaint"
-                    :params="{ BushoCd: viewModel.BushoCd, CourseCd: viewModel.CourseCd, WithNew: true }"
+                    :params="{ BushoCd: viewModel.BushoCd, CourseCd: viewModel.CourseCd, WithNew: true, noCache: true, }"
                     :isPreload=true
                     title="コーステーブル一覧"
                     labelCd="種別"
@@ -159,7 +159,7 @@
             <div class="col-md-2">
             </div>
             <div class="col-md-1">
-                <label class="text-left">種別</label>
+                <label class="text-left">種別/備考</label>
             </div>
             <div class="col-md-4">
                 <PopupSelect
@@ -169,7 +169,7 @@
                     bind="MngCd"
                     :buddies='{ Kind: "一時フラグ", KindNm: "種別", StartDate: "適用開始日", EndDate: "適用終了日", Memo: "備考" }'
                     dataUrl="/Utilities/GetCourseTableMngForMaint"
-                    :params="{ BushoCd: others.BushoCd, CourseCd: others.CourseCd, WithNew: true }"
+                    :params="{ BushoCd: others.BushoCd, CourseCd: others.CourseCd, WithNew: true, noCache: true, }"
                     :isPreload=true
                     title="コーステーブル一覧"
                     labelCd="種別"
@@ -257,8 +257,8 @@
                 <PqGridWrapper
                     id="DAI04091Grid1"
                     ref="DAI04091Grid1"
-                    dataUrl="/Utilities/GetCustomerListFromCourse"
-                    :query="{ bushoCd: viewModel.BushoCd, courseCd: viewModel.CourseCd }"
+                    dataUrl="/Utilities/GetCustomerListWithTemp"
+                    :query="{ bushoCd: viewModel.BushoCd, courseCd: viewModel.CourseCd, mngCd: viewModel.MngCd, noCache: true, }"
                     :SearchOnCreate=false
                     :SearchOnActivate=false
                     :options=grid1Options
@@ -266,6 +266,8 @@
                     :onChangeFunc=onChangeGrid
                     :resizeFunc=onMainGridResize
                     :isMultiRowSelectable=true
+                    :autoToolTipDisabled=true
+                    :setCustomTitle='(title, grid) => "件数: " + grid.getData().filter(v => !!v.得意先ＣＤ).length'
                     classes="mt-1 mb-1"
                 />
             </div>
@@ -361,8 +363,8 @@
                 <PqGridWrapper
                     id="DAI04091Grid2"
                     ref="DAI04091Grid2"
-                    dataUrl="/Utilities/GetCustomerListFromCourse"
-                    :query="{ bushoCd: viewModel.BushoCd, courseCd: others.CourseCd }"
+                    dataUrl="/Utilities/GetCustomerListWithTemp"
+                    :query="{ bushoCd: viewModel.BushoCd, courseCd: others.CourseCd, mngCd: others.MngCd, noCache: true, }"
                     :SearchOnCreate=false
                     :SearchOnActivate=false
                     :options=grid2Options
@@ -370,6 +372,8 @@
                     :onChangeFunc=onChangeGrid
                     :resizeFunc=onSubGridResize
                     :isMultiRowSelectable=true
+                    :autoToolTipDisabled=true
+                    :setCustomTitle='(title, grid) => "件数: " + grid.getData().filter(v => !!v.得意先ＣＤ).length'
                     classes="mt-1 mb-1"
                 />
             </div>
@@ -442,6 +446,13 @@ form[pgid="DAI04091"] .pq-grid .DAI04091_toolbar .toolbar_button > i > span {
 form[pgid="DAI04091"] .pq-grid .DAI04091_toolbar .toolbar_button.ope {
     width: 45px;
 }
+form[pgid="DAI04091"] .pq-grid .searchBtn {
+    width: 40px;
+    height: 30px;
+    padding: 0px !important;
+    border: none;
+    border-radius: 0;
+}
 </style>
 
 <script>
@@ -460,6 +471,7 @@ export default {
         grid2Options: function() {
             var vue = this;
             var options = _.cloneDeep(vue.grid1Options);
+            options.idx = 1;
             // options.editable = false;
             // options.columnTemplate.editable = false;
             // options.dropModel.on = false;
@@ -495,12 +507,18 @@ export default {
                 CourseNm: null,
                 TantoCd: null,
                 TantoNm: null,
+                MngCd: null,
+                Kind: null,
+                KindNm: null,
                 StartDate: null,
                 EndDate: null,
             },
             DAI04091Grid1: null,
             DAI04091Grid2: null,
+            CustomerList: [],
+            CustomerListOthers: [],
             grid1Options: {
+                idx: 0,
                 selectionModel: { type: "row", mode: "block", row: true },
                 showHeader: true,
                 showToolbar: true,
@@ -620,22 +638,30 @@ export default {
                 height: 450,
                 editable: true,
                 columnTemplate: {
-                    editable: true,
-                    sortable: true,
+                    editable: false,
+                    sortable: false,
                 },
                 dataModel: { recIndx: "得意先ＣＤ" },
                 trackModel: { on: true },
                 historyModel: { on: true },
+                editModel: {
+                    clicksToEdit: 1,
+                    keyUpDown: true,
+                    saveKey: $.ui.keyCode.ENTER,
+                    onSave: null,
+                    onTab: null,
+                },
                 filterModel: {
-                    on: true,
+                    on: false,
                     mode: "AND",
                     header: false,
                     menuIcon: false,
                     hideRows: false,
                 },
+                draggable: true,
                 dragModel: {
                     on: true,
-                    diHelper: ["pq_label"],
+                    diHelper: ["コード", "名称"],
                     cssHelper: {
                         opacity: 0.8,
                         position:"absolute",
@@ -649,6 +675,7 @@ export default {
                     },
                     dragNodes: (rd, evt) => {
                         var grid = eval("this");
+                        // console.log("dragNodes", evt);
                         var target = grid.SelectRow().getSelection().map(v => v.rowData);
                         target = target.length && target.includes(rd) ? target : [rd];
                         //target = _.cloneDeep(target).map(v => _.omitBy(v, (v, k) => k.startsWith("pq") || k == "InitialValue"));
@@ -657,7 +684,6 @@ export default {
                     beforeDrop: function(evt, ui) {
                         var grid = eval("this");
 
-                        console.log("beforeDrop", evt, ui, evt.ctrlKey);
                         if (!evt.ctrlKey) {
                             var nodes = _.cloneDeep(grid.Drag().getUI().nodes);
                             console.log("beforeDrop deleteNodes", nodes);
@@ -673,16 +699,34 @@ export default {
                         var dragGrid = $(evt.target).closest(".pq-grid").pqGrid("getInstance").grid;
                         var dropGrid = ui.$cell.closest(".pq-grid").pqGrid("getInstance").grid;
 
-                        if (dragGrid.widget().prop("id") == dropGrid.widget().prop("id")) {
-                            return true;
-                        } else {
+                        var ret = true;
+                        if (dragGrid.widget().prop("id") != dropGrid.widget().prop("id")) {
                             var nodes = dragGrid.Drag().getUI().nodes;
-                            var ret = _.intersectionBy(nodes, dropGrid.getData(), "得意先ＣＤ").length == 0;
-                            return ret;
+                            ret = _.intersectionBy(nodes, dropGrid.getData(), "得意先ＣＤ").length == 0;
                         }
 
-                        return true;
+                        return ret;
                     },
+                    enter: function(event, grid) {
+                        // console.log("dropModel enter", event, grid, grid.Drag().getUI())
+
+                        // var dragGrid = $(evt.target).closest(".pq-grid").pqGrid("getInstance").grid;
+                        // var dropGrid = ui.$cell.closest(".pq-grid").pqGrid("getInstance").grid;
+
+                        // var ret = true;
+                        // if (dragGrid.widget().prop("id") != dropGrid.widget().prop("id")) {
+                        //     var nodes = dragGrid.Drag().getUI().nodes;
+                        //     ret = _.intersectionBy(nodes, dropGrid.getData(), "得意先ＣＤ").length == 0;
+                        // }
+
+                        // return ret;
+                    },
+                    // customDrop: function(evt, ui) {
+                    //     var grid = eval("this");
+                    //     console.log("customDrop", grid.options.dropModel.orgDrop)
+
+                    //     grid.options.dropModel.orgDrop(evt, ui);
+                    // },
                     // drop: function(evt, ui) {
                     //     console.log("drop", event, ui);
 
@@ -723,85 +767,6 @@ export default {
 
                     // vue.resetData(grid);
                 },
-                colModel: [
-                    {
-                        title: "部署ＣＤ",
-                        dataIndx: "部署ＣＤ",
-                        dataType: "integer",
-                        hidden: true,
-                        key: true,
-                    },
-                    // {
-                    //     title: "得意先ＣＤ",
-                    //     dataIndx: "得意先ＣＤ",
-                    //     dataType: "integer",
-                    //     hidden: true,
-                    //     key: true,
-                    // },
-                    {
-                        title: "ＳＥＱ",
-                        dataIndx: "ＳＥＱ",
-                        dataType: "integer",
-                        hidden: true,
-                        key: true,
-                    },
-                    {
-                        title: "得意先名",
-                        dataIndx: "得意先名",
-                        dataType: "string",
-                        hidden: true,
-                    },
-                    {
-                        title: "pq_label",
-                        dataIndx: "pq_label",
-                        dataType: "string",
-                        hidden: true,
-                    },
-                    {
-                        title: "得意先",
-                        dataIndx: "得意先ＣＤ",
-                        dataType: "string",
-                        key: true,
-                        psProps: {
-                            dataUrl: "/DAI04091/GetCustomerListForSelect",
-                            //params: { bushoCd: () => { var val = !!vue.viewModel ? vue.viewModel.BushoCd : null; console.log("psProps params", vue, val); return val; } },
-                            params: vue.getCustomerPsParamsInGrid,
-                            bind: "得意先ＣＤ",
-                            buddies: { "得意先名": "CdNm" },
-                            isPreload: true,
-                            title: "得意先一覧",
-                            labelCd: "得意先CD",
-                            labelCdNm: "得意先名",
-                            popupWidth: 600,
-                            popupHeight: 600,
-                            isShowName: true,
-                            isModal: true,
-                            reuse: true,
-                            existsCheck: true,
-                            inputWidth: 90,
-                            nameWidth: 195,
-                            onAfterChangedFunc: vue.onCustomerChangedInGrid,
-                            isShowAutoComplete: true,
-                            AutoCompleteFunc: vue.CustomerAutoCompleteFuncInGrid,
-                            AutoCompleteMinLength: 1,
-                            ParamsChangedCheckFunc: vue.CustomerParamsChangedCheckFuncInGrid,
-                            getData: (ui, grid) => {
-                                console.log("psprops getData", ui.$cell.find(".target-input").val());
-                                return ui.$cell.find(".target-input").val();
-                            },
-                            htmlRender: ui => {
-                                var $el = $("<div>")
-                                    .addClass("d-flex")
-                                    .append($("<div>").text(ui.rowData.得意先ＣＤ).width(60).addClass("text-right"))
-                                    .append($("<div>").text(":").addClass("pl-1").addClass("pr-1"))
-                                    .append($("<div>").text(ui.rowData.得意先名))
-                                    ;
-
-                                return $el[0];
-                            },
-                        },
-                    }
-                ],
                 formulas: [
                     [
                         "Content",
@@ -813,18 +778,194 @@ export default {
                         }
                     ],
                     [
+                        "コード",
+                        function(rowData){
+                            return rowData.得意先ＣＤ;
+                        }
+                    ],
+                    [
+                        "名称",
+                        function(rowData){
+                            return rowData.得意先名;
+                        }
+                    ],
+                    [
                         "pq_label",
                         function(rowData){
                             var $el = $("<div>")
                                 .addClass("d-flex")
-                                .append($("<div>").text(rowData.得意先ＣＤ).width(60).addClass("text-right"))
+                                .append($("<div>").text(rowData.得意先ＣＤ || rowData.コード).width(60).addClass("text-right"))
                                 .append($("<div>").text(":").addClass("pl-1").addClass("pr-1"))
-                                .append($("<div>").text(rowData.得意先名))
+                                .append($("<div>").text(rowData.得意先名 || rowData.名称))
                                 ;
 
                             return $el[0].outerHTML;
                         }
                     ],
+                ],
+                colModel: [
+                    {
+                        title: "コード",
+                        dataIndx: "コード",
+                        dataType: "string",
+                        key: true,
+                        editable: true,
+                        width: 100, maxWidth: 100, minWidth: 100,
+                        autocomplete: {
+                            source: ui => vue.GetCustomerListForSelect(ui),
+                            bind: "得意先ＣＤ",
+                            buddies: { "得意先名": "CdNm" },
+                            AutoCompleteFunc: vue.CustomerAutoCompleteFuncInGrid,
+                            AutoCompleteMinLength: 0,
+                            selectSave: true,
+                        },
+                    },
+                    {
+                        title: "",
+                        dataIndx: "SearchBtn",
+                        dataType: "string",
+                        editable: false,
+                        width: 40, maxWidth: 40, minWidth: 40,
+                        render: ui => {
+                            var $btn = $("<button>")
+                                .attr("type", "button")
+                                .addClass("btn")
+                                .addClass("btn-info")
+                                .addClass("searchBtn")
+                                .append(
+                                    $("<i>").addClass("fa").addClass("fa-search").addClass("fa-lg")
+                                )
+                                ;
+
+                            return $btn.prop("outerHTML");
+                        },
+                        postRender: ui => {
+                            var g = eval("this");
+                            var gridCell = $(ui.cell);
+                            var model = g.options.idx == 0 ? vue.viewModel : vue.others;
+
+                            gridCell.find("button").on("click", ev => {
+                                PageDialog.showSelector({
+                                    dataUrl: "/DAI04091/GetCustomerListForSelect",
+                                    params: { BushoCd: model.BushoCd },
+                                    title: "得意先一覧",
+                                    labelCd: "得意先ＣＤ",
+                                    labelCdNm: "得意先名",
+                                    isModal: true,
+                                    showColumns: [],
+                                    width: 600,
+                                    height: 600,
+                                    reuse: true,
+                                    selector: (cGrid) => {
+                                        console.log("4091 selector");
+                                        var cd = ui.rowData.得意先ＣＤ || ui.rowData.コード;
+                                        var hits = cGrid.search({ row: { Cd: cd } });
+                                        var rowIndx = !hits.length ? 0 : hits[0].rowIndx;
+                                        cGrid.SelectRow().removeAll();
+                                        cGrid.setSelection({ rowIndx: rowIndx });
+                                        setTimeout(
+                                            () => cGrid.scrollRow( { rowIndxPage: rowIndx } ),
+                                            100
+                                        );
+                                    },
+                                    buttons: [
+                                        {
+                                            text: "選択",
+                                            class: "btn btn-primary",
+                                            shortcut: "Enter",
+                                            click: function(gridVue, grid) {
+                                                if (event.target.name == "SearchStrings" && event.type == "keydown" && (event.key == "Process" || event.which == 13)) {
+                                                    return false;
+                                                }
+
+                                                var rowIndx = grid.SelectRow().getFirst();
+
+                                                if (rowIndx != undefined) {
+                                                    var rowData = grid.getRowData({ rowIndx: rowIndx });
+                                                    ui.rowData.得意先ＣＤ = ui.rowData.コード = rowData.Cd;
+                                                    ui.rowData.得意先名 = ui.rowData.名称 = rowData.CdNm;
+                                                    g.refresh();
+                                                }
+                                            },
+                                        },
+                                    ],
+                                });
+
+                                ev.preventDefault();
+                                return false;
+                            });
+
+                            return ui;
+                        },
+                    },
+                    {
+                        title: "名称",
+                        dataIndx: "名称",
+                        dataType: "string",
+                    },
+                    // {
+                    //     title: "pq_label",
+                    //     dataIndx: "pq_label",
+                    //     dataType: "string",
+                    //     hidden: false,
+                    // },
+                    // {
+                    //     title: "得意先",
+                    //     dataIndx: "得意先ＣＤ",
+                    //     dataType: "string",
+                    //     key: true,
+                    //     psProps: {
+                    //         dataUrl: "/DAI04091/GetCustomerListForSelect",
+                    //         //params: { bushoCd: () => { var val = !!vue.viewModel ? vue.viewModel.BushoCd : null; console.log("psProps params", vue, val); return val; } },
+                    //         params: vue.getCustomerPsParamsInGrid,
+                    //         bind: "得意先ＣＤ",
+                    //         buddies: { "得意先名": "CdNm" },
+                    //         isPreload: true,
+                    //         title: "得意先一覧",
+                    //         labelCd: "得意先CD",
+                    //         labelCdNm: "得意先名",
+                    //         popupWidth: 600,
+                    //         popupHeight: 600,
+                    //         isShowName: true,
+                    //         isModal: true,
+                    //         reuse: true,
+                    //         existsCheck: true,
+                    //         inputWidth: 90,
+                    //         nameWidth: 195,
+                    //         onAfterChangedFunc: vue.onCustomerChangedInGrid,
+                    //         isShowAutoComplete: true,
+                    //         AutoCompleteFunc: vue.CustomerAutoCompleteFuncInGrid,
+                    //         ParamsChangedCheckFunc: vue.CustomerParamsChangedCheckFuncInGrid,
+                    //         getData: (ui, grid) => {
+                    //             console.log("psprops getData", ui.$cell.find(".target-input").val());
+                    //             return ui.$cell.find(".target-input").val();
+                    //         },
+                    //         htmlRender: ui => {
+                    //             var $el = $("<div>")
+                    //                 .addClass("d-flex")
+                    //                 .append($("<div>").text(ui.rowData.得意先ＣＤ).width(60).addClass("text-right"))
+                    //                 .append($("<div>").text(":").addClass("pl-1").addClass("pr-1"))
+                    //                 .append($("<div>").text(ui.rowData.得意先名))
+                    //                 ;
+
+                    //             return $el[0];
+                    //         },
+                    //     },
+                    // },
+                    // {
+                    //     title: "部署ＣＤ",
+                    //     dataIndx: "部署ＣＤ",
+                    //     dataType: "integer",
+                    //     hidden: true,
+                    //     key: true,
+                    // },
+                    // {
+                    //     title: "ＳＥＱ",
+                    //     dataIndx: "ＳＥＱ",
+                    //     dataType: "integer",
+                    //     hidden: true,
+                    //     key: true,
+                    // },
                 ],
             },
         });
@@ -853,43 +994,48 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "クリア", id: "DAI04091_Clear", disabled: false, shortcut: "F2",
-                    onClick: function () {
-                        //TODO: クリア
-                    }
-                },
-                {visible: "false"},
-                { visible: "true", value: "再検索(左)", id: "DAI04091_Search", disabled: false, shortcut: "F5",
+                { visible: "true", value: "再検索(左)", id: "DAI04091_Search", disabled: false, shortcut: "F2",
                     onClick: function () {
                         vue.conditionChanged(true);
                     }
                 },
-                { visible: "true", value: "保存(左)", id: "DAI04091_Save", disabled: false, shortcut: "F6",
+                { visible: "true", value: "保存(左)", id: "DAI04091_Save", disabled: false, shortcut: "F3",
                     onClick: function () {
                         vue.saveCourse();
                     }
                 },
-                { visible: "true", value: "再検索(右)", id: "DAI04091_SearchOthers", disabled: false, shortcut: "F7",
+                { visible: "true", value: "削除(左)", id: "DAI04091_Delete", disabled: false, shortcut: "F4",
                     onClick: function () {
-                        vue.conditionChangedOthers(true);
+                        vue.deleteCourse();
                     }
                 },
-                { visible: "true", value: "保存(右)", id: "DAI04091_SaveOthers", disabled: false, shortcut: "F8",
-                    onClick: function () {
-                        vue.saveCourseOthers();
-                    }
-                },
-                { visible: "true", value: "再検索(両方)", id: "DAI04091_SearchBoth", disabled: false, shortcut: "F9",
+                {visible: "false"},
+                { visible: "true", value: "再検索(両方)", id: "DAI04091_SearchBoth", disabled: false, shortcut: "F5",
                     onClick: function () {
                         vue.conditionChangedBoth(true);
                     }
                 },
-                { visible: "true", value: "保存(両方)", id: "DAI04091_SaveBoth", disabled: false, shortcut: "F10",
+                { visible: "true", value: "保存(両方)", id: "DAI04091_SaveBoth", disabled: false, shortcut: "F6",
                     onClick: function () {
                         vue.saveCourseBoth();
                     }
                 },
                 {visible: "false"},
+                { visible: "true", value: "再検索(右)", id: "DAI04091_SearchOthers", disabled: false, shortcut: "F9",
+                    onClick: function () {
+                        vue.conditionChangedOthers(true);
+                    }
+                },
+                { visible: "true", value: "保存(右)", id: "DAI04091_SaveOthers", disabled: false, shortcut: "F10",
+                    onClick: function () {
+                        vue.saveCourseOthers();
+                    }
+                },
+                { visible: "true", value: "削除(右)", id: "DAI04091_DeleteOthers", disabled: false, shortcut: "F11",
+                    onClick: function () {
+                        vue.deleteCourseOthers();
+                    }
+                },
             );
         },
         mountedFunc: function(vue) {
@@ -907,6 +1053,20 @@ export default {
                 }
                 return true;
             });
+
+            var empties = _.range(0, 15)
+            .map(v => {
+                return {
+                    部署ＣＤ: null,
+                    コースＣＤ: null,
+                    ＳＥＱ: null,
+                    得意先ＣＤ: null,
+                    得意先名: null,
+                };
+            });
+
+            vue.DAI04091Grid1.setLocalData(_.cloneDeep(empties));
+            vue.DAI04091Grid2.setLocalData(_.cloneDeep(empties));
 
             //move node buttons
             $(vue.$el).find(".moveButtons .btn").on("click", event => vue.moveNodes(event, vue));
@@ -934,7 +1094,8 @@ export default {
             var vue = this;
 
             //得意先マスタ事前検索
-            axios.post("/DAI04091/GetCustomerListForSelect", { bushoCd: code }),
+            // axios.post("/DAI04091/GetCustomerListForSelect", { bushoCd: code })
+            //     .then(res => vue.CustomerList = res.data);
 
             //条件変更ハンドラ
             vue.conditionChanged();
@@ -952,6 +1113,8 @@ export default {
             selectName.prop("disabled", !code || !code.includes("新規"))
                       .prop("placeholder", "備考(理由や用途)");
 
+            vue.footerButtons.find(v => v.id == "DAI04091_Delete").disabled = code == 0;
+
             //条件変更ハンドラ
             vue.conditionChanged();
         },
@@ -959,7 +1122,8 @@ export default {
             var vue = this;
 
             //得意先マスタ事前検索
-            axios.post("/DAI04091/GetCustomerListForSelect", { bushoCd: code }),
+            // axios.post("/DAI04091/GetCustomerListForSelect", { bushoCd: code })
+            //     .then(res => vue.CustomerListOthers = res.data);
 
             //条件変更ハンドラ
             vue.conditionChangedOthers();
@@ -977,6 +1141,8 @@ export default {
             selectName.prop("disabled", !code || !code.includes("新規"))
                       .prop("placeholder", "備考(理由や用途)");
 
+            vue.footerButtons.find(v => v.id == "DAI04091_DeleteOthers").disabled = code == 0;
+
             //条件変更ハンドラ
             vue.conditionChangedOthers();
         },
@@ -989,6 +1155,12 @@ export default {
                 var bushoChanged = !grid1.prevPostData || grid1.prevPostData.bushoCd != vue.viewModel.BushoCd;
                 var courseChanged = !grid1.prevPostData || grid1.prevPostData.courseCd != vue.viewModel.CourseCd;
                 var mngCdChanged = !grid1.prevPostData || grid1.prevPostData.mngCd != vue.viewModel.MngCd;
+
+                if (!!bushoChanged) {
+                    console.log("get customer list")
+                    axios.post("/DAI04091/GetCustomerListForSelect", { bushoCd: vue.viewModel.BushoCd })
+                        .then(res => vue.CustomerList = res.data);
+                }
 
                 if (required && (forced || bushoChanged || courseChanged || mngCdChanged)) {
                     grid1.searchData({ bushoCd: vue.viewModel.BushoCd, courseCd: vue.viewModel.CourseCd, mngCd: vue.viewModel.MngCd });
@@ -1004,6 +1176,12 @@ export default {
                 var bushoChanged = !grid2.prevPostData || grid2.prevPostData.bushoCd != vue.others.BushoCd;
                 var courseChanged = !grid2.prevPostData || grid2.prevPostData.courseCd != vue.others.CourseCd;
                 var mngCdChanged = !grid2.prevPostData || grid2.prevPostData.mngCd != vue.others.MngCd;
+
+                if (!!bushoChanged) {
+                    console.log("get customer list others")
+                    axios.post("/DAI04091/GetCustomerListForSelect", { bushoCd: vue.others.BushoCd })
+                        .then(res => vue.CustomerListOthers = res.data);
+                }
 
                 if (required && (forced || bushoChanged || courseChanged || mngCdChanged)) {
                     grid2.searchData({ bushoCd: vue.others.BushoCd, courseCd: vue.others.CourseCd, mngCd: vue.others.MngCd });
@@ -1025,17 +1203,171 @@ export default {
             })
             ;
         },
-        saveCourse: function() {
+        GetCustomerListForSelect: function(ui) {
+            var vue = this;
+            console.log("CustomerList", ui)
+            return vue.CustomerList;
+        },
+        saveCourse: function(isBoth) {
             var vue = this;
             var grid1 = vue.DAI04091Grid1;
+
+            var params = _.cloneDeep(vue.viewModel);
+            params.idx = 0;
+
+            vue.save(grid1, vue.viewModel, params, isBoth);
+        },
+        saveCourseOthers: function(isBoth) {
+            var vue = this;
+            var grid2 = vue.DAI04091Grid2;
+
+            var params = _.cloneDeep(vue.others);
+            params.idx = 1;
+
+            vue.save(grid2, vue.others, params, isBoth);
+        },
+        saveCourseBoth: function() {
+            var vue = this;
+
+            $.dialogConfirm({
+                title: "確認",
+                contents: "変更内容を保存します。宜しいですか？",
+                buttons:[
+                    {
+                        text: "はい",
+                        class: "btn btn-primary",
+                        click: function(){
+                            $(this).dialog("close");
+
+                            //保存実行
+                            Promise.all([
+                                new Promise((resolve, reject ) => resolve()).then(() => vue.saveCourse(true)),
+                                new Promise((resolve, reject ) => resolve()).then(() => vue.saveCourseOthers(true)),
+                            ])
+                            .then((res1, res2) => {
+                                console.log("save both promise all", res1, res2);
+                                vue.params.parent.conditionChanged();
+                            })
+                            .catch(err => {
+                                console.log(vue.id + " saveBoth", err);
+                                $.dialogErr({
+                                    title: "異常終了",
+                                    contents: "変更内容の保存に失敗しました",
+                                });
+                            })
+                            ;
+                        }
+                    },
+                    {
+                        text: "いいえ",
+                        class: "btn btn-danger",
+                        click: function(){
+                            $(this).dialog("close");
+                        }
+                    },
+                ],
+            });
+        },
+        save: function(grid, model, params, isBoth) {
+            var vue = this;
+
+            params.EditUserCd = vue.getLoginInfo().uid;
+            params.Memo =  _.isNaN(params.MngCd * 1)
+                ? (
+                    params.idx == 0
+                        ? vue.$refs.PopupSelect_MngCd.selectName
+                        : vue.$refs.PopupSelect_MngCdOthers.selectName
+                )
+                : params.Memo;
+            params.StartDate = moment(params.StartDate, "YYYY年MM月DD日").format("YYYYMMDD");
+            params.EndDate = moment(params.EndDate, "YYYY年MM月DD日").format("YYYYMMDD");
+
+            var SaveList = _.cloneDeep(grid.pdata)
+            .map(v => {
+                v.部署ＣＤ = v.部署ＣＤ || model.BushoCd ;
+                v.コースＣＤ = v.コースＣＤ || model.CourseCd;
+                v.得意先ＣＤ = v.コード;
+                v.得意先名 = v.名称;
+                return v;
+            })
+            .filter(v => !!v.得意先ＣＤ)
+            .map((v, i) => {
+                var r = {};
+                r.部署ＣＤ = v.部署ＣＤ;
+                r.コースＣＤ = v.コースＣＤ;
+                r.ＳＥＱ = i + 1;
+                r.得意先ＣＤ = v.得意先ＣＤ;
+                r.修正担当者ＣＤ = vue.getLoginInfo().uid;
+
+                return r;
+            });
 
             grid.saveData(
                 {
                     uri: "/DAI04091/Save",
-                    params: { targets: targets },
+                    params: {
+                        Condition: params,
+                        SaveList: SaveList,
+                    },
+                    confirm: {
+                        isShow: !isBoth,
+                    },
+                    done: {
+                        isShow: false,
+                        callback: (gridVue, grid, res)=>{
+                            if (!!res.result) {
+                                if (!isBoth) {
+                                    $.dialogInfo({
+                                        title: "保存完了",
+                                        contents: "内容の保存が完了しました。",
+                                    });
+                                    vue.params.parent.conditionChanged();
+                                }
+
+                                grid.refreshDataAndView();
+
+                                if (model.MngCd != res.MngCd) {
+                                    var comp = params.idx == 0
+                                        ? vue.$refs.PopupSelect_MngCd
+                                        : vue.$refs.PopupSelect_MngCdOthers;
+
+                                    comp.getDataList(
+                                        {
+                                            BushoCd: model.BushoCd,
+                                            CourseCd: model.CourseCd,
+                                            WithNew: true,
+                                            noCache: true,
+                                        },
+                                        () => comp.setSelectValue(res.MngCd),
+                                    );
+                                }
+                            } else {
+                                if (!isBoth) {
+                                    $.dialogErr({
+                                        title: "保存失敗",
+                                        contents: res.message,
+                                    });
+                                }
+                            }
+
+                            return false;
+                        },
+                    },
+                    error: {
+                        isShow: false,
+                        callback: (vue, grid, error)=>{
+                            console.log(error);
+                            if (!isBoth) {
+                                $.dialogErr({
+                                    title: "異常終了",
+                                    contents: "変更内容の保存に失敗しました",
+                                });
+                            }
+                            return false;
+                        },
+                    },
                 }
             );
-
         },
         CourseAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
@@ -1103,7 +1435,7 @@ export default {
                 .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
                 .filter(v => {
                     return keyOR.length == 0
-                        || _.some(keyOR, k => v.コースＣＤ.startsWith(k))
+                        || _.some(keyOR, k => !!v.コースＣＤ ? v.コースＣＤ.startsWith(k) : false)
                         || _.some(keyOR, k => v.whole.includes(k))
                 })
                 .filter(v => {
@@ -1147,9 +1479,17 @@ export default {
         onAfterSearchFunc: function (gridVue, grid, res) {
             var vue = this;
 
-            res = res.map(v => {
-                return v;
-            });
+            if (res.length < 15) {
+                res.push(..._.range(0, 15 - res.length).map(v => {
+                    return {
+                        部署ＣＤ: null,
+                        コースＣＤ: null,
+                        ＳＥＱ: null,
+                        得意先ＣＤ: null,
+                        得意先名: null,
+                    };
+                }));
+            }
 
             return res;
         },
