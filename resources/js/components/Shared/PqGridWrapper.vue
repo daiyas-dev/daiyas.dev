@@ -547,22 +547,22 @@ export default {
                                 var editCell = ui.$cell;
                                 var gridCell = grid.getCell(ui);
 
-                                ui.column.binder = {
-                                    [ui.dataIndx]: ui.rowData[ui.dataIndx],
-                                };
+                                // ui.column.binder = {
+                                //     [ui.dataIndx]: ui.rowData[ui.dataIndx],
+                                // };
 
                                 // key events?
-                                if (!!window.event && !!window.event.keyCode && !_.isNaN(window.event.key * 1)) {
-                                    if (ui.column.dataType == "integer" || ui.column.dataType == "float") {
-                                        ui.column.binder[ui.dataIndx] = window.event.key;
-                                    }
-                                }
+                                // if (!!window.event && !!window.event.keyCode && !_.isNaN(window.event.key * 1)) {
+                                //     if (ui.column.dataType == "integer" || ui.column.dataType == "float") {
+                                //         ui.column.binder[ui.dataIndx] = window.event.key;
+                                //     }
+                                // }
 
                                 //create PopupSelect instance
                                 var props = _.cloneDeep(ui.column.psProps);
                                 props.id = "PopupSelect_" + ui.dataIndx + "_" + ui.rowIndx;
                                 props.ref = "PopupSelect_" + ui.dataIndx + "_" + ui.rowIndx;
-                                props.vmodel = ui.column.binder;
+                                props.vmodel = ui.rowData;
                                 props.bind = props.bind || ui.dataIndx;
                                 props.editable = (_.isFunction(ui.column.editable) ? ui.column.editable(ui) : ui.column.editable) || true;
                                 props.width = gridCell.width();
@@ -571,29 +571,32 @@ export default {
                                     props.params = props.params(vue.$parent, grid);
                                 }
 
-                                if (props.buddy) {
-                                    ui.column.binder[props.buddy] = ui.rowData[props.buddy];
+                                // if (props.buddy) {
+                                //     ui.column.binder[props.buddy] = ui.rowData[props.buddy];
+                                // }
+
+                                // if (props.buddies.length) {
+                                //     _.keys(props.buddies).forEach(k => {
+                                //         ui.column.binder[k] = ui.rowData[props.buddies[k]];
+                                //     });
+                                // }
+
+                                var ps = ui.column.ps;
+                                // console.log("ps in grid", ps, !!ps ? ps.ui.rowIndx : null);
+                                if (!ps || ps.ui.rowIndx != ui.rowIndx) {
+                                    ps = new (VueApp.createInstance(vue.PopupSelect))(
+                                        {
+                                            propsData: props,
+                                        }
+                                    );
+                                    ps.$mount();
+                                    ps.onGrid = true;
+                                    ps.grid = grid;
+                                    ps.gridCell = gridCell;
+                                    ps.ui = ui;
+                                    ps.rowData = ui.rowData;
+                                    ui.column.ps = ps;
                                 }
-
-                                if (props.buddies.length) {
-                                    _.keys(props.buddies).forEach(k => {
-                                        ui.column.binder[k] = ui.rowData[props.buddies[k]];
-                                    });
-                                }
-
-                                var ps = new (VueApp.createInstance(vue.PopupSelect))(
-                                    {
-                                        propsData: props,
-                                    }
-                                );
-                                ps.$mount();
-                                ps.onGrid = true;
-                                ps.grid = grid;
-                                ps.gridCell = gridCell;
-                                ps.ui = ui;
-                                ps.rowData = ui.rowData;
-
-                                ui.ps = ps;
 
                                 //editor element
                                 var element = $(ps.$el);
@@ -602,22 +605,22 @@ export default {
                                     // console.log("ps keyup:" + event.which, element.find("input").val());
                                     switch (event.which) {
                                         case 9:
-                                            if (
-                                                !ps.hasButtonFocus ||
-                                                (
-                                                    ps.hasButtonFocus &&
-                                                    (
-                                                        $(event.target).hasClass("clear-button") && !event.shiftKey
-                                                        ||
-                                                        $(event.target).hasClass("target-input") && event.shiftKey
-                                                    )
-                                                )
-                                            ) {
-                                                vue.setCellState(grid, ui, true);
-                                                vue.moveNextCell(grid, ui, event.shiftKey);
-                                                return false;
-                                            }
-                                            return true;
+                                            // if (
+                                            //     !ps.hasButtonFocus ||
+                                            //     (
+                                            //         ps.hasButtonFocus &&
+                                            //         (
+                                            //             $(event.target).hasClass("clear-button") && !event.shiftKey
+                                            //             ||
+                                            //             $(event.target).hasClass("target-input") && event.shiftKey
+                                            //         )
+                                            //     )
+                                            // ) {
+                                            //     vue.setCellState(grid, ui, true);
+                                            //     vue.moveNextCell(grid, ui, event.shiftKey);
+                                            //     return false;
+                                            // }
+                                            // return true;
                                         case 13:
                                             // console.log("ps keyup", event.which);
                                             vue.setCellState(grid, ui, true);
@@ -747,7 +750,7 @@ export default {
                                 var rowData = ui.rowData;
 
                                 var source = config.source;
-                                source = _.isFunction(source) ? source() : source;
+                                source = _.isFunction(source) ? source(ui) : source;
 
                                 $input.autocomplete({
                                     source: (request, response) => {
@@ -796,7 +799,8 @@ export default {
                                                         container: "body",
                                                         template: '<div class="tooltip" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>'
                                                     })
-                                                    .tooltip("show");
+                                                    .tooltip("show")
+                                                    ;
                                             } else {
                                                 $input.tooltip("dispose");
                                             }
@@ -1725,6 +1729,7 @@ export default {
                                         container: "body",
                                         animation: false,
                                         template: '<div class="tooltip text-overflow" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>',
+                                        html: true,
                                         placement: "auto",
                                         trigger: "hover",
                                         title: title,
@@ -1739,6 +1744,15 @@ export default {
                 //colModelのeditableの設定より、PqGridのclassに入力可不可設定
                 var cfg = pqGridObj.columnTemplate.editable ? "editable" : "readonly";
                 this.grid.widget().addClass("table_" + cfg);
+
+                //カスタムDropメソッド
+                // if (!!pqGridObj.dropModel && !!pqGridObj.dropModel.customDrop) {
+                //     this.grid.options.dropModel.orgDrop = this.grid.options.dropModel.drop;
+                //     this.grid.options.dropModel.drop = pqGridObj.dropModel.customDrop;
+                // }
+                // if (!!pqGridObj.dropModel && !!pqGridObj.dropModel.enter) {
+                //     this.grid.widget().find(".ui-droppable").mouseenter(event => this.grid.options.dropModel.enter(event, this.grid));
+                // }
 
                 if (this.hasFreezeRightCols) {
                     var widget = this.grid.widget();
@@ -2281,28 +2295,30 @@ export default {
                                 var status = error.response.status;
                                 var errObj = error.response.data;
 
-                                if (status == 422) {
-                                    //validation error
-                                    errObj.isNew = true;
-                                    vue.saveErrors = errObj;
-                                    vue.onSaveErrors(grid, errObj);
-                                    //初回更新終了設定
-                                    vue.saveErrors.isNew = false;
-                                } else {
-                                    //exception error
-                                    errObj.isNew = true;
-                                    vue.saveExceptions = errObj;
-                                    vue.onSaveExceptions(grid, errObj);
-                                    //初回更新終了設定
-                                    vue.onSaveExceptions.isNew = false;
-                                }
-
                                 //コールバックの実行
-                                op.error.callback(vue, grid, errObj);
+                                var ret = op.error.callback(vue, grid, errObj);
 
-                                //メッセージ追加
-                                vue.$root.$emit("addMessage",
-                                    op.error.title + "(" + vue.$parent.ScreenTitle + ":" + errObj.message + ")");
+                                if (ret != false) {
+                                    if (status == 422) {
+                                        //validation error
+                                        errObj.isNew = true;
+                                        vue.saveErrors = errObj;
+                                        vue.onSaveErrors(grid, errObj);
+                                        //初回更新終了設定
+                                        vue.saveErrors.isNew = false;
+                                    } else {
+                                        //exception error
+                                        errObj.isNew = true;
+                                        vue.saveExceptions = errObj;
+                                        vue.onSaveExceptions(grid, errObj);
+                                        //初回更新終了設定
+                                        vue.onSaveExceptions.isNew = false;
+                                    }
+
+                                    //メッセージ追加
+                                    vue.$root.$emit("addMessage",
+                                        op.error.title + "(" + vue.$parent.ScreenTitle + ":" + errObj.message + ")");
+                                }
 
                                 //保存中ダイアログ閉じる
                                 saveDlg.dialog("close");
@@ -3314,14 +3330,14 @@ export default {
                             name: "CSVファイル",
                             icon: "fas fa-file-csv fa-lg",
                             action: function(){
-                                vue.exportData("csv");
+                                vue.exportData("csv", true);
                             }
                         },
                         {
                             name: "Excelファイル",
                             icon: "fas fa-file-excel fa-lg",
                             action: function(){
-                                vue.exportData("xlsx");
+                                vue.exportData("xlsx", true);
                             }
                         },
                     ]

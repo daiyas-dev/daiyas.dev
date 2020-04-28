@@ -16,6 +16,7 @@
                     :showColumns=target.showColumns
                     :noViewModel=target.noViewModel
                     :callback=target.callback
+                    :selector=target.selector
                 ></page-selector>
             </div>
         </template>
@@ -116,6 +117,10 @@ export default {
                         grid.widget().css("visibility", "hidden");
                         options.callback(grid);
                     }
+                    if (options.selector) {
+                        var grid = reuseTarget.wrapper.find(".pq-grid").pqGrid("getInstance").grid;
+                        options.selector(grid);
+                    }
 
                     //ボタン編集
                     buttons = this.editButtons(buttons);
@@ -124,6 +129,7 @@ export default {
                     reuseTarget.wrapper.dialog("option", "title", options.title);
                     reuseTarget.wrapper.dialog("option", "isModal", options.isModal || false);
                     reuseTarget.wrapper.dialog("option", "buttons", buttons);
+                    reuseTarget.wrapper.dialog("option", "open", options.open);
                     reuseTarget.wrapper.dialog("open");
 
                     return;
@@ -159,6 +165,7 @@ export default {
                 isChild: true,
                 noViewModel: true,
                 callback: options.callback,
+                selector: options.selector,
             };
             this.targets.push(target);
 
@@ -217,6 +224,7 @@ export default {
                     resizable: options.resizable,
                     reuse: options.reuse || false,
                     buttons: buttons,
+                    opened: options.opened,
                     beforeClose: options.onBeforeClose || this.beforeClose,
                 });
 
