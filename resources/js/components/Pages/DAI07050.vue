@@ -869,6 +869,11 @@ export default {
                 	font-size: 18pt;
                 	font-weight: bold;
                 	letter-spacing: 16px;
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
                 }
                 .header-subtitle{
                 	font-size: 14pt;
@@ -877,12 +882,12 @@ export default {
                 .header-seikyu-no{
                     border-style: solid;
                     border-left-width: 0px;
-                    border-top-width: 1px;
+                    border-top-width: 0px;
                     border-right-width: 0px;
-                    border-bottom-width: 0px;
+                    border-bottom-width: 1px;
                     margin-top: 3px;
                     padding-top: 3px;
-
+                    text-align: center;
                 }
                 span {
                     padding-left: 8px;
@@ -890,78 +895,23 @@ export default {
                 div.header-tokuisaki {
                     border-style: solid;
                     border-left-width: 0px;
-                    border-top-width: 1px;
+                    border-top-width: 0px;
                     border-right-width: 0px;
                     border-bottom-width: 1px;
-                    padding-top: 12px;
-                    padding-bottom: 12px;
+                    padding-top: 3px;
+                    padding-bottom: 3px;
                     margin-top: 3px;
                     margin-bottom: 3px;
                     font-size: 11pt;
                     font-weight: bold;
+                    height: 15px;
                 }
-				#a-box {
-					float: left;
-					width: 58%
-				}
-				#b-box {
-					float: left;
-					width: 20%;
-				}
-				#c-box {
-					float: left;
-					width: 22%;
-				}
-				#d-box {
-					float: left;
-					width: 50%;
-				}
-				#e-box {
-					width: 6%;
-				}
 				#f-box {
-					float: right;
-					width: 42%;
                     -webkit-print-color-adjust: exact;
                     background-size: contain;
                     background-repeat: no-repeat;
                     background-image: url(${location.origin}/images/BushoStamp/${vue.BushoInfo.部署CD}.png);
                 }
-				#g-box {
-					clear: both;
-					float: left;
-					width: 58%;
-					padding-top: 45px;
-				}
-				#h-box {
-					float: right;
-					width: 42%;
-				}
-				#i-box {
-					float: left;
-					width: 35%;
-				}
-				#j-box {
-					float: right;
-					width: 55%;
-				}
-				#k-box {
-					float: left;
-					width: 90%;
-                    padding-bottom: 8px;
-				}
-				#l-box {
-					float: right;
-					width: 10%;
-	                padding-bottom: 8px;
-	                text-align: right;
-				}
-				#f-box > div{
-					padding-left: 14px;
-				}
-				#i-box {
-					padding-left: 14px;
-				}
                 table.header-table tbody th {
                     text-align: center;
                     font-family: "MS UI Gothic";
@@ -1057,7 +1007,26 @@ export default {
                     border-right-width: 2px;
                     border-bottom-width: 3px;
                 }
-            `;
+                div.inkan:first-child {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 1px;
+                    border-bottom-width: 0px;
+                    margin: 0px;
+                    padding-top: 2px;
+                    text-align: center;
+                    height: 15px !important;
+                }
+                div.inkan:last-child {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 1px;
+                    border-bottom-width: 1px;
+                    height: 55px !important;
+                }
+              `;
 
             var targetData = data || grid.pdata;
 
@@ -1065,80 +1034,82 @@ export default {
                 var layout = `
                     <div>
                         <div class="header">
-                            <div>
-                                <div id="k-box">
-                                    ${!!r.請求先ＣＤ ? r.請求先ＣＤ + " - " + r.コースＣＤ : ""}
-                                </div>
-                            </div>
-                            <div>
-                                <div id="a-box">
-                                    </br></br>
-                                    <br>
-                                </div>
-                                <div id="b-box">
-                                    <div class="header-title">
+                            <div style="float: left; width: 75%">
+                                <div style="clear: left;">
+                                    <div style="float: left; width: 40%">
+                                        ${!!r.請求先ＣＤ ? r.請求先ＣＤ + " - " + r.コースＣＤ : ""}
+                                    </div>
+                                    <div class="header-title" style="float: left; width: 40%; text-align: center; margin-left:20px;">
                                         領収書
                                     </div>
-                                    <div class="header-subtitle">
-                                        (軽減税率対象)
+                                </div>
+                                <div style="clear: left;">
+                                    <div class="header-tokuisaki" style="clear: left; width: 50%; margin-left: 20px;">
+                                        <div style="float: left; width: 90%;">
+                                            ${r.得意先名 || ""}
+                                        </div>
+                                        <div style="float: left; width: 10%; text-align: right;">様
+                                        </div>
+                                    </div>
+                                    <table class="header-table" style="clear: left; border-width: 0px; margin-bottom: 10px; margin-left: 80px; width: 40%;">
+                                        <tbody>
+                                            <tr>
+                                                <th style="width: 25%"> 金 額 </th>
+                                                <th style="width: 75%">￥${!!r.請求先ＣＤ ? pq.formatNumber(vue.viewModel.ValueKind == "0" ? r.今回請求額 : r.今回売上額, "#,###0") : ""}－</th>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div style="float: left; width: 25%">
+                                <div class="header-seikyu-no">
+                                    <span/>${!!r.請求先ＣＤ ? r.請求番号 : (moment(r.請求日付).format("YYMMDD") + " - " + r.請求番号)}
+                                </div>
+                                <div>
+                                    <span style="white-space: pre;">${moment(r.請求日付).format("  YY  年  MM  月  DD  日")}</span>
+                                </div>
+                                <div style="height: 45px;"></div>
+                            </div>
+                            <div style="clear: left; width: 100%">
+                                <div style="float: left; width: 55%">
+                                    <div style="margin-left: 20px;">
+                                        但し　お弁当代として（軽減税率対象）
+                                        <br>
+                                        上記金額正に領収いたしました。
+                                    </div>
+                                    <div id="f-box">
+                                        <div>
+                                            ${vue.BushoInfo.会社名称}
+                                        </div>
+                                        <div>
+                                            <span/>〒
+                                            <span/>${vue.BushoInfo.郵便番号}
+                                        </div>
+                                        <div>
+                                            ${vue.BushoInfo.住所}
+                                        </div>
+                                        <div>
+                                            Tel
+                                            <span/><span/>${vue.BushoInfo.電話番号}
+                                        </div>
                                     </div>
                                 </div>
-                                <div id="c-box">
-                                    <div>
-                                        <span style="white-space: pre;">${moment(r.請求日付).format("  YY  年  MM  月  DD  日")}</span>
+                                <div style="float: left; width: 45%">
+                                    <div style="float: left; width: 25%">
+                                        <div style="clear: left; height:20px;" class="inkan">
+                                            取扱者印
+                                        </div>
+                                        <div style="clear: left; height:60px;" class="inkan">
+                                        </div>
                                     </div>
-                                    <div class="header-seikyu-no">
-                                        <span/>${!!r.請求先ＣＤ ? r.請求番号 : (moment(r.請求日付).format("YYMMDD") + " - " + r.請求番号)}
-                                    </div>
-                                </div>
-                            <div>
-                            <div style="clear: both;">
-                                <div id="d-box">
-                                    <div class="header-tokuisaki">
-                                        ${r.得意先名 || ""}
-                                        <span>様
-                                    </div>
-                                    </br>
-                                </div>
-                                <div id="e-box">
-                                </div>
-                                <div id="f-box">
-                                    <div style="margin-bottom: 8px;">
-                                        ${vue.BushoInfo.会社名称}
-                                    </div>
-                                    <div>
-                                        <span/>〒
-                                        <span/>${vue.BushoInfo.郵便番号}
-                                    </div>
-                                    <div>
-                                        ${vue.BushoInfo.住所}
-                                    </div>
-                                    <div>
-                                        Tel
-                                        <span/><span/>${vue.BushoInfo.電話番号}
-                                    </div>
-                                    <div>
-                                        Fax
-                                        <span/><span/>${vue.BushoInfo.FAX}
-                                    </div>
-                                </div>
-                                <div id="g-box">
-                                    <div style="margin-bottom: 8px;">
-                                        毎度ありがとうございます。
-                                    </div>
-                                    <div>
-                                        下記の通りご請求申し上げます。
+                                    <div style="float: left; width: 75%">
+                                        <div style="clear: left; height:50px;"></div>
+                                        <div style="clear:">
+                                            取扱者印なきものは無効
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        <table class="header-table" style="border-width: 0px; margin-bottom: 20px;">
-                            <tbody>
-                                <tr>
-                                    <th> 金 額 </th>
-                                    <th>${!!r.請求先ＣＤ ? pq.formatNumber(vue.viewModel.ValueKind == "0" ? r.今回請求額 : r.今回売上額, "#,###0") : ""}</th>
-                                </tr>
-                            </tbody>
-                        </table>
                         </div>
                     <div>
                 `;

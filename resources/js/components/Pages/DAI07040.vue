@@ -38,6 +38,7 @@
                     uri="/Utilities/GetCourseList"
                     :params='{ bushoCd: viewModel.BushoCd }'
                     :hasNull=true
+                    :withCode=true
                     :onChangedFunc=onCourseCdChanged
                 />
             </div>
@@ -503,6 +504,7 @@ export default {
             console.log("dummy")
         },
         print: function() {
+            //TODO:印刷確認未完了
             var vue = this;
             var grid = vue.DAI07040Grid1;
 
@@ -528,18 +530,18 @@ export default {
                 }
                 th, td {
                     font-family: "MS UI Gothic";
-                    font-size: 10pt;
+                    font-size: 10.5pt;
                     font-weight: normal;
                     margin: 0px;
                     padding-left: 3px;
                     padding-right: 3px;
                 }
                 th {
-                    height: 16px;
+                    height: 37px;
                     text-align: center;
                 }
                 td {
-                    height: 16px;
+                    height: 19px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
@@ -570,8 +572,8 @@ export default {
                     text-align: center;
                 }
                 div.title > h3, div.title > h5 {
-                    margin-top: 10px;
-                    margin-bottom: 10px;
+                    margin-top: 5px;
+                    margin-bottom: 5px;
                 }
             `;
 
@@ -592,43 +594,33 @@ export default {
                 var TantoNm = vue.viewModel.PrintOrder == "0" ? "" : (GroupInfo[3] || "");
 
                 return `
-                    <div class="title">
-                        <h3>* * * <span/>週刊曜日予定表<span/> * * *</h3>
-                        <div>コース：${!!vue.viewModel.CourseCdArray && vue.viewModel.CourseCdArray.length > 0 ?
-                            JSON.stringify(DAI07040.viewModel.CourseCdArray.map(v => v.code)).replace(/"|\[|]/g,"")
-                            : "全コース"}</div>
-                    </div>
                     <div class="header">
-                        <div>
-                            <div id="a-box">
-                                ${vue.viewModel.BushoNm}
+                        <div style="float: left; width: 23%;">
+                            <div style="clear: left; height: 18px;"></div>
+                            <div style="clear: left;" class="header-box">
+                                <div style="float: left;; width: 15%;">日付</div>
+                                <div style="float: left;; width: 78.5%;">${moment(vue.viewModel.TargetDate, "YYYYMMDD").format("YYYY年MM月DD日")}</div>
                             </div>
-                            <div id="b-box"></div>
-                            <div id="c-box">
-                                <span>作成日</span>
-                                <span>${moment().format("YYYY年MM月DD日")}</span>
-                                <span>PAGE</span>
-                                <span>${idx + 1}/</span>
-                                ${length}
-                            </div>
-                        </div>
-                        <div style="clear: both;">
-                            <div id="d-box">
-                                <div style="float: left;">${moment(vue.viewModel.DeliveryDate, "YYYYMMDD").format("YY/MM/DD(ddd)")}</div>
-                            </div>
-                            <div id="e-box"></div>
-                            <div id="f-box" style="font-size: 9pt !important;">
-                                ${vue.BushoInfo.会社名称}
+                            <div style="clear: left;" class="header-box">
+                                <div style="float: left; width: 15%;">部署</div>
+                                <div style="float: left; width: 15%;">${vue.viewModel.BushoCd}</div>
+                                <div style="float: left; width: 60.5%;">${vue.viewModel.BushoNm}</div>
                             </div>
                         </div>
-                        <div style="clear: both;">
-                            <div id="g-box"></div>
-                            <div id="h-box"></div>
-                            <div id="i-box">
-                                Tel
-                                <span/>${vue.BushoInfo.電話番号}
-                                <span/>Fax
-                                <span/>${vue.BushoInfo.FAX}
+                        <div  class="title" style="float: left; width: 53.0%;">
+                            <h3>* * * <span/>週刊曜日予定表<span/> * * *</h3>
+                            <div style="margin-bottom: 5px;">コース：${!!vue.viewModel.CourseCdArray && vue.viewModel.CourseCdArray.length > 0 ?
+                                JSON.stringify(DAI07040.viewModel.CourseCdArray.map(v => v.code)).replace(/"|\[|]/g,"")
+                                : "全コース"}
+                            </div>
+                        </div>
+                        <div style="float: left; width: 24%;">
+                            <div style="clear: left; height: 39px;"></div>
+                            <div style="clear: left;" class="header-box">
+                                <div style="float: left; width: 15%;">作成日</div>
+                                <div style="float: left; width: 43.1%;">${moment().format("YYYY/MM/DD")}</div>
+                                <div style="float: left; width: 15%;">PAGE</div>
+                                <div style="float: left; width: 15%;">${idx + 1}/${length}</div>
                             </div>
                         </div>
                     </div>
@@ -645,6 +637,22 @@ export default {
                         .append(
                             grid.generateHtml(
                                 `
+                                    .header div:not(.title) {
+                                        font-size: 11px;
+                                    }
+                                    .header-box > div {
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 1px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 0px;
+                                        padding-top: 3px;
+                                        padding-left: 3px;
+                                        padding-right: 3px;
+                                    }
+                                    .header-box > div:last-child {
+                                        border-right-width: 1px;
+                                    }
                                     .header-table th {
                                         border-style: solid;
                                         border-left-width: 0px;
@@ -691,7 +699,20 @@ export default {
                                     table.DAI07040Grid1 tr td:last-child {
                                         border-right-width: 1px;
                                     }
-                                `,
+                                    table.DAI07040Grid1 th:nth-child(1) {
+                                        width: 24%;
+                                    }
+                                    table.DAI07040Grid1 th:nth-child(9) {
+                                        width: 18%;
+                                    }
+                                    table.DAI07040Grid1 tbody tr.grand-summary td:nth-child(1) {
+                                        text-align: right;
+                                        padding-right: 10px;
+                                    }
+                                    table.DAI07040Grid1 tbody tr.grand-summary td {
+                                        line-height: 1.5em;
+                                    }
+                                 `,
                                 headerFunc,
                                 26,
                                 true,
