@@ -637,7 +637,7 @@ export default {
                 return `
                     <div class="header">
                         <div style="float: left; width: 26%;">
-                            <div style="height: 48px;"></div>
+                            <div style="height: 46px;"></div>
                             <div style="clear: left;" class="header-box">
 	                            <div style="float: left; width: 17%;">日付</div>
 	                            <div style="float: left; width: 79%;">${moment(vue.viewModel.TargetDate, "YYYYMMDD").format("YY年MM月DD日")}</div>
@@ -664,12 +664,20 @@ export default {
                                 ${vue.BushoInfo.会社名称}
                             </div>
                             <div>
-                                Tel
-                                <span></span>${vue.BushoInfo.電話番号}
+                                <div style="float: left; width: 25px;">
+                                    Tel
+                                </div>
+                                <div>
+                                    <span></span>${vue.BushoInfo.電話番号}
+                                </div>
                             </div>
                             <div>
-                                Fax
-                                <span></span>${vue.BushoInfo.FAX}
+                                <div style="float: left; width: 25px;">
+                                    Fax
+                                </div>
+                                <div>
+                                   <span></span>${vue.BushoInfo.FAX}
+                                </div>
                             </div>
                         </div>
                         <div style="float: left; width: 27%;"  class="header-box">
@@ -689,7 +697,6 @@ export default {
                         .append(
                             grid.generateHtml(
                                 `
-                                    div.title > div >span,
                                     div.header > div > div > span {
                                         padding-left: 8px;
                                         padding-right: 8px;
@@ -701,6 +708,7 @@ export default {
                                         border-right-width: 0px;
                                         border-bottom-width: 0px;
                                         padding-left: 3px;
+                                        padding-top: 3px;
                                         height: 20px;
                                     }
                                     div.header-box > div:last-child {
