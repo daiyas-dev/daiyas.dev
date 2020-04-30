@@ -338,7 +338,7 @@ export default {
                         format: "#,###.0",
                         hidden: true,
                         summary: {
-                            type: "TotalInt",
+                            type: "TotalFloat",
                         },
                     },
                     {
