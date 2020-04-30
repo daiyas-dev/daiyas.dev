@@ -104,7 +104,7 @@ SELECT
     , ISNULL(MOB_YOSOKU.CHU商品ＣＤ, 0) as CHU商品ＣＤ
     , ISNULL(MOB_YOSOKU.注文数, 0) as CHU注文数
     , ISNULL(HIBETSUP.製造パターン,TOKUISAKI.既定製造パターン) AS 既定製造パターン
-
+    , SHOHIN.商品区分
     , case when ISNULL(HIBETSUP.製造パターン,TOKUISAKI.既定製造パターン) > 0
     then ISNULL(SEIZOHIN.副食ＣＤ, SHOHIN.副食ＣＤ)
     else SHOHIN.副食ＣＤ
@@ -152,7 +152,9 @@ WHERE
 SELECT
 	WITH_コース別持出数.*
 	,s1.商品略称 主食略称
+	,s1.商品区分 主食商品区分
 	,s2.商品略称 副食略称
+	,s2.商品区分 副食商品区分
 from WITH_コース別持出数
     LEFT JOIN 商品マスタ s1 ON s1.商品ＣＤ = WITH_コース別持出数.主食ＣＤ
     LEFT JOIN 商品マスタ s2 ON s2.商品ＣＤ = WITH_コース別持出数.副食ＣＤ

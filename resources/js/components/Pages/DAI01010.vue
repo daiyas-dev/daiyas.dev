@@ -80,6 +80,7 @@
             :SearchOnActivate=false
             :options=this.grid1Options
             :onAfterSearchFunc=this.onAfterSearchFunc
+            :autoToolTipDisabled=true
         />
     </form>
 </template>
@@ -140,7 +141,7 @@ export default {
                 autoRow: false,
                 rowHtHead: 50,
                 rowHt: 35,
-                freezeCols: 1,
+                freezeCols: 2,
                 editable: false,
                 columnTemplate: {
                     editable: false,
@@ -181,6 +182,7 @@ export default {
                         width: 200, minWidth: 200,
                         editable: false,
                         fixed: true,
+                        tooltip: true,
                         render: ui => {
                             if (ui.rowData.pq_grandsummary) {
                                 //集計行
@@ -211,7 +213,9 @@ export default {
         },
         mountedFunc: function(vue) {
             //配送日付の初期値 -> 当日
-            vue.viewModel.DeliveryDate = moment();
+            //TODO:
+            // vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
+            vue.viewModel.DeliveryDate = moment("20190905").format("YYYY年MM月DD日");
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
@@ -273,18 +277,43 @@ export default {
             grid.filter({ oper: "replace", mode: "AND", rules: rules });
         },
         onAfterSearchFunc: function (vue, grid, res) {
-            console.log("1010", res)
-
+            window.res = res;
             //集計単位取得
-            var items = _(res
-                .filter(v => v.CHU注文数 || v.見込数)
-                .map(v => [
-                    { Cd: v.主食ＣＤ * 1, Nm: v.主食略称 },
-                    { Cd: v.副食ＣＤ * 1, Nm: v.副食略称 }
+            var items = _(
+                res
+                .filter(v => v.CHU注文数 * 1 != 0 || v.見込数 * 1 != 0)
+                .map(v => _.pick(
+                    v,
+                    [
+                        "商品区分",
+                        "主食ＣＤ",
+                        "主食商品区分",
+                        "主食略称",
+                        "副食ＣＤ",
+                        "副食商品区分",
+                        "副食略称"
+                    ])
+                )
+            )
+            .uniqWith(_.isEqual)
+            .filter(v => !!v.商品区分)
+            .groupBy("商品区分")
+            .values()
+            .map(v => _.flatten(
+                [
+                    _(v.map(r => _.pick(r, ["副食商品区分", "副食ＣＤ", "副食略称"])))
+                        .uniqWith(_.isEqual).sortBy(s => s.副食ＣＤ * 1).sortBy(s => s.副食商品区分 * 1).value()
+                        .map(r => { return { Cd: r.副食ＣＤ * 1 , Nm: r.副食略称}; }),
+                    _(v.map(r => _.pick(r, ["主食商品区分", "主食ＣＤ", "主食略称"])))
+                        .uniqWith(_.isEqual).sortBy(s => s.主食ＣＤ * 1).sortBy(s => s.主食商品区分 * 1).value()
+                        .map(r => { return { Cd: r.主食ＣＤ * 1 , Nm: r.主食略称}; }),
                 ])
             )
-            .flatten().uniqBy("Cd").sortBy("Cd").value()
-            .filter(v => !!v.Nm);
+            .flatten()
+            .uniqBy("Cd")
+            .value()
+            .filter(v => !!v.Nm)
+            ;
 
             //列定義初期化
             grid.options.colModel = grid.options.colModel.filter(c => c.fixed);
