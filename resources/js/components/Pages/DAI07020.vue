@@ -205,6 +205,9 @@ export default {
                         title: "順",
                         dataIndx: "順", dataType: "integer",
                         width: 45, maxWidth: 45, minWidth: 45,
+                        render: ui => {
+                            return { text: ui.rowData.順 + "<br>" + "<br>" + "<br>" };
+                        },
                     },
                     {
                         title: "得意先",
@@ -772,6 +775,15 @@ export default {
                                     table.DAI07020Grid1 tr th:nth-child(9) {
                                         width: 5.5%;
                                     }
+                                    table.DAI07020Grid1 tr td:nth-child(3),
+                                    table.DAI07020Grid1 tr td:nth-child(4),
+                                    table.DAI07020Grid1 tr td:nth-child(5),
+                                    table.DAI07020Grid1 tr td:nth-child(6),
+                                    table.DAI07020Grid1 tr td:nth-child(7),
+                                    table.DAI07020Grid1 tr td:nth-child(8),
+                                    table.DAI07020Grid1 tr td:nth-child(9) {
+                                        vertical-align: top;
+                                    }
                                     table.DAI07020Grid1 thead tr th:last-child > span > span,
                                     table.DAI07020Grid1 td:nth-child(10) > div > div > div {
                                         float: left;
@@ -854,7 +866,7 @@ export default {
                                     }
                                 `,
                                 headerFunc,
-                                30,
+                                40,
                                 false,
                                 false,
                                 true,
