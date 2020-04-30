@@ -215,10 +215,15 @@ class DAI06040Controller extends Controller
             IIF(((売掛現金区分 = 2 OR 売掛現金区分 = 4) AND 商品区分 != 9) OR 商品区分 = 9, T.曜日, NULL) AS 曜日,
             IIF(((売掛現金区分 = 2 OR 売掛現金区分 = 4) AND 商品区分 != 9) OR 商品区分 = 9, T.弁当売上, NULL) AS 弁当売上,
             IIF(((売掛現金区分 = 2 OR 売掛現金区分 = 4) AND 商品区分 != 9) OR 商品区分 = 9, T.弁当売上SV, NULL) AS 弁当売上SV,
-            IIF(((売掛現金区分 = 2 OR 売掛現金区分 = 4) AND 商品区分 != 9) OR 商品区分 = 9, C.発行日, NULL) AS 発行日,
-            IIF(((売掛現金区分 = 2 OR 売掛現金区分 = 4) AND 商品区分 != 9) OR 商品区分 = 9, C.曜日, NULL) AS 曜日2,
-            IIF(((売掛現金区分 = 2 OR 売掛現金区分 = 4) AND 商品区分 != 9) OR 商品区分 = 9, C.チケット内数, NULL) AS チケット内数,
-            IIF(((売掛現金区分 = 2 OR 売掛現金区分 = 4) AND 商品区分 != 9) OR 商品区分 = 9, C.SV内数, NULL) AS SV内数,
+            --IIF(((売掛現金区分 = 2 OR 売掛現金区分 = 4) AND 商品区分 != 9) OR 商品区分 = 9, C.発行日, NULL) AS 発行日,
+            --IIF(((売掛現金区分 = 2 OR 売掛現金区分 = 4) AND 商品区分 != 9) OR 商品区分 = 9, C.曜日, NULL) AS 曜日2,
+            --IIF(((売掛現金区分 = 2 OR 売掛現金区分 = 4) AND 商品区分 != 9) OR 商品区分 = 9, C.チケット内数, NULL) AS チケット内数,
+            --IIF(((売掛現金区分 = 2 OR 売掛現金区分 = 4) AND 商品区分 != 9) OR 商品区分 = 9, C.SV内数, NULL) AS SV内数,
+			IIF(商品区分 = 9, ROW_NUMBER() OVER (PARTITION BY コースＣＤ, ＳＥＱ, T.得意先ＣＤ, 商品区分, T.日付 ORDER BY 発行日 DESC), NULL) AS 発行日順,
+            IIF(商品区分 = 9, C.発行日, NULL) AS 発行日,
+            IIF(商品区分 = 9, C.曜日, NULL) AS 曜日2,
+            IIF(商品区分 = 9, C.チケット内数, NULL) AS チケット内数,
+            IIF(商品区分 = 9, C.SV内数, NULL) AS SV内数,
             A.チケット減数 * -1 AS 調整,
             A.SV減数 * -1.0 AS 調整SV,
             Z.チケット残数,
@@ -337,6 +342,7 @@ class DAI06040Controller extends Controller
             ＳＥＱ,
             得意先ＣＤ,
             得意先商品名,
+            FIRST_VALUE(得意先商品名) OVER (PARTITION BY コースＣＤ, ＳＥＱ ORDER BY コースＣＤ, ＳＥＱ, 日付) AS 得意先商品,
             日付,
             曜日,
             弁当売上,
@@ -347,12 +353,14 @@ class DAI06040Controller extends Controller
 			SV内数,
             IIF(商品区分 = 9, チケット内数 * 個数, NULL) AS チケット販売,
             IIF(商品区分 = 9, SV内数 * 個数, NULL) AS チケット販売SV,
-			MAX(チケット残数) OVER (PARTITION BY ＳＥＱ ORDER BY ＳＥＱ ASC) AS チケット残数,
-			MAX(チケットSV) OVER (PARTITION BY ＳＥＱ ORDER BY ＳＥＱ ASC) AS チケット残数SV
+			--MAX(チケット残数) OVER (PARTITION BY ＳＥＱ ORDER BY ＳＥＱ ASC) AS チケット残数,
+			--MAX(チケットSV) OVER (PARTITION BY ＳＥＱ ORDER BY ＳＥＱ ASC) AS チケット残数SV
+			IIF(CONVERT(VARCHAR, 発行日, 112) < '20190401', MAX(チケット残数) OVER (PARTITION BY コースＣＤ, ＳＥＱ ORDER BY コースＣＤ, ＳＥＱ ASC) - (チケット内数 * 個数), MAX(チケット残数) OVER (PARTITION BY コースＣＤ, ＳＥＱ ORDER BY コースＣＤ, ＳＥＱ ASC)) AS チケット残数,
+			IIF(CONVERT(VARCHAR, 発行日, 112) < '20190401', MAX(チケットSV) OVER (PARTITION BY コースＣＤ, ＳＥＱ ORDER BY コースＣＤ, ＳＥＱ ASC) - (SV内数 * 個数), MAX(チケットSV) OVER (PARTITION BY コースＣＤ, ＳＥＱ ORDER BY コースＣＤ, ＳＥＱ ASC)) AS チケット残数SV
         FROM
             抽出データ2
 		WHERE
-			日付 IS NOT NULL
+			日付 IS NOT NULL AND (発行日順 = 1 OR 発行日順 IS NULL)
         ),
 
         抽出データ4 AS
@@ -362,7 +370,7 @@ class DAI06040Controller extends Controller
 			MIN(コース名) AS コース名,
             ＳＥＱ,
             得意先ＣＤ,
-            MIN(得意先商品名) AS 得意先商品名,
+            MIN(得意先商品) AS 得意先商品名,
             日付,
             曜日,
             SUM(チケット販売) AS チケット販売,
@@ -373,23 +381,48 @@ class DAI06040Controller extends Controller
             SUM(調整SV) AS 調整SV,
 			SUM(チケット内数) AS チケット内数,
 			SUM(SV内数) AS SV内数,
-            MAX(ISNULL(チケット残数, 0)) AS チケット残数,
-            MAX(ISNULL(チケット残数SV, 0)) AS チケット残数SV,
-            SUM(SUM(ISNULL(チケット販売, 0))) OVER (PARTITION BY ＳＥＱ ORDER BY ＳＥＱ, 日付) AS チケット販売累計,
-            SUM(SUM(ISNULL(チケット販売SV, 0))) OVER (PARTITION BY ＳＥＱ ORDER BY ＳＥＱ, 日付) AS チケット販売累計SV,
-            SUM(SUM(ISNULL(弁当売上, 0))) OVER (PARTITION BY ＳＥＱ ORDER BY ＳＥＱ, 日付) AS 弁当売上累計,
-            SUM(SUM(ISNULL(弁当売上SV, 0))) OVER (PARTITION BY ＳＥＱ ORDER BY ＳＥＱ, 日付) AS 弁当売上累計SV
+            MIN(ISNULL(チケット残数, 0)) AS チケット残数,
+            MIN(ISNULL(チケット残数SV, 0)) AS チケット残数SV,
+            SUM(SUM(ISNULL(チケット販売, 0))) OVER (PARTITION BY コースＣＤ, ＳＥＱ ORDER BY コースＣＤ, ＳＥＱ, 日付) AS チケット販売累計,
+            SUM(SUM(ISNULL(チケット販売SV, 0))) OVER (PARTITION BY コースＣＤ, ＳＥＱ ORDER BY コースＣＤ, ＳＥＱ, 日付) AS チケット販売累計SV,
+            SUM(SUM(ISNULL(弁当売上, 0))) OVER (PARTITION BY コースＣＤ, ＳＥＱ ORDER BY コースＣＤ, ＳＥＱ, 日付) AS 弁当売上累計,
+            SUM(SUM(ISNULL(弁当売上SV, 0))) OVER (PARTITION BY コースＣＤ, ＳＥＱ ORDER BY コースＣＤ, ＳＥＱ, 日付) AS 弁当売上累計SV
         FROM
             抽出データ3
         WHERE
             ROWNUMBER = 1 OR ROWNUMBER IS NULL
         GROUP BY
             コースＣＤ, ＳＥＱ, 得意先ＣＤ, 日付, 曜日
-        )
+        ),
 
+        抽出データ5 AS
+        (
         SELECT
             コースＣＤ,
-			コース名,
+            コース名,
+            ＳＥＱ,
+            得意先ＣＤ,
+            得意先商品名,
+            NULL AS 日付,
+            NULL AS 曜日,
+            NULL AS チケット販売,
+            NULL AS チケット販売SV,
+            NULL AS 弁当売上,
+            NULL AS 弁当売上SV,
+            NULL AS 調整,
+            NULL AS 調整SV,
+            NULL AS チケット内数,
+            NULL AS SV内数,
+            MIN(チケット残数) OVER (PARTITION BY コースＣＤ, ＳＥＱ ORDER BY コースＣＤ, ＳＥＱ ASC) AS チケット残数,
+            MIN(チケット残数SV) OVER (PARTITION BY コースＣＤ, ＳＥＱ ORDER BY コースＣＤ, ＳＥＱ ASC) AS チケット残数SV
+        FROM 抽出データ4
+        GROUP BY
+            コースＣＤ, コース名, ＳＥＱ, 得意先ＣＤ, 得意先商品名, チケット残数, チケット残数SV
+        UNION
+        SELECT
+            コースＣＤ,
+            コース名,
+            ＳＥＱ,
             得意先ＣＤ,
             得意先商品名,
             日付,
@@ -402,12 +435,13 @@ class DAI06040Controller extends Controller
 			調整SV,
 			チケット内数,
 			SV内数,
-            チケット販売累計 + チケット残数 - 弁当売上累計 AS チケット残数,
-            チケット販売累計SV + チケット残数SV - 弁当売上累計SV AS チケット残数SV
+            チケット販売累計 + MIN(チケット残数) OVER (PARTITION BY コースＣＤ, ＳＥＱ ORDER BY コースＣＤ, ＳＥＱ ASC) - 弁当売上累計 AS チケット残数,
+            チケット販売累計SV + MIN(チケット残数SV) OVER (PARTITION BY コースＣＤ, ＳＥＱ ORDER BY コースＣＤ, ＳＥＱ ASC) - 弁当売上累計SV AS チケット残数SV
         FROM
             抽出データ4
-        ORDER BY
-            コースＣＤ, ＳＥＱ, 日付
+        )
+
+        SELECT * FROM 抽出データ5 ORDER BY コースＣＤ, ＳＥＱ, 日付
         ";
 
         $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
