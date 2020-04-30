@@ -664,9 +664,6 @@ export default {
                     text-align: center;
                     display:table-cell;
                     vertical-align: middle;
-                    background-color: #c0ffff;
-                    border: 2px solid #000000;
-                    border-radius: 5px;
                 }
             `;
             var headerFunc = (header, idx, length) => {

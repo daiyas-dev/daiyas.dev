@@ -277,6 +277,7 @@ export default {
                         dataIndx: "コース名",
                         dataType: "string",
                         width: 150, minWidth: 150, maxWidth: 150,
+                        hiddenOnExport: true,
                         render: ui => {
                             if (ui.rowData.pq_level != 0) {
                                 return { text: "" };
@@ -313,13 +314,10 @@ export default {
                         dataType: "date",
                         format: "yy/mm/dd",
                         align: "center",
-                        width: 120, minWidth: 120, maxWidth: 120,
+                        hidden: true,
                         render: ui => {
                             if (!!ui.Export && !ui.rowData.pq_grandsummary) {
                                 return { text: moment(ui.rowData[ui.dataIndx]).format("YYYY/MM/DD") };
-                            }
-                            if (!!ui.rowData.pq_gsummary) {
-                                return { text: "合計" };
                             }
                             return ui;
                         },
@@ -329,7 +327,23 @@ export default {
                         dataIndx: "曜日",
                         dataType: "string",
                         align: "center",
-                        width: 50, minWidth: 50, maxWidth: 50,
+                        hidden: true,
+                    },
+                    {
+                        title: "日付",
+                        dataIndx: "日付曜日",
+                        dataType: "string",
+                        align: "center",
+                        width: 150, minWidth: 150, maxWidth: 150,
+                        render: ui => {
+                            if (!!ui.rowData.日付) {
+                                return { text: moment(ui.rowData.日付).format("YYYY/MM/DD") + "　" +  ui.rowData.曜日 };
+                            }
+                            if (!!ui.rowData.pq_gsummary) {
+                                return { text: "合計" };
+                            }
+                            return ui;
+                        },
                     },
                     {
                         title: "チケット販売SV",
@@ -821,32 +835,37 @@ export default {
                 }
             `;
 
-            var groupNmKey1;
+            var courseNm;
             var headerFunc = (header, idx, length) => {
-                // if (header.pq_level == 0)
-                // {
-                //     groupNmKey1 = header.コース名;
-                // }
+                if (header.pq_level == 0)
+                {
+                    courseNm = header.コース名;
+                }
                 return `
                     <div class="title">
-                        <h3>* * * 顧客売上累計表 * * *</h3>
+                        <h3>＊＊チケット販売台帳＊＊</h3>
                     </div>
                     <table class="header-table" style="border-width: 0px">
                         <thead>
                             <tr>
-                                <th>コース</th>
-                                <th>${groupNmKey1}</th>
-                                <th class="blank-cell"></th>
-                            </tr>
-                            <tr>
+                                <th>対象期間</th>
                                 <th>${vue.viewModel.DateStart}</th>
                                 <th>～</th>
                                 <th>${vue.viewModel.DateEnd}</th>
+                            </tr>
+                            <tr>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th>PAGE</th>
+                                <th style="text-align: right;">${idx + 1}/${length}</th>
+                            </tr>
+                            <tr>
+                                <th>コース</th>
+                                <th>${courseNm}</th>
                                 <th class="blank-cell"></th>
                                 <th>作成日</th>
                                 <th>${moment().format("YYYY年MM月DD日")}</th>
-                                <th>PAGE</th>
-                                <th style="text-align: right;">${idx + 1}</th>
                             </tr>
                         </thead>
                     </table>
@@ -897,16 +916,13 @@ export default {
                     text-align: left;
                 }
                 table.DAI06040Grid1 tr th:nth-child(1) {
-                    width: 4.5%;
+                    width: 20%;
                 }
-                table.DAI06040Grid1 tr th:nth-child(3) {
-                    width: 4.5%;
+                table.DAI06040Grid1 tr th:nth-child(2) {
+                    width: 20%;
                 }
-                table.DAI06040Grid1 tr th:nth-child(n+4):nth-child(-n+12) {
-                    width: 6%;
-                }
-                table.DAI06040Grid1 tr th:nth-child(13) {
-                    width: 7%;
+                table.DAI06040Grid1 tr th:nth-child(n+3):nth-child(-n+6) {
+                    width: 15%;
                 }
             `;
 
@@ -919,9 +935,9 @@ export default {
                                 styleCustomers,
                                 headerFunc,
                                 36,
-                                true,
-                                true,
-                                false,
+                                [false, true],
+                                [false, true],
+                                [true, false],
                             )
                         )
                 )
