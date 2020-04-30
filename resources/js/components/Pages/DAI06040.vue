@@ -359,6 +359,11 @@ export default {
                             {
                                 valSale = valSale + "(" + (ui.rowData.チケット販売SV * 1).toFixed(1) + ")";
                             }
+                            if (!!ui.rowData.pq_gsummary || !!ui.rowData.pq_grandsummary) {
+                                valSale = ui.rowData.チケット販売.replace(",","") * 1;
+                                valSale = valSale + "(" + (ui.rowData.チケット販売SV.replace(",","") * 1).toFixed(1) + ")";
+                                return { text: valSale };
+                            }
                             return { text: valSale };
                         },
                     },
@@ -389,6 +394,11 @@ export default {
                             if (ui.rowData.弁当売上SV * 1 != 0)
                             {
                                 valSale = valSale + "(" + (ui.rowData.弁当売上SV * 1).toFixed(1) + ")";
+                            }
+                            if (!!ui.rowData.pq_gsummary || !!ui.rowData.pq_grandsummary) {
+                                valSale = ui.rowData.弁当売上.replace(",","") * 1;
+                                valSale = valSale + "(" + (ui.rowData.弁当売上SV.replace(",","") * 1).toFixed(1) + ")";
+                                return { text: valSale };
                             }
                             return { text: valSale };
                         },
@@ -421,6 +431,11 @@ export default {
                             {
                                 valSale = valSale + "(" + (ui.rowData.調整SV * 1).toFixed(1) + ")";
                             }
+                            if (!!ui.rowData.pq_gsummary || !!ui.rowData.pq_grandsummary) {
+                                valSale = ui.rowData.調整.replace(",","") * 1;
+                                valSale = valSale + "(" + (ui.rowData.調整SV.replace(",","") * 1).toFixed(1) + ")";
+                                return { text: valSale };
+                            }
                             return { text: valSale };
                         },
                     },
@@ -444,13 +459,8 @@ export default {
                             else
                             {
                                 var valSale = "0";
-                                if (ui.rowData.チケット残数 * 1 != 0) {
-                                    valSale = ui.rowData.チケット残数;
-                                }
-                                if (ui.rowData.チケット残数SV * 1 != 0)
-                                {
-                                    valSale = valSale + "(" + (ui.rowData.チケット残数SV * 1).toFixed(1) + ")";
-                                }
+                                valSale = ui.rowData.チケット残数 * 1;
+                                valSale = valSale + "(" + (ui.rowData.チケット残数SV * 1).toFixed(1) + ")";
                                 return { text: valSale };
                             }
                         },
@@ -526,7 +536,7 @@ export default {
             }
 
             //条件変更ハンドラ
-            vue.conditionChanged();
+            vue.filterChanged();
         },
         onCustomerChanged: function(code, entity, comp) {
             var vue = this;
@@ -536,7 +546,7 @@ export default {
             }
 
             //条件変更ハンドラ
-            vue.conditionChanged();
+            vue.filterChanged();
         },
         conditionChanged: function(callback) {
             var vue = this;
@@ -567,8 +577,11 @@ export default {
 
             var rules = [];
 
-            if (!!vue.viewModel.NyukinKind) {
-                rules.push({ dataIndx: "入金種別", condition: "range", value: vue.viewModel.NyukinKind });
+            if (!!vue.viewModel.CourseCd) {
+                rules.push({ dataIndx: "コースＣＤ", condition: "equal", value: vue.viewModel.CourseCd });
+            }
+            if (!!vue.viewModel.CustomerCd) {
+                rules.push({ dataIndx: "得意先ＣＤ", condition: "equal", value: vue.viewModel.CustomerCd });
             }
 
             grid.filter({ oper: "replace", mode: "AND", rules: rules });
@@ -773,18 +786,10 @@ export default {
                     width: 100%;
                     display: flex;
                     justify-content: center;
-                    margin-bottom: 10px;
                 }
                 div.title > h3 {
                     margin-top: 0px;
                     margin-bottom: 0px;
-                    padding-left: 100px;
-                    padding-right: 100px;
-                    padding-top: 4px;
-                    padding-bottom: 4px;
-                    border: solid 1px black;
-                    border-radius: 6px;
-                    background-color: cyan;
                 }
                 table {
                     table-layout: fixed;
@@ -796,59 +801,114 @@ export default {
                 }
                 th, td {
                     font-family: "MS UI Gothic";
-                    font-size: 9pt;
+                    font-size: 10pt;
                     font-weight: normal;
                     margin: 0px;
                     padding-left: 3px;
                     padding-right: 3px;
                 }
                 th {
-                    height: 15.5px;
+                    height: 25px;
                     text-align: center;
                 }
                 td {
-                    height: 15.5px;
+                    height: 22px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
+                table.header-table th.blank-cell {
+                    border:none;
+                }
             `;
 
-            var headerFunc = (chunk, idx, length) => {
+            var groupNmKey1;
+            var headerFunc = (header, idx, length) => {
+                // if (header.pq_level == 0)
+                // {
+                //     groupNmKey1 = header.コース名;
+                // }
                 return `
                     <div class="title">
-                        <h3> 入金明細表 </h3>
+                        <h3>* * * 顧客売上累計表 * * *</h3>
                     </div>
                     <table class="header-table" style="border-width: 0px">
                         <thead>
                             <tr>
-                                <th style="width: 8%;">日付</th>
-                                <th style="width: 34%;" colspan="3">
-                                    ${moment(vue.viewModel.DateStart, "YYYYMMDD").format("YYYY年MM月DD日")}
-                                    ～
-                                    ${moment(vue.viewModel.DateEnd, "YYYYMMDD").format("YYYY年MM月DD日")}
-                                </th>
-                                <th style="width: 68%;" colspan="7"></th>
+                                <th>コース</th>
+                                <th>${groupNmKey1}</th>
+                                <th class="blank-cell"></th>
                             </tr>
                             <tr>
-                                <th style="width: 8%;">コース</th>
-                                <th style="width: 10%;">${!!vue.viewModel.CourseCd ? vue.viewModel.CourseCd : ""}</th>
-                                <th style="width: 24%;" colspan="2">${!!vue.viewModel.CourseNm ? vue.viewModel.CourseNm : ""}</th>
-                                <th style="width: 68%;" colspan="7"></th>
-                            </tr>
-                            <tr>
-                                <th style="width: 8%;">担当者</th>
-                                <th style="width: 10%;">${!!vue.viewModel.TantoCd ? vue.viewModel.TantoCd : ""}</th>
-                                <th style="width: 21%;" colspan="2">${!!vue.viewModel.TantoNm ? vue.viewModel.TantoNm : ""}</th>
-                                <th style="width: 21%;" colspan="2"></th>
-                                <th style="width: 8%;">作成日</th>
-                                <th style="width: 16%;" colspan="2">${moment().format("YYYY年MM月DD日")}</th>
-                                <th style="width: 8%;">PAGE</th>
-                                <th style="width: 8%; text-align: right;">${idx + 1}/${length}</th>
+                                <th>${vue.viewModel.DateStart}</th>
+                                <th>～</th>
+                                <th>${vue.viewModel.DateEnd}</th>
+                                <th class="blank-cell"></th>
+                                <th>作成日</th>
+                                <th>${moment().format("YYYY年MM月DD日")}</th>
+                                <th>PAGE</th>
+                                <th style="text-align: right;">${idx + 1}</th>
                             </tr>
                         </thead>
                     </table>
                 `;
             };
+
+            var styleCustomers =`
+                table.DAI06040Grid1 tr:nth-child(1) th {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI06040Grid1 tr.group-summary td {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.DAI06040Grid1 tr.group-summary td:nth-child(2) {
+                    text-align: right;
+                    padding-right: 50px;
+                }
+                table.DAI06040Grid1 tr[level="0"].group-summary td {
+                    border-style: dotted;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.DAI06040Grid1 tr[level="0"].group-summary td:nth-child(2) {
+                    text-align: right;
+                    padding-right: 30px;
+                }
+                table.DAI06040Grid1 tr.grand-summary td {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.DAI06040Grid1 tr.grand-summary td:nth-child(2) {
+                    text-align: right;
+                }
+                table.DAI06040Grid1 tr.grand-summary td:nth-child(3) {
+                    text-align: left;
+                }
+                table.DAI06040Grid1 tr th:nth-child(1) {
+                    width: 4.5%;
+                }
+                table.DAI06040Grid1 tr th:nth-child(3) {
+                    width: 4.5%;
+                }
+                table.DAI06040Grid1 tr th:nth-child(n+4):nth-child(-n+12) {
+                    width: 6%;
+                }
+                table.DAI06040Grid1 tr th:nth-child(13) {
+                    width: 7%;
+                }
+            `;
 
             var printable = $("<html>")
                 .append($("<head>").append($("<style>").text(globalStyles)))
@@ -856,122 +916,12 @@ export default {
                     $("<body>")
                         .append(
                             vue.DAI06040Grid1.generateHtml(
-                                `
-                                    table.header-table tr th{
-                                        border-style: solid;
-                                        border-left-width: 1px;
-                                        border-top-width: 1px;
-                                        border-right-width: 0px;
-                                        border-bottom-width: 0px;
-                                    }
-                                    table.header-table tr:nth-child(1) th:nth-child(3){
-                                        border-style: solid;
-                                        border-left-width: 1px;
-                                        border-top-width: 0px;
-                                        border-right-width: 0px;
-                                        border-bottom-width: 0px;
-                                    }
-                                    table.header-table tr:nth-child(2) th:nth-child(4){
-                                        border-style: solid;
-                                        border-left-width: 1px;
-                                        border-top-width: 0px;
-                                        border-right-width: 0px;
-                                        border-bottom-width: 0px;
-                                    }
-                                    table.header-table tr:nth-child(3) th:nth-child(4){
-                                        border-style: solid;
-                                        border-left-width: 1px;
-                                        border-top-width: 0px;
-                                        border-right-width: 0px;
-                                        border-bottom-width: 0px;
-                                    }
-                                    table.header-table tr:nth-child(3) th:last-child{
-                                        border-style: solid;
-                                        border-left-width: 1px;
-                                        border-top-width: 1px;
-                                        border-right-width: 1px;
-                                        border-bottom-width: 0px;
-                                    }
-                                    table.DAI06040Grid1 tr th ,
-                                    table.DAI06040Grid1 tr td {
-                                        border-style: solid;
-                                        border-left-width: 1px;
-                                        border-top-width: 1px;
-                                        border-right-width: 0px;
-                                        border-bottom-width: 0px;
-                                    }
-                                    table.DAI06040Grid1 tr th:nth-child(2),
-                                    table.DAI06040Grid1 tr td:nth-child(2) {
-                                        border-style: solid;
-                                        border-left-width: 0px;
-                                        border-top-width: 1px;
-                                        border-right-width: 0px;
-                                        border-bottom-width: 0px;
-                                    }
-                                    table.DAI06040Grid1 tr th:last-child,
-                                    table.DAI06040Grid1 tr td:last-child {
-                                        border-style: solid;
-                                        border-left-width: 0px;
-                                        border-top-width: 1px;
-                                        border-right-width: 1px;
-                                        border-bottom-width: 0px;
-                                    }
-                                    table.DAI06040Grid1 tr:last-child td {
-                                        border-bottom-width: 1px;
-                                    }
-                                    table.DAI06040Grid1 tr.grand-summary td:nth-child(2),
-                                    table.DAI06040Grid1 tr.grand-summary td:nth-child(4),
-                                    table.DAI06040Grid1 tr.grand-summary td:nth-child(5),
-                                    table.DAI06040Grid1 tr.grand-summary td:nth-child(8),
-                                    table.DAI06040Grid1 tr.grand-summary td:nth-child(9) {
-                                        border-style: solid;
-                                        border-left-width: 0px;
-                                        border-top-width: 1px;
-                                        border-right-width: 0px;
-                                        border-bottom-width: 1px;
-                                    }
-                                    table.DAI06040Grid1 tr.grand-summary td:nth-child(9) {
-                                        border-right-width: 1px;
-                                    }
-                                    table.DAI06040Grid1 tr th:nth-child(1) {
-                                        width: 7.0%;
-                                    }
-                                    table.DAI06040Grid1 tr th:nth-child(2) {
-                                        width: 21.5%;
-                                    }
-                                    table.DAI06040Grid1 tr th:nth-child(3) {
-                                        width: 8.0%;
-                                    }
-                                    table.DAI06040Grid1 tr th:nth-child(4) {
-                                        width: 11.5%;
-                                    }
-                                    table.DAI06040Grid1 tr th:nth-child(7) {
-                                        width: 14.0%;
-                                    }
-                                    table.DAI06040Grid1 tr th:nth-child(8) {
-                                        width: 4.5%;
-                                    }
-                                    table.DAI06040Grid1 tr th:nth-child(9) {
-                                        width: 14.0%;
-                                    }
-                                    table.DAI06040Grid1 tr td {
-                                        padding-left: 5px;
-                                        padding-right: 5px;
-                                    }
-                                    table.DAI06040Grid1 thead span {
-                                        color: transparent;
-                                    }
-                                    table.DAI06040Grid1 tr th:nth-child(2),
-                                    table.DAI06040Grid1 tr th:last-child {
-                                        text-align: left;
-                                        padding-left: 20px;
-                                    }
-                                    table.DAI06040Grid1 tr.grand-summary td:nth-child(2) {
-                                        letter-spacing: 2.0em;
-                                    }
-                                `,
+                                styleCustomers,
                                 headerFunc,
-                                49,
+                                36,
+                                true,
+                                true,
+                                false,
                             )
                         )
                 )
@@ -980,7 +930,7 @@ export default {
 
             var printOptions = {
                 type: "raw-html",
-                style: "@media print { @page { size: A4 ; } }",
+                style: "@media print { @page { size: A4 portrait; } }",
                 printable: printable,
             };
 
