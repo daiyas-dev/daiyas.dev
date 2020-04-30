@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\チケット発行;
+use App\Models\チケット調整;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
@@ -10,6 +10,145 @@ use Illuminate\Support\Carbon;
 
 class DAI06030Controller extends Controller
 {
+    /**
+     * チケット調整IDを取得する
+     */
+    public function SearchAdjustmentID($vm)
+    {
+        $CustomerCd = $vm->CustomerCd;
+        if($CustomerCd==null)
+        {
+            return response()->json(array(0=>"(新規作成)"));
+        }
+        $sql="
+            SELECT
+                  チケット調整ID as Cd
+                , CONVERT(varchar, チケット調整ID) as CdNm
+            FROM
+                [チケット調整]
+            WHERE
+                [得意先ＣＤ] = $CustomerCd
+            UNION
+            SELECT
+                  0
+                , '(新規作成)'
+            ORDER BY
+                チケット調整ID DESC
+        ";
+        $DataList = DB::select($sql);
+        return response()->json($DataList);
+    }
+
+    /**
+     * 得意先情報を取得する
+     */
+    public function SearchCustomerTicket($vm)
+    {
+        $BushoCd = $vm->BushoCd;
+        if($BushoCd==null)
+        {
+            return null;
+        }
+
+        $CustomerCd = $vm->CustomerCd;
+        if($CustomerCd==null)
+        {
+            return null;
+        }
+
+        $sql="
+                SELECT
+                      得意先名
+                    , 得意先名略称
+                    , 電話番号1
+                    , 売掛現金区分
+                    , 備考1
+                    , 備考2
+                    , 備考3
+                    , チケット枚数
+                    , サービスチケット枚数
+                FROM
+                    [得意先マスタ]
+                WHERE
+                    得意先ＣＤ = $CustomerCd
+                    AND 部署CD = $BushoCd
+              ";
+        $DataList = DB::select($sql);
+        return $DataList;
+    }
+
+    /**
+     * 得意先単価情報を取得する
+     */
+    public function SearchCustomerProduct($vm)
+    {
+        $CustomerCd = $vm->CustomerCd;
+        if($CustomerCd==null)
+        {
+            return null;
+        }
+
+        $sql="
+            SELECT
+                  商品名
+                , 単価
+                , [商品マスタ].商品ＣＤ as 商品ＣＤ
+            FROM
+                [商品マスタ]
+                , [得意先単価マスタ]
+            where
+                    商品マスタ.商品ＣＤ = 得意先単価マスタ.商品ＣＤ
+                and 得意先単価マスタ.得意先ＣＤ = $CustomerCd
+                    ";
+        $DataList = DB::select($sql);
+        return $DataList;
+    }
+
+    /**
+     * Search
+     */
+    public function SearchCustomer($request) {
+        return response()->json(
+            [
+                [
+                    "TicketData" => $this->SearchCustomerTicket($request),
+                    "ProductData" => $this->SearchCustomerProduct($request),
+                ]
+            ]
+        );
+    }
+
+    /**
+     * SearchAdjustmentInfo
+     */
+    public function SearchAdjustmentInfo($vm)
+    {
+        $AdjustmentID = $vm->AdjustmentID;
+        $AdjustmentID = 677;//TODO:
+
+        $sql = "
+            SELECT
+                  チケット調整ID
+                , CONVERT(varchar, チケット調整ID) as チケット調整IDDisplay
+                , 得意先ＣＤ
+                , 日付
+                , 調整理由
+                , 商品ＣＤ
+                , チケット減数
+                , SV減数
+            FROM
+                [チケット調整]
+            WHERE
+                チケット調整ID=$AdjustmentID
+            ORDER BY
+                チケット調整ID DESC
+        ";
+        $DataList = DB::selectOne($sql);
+
+        return response()->json($DataList);
+    }
+
+
     /**
      * Search
      */
@@ -78,7 +217,7 @@ class DAI06030Controller extends Controller
 
         try {
             $params = $request->all();
-
+/*
             $date = Carbon::now()->format('Y-m-d H:i:s');
             $ShuseiTantoCd=$params['ShuseiTantoCd'];
             $InsatsuMaisu=$params['InsatsuMaisu'];
@@ -90,26 +229,29 @@ class DAI06030Controller extends Controller
             $SvTicketSu=$params['SvTicketSu'];
             $InsatsuTantoCd=$params['InsatsuTantoCd'];
             $SaveItem=$params['SaveList'][0];
+*/
+            $InsSql = "
+                INSERT INTO チケット調整
+                VALUES
+                    (
+                         '678'
+                        , '8'
+                        , '2020/4/17'
+                        , '1'
+                        , '10'
+                        , '-2'
+                        , '-1.5'
+                        , '0'
+                        , null
+                        , null
+                        , null
+                        , '2020/04/17 10:59:35'
+                        , '1'
+                    )
+            ";
+            DB::insert($InsSql);
 
-            for($i=0;$i<$InsatsuMaisu;$i++)
-            {
-                $rec=array();
-                $rec['得意先ＣＤ'] = $CustomerCd;
-                $rec['チケット管理番号'] = $TicketNo+$i;
-                $rec['印刷日時'] = $date;
-                $rec['発行日'] = $IssueDate;
-                $rec['有効期限'] = $ExpireDate;
-                $rec['チケット内数'] = $TicketSu;
-                $rec['SV内数'] = $SvTicketSu;
-                $rec['単価'] = $SaveItem['単価'];
-                $rec['金額'] = $rec['単価'] * $rec['チケット内数'];
-                $rec['商品ＣＤ'] = $SaveItem['商品ＣＤ'];
-                $rec['担当者ＣＤ'] = $InsatsuTantoCd;
-                $rec['廃棄'] = 0;
-                $rec['修正日'] = $date;
-                $rec['修正担当者ＣＤ'] = $InsatsuTantoCd;
-                チケット発行::insert($rec);
-            }
+
             /*
             $BushoCd=$params['BushoCd'];
             $ShoriKbn = $params['ShoriKbn'];

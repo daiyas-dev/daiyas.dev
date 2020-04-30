@@ -47,8 +47,7 @@ FROM
 	LEFT OUTER JOIN 商品マスタ SUB
 		ON	SUB.商品ＣＤ=SHOHIN.副食ＣＤ
 WHERE
-	SHOHIN.表示ＦＬＧ = 0
-AND SHOHIN.弁当区分 = 0
+	SHOHIN.表示ＦＬＧ != 1
 AND 1 <= SHOHIN.商品区分 AND SHOHIN.商品区分 <= 7
 AND BUSHOGRP.サブ各種CD1 = $BushoCd
 ),
