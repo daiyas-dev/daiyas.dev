@@ -866,7 +866,7 @@ export default {
                                     }
                                 `,
                                 headerFunc,
-                                40,
+                                43,
                                 false,
                                 false,
                                 true,

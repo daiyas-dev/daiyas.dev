@@ -601,10 +601,13 @@ export default {
                                 || 0;
 
                             grid.scrollRow({ rowIndx: rowIndx });
+                            grid.SelectRow().removeAll();
                             grid.setSelection({ rowIndx: rowIndx });
                         } else {
                             if (_.keys(grid.getSelectionData()).length == 0) {
                                 grid.scrollRow({ rowIndx: 0 });
+                                grid.SelectRow().removeAll();
+                                grid.setSelection({ rowIndx: 0 });
                             }
                         }
                         grid.widget().css("visibility", "visible");
@@ -613,10 +616,11 @@ export default {
             };
 
             var showSelector = function(dataUrl, params) {
-                params.NoLimit = true,
+                var p = _.cloneDeep(params) || {};
+                p.NoLimit = true,
                 PageDialog.showSelector({
                     dataUrl: dataUrl,
-                    params: params,
+                    params: p,
                     title: vue.title || (vue.label + "一覧"),
                     labelCd: vue.labelCd || vue.label || "コード",
                     labelCdNm: vue.labelCdNm || "名称",
@@ -632,15 +636,16 @@ export default {
                             text: "選択",
                             class: "btn btn-primary",
                             shortcut: "Enter",
-                            target: (params || {}).target,
+                            target: p.target,
                             click: function(gridVue, grid) {
                                 if (event.target.name == "SearchStrings" && event.type == "keydown" && (event.key == "Process" || event.which == 13)) {
                                     return false;
                                 }
 
-                                var rowIndx = grid.SelectRow().getFirst();
+                                var selection = grid.SelectRow().getSelection();
+                                var rowIndx = !!selection.length ? selection[0].rowIndx : null;
 
-                                if (rowIndx != undefined) {
+                                if (rowIndx != null) {
                                     var rowData = grid.getRowData({ rowIndx: rowIndx });
 
                                     //コード及び名称の指定された値を取得

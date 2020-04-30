@@ -853,10 +853,18 @@ export default {
                 data = _.cloneDeep(rows[0].rowData);
             }
 
+            if (!!vue.viewModel.BushoCd && !vue.BushoInfo) {
+                var entity = vue.$refs.VueSelectBusho.$refs.BushoCd.entities.find(v => v.code == vue.viewModel.BushoCd);
+
+                if (!entity) return
+                vue.BushoInfo = entity.info;
+            }
+
             var params = {
                 IsSeikyuOutput: true,
                 BushoCd: vue.viewModel.BushoCd,
                 BushoNm: vue.viewModel.BushoNm,
+                BushoInfo: vue.BushoInfo,
                 CustomerCd: data.請求先ＣＤ,
                 CustomerNm: data.得意先名,
                 TargetDate: moment(data.請求日付).format("YYYY年MM月DD日"),
@@ -865,6 +873,7 @@ export default {
                 SimeDate: data.締日１,
                 CourseCd: data.コースＣＤ,
                 CourseNm: data.コース名,
+                Data: data,
             };
 
             PageDialog.show({

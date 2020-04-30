@@ -16,10 +16,6 @@ class DAI06030Controller extends Controller
     public function SearchAdjustmentID($vm)
     {
         $CustomerCd = $vm->CustomerCd;
-        if($CustomerCd==null)
-        {
-            return response()->json(array(0=>"(新規作成)"));
-        }
         $sql="
             SELECT
                   チケット調整ID as Cd
@@ -38,7 +34,6 @@ class DAI06030Controller extends Controller
         $DataList = DB::select($sql);
         return response()->json($DataList);
     }
-
     /**
      * 得意先情報を取得する
      */
@@ -76,7 +71,6 @@ class DAI06030Controller extends Controller
         $DataList = DB::select($sql);
         return $DataList;
     }
-
     /**
      * 得意先単価情報を取得する
      */
@@ -103,28 +97,25 @@ class DAI06030Controller extends Controller
         $DataList = DB::select($sql);
         return $DataList;
     }
-
     /**
      * Search
      */
-    public function SearchCustomer($request) {
+    public function SearchCustomer($vm) {
         return response()->json(
             [
                 [
-                    "TicketData" => $this->SearchCustomerTicket($request),
-                    "ProductData" => $this->SearchCustomerProduct($request),
+                    "TicketData" => $this->SearchCustomerTicket($vm),
+                    "ProductData" => $this->SearchCustomerProduct($vm),
                 ]
             ]
         );
     }
-
     /**
      * SearchAdjustmentInfo
      */
     public function SearchAdjustmentInfo($vm)
     {
         $AdjustmentID = $vm->AdjustmentID;
-        $AdjustmentID = 677;//TODO:
 
         $sql = "
             SELECT
@@ -147,67 +138,6 @@ class DAI06030Controller extends Controller
 
         return response()->json($DataList);
     }
-
-
-    /**
-     * Search
-     */
-    public function Search($vm)
-    {
-        $BushoCd = $vm->BushoCd;
-        $CustomerCd = $vm->CustomerCd;
-
-        //得意先の情報を取得する。取得されるのは必ず1件。
-        $sql = "
-            WITH WITH_CUSTOMER AS(
-                SELECT
-                  得意先名
-                , 得意先名略称
-                , 電話番号1
-                , 売掛現金区分
-                , 備考1
-                , 備考2
-                , 備考3
-                , チケット枚数
-                , サービスチケット枚数
-                FROM
-                    得意先マスタ
-                WHERE 部署CD = $BushoCd
-                  AND 得意先ＣＤ = $CustomerCd
-            )
-            ,WITH_TICKET_NO AS (
-                SELECT
-                MAX(チケット管理番号) AS チケット管理番号
-                FROM
-                チケット発行
-                WHERE
-                得意先ＣＤ = $CustomerCd
-            )
-            ,WITH_PRODUCT AS(
-                SELECT TOP 1
-                  商品名
-                , 単価
-                , 商品マスタ.商品ＣＤ as 商品ＣＤ
-                FROM
-                  商品マスタ
-                , 得意先単価マスタ
-                WHERE 商品マスタ.商品ＣＤ = 得意先単価マスタ.商品ＣＤ
-                  AND 得意先単価マスタ.得意先ＣＤ = $CustomerCd
-                ORDER BY 商品ＣＤ
-            )
-            SELECT
-            WITH_CUSTOMER.*
-            ,WITH_TICKET_NO.*
-            ,WITH_PRODUCT.*
-            FROM
-            WITH_CUSTOMER
-            ,WITH_TICKET_NO
-            ,WITH_PRODUCT
-        ";
-        $DataList = DB::select($sql);
-
-        return response()->json($DataList);
-    }
     /**
      * Save
      */
@@ -217,83 +147,68 @@ class DAI06030Controller extends Controller
 
         try {
             $params = $request->all();
-/*
+
             $date = Carbon::now()->format('Y-m-d H:i:s');
-            $ShuseiTantoCd=$params['ShuseiTantoCd'];
-            $InsatsuMaisu=$params['InsatsuMaisu'];
+            $AdjustmentID=$params['AdjustmentID'];
             $CustomerCd=$params['CustomerCd'];
-            $TicketNo=$params['TicketNo'];
-            $IssueDate=$params['IssueDate'];
-            $ExpireDate=$params['ExpireDate'];
-            $TicketSu=$params['TicketSu'];
-            $SvTicketSu=$params['SvTicketSu'];
-            $InsatsuTantoCd=$params['InsatsuTantoCd'];
-            $SaveItem=$params['SaveList'][0];
-*/
-            $InsSql = "
-                INSERT INTO チケット調整
-                VALUES
-                    (
-                         '678'
-                        , '8'
-                        , '2020/4/17'
-                        , '1'
-                        , '10'
-                        , '-2'
-                        , '-1.5'
-                        , '0'
-                        , null
-                        , null
-                        , null
-                        , '2020/04/17 10:59:35'
-                        , '1'
-                    )
-            ";
-            DB::insert($InsSql);
+            $AdjustmentDate=$params['AdjustmentDate'];
+            $AdjustmentReason=$params['AdjustmentReason'];
+            $ProductCd=$params['ProductCd'];
+            $TicketZanSa=$params['TicketZanSa'];
+            $SVTicketZanSa=$params['SVTicketZanSa'];
+            $Kingaku=$params['Kingaku'];
+            $ShuseiTantoCd=$params['ShuseiTantoCd'];
 
-
-            /*
-            $BushoCd=$params['BushoCd'];
-            $ShoriKbn = $params['ShoriKbn'];
-            $SaveList = $params['SaveList'];
-            $TargetDate=$params['TargetDate'];
-            $TargetDate=preg_replace('/年|月/','/',$TargetDate);
-            $TargetDate.='01';
-
-            売掛データ::query()
-            ->where('部署ＣＤ', $BushoCd)
-            ->where('日付', $TargetDate)
-            ->delete();
-
-            if($ShoriKbn=='1')//処理区分が集計処理ならInsert処理を実施
-            {
-                foreach($SaveList as $SaveItem)
-                {
-                    $rec['得意先ＣＤ'] = "";
-                    $rec['チケット管理番号'] = $SaveItem['部署ＣＤ'];
-                    $rec['請求先ＣＤ'] = $SaveItem['請求先ＣＤ'];
-                    $rec['前月残高'] = $SaveItem['前月残高'];
-                    $rec['今月入金額'] = $SaveItem['今月入金額'];
-                    $rec['差引繰越額'] = $SaveItem['差引繰越額'];
-                    $rec['今月売上額'] = $SaveItem['今月売上額'];
-                    $rec['今月残高'] = $SaveItem['今月残高'];
-                    $rec['予備金額１'] = $SaveItem['予備金額１'];
-                    $rec['予備金額２'] = $SaveItem['予備金額２'];
-                    $rec['予備ＣＤ１'] = $SaveItem['予備ＣＤ１'];
-                    $rec['予備ＣＤ２'] = $SaveItem['予備ＣＤ２'];
-                }
+            if ($AdjustmentID==null || $AdjustmentID==0) {
+                $InsSql = "
+                    INSERT INTO チケット調整
+                    VALUES
+                        (
+                              (select MAX(チケット調整ID)+1 from チケット調整)
+                            , $CustomerCd
+                            , '$AdjustmentDate'
+                            , $AdjustmentReason
+                            , $ProductCd
+                            , $TicketZanSa
+                            , $SVTicketZanSa
+                            , $Kingaku
+                            , null
+                            , null
+                            , null
+                            , '$date'
+                            , $ShuseiTantoCd
+                        )
+                ";
+                DB::insert($InsSql);
             }
-            */
+            else{
+                $UpdSql = "
+                    UPDATE [チケット調整]
+                    SET
+                    [日付] = '$AdjustmentDate'
+                    ,[調整理由] = $AdjustmentReason
+                    , [商品ＣＤ]=$ProductCd
+                    ,[チケット減数]=$TicketZanSa
+                    ,[SV減数]=$SVTicketZanSa
+                    ,[金額]=$Kingaku
+                    ,[修正日]='$date'
+                    ,[修正担当者ＣＤ]=$ShuseiTantoCd
+                    where
+                    [チケット調整ID] = $AdjustmentID
+                ";
+                DB::update($UpdSql);
+            }
             DB::commit();
-        } catch (Exception $exception) {
+        }
+        catch (Exception $exception){
             DB::rollBack();
             throw $exception;
         }
 
         return response()->json([
             'result' => true,
-            //'lastupdatedate'=>$this->LastUpdateDateSearch($request),
-            //'edited' => $this->Search($request),
+            //'lastupdatedate'=>$this->LastUpdateDateSearch($vm),
+            //'edited' => $this->Search($vm),
         ]);
     }
 }

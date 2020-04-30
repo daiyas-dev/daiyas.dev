@@ -144,6 +144,10 @@ form[pgid="DAI05150"] .multiselect.BushoCd .multiselect__tags {
     height: unset;
     padding-top: 10px;
 }
+form[pgid="DAI05150"] .top-wrap {
+    align-items: flex-start;
+    white-space: pre-wrap !important;
+}
 </style>
 
 <script>
@@ -249,12 +253,14 @@ export default {
                     {
                         title: "得意先",
                         dataIndx: "得意先",
+                        tooltip: true,
                         colModel: [
                             {
                                 title: "得意先担当者",
                                 dataIndx: "得意先担当者",
                                 dataType: "string",
                                 width: 150, minWidth: 150,
+                                tooltip: true,
                                 render: ui => {
                                     var $div = $("<div>")
                                         .append(
@@ -296,7 +302,7 @@ export default {
                                 title: "原因部署担当",
                                 dataIndx: "原因部署担当",
                                 dataType: "string",
-                                width: 100, minWidth: 100, maxWidth: 100,
+                                width: 120, minWidth: 120, maxWidth: 120,
                                 render: ui => {
                                     var $div = $("<div>")
                                         .append(
@@ -317,6 +323,7 @@ export default {
                         dataIndx: "クレーム内容",
                         dataType: "string",
                         width: 250, minWidth: 250,
+                        cls: "top-wrap",
                         tooltip: true,
                     },
                     {
@@ -599,6 +606,7 @@ export default {
                 params = _.cloneDeep(rows[0].rowData);
             }
 
+            params.IsChild = true;
             params.IsNew = false;
 
             //DAI05140を子画面表示
@@ -613,7 +621,7 @@ export default {
         },
         showNewDetail: function(rowData) {
 
-            var params = { IsNew: true}
+            var params = { IsChild: true, IsNew: true };
 
             //DAI05140を子画面表示
             PageDialog.show({
