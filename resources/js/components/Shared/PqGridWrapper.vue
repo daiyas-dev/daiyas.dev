@@ -930,16 +930,25 @@ export default {
                     select: true,
                 },
                 postRender: function(ui) {
-                    if (!!ui.column.tooltip && !!ui.rowData[ui.dataIndx]) {
-                        $(ui.cell).tooltip({
-                            container: "body",
-                            animation: false,
-                            template: '<div class="tooltip text-overflow" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>',
-                            placement: "auto",
-                            trigger: "hover",
-                            title: ui.rowData[ui.dataIndx],
-                        })
-                        ;
+                    if (!!ui.column.tooltip) {
+                        var title =  !!ui.column.render
+                            ? ui.column.render(ui)
+                            : ui.rowData[ui.dataIndx]
+                            ;
+                        title = _.isObject(title) ? ui.rowData[ui.dataIndx] : title;
+                        var html = !!title && title.startsWith("<");
+
+                        if (!!title) {
+                            $(ui.cell).tooltip({
+                                container: "body",
+                                animation: false,
+                                template: '<div class="tooltip text-overflow" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>',
+                                placement: "auto",
+                                trigger: "hover",
+                                title: title,
+                                html: html,
+                            });
+                        }
                     }
                 },
             },
@@ -1721,22 +1730,34 @@ export default {
                                 var $ele = $(event.target);
                                 if (!$ele.hasClass("pq-grid-cell")) return true;
 
-                                var title = $ele.attr("title") || $ele.text().replace(/(, )+$/, "").replace(/, /g, "<br>");
+                                var targets = [];
+                                if ($ele.find("div")) {
+                                    targets = $ele.find("[title]").get();
+                                } else {
+                                    targets = [$ele]
+                                }
 
                                 $("*").tooltip("hide");
-                                if (!!title && _.trim(title) != "") {
-                                    $ele.tooltip({
-                                        container: "body",
-                                        animation: false,
-                                        template: '<div class="tooltip text-overflow" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>',
-                                        html: true,
-                                        placement: "auto",
-                                        trigger: "hover",
-                                        title: title,
-                                    })
-                                    .tooltip("show")
-                                    ;
-                                }
+
+                                targets.forIn(e => {
+                                    var $e = $(e);
+                                    var title = $e.attr("title") || $e.text().replace(/(, )+$/, "").replace(/, /g, "<br>");
+
+                                    if (!!title && _.trim(title) != "") {
+                                        $e.tooltip({
+                                            container: "body",
+                                            animation: false,
+                                            template: '<div class="tooltip text-overflow" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>',
+                                            html: true,
+                                            placement: "auto",
+                                            trigger: "hover",
+                                            title: title,
+                                        })
+                                        .tooltip("show")
+                                        ;
+                                    }
+                                });
+
                                 return false;
                             });
                 }
