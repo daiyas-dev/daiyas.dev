@@ -910,8 +910,10 @@ export default {
                     -webkit-print-color-adjust: exact;
                     background-size: contain;
                     background-repeat: no-repeat;
-                    background-image: url(${location.origin}/images/BushoStamp/${vue.BushoInfo.部署CD}.png);
-                }
+                    background-image: url(${location.origin}/images/BushoStamp/${vue.BushoInfo.部署CD}.png);                    margin-left: 20px;
+                    background-position-x: right;
+                    margin-right: 200px;
+                }                }
                 table.header-table tbody th {
                     text-align: center;
                     font-family: "MS UI Gothic";
@@ -1026,6 +1028,19 @@ export default {
                     border-bottom-width: 1px;
                     height: 55px !important;
                 }
+                tr:not(:nth-child(1)) div.header {
+                    border-style: dotted;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                    padding-top: 16px;
+
+                }
+                div.header,
+                div.header > div {
+                    margin: 0px;
+                }
               `;
 
             var targetData = data || grid.pdata;
@@ -1034,7 +1049,7 @@ export default {
                 var layout = `
                     <div>
                         <div class="header">
-                            <div style="float: left; width: 75%">
+                            <div style="float: left; width: 75%; height: 85px;">
                                 <div style="clear: left;">
                                     <div style="float: left; width: 40%">
                                         ${!!r.請求先ＣＤ ? r.請求先ＣＤ + " - " + r.コースＣＤ : ""}
@@ -1051,7 +1066,7 @@ export default {
                                         <div style="float: left; width: 10%; text-align: right;">様
                                         </div>
                                     </div>
-                                    <table class="header-table" style="clear: left; border-width: 0px; margin-bottom: 10px; margin-left: 80px; width: 40%;">
+                                    <table class="header-table" style="clear: left; float: left; border-width: 0px; margin-bottom: 10px; margin-left: 80px; width: 40%;">
                                         <tbody>
                                             <tr>
                                                 <th style="width: 25%"> 金 額 </th>
@@ -1059,6 +1074,9 @@ export default {
                                             </tr>
                                         </tbody>
                                     </table>
+                                    <div style="padding-top: 18px; height: 30px; padding-left:293px;">
+                                        （${moment(vue.viewModel.TargetDate, "YYYY年MM月DD日").day(6).format("YYYY/MM/DD")} 締）
+                                    </div>
                                 </div>
                             </div>
                             <div style="float: left; width: 25%">
@@ -1068,29 +1086,32 @@ export default {
                                 <div>
                                     <span style="white-space: pre;">${moment(r.請求日付).format("  YY  年  MM  月  DD  日")}</span>
                                 </div>
-                                <div style="height: 45px;"></div>
+                                <div></div>
                             </div>
                             <div style="clear: left; width: 100%">
                                 <div style="float: left; width: 55%">
-                                    <div style="margin-left: 20px;">
+                                    <div style="margin-left: 100px;">
                                         但し　お弁当代として（軽減税率対象）
                                         <br>
-                                        上記金額正に領収いたしました。
+                                        <span/><span/><span/><span/><span/>上記金額正に領収いたしました。
                                     </div>
                                     <div id="f-box">
-                                        <div>
-                                            ${vue.BushoInfo.会社名称}
+                                        <div style="margin: 0px">
+                                            ${vue.BushoInfo.会社名称.split("食品")[0]}
+                                        </div>
+                                        <div style="margin: 0px">
+                                            ${vue.BushoInfo.会社名称.split("食品")[1].replace(/\s+/g, "")}
                                         </div>
                                         <div>
                                             <span/>〒
                                             <span/>${vue.BushoInfo.郵便番号}
                                         </div>
                                         <div>
-                                            ${vue.BushoInfo.住所}
+                                            <span/>${vue.BushoInfo.住所}
                                         </div>
                                         <div>
-                                            Tel
-                                            <span/><span/>${vue.BushoInfo.電話番号}
+                                            <span/><span/>Tel.
+                                            <span/>${vue.BushoInfo.電話番号}
                                         </div>
                                     </div>
                                 </div>
@@ -1104,8 +1125,8 @@ export default {
                                     </div>
                                     <div style="float: left; width: 75%">
                                         <div style="clear: left; height:50px;"></div>
-                                        <div style="clear:">
-                                            取扱者印なきものは無効
+                                        <div style="clear: left; padding-left: 5px;">
+                                            取扱者印なき<br>ものは無効
                                         </div>
                                     </div>
                                 </div>

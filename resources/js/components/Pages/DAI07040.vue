@@ -206,8 +206,9 @@ export default {
                         title: "商品",
                         dataIndx: "商品",
                         dataType: "string",
-                        width: 200, minWidth: 200,
+                        width: 200, minWidth: 200, maxWidth: 200,
                         render: ui => {
+                            var $div = $("<div>")
                             if (!!ui.rowData.pq_grandsummary) {
                                 (ui.cls || []).push("justify-content-end");
                                 return { text: "* * 出荷合計 * *" + "\n" + "* * 売上金額 * *"};
@@ -215,7 +216,16 @@ export default {
                                 (ui.cls || []).push("justify-content-end");
                                 return { text: "コース計" };
                             }　else if (ui.rowData.pq_level == 0) {
-                                return ui;
+                                $div.append(
+                                    $("<div>").addClass("d-flex")
+                                        .append(
+                                            $("<div>").addClass("text-left").text(ui.rowData.商品.split(/:/)[0] ).width(50)
+                                        )
+                                        .append(
+                                            $("<div>").addClass("text-left").text(ui.rowData.商品.split(/:/)[1])
+                                        )
+                                )
+                                return $div.prop("outerHTML");
                             } else {
                                 (ui.cls || []).push("pl-5");
                                 return { text: ui.rowData.コースＣＤ + ":" + ui.rowData.コース名 };
@@ -504,7 +514,6 @@ export default {
             console.log("dummy")
         },
         print: function() {
-            //TODO:印刷確認未完了
             var vue = this;
             var grid = vue.DAI07040Grid1;
 
@@ -598,29 +607,29 @@ export default {
                         <div style="float: left; width: 23%;">
                             <div style="clear: left; height: 18px;"></div>
                             <div style="clear: left;" class="header-box">
-                                <div style="float: left;; width: 15%;">日付</div>
-                                <div style="float: left;; width: 78.5%;">${moment(vue.viewModel.TargetDate, "YYYYMMDD").format("YYYY年MM月DD日")}</div>
+                                <div style="float: left; width: 15%;">日付</div>
+                                <div style="float: left; width: 76.3%; padding-left: 8px;">${moment(vue.viewModel.TargetDate, "YYYYMMDD").format("YYYY年MM月DD日")}</div>
                             </div>
                             <div style="clear: left;" class="header-box">
                                 <div style="float: left; width: 15%;">部署</div>
-                                <div style="float: left; width: 15%;">${vue.viewModel.BushoCd}</div>
+                                <div style="float: left; width: 15%; text-align: center;">${vue.viewModel.BushoCd}</div>
                                 <div style="float: left; width: 60.5%;">${vue.viewModel.BushoNm}</div>
                             </div>
                         </div>
-                        <div  class="title" style="float: left; width: 53.0%;">
+                        <div  class="title" style="float: left; width: 50.7%;">
                             <h3>* * * <span/>週刊曜日予定表<span/> * * *</h3>
                             <div style="margin-bottom: 5px;">コース：${!!vue.viewModel.CourseCdArray && vue.viewModel.CourseCdArray.length > 0 ?
                                 JSON.stringify(DAI07040.viewModel.CourseCdArray.map(v => v.code)).replace(/"|\[|]/g,"")
                                 : "全コース"}
                             </div>
                         </div>
-                        <div style="float: left; width: 24%;">
-                            <div style="clear: left; height: 39px;"></div>
+                        <div style="float: left; width: 26.3%;">
+                            <div style="clear: left; height: 41px;"></div>
                             <div style="clear: left;" class="header-box">
-                                <div style="float: left; width: 15%;">作成日</div>
-                                <div style="float: left; width: 43.1%;">${moment().format("YYYY/MM/DD")}</div>
-                                <div style="float: left; width: 15%;">PAGE</div>
-                                <div style="float: left; width: 15%;">${idx + 1}/${length}</div>
+                                <div style="float: left; width: 18%;">作成日</div>
+                                <div style="float: left; width: 37.2%; text-align: center;">${moment().format("YYYY/MM/DD")}</div>
+                                <div style="float: left; width: 18%;">PAGE</div>
+                                <div style="float: left; width: 16%;">${idx + 1}/${length}</div>
                             </div>
                         </div>
                     </div>
@@ -638,7 +647,7 @@ export default {
                             grid.generateHtml(
                                 `
                                     .header div:not(.title) {
-                                        font-size: 11px;
+                                        font-size: 9.5pt;
                                     }
                                     .header-box > div {
                                         border-style: solid;
@@ -711,6 +720,9 @@ export default {
                                     }
                                     table.DAI07040Grid1 tbody tr.grand-summary td {
                                         line-height: 1.5em;
+                                    }
+                                    .text-left {
+                                        float: left;
                                     }
                                  `,
                                 headerFunc,
