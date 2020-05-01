@@ -906,14 +906,16 @@ export default {
                     font-weight: bold;
                     height: 15px;
                 }
-				#f-box {
+				#busho-inkan {
                     -webkit-print-color-adjust: exact;
                     background-size: contain;
                     background-repeat: no-repeat;
                     background-image: url(${location.origin}/images/BushoStamp/${vue.BushoInfo.部署CD}.png);                    margin-left: 20px;
                     background-position-x: right;
                     margin-right: 200px;
-                }                }
+                    margin-right: 240px;
+                    background-size: 38%;
+                }
                 table.header-table tbody th {
                     text-align: center;
                     font-family: "MS UI Gothic";
@@ -1034,12 +1036,17 @@ export default {
                     border-top-width: 1px;
                     border-right-width: 0px;
                     border-bottom-width: 0px;
-                    padding-top: 16px;
 
                 }
                 div.header,
                 div.header > div {
                     margin: 0px;
+                }
+                tr div.header {
+                    padding-top: 20px;
+                }
+                div.tel-no {
+                    margin-bottom: 10px;
                 }
               `;
 
@@ -1081,7 +1088,7 @@ export default {
                             </div>
                             <div style="float: left; width: 25%">
                                 <div class="header-seikyu-no">
-                                    <span/>${!!r.請求先ＣＤ ? r.請求番号 : (moment(r.請求日付).format("YYMMDD") + " - " + r.請求番号)}
+                                    <span/>${!!r.請求先ＣＤ ? ("000000000" + r.請求番号).slice(-9) : (moment(r.請求日付).format("YYMMDD") + " - " + r.請求番号)}
                                 </div>
                                 <div>
                                     <span style="white-space: pre;">${moment(r.請求日付).format("  YY  年  MM  月  DD  日")}</span>
@@ -1089,13 +1096,13 @@ export default {
                                 <div></div>
                             </div>
                             <div style="clear: left; width: 100%">
-                                <div style="float: left; width: 55%">
+                                <div style="float: left; width: 55%;">
                                     <div style="margin-left: 100px;">
                                         但し　お弁当代として（軽減税率対象）
                                         <br>
                                         <span/><span/><span/><span/><span/>上記金額正に領収いたしました。
                                     </div>
-                                    <div id="f-box">
+                                    <div id="busho-inkan">
                                         <div style="margin: 0px">
                                             ${vue.BushoInfo.会社名称.split("食品")[0]}
                                         </div>
@@ -1109,7 +1116,7 @@ export default {
                                         <div>
                                             <span/>${vue.BushoInfo.住所}
                                         </div>
-                                        <div>
+                                        <div class="tel-no">
                                             <span/><span/>Tel.
                                             <span/>${vue.BushoInfo.電話番号}
                                         </div>
@@ -1157,7 +1164,7 @@ export default {
 
             var printOptions = {
                 type: "raw-html",
-                style: "@media print { @page { size: A4; } }",
+                style: "@media print { @page { size: A4; margin: 0px 40px;} }",
                 printable: printable,
             };
 
