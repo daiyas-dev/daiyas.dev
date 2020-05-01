@@ -109,9 +109,9 @@
             </div>
         </div>
         <PqGridWrapper
-            id="DAI06040Grid1"
-            ref="DAI06040Grid1"
-            dataUrl="/DAI06040/Search"
+            id="DAI06050Grid1"
+            ref="DAI06050Grid1"
+            dataUrl="/DAI06050/Search"
             :query=this.searchParams
             :SearchOnCreate=false
             :SearchOnActivate=false
@@ -124,10 +124,10 @@
 </template>
 
 <style>
-#DAI06040Grid1 .pq-group-toggle-none {
+#DAI06050Grid1 .pq-group-toggle-none {
     display: none !important;
 }
-#DAI06040Grid1 .pq-group-icon {
+#DAI06050Grid1 .pq-group-icon {
     display: none !important;
 }
 label{
@@ -140,7 +140,7 @@ import PageBaseMixin from "@vcs/PageBaseMixin.vue";
 
 export default {
     mixins: [PageBaseMixin],
-    name: "DAI06040",
+    name: "DAI06050",
     components: {
     },
     props: {
@@ -184,7 +184,7 @@ export default {
             handler: function(newVal) {
                 var vue = this;
                 var disabled = !newVal.DateStart || !newVal.DateEnd;
-                vue.footerButtons.find(v => v.id == "DAI06040Grid1_Search").disabled = disabled;
+                vue.footerButtons.find(v => v.id == "DAI06050Grid1_Search").disabled = disabled;
             },
         },
     },
@@ -215,7 +215,7 @@ export default {
                 MealKbn: null,
                 IsDaitaiOnly: "0",
             },
-            DAI06040Grid1: null,
+            DAI06050Grid1: null,
             ProductList: [],
             grid1Options: {
                 selectionModel: { type: "cell", mode: "single", row: true },
@@ -346,54 +346,8 @@ export default {
                         },
                     },
                     {
-                        title: "チケット販売SV",
-                        dataIndx: "チケット販売SV",
-                        dataType: "float",
-                        format: "#,###.0",
-                        hidden: true,
-                        summary: {
-                            type: "TotalFloat",
-                        },
-                    },
-                    {
-                        title: "チケット券販売",
-                        dataIndx: "チケット販売",
-                        dataType: "string",
-                        align: "right",
-                        width: 150, minWidth: 150, maxWidth: 150,
-                        summary: {
-                            type: "TotalInt",
-                        },
-                        render: ui => {
-                            var valSale = "";
-                            if (ui.rowData.チケット販売 * 1 != 0) {
-                                valSale = ui.rowData.チケット販売;
-                            }
-                            if (ui.rowData.チケット販売SV * 1 != 0)
-                            {
-                                valSale = valSale + "(" + (ui.rowData.チケット販売SV * 1).toFixed(1) + ")";
-                            }
-                            if (!!ui.rowData.pq_gsummary || !!ui.rowData.pq_grandsummary) {
-                                valSale = ui.rowData.チケット販売.replace(",","") * 1;
-                                valSale = valSale + "(" + (ui.rowData.チケット販売SV.replace(",","") * 1).toFixed(1) + ")";
-                                return { text: valSale };
-                            }
-                            return { text: valSale };
-                        },
-                    },
-                    {
-                        title: "弁当売上SV",
-                        dataIndx: "弁当売上SV",
-                        dataType: "float",
-                        format: "#,###.0",
-                        hidden: true,
-                        summary: {
-                            type: "TotalInt",
-                        },
-                    },
-                    {
-                        title: "弁当売上",
-                        dataIndx: "弁当売上",
+                        title: "チケット券販売額",
+                        dataIndx: "チケット券販売額",
                         dataType: "integer",
                         format: "#,###",
                         width: 150, minWidth: 150, maxWidth: 150,
@@ -401,35 +355,15 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            var valSale = "";
-                            if (ui.rowData.弁当売上 * 1 != 0) {
-                                valSale = ui.rowData.弁当売上;
+                            if (ui.rowData[ui.dataIndx] * 1 == 0 && !!ui.rowData.日付) {
+                                return { text: "0" };
                             }
-                            if (ui.rowData.弁当売上SV * 1 != 0)
-                            {
-                                valSale = valSale + "(" + (ui.rowData.弁当売上SV * 1).toFixed(1) + ")";
-                            }
-                            if (!!ui.rowData.pq_gsummary || !!ui.rowData.pq_grandsummary) {
-                                valSale = ui.rowData.弁当売上.replace(",","") * 1;
-                                valSale = valSale + "(" + (ui.rowData.弁当売上SV.replace(",","") * 1).toFixed(1) + ")";
-                                return { text: valSale };
-                            }
-                            return { text: valSale };
+                            return ui;
                         },
                     },
                     {
-                        title: "調整SV",
-                        dataIndx: "調整SV",
-                        dataType: "float",
-                        format: "#,###.0",
-                        hidden: true,
-                        summary: {
-                            type: "TotalInt",
-                        },
-                    },
-                    {
-                        title: "調整",
-                        dataIndx: "調整",
+                        title: "現金入金額",
+                        dataIndx: "現金入金額",
                         dataType: "integer",
                         format: "#,###",
                         width: 150, minWidth: 150, maxWidth: 150,
@@ -437,46 +371,23 @@ export default {
                             type: "TotalInt",
                         },
                         render: ui => {
-                            var valSale = "";
-                            if (ui.rowData.調整 * 1 != 0) {
-                                valSale = ui.rowData.調整;
+                            if (ui.rowData[ui.dataIndx] * 1 == 0 && !!ui.rowData.日付) {
+                                return { text: "0" };
                             }
-                            if (ui.rowData.調整SV * 1 != 0)
-                            {
-                                valSale = valSale + "(" + (ui.rowData.調整SV * 1).toFixed(1) + ")";
-                            }
-                            if (!!ui.rowData.pq_gsummary || !!ui.rowData.pq_grandsummary) {
-                                valSale = ui.rowData.調整.replace(",","") * 1;
-                                valSale = valSale + "(" + (ui.rowData.調整SV.replace(",","") * 1).toFixed(1) + ")";
-                                return { text: valSale };
-                            }
-                            return { text: valSale };
+                            return ui;
                         },
                     },
                     {
-                        title: "チケット残数SV",
-                        dataIndx: "チケット残数SV",
-                        dataType: "float",
-                        format: "#,###.0",
-                        hidden: true,
-                    },
-                    {
-                        title: "チケット残数",
-                        dataIndx: "チケット残数",
+                        title: "残額",
+                        dataIndx: "残額",
                         dataType: "integer",
                         format: "#,###",
                         width: 150, minWidth: 150, maxWidth: 150,
                         render: ui => {
-                            if (!!ui.rowData.pq_gsummary) {
-                                return { text: "" };
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "0" };
                             }
-                            else
-                            {
-                                var valSale = "0";
-                                valSale = ui.rowData.チケット残数 * 1;
-                                valSale = valSale + "(" + (ui.rowData.チケット残数SV * 1).toFixed(1) + ")";
-                                return { text: valSale };
-                            }
+                            return ui;
                         },
                     },
                 ],
@@ -492,23 +403,23 @@ export default {
         createdFunc: function(vue) {
             vue.footerButtons.push(
                 {visible: "false"},
-                { visible: "true", value: "検索", id: "DAI06040Grid1_Search", disabled: false, shortcut: "F5",
+                { visible: "true", value: "検索", id: "DAI06050Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
-                        vue.DAI06040Grid1.searchData(vue.searchParams);
+                        vue.DAI06050Grid1.searchData(vue.searchParams);
                     }
                 },
                 {visible: "false"},
-                { visible: "true", value: "CSV", id: "DAI06040Grid1_CSV", disabled: true, shortcut: "F10",
+                { visible: "true", value: "CSV", id: "DAI06050Grid1_CSV", disabled: true, shortcut: "F10",
                     onClick: function () {
-                        vue.DAI06040Grid1.vue.exportData("csv", false, true);
+                        vue.DAI06050Grid1.vue.exportData("csv", false, true);
                     }
                 },
-                { visible: "true", value: "Excel", id: "DAI06040Grid1_Excel", disabled: true, shortcut: "F9",
+                { visible: "true", value: "Excel", id: "DAI06050Grid1_Excel", disabled: true, shortcut: "F9",
                     onClick: function () {
-                        vue.DAI06040Grid1.vue.exportData("xlsx", false, true);
+                        vue.DAI06050Grid1.vue.exportData("xlsx", false, true);
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI06040Grid1_Print", disabled: true, shortcut: "F11",
+                { visible: "true", value: "印刷", id: "DAI06050Grid1_Print", disabled: true, shortcut: "F11",
                     onClick: function () {
                         vue.print();
                     }
@@ -524,9 +435,9 @@ export default {
 
             //watcher
             vue.$watch(
-                "$refs.DAI06040Grid1.selectionRowCount",
+                "$refs.DAI06050Grid1.selectionRowCount",
                 cnt => {
-                    vue.footerButtons.find(v => v.id == "DAI06040Grid1_Detail").disabled = cnt == 0 || cnt > 1;
+                    vue.footerButtons.find(v => v.id == "DAI06050Grid1_Detail").disabled = cnt == 0 || cnt > 1;
                 }
             );
         },
@@ -564,7 +475,7 @@ export default {
         },
         conditionChanged: function(callback) {
             var vue = this;
-            var grid = vue.DAI06040Grid1;
+            var grid = vue.DAI06050Grid1;
             console.log("6040 conditionChanged")
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
@@ -585,7 +496,7 @@ export default {
         },
         filterChanged: function() {
             var vue = this;
-            var grid = vue.DAI06040Grid1;
+            var grid = vue.DAI06050Grid1;
 
             if (!grid) return;
 
@@ -607,9 +518,9 @@ export default {
         onAfterSearchFunc: function (grieVue, grid, res) {
             var vue = this;
 
-            vue.footerButtons.find(v => v.id == "DAI06040Grid1_CSV").disabled = !res.length;
-            vue.footerButtons.find(v => v.id == "DAI06040Grid1_Excel").disabled = !res.length;
-            vue.footerButtons.find(v => v.id == "DAI06040Grid1_Print").disabled = !res.length;
+            vue.footerButtons.find(v => v.id == "DAI06050Grid1_CSV").disabled = !res.length;
+            vue.footerButtons.find(v => v.id == "DAI06050Grid1_Excel").disabled = !res.length;
+            vue.footerButtons.find(v => v.id == "DAI06050Grid1_Print").disabled = !res.length;
 
             res.forEach(r => {
                     r.得意先商品名 = r.得意先ＣＤ + " " + r.得意先商品名;
@@ -755,7 +666,7 @@ export default {
                 TargetDate: moment(data.入金日付).format("YYYY年MM月DD日"),
                 CustomerCd: data.得意先ＣＤ,
                 onSaveFunc: () => {
-                    var grid = vue.DAI06040Grid1;
+                    var grid = vue.DAI06050Grid1;
                     grid.refreshDataAndView();
                 },
             };
@@ -843,7 +754,7 @@ export default {
                 }
                 return `
                     <div class="title">
-                        <h3>＊＊チケット販売台帳＊＊</h3>
+                        <h3>＊＊チケット販売台帳（金額）＊＊</h3>
                     </div>
                     <table class="header-table" style="border-width: 0px">
                         <thead>
@@ -873,55 +784,55 @@ export default {
             };
 
             var styleCustomers =`
-                table.DAI06040Grid1 tr:nth-child(1) th {
+                table.DAI06050Grid1 tr:nth-child(1) th {
                     border-style: solid;
                     border-left-width: 0px;
                     border-top-width: 1px;
                     border-right-width: 0px;
                     border-bottom-width: 1px;
                 }
-                table.DAI06040Grid1 tr.group-summary td {
+                table.DAI06050Grid1 tr.group-summary td {
                     border-style: solid;
                     border-left-width: 0px;
                     border-top-width: 1px;
                     border-right-width: 0px;
                     border-bottom-width: 0px;
                 }
-                table.DAI06040Grid1 tr.group-summary td:nth-child(2) {
+                table.DAI06050Grid1 tr.group-summary td:nth-child(2) {
                     text-align: right;
                     padding-right: 50px;
                 }
-                table.DAI06040Grid1 tr[level="0"].group-summary td {
+                table.DAI06050Grid1 tr[level="0"].group-summary td {
                     border-style: dotted;
                     border-left-width: 0px;
                     border-top-width: 1px;
                     border-right-width: 0px;
                     border-bottom-width: 0px;
                 }
-                table.DAI06040Grid1 tr[level="0"].group-summary td:nth-child(2) {
+                table.DAI06050Grid1 tr[level="0"].group-summary td:nth-child(2) {
                     text-align: right;
                     padding-right: 30px;
                 }
-                table.DAI06040Grid1 tr.grand-summary td {
+                table.DAI06050Grid1 tr.grand-summary td {
                     border-style: solid;
                     border-left-width: 0px;
                     border-top-width: 1px;
                     border-right-width: 0px;
                     border-bottom-width: 0px;
                 }
-                table.DAI06040Grid1 tr.grand-summary td:nth-child(2) {
+                table.DAI06050Grid1 tr.grand-summary td:nth-child(2) {
                     text-align: right;
                 }
-                table.DAI06040Grid1 tr.grand-summary td:nth-child(3) {
+                table.DAI06050Grid1 tr.grand-summary td:nth-child(3) {
                     text-align: left;
                 }
-                table.DAI06040Grid1 tr th:nth-child(1) {
+                table.DAI06050Grid1 tr th:nth-child(1) {
                     width: 20%;
                 }
-                table.DAI06040Grid1 tr th:nth-child(2) {
+                table.DAI06050Grid1 tr th:nth-child(2) {
                     width: 20%;
                 }
-                table.DAI06040Grid1 tr th:nth-child(n+3):nth-child(-n+6) {
+                table.DAI06050Grid1 tr th:nth-child(n+3):nth-child(-n+6) {
                     width: 15%;
                 }
             `;
@@ -931,7 +842,7 @@ export default {
                 .append(
                     $("<body>")
                         .append(
-                            vue.DAI06040Grid1.generateHtml(
+                            vue.DAI06050Grid1.generateHtml(
                                 styleCustomers,
                                 headerFunc,
                                 36,
