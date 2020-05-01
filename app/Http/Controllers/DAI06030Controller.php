@@ -11,7 +11,8 @@ use Illuminate\Support\Carbon;
 class DAI06030Controller extends Controller
 {
     /**
-     * チケット調整IDを取得する
+     * チケット調整IDを取得する(ドロップダウン表示用)
+     * キー：得意先CD
      */
     public function SearchAdjustmentID($vm)
     {
@@ -24,20 +25,21 @@ class DAI06030Controller extends Controller
                 [チケット調整]
             WHERE
                 [得意先ＣＤ] = $CustomerCd
-            UNION
-            SELECT
-                  0
-                , '(新規作成)'
             ORDER BY
                 チケット調整ID DESC
         ";
         $DataList = DB::select($sql);
-        return response()->json($DataList);
+
+        $DataNew = new \stdClass();
+        $DataNew->Cd=0;
+        $DataNew->CdNm='(新規作成)';
+        return response()->json(array_merge(array($DataNew), $DataList));
     }
     /**
      * 得意先情報を取得する
+     * キー：得意先CD
      */
-    public function SearchCustomerTicket($vm)
+    private function SearchCustomerTicket($vm)
     {
         $BushoCd = $vm->BushoCd;
         if($BushoCd==null)
@@ -73,8 +75,9 @@ class DAI06030Controller extends Controller
     }
     /**
      * 得意先単価情報を取得する
+     * キー：得意先CD
      */
-    public function SearchCustomerProduct($vm)
+    private function SearchCustomerProduct($vm)
     {
         $CustomerCd = $vm->CustomerCd;
         if($CustomerCd==null)
@@ -98,7 +101,7 @@ class DAI06030Controller extends Controller
         return $DataList;
     }
     /**
-     * Search
+     * 得意先関連の情報を取得する
      */
     public function SearchCustomer($vm) {
         return response()->json(
@@ -111,15 +114,109 @@ class DAI06030Controller extends Controller
         );
     }
     /**
-     * SearchAdjustmentInfo
+     * 得意先のチケット残数を取得する
+     * キー：調整ID(に紐付く調整日)
      */
-    public function SearchAdjustmentInfo($vm)
+    private function SearchTicketZansu($vm)
+    {
+        $CustomerCd = $vm->CustomerCd;
+        $AdjustmentDate = $vm->AdjustmentDate;
+        $sql="
+            SELECT
+                D1.得意先ＣＤ,
+                チケット内数 - ISNULL(チケット弁当数, 0) - ISNULL(チケット減数, 0) as チケット残数,
+                SV内数 - ISNULL(CONVERT(DECIMAL(18,1), SV弁当数), 0.0) - ISNULL(SV減数, 0.0) as サービス残数
+            FROM
+            (
+                SELECT
+                    得意先ＣＤ,
+                    SUM(チケット内数) as チケット内数,
+                    SUM(SV内数) as SV内数
+                    FROM チケット発行
+                WHERE 発行日 <= '$AdjustmentDate'
+                    AND 廃棄 = 0
+                    AND 得意先ＣＤ=$CustomerCd
+                GROUP BY 得意先ＣＤ
+            ) D1
+            LEFT OUTER JOIN
+                (
+                    SELECT
+                        得意先ＣＤ,
+                        SUM(掛売個数) as チケット弁当数
+                        FROM 売上データ明細
+                    WHERE 売掛現金区分 = 2
+                        AND 日付 <= '$AdjustmentDate'
+                    GROUP BY 得意先ＣＤ
+                ) D2 on D1.得意先ＣＤ = D2.得意先ＣＤ
+            LEFT OUTER JOIN
+                (
+                    SELECT
+                        得意先ＣＤ,
+                        SUM(掛売個数) as SV弁当数
+                        FROM 売上データ明細
+                    WHERE 売掛現金区分 = 4
+                        AND 日付 <= '$AdjustmentDate'
+                    GROUP BY
+                        得意先ＣＤ
+                ) D3 on D1.得意先ＣＤ = D3.得意先ＣＤ
+            LEFT OUTER JOIN
+                (
+                    SELECT
+                        得意先ＣＤ,
+                        SUM(チケット減数) as チケット減数,
+                        SUM(SV減数) as SV減数
+                        FROM チケット調整
+                    WHERE 日付 <= '$AdjustmentDate'
+                    GROUP BY 得意先ＣＤ
+                ) D4 on D1.得意先ＣＤ = D4.得意先ＣＤ
+            ";
+        $DataList = DB::select($sql);
+        if(count($DataList)==0)
+        {
+            $DataNew = new \stdClass();
+            $DataNew->得意先ＣＤ=$CustomerCd;
+            $DataNew->チケット残数=0;
+            $DataNew->サービス残数=0;
+            $DataList=array($DataNew);
+        }
+        return $DataList;
+    }
+    /**
+     * 得意先のチケット調整状況(累計)を取得する
+     * キー：調整ID
+     */
+    private function SearchTicketAdjustmentSummary($vm)
+    {
+        $CustomerCd = $vm->CustomerCd;
+        $AdjustmentID = $vm->AdjustmentID;
+        if($AdjustmentID==0)
+        {
+            return null;
+        }
+        //TODO:現行SQLには[AND 得意先ＣＤ=$CustomerCd]の条件が存在しないが、必要と思われる。
+        $sql="
+                SELECT
+                      SUM(チケット減数) as 累積チケット減数
+                    , SUM(SV減数) as 累積SV減数
+                FROM
+                    [チケット調整]
+                WHERE
+                    [チケット調整ID] >= $AdjustmentID
+            ";
+            //AND 得意先ＣＤ=$CustomerCd
+            $DataList = DB::select($sql);
+        return $DataList;
+    }
+    /**
+     * 得意先のチケット調整状況(調整ID単位)を取得する
+     * キー：調整ID
+     */
+    private function SearchTicketAdjustment($vm)
     {
         $AdjustmentID = $vm->AdjustmentID;
-
-        $sql = "
+        $sql="
             SELECT
-                  チケット調整ID
+                チケット調整ID
                 , CONVERT(varchar, チケット調整ID) as チケット調整IDDisplay
                 , 得意先ＣＤ
                 , 日付
@@ -127,17 +224,31 @@ class DAI06030Controller extends Controller
                 , 商品ＣＤ
                 , チケット減数
                 , SV減数
+                , 金額
             FROM
                 [チケット調整]
             WHERE
-                チケット調整ID=$AdjustmentID
-            ORDER BY
-                チケット調整ID DESC
-        ";
-        $DataList = DB::selectOne($sql);
-
-        return response()->json($DataList);
+                [チケット調整ID] = $AdjustmentID
+            ";
+        $DataList = DB::select($sql);
+        return $DataList;
     }
+    /**
+     * チケット残数関連の情報を取得する
+     */
+    public function SearchAdjustmentInfo($vm)
+    {
+        return response()->json(
+            [
+                [
+                    "TicketZansu" => $this->SearchTicketZansu($vm),
+                    "TicketAdjustment" => $this->SearchTicketAdjustment($vm),
+                    "TicketAdjustmentSummary" => $this->SearchTicketAdjustmentSummary($vm),
+                ]
+            ]
+        );
+    }
+
     /**
      * Save
      */

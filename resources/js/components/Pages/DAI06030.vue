@@ -122,7 +122,7 @@
                 <input class="form-control p-0 text-center label-blue" style="width: 80px;" type="text" :value=viewModel.TicketZanSystem readonly tabindex="-1">
             </div>
             <div class="col-md-1">
-                <input class="form-control p-0 text-center label-blue" style="width: 80px;" type="text" :value=viewModel.TicketZanJitsu>
+                <input class="form-control p-0 text-center label-blue" style="width: 80px;" type="text" :value=viewModel.TicketZanJitsu @input="onTicketZanJitsuChanged">
             </div>
             <div class="col-md-1">
                 <input class="form-control p-0 text-center label-blue" style="width: 80px;" type="text" :value=viewModel.TicketZanSa readonly tabindex="-1">
@@ -136,7 +136,7 @@
                 <input class="form-control p-0 text-center label-blue" style="width: 80px;" type="text" :value=viewModel.SVTicketZanSystem readonly tabindex="-1">
             </div>
             <div class="col-md-1">
-                <input class="form-control p-0 text-center label-blue" style="width: 80px;" type="text" :value=viewModel.SVTicketZanJitsu>
+                <input class="form-control p-0 text-center label-blue" style="width: 80px;" type="text" :value=viewModel.SVTicketZanJitsu @input="onSVTicketZanJitsuChanged">
             </div>
             <div class="col-md-1">
                 <input class="form-control p-0 text-center label-blue" style="width: 80px;" type="text" :value=viewModel.SVTicketZanSa readonly tabindex="-1">
@@ -166,7 +166,7 @@
                 <label>買取額</label>
             </div>
             <div class="col-md-4">
-                <input class="form-control p-0 text-center label-blue" style="width: 80px;" type="text" :value=viewModel.Kingaku>円
+                <input class="form-control p-0 text-center label-blue" style="width: 80px;" type="text" :value=viewModel.Kingaku @input="onKingakuChanged">円
             </div>
         </div>
     </form>
@@ -258,35 +258,77 @@ export default {
                         vue.viewModel.SVTicketCount="";
                     }
                 });
+            vue.viewModel.TicketZanSystem=null;
+            vue.viewModel.TicketZanJitsu=null;
+            vue.viewModel.TicketZanSa=null;
+            vue.viewModel.SVTicketZanSystem=null;
+            vue.viewModel.SVTicketZanJitsu=null;
+            vue.viewModel.SVTicketZanSa=null;
+            vue.viewModel.AdjustmentReason = null;
+            vue.viewModel.Kingaku=null;
+
         },
         onAdjustmentIDChanged: function(code, entities) {
             var vue = this;
+            console.log("onAdjustmentIDChanged");//TODO:
+            var AdjustmentDate=moment(vue.viewModel.AdjustmentDate,"YYYY年MM月DD日").format("YYYY/MM/DD");
 
-            if(vue.viewModel.AdjustmentID==0)
-            {
-                vue.viewModel.TicketZanSystem=0;
-                vue.viewModel.TicketZanJitsu=0;
-                vue.viewModel.TicketZanSa=0;
-                vue.viewModel.SVTicketZanSystem=0;
-                vue.viewModel.SVTicketZanJitsu="0.0";
-                vue.viewModel.SVTicketZanSa=0;
+            axios.post("/DAI06030/SearchAdjustmentInfo", {
+                      CustomerCd: vue.viewModel.CustomerCd
+                    , AdjustmentID: vue.viewModel.AdjustmentID
+                    , AdjustmentDate:AdjustmentDate
+                })
+                .then(response => {
+                    window.resai=_.cloneDeep(response);//TODO:
+                    var TicketZansu = _.cloneDeep(response.data[0].TicketZansu[0]);
+                    window.restz=_.cloneDeep(TicketZansu);//TODO:
+                    if(vue.viewModel.AdjustmentID == 0)
+                    {
+                        //調整IDが新規作成の場合
+                        vue.viewModel.TicketZanSystem=TicketZansu.チケット残数;
+                        vue.viewModel.TicketZanJitsu=TicketZansu.チケット残数;
+                        vue.viewModel.TicketZanSa=0;
+                        vue.viewModel.SVTicketZanSystem=(TicketZansu.サービス残数*1).toFixed(1);
+                        vue.viewModel.SVTicketZanJitsu=(TicketZansu.サービス残数*1).toFixed(1);
+                        vue.viewModel.SVTicketZanSa=0.0;
+                        vue.viewModel.AdjustmentReason = 1;
+                        vue.viewModel.Kingaku=0;
+                    }
+                    else
+                    {
+                        var TicketAdjustment = _.cloneDeep(response.data[0].TicketAdjustment[0]);
+                        var TicketAdjustmentSummary = _.cloneDeep(response.data[0].TicketAdjustmentSummary[0]);
+                        window.resta=_.cloneDeep(TicketAdjustment);//TODO:
+                        window.restb=_.cloneDeep(TicketAdjustmentSummary);//TODO:
 
-                vue.footerButtons.find(v => v.id == "DAI06030Grid1_Save").disabled = false;
-            }
-            else{
-                axios.post("/DAI06030/SearchAdjustmentInfo", { AdjustmentID: vue.viewModel.AdjustmentID })
-                    .then(response => {
-                        vue.viewModel.TicketZanSystem=response.data.チケット減数;
-                        vue.viewModel.TicketZanJitsu=0;
-                        vue.viewModel.TicketZanSa=vue.viewModel.TicketZanSystem*1 - vue.viewModel.TicketZanJitsu*1;
-                        vue.viewModel.SVTicketZanSystem=response.data.SV減数;
-                        vue.viewModel.SVTicketZanJitsu="0.0";
-                        vue.viewModel.SVTicketZanSa=vue.viewModel.SVTicketZanSystem*1 - vue.viewModel.SVTicketZanJitsu*1;
+                        vue.viewModel.TicketZanSystem=TicketZansu.チケット残数*1 + TicketAdjustmentSummary.累積チケット減数*1;
+                        vue.viewModel.TicketZanJitsu=vue.viewModel.TicketZanSystem-TicketAdjustment.チケット減数*1;
+                        vue.viewModel.TicketZanSa=vue.viewModel.TicketZanJitsu*1 - vue.viewModel.TicketZanSystem*1;
 
-                        vue.footerButtons.find(v => v.id == "DAI06030Grid1_Save").disabled = false;
-                    });
-            }
+                        vue.viewModel.SVTicketZanSystem=(TicketZansu.サービス残数*1 + TicketAdjustmentSummary.累積SV減数*1).toFixed(1);
+                        vue.viewModel.SVTicketZanJitsu=(vue.viewModel.SVTicketZanSystem-TicketAdjustment.SV減数*1).toFixed(1);
+                        vue.viewModel.SVTicketZanSa=(vue.viewModel.SVTicketZanJitsu*1 - vue.viewModel.SVTicketZanSystem*1).toFixed(1);
+
+                        vue.viewModel.AdjustmentReason = TicketAdjustment.調整理由==2 ? 2 : 1;
+                        vue.viewModel.Kingaku=vue.viewModel.AdjustmentReason==2 ? (TicketAdjustment.金額*1).toFixed(0) : 0;
+                    }
+                    vue.footerButtons.find(v => v.id == "DAI06030Grid1_Save").disabled = false;
+                });
         },
+        onTicketZanJitsuChanged: _.debounce(function(event) {
+            var vue = this;
+            vue.viewModel.TicketZanJitsu=event.target.value*1;
+            vue.viewModel.TicketZanSa=vue.viewModel.TicketZanJitsu*1 - vue.viewModel.TicketZanSystem*1;
+        }, 300),
+        onSVTicketZanJitsuChanged: _.debounce(function(event) {
+            var vue = this;
+            vue.viewModel.SVTicketZanJitsu=event.target.value*1;
+            vue.viewModel.SVTicketZanSa=(vue.viewModel.SVTicketZanJitsu*1 - vue.viewModel.SVTicketZanSystem*1).toFixed(1);
+        }, 300),
+        onKingakuChanged: _.debounce(function(event) {
+            var vue = this;
+            vue.viewModel.Kingaku = event.target.value;
+        }, 300),
         CustomerAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
 
@@ -365,6 +407,7 @@ export default {
                     ShuseiTantoCd:ShuseiTantoCd
                  })
                 .then(response => {
+                    vue.viewModel.CustomerCd=null;
                 });
         },
     }
