@@ -415,6 +415,10 @@ export default {
 
             //集計
             var groupings = _(DeliveryList)
+                .groupBy(v => v.コースＣＤ)
+                .values()
+                .filter(g => g.some(r => !!r.日付))
+                .flatten()
                 .groupBy(v => v.コースＣＤ + "_" + v.順)
                 .values()
                 .map((g, i) => {

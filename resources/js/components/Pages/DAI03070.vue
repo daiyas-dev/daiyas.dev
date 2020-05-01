@@ -540,7 +540,7 @@ export default {
             if (!grid) return;
 
             var rules = [];
-            //TODO:西山確認中
+
             if(vue.viewModel.PrintOrder==1)
             {
                 if (!vue.viewModel.CourseCd != undefined && vue.viewModel.CourseCd != "") {

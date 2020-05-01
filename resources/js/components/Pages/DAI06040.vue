@@ -519,8 +519,8 @@ export default {
             //TODO
             // vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
             // vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
-            vue.viewModel.DateStart = moment("20190401").format("YYYY年MM月DD日");
-            vue.viewModel.DateEnd = moment("20190430").format("YYYY年MM月DD日");
+            vue.viewModel.DateStart = moment("20190501").format("YYYY年MM月DD日");
+            vue.viewModel.DateEnd = moment("20190531").format("YYYY年MM月DD日");
 
             //watcher
             vue.$watch(
@@ -611,7 +611,9 @@ export default {
             vue.footerButtons.find(v => v.id == "DAI06040Grid1_Excel").disabled = !res.length;
             vue.footerButtons.find(v => v.id == "DAI06040Grid1_Print").disabled = !res.length;
 
+            res = res.filter(r => !!r.コースＣＤ);
             res.forEach(r => {
+                    r.コース名 = r.コース名 + (r.処理区分 == "1" ? "" : " (残数のみ)");
                     r.得意先商品名 = r.得意先ＣＤ + " " + r.得意先商品名;
                     // r.日付 = moment(r.日付).format("YYYY/MM/DD") + "　　" + r.曜日;
                 });
