@@ -36,7 +36,7 @@ class DAI05150Controller extends Controller
 					ON KB.部署CD=CL.管轄部門コード
 				LEFT OUTER JOIN 得意先マスタ TM
 					ON TM.得意先ＣＤ=CL.顧客コード
-				LEFT JOIN 各種テーブル CK
+				LEFT OUTER JOIN 各種テーブル CK
 					ON  CK.各種CD=47
 					AND CK.サブ各種CD1=CL.クレーム区分コード
 				LEFT OUTER JOIN 各種テーブル GBK

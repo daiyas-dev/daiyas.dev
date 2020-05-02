@@ -346,7 +346,7 @@
                                 :params="{ ProductCd: null, KeyWord: ProductKeyWord }"
                                 :isPreload=true
                                 title="商品名一覧"
-                                labelCd="モバイル_主要商品ＣＤ1"
+                                labelCd="商品ＣＤ"
                                 labelCdNm="商品名"
                                 :showColumns='[
                                     { title: "商品区分", dataIndx: "商品区分", dataType: "string", width: 80, maxWidth: 80, minWidth: 80, colIndx: 2 },
@@ -364,6 +364,7 @@
                                 :nameWidth=235
                                 :onChangeFunc=onProductChanged
                                 :isShowAutoComplete=true
+                                :AutoCompleteNoLimit=true
                                 :AutoCompleteFunc=ProductAutoCompleteFunc
                             />
                         </div>
@@ -381,7 +382,7 @@
                                 :params="{ ProductCd: null, KeyWord: ProductKeyWord }"
                                 :isPreload=true
                                 title="商品名一覧"
-                                labelCd="モバイル_主要商品ＣＤ2"
+                                labelCd="商品ＣＤ"
                                 labelCdNm="商品名"
                                 :showColumns='[
                                     { title: "商品区分", dataIndx: "商品区分", dataType: "string", width: 80, maxWidth: 80, minWidth: 80, colIndx: 2 },
@@ -399,6 +400,7 @@
                                 :nameWidth=235
                                 :onChangeFunc=onProductChanged
                                 :isShowAutoComplete=true
+                                :AutoCompleteNoLimit=true
                                 :AutoCompleteFunc=ProductAutoCompleteFunc
                             />
                         </div>

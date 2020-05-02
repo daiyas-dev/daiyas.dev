@@ -1034,17 +1034,44 @@ $WhereCourseCd
      */
     public function GetProductListForSelect($request)
     {
+        $CustomerCd = $request->CustomerCd;
+        $CustomerCd = isset($CustomerCd) ? $CustomerCd : "NULL";
+        $TargetDate = $request->TargetDate;
+        $TargetDate = isset($TargetDate) ? "'$TargetDate'" : "NULL";
+
+        $ExceptNull = $request->ExceptNull;
+        $WhereExceptNull = !!$ExceptNull ? "AND ISNULL(TTT.単価, TT.単価) IS NOT NULL" : "";
+
         $sql = "
-        SELECT
-            MP.商品ＣＤ AS Cd,
-            MP.商品名 AS CdNm,
-            MP.商品区分,
-            MP.売価単価,
-            KK.各種名称
-        FROM 商品マスタ MP
-        LEFT JOIN 各種テーブル KK
-            ON MP.商品区分 = KK.行NO
-            AND KK.各種CD = '14'
+            SELECT
+                MP.商品ＣＤ AS Cd,
+                MP.商品名 AS CdNm,
+                MP.商品区分,
+                MP.売価単価,
+                ISNULL(TTT.単価, TT.単価) AS 得意先単価,
+                KK.各種名称
+            FROM 商品マスタ MP
+            LEFT OUTER JOIN 各種テーブル KK
+                ON MP.商品区分 = KK.行NO
+                AND KK.各種CD = '14'
+            LEFT OUTER JOIN 得意先単価マスタ TT
+                ON  TT.商品ＣＤ=MP.商品ＣＤ
+                AND TT.得意先ＣＤ=$CustomerCd
+            LEFT OUTER JOIN (
+                SELECT DISTINCT
+                    得意先ＣＤ,
+                    商品ＣＤ,
+                    FIRST_VALUE(単価) OVER(PARTITION BY 得意先ＣＤ, 商品ＣＤ ORDER BY 適用開始日 DESC) AS 単価
+                FROM
+                    得意先単価適用マスタ
+                WHERE
+                    適用開始日 <= $TargetDate
+            ) TTT
+                ON  TTT.商品ＣＤ=MP.商品ＣＤ
+                AND TTT.得意先ＣＤ=$CustomerCd
+            WHERE
+                MP.売価単価 > 0
+            $WhereExceptNull
         ";
         $ProductList = DB::select($sql);
 

@@ -17,6 +17,7 @@
                     :vmodel=viewModel
                     bind="ClaimDate"
                     :editable=true
+                    :onChangedFunc=onClaimDateChanged
                 />
                 <div class="ml-1 mr-1"></div>
                 <DatePickerWrapper
@@ -54,8 +55,8 @@
                 <label style="max-width: unset; width: 100%; text-align: center;">コース</label>
             </div>
             <div class="col-md-4">
-                <input class="form-control label-blue" style="width: 100px;" type="text" :value=viewModel.CourseCd readonly tabindex="-1">
-                <input class="form-control ml-1 label-blue" style="width: 300px;" type="text" :value=viewModel.CourseNm readonly tabindex="-1">
+                <input class="form-control" style="width: 100px;" type="text" :value=viewModel.CourseCd readonly tabindex="-1">
+                <input class="form-control ml-1" style="width: 300px;" type="text" :value=viewModel.CourseNm readonly tabindex="-1">
             </div>
         </div>
         <div class="row">
@@ -94,7 +95,7 @@
                 <label style="max-width: unset; width: 100%; text-align: center;">平均食数</label>
             </div>
             <div class="col-md-1">
-                <input class="form-control" style="width: 100px;" type="text" :value=viewModel.平均食数 readonly tabindex="-1">
+                <currency-input class="form-control text-right" style="width: 100px;" type="text" v-model="viewModel.平均食数" :precision=1 readonly tabindex="-1" />
             </div>
         </div>
         <div class="row">
@@ -116,16 +117,16 @@
                     ref="PopupSelect_Product"
                     :vmodel=viewModel
                     bind="商品コード"
-                    :buddies='{ "商品名": "CdNm", "単価": "売価単価" }'
+                    :buddies='{ "商品名": "CdNm" }'
                     dataUrl="/Utilities/GetProductListForSelect"
-                    :params="{ ProductCd: null, KeyWord: null }"
+                    :params='{ CustomerCd: viewModel.顧客コード, TargetDate: searchParams.ClaimDate, ExceptNull: true }'
                     :isPreload=true
                     title="商品名一覧"
                     labelCd="商品コード"
                     labelCdNm="商品名"
                     :showColumns='[
                         { title: "商品区分", dataIndx: "商品区分", dataType: "string", width: 80, maxWidth: 80, minWidth: 80, colIndx: 2 },
-                        { title: "売価単価", dataIndx: "売価単価", dataType: "string", width: 80, maxWidth: 80, minWidth: 80, colIndx: 3 },
+                        { title: "得意先単価", dataIndx: "得意先単価", dataType: "integer", width: 80, maxWidth: 80, minWidth: 80, colIndx: 3 },
                     ]'
                     :popupWidth=600
                     :popupHeight=600
@@ -134,7 +135,7 @@
                     :editable=true
                     :reuse=true
                     :existsCheck=true
-                    :exceptCheck="[{Cd: ''}, {Cd: '0'}]"
+                    :exceptCheck="[{Cd: ''}]"
                     :inputWidth=100
                     :nameWidth=300
                     :onChangeFunc=onProductChanged
@@ -146,7 +147,7 @@
                 <label style="max-width: unset; width: 100%; text-align: center;">単価</label>
             </div>
             <div class="col-md-1">
-                <input class="form-control" style="width: 100px;" type="text" :value=viewModel.単価 readonly tabindex="-1">
+                <currency-input class="form-control text-right" style="width: 100px;" type="text" v-model=viewModel.単価 readonly tabindex="-1" />
             </div>
         </div>
         <div class="row">
@@ -260,7 +261,7 @@
             <div class="col-md-3">
                 <label>処理費用</label>
                 <!-- TODO: カンマ区切り整数 -->
-                <input class="form-control p-1" style="width: 100px;" type="text" v-model=viewModel.クレーム処理費用 v-maxBytes="100" />
+                <currency-input class="form-control text-right p-1" style="width: 100px;" type="text" v-model=viewModel.クレーム処理費用 v-maxBytes="100" />
             </div>
         </div>
         <div class="row">
@@ -370,14 +371,14 @@
                     checkedCode="0"
                     customContainerStyle="border: none;"
                     :list="[
+                        {code: '2', name: '継続', label: '継続'},
                         {code: '0', name: '継続', label: '継続'},
                         {code: '1', name: '継続', label: '継続'},
-                        {code: '2', name: '継続', label: '継続'},
                     ]"
                     :onChangedFunc=onStatusChanged
                 />
             </div>
-            <div class="col-md-4">
+            <div class="col-md-6">
                <VueCheck
                     id="StatusLost"
                     ref="VueCheck_StatusLost"
@@ -386,9 +387,9 @@
                     checkedCode="1"
                     customContainerStyle="border: none;"
                     :list="[
+                        {code: '2', name: '失客', label: '失客'},
                         {code: '0', name: '失客', label: '失客'},
                         {code: '1', name: '失客', label: '失客'},
-                        {code: '2', name: '失客', label: '失客'},
                     ]"
                     :onChangedFunc=onStatusChanged
                 />
@@ -401,7 +402,10 @@
                     :vmodel=viewModel
                     bind="LostDate"
                     :editable=LostDateEditable
+                    :onChangedFunc=onLostDateChanged
                 />
+                <input class="form-control ml-3" style="width: 50px;" type="text" :value=viewModel.失客日数 readonly tabindex="-1">
+                日後
             </div>
         </div>
         <div class="row" style="height: 30px;"></div>
@@ -445,19 +449,61 @@ export default {
     computed: {
         searchParams: function() {
             var vue = this;
-            var mt = moment(vue.viewModel.対象日付, "YYYY年MM月DD日");
+            var mc = moment(vue.viewModel.ClaimDate, "YYYY年MM月DD日");
+            var mp = moment(vue.viewModel.ProcDate, "YYYY年MM月DD日");
+            var ml = moment(vue.viewModel.LostDate, "YYYY年MM月DD日");
+
             return {
-                ClaimDate: mt.isValid() ? mt.format("YYYYMMDD") : null,
-                HolidayName: vue.viewModel.名称,
-                BushoCdArray: vue.viewModel.BushoArray.map(v => v.code),
+                ClaimDate: (mc.isValid() ? mc : moment()).format("YYYYMMDD"),
+                ProcDate: (mp.isValid() ? mp : moment()).format("YYYYMMDD"),
+                LostDate: (ml.isValid() ? ml : moment()).format("YYYYMMDD"),
             };
         },
         saveParams: function() {
             var vue = this;
+            var mc = moment(vue.viewModel.ClaimDate + " " + vue.viewModel.ClaimTime, "YYYY年MM月DD日 HH時mm分");
+            var mp = moment(vue.viewModel.ProcDate, "YYYY年MM月DD日");
+            var ml = moment(vue.viewModel.LostDate, "YYYY年MM月DD日");
+
             return {
-                対象日付: moment(vue.viewModel.対象日付, "YYYY年MM月DD日").format("YYYYMMDD"),
-                名称: vue.viewModel.名称,
-                対象部署ＣＤ: vue.viewModel.BushoArray.map(v => v.code).join(","),
+                クレームID: vue.viewModel.クレームID,
+                受付日時: mc.format("YYYY-MM-DD HH:mm:ss"),
+                管轄部門コード: vue.viewModel.BushoCd,
+                クレーム区分コード: vue.viewModel.クレーム区分コード,
+                顧客コード: vue.viewModel.顧客コード,
+                平均食数: vue.viewModel.平均食数,
+                顧客担当者名: vue.viewModel.顧客担当者名,
+                商品コード: vue.viewModel.商品コード,
+                単価: vue.viewModel.単価,
+                クレーム内容: vue.viewModel.クレーム内容,
+                受付担当者コード: vue.viewModel.受付担当者コード,
+                受付方法: vue.viewModel.受付方法,
+                クレーム処理日: mp.format("YYYY-MM-DD"),
+                クレーム処理者コード: vue.viewModel.クレーム処理者コード,
+                クレーム処理品: vue.viewModel.クレーム処理品,
+                クレーム処理費用: vue.viewModel.クレーム処理費用,
+                客先反応: vue.viewModel.客先反応,
+                部門コード: vue.viewModel.部門コード,
+                部門名: vue.viewModel.部門名,
+                原因部署担当コード: vue.viewModel.原因部署担当コード,
+                原因: vue.viewModel.原因,
+                原因入力担当者コード: vue.viewModel.原因入力担当者コード,
+                原因入力担当者名: vue.viewModel.原因入力担当者名,
+                対策: vue.viewModel.対策,
+                対策入力担当者コード: vue.viewModel.対策入力担当者コード,
+                対策入力担当者名: vue.viewModel.対策入力担当者名,
+                その後客先失客: vue.viewModel.その後客先失客,
+                失客日: ml.format("YYYY-MM-DD"),
+                失客日数: vue.viewModel.失客日数,
+                未使用フラグ: vue.viewModel.未使用フラグ,
+                修正担当者ＣＤ: vue.viewModel.修正担当者ＣＤ,
+                修正日: vue.viewModel.修正日,
+                管轄部門名: vue.viewModel.管轄部門名,
+                得意先名: vue.viewModel.得意先名,
+                クレーム区分名: vue.viewModel.クレーム区分名,
+                原因部署名: vue.viewModel.原因部署名,
+                原因部署担当: vue.viewModel.原因部署担当,
+                ステータス: vue.viewModel.ステータス,
             };
         },
         LostDateEditable: function() {
@@ -472,25 +518,29 @@ export default {
             noViewModel: true,
             viewModel: {
                 BushoCd: null,
-                ClaimDate: null,
-                ClaimTime: null,
-                ProcDate: null,
+                BushoNm: null,
+                CourseCd: null,
+                CourseNm: null,
+                ClaimDate: moment().format("YYYY年MM月DD日"),
+                ClaimTime: moment().format("HH時mm分"),
+                ProcDate: moment().format("YYYY年MM月DD日"),
+                LostDate: moment().format("YYYY年MM月DD日"),
                 クレームID: null,
                 受付日時: null,
                 管轄部門コード: null,
                 クレーム区分コード: null,
                 顧客コード: null,
-                平均食数: null,
+                平均食数: 0.0,
                 顧客担当者名: null,
                 商品コード: null,
-                単価: null,
+                単価: 0,
                 クレーム内容: null,
                 受付担当者コード: null,
                 受付方法: null,
                 クレーム処理日: null,
                 クレーム処理者コード: null,
                 クレーム処理品: null,
-                クレーム処理費用: null,
+                クレーム処理費用: 0,
                 客先反応: null,
                 部門コード: null,
                 部門名: null,
@@ -501,7 +551,7 @@ export default {
                 対策: null,
                 対策入力担当者コード: null,
                 対策入力担当者名: null,
-                その後客先失客: null,
+                その後客先失客: "2",
                 失客日: null,
                 失客日数: null,
                 未使用フラグ: null,
@@ -517,7 +567,8 @@ export default {
         });
 
         if (!!vue.params && !vue.params.IsNew) {
-            data.viewModel = _.cloneDeep(vue.params);
+            data.viewModel = $.extend(true, {}, data.viewModel, vue.params);
+
             data.viewModel.BushoCd = vue.params.管轄部門コード;
 
             var mt;
@@ -531,13 +582,9 @@ export default {
             mt = moment(data.viewModel.失客日);
             data.viewModel.LostDate = (mt.isValid() ? mt : moment()).format("YYYY年MM月DD日");
 
-        } else {
-            var mt = moment();
-            data.viewModel.ClaimDate = (mt.isValid() ? mt : moment()).format("YYYY年MM月DD日");
-            data.viewModel.ClaimTime = (mt.isValid() ? mt : moment()).format("HH時mm分");
-            data.viewModel.ProcDate = (mt.isValid() ? mt : moment()).format("YYYY年MM月DD日");
-            data.viewModel.LostDate = (mt.isValid() ? mt : moment()).format("YYYY年MM月DD日");
-            data.viewModel.その後客先失客 = "2";
+            data.viewModel.平均食数 = (data.viewModel.平均食数 || 0.0) * 1;
+            data.viewModel.単価 = (data.viewModel.単価 || 0) * 1;
+            data.viewModel.クレーム処理費用 = (data.viewModel.クレーム処理費用 || 0) * 1;
         }
 
         return data;
@@ -548,24 +595,29 @@ export default {
                 { visible: "false" },
                 { visible: "true", value: "登録", id: "DAI05140Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
-                        if(!vue.searchParams.ClaimDate || !vue.searchParams.HolidayName){
+                        if(!vue.saveParams.受付日時 || !vue.saveParams.顧客コード
+                        || !vue.saveParams.商品コード || !vue.saveParams.クレーム区分コード
+                        || !vue.saveParams.受付担当者コード || !vue.saveParams.受付方法){
                             $.dialogErr({
                                 title: "登録不可",
                                 contents: [
-                                    !vue.searchParams.ClaimDate ? "対象日付が入力されていません。" : "",
-                                    !vue.searchParams.HolidayName ? "名称が入力されていません。<br/>" : "",
+                                    !vue.saveParams.受付日時 ? "受付日時が入力されていません。" : "",
+                                    !vue.saveParams.顧客コード ? "得意先が入力されていません。<br/>" : "",
+                                    !vue.saveParams.商品コード ? "商品ＣＤが入力されていません。<br/>" : "",
+                                    !vue.saveParams.クレーム区分コード ? "クレーム区分が入力されていません。<br/>" : "",
+                                    !vue.saveParams.受付担当者コード ? "受付担当者が入力されていません。<br/>" : "",
+                                    !vue.saveParams.受付方法 ? "受付方法が入力されていません。<br/>" : "",
                                 ]
                             })
-                            if(!vue.searchParams.ClaimDate){
-                                $(vue.$el).find("#ClaimDate").addClass("has-error");
-                            }else{
-                                $(vue.$el).find("#ClaimDate").removeClass("has-error");
-                            }
-                            if(!vue.searchParams.HolidayName){
-                                $(vue.$el).find("#HolidayName").addClass("has-error");
-                            }else{
-                                $(vue.$el).find("#HolidayName").removeClass("has-error");
-                            }
+
+                            $(vue.$el).find("#ClaimDate")[!vue.saveParams.ClaimDate ? "addClass" : "removeClass"]("has-error");
+                            $(vue.$el).find("#ClaimTime")[!vue.saveParams.ClaimTime ? "addClass" : "removeClass"]("has-error");
+                            $(vue.$el).find("#CustomerSelect")[vue.saveParams.顧客コード == null ? "addClass" : "removeClass"]("has-error");
+                            $(vue.$el).find("#ProductSelect")[vue.saveParams.商品コード == null ? "addClass" : "removeClass"]("has-error");
+                            $(vue.$el).find(".ClaimKbn")[vue.saveParams.クレーム区分コード == null ? "addClass" : "removeClass"]("has-error");
+                            $(vue.$el).find("#UketukeTanto")[vue.saveParams.受付担当者コード == null ? "addClass" : "removeClass"]("has-error");
+                            $(vue.$el).find(".UketukeKind")[vue.saveParams.受付方法 == null ? "addClass" : "removeClass"]("has-error");
+
                             return;
                         }
 
@@ -578,15 +630,14 @@ export default {
 
                         axios.post("/DAI05140/Save", params)
                         .then(res => {
-                            console.log("4061 save", res);
-                            DAI04160.conditionChanged();
+                            DAI05150.conditionChanged();
                             $(vue.$el).closest(".ui-dialog-content").dialog("close");
                         })
                         .catch(err => {
                             console.log(err);
                             $.dialogErr({
                                 title: "異常終了",
-                                contents: "祝日マスタの登録に失敗しました"
+                                contents: "クレームの登録に失敗しました"
                             })
                         });
                     }
@@ -602,8 +653,6 @@ export default {
         mountedFunc: function(vue) {
             $(vue.$el).parents("div.body-content").addClass("Scrollable");
 
-            vue.viewModel.ClaimDate = vue.params.ClaimDate || moment().format("YYYY年MM月DD日");
-
             if(this.params.IsNew == false || !this.params.IsNew){
                 //修正時：ボタン制御
                 $("[shortcut='F3']").prop("disabled", false);
@@ -611,15 +660,76 @@ export default {
         },
         onBushoChanged: function(code, entity) {
             var vue = this;
+            vue.setCourse();
         },
         onCustomerChanged: function(code, entity) {
             var vue = this;
+            if (!!entity) {
+                vue.viewModel.BushoCd = entity.部署CD;
+            }
+            var params = {
+                CustomerCd: vue.viewModel.顧客コード,
+                noCache: true,
+            };
+
+            if (_.values(params).some(v => !v)) {
+                return;
+            }
+
+            axios.post("/DAI05140/GetAverage", params)
+            .then(res => {
+                if (!!res.data) {
+                    vue.viewModel.平均食数 = res.data.平均食数 * 1;
+                } else {
+                    vue.viewModel.平均食数 = 0.0;
+                }
+            });
+            vue.setCourse();
+        },
+        onClaimDateChanged: function() {
+            var vue = this;
+            vue.viewModel.失客日数 = moment(vue.viewModel.LostDate, "YYYY年MM月DD日")
+                .diff(moment(vue.viewModel.ClaimDate, "YYYY年MM月DD日"), "days");
+            vue.setCourse();
+        },
+        setCourse: function() {
+            var vue = this;
+
+            var params = {
+                BushoCd: vue.viewModel.BushoCd,
+                CustomerCd: vue.viewModel.顧客コード,
+                TargetDate: moment(vue.viewModel.ClaimDate, "YYYY年MM月DD日").format("YYYYMMDD"),
+                noCache: true,
+            };
+
+            if (_.values(params).some(v => !v)) {
+                return;
+            }
+
+            axios.post("/Utilities/GetCourseListByCustomer", params)
+            .then(res => {
+                if (!!res.data.length) {
+                    vue.viewModel.CourseCd = res.data[0].コースCD;
+                    vue.viewModel.CourseNm = res.data[0].コース名;
+                } else {
+                    vue.viewModel.CourseCd = null;
+                    vue.viewModel.CourseNm = null;
+                }
+            });
         },
         onProductChanged: function(code, entity) {
             var vue = this;
+            if (!!entity) {
+                vue.viewModel.単価 = (entity.得意先単価 || entity.売価単価) * 1;
+            }
         },
         onStatusChanged: function(code, entity) {
             var vue = this;
+        },
+        onLostDateChanged: function() {
+            var vue = this;
+            vue.viewModel.失客日数 = moment(vue.viewModel.LostDate, "YYYY年MM月DD日")
+                .diff(moment(vue.viewModel.ClaimDate, "YYYY年MM月DD日"), "days");
         },
         CustomerAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;

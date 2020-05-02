@@ -1731,15 +1731,16 @@ export default {
                                 if (!$ele.hasClass("pq-grid-cell")) return true;
 
                                 var targets = [];
-                                if ($ele.find("div")) {
-                                    targets = $ele.find("[title]").get();
+                                if (!!$ele.children("div").length) {
+                                    targets = $ele.children("div").find("[title]").get();
+                                    if (!targets.length) return;
                                 } else {
                                     targets = [$ele]
                                 }
 
                                 $("*").tooltip("hide");
 
-                                targets.forIn(e => {
+                                targets.forEach(e => {
                                     var $e = $(e);
                                     var title = $e.attr("title") || $e.text().replace(/(, )+$/, "").replace(/, /g, "<br>");
 
