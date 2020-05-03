@@ -472,6 +472,7 @@ export default {
             if (vue.onAfterChangedFunc) {
                 vue.onAfterChangedFunc("");
             }
+            vue.getDataList();
         },
         getDataList: function(params, callback) {
             var vue = this;

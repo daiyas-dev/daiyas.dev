@@ -499,7 +499,7 @@ export default {
                 if (!!grid && vue.getLoginInfo().isLogOn) {
                     var params = {CustomerCd: cd};
                     // grid.searchData(params, false, null, () => vue.showDetail());
-                    axios.post(grid.options.dataModel.url, params)
+                    axios.post("/Utilities/GetCustomerListForMaint", params)
                         .then(res => {
                             if (res.data.Data.length == 1) {
                                 //DAI04041を子画面表示

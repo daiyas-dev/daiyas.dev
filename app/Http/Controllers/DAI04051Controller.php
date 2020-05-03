@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\得意先単価マスタ;
+use App\Models\得意先単価マスタ新;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
+use Exception;
 use Illuminate\Support\Carbon;
 
 class DAI04051Controller extends Controller
@@ -52,12 +53,8 @@ class DAI04051Controller extends Controller
 
         $CustomerCd = $params['CustomerCd'];
 
-    // トランザクション開始
-        DB::transaction(function () use ($params, $CustomerCd) {
-            // $params = $request->all();
-
-            // $CustomerCd = $params['CustomerCd'];
-
+        DB::beginTransaction();
+        try {
             $saveList = $params['SaveList'];
 
             $AddList = $saveList['AddList'];
@@ -67,65 +64,55 @@ class DAI04051Controller extends Controller
 
             //DeleteList
             foreach($DeleteList as $rec) {
-
-                得意先単価マスタ::query()
-                ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
-                ->where('商品ＣＤ', $rec['商品ＣＤ'])
-                ->delete();
+                得意先単価マスタ新::query()
+                    ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
+                    ->where('商品ＣＤ', $rec['商品ＣＤ'])
+                    ->where('適用開始日', $rec['適用開始日'])
+                    ->delete();
             }
 
             //UpdateList
             foreach ($OldList as $index => $rec) {
                 $data = $UpdateList[$index];
 
-                得意先単価マスタ::query()
-                ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
-                ->where('商品ＣＤ', $rec['商品ＣＤ'])
-                ->update($data);
+                得意先単価マスタ新::query()
+                    ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
+                    ->where('商品ＣＤ', $rec['商品ＣＤ'])
+                    ->where('適用開始日', $rec['適用開始日'])
+                    ->update($data);
             }
 
             //AddList
             foreach ($AddList as $rec) {
                 $data = $rec;
-                $cnt = DB::table('得意先単価マスタ')
+                $cnt = DB::table('得意先単価マスタ新')
                     ->where('得意先ＣＤ', $CustomerCd)
-                    ->where('商品ＣＤ', $data['商品ＣＤ'])->count();
+                    ->where('商品ＣＤ', $data['商品ＣＤ'])
+                    ->where('適用開始日', $rec['適用開始日'])
+                    ->count();
 
                 if ($cnt == 0){
-                    得意先単価マスタ::insert($data);
+                    得意先単価マスタ新::insert($data);
                 }else{
-                    得意先単価マスタ::query()
-                    ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
-                    ->where('商品ＣＤ', $rec['商品ＣＤ'])
-                    ->update($data);
+                    得意先単価マスタ新::query()
+                        ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
+                        ->where('商品ＣＤ', $rec['商品ＣＤ'])
+                        ->where('適用開始日', $rec['適用開始日'])
+                        ->update($data);
                 }
             }
 
-            // //確認用：削除予定
-            // $query = 得意先単価マスタ::query()
-            //     ->when(
-            //         $CustomerCd,
-            //         function($q) use ($CustomerCd){
-            //             return $q->where('得意先ＣＤ', $CustomerCd);
-            //         }
-            //     );
-            // $CustomerList = $query->get();
-            // throw new \Exception('hogehoge');
+            DB::commit();
+        } catch (Exception $exception) {
+            DB::rollBack();
+            throw $exception;
+        }
 
-        });
-
-        $query = 得意先単価マスタ::query()
-            ->when(
-                $CustomerCd,
-                function($q) use ($CustomerCd){
-                    return $q->where('得意先ＣＤ', $CustomerCd);
-                }
-            );
-        $savedData = $query->get();
+        $Utilities = new UtilitiesController();
 
         return response()->json([
             "result" => true,
-            'model' => $savedData,
+            'model' => $Utilities->SearchTankaList($request),
         ]);
     }
 
@@ -134,30 +121,21 @@ class DAI04051Controller extends Controller
      */
     public function DeleteTankaList($request)
     {
-        // トランザクション開始
-        DB::transaction(function () use ($request) {
+        DB::beginTransaction();
+        try {
             $params = $request->all();
 
-            $CustomerCd = $params['CustomerCd'];
-            $ProductCd = $params['ProductCd'];
+            得意先単価マスタ新::query()
+                ->where('得意先ＣＤ', $params['得意先ＣＤ'])
+                ->where('商品ＣＤ', $params['商品ＣＤ'])
+                ->where('適用開始日', $params['適用開始日'])
+                ->delete();
 
-            得意先単価マスタ::query()
-            ->where('得意先ＣＤ', $CustomerCd)
-            ->where('商品ＣＤ', $ProductCd)
-            ->delete();
-
-            // //確認用：削除予定
-            // $query = 得意先単価マスタ::query()
-            //     ->when(
-            //         $CustomerCd,
-            //         function($q) use ($CustomerCd){
-            //             return $q->where('得意先ＣＤ', $CustomerCd);
-            //         }
-            //     );
-            // $CustomerList = $query->get();
-            // throw new \Exception('hogehoge');
-
-        });
+            DB::commit();
+        } catch (Exception $exception) {
+            DB::rollBack();
+            throw $exception;
+        }
 
         return response()->json([
             "result" => true,

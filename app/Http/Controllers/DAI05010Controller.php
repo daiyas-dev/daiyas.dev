@@ -11,13 +11,8 @@ class DAI05010Controller extends Controller
 {
     public function SearchCustomerPrice($vm)
     {
-        $BushoArray = $vm->BushoArray;
-        $WhereBusho1="";
-        if($BushoArray !=null && is_array($BushoArray) && 0<count($BushoArray))
-        {
-            $BushoList = implode(',',$BushoArray);
-            $WhereBusho1=" AND コーステーブル.部署ＣＤ IN( $BushoList )";
-        }
+        $BushoCd = $vm->BushoCd;
+        $WhereBushoCd = !!$BushoCd ? " AND コーステーブル.部署ＣＤ=$BushoCd" : "";
 
         $sql = "
                 WITH WITH_コース AS(
@@ -47,7 +42,7 @@ class DAI05010Controller extends Controller
                             AND コースマスタ.部署ＣＤ = 担当者マスタ.所属部署ＣＤ
                     WHERE
                             0=0
-                            $WhereBusho1
+                            $WhereBushoCd
                 ),
                 WITH_得意先単価 AS (
                     SELECT
@@ -84,13 +79,8 @@ class DAI05010Controller extends Controller
     }
     public function SearchCourse($vm)
     {
-        $BushoArray = $vm->BushoArray;
-        $WhereBusho1="";
-        if($BushoArray !=null && is_array($BushoArray) && 0<count($BushoArray))
-        {
-            $BushoList = implode(',',$BushoArray);
-            $WhereBusho1=" AND コーステーブル.部署ＣＤ IN( $BushoList )";
-        }
+        $BushoCd = $vm->BushoCd;
+        $WhereBushoCd = !!$BushoCd ? " AND コーステーブル.部署ＣＤ=$BushoCd" : "";
 
         $sql = "
                 SELECT
@@ -119,7 +109,7 @@ class DAI05010Controller extends Controller
                         AND コースマスタ.部署ＣＤ = 担当者マスタ.所属部署ＣＤ
                 WHERE
                         0=0
-                        $WhereBusho1
+                        $WhereBushoCd
                 ORDER BY
                      得意先マスタ.部署ＣＤ
                     ,コーステーブル.コースＣＤ

@@ -126,9 +126,10 @@
                     labelCdNm="商品名"
                     :showColumns='[
                         { title: "商品区分", dataIndx: "商品区分", dataType: "string", width: 80, maxWidth: 80, minWidth: 80, colIndx: 2 },
-                        { title: "得意先単価", dataIndx: "得意先単価", dataType: "integer", width: 80, maxWidth: 80, minWidth: 80, colIndx: 3 },
+                        { title: "売価単価", dataIndx: "売価単価", dataType: "integer", width: 100, maxWidth: 100, minWidth: 100, colIndx: 3 },
+                        { title: "得意先単価", dataIndx: "得意先単価", dataType: "integer", width: 100, maxWidth: 100, minWidth: 100, colIndx: 4 },
                     ]'
-                    :popupWidth=600
+                    :popupWidth=750
                     :popupHeight=600
                     :isShowName=true
                     :isModal=true
@@ -138,7 +139,7 @@
                     :exceptCheck="[{Cd: ''}]"
                     :inputWidth=100
                     :nameWidth=300
-                    :onChangeFunc=onProductChanged
+                    :ProductSelect=onProductChanged
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=ProductAutoCompleteFunc
                 />
@@ -653,7 +654,7 @@ export default {
         mountedFunc: function(vue) {
             $(vue.$el).parents("div.body-content").addClass("Scrollable");
 
-            if(this.params.IsNew == false || !this.params.IsNew){
+            if (!vue.params || !vue.params.IsNew) {
                 //修正時：ボタン制御
                 $("[shortcut='F3']").prop("disabled", false);
             }

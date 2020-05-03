@@ -416,7 +416,7 @@ export default {
                         vue.showDetail();
                     }
                 },
-                { visible: "true", value: "新規登録", id: "DAI04020Grid1_Save", disabled: false, shortcut: "F9",
+                { visible: "true", value: "新規登録", id: "DAI05150Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         vue.showNewDetail();
                     }

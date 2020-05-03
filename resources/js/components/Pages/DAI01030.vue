@@ -431,6 +431,7 @@ export default {
                             },
                             AutoCompleteFunc: vue.ProductAutoCompleteFuncInGrid,
                             AutoCompleteMinLength: 0,
+                            selectSave: true,
                         },
                     },
                     {

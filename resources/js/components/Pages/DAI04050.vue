@@ -5,9 +5,15 @@
                 <label>部署</label>
             </div>
             <div class="col-md-11">
-                <VueSelectBusho
+                <VueMultiSelect
+                    id="BushoCd"
+                    ref="VueMultiSelect_Busho"
+                    :vmodel=viewModel
+                    bind="BushoArray"
+                    uri="/Utilities/GetBushoList"
+                    :hasNull=true
                     :withCode=true
-                    style="width:200px"
+                    customStyle="{ width: 200px; }"
                     :onChangedFunc=onBushoChanged
                 />
             </div>
@@ -23,7 +29,7 @@
                     :vmodel=viewModel
                     bind="CourseCd"
                     dataUrl="/Utilities/GetCourseList"
-                    :params='{ BushoCd: viewModel.BushoCd, CourseKbn: viewModel.CourseKbn }'
+                    :params='{ BushoArray: searchParams.BushoCdArray, CourseKbn: viewModel.CourseKbn }'
                     :dataListReset=true
                     title="コース一覧"
                     labelCd="コースCD"
@@ -48,7 +54,7 @@
             <div class="col-md-1">
                 <label>得意先</label>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-5">
                 <PopupSelect
                     id="CustomerSelect"
                     ref="PopupSelect_Customer"
@@ -56,7 +62,7 @@
                     bind="CustomerCd"
                     buddy="CustomerNm"
                     dataUrl="/Utilities/GetCustomerListForSelect"
-                    :params="{ BushoCd: viewModel.BushoCd, CourseCd:viewModel.CourseCd, KeyWord: null, NoLimit: AutocomplteNoLimitCustomer }"
+                    :params="{ BushoArray: searchParams.BushoArray, CourseCd:viewModel.CourseCd, KeyWord: null, NoLimit: AutocomplteNoLimitCustomer }"
                     :isPreload=true
                     :dataListReset=true
                     title="得意先一覧"
@@ -73,7 +79,7 @@
                     :reuse=true
                     :existsCheck=true
                     :inputWidth=100
-                    :nameWidth=250
+                    :nameWidth=300
                     :ParamsChangedCheckFunc=onCustomerParamsCheck
                     :onAfterChangedFunc=onCustomerChanged
                     :isShowAutoComplete=true
@@ -81,10 +87,74 @@
                 />
             </div>
         </div>
+        <div class="row">
+            <div class="col-md-1">
+                <label>商品</label>
+            </div>
+            <div class="col-md-5">
+                <PopupSelect
+                    id="ProductSelect"
+                    ref="PopupSelect_Product"
+                    :vmodel=viewModel
+                    bind="ProductCd"
+                    dataUrl="/Utilities/GetProductListForSelect"
+                    :isPreload=true
+                    title="商品名一覧"
+                    labelCd="商品コード"
+                    labelCdNm="商品名"
+                    :showColumns='[
+                        { title: "商品区分", dataIndx: "商品区分", dataType: "string", width: 80, maxWidth: 80, minWidth: 80, colIndx: 2 },
+                        { title: "売価単価", dataIndx: "売価単価", dataType: "integer", width: 100, maxWidth: 100, minWidth: 100, colIndx: 3 },
+                        { title: "得意先単価", dataIndx: "得意先単価", dataType: "integer", width: 100, maxWidth: 100, minWidth: 100, colIndx: 4 },
+                    ]'
+                    :popupWidth=750
+                    :popupHeight=600
+                    :isShowName=true
+                    :isModal=true
+                    :editable=true
+                    :reuse=true
+                    :existsCheck=true
+                    :exceptCheck="[{Cd: ''}]"
+                    :inputWidth=100
+                    :nameWidth=300
+                    :onAfterChangedFunc=onProductChanged
+                    :isShowAutoComplete=true
+                    :AutoCompleteFunc=ProductAutoCompleteFunc
+                />
+            </div>
+            <div class="col-md-3">
+                <label>適用開始日</label>
+                <DatePickerWrapper
+                    id="DateStart"
+                    ref="DatePicker_Date"
+                    format="YYYY年MM月DD日"
+                    dayViewHeaderFormat="YYYY年MM月"
+                    :vmodel=viewModel
+                    bind="DateStart"
+                    :editable=true
+                    :onChangedFunc=onDateChanged
+                />
+            </div>
+            <div class="col-md-2">
+               <VueCheck
+                    id="VueCheck_Available"
+                    ref="VueCheck_Available"
+                    :vmodel=viewModel
+                    bind="Available"
+                    checkedCode="1"
+                    customContainerStyle="border: none;"
+                    :list="[
+                        {code: '0', name: 'しない', label: '適用中のみ出力'},
+                        {code: '1', name: 'する', label: '適用中のみ出力'},
+                    ]"
+                    :onChangedFunc=onAvailableChanged
+                />
+            </div>
+        </div>
         <PqGridWrapper
-            id="DAI05010Grid1"
-            ref="DAI05010Grid1"
-            dataUrl="/DAI05010/Search"
+            id="DAI04050Grid1"
+            ref="DAI04050Grid1"
+            dataUrl="/DAI04050/Search"
             :query=this.viewModel
             :SearchOnCreate=false
             :SearchOnActivate=false
@@ -96,23 +166,23 @@
 </template>
 
 <style>
-#DAI05010Grid1 .pq-group-toggle-none {
+#DAI04050Grid1 .pq-group-toggle-none {
     display: none !important;
 }
-#DAI05010Grid1 .pq-group-icon {
+#DAI04050Grid1 .pq-group-icon {
     display: none !important;
 }
-#DAI05010Grid1 .pq-td-div {
+#DAI04050Grid1 .pq-td-div {
     display: flex;
     line-height: 13px !important;
     justify-content: center;
     align-items: center;
     height: 50px;
 }
-#DAI05010Grid1 .pq-grid-cell {
+#DAI04050Grid1 .pq-grid-cell {
     align-items: flex-start;
 }
-#DAI05010Grid1 .pq-td-div span {
+#DAI04050Grid1 .pq-td-div span {
     line-height: inherit;
     text-align: center;
 }
@@ -126,7 +196,7 @@ import PageBaseMixin from "@vcs/PageBaseMixin.vue";
 
 export default {
     mixins: [PageBaseMixin],
-    name: "DAI05010",
+    name: "DAI04050",
     components: {
     },
     props: {
@@ -134,28 +204,41 @@ export default {
         vm: Object,
     },
     computed: {
+        searchParams: function() {
+            var vue = this;
+            return {
+                BushoArray: vue.viewModel.BushoArray.map(v => v.code),
+                CustomerCd: vue.viewModel.CustomerCd,
+                ProductCd: vue.viewModel.ProductCd,
+            };
+        },
+        AutocomplteNoLimitCustomer: function() {
+            var vue = this;
+            return !!vue.viewModel.BushoArray.length || !!vue.viewModel.CourseCd
+        },
     },
     data() {
         return $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "随時処理 > 得意先別単価表",
+            ScreenTitle: "マスタメンテ > 得意先別単価",
             noViewModel: true,
             viewModel: {
-                BushoCd: null,
+                BushoArray: [],
                 CourseCd: null,
                 CustomerCd: null,
+                ProductCd: null,
+                Available: "0",
+                DateStart: null,
             },
-            AutocomplteNoLimitCustomer: false,
-            DAI05010Grid1: null,
+            DAI04050Grid1: null,
             grid1Options: {
-                selectionModel: { type: "cell", mode: "single", row: true },
+                selectionModel: { type: "row", mode: "block", row: true },
                 showHeader: true,
                 showToolbar: false,
                 columnBorders: true,
                 fillHandle: "",
-                numberCell: { show: true, title: "No.", resizable: false, },
-                autoRow: true,
-                rowHt: 35,
-                freezeCols: 10,
+                numberCell: { show: true, title: "No.", resizable: false, width: 50 },
+                autoRow: false,
+                freezeCols: 11,
                 editable: false,
                 columnTemplate: {
                     editable: false,
@@ -178,7 +261,7 @@ export default {
                     header: false,
                     grandSummary: false,
                     indent: 20,
-                    dataIndx: ["部署","コース"],
+                    dataIndx: ["部署","得意先"],
                     showSummary: [false,false],
                     collapsed: [false,false],
                     summaryInTitleRow: "collapsed",
@@ -191,164 +274,116 @@ export default {
                     {
                         title: "部署",
                         dataIndx: "部署", dataType: "string",
-                        fixed: true,
                         hidden:true,
+                        tooltip: true,
                     },
                     {
                         title: "部署ＣＤ",
-                        dataIndx: "部署ＣＤ", dataType: "string",
-                        fixed: true,
+                        dataIndx: "部署ＣＤ", dataType: "integer",
                         hidden:true,
                     },
                     {
                         title: "部署名",
                         dataIndx: "部署名", dataType: "string",
-                        fixed: true,
                         hidden:true,
                     },
                     {
-                        title: "コース",
-                        dataIndx: "コース", dataType: "string",
-                        fixed: true,
+                        title: "得意先",
+                        dataIndx: "得意先", dataType: "string",
                         hidden:true,
-                    },
-                    {
-                        title: "コースＣＤ",
-                        dataIndx: "コースＣＤ", dataType: "string",
-                        fixed: true,
-                        hidden:true,
-                    },
-                    {
-                        title: "コース名",
-                        dataIndx: "コース名", dataType: "string",
-                        fixed: true,
-                        hidden:true,
-                    },
-                    {
-                        title: "担当者ＣＤ",
-                        dataIndx: "担当者ＣＤ", dataType: "string",
-                        fixed: true,
-                        hidden:true,
-                    },
-                    {
-                        title: "担当者名",
-                        dataIndx: "担当者名", dataType: "string",
-                        fixed: true,
-                        hidden:true,
+                        tooltip: true,
                     },
                     {
                         title: "得意先ＣＤ",
-                        dataIndx: "得意先ＣＤ", dataType: "string",align:"right",
-                        width: 90, minWidth: 90, maxWidth: 90,
-                        fixed: true,
+                        dataIndx: "得意先ＣＤ", dataType: "integer",
+                        hidden:true,
                     },
                     {
                         title: "得意先名",
                         dataIndx: "得意先名", dataType: "string",
-                        width: 180, minWidth: 180,
+                        hidden:true,
+                    },
+                    {
+                        title: "商品ＣＤ",
+                        dataIndx: "商品ＣＤ", dataType: "integer",
+                        width: 90, minWidth: 90, maxWidth: 90,
+                    },
+                    {
+                        title: "商品名",
+                        dataIndx: "商品名", dataType: "string",
+                        width: 180, minWidth: 180, maxWidth: 180,
                         tooltip: true,
-                        fixed: true,
+                    },
+                    {
+                        title: "単価",
+                        dataIndx: "単価", dataType: "integer", format: "#,##0",
+                        width: 90, minWidth: 90, maxWidth: 90,
+                    },
+                    {
+                        title: "適用開始日",
+                        dataIndx: "適用開始日", dataType: "date", format: "yy/mm/dd", align: "center",
+                        width: 100, minWidth: 100, maxWidth: 100,
+                    },
+                    {
+                        title: "固定数",
+                        dataIndx: "固定数", dataType: "integer",
+                        width: 90, minWidth: 90, maxWidth: 90,
+                    },
+                    {
+                        title: "状況",
+                        dataIndx: "状況", dataType: "integer", align: "center",
+                        width: 90, minWidth: 90, maxWidth: 90,
+                        render: ui => {
+                            return { text: ui.rowData[ui.dataIndx] == "1" ? "適用中" : "" };
+                        },
                     },
                 ],
+                rowDblClick: function (event, ui) {
+                    vue.showDetail(ui.rowData);
+                },
             },
         });
     },
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "検索", id: "DAI05010Grid1_Search", disabled: false, shortcut: "F5",
+                { visible: "true", value: "検索", id: "DAI04050Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
-                        vue.conditionChanged();
+                        vue.conditionChanged(true);
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI05010Grid1_Printout", disabled: false, shortcut: "F6",
+                { visible: "true", value: "印刷", id: "DAI04050Grid1_Printout", disabled: false, shortcut: "F6",
                     onClick: function () {
                         vue.print();
                     }
-                }
+                },
+                { visible: "true", value: "CSV", id: "DAI04050_Download", disabled: false, shortcut: "F7",
+                    onClick: function () {
+                        //TODO: ダウンロード
+                    }
+                },
+                {visible: "false"},
+                { visible: "true", value: "詳細", id: "DAI04050Grid1_Detail", disabled: true, shortcut: "F8",
+                    onClick: function () {
+                        vue.showDetail();
+                    }
+                },
+                { visible: "true", value: "新規登録", id: "DAI04050Grid1_Save", disabled: false, shortcut: "F9",
+                    onClick: function () {
+                        vue.showDetail(null, true);
+                    }
+                },
+                {visible: "false"},
             );
         },
         mountedFunc: function(vue) {
-            //日付の初期値 -> 当日
-            //TODO:
-            console.log("mounted");//TODO:
-            vue.viewModel.TargetDate = moment("20190507").format("YYYY年MM月");
-            //vue.viewModel.CourseCd=101;
-        },
-        setPrintOptions: function(grid) {
-            var vue = this;
-
-            //PqGrid Print options
-            grid.options.printHeader =
-                `
-                    <style>
-                        .header-table {
-
-                        }
-                        .header-table th {
-                            font-family: "MS UI Gothic";
-                            font-size: 10pt;
-                            font-weight: normal !important;
-                            border: solid 1px black !important;
-                            white-space: nowrap;
-                            overflow: hidden;
-                            margin: 0px;
-                            padding-left: 3px;
-                            padding-right: 3px;
-                        }
-                        .header-table tr:last-child th{
-                            border-bottom-width: 0px !important;
-                        }
-                    </style>
-                    <h3 style="text-align: center; margin: 0px; margin-bottom: 10px;">* * 持ち出し数一覧表 * *</h3>
-                    <table style="border-collapse: collapse; width: 100%;" class="header-table">
-                        <colgroup>
-                                <col style="width:4.58%;"></col>
-                                <col style="width:4.60%;"></col>
-                                <col style="width:9.00%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                                <col style="width:5.45%;"></col>
-                        </colgroup>
-                        <thead>
-                            <tr>
-                                <th>日付</th>
-                                <th colspan="5">${moment().format("YYYY年MM月DD日 dddd")}</th>
-                            </tr>
-                            <tr>
-                                <th>部署</th>
-                                <th>${vue.viewModel.BushoCd}</th>
-                                <th colspan="4">${vue.viewModel.BushoNm}</th>
-                                <th colspan="6" style="border-top-width: 0px !important;"></th>
-                                <th colspan="2">作成日</th>
-                                <th colspan="2">${moment().format("YYYY/MM/DD")}</th>
-                                <th>PAGE</th>
-                                <th>1</th>
-                            </tr>
-                        </thead>
-                    </table>
-                `;
-            grid.options.printStyles =
-                `
-                    tr td:nth-child(1) {
-                        font-size: 9pt;
-                    }
-                    tr td:nth-child(n+2) {
-                        text-align: right;
-                    }
-                `;
+            //watcher
+            vue.$watch(
+                "$refs.DAI04050Grid1.selectionRow",
+                row => {
+                    vue.footerButtons.find(v => v.id == "DAI04050Grid1_Detail").disabled = !row.rowData.得意先 && !row.rowData.得意先ＣＤ
+                }
+            );
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
@@ -356,119 +391,85 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        refreshCols: function() {
-            console.log("refreshCols");//TODO:
-            var vue = this;
-            var newCols = grid.options.colModel.filter(v => !!v.fixed);
-            var i=1;
-            [...Array(5)].map(r=>{
-                newCols.push(
-                    {
-                        title: "商品",
-                        dataIndx: "商品_" + i,
-                        dataType: "string",
-                        width: 120, maxWidth: 120, minWidth: 120,
-                        tooltip: true,
-                    }
-                );
-                newCols.push(
-                    {
-                        title: "単価",
-                        dataIndx: "単価_" + i,
-                        dataType: "integer",
-                        format: "#,##0",
-                        width: 60, maxWidth: 60, minWidth: 60,
-                        render: ui => {
-                            if (!ui.rowData[ui.dataIndx]) {
-                                return { text: "" };
-                            }
-                            return ui;
-                        },
-                    }
-                );
-                i++;
-            });
-
-            //列定義更新
-            grid.options.colModel = newCols;
-            grid.refreshCM();
-            grid.refresh();
-        },
         onCustomerParamsCheck: function(newVal, oldVal) {
             var ret = !!newVal.BushoCd;
-            return ret;
+            return true;
         },
         onCustomerChanged: function(code, entity) {
             var vue = this;
 
-            //フィルタ変更ハンドラ
-            vue.filterChanged();
+            //条件変更ハンドラ
+            vue.conditionChanged();
         },
         onCourseParamsCheck: function(newVal, oldVal) {
             var ret = !!newVal.BushoCd;
-            return ret;
+            return true;
         },
         onCourseCdChanged: function(code, entity) {
             var vue = this;
+        },
+        onProductChanged: function(code, entity) {
+            var vue = this;
 
-            //フィルタ変更ハンドラ
+            //条件変更ハンドラ
+            vue.conditionChanged();
+        },
+        onDateChanged: function() {
+            var vue = this;
+
+            //フィルタハンドラ
             vue.filterChanged();
         },
-        conditionChanged: function(callback) {
+        onAvailableChanged: function() {
             var vue = this;
-            var grid = vue.DAI05010Grid1;
+
+            //フィルタハンドラ
+            vue.filterChanged();
+        },
+        conditionChanged: function(force) {
+            var vue = this;
+            var grid = vue.DAI04050Grid1;
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
-            if (!vue.viewModel.BushoCd) return;
-            if (!grid.options.colModel.some(v => v.custom)) {
-                vue.refreshCols();
-            }
 
-            var params = $.extend(true, {}, vue.viewModel);
+            if (!vue.searchParams.CustomerCd && !vue.searchParams.ProductCd) return;
 
-            grid.searchData(params, false, null, callback);
+            if (!force && _.isEqual(grid.options.dataModel.postData, vue.searchParams)) return;
+
+            grid.searchData(vue.searchParams, false, null);
         },
         filterChanged: function() {
             var vue = this;
-            var grid = vue.DAI05010Grid1;
+            var grid = vue.DAI04050Grid1;
 
             if (!grid) return;
 
             var rules = [];
-            if (vue.viewModel.CourseCd != undefined && vue.viewModel.CourseCd != "") {
-                var crules_Course = [];
-                crules_Course.push({ condition: "equal", value: vue.viewModel.CourseCd});
-                if (crules_Course.length) {
-                    rules.push({ dataIndx: "コースＣＤ", mode: "AND", crules: crules_Course });
-                }
-            }
             if (vue.viewModel.CustomerCd != undefined && vue.viewModel.CustomerCd != "") {
-                var crules_Customer = [];
-                crules_Customer.push({ condition: "equal", value: vue.viewModel.CustomerCd});
-                if (crules_Customer.length) {
-                    rules.push({ dataIndx: "得意先ＣＤ", mode: "AND", crules: crules_Customer });
-                }
+                rules.push({ dataIndx: "得意先ＣＤ", condition: "equal", value: vue.viewModel.CustomerCd });
+            }
+            if (vue.viewModel.ProductCd != undefined && vue.viewModel.ProductCd != "") {
+                rules.push({ dataIndx: "商品ＣＤ", condition: "equal", value: vue.viewModel.ProductCd });
+            }
+            var mt = moment(vue.viewModel.DateStart, "YYYY年MM月DD日");
+            if (mt.isValid()) {
+                rules.push({ dataIndx: "適用開始日", condition: "gte", value: mt.format("YYYY/MM/DD") });
+            }
+            if (vue.viewModel.Available == "1") {
+                rules.push({ dataIndx: "状況", condition: "equal", value: "1" });
             }
             grid.filter({ oper: "replace", mode: "AND", rules: rules });
         },
         onAfterSearchFunc: function (vue, grid, res) {
             var vue = this;
-            var groupings = res[0].CourseData.map(r => {
-                    var priceData = res[0].PriceData.filter(k => k.部署ＣＤ==r.部署ＣＤ && k.コースＣＤ==r.コースＣＤ && k.得意先ＣＤ==r.得意先ＣＤ);
-                    _.chunk(priceData,5)
-                        .map(pr => {
-                            var i=1;
-                            pr.map(cr => {
-                                r["商品_" + i] = r["商品_" + i]==undefined ? cr.表示商品名 : r["商品_" + i] + "\n" + cr.表示商品名;
-                                r["単価_" + i ]= r["単価_" + i]==undefined ? cr.単価:r["単価_" + i ] + "\n" + cr.単価;
-                                i++;
-                            });
-                        });
-                    r.部署=r.部署ＣＤ + " " + r.部署名;
-                    r.コース=r.コースＣＤ + " " + r.コース名;
-                    return r;
-                });
-            return groupings;
+
+            res.forEach(r => {
+                r.部署 = r.部署ＣＤ + " " + r.部署名;
+                r.得意先 = r.得意先ＣＤ + " " + r.得意先名;
+                return r;
+            });
+
+            return res;
         },
         CustomerAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
@@ -486,7 +487,6 @@ export default {
             }
 
             var list = dataList
-                .filter(v => (!!vue.viewModel.BushoCd && !!vue.viewModel.CourseCd) ? (v.部署CD == vue.viewModel.BushoCd && v.コースＣＤ == vue.viewModel.CourseCd) : true)
                 .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
                 .filter(v => {
                     return keyOR.length == 0
@@ -543,6 +543,94 @@ export default {
                 ;
 
             return list;
+        },
+        ProductAutoCompleteFunc: function(input, dataList, comp) {
+            var vue = this;
+
+            if (!dataList.length) return [];
+
+            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
+            var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
+
+            var wholeColumns = ["CdNm"];
+
+            if ((input == comp.selectValue && comp.isUnique) || comp.isError) {
+                keyAND = keyOR = [];
+            }
+
+            var list = dataList
+                .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
+                .filter(v => {
+                    return keyOR.length == 0
+                        || _.some(keyOR, k => v.Cd.startsWith(k))
+                        || _.some(keyOR, k => v.whole.includes(k))
+                })
+                .filter(v => {
+                    return keyAND.length == 0 || _.every(keyAND, k => v.whole.includes(k));
+                })
+                .map(v => {
+                    var ret = v;
+                    ret.label = v.Cd + " : " + v.CdNm;
+                    ret.value = v.Cd;
+                    ret.text = v.CdNm;
+                    return ret;
+                })
+                ;
+
+            return list;
+        },
+        showDetail: function(rowData, IsNew) {
+            var vue = this;
+            var grid = vue.DAI04050Grid1;
+            if (!grid) return;
+
+            var params;
+
+            var params;
+            if (rowData) {
+                params = _.cloneDeep(rowData);
+            } else {
+                var selection = grid.SelectRow().getSelection();
+
+                var rows = grid.SelectRow().getSelection();
+                if (rows.length != 1) return;
+
+                params = _.cloneDeep(rows[0].rowData);
+            }
+
+            params.IsChild = true;
+            params.IsNew = IsNew || false;
+            params.ParentGrid = grid;
+
+            //DAI04051を子画面表示
+            PageDialog.show({
+                pgId: "DAI04051",
+                params: params,
+                isModal: true,
+                isChild: true,
+                resizable: false,
+                width: 880,
+                height: 600,
+                onBeforeClose: (event, ui) => {
+                    console.log("onBeforeClose", event, ui);
+
+                    if ($(window.event.target).attr("shortcut") == "ESC") return true;
+
+                    var dlg = $(event.target);
+                    var editting = dlg.find(".pq-grid")
+                        .map((i, v) => $(v).pqGrid("getInstance").grid)
+                        .get()
+                        .some(g => !_.isEmpty(g.getEditCell()));
+                    var isEscOnEditor = !!window.event && window.event.key == "Escape"
+                        && (
+                            $(window.event.target).hasClass("target-input") ||
+                            $(window.event.target).hasClass("pq-cell-editor")
+                        );
+
+                    return !editting && !isEscOnEditor;
+                }
+            });
         },
         print: function() {
             var vue = this;
@@ -620,8 +708,8 @@ export default {
                     CourseCd= header.コース.split(" ")[0];
                     CourseNm= header.コース.split(" ")[1];
                 }
-                TantoCd = vue.DAI05010Grid1.pdata.find(v => v.部署ＣＤ==BushoCd && v.コースＣＤ==CourseCd).担当者ＣＤ;
-                TantoNm = vue.DAI05010Grid1.pdata.find(v => v.部署ＣＤ==BushoCd && v.コースＣＤ==CourseCd).担当者名;
+                TantoCd = vue.DAI04050Grid1.pdata.find(v => v.部署ＣＤ==BushoCd && v.コースＣＤ==CourseCd).担当者ＣＤ;
+                TantoNm = vue.DAI04050Grid1.pdata.find(v => v.部署ＣＤ==BushoCd && v.コースＣＤ==CourseCd).担当者名;
                 return `
                     <div class="title">
                         <h3><div class="report-title-area">＊＊＊　得意先単価表　＊＊＊
@@ -668,13 +756,13 @@ export default {
                     border-right-width: 0px;
                     border-bottom-width: 0x;
                 }
-                table.DAI05010Grid1 th,
-                table.DAI05010Grid1 td {
+                table.DAI04050Grid1 th,
+                table.DAI04050Grid1 td {
                     border-collapse: collapse;
                     border: 0px solid black;
                 }
-                table.DAI05010Grid1 th,
-                table.DAI05010Grid1 td {
+                table.DAI04050Grid1 th,
+                table.DAI04050Grid1 td {
                     border-style: solid;
                     border-left-width: 1px;
                     border-top-width: 1px;
@@ -684,34 +772,34 @@ export default {
                 table.header-table tr:nth-child(1) th:nth-child(3),
                 table.header-table tr:nth-child(2) th:nth-child(6),
                 table.header-table tr:nth-child(2) th:last-child,
-                table.DAI05010Grid1 th:last-child,
-                table.DAI05010Grid1 td:last-child {
+                table.DAI04050Grid1 th:last-child,
+                table.DAI04050Grid1 td:last-child {
                     border-right-width: 1px;
                 }
-                table.DAI05010Grid1 tr:last-child td {
+                table.DAI04050Grid1 tr:last-child td {
                     border-bottom-width: 1px;
                 }
-                table.DAI05010Grid1 th:nth-child(1) {
+                table.DAI04050Grid1 th:nth-child(1) {
                     width: 5%;
                     color: transparent;
                 }
-                table.DAI05010Grid1 th:nth-child(2) {
+                table.DAI04050Grid1 th:nth-child(2) {
                     width: 15%;
                     text-align: left;
                     padding-left: 25px;
                 }
-                table.DAI05010Grid1 th:nth-child(4),
-                table.DAI05010Grid1 th:nth-child(6),
-                table.DAI05010Grid1 th:nth-child(8),
-                table.DAI05010Grid1 th:nth-child(10),
-                table.DAI05010Grid1 th:nth-child(12) {
+                table.DAI04050Grid1 th:nth-child(4),
+                table.DAI04050Grid1 th:nth-child(6),
+                table.DAI04050Grid1 th:nth-child(8),
+                table.DAI04050Grid1 th:nth-child(10),
+                table.DAI04050Grid1 th:nth-child(12) {
                     width: 3.5%;
                 }
-                table.DAI05010Grid1 th {
+                table.DAI04050Grid1 th {
                     white-space: nowrap;
                 }
-                table.DAI05010Grid1 th:nth-child(2),
-                table.DAI05010Grid1 td:nth-child(2) {
+                table.DAI04050Grid1 th:nth-child(2),
+                table.DAI04050Grid1 td:nth-child(2) {
                     border-left-width: 0px;
                 }
             `;
@@ -721,7 +809,7 @@ export default {
                 .append(
                     $("<body>")
                         .append(
-                            vue.DAI05010Grid1.generateHtml(
+                            vue.DAI04050Grid1.generateHtml(
                                 styleCustomers,
                                 headerFunc,
                                 29,

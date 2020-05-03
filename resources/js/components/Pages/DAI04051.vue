@@ -18,44 +18,32 @@
                     :readonly=true
                 >
             </div>
-            <!-- <div class="col-md-11">
-                <PopupSelect
-                    id="CustomerCd"
-                    class="Tanka"
-                    ref="PopupSelect_Customer"
+            <div class="col-md-3">
+               <VueCheck
+                    id="VueCheck_Available"
+                    ref="VueCheck_Available"
                     :vmodel=viewModel
-                    bind="CustomerCd"
-                    buddy="CustomerNm"
-                    dataUrl="/Utilities/GetCustomerListForSelect"
-                    :params="{ CustomerCd: null , KeyWord: CustomerKeyWord }"
-                    title="得意先一覧"
-                    labelCd="得意先CD"
-                    labelCdNm="得意先名"
-                    :isShowName=true
-                    :isModal=true
-                    :editable=false
-                    :reuse=true
-                    :existsCheck=true
-                    :inputWidth=100
-                    :nameWidth=400
-                    :isShowAutoComplete=true
-                    :AutoCompleteFunc=CustomerCdAutoCompleteFunc
-                    :onAfterChangedFunc=onCustomerCdChanged
-                    :isPreload=true
+                    bind="Available"
+                    checkedCode="1"
+                    customContainerStyle="border: none;"
+                    :list="[
+                        {code: '0', name: 'しない', label: '適用中のみ出力'},
+                        {code: '1', name: 'する', label: '適用中のみ出力'},
+                    ]"
+                    :onChangedFunc=onAvailableChanged
                 />
-            </div> -->
+            </div>
         </div>
         <PqGridWrapper
             id="DAI04051Grid1"
             ref="DAI04051Grid1"
-            dataUrl="/Utilities/GetTankaListForMaint"
-            :query=this.viewModel
+            dataUrl="/Utilities/GetTankaList"
+            :query=this.searchParams
             :SearchOnCreate=false
             :SearchOnActivate=false
             :checkChanged=false
             :options=this.grid1Options
             :onCompleteFunc=onCompleteFunc
-            :onSelectChangeFunc=onSelectChangeFunc
             :autoToolTipDisabled=true
             :autoEmptyRow=true
             :autoEmptyRowCount=1
@@ -78,6 +66,12 @@ export default {
     components: {
     },
     computed: {
+        searchParams: function() {
+            var vue = this;
+            return {
+                CustomerCd: vue.viewModel.CustomerCd,
+            }
+        },
         hasSelectionRow: function() {
             var vue = this;
             var grid = vue.DAI04051Grid1;
@@ -94,8 +88,7 @@ export default {
             viewModel: {
                 CustomerCd: null,
                 CustomerNm: null,
-                KeyWord: null,
-                FilterMode: "AND",
+                Available: "0",
             },
             CustomerKeyWord: null,
             DAI04051Grid1: null,
@@ -132,12 +125,10 @@ export default {
                 fillHandle: "",
                 numberCell: { show: true, title: "No.", resizable: false, width: 55, minWidth: 55 },
                 autoRow: false,
-                rowHtHead: 50,
-                rowHt: 30,
-                editable: true,
+                editable: false,
                 columnTemplate: {
                     editable: false,
-                    sortable: false,
+                    sortable: true,
                 },
                 trackModel: { on: true },
                 historyModel: { on: true },
@@ -189,12 +180,21 @@ export default {
                         autocomplete: {
                             source: () => vue.getProductList(),
                             bind: "商品ＣＤ",
-                            buddies: { "商品名": "CdNm", "単価": "売価単価", "商品区分": "商品区分", },
+                            buddies: { "商品名": "CdNm", "売価単価": "売価単価", },
                             onSelect: rowData => {
                                 console.log("onSelect", rowData);
                             },
                             AutoCompleteFunc: vue.ProductAutoCompleteFuncInGrid,
                             AutoCompleteMinLength: 0,
+                            selectSave: true,
+                            onSelect: (rowData, selected, ui) => {
+                                console.log("4051 onSelect")
+                                if (!rowData.InitialValue || rowData.InitialValue.商品ＣＤ != selected.Cd) {
+                                    rowData.単価 = selected.売価単価;
+                                } else if (!!rowData.InitialValue && rowData.InitialValue.商品ＣＤ == selected.Cd && rowData.InitialValue.単価 != selected.売価単価) {
+                                    rowData.単価 = rowData.InitialValue.単価;
+                                }
+                            },
                         },
                     },
                     {
@@ -209,14 +209,24 @@ export default {
                         editable: true,
                     },
                     {
-                        title: "修正担当者CD",
-                        dataIndx: "修正担当者ＣＤ", dataType: "integer",
-                        width: 150, maxWidth: 150, minWidth: 100,
+                        title: "適用開始日",
+                        dataIndx: "適用開始日", dataType: "date", format: "yy/mm/dd", align: "center",
+                        width: 100, minWidth: 100, maxWidth: 100,
+                        editable: true,
                     },
                     {
-                        title: "修正日",
-                        dataIndx: "修正日", dataType: "date", format: "yyyy/MM/dd HH:mm:ss",
-                        width: 150, maxWidth: 200, minWidth: 150,
+                        title: "固定数",
+                        dataIndx: "固定数", dataType: "integer", format: "#,##0",
+                        width: 100, maxWidth: 100, minWidth: 100,
+                        editable: true,
+                    },
+                    {
+                        title: "状況",
+                        dataIndx: "状況", dataType: "integer", align: "center",
+                        width: 90, minWidth: 90, maxWidth: 90,
+                        render: ui => {
+                            return { text: ui.rowData[ui.dataIndx] == "1" ? "適用中" : "" };
+                        },
                     },
                 ],
             },
@@ -226,9 +236,8 @@ export default {
             data.viewModel = $.extend(true, {}, vue.params, vue.query);
         }
 
-        //得意先マスタメンテの詳細画面から開いた時
         if(!!vue.params){
-            data.viewModel.CustomerCd = vue.params.得意先CD;
+            data.viewModel.CustomerCd = vue.params.得意先CD || vue.params.得意先ＣＤ;
             data.viewModel.CustomerNm = vue.params.得意先名;
         }
 
@@ -260,16 +269,12 @@ export default {
                     }
                 },
                 {visible: "false"},
-                { visible: "true", value: "検索", id: "DAI04051Grid1_Search", disabled: false, shortcut: "F5",
-                    onClick: function () {
-                        vue.conditionChanged(null, true);
-                    }
-                },
                 { visible: "true", value: "登録", id: "DAI04051Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         vue.saveTankaList();
                     }
-                }
+                },
+                {visible: "false"},
             );
 
         },
@@ -284,16 +289,23 @@ export default {
             );
 
         },
-        onCustomerCdChanged: function(element, info, comp, isNoMsg, isValid, noSearch) {
+        onAvailableChanged: function() {
             var vue = this;
 
-            //条件変更ハンドラ
-            vue.conditionChanged();
+            //フィルタハンドラ
+            vue.filterChanged();
+        },
+        filterChanged: function() {
+            var vue = this;
+            var grid = vue.DAI04051Grid1;
 
-            console.log("onCustomerCdChanged", info, comp, isValid);
-            if (!isValid) {
-                vue.CustomerKeyWord = comp.selectValue;
+            if (!grid) return;
+
+            var rules = [];
+            if (vue.viewModel.Available == "1") {
+                rules.push({ dataIndx: "状況", condition: "equal", value: "1" });
             }
+            grid.filter({ oper: "replace", mode: "AND", rules: rules });
         },
         conditionChanged: function(callback, force) {
             var vue = this;
@@ -303,57 +315,14 @@ export default {
 
             if (!force && _.isEqual(grid.options.dataModel.postData, vue.searchParams)) return;
 
-            console.log("DAI04051 conditionChanged", vue.getLoginInfo().isLogOn);
-
             if (!!grid && vue.getLoginInfo().isLogOn) {
-                var params = {CustomerCd : vue.viewModel.CustomerCd};
-                grid.searchData(params, false);
+                grid.searchData(vue.searchParams, false);
             }
         },
         getProductList: function() {
             var vue = this;
 
             return vue.ProductList;
-        },
-        // CustomerCdAutoCompleteFunc: function(input, dataList, comp) {
-        //     var vue = this;
-
-        //     if (!dataList.length) return [];
-
-        //     var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
-        //     var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
-        //     var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
-
-        //     var wholeColumns = ["CdNm", "得意先名略称", "得意先名カナ", "備考１", "備考２", "備考３"];
-
-        //     if (input == comp.selectValue && comp.isUnique) {
-        //         keyAND = keyOR = [];
-        //     }
-
-        //     var list = dataList
-        //         .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
-        //         .filter(v => {
-        //             return keyOR.length == 0
-        //                 || _.some(keyOR, k => v.Cd.startsWith(k))
-        //                 || _.some(keyOR, k => k.match(/^[0-9\-]{6,}/) != null && !!v.電話番号１ ? v.電話番号１.startsWith(k) : false)
-        //                 || _.some(keyOR, k => v.whole.includes(k))
-        //         })
-        //         .filter(v => {
-        //             return keyAND.length == 0
-        //                 || _.every(keyAND, k => (v.whole + (v.電話番号１ || "")).includes(k));
-        //         })
-        //         .map(v => {
-        //             var ret = v;
-        //             ret.label = v.Cd + " : " + "【" + v.部署名 + "】" + v.CdNm;
-        //             ret.value = v.Cd;
-        //             ret.text = v.CdNm;
-        //             return ret;
-        //         })
-        //         ;
-        //     console.log("CustomerCdAutoCompleteFunc:" + input + " = " + list.length);
-        //     return list;
-        // },
-        onSelectChangeFunc: function(grid, ui) {
         },
         onCompleteFunc: function(grid, ui) {
             var vue = this;
@@ -406,6 +375,8 @@ export default {
 
             return {
                 "単価": 0,
+                "適用開始日": moment().format("YYYY-MM-DD"),
+                "固定数": 0,
             };
         },
         autoEmptyRowCheckFunc: function(rowData) {
@@ -435,11 +406,16 @@ export default {
                     })
                     .map(r => {
                         r.得意先ＣＤ = vue.viewModel.CustomerCd;
+                        r.適用開始日 = moment(r.適用開始日, "YYYY/MM/DD").format("YYYY-MM-DD HH:mm:ss.SSS");
                         r.修正担当者ＣＤ = vue.getLoginInfo().uid;
                         r.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
+                        delete r.部署ＣＤ;
+                        delete r.部署名;
                         delete r.得意先名;
                         delete r.商品名;
                         delete r.商品区分;
+                        delete r.売価単価;
+                        delete r.状況;
                         delete r.sortIndx;
                         return r;
                     })
@@ -462,8 +438,9 @@ export default {
             params.noCache = true;
             axios.post("/DAI04051/Save", params)
                 .then(res => {
-                    console.log("res", res);
-                    //画面を閉じる
+                    if (!!vue.params.ParentGrid) {
+                        vue.params.ParentGrid.refreshDataAndView();
+                    }
                     $(vue.$el).closest(".ui-dialog-content").dialog("close");
                 })
                 .catch(err => {
@@ -497,15 +474,12 @@ export default {
                 return;
             }
 
-            //選択行の初期値から削除対象のキーを取得
-            var productCd = row.InitialValue.商品ＣＤ
-
-            var params = { CustomerCd: vue.viewModel.CustomerCd , ProductCd: productCd };
+            var params = _.cloneDeep(row.InitialValue);
             params.noCache = true;
 
             $.dialogConfirm({
-                title: "マスタ削除確認",
-                contents: "マスタを削除します。",
+                title: "削除確認",
+                contents: "選択行を削除します。宜しいですか？",
                 buttons:[
                     {
                         text: "はい",
@@ -513,12 +487,11 @@ export default {
                         click: function(){
                             axios.post("/DAI04051/DeleteTankaList", params)
                             .then(res => {
-                                var rowList = grid.SelectRow().getSelection().map(v => _.pick(v, ["rowIndx"]));
-                                grid.deleteRow({ rowList: rowList });
+                                grid.refreshDataAndView();
+                                if (!!vue.params.ParentGrid) {
+                                    vue.params.ParentGrid.refreshDataAndView();
+                                }
                                 $(this).dialog("close");
-
-                                //画面を閉じる
-                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
                             })
                             .catch(err => {
                                 console.log(err);

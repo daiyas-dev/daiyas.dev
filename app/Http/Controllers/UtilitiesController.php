@@ -813,6 +813,13 @@ ORDER BY
         $BushoCd = $request->bushoCd ?? $request->BushoCd;
         $WhereBushoCd = !!$BushoCd ? " AND MC.部署CD=$BushoCd" : "";
 
+        $BushoArray = $request->BushoArray;
+        $WhereBushoList = "";
+        if ($BushoArray != null && is_array($BushoArray) && 0 < count($BushoArray)) {
+            $BushoList = implode(',', $BushoArray);
+            $WhereBushoList = " AND MC.部署ＣＤ IN ($BushoList)";
+        }
+
         $TargetDate = $request->targetDate ?? $request->TargetDate;
 
         $CourseKbn = ($request->courseKbn ?? $request->CourseKbn) ?? $request->CourseKbn ?? (!!$TargetDate ? $this->SearchCourseKbnFromDate($request)->コース区分 : null);
@@ -839,6 +846,7 @@ ORDER BY
             WHERE
                 0=0
                 $WhereBushoCd
+                $WhereBushoList
                 $WhereCourseKbn
                 $WhereCourseCd
             $orderBusho
@@ -917,6 +925,12 @@ $WhereCourseKbn
         $BushoCd = $request->bushoCd ?? $request->BushoCd;
         $KeyWord = $request->KeyWord;
         $TelNo = !!$KeyWord ? str_replace('-', '', $KeyWord) : '';
+        $BushoArray = $request->BushoArray;
+        $WhereBushoList = "";
+        if ($BushoArray != null && is_array($BushoArray) && 0 < count($BushoArray)) {
+            $BushoList = implode(',', $BushoArray);
+            $WhereBushoList = " AND TM.部署ＣＤ IN ($BushoList)";
+        }
 
         $WhereBusho = $BushoCd ? " AND TM.部署ＣＤ=$BushoCd" : "";
         $WhereKeyWord = $KeyWord
@@ -932,9 +946,16 @@ $WhereCourseKbn
 
         $CourseCd = $request->CourseCd;
         $SelectCourseCd = !!$BushoCd && !!$CourseCd ? ", $CourseCd AS コースＣＤ" : "";
-        $WhereCourseCd = !!$BushoCd && !!$CourseCd
+        $WhereBushoCourse = $WhereBusho ? " AND 部署ＣＤ=$BushoCd" : "";
+        $WhereBushoListCourse = $WhereBushoList ? " AND 部署ＣＤ IN ($BushoList)" : "";
+        $WhereCourseCd = !!$CourseCd && (!!$WhereBushoCourse || $WhereBushoListCourse)
             ? " AND TM.得意先ＣＤ IN (
-                    SELECT 得意先ＣＤ FROM コーステーブル WHERE 部署ＣＤ=$BushoCd AND コースＣＤ=$CourseCd
+                    SELECT 得意先ＣＤ
+                    FROM コーステーブル
+                    WHERE
+                        コースＣＤ=$CourseCd
+                    $WhereBushoCourse
+                    $WhereBushoListCourse
                 )"
             : "";
 
@@ -963,6 +984,7 @@ LEFT JOIN 部署マスタ BM
     ON TM.部署CD = BM.部署CD
 WHERE 0=0
 $WhereBusho
+$WhereBushoList
 $WhereCustomer
         ";
 
@@ -979,6 +1001,7 @@ SELECT
 FROM 得意先マスタ TM
 WHERE 0=0
 $WhereBusho
+$WhereBushoList
 $WhereKeyWord
 $WhereCourseCd
         ";
@@ -1011,6 +1034,7 @@ LEFT JOIN 部署マスタ BM
     ON TM.部署CD = BM.部署CD
 WHERE 0=0
 $WhereBusho
+$WhereBushoList
 $WhereKeyWord
 $WhereCourseCd
         ";
@@ -1070,7 +1094,8 @@ $WhereCourseCd
                 ON  TTT.商品ＣＤ=MP.商品ＣＤ
                 AND TTT.得意先ＣＤ=$CustomerCd
             WHERE
-                MP.売価単価 > 0
+                0=0
+                --MP.売価単価 > 0
             $WhereExceptNull
         ";
         $ProductList = DB::select($sql);
@@ -1915,21 +1940,69 @@ ORDER BY
     /**
      * GetTankaListForMaint
      */
-    public function GetTankaListForMaint($request)
+    public function GetTankaList($request)
     {
-        $CustomerCd = $request->CustomerCd;
+        return response()->json($this->SearchTankaList($request));
+    }
 
-        if (!is_numeric($CustomerCd)) {
-            return [];
+    public function SearchTankaList($request)
+    {
+        $BushoArray = $request->BushoArray;
+        $WhereBushoList = "";
+        if ($BushoArray != null && is_array($BushoArray) && 0 < count($BushoArray)) {
+            $BushoList = implode(',', $BushoArray);
+            $WhereBushoList = " AND TM.部署ＣＤ IN ($BushoList)";
         }
-        $TankaList = DB::table('得意先単価マスタ')
-            ->join('得意先マスタ', '得意先単価マスタ.得意先ＣＤ', '=', '得意先マスタ.得意先ＣＤ')
-            ->join('商品マスタ', '得意先単価マスタ.商品ＣＤ', '=', '商品マスタ.商品ＣＤ')
-            ->where('得意先単価マスタ.得意先ＣＤ', '=', $CustomerCd)
-            ->select('得意先単価マスタ.*', '商品マスタ.商品名 as 商品名', '得意先マスタ.得意先名 as 得意先名')
-            ->get();
 
-        return response()->json($TankaList);
+        $CustomerCd = $request->CustomerCd;
+        $WhereCustomerCd = !!$CustomerCd ? "AND TT.得意先ＣＤ=$CustomerCd" : "";
+
+        $ProductCd = $request->ProductCd;
+        $WhereProductCd = !!$ProductCd ? "AND TT.商品ＣＤ=$ProductCd" : "";
+
+        $sql = "
+            SELECT
+                TT.*
+                ,TM.部署ＣＤ
+                ,BM.部署名
+				,TM.得意先名
+                ,SM.商品名
+                ,IIF(
+                    FIRST_VALUE(TT.適用開始日) OVER(
+                        PARTITION BY TT.得意先ＣＤ, TT.商品ＣＤ
+                        ORDER BY TT.適用開始日 DESC
+                    ) = TT.適用開始日,
+                    1, 0
+                ) AS 状況
+            FROM
+                得意先単価マスタ新 TT
+				LEFT OUTER JOIN 得意先マスタ TM
+                    ON  TM.得意先ＣＤ=TT.得意先ＣＤ
+				LEFT OUTER JOIN 部署マスタ BM
+                    ON  BM.部署CD=TM.部署ＣＤ
+				LEFT OUTER JOIN 商品マスタ SM
+                    ON  SM.商品ＣＤ=TT.商品ＣＤ
+            WHERE
+                0=0
+            $WhereBushoList
+            $WhereCustomerCd
+            $WhereProductCd
+            ORDER BY
+                TT.得意先ＣＤ,
+                TT.商品ＣＤ,
+                TT.適用開始日
+        ";
+
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = null;
+
+        return $DataList;
     }
 
     /**

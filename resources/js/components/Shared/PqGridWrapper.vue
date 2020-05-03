@@ -422,8 +422,8 @@ export default {
                                             width: gridCell.width(),
                                             editable: true,
                                             hideButton: true,
-                                            _onCalendarHiddenFunc: (event) => {
-                                                //grid.getEditCell().$editor.trigger($.Event("keydown", {keyCode: 13, which: 13}))
+                                            onCalendarHiddenFunc: (event) => {
+                                                grid.getEditCell().$editor.trigger($.Event("keydown", {keyCode: 13, which: 13}))
                                             },
                                         }
                                     }
@@ -734,6 +734,7 @@ export default {
                         ui.column.editor = {
                             type: "textbox",
                             init:  function (ui){
+                                var grid = this;
                                 var $input = ui.$cell.find("input");
                                 $input.attr("autocomplete", "off");
 
@@ -824,7 +825,7 @@ export default {
                                         }
 
                                         console.log("autocomplete selected", _.pick(ui.rowData, _.keys(config.buddies)));
-                                        if (!!config.onSelect) config.onSelect(ui.rowData);
+                                        if (!!config.onSelect) config.onSelect(ui.rowData, selectedUi.item, ui);
 
                                         return true;
                                     },
@@ -861,7 +862,7 @@ export default {
                                                 console.log("autocomplete closed", _.pick(ui.rowData, _.keys(config.buddies)));
                                             }
 
-                                            if (!!config.onSelect) config.onSelect(ui.rowData);
+                                            if (!!config.onSelect) config.onSelect(ui.rowData, match, ui);
 
                                             if (config.selectSave) {
                                                 ui.$editor.trigger($.Event("keydown", {
@@ -990,10 +991,25 @@ export default {
                     grid.options.title = "　";
                     grid._refreshTitle();
                 } else {
+                    var empty = _.sortBy(_.cloneDeep(grid.getData()), "pq_order")
+                        .filter(d => {
+                            if (vue.autoEmptyRowCheckFunc) {
+                                return vue.autoEmptyRowCheckFunc(d);
+                            } else {
+                                return _(d).omitBy((v, k) => k.startsWith("pq") || !v).keys().value().length == 0;
+                            }
+                        })
+                        .length
+                        ;
+
                     if (!!grid.options.filterModel && !!grid.options.filterModel.rules && !!grid.options.filterModel.rules.length) {
-                        grid.options.title = "件数: " + grid.pdata.filter(v => !v.pq_hidden).length + " / " + grid.getData().length + " [フィルタ中]";
+                        grid.options.title = "件数: "
+                            + (grid.pdata.filter(v => !v.pq_hidden && v.pq_level == undefined).length - empty)
+                            + " / "
+                            + (grid.getData().length - empty)
+                            + " [フィルタ中]";
                     } else {
-                        grid.options.title = "件数: " + grid.getData().length;
+                        grid.options.title = "件数: " + (grid.getData().length - empty);
                     }
                     if (vue.setCustomTitle) {
                         grid.options.title = vue.setCustomTitle(grid.options.title, grid);
@@ -1064,6 +1080,7 @@ export default {
 
                 if (grid.getData().length == 0) {
                     vue.selectionRowCount = 0;
+                    vue.selectionRow = null;
                     vue.isSelection = false;
                 }
 
@@ -3931,6 +3948,14 @@ export default {
     .pq-editor-inner input[type="number"]::-webkit-inner-spin-button {
         -webkit-appearance: none;
         margin: 0;
+    }
+
+    .pq-editor-inner .DatePickerWrapper {
+        margin-left: 0px !important;
+        height: 26px;
+    }
+    .pq-editor-inner .DatePickerWrapper .target-input {
+        width: 100px;
     }
 </style>
 
