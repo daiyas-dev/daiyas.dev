@@ -224,69 +224,6 @@ export default {
                 };
             });
         },
-        searchParams: function() {
-            var vue = this;
-            var mc = moment(vue.viewModel.ClaimDate, "YYYY年MM月DD日");
-            var mp = moment(vue.viewModel.ProcDate, "YYYY年MM月DD日");
-            var ml = moment(vue.viewModel.LostDate, "YYYY年MM月DD日");
-
-            return {
-                ClaimDate: (mc.isValid() ? mc : moment()).format("YYYYMMDD"),
-                ProcDate: (mp.isValid() ? mp : moment()).format("YYYYMMDD"),
-                LostDate: (ml.isValid() ? ml : moment()).format("YYYYMMDD"),
-            };
-        },
-        saveParams: function() {
-            var vue = this;
-            var mc = moment(vue.viewModel.ClaimDate + " " + vue.viewModel.ClaimTime, "YYYY年MM月DD日 HH時mm分");
-            var mp = moment(vue.viewModel.ProcDate, "YYYY年MM月DD日");
-            var ml = moment(vue.viewModel.LostDate, "YYYY年MM月DD日");
-
-            return {
-                クレームID: vue.viewModel.クレームID,
-                受付日時: mc.format("YYYY-MM-DD HH:mm:ss"),
-                管轄部門コード: vue.viewModel.BushoCd,
-                クレーム区分コード: vue.viewModel.クレーム区分コード,
-                顧客コード: vue.viewModel.顧客コード,
-                平均食数: vue.viewModel.平均食数,
-                顧客担当者名: vue.viewModel.顧客担当者名,
-                商品コード: vue.viewModel.商品コード,
-                単価: vue.viewModel.単価,
-                クレーム内容: vue.viewModel.クレーム内容,
-                受付担当者コード: vue.viewModel.受付担当者コード,
-                受付方法: vue.viewModel.受付方法,
-                クレーム処理日: mp.format("YYYY-MM-DD"),
-                クレーム処理者コード: vue.viewModel.クレーム処理者コード,
-                クレーム処理品: vue.viewModel.クレーム処理品,
-                クレーム処理費用: vue.viewModel.クレーム処理費用,
-                客先反応: vue.viewModel.客先反応,
-                部門コード: vue.viewModel.部門コード,
-                部門名: vue.viewModel.部門名,
-                原因部署担当コード: vue.viewModel.原因部署担当コード,
-                原因: vue.viewModel.原因,
-                原因入力担当者コード: vue.viewModel.原因入力担当者コード,
-                原因入力担当者名: vue.viewModel.原因入力担当者名,
-                対策: vue.viewModel.対策,
-                対策入力担当者コード: vue.viewModel.対策入力担当者コード,
-                対策入力担当者名: vue.viewModel.対策入力担当者名,
-                その後客先失客: vue.viewModel.その後客先失客,
-                失客日: ml.format("YYYY-MM-DD"),
-                失客日数: vue.viewModel.失客日数,
-                未使用フラグ: vue.viewModel.未使用フラグ,
-                修正担当者ＣＤ: vue.viewModel.修正担当者ＣＤ,
-                修正日: vue.viewModel.修正日,
-                管轄部門名: vue.viewModel.管轄部門名,
-                得意先名: vue.viewModel.得意先名,
-                クレーム区分名: vue.viewModel.クレーム区分名,
-                原因部署名: vue.viewModel.原因部署名,
-                原因部署担当: vue.viewModel.原因部署担当,
-                ステータス: vue.viewModel.ステータス,
-            };
-        },
-        LostDateEditable: function() {
-            var vue = this;
-            return vue.viewModel.その後客先失客 == "1";
-        },
     },
     data() {
         var vue = this;
@@ -338,33 +275,19 @@ export default {
                 { visible: "false" },
                 { visible: "true", value: "登録", id: "DAI04010Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
-                        if(!vue.saveParams.受付日時 || !vue.saveParams.顧客コード
-                        || !vue.saveParams.商品コード || !vue.saveParams.クレーム区分コード
-                        || !vue.saveParams.受付担当者コード || !vue.saveParams.受付方法){
-                            $.dialogErr({
-                                title: "登録不可",
-                                contents: [
-                                    !vue.saveParams.受付日時 ? "受付日時が入力されていません。" : "",
-                                    !vue.saveParams.顧客コード ? "得意先が入力されていません。<br/>" : "",
-                                    !vue.saveParams.商品コード ? "商品ＣＤが入力されていません。<br/>" : "",
-                                    !vue.saveParams.クレーム区分コード ? "クレーム区分が入力されていません。<br/>" : "",
-                                    !vue.saveParams.受付担当者コード ? "受付担当者が入力されていません。<br/>" : "",
-                                    !vue.saveParams.受付方法 ? "受付方法が入力されていません。<br/>" : "",
-                                ]
-                            })
+                        var params = _.cloneDeep(vue.viewModel);
 
-                            $(vue.$el).find("#ClaimDate")[!vue.saveParams.ClaimDate ? "addClass" : "removeClass"]("has-error");
-                            $(vue.$el).find("#ClaimTime")[!vue.saveParams.ClaimTime ? "addClass" : "removeClass"]("has-error");
-                            $(vue.$el).find("#CustomerSelect")[vue.saveParams.顧客コード == null ? "addClass" : "removeClass"]("has-error");
-                            $(vue.$el).find("#ProductSelect")[vue.saveParams.商品コード == null ? "addClass" : "removeClass"]("has-error");
-                            $(vue.$el).find(".ClaimKbn")[vue.saveParams.クレーム区分コード == null ? "addClass" : "removeClass"]("has-error");
-                            $(vue.$el).find("#SidasiTanto")[vue.saveParams.受付担当者コード == null ? "addClass" : "removeClass"]("has-error");
-                            $(vue.$el).find(".SidasiKind")[vue.saveParams.受付方法 == null ? "addClass" : "removeClass"]("has-error");
+                        //補完
+                        _.forIn(params, (v, k, o) => {
+                            if (k.startsWith("単価") || k.startsWith("原価率") || k.endsWith("伝票Ｎｏ")
+                            || k == "HACCP改定番号" || k == "値引" || k == "手当申請額") {
+                                o[k] = (v || 0) * 1;
+                            }
+                            if (k == "自社締日") {
+                                o[k] = (v || 99) * 1;
+                            }
+                        });
 
-                            return;
-                        }
-
-                        var params = _.cloneDeep(vue.saveParams);
                         params.修正担当者ＣＤ = vue.getLoginInfo().uid;
                         params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
                         params.noCache = true;
@@ -373,14 +296,12 @@ export default {
 
                         axios.post("/DAI04010/Save", params)
                         .then(res => {
-                            DAI05150.conditionChanged();
-                            $(vue.$el).closest(".ui-dialog-content").dialog("close");
                         })
                         .catch(err => {
                             console.log(err);
                             $.dialogErr({
                                 title: "異常終了",
-                                contents: "クレームの登録に失敗しました"
+                                contents: "管理マスタの登録に失敗しました"
                             })
                         });
                     }
@@ -398,6 +319,9 @@ export default {
                         if (k.startsWith("単価") || k.startsWith("原価率") || k.endsWith("伝票Ｎｏ")
                          || k == "HACCP改定番号" || k == "値引" || k == "手当申請額") {
                             o[k] = (v || 0) * 1;
+                        }
+                        if (k == "自社締日") {
+                            o[k] = (v || 99) * 1;
                         }
                     });
 

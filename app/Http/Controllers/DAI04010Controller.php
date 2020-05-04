@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\クレームデータ;
+use App\Models\管理マスタ;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
@@ -45,7 +45,7 @@ class DAI04010Controller extends Controller
     {
         $params = $request->all();
 
-        $model = new クレームデータ();
+        $model = new 管理マスタ();
         $model->fill($params);
 
         $data = collect($model)->all();
@@ -53,18 +53,24 @@ class DAI04010Controller extends Controller
         DB::beginTransaction();
         try {
 
-            $ClaimId = $params['クレームID'];
+            $MngKey = $params['管理ＫＥＹ'];
 
-            if (!isset($ClaimId)) {
-                $ClaimId = クレームデータ::query()->max('クレームID') + 1;
+            if (!isset($MngKey)) {
+                $MngKey = 管理マスタ::query()->max('管理ＫＥＹ') + 1;
             }
 
-            DB::unprepared('SET IDENTITY_INSERT クレームデータ ON');
-            DB::table('クレームデータ')->updateOrInsert(
-                ['クレームID' => $ClaimId],
+            $data['会社名'] = $data['会社名'] ?? '';
+            $data['会社名カナ'] = $data['会社名カナ'] ?? '';
+            $data['郵便番号'] = $data['郵便番号'] ?? '';
+            $data['住所'] = $data['住所'] ?? '';
+            $data['電話番号'] = $data['電話番号'] ?? '';
+            $data['ＦＡＸ'] = $data['ＦＡＸ'] ?? '';
+            $data['代表取締役'] = $data['代表取締役'] ?? '';
+
+            DB::table('管理マスタ')->updateOrInsert(
+                ['管理ＫＥＹ' => $MngKey],
                 $data
             );
-            DB::unprepared('SET IDENTITY_INSERT クレームデータ OFF');
 
             DB::commit();
         } catch (Exception $exception) {
@@ -72,7 +78,7 @@ class DAI04010Controller extends Controller
             throw $exception;
         }
 
-        $savedData = array_merge(['クレームID' => $params['クレームID']], $data);
+        $savedData = array_merge(['管理マスタ' => $params['管理ＫＥＹ']], $data);
 
         return response()->json([
             'result' => true,
