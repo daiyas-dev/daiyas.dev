@@ -2090,7 +2090,7 @@ export default {
             params.税処理 = 0;
             params.失客日 = !!params.失客日 ? moment(vue.viewModel.失客日,"YYYY-MM-DD").format("YYYYMMDD") : "";
 
-            params.修正担当者ＣＤ = params.userId;
+            params.修正担当者ＣＤ = vue.getLoginInfo().uid;
             params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
 
             //新規か修正か

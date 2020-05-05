@@ -301,7 +301,7 @@ export default {
 
                         params.消費税率 = params.消費税率 || 0;
                         params.適用年月 = moment(vue.viewModel.適用年月,"YYYY-MM-DD").format("YYYY-MM-DD");
-                        params.修正担当者ＣＤ = params.userId;
+                        params.修正担当者ＣＤ = vue.getLoginInfo().uid;
                         params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
 
                         $(vue.$el).find(".has-error").removeClass("has-error");

@@ -329,7 +329,7 @@ export default {
                         var params = _.cloneDeep(vue.viewModel);
 
                         params.工場区分 = params.工場区分 || 0;
-                        params.修正担当者ＣＤ = params.userId;
+                        params.修正担当者ＣＤ = vue.getLoginInfo().uid;
                         params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
 
                         $(vue.$el).find(".has-error").removeClass("has-error");

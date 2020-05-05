@@ -8,6 +8,8 @@
         <div class="row">
             <div class="col-md-4">
                 <label>商品ＣＤ</label>
+            </div>
+            <div class="col-md-1">
                 <input class="form-control text-right p-2" type="text"
                     id="ProductCd"
                     v-model=viewModel.商品ＣＤ
@@ -17,6 +19,25 @@
                     maxlength="5"
                     v-int
                 >
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <label style="width: unset;">既定製造パターン</label>
+            </div>
+            <div class="col-md-8">
+                <VueSelect
+                    id="Pattern"
+                    :vmodel=viewModel
+                    bind="既定製造パターン"
+                    uri="/Utilities/GetCodeList"
+                    :params="{ cd: 35 }"
+                    :withCode=true
+                    customStyle="{ width: 100px; }"
+                    :onChangedFunc=onPatternChanged
+                    :disabled=!viewModel.IsNew
+                    :tabindex="viewModel.IsNew ? 0 : -1"
+                />
             </div>
         </div>
         <div class="row">
@@ -137,19 +158,6 @@
                                 maxlength="6"
                             />
                         </div>
-                        <div class="col-md-12">
-                            <label class="width:100">食事区分</label>
-                            <VueSelect
-                                id="MealKbn"
-                                ref="MealKbn_Select"
-                                :vmodel=viewModel
-                                bind="食事区分"
-                                uri="/Utilities/GetCodeList"
-                                :params="{ cd: 38 }"
-                                :withCode=true
-                                customStyle="{ width: 200px; }"
-                            />
-                        </div>
                     </div>
                 </fieldset>
             </div>
@@ -204,7 +212,7 @@ textarea {
 }
 </style>
 <style>
-#Page_DAI04031 .CustomerSelect .select-name {
+#Page_DAI04171 .CustomerSelect .select-name {
     color: royalblue;
 }
 </style>
@@ -214,7 +222,7 @@ import PageBaseMixin from "@vcs/PageBaseMixin.vue";
 
 export default {
     mixins: [PageBaseMixin],
-    name: "DAI04031",
+    name: "DAI04171",
     components: {
     },
     computed: {
@@ -226,50 +234,9 @@ export default {
     data() {
         var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "商品マスタメンテ詳細",
+            ScreenTitle: "製造品マスタメンテ詳細",
             noViewModel: true,
-            DAI04031Grid1: null,
-            grid1Options: {
-                selectionModel: { type: "cell", mode: "single", row: true, onTab: "nextEdit" },
-                showHeader: true,
-                showToolbar: false,
-                columnBorders: true,
-                fillHandle: "",
-                numberCell: { show: true, title: "No.", resizable: false, },
-                autoRow: false,
-                rowHtHead: 25,
-                rowHt: 30,
-                height: 200,
-                editable: true,
-                columnTemplate: {
-                    editable: false,
-                    sortable: false,
-                },
-                trackModel: { on: true },
-                historyModel: { on: true },
-                filterModel: {
-                    on: true,
-                    mode: "OR",
-                    header: false,
-                    menuIcon: false,
-                    hideRows: false,
-                },
-                sortModel: {
-                    on: true,
-                    cancel: false,
-                    type: "local",
-                    sorter:[ { dataIndx: "sortIndx", dir: "up" } ],
-                },
-                groupModel: {
-                    on: true,
-                    header: false,
-                    grandSummary: true,
-                },
-                formulas: [
-                ],
-                colModel: [
-                ],
-            },
+            DAI04171Grid1: null,
         });
 
         if (!!vue.params || !!vue.query) {
@@ -285,17 +252,17 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "クリア", id: "DAI04031_Clear", disabled: false, shortcut: "F2",
+                { visible: "true", value: "クリア", id: "DAI04171_Clear", disabled: false, shortcut: "F2",
                     onClick: function () {
                         vue.clearDetail();
                     }
                 },
-                { visible: "true", value: "削除", id: "DAI04031_Delete", disabled: true, shortcut: "F3",
+                { visible: "true", value: "削除", id: "DAI04171_Delete", disabled: true, shortcut: "F3",
                     onClick: function () {
                         var cd = vue.viewModel.商品ＣＤ;
                         if(!cd) return;
 
-                        var params = {ProductCd: cd};
+                        var params = _.cloneDeep(vue.viewModel);
                         params.noCache = true;
 
                         $.dialogConfirm({
@@ -306,15 +273,18 @@ export default {
                                     text: "はい",
                                     class: "btn btn-primary",
                                     click: function(){
-                                        axios.post("/DAI04031/Delete", params)
+                                        axios.post("/DAI04171/Delete", params)
                                             .then(res => {
-                                                DAI04030.conditionChanged();
+                                                DAI04170.conditionChanged();
                                                 $(this).dialog("close");
-                                                //画面を閉じる
                                                 $(vue.$el).closest(".ui-dialog-content").dialog("close");
                                             })
                                             .catch(err => {
                                                 console.log(err);
+                                                $.dialogErr({
+                                                    title: "異常終了",
+                                                    contents: "製造品マスタの削除に失敗しました"
+                                                })
                                             }
                                         );
                                     }
@@ -330,7 +300,7 @@ export default {
                         });
                     }
                 },
-                { visible: "true", value: "登録", id: "DAI04031Grid1_Save", disabled: false, shortcut: "F9",
+                { visible: "true", value: "登録", id: "DAI04171Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         if(!vue.viewModel.商品ＣＤ || !vue.viewModel.商品名 || !vue.viewModel.商品略称 || !vue.viewModel.商品区分){
                             $.dialogErr({
@@ -376,21 +346,30 @@ export default {
 
                         params.修正担当者ＣＤ = vue.getLoginInfo().uid;
                         params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
+                        params.noCache = true;
 
                         $(vue.$el).find(".has-error").removeClass("has-error");
 
-                        //登録用controller method call
-                        axios.post("/DAI04031/Save", params)
+                        //登録中ダイアログ
+                        var progressDlg = $.dialogProgress({
+                            contents: "<i class='fa fa-spinner fa-spin' style='font-size: 24px; margin-right: 5px;'></i> 登録中…",
+                        });
+
+                        axios.post("/DAI04171/Save", params)
                             .then(res => {
-                                DAI04030.conditionChanged();
-                                //画面を閉じる
+                                progressDlg.dialog("close");
+                                DAI04170.conditionChanged();
                                 $(vue.$el).closest(".ui-dialog-content").dialog("close");
                             })
                             .catch(err => {
+                                progressDlg.dialog("close");
                                 console.log(err);
+                                $.dialogErr({
+                                    title: "異常終了",
+                                    contents: "製造品マスタの登録に失敗しました"
+                                })
                             }
                         );
-                        console.log("登録", params);
                         $(this).dialog("close");
                     }
                 },
@@ -409,17 +388,23 @@ export default {
 
             vue.searchByProductCd();
         },
+        onPatternChanged: function(code, entities) {
+            var vue = this;
+
+            vue.searchByProductCd();
+        },
         searchByProductCd: function() {
             var vue = this;
-            var cd = vue.viewModel.商品ＣＤ;
-            if (!cd) return;
+            if (!vue.viewModel.商品ＣＤ || !vue.viewModel.既定製造パターン) return;
 
-            var params = {ProductCd: cd};
-            params.noCache = true;
+            var params = {noCache: true};
 
-            axios.post("/Utilities/GetProductListForMaint", params)
+            axios.post("/DAI04170/Search", params)
                 .then(res => {
-                    if (res.data.length == 1) {
+                    var match = res.data
+                        .find(r => r.商品ＣＤ == vue.viewModel.商品ＣＤ && r.既定製造パターン == vue.viewModel.既定製造パターン);
+
+                    if (!!match) {
                         $.dialogConfirm({
                             title: "マスタ編集確認",
                             contents: "マスタを編集しますか？",
@@ -428,9 +413,8 @@ export default {
                                     text: "はい",
                                     class: "btn btn-primary",
                                     click: function(){
-                                        vue.viewModel = res.data[0];
+                                        vue.viewModel = match;
 
-                                        //currency-input項目、String->Number
                                         vue.viewModel.売価単価 = (vue.viewModel.売価単価 || 0 ) * 1;
                                         vue.viewModel.部数単位 = (vue.viewModel.部数単位 || 0 ) * 1;
 
@@ -443,7 +427,6 @@ export default {
                                     text: "いいえ",
                                     class: "btn btn-danger",
                                     click: function(){
-                                        vue.viewModel.税区分 = "";
                                         $(this).dialog("close");
                                     }
                                 },
@@ -464,7 +447,7 @@ export default {
         clearDetail: function(){
             var vue = this;
 
-            _.keys(DAI04031.viewModel).forEach(k => DAI04031.viewModel[k] = null);
+            _.keys(DAI04171.viewModel).forEach(k => DAI04171.viewModel[k] = null);
             vue.viewModel.IsNew = true;
             vue.viewModel.userId = vue.query.userId;
 
@@ -472,7 +455,6 @@ export default {
             vue.viewModel.部署グループ = vue.$refs.BushoGroup_Select.entities[0].code;
             vue.viewModel.弁当区分 = vue.$refs.BentoKbn_Select.entities[0].code;
             vue.viewModel.表示区分 = vue.$refs.DisplayKbn_Select.entities[0].code;
-            vue.viewModel.食事区分 = vue.$refs.MealKbn_Select.entities[0].code;
 
             //ボタン制御
             $("[shortcut='F3']").prop("disabled", true);
