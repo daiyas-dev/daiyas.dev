@@ -218,6 +218,7 @@ export default {
         },
     },
     data() {
+        var vue = this;
         return $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "マスタメンテ > 得意先別単価",
             noViewModel: true,
@@ -381,7 +382,7 @@ export default {
             vue.$watch(
                 "$refs.DAI04050Grid1.selectionRow",
                 row => {
-                    vue.footerButtons.find(v => v.id == "DAI04050Grid1_Detail").disabled = !row.rowData.得意先 && !row.rowData.得意先ＣＤ
+                    vue.footerButtons.find(v => v.id == "DAI04050Grid1_Detail").disabled = !row || (!!row.rowData && !row.rowData.得意先)
                 }
             );
         },
@@ -464,8 +465,8 @@ export default {
             var vue = this;
 
             res.forEach(r => {
-                r.部署 = r.部署ＣＤ + " " + r.部署名;
-                r.得意先 = r.得意先ＣＤ + " " + r.得意先名;
+                r.部署 = r.部署ＣＤ + ":" + r.部署名;
+                r.得意先 = r.得意先ＣＤ + ":" + r.得意先名;
                 return r;
             });
 
@@ -597,6 +598,12 @@ export default {
                 if (rows.length != 1) return;
 
                 params = _.cloneDeep(rows[0].rowData);
+            }
+
+            if (!params.得意先 && !params.得意先ＣＤ) return;
+            if (!!params.得意先 && !params.得意先ＣＤ) {
+                params.得意先ＣＤ = params.得意先.split(":")[0];
+                params.得意先名 = params.得意先.split(":")[1];
             }
 
             params.IsChild = true;

@@ -2,47 +2,26 @@
     <form id="this.$options.name">
         <div class="row">
             <div class="col-md-1">
-                <label>得意先CD</label>
+                <label>部署</label>
             </div>
-            <div class="col-md-2">
-                <input class="form-control ml-4 mr-1" type="text"
-                    id="CustomerCd"
-                    v-model=viewModel.CustomerCd
-                    :readonly=true
-                >
-            </div>
-            <div class="col-md-6">
-                <input class="form-control" type="text" style="width: 300px;"
-                    id="CustomerNm"
-                    v-model=viewModel.CustomerNm
-                    :readonly=true
-                >
-            </div>
-            <div class="col-md-3">
-               <VueCheck
-                    id="VueCheck_Available"
-                    ref="VueCheck_Available"
-                    :vmodel=viewModel
-                    bind="Available"
-                    checkedCode="1"
-                    customContainerStyle="border: none;"
-                    :list="[
-                        {code: '0', name: 'しない', label: '適用中のみ出力'},
-                        {code: '1', name: 'する', label: '適用中のみ出力'},
-                    ]"
-                    :onChangedFunc=onAvailableChanged
+            <div class="col-md-11">
+                <VueSelectBusho
+                    :withCode=true
+                    style="width:200px"
+                    :onChangedFunc=onBushoChanged
                 />
             </div>
         </div>
         <PqGridWrapper
-            id="DAI04051Grid1"
-            ref="DAI04051Grid1"
-            dataUrl="/Utilities/GetTankaList"
+            id="DAI04120Grid1"
+            ref="DAI04120Grid1"
+            dataUrl="/DAI04120/GetMobileProductList"
             :query=this.searchParams
             :SearchOnCreate=false
             :SearchOnActivate=false
             :checkChanged=false
             :options=this.grid1Options
+            :onAfterSearchFunc=onAfterSearchFunc
             :onCompleteFunc=onCompleteFunc
             :autoToolTipDisabled=true
             :autoEmptyRow=true
@@ -55,6 +34,9 @@
 <style scoped>
 </style>
 <style>
+form[pgid="DAI04120"] .pq-editor-inner .DatePickerWrapper .target-input {
+    width: 120px;
+}
 </style>
 
 <script>
@@ -62,19 +44,19 @@ import PageBaseMixin from "@vcs/PageBaseMixin.vue";
 
 export default {
     mixins: [PageBaseMixin],
-    name: "DAI04051",
+    name: "DAI04120",
     components: {
     },
     computed: {
         searchParams: function() {
             var vue = this;
             return {
-                CustomerCd: vue.viewModel.CustomerCd,
+                BushoCd: vue.viewModel.BushoCd,
             }
         },
         hasSelectionRow: function() {
             var vue = this;
-            var grid = vue.DAI04051Grid1;
+            var grid = vue.DAI04120Grid1;
             return !!grid && !!grid.getSelectionRowData();
         },
     },
@@ -83,21 +65,19 @@ export default {
     data() {
         var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "得意先単価マスタメンテ",
+            ScreenTitle: "モバイル対象商品マスタメンテ",
             noViewModel: true,
             viewModel: {
-                CustomerCd: null,
-                CustomerNm: null,
-                Available: "0",
+                BushoCd: null,
+                BushoNm: null,
             },
-            CustomerKeyWord: null,
-            DAI04051Grid1: null,
+            DAI04120Grid1: null,
             grid1Options: {
                 selectionModel: { type: "row", mode: "single", row: true },
                 showHeader: true,
                 showToolbar: false,
                 toolbar: {
-                    cls: "DAI04051_toolbar",
+                    cls: "DAI04120_toolbar",
                     items: [
                         {
                             name: "add",
@@ -123,12 +103,13 @@ export default {
                 },
                 columnBorders: true,
                 fillHandle: "",
-                numberCell: { show: true, title: "No.", resizable: false, width: 55, minWidth: 55 },
+                numberCell: { show: true, title: "No.", resizable: false, },
                 autoRow: false,
+                rowHtHead: 50,
                 editable: false,
                 columnTemplate: {
                     editable: false,
-                    sortable: true,
+                    sortable: false,
                 },
                 trackModel: { on: true },
                 historyModel: { on: true },
@@ -161,14 +142,24 @@ export default {
                     [
                         "sortIndx",
                         function(rowData){
-                            return (rowData["商品ＣＤ"] * 1) || 99999;
+                            return (rowData["商品区分"] || "9") + "_" + _.padStart(rowData["商品ＣＤ"] || "99999", 5, "0");
                         }
                     ],
                 ],
                 colModel: [
                     {
                         title: "sortIndx",
-                        dataIndx: "sortIndx", dataType: "integer",
+                        dataIndx: "sortIndx", dataType: "string",
+                        hidden: true,
+                    },
+                    {
+                        title: "部署ＣＤ",
+                        dataIndx: "部署ＣＤ", dataType: "integer",
+                        hidden: true,
+                    },
+                    {
+                        title: "商品区分",
+                        dataIndx: "商品区分", dataType: "integer",
                         hidden: true,
                     },
                     {
@@ -180,21 +171,13 @@ export default {
                         autocomplete: {
                             source: () => vue.getProductList(),
                             bind: "商品ＣＤ",
-                            buddies: { "商品名": "CdNm", "売価単価": "売価単価", },
+                            buddies: { "商品名": "CdNm", "商品区分": "商品区分", },
                             onSelect: rowData => {
                                 console.log("onSelect", rowData);
                             },
                             AutoCompleteFunc: vue.ProductAutoCompleteFuncInGrid,
                             AutoCompleteMinLength: 0,
                             selectSave: true,
-                            onSelect: (rowData, selected, ui) => {
-                                console.log("4051 onSelect")
-                                if (!rowData.InitialValue || rowData.InitialValue.商品ＣＤ != selected.Cd) {
-                                    rowData.単価 = selected.売価単価;
-                                } else if (!!rowData.InitialValue && rowData.InitialValue.商品ＣＤ == selected.Cd && rowData.InitialValue.単価 != selected.売価単価) {
-                                    rowData.単価 = rowData.InitialValue.単価;
-                                }
-                            },
                         },
                     },
                     {
@@ -203,43 +186,80 @@ export default {
                         width: 200, maxWidth: 200, minWidth: 150,
                     },
                     {
-                        title: "単価",
-                        dataIndx: "単価", dataType: "integer", format: "#,##0",
-                        width: 100, maxWidth: 100, minWidth: 100,
+                        title: "主要商品",
+                        dataIndx: "主要商品",
+                        type: "checkbox",
+                        cbId: "主要商品FLG",
+                        width: 50, minWidth: 50, maxWidth: 50,
+                        align: "center",
                         editable: true,
-                    },
-                    {
-                        title: "適用開始日",
-                        dataIndx: "適用開始日", dataType: "date", format: "yy/mm/dd", align: "center",
-                        width: 100, minWidth: 100, maxWidth: 100,
-                        editable: true,
-                    },
-                    {
-                        title: "固定数",
-                        dataIndx: "固定数", dataType: "integer", format: "#,##0",
-                        width: 100, maxWidth: 100, minWidth: 100,
-                        editable: true,
-                    },
-                    {
-                        title: "状況",
-                        dataIndx: "状況", dataType: "integer", align: "center",
-                        width: 90, minWidth: 90, maxWidth: 90,
+                        editor: false,
+                        hiddenOnExport: true,
                         render: ui => {
-                            return { text: ui.rowData[ui.dataIndx] == "1" ? "適用中" : "" };
+                            if (ui.rowData.summaryRow) {
+                                return "";
+                            }
                         },
+                    },
+                    {
+                        title: "主要商品",
+                        dataIndx: "主要商品FLG",
+                        dataType: "string",
+                        align: "center",
+                        editable: true,
+                        cb: {
+                            header: false,
+                            check: "1",
+                            uncheck: "0",
+                        },
+                        hidden: true,
+                        hiddenOnExport: false,
+                    },
+                    {
+                        title: "特別商品",
+                        dataIndx: "特別商品",
+                        type: "checkbox",
+                        cbId: "期間限定FLG",
+                        width: 50, minWidth: 50, maxWidth: 50,
+                        align: "center",
+                        editable: true,
+                        editor: false,
+                        hiddenOnExport: true,
+                        render: ui => {
+                            if (ui.rowData.summaryRow) {
+                                return "";
+                            }
+                        },
+                    },
+                    {
+                        title: "特別商品",
+                        dataIndx: "期間限定FLG",
+                        dataType: "string",
+                        align: "center",
+                        editable: true,
+                        cb: {
+                            header: false,
+                            check: "1",
+                            uncheck: "0",
+                        },
+                        hidden: true,
+                        hiddenOnExport: false,
+                    },
+                    {
+                        title: "販売期間(開始)",
+                        dataIndx: "販売期間開始", dataType: "date", format: "yy/mm/dd", align: "center",
+                        width: 120, minWidth: 120, maxWidth: 120,
+                        editable: true,
+                    },
+                    {
+                        title: "販売期間(終了)",
+                        dataIndx: "販売期間終了", dataType: "date", format: "yy/mm/dd", align: "center",
+                        width: 120, minWidth: 120, maxWidth: 120,
+                        editable: true,
                     },
                 ],
             },
         });
-
-        if (!!vue.params || !!vue.query) {
-            data.viewModel = $.extend(true, {}, vue.params, vue.query);
-        }
-
-        if(!!vue.params){
-            data.viewModel.CustomerCd = vue.params.得意先CD || vue.params.得意先ＣＤ;
-            data.viewModel.CustomerNm = vue.params.得意先名;
-        }
 
         return data;
     },
@@ -247,15 +267,15 @@ export default {
         createdFunc: function(vue) {
 
             //商品リスト検索
-            axios.post("/DAI04051/GetProductList")
+            axios.post("/DAI04120/GetProductList")
                 .then(res => {
                     grid.hideLoading();
                     vue.ProductList = res.data;
-                    vue.DAI04051Grid1.searchData(vue.searchParams);
+                    vue.DAI04120Grid1.searchData(vue.searchParams);
                 })
                 .catch(err => {
                     grid.hideLoading();
-                    console.log("/DAI04051/GetProductList Error", err)
+                    console.log("/DAI04120/GetProductList Error", err)
                     $.dialogErr({
                         title: "商品マスタ検索失敗",
                         contents: "商品マスタの検索に失敗しました" + "<br/>" + err.message,
@@ -263,15 +283,32 @@ export default {
                 });
 
             vue.footerButtons.push(
-                { visible: "true", value: "行削除", id: "DAI04051Grid1_DeleteRow", disabled: true, shortcut: "F3",
+                { visible: "true", value: "検索", id: "DAI04120Grid1_Search", disabled: false, shortcut: "F5",
+                    onClick: function () {
+                        vue.conditionChanged(true);
+                    }
+                },
+                { visible: "true", value: "印刷", id: "DAI04120Grid1_Printout", disabled: false, shortcut: "F6",
+                    onClick: function () {
+                        vue.print();
+                    }
+                },
+                { visible: "true", value: "CSV", id: "DAI04120_Download", disabled: false, shortcut: "F7",
+                    onClick: function () {
+                        //TODO: ダウンロード
+                    }
+                },
+                {visible: "false"},
+                {visible: "false"},
+                { visible: "true", value: "行削除", id: "DAI04120Grid1_DeleteRow", disabled: true, shortcut: "F3",
                     onClick: function () {
                         vue.deleteRow();
                     }
                 },
                 {visible: "false"},
-                { visible: "true", value: "登録", id: "DAI04051Grid1_Save", disabled: false, shortcut: "F9",
+                { visible: "true", value: "登録", id: "DAI04120Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
-                        vue.saveTankaList();
+                        vue.save();
                     }
                 },
                 {visible: "false"},
@@ -279,17 +316,18 @@ export default {
 
         },
         mountedFunc: function(vue) {
+            vue.filterChanged();
+
             //watcher
             vue.$watch(
-                "$refs.DAI04051Grid1.selectionRowCount",
+                "$refs.DAI04120Grid1.selectionRowCount",
                 cnt => {
                     console.log("selectionRowCount watcher: " + cnt);
-                    vue.footerButtons.find(v => v.id == "DAI04051Grid1_DeleteRow").disabled = cnt == 0 || cnt > 1;
+                    vue.footerButtons.find(v => v.id == "DAI04120Grid1_DeleteRow").disabled = cnt == 0 || cnt > 1;
                 }
             );
-
         },
-        onAvailableChanged: function() {
+        onBushoChanged: function(code, entitiy) {
             var vue = this;
 
             //フィルタハンドラ
@@ -297,43 +335,40 @@ export default {
         },
         filterChanged: function() {
             var vue = this;
-            var grid = vue.DAI04051Grid1;
+            var grid = vue.DAI04120Grid1;
 
             if (!grid) return;
 
             var rules = [];
-            if (vue.viewModel.Available == "1") {
-                rules.push({ dataIndx: "商品ＣＤ", condition: "empty", });
-                rules.push({ dataIndx: "状況", condition: "equal", value: "1" });
-            }
-            grid.filter({ oper: "replace", mode: "OR", rules: rules });
+            var crules = [];
+            crules.push({ condition: "equal", value: vue.viewModel.BushoCd });
+            crules.push({ condition: "empty" });
+            rules.push({ dataIndx: "部署ＣＤ", mode: "OR", crules: crules });
+
+            grid.filter({ oper: "replace", mode: "AND", rules: rules });
         },
-        conditionChanged: function(callback, force) {
+        conditionChanged: function(force) {
             var vue = this;
-            var grid = vue.DAI04051Grid1;
+            var grid = vue.DAI04120Grid1;
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
 
             if (!force && _.isEqual(grid.options.dataModel.postData, vue.searchParams)) return;
 
-            if (!!grid && vue.getLoginInfo().isLogOn) {
-                grid.searchData(vue.searchParams, false);
-            }
+            grid.searchData(vue.searchParams, false);
         },
         getProductList: function() {
             var vue = this;
 
             return vue.ProductList;
         },
-        onCompleteFunc: function(grid, ui) {
+        onAfterSearchFunc: function (vue, grid, res) {
             var vue = this;
 
-            if (grid.pdata.length > 0) {
-                var data = grid.pdata[0];
-                var colIndx = !data["商品ＣＤ"] ? grid.columns["商品ＣＤ"].leftPos
-                    : _(grid.columns).pickBy((v, k) => k.endsWith("単価") && !v.hidden).values().value()[0].leftPos;
-                grid.setSelection({ rowIndx: 0, colIndx: colIndx });
-            }
+            return res;
+        },
+        onCompleteFunc: function(grid, ui) {
+            var vue = this;
         },
         ProductAutoCompleteFuncInGrid: function(input, dataList, comp) {
             var vue = this;
@@ -375,17 +410,16 @@ export default {
             var vue = this;
 
             return {
-                "単価": 0,
-                "適用開始日": moment().format("YYYY-MM-DD"),
-                "固定数": 0,
+                "主要商品FLG": "0",
+                "期間限定FLG": "0",
             };
         },
         autoEmptyRowCheckFunc: function(rowData) {
             return !rowData["商品ＣＤ"];
         },
-        saveTankaList: function() {
+        save: function() {
             var vue = this;
-            var grid = vue.DAI04051Grid1;
+            var grid = vue.DAI04120Grid1;
 
             var hasError = !!$(vue.$el).find(".has-error").length || !!grid.widget().find(".ui-state-error").length;
 
@@ -399,24 +433,26 @@ export default {
 
             var SaveList = _.cloneDeep(grid.createSaveParams());
 
-            //商品ＣＤ未指定は除外。データの整形。
             _.forIn(SaveList,
                 (v, k) => {
                     var list = v.filter(r => {
                         return r.商品ＣＤ != null && r.商品ＣＤ != undefined　&& r.商品ＣＤ != "";
                     })
                     .map(r => {
-                        r.得意先ＣＤ = vue.viewModel.CustomerCd;
-                        r.適用開始日 = moment(r.適用開始日, "YYYY/MM/DD").format("YYYY-MM-DD HH:mm:ss.SSS");
-                        r.修正担当者ＣＤ = vue.getLoginInfo().uid;
+                        r.部署ＣＤ = vue.viewModel.BushoCd;
+
+                        r.販売期間開始 = !!r.販売期間開始
+                            ? moment(r.販売期間開始, "YYYY/MM/DD").format("YYYY-MM-DD HH:mm:ss.SSS")
+                            : null;
+                        r.販売期間終了 = !!r.販売期間終了
+                            ? moment(r.販売期間終了, "YYYY/MM/DD").format("YYYY-MM-DD HH:mm:ss.SSS")
+                            : null;
+
                         r.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
-                        delete r.部署ＣＤ;
-                        delete r.部署名;
-                        delete r.得意先名;
-                        delete r.商品名;
                         delete r.商品区分;
-                        delete r.売価単価;
-                        delete r.状況;
+                        delete r.商品名;
+                        delete r.主要商品;
+                        delete r.特別商品;
                         delete r.sortIndx;
                         return r;
                     })
@@ -443,13 +479,10 @@ export default {
                 contents: "<i class='fa fa-spinner fa-spin' style='font-size: 24px; margin-right: 5px;'></i> 登録中…",
             });
 
-            axios.post("/DAI04051/Save", params)
+            axios.post("/DAI04120/Save", params)
                 .then(res => {
-                    if (!!vue.params.ParentGrid) {
-                        vue.params.ParentGrid.refreshDataAndView();
-                    }
                     progressDlg.dialog("close");
-                    $(vue.$el).closest(".ui-dialog-content").dialog("close");
+                    grid.refreshDataAndView();
                 })
                 .catch(err => {
                     progressDlg.dialog("close");
@@ -466,7 +499,7 @@ export default {
         deleteRow: function(grid, event) {
             var vue = this;
 
-            grid = grid || vue.DAI04051Grid1;
+            grid = grid || vue.DAI04120Grid1;
 
             //選択行なし
             if(!grid.SelectRow().getSelection().length){
@@ -483,9 +516,6 @@ export default {
                 return;
             }
 
-            var params = _.cloneDeep(row.InitialValue);
-            params.noCache = true;
-
             $.dialogConfirm({
                 title: "削除確認",
                 contents: "選択行を削除します。宜しいですか？",
@@ -494,17 +524,9 @@ export default {
                         text: "はい",
                         class: "btn btn-primary",
                         click: function(){
-                            axios.post("/DAI04051/DeleteTankaList", params)
-                            .then(res => {
-                                grid.refreshDataAndView();
-                                if (!!vue.params.ParentGrid) {
-                                    vue.params.ParentGrid.refreshDataAndView();
-                                }
-                                $(this).dialog("close");
-                            })
-                            .catch(err => {
-                                console.log(err);
-                            });
+                            var rowList = grid.SelectRow().getSelection().map(v => _.pick(v, ["rowIndx"]));
+                            grid.deleteRow({ rowList: rowList });
+                            $(this).dialog("close");
                         }
                     },
                     {
