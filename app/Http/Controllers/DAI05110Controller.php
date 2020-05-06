@@ -11,6 +11,60 @@ use PDO;
 class DAI05110Controller extends Controller
 {
     /**
+     * SearchB
+     */
+    public function SearchB($vm)
+    {
+        $DateStart = $vm->DateStart;
+        $DateEnd = $vm->DateEnd;
+
+        $BushoCd = $vm->BushoCd;
+        $WhereBushoCd = isset($BushoCd) ? "AND URIAGE_MEISAI.部署ＣＤ=$BushoCd" : "";
+
+        $sql = "
+            SELECT DISTINCT
+                URIAGE_MEISAI.部署ＣＤ
+                , BUSYO.部署名
+                , (STR(TOKUISAKI.営業担当者ＣＤ) + STR(TOKUISAKI.獲得営業者ＣＤ)) AS 担当者ＣＤ
+                , TOKUISAKI.営業担当者ＣＤ
+                , TANTO.担当者名 AS 営業担当者名
+                , TOKUISAKI.獲得営業者ＣＤ
+                , TANTO2.担当者名 AS 獲得営業者名
+                , TOKUISAKI.得意先ＣＤ
+                , TOKUISAKI.得意先名
+                , DATEPART(MONTH, URIAGE_MEISAI.日付) AS 月
+                , SUM(URIAGE_MEISAI.現金金額 + URIAGE_MEISAI.掛売金額)
+                    OVER(PARTITION BY URIAGE_MEISAI.得意先ＣＤ, DATEPART(MONTH, URIAGE_MEISAI.日付))
+                    AS 金額
+    			, TOKUISAKI.新規登録日
+            FROM
+                売上データ明細 URIAGE_MEISAI
+                INNER JOIN 得意先マスタ TOKUISAKI ON
+                URIAGE_MEISAI.得意先ＣＤ = TOKUISAKI.得意先ＣＤ
+                LEFT JOIN 部署マスタ BUSYO ON
+                URIAGE_MEISAI.部署ＣＤ = BUSYO.部署CD
+                LEFT JOIN 担当者マスタ TANTO ON
+                TOKUISAKI.営業担当者ＣＤ = TANTO.担当者ＣＤ
+                LEFT JOIN 担当者マスタ TANTO2 ON
+                TOKUISAKI.獲得営業者ＣＤ = TANTO2.担当者ＣＤ
+            WHERE
+                    URIAGE_MEISAI.商品区分 IN (1,2,3,7)
+                AND URIAGE_MEISAI.日付 >= '$DateStart' AND URIAGE_MEISAI.日付 <= '$DateEnd'
+                $WhereBushoCd
+        ";
+
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = null;
+
+        return response()->json($DataList);
+    }
+    /**
      * Search
      */
     public function Search($vm)
@@ -153,7 +207,7 @@ class DAI05110Controller extends Controller
             TOKUISAKI.獲得営業者ＣＤ = TANTO2.担当者ＣＤ
         where
                 URIAGE_MEISAI.商品区分 IN (1,2,3,7)
-            AND CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) BETWEEN '$DateStart' AND '$DateEnd'
+            AND URIAGE_MEISAI.日付 >= '$DateStart' AND URIAGE_MEISAI.日付 <= '$DateEnd'
             $WehreCustomer
             $WehreShowSyonin
         GROUP BY

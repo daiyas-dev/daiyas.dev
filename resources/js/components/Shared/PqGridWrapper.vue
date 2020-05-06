@@ -1618,24 +1618,24 @@ export default {
                         if (vue._onAfterSearchFunc) res = vue._onAfterSearchFunc(vue, grid, res);
 
                         //PKを比較し、検索前のレコードが全てあるか判定
-                        if (grid.getData() && _.differenceWith(grid.getData(), res, (a, b) => a.PK == b.PK).length == 0) {
-                            //colModelでkeep設定されている列取得
-                            var keeps = grid.options.colModel.filter((v) => v.keep).map((v) => v.dataIndx);
+                        // if (grid.getData() && _.differenceWith(grid.getData(), res, (a, b) => a.PK == b.PK).length == 0) {
+                        //     //colModelでkeep設定されている列取得
+                        //     var keeps = grid.options.colModel.filter((v) => v.keep).map((v) => v.dataIndx);
 
-                            //対象にPK列も追加
-                            keeps.push("PK");
+                        //     //対象にPK列も追加
+                        //     keeps.push("PK");
 
-                            //検索前の上記列の値とPKを抽出
-                            var keepVals = grid.getData().map((v) => _.pick(v, keeps));
+                        //     //検索前の上記列の値とPKを抽出
+                        //     var keepVals = grid.getData().map((v) => _.pick(v, keeps));
 
-                            //keepした値で復元
-                            res.forEach(function(row, i) {
-                                var keepVal = keepVals.filter((v) => v.PK == row.PK);
-                                if (keepVal.length == 1) {
-                                    $.extend(true, row, keepVal[0]);
-                                }
-                            });
-                        }
+                        //     //keepした値で復元
+                        //     res.forEach(function(row, i) {
+                        //         var keepVal = keepVals.filter((v) => v.PK == row.PK);
+                        //         if (keepVal.length == 1) {
+                        //             $.extend(true, row, keepVal[0]);
+                        //         }
+                        //     });
+                        // }
 
                         //grouping時deleteListの取得バグ対処の為に検索結果を保持
                         grid.searchResult = _.cloneDeep(res);

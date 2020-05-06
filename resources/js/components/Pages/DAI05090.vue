@@ -121,7 +121,7 @@
                     :vmodel=viewModel
                     bind="EigyoTantoCd"
                     dataUrl="/Utilities/GetTantoList"
-                    :params='{ bushoCd: viewModel.BushoCd }'
+                    :params='{ bushoCd: viewModel.BushoOption == "2" ? viewModel.BushoCd : null }'
                     :dataListReset=true
                     title="営業担当者"
                     labelCd="営業担当者CD"
@@ -152,7 +152,7 @@
                     :vmodel=viewModel
                     bind="GetKakutokuTantoCd"
                     dataUrl="/Utilities/GetTantoList"
-                    :params='{ bushoCd: viewModel.BushoOption == "2" ? viewModel.BushoCd : 0 }'
+                    :params='{ bushoCd: viewModel.BushoOption == "2" ? viewModel.BushoCd : null }'
                     :dataListReset=true
                     title="獲得営業担当者"
                     labelCd="獲得営業担当者CD"

@@ -64,20 +64,19 @@
             </div>
             <div class="col-md-5">
                 <VueOptions
-                    id="Busho"
-                    ref="VueOptions_Busho"
+                    id="BushoOption"
+                    ref="VueOptions_BushoOption"
                     customItemStyle="text-align: center; margin-right: 10px; border: none;"
                     :vmodel=viewModel
-                    bind="Busho"
+                    bind="BushoOption"
                     :list="[
                         {code: '0', name: '部署なし', label: '部署なし'},
                         {code: '1', name: '全社', label: '全社　　'},
                         {code: '2', name: '部署', label: '部署'},
                     ]"
-                    :onChangedFunc=onBushoChanged
+                    :onChangedFunc=onBushoOptionChanged
                 />
                 <VueSelectBusho
-                    :hasNull=true
                     :onChangedFunc=onBushoCdChanged
                 />
             </div>
@@ -93,7 +92,7 @@
                     :vmodel=viewModel
                     bind="EigyoTantoCd"
                     dataUrl="/Utilities/GetTantoList"
-                    :params='{ bushoCd: 0 }'
+                    :params='{ bushoCd: viewModel.BushoOption == "2" ? viewModel.BushoCd : null }'
                     :dataListReset=true
                     title="営業担当者"
                     labelCd="営業担当者CD"
@@ -124,7 +123,7 @@
                     :vmodel=viewModel
                     bind="GetEigyoTantoCd"
                     dataUrl="/Utilities/GetTantoList"
-                    :params='{ bushoCd: 0 }'
+                    :params='{ bushoCd: viewModel.BushoOption == "2" ? viewModel.BushoCd : null }'
                     :dataListReset=true
                     title="獲得営業担当者"
                     labelCd="獲得営業担当者CD"
@@ -147,8 +146,8 @@
         <PqGridWrapper
             id="DAI05110Grid1"
             ref="DAI05110Grid1"
-            dataUrl="/DAI05110/Search"
-            :query=this.viewModel
+            dataUrl="/DAI05110/SearchB"
+            :query=this.searchParams
             :SearchOnCreate=false
             :SearchOnActivate=false
             :options=this.grid1Options
@@ -183,9 +182,15 @@ export default {
         vm: Object,
     },
     computed: {
-        ProductCdArray: function() {
+        searchParams: function() {
             var vue = this;
-            return vue.viewModel.ProductArray.map(v => v.code);
+            return {
+                BushoCd: vue.viewModel.BushoOption == 2 ? vue.viewModel.BushoCd : null,
+                DateStart: moment(vue.viewModel.DateStart, "YYYY年MM月DD日").startOf("month").format("YYYYMMDD"),
+                DateEnd: moment(vue.viewModel.DateEnd, "YYYY年MM月DD日").endOf("month").format("YYYYMMDD"),
+                Customer: vue.viewModel.Customer,
+                ShowSyonin: vue.viewModel.ShowSyonin,
+            };
         },
     },
     data() {
@@ -194,12 +199,11 @@ export default {
             ScreenTitle: "随時処理 > 顧客売上累計表",
             noViewModel: true,
             viewModel: {
-                Busho: null,
+                BushoOption: "2",
                 BushoCd: null,
                 ProductArray: [],
                 DateStart: null,
                 DateEnd: null,
-                ProductCd: null,
                 Customer: "0",
                 ShowSyonin: "0",
             },
@@ -214,7 +218,7 @@ export default {
                 autoRow: true,
                 rowHtHead: 35,
                 rowHt: 35,
-                freezeCols: 0,
+                freezeCols: 7,
                 editable: false,
                 columnTemplate: {
                     editable: false,
@@ -330,7 +334,7 @@ export default {
             vue.footerButtons.push(
                 { visible: "true", value: "検索", id: "DAI05110Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
-                        vue.conditionChanged();
+                        vue.conditionChanged(true);
                     }
                 },
                 {visible: "false"},
@@ -359,11 +363,8 @@ export default {
 
             vue.refreshCols();
         },
-        onBushoChanged: function(code, entities) {
+        onBushoOptionChanged: function(code, entities) {
             var vue = this;
-
-            //部署コード未選択
-            vue.viewModel.BushoCd = 0;
 
             //条件変更ハンドラ
             vue.conditionChanged();
@@ -435,24 +436,16 @@ export default {
 
             return list;
         },
-        conditionChanged: function(callback) {
+        conditionChanged: function(force) {
             var vue = this;
             var grid = vue.DAI05110Grid1;
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.DateStart || !vue.viewModel.DateEnd) return;
 
-            var params = $.extend(true, {}, vue.viewModel);
+            if (!force && _.isEqual(grid.options.dataModel.postData, vue.searchParams)) return;
 
-            //検索パラメータの加工
-            //配達日付を"YYYYMMDD"形式に編集
-            params.DateStart = params.DateStart ? moment(params.DateStart, "YYYY年MM月01日").format("YYYYMMDD") : null;
-            params.DateEnd = params.DateEnd ? moment(params.DateEnd, "YYYY年MM月DD日").endOf('month').format("YYYYMMDD") : null;
-
-            //フィルタするパラメータは除外
-            delete params.ProductArray;
-
-            grid.searchData(params, false, null, callback);
+            grid.searchData(vue.searchParams);
         },
         filterChanged: function() {
             var vue = this;
@@ -463,9 +456,6 @@ export default {
 
             var rules = [];
 
-            if (!!vue.viewModel.BushoCd && vue.viewModel.Busho == 2) {
-                rules.push({ dataIndx: "部署ＣＤ", condition: "equal", value: vue.viewModel.BushoCd });
-            }
             if (!!vue.viewModel.EigyoTantoCd) {
                 rules.push({ dataIndx: "営業担当者ＣＤ", condition: "equal", value: vue.viewModel.EigyoTantoCd });
             }
@@ -481,6 +471,51 @@ export default {
             vue.footerButtons.find(v => v.id == "DAI05110Grid1_Excel").disabled = false;
             vue.footerButtons.find(v => v.id == "DAI05110Grid1_Print").disabled = false;
 
+            var ms = moment(vue.viewModel.DateStart, "YYYY年MM月").startOf("month");
+            var me = moment(vue.viewModel.DateEnd, "YYYY年MM月").endOf("month");
+
+            var groups = _(res)
+                .groupBy(v => v.部署ＣＤ + "_" + v.得意先ＣＤ)
+                .values()
+                .map((g, i) => {
+                    var ret = _.reduce(
+                        g,
+                        (a, v, i) => {
+                            if (i == 0) {
+                                a.部署ＣＤ = v.部署ＣＤ;
+                                a.部署名 = v.部署名;
+                                a.担当者ＣＤ = v.担当者ＣＤ;
+                                a.営業担当者ＣＤ = v.営業担当者ＣＤ;
+                                a.営業担当者名 = v.営業担当者名;
+                                a.獲得営業者ＣＤ = v.獲得営業者ＣＤ;
+                                a.獲得営業者名 = v.獲得営業者名;
+                                a.得意先ＣＤ = v.得意先ＣＤ;
+                                a.得意先名 = v.得意先名;
+
+                                var mt = moment(v.新規登録日);
+                                if (mt.isSameOrAfter(ms) && mt.isSameOrBefore(me)) {
+                                    a["MONTH_" + mt.format("M") + "_新規客件数"] = 1;
+                                    a["累計_新規客件数"] = 1;
+                                }
+                            }
+                            a["MONTH_" + v.月 + "_金額"] = (a["MONTH_" + v.月 + "_金額"] || 0) + v.金額 * 1;
+                            a["累計_金額"] = (a["累計_金額"] || 0) + v.金額 * 1;
+
+                            return a;
+                        },
+                        {}
+                    );
+
+                    ret.ＧＫ営業担当者 = ret.営業担当者ＣＤ + " " + ret.営業担当者名;
+                    ret.ＧＫ獲得営業者 = ret.獲得営業者ＣＤ + " " + ret.獲得営業者名;
+
+                    return ret;
+                })
+                .value()
+                ;
+            console.log("5110", groups);
+            return groups;
+
             res.forEach(r => {
                     r.ＧＫ営業担当者 = r.営業担当者ＣＤ + " " + r.営業担当者名;
                     r.ＧＫ獲得営業者 = r.獲得営業者ＣＤ + " " + r.獲得営業者名;
@@ -489,7 +524,7 @@ export default {
         },
         refreshCols: function(callback) {
             var vue = this;
-            var grid1
+            var grid1;
 
             //PqGrid読込待ち
             new Promise((resolve, reject) => {
@@ -504,21 +539,22 @@ export default {
             .then((grid1) => {
                 grid1.showLoading();
 
-                var max = 6;
-                var mt = moment(vue.viewModel.DateStart, "YYYY年MM月").add("month", -1);
-                var manths = _.range(1, moment(vue.viewModel.DateEnd, "YYYY年MM月").diff(mt, 'month') * 1 + 1);
-                var manthsMax = _.range(1, max + 1);
-                manths = manths.length >= max ? manthsMax : manths.concat(_.range(0, manths.length - max).fill(null));
+                var ms = moment(vue.viewModel.DateStart, "YYYY年MM月");
+                var me = moment(vue.viewModel.DateEnd, "YYYY年MM月");
+                var r = me.diff(ms, "months") + 1;
+                var months = _.range(0, r)
+                    .map(v => moment(vue.viewModel.DateStart, "YYYY年MM月").startOf("month").add("month", v));
+
+                var min = 6;
+                months = months.length < min ? months.concat(_.range(0, months.length - min).fill(null)) : months;
 
                 var newCols = grid1.options.colModel
                     .filter(v => !!v.fixed)
                     .concat(
-                        ...manths.map((m, i) => {
-                            var date = mt.startOf("month").add("month", 1);
-
+                        ...months.map((m, i) => {
                             return {
-                                title: !!m ? (date.format("YYYY年MM月")) : "<br>",
-                                dataIndx: !!m ? "MONTH_" + m + "_金額" : ("empty" + i),
+                                title: !!m ? m.format("YYYY年MM月") : "<br>",
+                                dataIndx: !!m ? ("MONTH_" + m.format("M") + "_金額") : ("empty" + i),
                                 dataType: "integer",
                                 format: "#,##0",
                                 width: 90, maxWidth: 90, minWidth: 90,
@@ -532,7 +568,8 @@ export default {
                                         if (ui.rowData[ui.dataIndx] * 1 == 0) {
                                             return { text: "" };
                                         }
-                                        return ui.rowData[ui.dataIndx] + "\n" + ui.rowData[ui.dataIndx.replace("金額", "新規客件数")];
+                                        return (ui.rowData[ui.dataIndx] || 0)
+                                            + "\n" + (ui.rowData[ui.dataIndx.replace("金額", "新規客件数")] || 0);
                                     } else {
                                         // hide zero
                                         if (ui.rowData[ui.dataIndx] * 1 == 0) {
@@ -546,12 +583,10 @@ export default {
                     );
 
                 newCols.push(
-                        ...manths.map((m, i) => {
-                            var date = mt.startOf("month").add("month", 1);
-
+                        ...months.map((m, i) => {
                             return {
-                                title: !!m ? (date.format("YYYY年MM月")) : "<br>",
-                                dataIndx: !!m ? "MONTH_" + m + "_新規客件数" : ("empty" + i),
+                                title: !!m ? m.format("YYYY年MM月") : "<br>",
+                                dataIndx: !!m ? ("MONTH_" + m.format("M") + "_新規客件数") : ("empty" + i),
                                 dataType: "integer",
                                 format: "#,##0",
                                 hidden: true,
@@ -577,7 +612,8 @@ export default {
                                 if (ui.rowData[ui.dataIndx] * 1 == 0) {
                                     return { text: "" };
                                 }
-                                return ui.rowData[ui.dataIndx] + "\n" + ui.rowData[ui.dataIndx.replace("金額", "新規客件数")];
+                                return (ui.rowData[ui.dataIndx] || 0)
+                                    + "\n" + (ui.rowData[ui.dataIndx.replace("金額", "新規客件数")] || 0);
                             } else {
                                 // hide zero
                                 if (ui.rowData[ui.dataIndx] * 1 == 0) {
