@@ -991,29 +991,7 @@ export default {
                     grid.options.title = "　";
                     grid._refreshTitle();
                 } else {
-                    var empty = _.sortBy(_.cloneDeep(grid.getData()), "pq_order")
-                        .filter(d => {
-                            if (vue.autoEmptyRowCheckFunc) {
-                                return vue.autoEmptyRowCheckFunc(d);
-                            } else {
-                                return _(d).omitBy((v, k) => k.startsWith("pq") || !v).keys().value().length == 0;
-                            }
-                        })
-                        .length
-                        ;
-
-                    if (!!grid.options.filterModel && !!grid.options.filterModel.rules && !!grid.options.filterModel.rules.length) {
-                        grid.options.title = "件数: "
-                            + (grid.pdata.filter(v => !v.pq_hidden && v.pq_level == undefined).length - empty)
-                            + " / "
-                            + (grid.getData().length - empty)
-                            + " [フィルタ中]";
-                    } else {
-                        grid.options.title = "件数: " + (grid.getData().length - empty);
-                    }
-                    if (vue.setCustomTitle) {
-                        grid.options.title = vue.setCustomTitle(grid.options.title, grid);
-                    }
+                    vue.setTitle(grid);
                     grid._refreshTitle();
                 }
 
@@ -1179,6 +1157,7 @@ export default {
             complete: function(event, ui) {
                 var grid = this;
                 var vue = grid.options.vue;
+                console.log("pqgrid complete")
 
                 //ツールチップ除去
                 $(".tooltip").tooltip("dispose");
@@ -1192,6 +1171,10 @@ export default {
                 //完了時更新関数
                 if (vue._onCompleteFunc && vue.grid) {
                     vue._onCompleteFunc(grid, ui);
+                }
+
+                if (!!grid.pdata && !!grid.options.groupModel.on && !!grid.options.groupModel.dataIndx.length) {
+                    vue.setNavigatorSelect(grid);
                 }
 
                 //$("body > div").has("a:contains(ParamQuery)").hide();
@@ -1635,24 +1618,24 @@ export default {
                         if (vue._onAfterSearchFunc) res = vue._onAfterSearchFunc(vue, grid, res);
 
                         //PKを比較し、検索前のレコードが全てあるか判定
-                        if (grid.getData() && _.differenceWith(grid.getData(), res, (a, b) => a.PK == b.PK).length == 0) {
-                            //colModelでkeep設定されている列取得
-                            var keeps = grid.options.colModel.filter((v) => v.keep).map((v) => v.dataIndx);
+                        // if (grid.getData() && _.differenceWith(grid.getData(), res, (a, b) => a.PK == b.PK).length == 0) {
+                        //     //colModelでkeep設定されている列取得
+                        //     var keeps = grid.options.colModel.filter((v) => v.keep).map((v) => v.dataIndx);
 
-                            //対象にPK列も追加
-                            keeps.push("PK");
+                        //     //対象にPK列も追加
+                        //     keeps.push("PK");
 
-                            //検索前の上記列の値とPKを抽出
-                            var keepVals = grid.getData().map((v) => _.pick(v, keeps));
+                        //     //検索前の上記列の値とPKを抽出
+                        //     var keepVals = grid.getData().map((v) => _.pick(v, keeps));
 
-                            //keepした値で復元
-                            res.forEach(function(row, i) {
-                                var keepVal = keepVals.filter((v) => v.PK == row.PK);
-                                if (keepVal.length == 1) {
-                                    $.extend(true, row, keepVal[0]);
-                                }
-                            });
-                        }
+                        //     //keepした値で復元
+                        //     res.forEach(function(row, i) {
+                        //         var keepVal = keepVals.filter((v) => v.PK == row.PK);
+                        //         if (keepVal.length == 1) {
+                        //             $.extend(true, row, keepVal[0]);
+                        //         }
+                        //     });
+                        // }
 
                         //grouping時deleteListの取得バグ対処の為に検索結果を保持
                         grid.searchResult = _.cloneDeep(res);
@@ -3638,6 +3621,144 @@ export default {
 
             grid.scrollRow({rowIndxPage: rowIndx});
         },
+        setTitle: function(grid) {
+            var vue = this;
+
+            var empty = _.sortBy(_.cloneDeep(grid.getData()), "pq_order")
+                .filter(d => {
+                    if (vue.autoEmptyRowCheckFunc) {
+                        return vue.autoEmptyRowCheckFunc(d);
+                    } else {
+                        return _(d).omitBy((v, k) => k.startsWith("pq") || !v).keys().value().length == 0;
+                    }
+                })
+                .length
+                ;
+
+            var title = "";
+            if (!grid.options.title || grid.options.title == "&nbsp;") {
+                title = $("<div>")
+                    .append(
+                        $("<span>").addClass("counts")
+                    )
+                    .prop("outerHTML");
+            } else {
+                title = grid.widget().find(".pq-grid-title > div").prop("outerHTML");
+            }
+
+            var counts = "";
+            if (!!grid.options.filterModel && !!grid.options.filterModel.rules && !!grid.options.filterModel.rules.length) {
+                counts = "件数: "
+                    + (grid.pdata.filter(v => !v.pq_hidden && v.pq_level == undefined).length - empty)
+                    + " / "
+                    + (grid.getData().length - empty)
+                    + " [フィルタ中]";
+            } else {
+                counts = "件数: " + (grid.getData().length - empty);
+            }
+            var $title = $(title);
+            $title.find(".counts").text(counts);
+            grid.options.title = $title.prop("outerHTML");
+
+            if (vue.setCustomTitle) {
+                grid.options.title = vue.setCustomTitle(grid.options.title, grid);
+            }
+        },
+        setNavigatorSelect: function(grid) {
+            var vue = this;
+
+            if (!!grid.pdata && !!grid.options.groupModel.on && !!grid.options.groupModel.dataIndx.length) {
+                var groups = grid.options.groupModel.dataIndx
+                    .map((v, i) => {
+                        return {
+                            pq_level: i,
+                            dataIndx: v,
+                        };
+                    })
+                    ;
+
+                var title = "";
+                if (!grid.options.title || grid.options.title == "&nbsp;") {
+                    title = $("<div>")
+                        .append(
+                            $("<span>").addClass("counts")
+                        )
+                        .prop("outerHTML");
+                } else {
+                    title = grid.widget().find(".pq-grid-title > div").prop("outerHTML");
+                }
+                var $title = $(title);
+                $title.children().remove("select");
+
+                groups.forEach(v => {
+                    var $sel = $("<select>")
+                        .attr("id", grid.options.vue.id + "_gsel" + "_" + v.pq_level)
+                        .attr("pq_level", v.pq_level)
+                        .attr("dataIndx", v.dataIndx)
+                        .css("margin-left", "10px")
+                        ;
+
+                    var data = grid.pdata
+                        .filter(r => {
+                            return !r.pq_gsummary
+                                && r.pq_level == v.pq_level
+                                && (
+                                    v.pq_level == 0
+                                    ||
+                                    r.parentId == grid.pdata.filter(p => p.pq_level == v.pq_level - 1)[0].pq_gid
+                                );
+                        });
+
+                    data.forEach((r, i) => {
+                        var gid = !!r.parentId ? r.pq_gid.replace(r.parentId + "_", "") : r.pq_gid;
+                        $sel.append(
+                            $("<option>").prop("value", gid).text(gid).attr("pq_gid", r.pq_gid).attr("selected", i == 0)
+                        );
+                    });
+
+                    $title.append($sel)
+                    grid.options.title = $title.prop("outerHTML");
+
+                });
+                grid._refreshTitle();
+                groups.forEach(v => {
+                    $(document).on("change", "select#" + grid.options.vue.id + "_gsel" + "_" + v.pq_level, event => {
+                            var $target = $(event.target);
+                            var $option = $($target.find("option")[$target.prop("selectedIndex")]);
+                            var pq_gid = $option.attr("pq_gid");
+
+                            var rowIndx = grid.getRowIndx({ rowData: grid.pdata.find(r => r.pq_gid == pq_gid) }).rowIndx
+                            grid.scrollRow({ rowIndx: rowIndx });
+
+                            var setAndRefresh = $sel => {
+                                $sel.find("option").attr("selected", false);
+                                var selected = $($sel.find("option")[$sel.prop("selectedIndex")]);
+                                selected.attr("selected", true);
+                                var parentId = selected.attr("pq_gid");
+
+                                var level = $sel.attr("pq_level") * 1;
+                                var $next =  grid.widget().find("select#" + grid.options.vue.id + "_gsel" + "_" + (level + 1));
+                                if (!!$next && !!$next.length) {
+                                    $next.children().remove();
+
+                                    var data = grid.pdata.filter(r => !r.pq_gsummary && r.parentId == parentId);
+                                    data.forEach((r, i) => {
+                                        var gid = !!r.parentId ? r.pq_gid.replace(r.parentId + "_", "") : r.pq_gid;
+                                        $next.append(
+                                            $("<option>").prop("value", gid).text(gid).attr("pq_gid", r.pq_gid).attr("selected", i == 0)
+                                        );
+                                    });
+
+                                    setAndRefresh($next);
+                                }
+                            }
+
+                            setAndRefresh($target);
+                        });
+                });
+                console.log("refresh navigator select")
+            }
+        },
     }
 };
 
@@ -3651,6 +3772,9 @@ export default {
     }
 
     .pq-grid-title {
+        display: flex;
+        height: 30px;
+        align-items: baseline;
         font-weight: bold;
         padding-bottom: 0 !important;
     }

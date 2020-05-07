@@ -68,7 +68,7 @@
                     :existsCheck=true
                     :exceptCheck="[{ Cd: 0 }]"
                     :inputWidth=100
-                    :nameWidth=250
+                    :nameWidth=300
                     :onAfterChangedFunc=onCourseChanged
                     :isShowAutoComplete=true
                     :AutoCompleteNoLimit=true
@@ -80,7 +80,7 @@
             <div class="col-md-1">
                 <label>得意先</label>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-5">
                 <PopupSelect
                     id="CustomerSelect"
                     ref="PopupSelect_Customer"
@@ -104,7 +104,7 @@
                     :reuse=true
                     :existsCheck=true
                     :inputWidth=100
-                    :nameWidth=250
+                    :nameWidth=300
                     :onAfterChangedFunc=onCustomerChanged
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=CustomerAutoCompleteFunc
@@ -129,7 +129,7 @@
             <div class="col-md-1">
                 <label>担当者ＣＤ</label>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-5">
                 <PopupSelect
                     id="User"
                     ref="PopupSelect_User"
@@ -147,7 +147,7 @@
                     :reuse=true
                     :existsCheck=true
                     :inputWidth=100
-                    :nameWidth=250
+                    :nameWidth=300
                     :onAfterChangedFunc=onTantoChanged
                     :isShowAutoComplete=true
                     :AutoCompleteNoLimit=true

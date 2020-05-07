@@ -15,15 +15,21 @@ class DAI05090Controller extends Controller
      */
     public function Search($vm)
     {
+        $BushoCd = $vm->BushoCd;
+        $WhereBushoCd = isset($BushoCd) ? "AND URIAGE_MEISAI.部署ＣＤ=$BushoCd" : "";
+
         $DateStart = $vm->DateStart;
         $DateEnd = $vm->DateEnd;
+
         $SaveDateStart = $vm->SaveDateStart;
         $SaveDateEnd = $vm->SaveDateEnd;
+
         $Customer = $vm->Customer;
         $ShowSyonin = $vm->ShowSyonin;
 
-        $WehreCustomer = $Customer == "1" ? "AND CONVERT(VARCHAR, TOKUISAKI.新規登録日, 112) >= '$SaveDateStart' AND CONVERT(VARCHAR, TOKUISAKI.新規登録日, 112) <= '$SaveDateEnd'" : "";
+        $WehreCustomer = $Customer == "1" ? "AND TOKUISAKI.新規登録日 >= '$SaveDateStart' AND TOKUISAKI.新規登録日 <= '$SaveDateEnd'" : "";
         $WehreShowSyonin = $ShowSyonin == "1" ? "AND TOKUISAKI.状態区分 IN (10, 20)" : "";
+
 
         $sql = "
         WITH 売上データ AS
@@ -57,8 +63,8 @@ class DAI05090Controller extends Controller
             得意先マスタ TOKUISAKI
             left join 売上データ明細 URIAGE_MEISAI on
                 URIAGE_MEISAI.得意先ＣＤ = TOKUISAKI.得意先ＣＤ
-            and CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) >= '$DateStart'
-            and CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) <= '$DateEnd'
+            and URIAGE_MEISAI.日付 >= '$DateStart'
+            and URIAGE_MEISAI.日付 <= '$DateEnd'
             and URIAGE_MEISAI.商品区分 in (1,2,3,7)
             -- 2015/08/25 売上の無い得意先も表示する S.Nakahara Rep End
 
@@ -78,6 +84,7 @@ class DAI05090Controller extends Controller
             -- 2015/05/28 商品区分は(1,2,3,7)が対象 S.Nakahara Add End
             0 = 0
             -- 2015/08/25 売上の無い得意先も表示する S.Nakahara Rep End
+            $WhereBushoCd
             $WehreCustomer
             $WehreShowSyonin
         ),
