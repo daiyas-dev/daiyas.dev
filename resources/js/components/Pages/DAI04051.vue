@@ -448,6 +448,13 @@ export default {
                     if (!!vue.params.ParentGrid) {
                         vue.params.ParentGrid.refreshDataAndView();
                     }
+                    if (!!vue.params.Parent && vue.params.Parent.$attrs.pgId == "DAI01030") {
+                        var ps = vue.params.Parent.$refs.PopupSelect_Customer;
+                        ps.getDataList(null, () => {
+                            ps.setSelectValue(vue.params.Parent.viewModel.CustomerCd, true);
+                        });
+                    }
+
                     progressDlg.dialog("close");
                     $(vue.$el).closest(".ui-dialog-content").dialog("close");
                 })

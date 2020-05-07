@@ -19,20 +19,34 @@ class DAI01030Controller extends Controller
     public function GetProductList($request)
     {
         $CustomerCd = $request->CustomerCd;
+        $DeliveryDate = $request->DeliveryDate;
 
         $sql = "
-SELECT
-	PM.商品ＣＤ,
-	PM.商品名,
-	PM.商品区分,
-	IIF(MTT.商品ＣＤ IS NOT NULL, MTT.単価, PM.売価単価) AS 売価単価
-FROM
-	商品マスタ PM
-	LEFT JOIN 得意先単価マスタ MTT
-		ON	PM.商品ＣＤ=MTT.商品ＣＤ
-		AND MTT.得意先ＣＤ=$CustomerCd
-WHERE
-     表示ＦＬＧ=0
+            SELECT
+                MTT.得意先ＣＤ,
+                MTT.商品ＣＤ,
+                PM.商品名,
+                PM.商品区分,
+                MTT.単価
+            FROM
+                (
+                    SELECT
+                        *
+                    FROM (
+                        SELECT
+                            *
+                            , RANK() OVER(PARTITION BY 得意先ＣＤ, 商品ＣＤ ORDER BY 適用開始日 DESC) AS RNK
+                        FROM
+                            得意先単価マスタ新
+                        WHERE
+                            得意先ＣＤ=$CustomerCd
+                        AND 適用開始日 <= '$DeliveryDate'
+                    ) TT
+                    WHERE
+                        RNK = 1
+                ) MTT
+                LEFT OUTER JOIN 商品マスタ PM
+                    ON	PM.商品ＣＤ=MTT.商品ＣＤ
         ";
 
         $Result = collect(DB::select($sql))
@@ -52,33 +66,34 @@ WHERE
     /**
      * GetTodayOrder
      */
-    public function GetTodayOrder($request) {
+    public function GetTodayOrder($request)
+    {
         $TantoCd = $request->TantoCd;
 
         $sql = "
-SELECT
-	ROW_NUMBER() OVER (ORDER BY CONVERT(varchar, 修正日, 108) desc) AS no,
-	注文区分,
-	注文日付,
-	部署ＣＤ,
-	得意先CD,
-	配送日,
-	COUNT(得意先CD) AS 件数,
-	CONVERT(varchar, 修正日, 108) 修正時間
-FROM
-	注文データ
-WHERE
-	CONVERT(varchar, 修正日, 112) = CONVERT(date, GETDATE())
-	AND 修正担当者CD=$TantoCd
-GROUP BY
-	注文区分,
-	注文日付,
-	部署ＣＤ,
-	得意先CD,
-	配送日,
-	CONVERT(varchar, 修正日, 108)
-ORDER BY
-	CONVERT(varchar, 修正日, 108) DESC
+            SELECT
+                ROW_NUMBER() OVER (ORDER BY CONVERT(varchar, 修正日, 108) desc) AS no,
+                注文区分,
+                注文日付,
+                部署ＣＤ,
+                得意先CD,
+                配送日,
+                COUNT(得意先CD) AS 件数,
+                CONVERT(varchar, 修正日, 108) 修正時間
+            FROM
+                注文データ
+            WHERE
+                CONVERT(varchar, 修正日, 112) = CONVERT(date, GETDATE())
+                AND 修正担当者CD=$TantoCd
+            GROUP BY
+                注文区分,
+                注文日付,
+                部署ＣＤ,
+                得意先CD,
+                配送日,
+                CONVERT(varchar, 修正日, 108)
+            ORDER BY
+                CONVERT(varchar, 修正日, 108) DESC
         ";
 
         $Result = DB::select($sql);
@@ -105,68 +120,91 @@ ORDER BY
         $DeliveryDate = $vm->DeliveryDate;
 
         $sql = "
-WITH 注文一覧 AS (
-SELECT
-	MTT.得意先ＣＤ,
-	MTT.商品ＣＤ,
-	MTT.単価,
-	MP.商品名,
-	MP.商品区分,
-	CD.注文区分,
-	CD.注文日付,
-	CD.注文時間,
-	CD.配送日,
-	CD.明細行Ｎｏ,
-	CD.入力区分,
-	CD.現金個数,
-	CD.現金金額,
-	CD.掛売個数,
-	CD.掛売金額,
-	CD.予備ＣＤ１,
-	CD.予備金額1,
-	CD.修正担当者ＣＤ,
-	CD.修正日
-FROM
-	得意先単価マスタ MTT
-	INNER JOIN 商品マスタ MP
-		ON MP.商品ＣＤ = MTT.商品ＣＤ
-	LEFT OUTER JOIN 注文データ CD
-		ON  CD.得意先ＣＤ = MTT.得意先ＣＤ
-		AND CD.商品ＣＤ = MTT.商品ＣＤ
-		AND	CD.部署ＣＤ = $BushoCd
-		AND CD.配送日 = '$DeliveryDate'
-WHERE
-	MTT.得意先ＣＤ = $CustomerCd
-)
-SELECT
-	得意先ＣＤ,
-	注文日付,
-	MAX(配送日) AS 配送日,
-	MAX(IIF(注文区分=0, 注文時間, null)) AS 注文時間,
-	MIN(注文区分) AS 注文区分,
-	MAX(IIF(注文区分=0, 明細行Ｎｏ, 0)) AS 明細行Ｎｏ,
-	商品ＣＤ,
-	商品名,
-    単価,
-	商品区分,
-	SUM(IIF(注文区分=1, 現金個数 + 掛売個数, 0)) AS 予定数,
-	SUM(IIF(注文区分=0, 現金個数, 0)) AS 現金個数,
-	SUM(IIF(注文区分=0, 現金金額, 0)) AS 現金金額,
-	SUM(IIF(注文区分=0, 掛売個数, 0)) AS 掛売個数,
-    SUM(IIF(注文区分=0, 掛売金額, 0)) AS 掛売金額,
-	SUM(IIF(注文区分 IS NULL, 1, 0)) AS 全表示,
-	MAX(IIF(注文区分=0, 修正日, null)) AS 修正日
-FROM
-	注文一覧
-GROUP BY
-	得意先ＣＤ,
-	商品ＣＤ,
-    注文日付,
-	単価,
-	商品区分,
-	商品名
-ORDER BY
-	商品ＣＤ
+            WITH 得意先単価 AS (
+                SELECT
+                    MTT.得意先ＣＤ,
+                    MTT.商品ＣＤ,
+                    PM.商品名,
+                    PM.商品区分,
+                    MTT.単価
+                FROM
+                    (
+                        SELECT
+                            *
+                        FROM (
+                            SELECT
+                                *
+                                , RANK() OVER(PARTITION BY 得意先ＣＤ, 商品ＣＤ ORDER BY 適用開始日 DESC) AS RNK
+                            FROM
+                                得意先単価マスタ新
+                            WHERE
+                                得意先ＣＤ=$CustomerCd
+                            AND 適用開始日 <= '$DeliveryDate'
+                        ) TT
+                        WHERE
+                            RNK = 1
+                    ) MTT
+                    LEFT OUTER JOIN 商品マスタ PM
+                        ON	PM.商品ＣＤ=MTT.商品ＣＤ
+            ),
+            注文一覧 AS (
+                SELECT
+                    MTT.得意先ＣＤ,
+                    MTT.商品ＣＤ,
+                    MTT.単価,
+                    MTT.商品名,
+                    MTT.商品区分,
+                    CD.注文区分,
+                    CD.注文日付,
+                    CD.注文時間,
+                    CD.配送日,
+                    CD.明細行Ｎｏ,
+                    CD.入力区分,
+                    CD.現金個数,
+                    CD.現金金額,
+                    CD.掛売個数,
+                    CD.掛売金額,
+                    CD.予備ＣＤ１,
+                    CD.予備金額1,
+                    CD.修正担当者ＣＤ,
+                    CD.修正日
+                FROM
+                    得意先単価 MTT
+                    LEFT OUTER JOIN 注文データ CD
+                        ON  CD.得意先ＣＤ = MTT.得意先ＣＤ
+                        AND CD.商品ＣＤ = MTT.商品ＣＤ
+                        AND	CD.部署ＣＤ = $BushoCd
+                        AND CD.配送日 = '$DeliveryDate'
+            )
+            SELECT
+                得意先ＣＤ,
+                注文日付,
+                MAX(配送日) AS 配送日,
+                MAX(IIF(注文区分=0, 注文時間, null)) AS 注文時間,
+                MIN(注文区分) AS 注文区分,
+                MAX(IIF(注文区分=0, 明細行Ｎｏ, 0)) AS 明細行Ｎｏ,
+                商品ＣＤ,
+                商品名,
+                単価,
+                商品区分,
+                SUM(IIF(注文区分=1, 現金個数 + 掛売個数, 0)) AS 予定数,
+                SUM(IIF(注文区分=0, 現金個数, 0)) AS 現金個数,
+                SUM(IIF(注文区分=0, 現金金額, 0)) AS 現金金額,
+                SUM(IIF(注文区分=0, 掛売個数, 0)) AS 掛売個数,
+                SUM(IIF(注文区分=0, 掛売金額, 0)) AS 掛売金額,
+                SUM(IIF(注文区分 IS NULL, 1, 0)) AS 全表示,
+                MAX(IIF(注文区分=0, 修正日, null)) AS 修正日
+            FROM
+                注文一覧
+            GROUP BY
+                得意先ＣＤ,
+                商品ＣＤ,
+                注文日付,
+                単価,
+                商品区分,
+                商品名
+            ORDER BY
+                商品ＣＤ
         ";
 
         $DataList = DB::select($sql);
@@ -177,26 +215,53 @@ ORDER BY
 
         if (!$HasShown) {
             $sql = "
-SELECT DISTINCT
-    注文データ.得意先ＣＤ,
-    注文データ.商品ＣＤ,
-    CASE  WHEN 得意先単価マスタ.単価 IS NULL THEN 注文データ.予備金額１ ELSE 得意先単価マスタ.単価 END 単価,
-    商品マスタ.商品名,
-    0 タイトルフラグ
-FROM
-    [注文データ]
-	INNER JOIN
-		[商品マスタ] ON 商品マスタ.商品ＣＤ = 注文データ.商品ＣＤ
-	INNER JOIN
-		[得意先単価マスタ] ON 注文データ.商品ＣＤ = 得意先単価マスタ.商品ＣＤ
-	AND
-		注文データ.得意先ＣＤ = 得意先単価マスタ.得意先ＣＤ
-WHERE 注文区分 = 0
-    AND 注文データ.部署ＣＤ   = $BushoCd
-    AND 注文データ.得意先ＣＤ = $CustomerCd
-    AND 注文データ.注文区分 = 0
-    AND CONVERT(NVARCHAR, 注文データ.配送日, 112) >= DATEADD(DAY, -8, '$DeliveryDate')
-    AND CONVERT(NVARCHAR, 注文データ.配送日, 112) <  '$DeliveryDate'
+                WITH 得意先単価 AS (
+                    SELECT
+                        MTT.得意先ＣＤ,
+                        MTT.商品ＣＤ,
+                        PM.商品名,
+                        PM.商品区分,
+                        MTT.単価
+                    FROM
+                        (
+                            SELECT
+                                *
+                            FROM (
+                                SELECT
+                                    *
+                                    , RANK() OVER(PARTITION BY 得意先ＣＤ, 商品ＣＤ ORDER BY 適用開始日 DESC) AS RNK
+                                FROM
+                                    得意先単価マスタ新
+                                WHERE
+                                    得意先ＣＤ=$CustomerCd
+                                AND 適用開始日 <= '$DeliveryDate'
+                            ) TT
+                            WHERE
+                                RNK = 1
+                        ) MTT
+                        LEFT OUTER JOIN 商品マスタ PM
+                            ON	PM.商品ＣＤ=MTT.商品ＣＤ
+                )
+                SELECT DISTINCT
+                    注文データ.得意先ＣＤ,
+                    注文データ.商品ＣＤ,
+                    CASE  WHEN 得意先単価.単価 IS NULL THEN 注文データ.予備金額１ ELSE 得意先単価.単価 END 単価,
+                    商品マスタ.商品名,
+                    0 タイトルフラグ
+                FROM
+                    [注文データ]
+                    INNER JOIN
+                        [商品マスタ] ON 商品マスタ.商品ＣＤ = 注文データ.商品ＣＤ
+                    INNER JOIN
+                        得意先単価 ON 注文データ.商品ＣＤ = 得意先単価マスタ.商品ＣＤ
+                    AND
+                        注文データ.得意先ＣＤ = 得意先単価マスタ.得意先ＣＤ
+                WHERE 注文区分 = 0
+                    AND 注文データ.部署ＣＤ   = $BushoCd
+                    AND 注文データ.得意先ＣＤ = $CustomerCd
+                    AND 注文データ.注文区分 = 0
+                    AND CONVERT(NVARCHAR, 注文データ.配送日, 112) >= DATEADD(DAY, -8, '$DeliveryDate')
+                    AND CONVERT(NVARCHAR, 注文データ.配送日, 112) <  '$DeliveryDate'
             ";
 
             $products = DB::select($sql);
@@ -222,18 +287,18 @@ WHERE 注文区分 = 0
         $DeliveryDate = $request->DeliveryDate;
 
         $sql = "
-SELECT
-	CD.備考１,
-	CD.備考２,
-	CD.備考３,
-	CD.備考４,
-	CD.備考５
-FROM
-	注文データ CD
-WHERE
-	CD.得意先ＣＤ = $CustomerCd
-	AND	CD.部署ＣＤ = $BushoCd
-	AND CD.配送日 = '$DeliveryDate'
+            SELECT
+                CD.備考１,
+                CD.備考２,
+                CD.備考３,
+                CD.備考４,
+                CD.備考５
+            FROM
+                注文データ CD
+            WHERE
+                CD.得意先ＣＤ = $CustomerCd
+                AND	CD.部署ＣＤ = $BushoCd
+                AND CD.配送日 = '$DeliveryDate'
         ";
 
         $Result = DB::select($sql);
@@ -250,33 +315,58 @@ WHERE
         $DeliveryDate = $request->DeliveryDate;
 
         $sql = "
-WITH 注文最終修正 AS (
-SELECT
-	MTT.得意先ＣＤ,
-	CD.配送日,
-	CD.修正担当者ＣＤ,
-	TM.担当者名 AS 修正担当者名,
-	CD.修正日,
-	MAX(CD.修正日) OVER () AS 注文最終修正日
-FROM
-	得意先単価マスタ MTT
-	LEFT OUTER JOIN 注文データ CD
-		ON  CD.得意先ＣＤ = MTT.得意先ＣＤ
-		AND CD.商品ＣＤ = MTT.商品ＣＤ
-		AND	CD.部署ＣＤ = $BushoCd
-        AND CD.配送日 = '$DeliveryDate'
-        AND CD.注文区分=0
-	LEFT OUTER JOIN 担当者マスタ TM
-		ON  TM.担当者ＣＤ = CD.修正担当者ＣＤ
-WHERE
-	MTT.得意先ＣＤ = $CustomerCd
-)
-SELECT
-	*
-FROM
-	注文最終修正
-WHERE
-	修正日 = 注文最終修正日
+                WITH 得意先単価 AS (
+                    SELECT
+                        MTT.得意先ＣＤ,
+                        MTT.商品ＣＤ,
+                        PM.商品名,
+                        PM.商品区分,
+                        MTT.単価
+                    FROM
+                        (
+                            SELECT
+                                *
+                            FROM (
+                                SELECT
+                                    *
+                                    , RANK() OVER(PARTITION BY 得意先ＣＤ, 商品ＣＤ ORDER BY 適用開始日 DESC) AS RNK
+                                FROM
+                                    得意先単価マスタ新
+                                WHERE
+                                    得意先ＣＤ=$CustomerCd
+                                AND 適用開始日 <= '$DeliveryDate'
+                            ) TT
+                            WHERE
+                                RNK = 1
+                        ) MTT
+                        LEFT OUTER JOIN 商品マスタ PM
+                            ON	PM.商品ＣＤ=MTT.商品ＣＤ
+                ),
+                注文最終修正 AS (
+                    SELECT
+                        MTT.得意先ＣＤ,
+                        CD.配送日,
+                        CD.修正担当者ＣＤ,
+                        TM.担当者名 AS 修正担当者名,
+                        CD.修正日,
+                        MAX(CD.修正日) OVER () AS 注文最終修正日
+                    FROM
+                        得意先単価 MTT
+                        LEFT OUTER JOIN 注文データ CD
+                            ON  CD.得意先ＣＤ = MTT.得意先ＣＤ
+                            AND CD.商品ＣＤ = MTT.商品ＣＤ
+                            AND	CD.部署ＣＤ = $BushoCd
+                            AND CD.配送日 = '$DeliveryDate'
+                            AND CD.注文区分=0
+                        LEFT OUTER JOIN 担当者マスタ TM
+                            ON  TM.担当者ＣＤ = CD.修正担当者ＣＤ
+                )
+                SELECT
+                    *
+                FROM
+                    注文最終修正
+                WHERE
+                    修正日 = 注文最終修正日
         ";
 
         $Result = DB::selectOne($sql);
@@ -296,15 +386,15 @@ WHERE
         $WhereCourseCd = isset($CourseCd) ? "AND コースCD=$CourseCd" : "";
 
         $sql = "
-SELECT
-    実績数
-FROM
-    モバイル_販売入力
-WHERE
-    得意先CD=$CustomerCd AND
-    実績入力=1 AND
-    日付='$DeliveryDate'
-    $WhereCourseCd
+            SELECT
+                実績数
+            FROM
+                モバイル_販売入力
+            WHERE
+                得意先CD=$CustomerCd AND
+                実績入力=1 AND
+                日付='$DeliveryDate'
+                $WhereCourseCd
         ";
 
         $Result = DB::select($sql);
@@ -317,7 +407,7 @@ WHERE
      */
     public function GetCustomerAndCourseList($request, $KeywordOnly = false)
     {
-        $BushoCd = $request->bushoCd;
+        $BushoCd = $request->BushoCd ?? $request->bushoCd;
         $TargetDate = $request->targetDate;
         $IsOyaOnly = $request->isOyaOnly ?? true;
         $Keyword = $request->keyword;
@@ -356,72 +446,92 @@ WHERE
             }
         }
 
-
-        $OrderByBusho = !!$BushoCd ? "IIF(部署CD=$BushoCd, 0, 1)," : "";
-
         $sql = "
-WITH 得意先_コース一覧 AS
-(
-	SELECT
-		M1.部署CD,
-		MB.部署名,
-		M1.得意先CD,
-		M1.得意先名,
-		M1.得意先名略称,
-		M1.得意先名カナ,
-		M1.売掛現金区分,
-		M1.電話番号１,
-		M1.備考１,
-		M1.備考２,
-		M1.備考３,
-		MC.担当者ＣＤ,
-		MT.担当者名,
-		MC.コース区分,
-		MC.コースCD,
-		MC.コース名,
-		RANK() OVER(PARTITION BY M1.部署CD, M1.得意先CD ORDER BY MC.コース区分) AS RNK
-	FROM
-		得意先マスタ M1
-		LEFT OUTER JOIN 部署マスタ MB
-			ON MB.部署CD = M1.部署CD
-		LEFT OUTER JOIN コーステーブル TC
-			ON M1.部署CD = TC.部署CD AND M1.得意先CD = TC.得意先CD
-		LEFT OUTER JOIN コースマスタ MC
-			ON TC.部署CD = MC.部署CD AND TC.コースCD = MC.コースCD
-		LEFT OUTER JOIN 担当者マスタ MT
-			ON MT.担当者ＣＤ = MC.担当者ＣＤ
-    WHERE
-        0=0
-        $WhereOyaOnly
-        $WhereCourseKbn
-        $WhereKeyword
-)
-SELECT
-	得意先CD AS Cd,
-	得意先名 AS CdNm,
-	部署CD,
-	部署名,
-	得意先CD,
-	得意先名,
-    得意先名略称,
-    得意先名カナ,
-    売掛現金区分,
-    電話番号１,
-    備考１,
-    備考２,
-    備考３,
-	担当者ＣＤ,
-	担当者名,
-	コース区分,
-	コースCD,
-	コース名
-FROM
-	得意先_コース一覧
-WHERE
-    RNK = 1
-ORDER BY
-    $OrderByBusho
-    得意先ＣＤ
+            WITH 部署ソート AS (
+                SELECT
+                    *
+                    ,IIF(
+                        部署CD=$BushoCd,
+                        0,
+                        CASE 部署CD
+                            WHEN 101 THEN 1
+                            WHEN 201 THEN 2
+                            WHEN 301 THEN 3
+                            WHEN 401 THEN 4
+                            WHEN 901 THEN 5
+                            WHEN 701 THEN 6
+                            WHEN 601 THEN 7
+                            WHEN 0 THEN 9999
+                            ELSE 部署CD
+                        END
+                    ) AS ソート
+                FROM
+                    部署マスタ
+            ),
+            得意先_コース一覧 AS
+            (
+                SELECT
+                    MB.ソート,
+                    M1.部署CD,
+                    MB.部署名,
+                    M1.得意先CD,
+                    M1.得意先名,
+                    M1.得意先名略称,
+                    M1.得意先名カナ,
+                    M1.売掛現金区分,
+                    M1.電話番号１,
+                    M1.備考１,
+                    M1.備考２,
+                    M1.備考３,
+                    MC.担当者ＣＤ,
+                    MT.担当者名,
+                    MC.コース区分,
+                    MC.コースCD,
+                    MC.コース名,
+                    RANK() OVER(PARTITION BY M1.部署CD, M1.得意先CD ORDER BY MC.コース区分) AS RNK
+                FROM
+                    得意先マスタ M1
+                    LEFT OUTER JOIN 部署ソート MB
+                        ON MB.部署CD = M1.部署CD
+                    LEFT OUTER JOIN コーステーブル TC
+                        ON M1.部署CD = TC.部署CD AND M1.得意先CD = TC.得意先CD
+                    LEFT OUTER JOIN コースマスタ MC
+                        ON TC.部署CD = MC.部署CD AND TC.コースCD = MC.コースCD
+                    LEFT OUTER JOIN 担当者マスタ MT
+                        ON MT.担当者ＣＤ = MC.担当者ＣＤ
+                WHERE
+                    0=0
+                    $WhereOyaOnly
+                    $WhereCourseKbn
+                    $WhereKeyword
+            )
+            SELECT
+                ソート,
+                得意先CD AS Cd,
+                得意先名 AS CdNm,
+                部署CD,
+                部署名,
+                得意先CD,
+                得意先名,
+                得意先名略称,
+                得意先名カナ,
+                売掛現金区分,
+                電話番号１,
+                備考１,
+                備考２,
+                備考３,
+                担当者ＣＤ,
+                担当者名,
+                コース区分,
+                コースCD,
+                コース名
+            FROM
+                得意先_コース一覧
+            WHERE
+                RNK = 1
+            ORDER BY
+                ISNULL(ソート, 9999),
+                得意先ＣＤ
         ";
 
         //TODO: 高速化対応

@@ -251,10 +251,6 @@ export default {
                     vue.footerButtons.find(v => v.id == "DAI04130_Delete").disabled = cnt == 0 || cnt > 1;
                 }
             );
-
-            console.log("Cache keys", myCache.keys());
-            console.log("Cache Set Key1", myCache.set("key1", { value: 1 }));
-            console.log("Cache Get Key1", myCache.get("key1"));
         },
         onCodeChanged: _.debounce(function(event) {
             var vue = this;
@@ -291,8 +287,6 @@ export default {
         conditionChanged: function() {
             var vue = this;
             var grid = vue.DAI04130Grid1;
-
-            console.log("DAI04130 conditionChanged", vue.getLoginInfo().isLogOn);
 
             if (!!grid && vue.getLoginInfo().isLogOn) {
                 var params = $.extend(true, {}, vue.viewModel);
@@ -413,6 +407,10 @@ export default {
                             contents: "各種CDと行NOが重複しています。<br>" + duplicate,
                         });
                     }
+
+                    //Cache更新
+                    axios.post("/Utilities/GetCodeList", {noCache: true, replace: true});
+
                     //画面を閉じる
                     vue.conditionChanged();
                     $(vue.$el).closest(".ui-dialog-content").dialog("close");

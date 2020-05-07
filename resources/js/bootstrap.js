@@ -76,11 +76,11 @@ window.axios.interceptors.response.use(
             "https://labs.goo.ne.jp/api/hiragana",
         ];
 
-        if (excepts.includes(url) || (!!params && !!params.noCache) || (!!url && url.includes("Save"))) {
+        if (excepts.includes(url) || (!!params && !!params.noCache && !params.replace) || (!!url && url.includes("Save"))) {
             return response;
         }
 
-        if (all.includes(url) && _.isEmpty(params)) {
+        if (all.includes(url) && (_.isEmpty(params) || !!params.replace)) {
             // console.log("axios response Cached", url, data);
             window.myCache.set(url, data, 0);
         } else if (url == "/Utilities/GetCustomerAndCourseList") {
@@ -103,6 +103,10 @@ window.axios.interceptors.request.use(
 
         var key = request.url + (!!params && !_.isEmpty(params) ? ("?" + $.param(params)) : "");
         // console.log("axios request interceptor", url, request.data, params, key);
+
+        if (!!params && !!window.loginInfo) {
+            params.UserBushoCd = window.loginInfo.bushoCd;
+        }
 
         if (!!params && !!params.noCache) {
             return request;

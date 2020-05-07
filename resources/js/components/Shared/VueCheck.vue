@@ -1,6 +1,11 @@
 ﻿//required bootstrap css
 <template>
-    <div class="form-group d-inline-flex align-items-center VueCheck" :style="_containerStyle" :data-tip="isExists ? null : '選択可能な一覧がありません'">
+    <div
+        class="form-group d-inline-flex align-items-center VueCheck"
+         :class="[ _checked == true ? 'Checked' : '' ]"
+        :style="_containerStyle"
+        :data-tip="isExists ? null : '選択可能な一覧がありません'"
+    >
         <label v-if="title" class="title" :style="_titleStyle">{{title}}</label>
         <label class="content" :style="_contentStyle" :class="[ _checked == true ? 'Checked' : '' ]">
             <input type="checkbox"
@@ -242,6 +247,7 @@ export default {
     height: 20px;
     margin-right: 5px;
 }
+
 </style>
 
 <style>

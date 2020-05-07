@@ -40,7 +40,7 @@
                     >
             </div>
         </div>
-        <div class="row">
+        <!-- <div class="row">
             <div class="col-md-6">
                 <label class="">郵便番号</label>
                 <input class="form-control" style="width: 100px;" type="tel"
@@ -79,7 +79,7 @@
                     v-maxBytes=12
                 >
             </div>
-        </div>
+        </div> -->
         <div class="row">
             <div class="col-md-8">
                 <label>部署</label>
@@ -154,6 +154,21 @@
                     maxlength="2"
                     v-int
                 >
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <label class="">在職区分</label>
+                <VueSelect
+                    id="ZaishokuKbn"
+                    ref="ZaishokuKbn_Select"
+                    :vmodel=viewModel
+                    bind="在職区分"
+                    uri="/Utilities/GetCodeList"
+                    :params="{ cd: 51 }"
+                    :withCode=true
+                    customStyle="{ width: 200px; }"
+                />
             </div>
         </div>
     </form>
@@ -378,6 +393,10 @@ export default {
                         //登録用controller method call
                         axios.post("/DAI04021/Save", params)
                             .then(res => {
+                                //Cache更新
+                                axios.post("/Utilities/GetTantoList", {noCache: true, replace: true});
+                                axios.post("/Utilities/GetTantoListForSelect", {noCache: true, replace: true});
+
                                 DAI04020.conditionChanged();
                                 //画面を閉じる
                                 $(vue.$el).closest(".ui-dialog-content").dialog("close");

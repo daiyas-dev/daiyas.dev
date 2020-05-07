@@ -964,29 +964,29 @@ $WhereCourseKbn
 
             //得意先ＣＤでの検索
             $ByCustomerSql = "
-SELECT
-    TM.得意先ＣＤ AS Cd,
-    TM.得意先名 AS CdNm,
-    TM.部署CD,
-    TM.得意先名カナ,
-    TM.得意先名略称,
-    TM.住所１,
-    TM.電話番号１,
-    TM.ＦＡＸ１,
-    TM.備考１,
-    TM.備考２,
-    TM.備考３,
-    TM.売掛現金区分,
-    TM.締日１,
-    BM.部署名
-FROM 得意先マスタ TM
-LEFT JOIN 部署マスタ BM
-    ON TM.部署CD = BM.部署CD
-WHERE 0=0
-$WhereBusho
-$WhereBushoList
-$WhereCustomer
-        ";
+                SELECT
+                    TM.得意先ＣＤ AS Cd,
+                    TM.得意先名 AS CdNm,
+                    TM.部署CD,
+                    TM.得意先名カナ,
+                    TM.得意先名略称,
+                    TM.住所１,
+                    TM.電話番号１,
+                    TM.ＦＡＸ１,
+                    TM.備考１,
+                    TM.備考２,
+                    TM.備考３,
+                    TM.売掛現金区分,
+                    TM.締日１,
+                    BM.部署名
+                FROM 得意先マスタ TM
+                LEFT JOIN 部署マスタ BM
+                    ON TM.部署CD = BM.部署CD
+                WHERE 0=0
+                $WhereBusho
+                $WhereBushoList
+                $WhereCustomer
+            ";
 
             $Result = DB::select($ByCustomerSql);
 
@@ -996,14 +996,14 @@ $WhereCustomer
         }
 
         $CountSql = "
-SELECT
-    COUNT(TM.得意先ＣＤ) AS CNT
-FROM 得意先マスタ TM
-WHERE 0=0
-$WhereBusho
-$WhereBushoList
-$WhereKeyWord
-$WhereCourseCd
+            SELECT
+                COUNT(TM.得意先ＣＤ) AS CNT
+            FROM 得意先マスタ TM
+            WHERE 0=0
+            $WhereBusho
+            $WhereBushoList
+            $WhereKeyWord
+            $WhereCourseCd
         ";
 
         $Result = DB::select($CountSql);
@@ -1012,31 +1012,57 @@ $WhereCourseCd
         $CountMax = $request->CountMax ?? 100;
         $SelectTop = !!$request->NoLimit ? "" : ($Count > $CountMax ? "TOP $CountMax" : "");
 
+        $UserBushoCd = $request->UserBushoCd ?? 99999;
+
         $sql = "
-SELECT $SelectTop
-    TM.得意先ＣＤ AS Cd,
-    TM.得意先名 AS CdNm,
-    TM.部署CD,
-    TM.得意先名カナ,
-    TM.得意先名略称,
-    TM.住所１,
-    TM.電話番号１,
-    TM.ＦＡＸ１,
-    TM.備考１,
-    TM.備考２,
-    TM.備考３,
-    TM.売掛現金区分,
-    TM.締日１,
-    BM.部署名
-    $SelectCourseCd
-FROM 得意先マスタ TM
-LEFT JOIN 部署マスタ BM
-    ON TM.部署CD = BM.部署CD
-WHERE 0=0
-$WhereBusho
-$WhereBushoList
-$WhereKeyWord
-$WhereCourseCd
+            WITH 部署ソート AS (
+                SELECT
+                    *
+                    ,IIF(
+                        部署CD=$UserBushoCd,
+                        0,
+                        CASE 部署CD
+                            WHEN 101 THEN 1
+                            WHEN 201 THEN 2
+                            WHEN 301 THEN 3
+                            WHEN 401 THEN 4
+                            WHEN 901 THEN 5
+                            WHEN 701 THEN 6
+                            WHEN 601 THEN 7
+                            WHEN 0 THEN 9999
+                            ELSE 部署CD
+                        END
+                    ) AS ソート
+                FROM
+                    部署マスタ
+            )
+            SELECT $SelectTop
+                TM.得意先ＣＤ AS Cd,
+                TM.得意先名 AS CdNm,
+                TM.部署CD,
+                TM.得意先名カナ,
+                TM.得意先名略称,
+                TM.住所１,
+                TM.電話番号１,
+                TM.ＦＡＸ１,
+                TM.備考１,
+                TM.備考２,
+                TM.備考３,
+                TM.売掛現金区分,
+                TM.締日１,
+                BM.部署名
+                $SelectCourseCd
+            FROM 得意先マスタ TM
+            LEFT OUTER JOIN 部署ソート BM
+                ON TM.部署CD = BM.部署CD
+            WHERE 0=0
+            $WhereBusho
+            $WhereBushoList
+            $WhereKeyWord
+            $WhereCourseCd
+            ORDER BY
+                ISNULL(BM.ソート, 9999),
+                TM.得意先ＣＤ
         ";
 
         //TODO: 高速化対応

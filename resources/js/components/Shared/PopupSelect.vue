@@ -605,10 +605,13 @@ export default {
                             grid.SelectRow().removeAll();
                             grid.setSelection({ rowIndx: rowIndx });
                         } else {
-                            if (_.keys(grid.getSelectionData()).length == 0) {
-                                grid.scrollRow({ rowIndx: 0 });
-                                grid.SelectRow().removeAll();
-                                grid.setSelection({ rowIndx: 0 });
+                            if (_.keys(grid.getSelectionData()).length == 0 && grid.getData().length > 0) {
+                                try {
+                                    grid.scrollRow({ rowIndx: 0 });
+                                    grid.SelectRow().removeAll();
+                                    grid.setSelection({ rowIndx: 0 });
+                                } catch {
+                                }
                             }
                         }
                         grid.widget().css("visibility", "visible");

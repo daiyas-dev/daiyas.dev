@@ -323,3 +323,20 @@ window.axios.all(targets)
         contents: "DB検索に失敗しました<br/>",
     });
 });
+
+// setInterval(
+//     () => {
+//         //部署マスタ
+//         window.axios.post("/Utilities/GetBushoList", { noCache: true, replace: true });
+//         //担当者マスタ
+//         window.axios.post("/Utilities/GetTantoList", { noCache: true, replace: true });
+//         window.axios.post("/Utilities/GetTantoListForSelect", { noCache: true, replace: true });
+//         //各種テーブル
+//         window.axios.post("/Utilities/GetCodeList", { noCache: true, replace: true });
+//         //金融機関マスタ
+//         window.axios.post("/Utilities/GetBankList", { noCache: true, replace: true });
+//         //得意先マスタ
+//         window.axios.post("/Utilities/GetCustomerListForSelect", { CustomerCd: null, KeyWord: null }, { noCache: true, replace: true });
+//     }
+//     , 60000
+// );

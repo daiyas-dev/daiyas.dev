@@ -108,6 +108,8 @@ export default {
             return {
                 BushoCd: this.viewModel.BushoCd,
                 DeliveryDate: moment(this.viewModel.DeliveryDate, "YYYY年MM月").format("YYYYMMDD"),
+                DateStart: moment(this.viewModel.DeliveryDate, "YYYY年MM月").startOf("month").format("YYYYMMDD"),
+                DateEnd: moment(this.viewModel.DeliveryDate, "YYYY年MM月").endOf("month").format("YYYYMMDD"),
                 CustomerCd: this.viewModel.CustomerCd,
             };
         },
@@ -284,12 +286,6 @@ export default {
             var vue = this;
             var grid = vue.DAI01090Grid1;
 
-            if (grid.options.dataModel.postData.BushoCd == vue.searchParams.BushoCd) {
-                //部署変更無し
-                if(callback) callback();
-                return;
-            }
-
             //PqGrid読込待ち
             new Promise((resolve, reject) => {
                 var timer = setInterval(function () {
@@ -303,67 +299,59 @@ export default {
             .then((grid) => {
                 grid.showLoading();
 
-                //事前情報取得
-                axios.all(
-                    [
-                        //列定義の取得
-                        axios.post("/DAI01090/ColSearch", vue.searchParams),
-                        //商品リストの取得
-                        axios.post("/DAI01090/GetProductList", vue.searchParams),
-                    ]
-                ).then(
-                    axios.spread((responseCol, responseProduct) => {
-                        var res = _.cloneDeep(responseCol.data);
+                //商品リストの取得
+                axios.post("/DAI01090/GetProductList", vue.searchParams)
+                .then(res => {
+                    var list = _.cloneDeep(res.data);
 
-                        var newCols = grid.options.colModel
-                            .filter(v => !!v.fixed)
-                            .concat(
-                                res.map((v, i) => {
-                                    return {
-                                        title: v.商品略称,
-                                        dataIndx: "商品_" + v.商品ＣＤ,
-                                        dataType: "integer",
-                                        format: "#,###",
-                                        width: 75, maxWidth: 75, minWidth: 75,
-                                        editable: true,
-                                        render: ui => {
-                                            if (ui.rowData.pq_grandsummary) {
-                                                if(ui.cellData == 0) {
-                                                    return { text: "" };
-                                                }
+                    var newCols = grid.options.colModel
+                        .filter(v => !!v.fixed)
+                        .concat(
+                            _.uniqBy(list, "商品ＣＤ").map((v, i) => {
+                                return {
+                                    title: v.商品略称,
+                                    dataIndx: "商品_" + v.商品ＣＤ,
+                                    dataType: "integer",
+                                    format: "#,###",
+                                    width: 75, maxWidth: 75, minWidth: 75,
+                                    editable: true,
+                                    render: ui => {
+                                        if (ui.rowData.pq_grandsummary) {
+                                            if(ui.cellData == 0) {
+                                                return { text: "" };
                                             }
-                                            return ui;
-                                        },
-                                        summary: {
-                                            type: "TotalInt",
-                                        },
-                                        custom: true,
-                                    };
-                                })
-                            )
+                                        }
+                                        return ui;
+                                    },
+                                    summary: {
+                                        type: "TotalInt",
+                                    },
+                                    custom: true,
+                                };
+                            })
+                        )
 
-                        //列定義更新
-                        grid.options.colModel = newCols;
-                        grid.refreshCM();
-                        grid.refresh();
+                    //列定義更新
+                    grid.options.colModel = newCols;
+                    grid.refreshCM();
+                    grid.refresh();
 
-                        //商品リスト保持
-                        vue.ProductList = responseProduct.data;
+                    //商品リスト保持
+                    vue.ProductList = res.data;
 
-                        if (!!grid) grid.hideLoading();
+                    if (!!grid) grid.hideLoading();
 
-                        if(callback) callback();
-                    })
-                );
-            })
-            .catch(err => {
-                console.log(err);
-                if (!!grid) grid.hideLoading();
+                    if(callback) callback();
+                })
+                .catch(err => {
+                    console.log(err);
+                    if (!!grid) grid.hideLoading();
 
-                //失敗ダイアログ
-                $.dialogErr({
-                    title: "各種テーブル/商品マスタ検索失敗",
-                    contents: "各種テーブル/商品マスタ検索に失敗しました" + "<br/>" + err.message,
+                    //失敗ダイアログ
+                    $.dialogErr({
+                        title: "得意先単価検索失敗",
+                        contents: "得意先単価の検索に失敗しました" + "<br/>" + err.message,
+                    });
                 });
             });
         },
@@ -440,7 +428,7 @@ export default {
                 })
                 .map(v => {
                     var ret = v;
-                    ret.label = v.Cd + " : " + "【" + v.部署名 + "】" + v.CdNm;
+                    ret.label = v.Cd + " : " + "【" + (v.部署名 || "部署無し") + "】" + v.CdNm;
                     ret.value = v.Cd;
                     ret.text = v.CdNm;
                     return ret;
@@ -484,7 +472,7 @@ export default {
                 _.forIn(d, (v, k) => {
                     var cd = k.replace("商品_", "");
 
-                    var product = vue.ProductList.find(p => p.Cd == cd);
+                    var product = vue.ProductList.find(p => p.商品ＣＤ == cd && moment(p.適用開始日).isSameOrBefore(moment(r.配送日)));
 
                     var order = _.cloneDeep(orderBase);
 
@@ -492,10 +480,10 @@ export default {
                     order.商品区分 = product.商品区分;
                     order.明細行Ｎｏ = r["明細行Ｎｏ_" + cd];
                     order.現金個数 = r.売掛現金区分 == "0" ? v : null;
-                    order.現金金額 = r.売掛現金区分 == "0" ? v * product.売価単価 : null;
+                    order.現金金額 = r.売掛現金区分 == "0" ? v * product.単価 : null;
                     order.掛売個数 = r.売掛現金区分 == "1" ? v : null;
-                    order.掛売金額 = r.売掛現金区分 == "1" ? v * product.売価単価 : null;
-                    order.予備金額１ = product.売価単価;
+                    order.掛売金額 = r.売掛現金区分 == "1" ? v * product.単価 : null;
+                    order.予備金額１ = product.単価;
                     order.修正日 = r["注文データ更新日時_" + cd];
 
                     SaveList.push(order);

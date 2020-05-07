@@ -59,7 +59,7 @@
                     bind="CustomerCd"
                     :buddies='{ CustomerNm: "CdNm", CourseNm: "コース名", TantoCd: "担当者ＣＤ", TantoNm: "担当者名" }'
                     dataUrl="/DAI01030/GetCustomerAndCourseList"
-                    :params="{ targetDate: FormattedDeliveryDate, KeyWord: viewModel.CustomerCd }"
+                    :params="{ targetDate: FormattedDeliveryDate, KeyWord: viewModel.CustomerCd, bushoCd: getLoginInfo().bushoCd }"
                     :isPreload=true
                     title="得意先一覧"
                     labelCd="得意先CD"
@@ -90,6 +90,12 @@
         </div>
         <div class="row">
             <div class="col-md-1">
+            </div>
+            <div class="col-md-6">
+                <input class="form-control label-blue" style="width: 350px;" type="text" :value=viewModel.CourseNm readonly tabindex="-1">
+                <input class="form-control ml-1 label-blue" style="width: 200px;" type="text" :value=viewModel.TantoNm readonly tabindex="-1">
+            </div>
+            <!-- <div class="col-md-1">
                 <label>担当者</label>
             </div>
             <div class="col-md-4">
@@ -102,7 +108,7 @@
             <div class="col-md-4">
                 <input class="form-control label-blue" style="width: 100px;" type="text" :value=viewModel.CourseCd readonly tabindex="-1">
                 <input class="form-control ml-1 label-blue" style="width: 300px;" type="text" :value=viewModel.CourseNm readonly tabindex="-1">
-            </div>
+            </div> -->
         </div>
         <div class="row">
             <div class="col-md-1">
@@ -281,6 +287,13 @@ export default {
                 vue.footerButtons.find(v => v.id == "DAI01030Grid1_DeleteOrder").disabled = !newVal;
             },
         },
+        "viewModel.CustomerCd": {
+            handler: function(newVal) {
+                var vue = this;
+                var disabled = !(!!vue.viewModel.CustomerCd && vue.$refs.PopupSelect_Customer.isValid);
+                vue.footerButtons.find(v => v.id == "DAI01030Grid1_ShowMaint").disabled = disabled;
+            },
+        },
     },
     data() {
         var vue = this;
@@ -423,7 +436,7 @@ export default {
                         autocomplete: {
                             source: () => vue.getProductList(),
                             bind: "商品ＣＤ",
-                            buddies: { "商品名": "CdNm", "単価": "売価単価", "商品区分": "商品区分", },
+                            buddies: { "商品名": "CdNm", "単価": "単価", "商品区分": "商品区分", },
                             onSelect: rowData => {
                                 console.log("onSelect", rowData);
                                 rowData["現金金額"] = rowData["単価"] * rowData["現金個数"];
@@ -437,7 +450,8 @@ export default {
                     {
                         title: "商品名",
                         dataIndx: "商品名", dataType: "string",
-                        width: 200, minWidth: 200,
+                        width: 200, minWidth: 200, maxWidth: 200,
+                        tooltip: true,
                     },
                     {
                         title: "商品区分",
@@ -593,6 +607,11 @@ export default {
                         vue.showBalance();
                     }
                 },
+                { visible: "true", value: "得意先<br>マスタメンテ", id: "DAI01030Grid1_ShowMaint", disabled: true, shortcut: "F7",
+                    onClick: function () {
+                        vue.showMaint();
+                    }
+                },
                 {visible: "false"},
                 { visible: "true", value: "登録", id: "DAI01030Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
@@ -662,6 +681,7 @@ export default {
         },
         onCustomerChanged: function(code, entity, comp) {
             var vue = this;
+            console.log("1030 onCustomerChanged");
 
             if (!!entity && !_.isEmpty(entity)) {
                 vue.CustomerChanged(entity, comp.isValid);
@@ -700,9 +720,9 @@ export default {
             //vue.setGroupCustomer(vue.viewModel.CustomerCd);
 
             //条件変更ハンドラ
-            vue.conditionChanged();
+            vue.conditionChanged(true);
         },
-        conditionChanged: function(callback, force) {
+        conditionChanged: function(force) {
             var vue = this;
             var grid = vue.DAI01030Grid1;
 
@@ -888,7 +908,7 @@ export default {
             }
         },
         CustomerParamsChangedCheckFunc: function(newVal, oldVal) {
-            var ret = !!newVal.targetDate;
+            var ret = !!newVal.targetDate && newVal.bushoCd;
             return ret;
         },
         GroupCustomerParamsChangedCheckFunc: function(newVal, oldVal) {
@@ -1225,6 +1245,39 @@ export default {
                     CustomerCd: vue.CurrentOrder.得意先CD,
                 }
             });
+        },
+        showMaint: function() {
+            var vue = this;
+
+            var cd = vue.viewModel.CustomerCd;
+            if (!cd) return;
+
+            var params = {CustomerCd: cd, noCache: true};
+            axios.post("/Utilities/GetCustomerListForMaint", params)
+                .then(res => {
+                    if (res.data.Data.length == 1) {
+                        var params = _.cloneDeep(res.data.Data[0]);
+                        params.IsNew = false;
+                        params.Parent = vue;
+
+                        //DAI04041を子画面表示
+                        PageDialog.show({
+                            pgId: "DAI04041",
+                            params: params,
+                            isModal: true,
+                            isChild: true,
+                            width: 1200,
+                            height: 700,
+                        });
+                    }
+                })
+                .catch(err => {
+                    console.log(err);
+                    $.dialogErr({
+                        title: "異常終了",
+                        contents: "得意先マスタの検索に失敗しました"
+                    })
+                })
         },
     }
 }

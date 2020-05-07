@@ -1233,7 +1233,6 @@ export default {
             scroll: function (event, ui) {
                 var grid = this;
 
-                // console.log("grid scroll");
                 //スクロール中にbootstrap tooltipのゴミが残るので消去(bootstrapの処理にモレ)
                 $("body").find("[id^=tooltip]").tooltip("hide");
 
@@ -1336,7 +1335,7 @@ export default {
                 if (vue.isMultiRowSelectable) {
                     return true;
                 } else {
-                    return true;
+                    return window.event.ctrlKey || !!ui.addList.length;
                 }
             },
             cellRightClick: function( event, ui ) {

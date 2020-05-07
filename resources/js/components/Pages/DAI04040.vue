@@ -46,7 +46,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-1">
+            <!-- <div class="col-md-1">
                 <label>承認者</label>
             </div>
             <div class="col-md-4">
@@ -76,11 +76,11 @@
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=ShoninAutoCompleteFunc
                 />
-            </div>
+            </div> -->
             <div class="col-md-1">
                 <label>キーワード</label>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <input type="text" class="form-control" :value="viewModel.KeyWord" @input="onKeyWordChanged">
             </div>
             <div class="col-md-3">
@@ -95,6 +95,24 @@
                         {code: 'OR', name: 'OR', label: 'いずれかを含む'},
                     ]"
                     :onChangedFunc=onFilterModeChanged
+                />
+            </div>
+            <div class="col-md-1">
+                <label style="width: unset;">コース内/外</label>
+            </div>
+            <div class="col-md-3">
+                <VueCheckList
+                    id="WithCourse"
+                    ref="VueCheckList_WithCourse"
+                    :vmodel=viewModel
+                    bind="WithCourse"
+                    customTitleStyle="justify-content: center;"
+                    customContentStyle="width: auto; margin-right: 15px;"
+                    :list="[
+                        {code: '0', name: 'コース内', label: 'コース内'},
+                        {code: '1', name: 'コース外', label: 'コース外'},
+                    ]"
+                    :onChangedFunc=onWithCourseChanged
                 />
             </div>
         </div>
@@ -153,6 +171,7 @@ export default {
                 ShoninNm: null,
                 KeyWord: null,
                 FilterMode: "AND",
+                WithCourse: ["0", "1"],
             },
             DAI04040Grid1: null,
             grid1Options: {
@@ -283,7 +302,7 @@ export default {
                 {visible: "false"},
                 { visible: "true", value: "検索", id: "DAI04040_Search", disabled: false, shortcut: "F4",
                     onClick: function () {
-                        vue.conditionChanged();
+                        vue.conditionChanged(true);
                     }
                 },
                 { visible: "true", value: "履歴表示", id: "DAI04040Grid1_History", disabled: true, shortcut: "F5",
@@ -373,11 +392,9 @@ export default {
             //フィルタ変更
             vue.filterChanged();
         }, 300),
-        conditionChanged: function() {
+        conditionChanged: function(force) {
             var vue = this;
             var grid = vue.DAI04040Grid1;
-
-            console.log("DAI04040 conditionChanged", vue.getLoginInfo().isLogOn);
 
             if (!!grid && vue.getLoginInfo().isLogOn) {
                 var params = {BushoCd: vue.viewModel.BushoCd};
@@ -385,6 +402,12 @@ export default {
             }
         },
         onFilterModeChanged: function(code, info) {
+            var vue = this;
+
+            //フィルタ変更
+            vue.filterChanged();
+        },
+        onWithCourseChanged: function() {
             var vue = this;
 
             //フィルタ変更
@@ -409,6 +432,9 @@ export default {
             }
             if (!!vue.viewModel.ShoninCd) {
                 rules.push({ dataIndx: "承認者ＣＤ", condition: "equal", value: vue.viewModel.ShoninCd });
+            }
+            if (vue.viewModel.WithCourse.length == 1) {
+                rules.push({ dataIndx: "コースＣＤ", condition: vue.viewModel.WithCourse[0] == "0" ? "notempty" : "empty" });
             }
             if (!!vue.viewModel.KeyWord) {
                 var keywords = vue.viewModel.KeyWord.split(/[, 、　]/)
@@ -474,6 +500,7 @@ export default {
             }
 
             params.IsNew = false;
+            params.Parent = vue;
 
             //DAI04041を子画面表示
             PageDialog.show({
@@ -502,10 +529,14 @@ export default {
                     axios.post("/Utilities/GetCustomerListForMaint", params)
                         .then(res => {
                             if (res.data.Data.length == 1) {
+                                var params = _.cloneDeep(res.data.Data[0]);
+                                params.IsNew = false;
+                                params.Parent = vue;
+
                                 //DAI04041を子画面表示
                                 PageDialog.show({
                                     pgId: "DAI04041",
-                                    params: res.data.Data[0],
+                                    params: params,
                                     isModal: true,
                                     isChild: true,
                                     width: 1200,
@@ -525,8 +556,10 @@ export default {
             }
         },
         showNewDetail: function(rowData) {
+            var vue = this;
 
-            var params = { IsNew: true}
+            var params = { IsNew: true }
+            params.Parent = vue;
 
             //DAI04041を子画面表示
             PageDialog.show({

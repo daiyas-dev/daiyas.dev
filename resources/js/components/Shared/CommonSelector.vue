@@ -88,7 +88,7 @@ export default {
             var comp = this;
 
             return {
-                selectionModel: { type: "row", mode: "block", row: true },
+                selectionModel: { type: "row", mode: "block", row: true, toggle: false, },
                 scrollModel: { autoFit: true, timeout: 0 },
                 rowHtHead: 31,
                 rowHt: 35,
@@ -135,10 +135,11 @@ export default {
 			    },
                 showToolbar: true,
                 rowDblClick: function(event, ui) {
+                    console.log("common selector dbclick")
                     var selectBtn = this.widget()
                                         .closest(".ui-dialog")
-                                        .find(".ui-dialog-buttonpane .ui-button")
-                                        .filter((i, v) => $(v).text() == "選択");
+                                        .find(".ui-dialog-buttonpane .ui-dialog-buttonset button")
+                                        .filter((i, v) => $(v).text().includes("選択"));
 
                     if (selectBtn.length == 1) {
                         selectBtn[0].click();

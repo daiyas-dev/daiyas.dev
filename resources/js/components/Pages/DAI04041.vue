@@ -1039,6 +1039,9 @@ form[pgid="DAI04041"] .pq-grid .DAI04041_toolbar .toolbar_button > i > span {
 form[pgid="DAI04041"] .pq-grid .DAI04041_toolbar .toolbar_button.ope {
     width: 45px;
 }
+form[pgid="DAI04041"] .VueCheck.Checked * {
+    color: red;
+}
 .attention{
     color: navy;
 }
@@ -1961,6 +1964,9 @@ export default {
             }
 
             var params = {得意先CD: cd, 得意先名: vue.viewModel.得意先名}
+            if (!!vue.params.Parent) {
+                params.Parent = vue.params.Parent;
+            }
 
             //単価登録画面
             //DAI04051を子画面表示
@@ -2110,11 +2116,21 @@ export default {
                         vue.viewModel.得意先ＣＤ = "";
                     }else{
                         vue.viewModel = res.data.model;
-                        DAI04040.conditionChanged();
 
                         //電話帳一覧と履歴を更新
                         vue.saveTelList();
                         vue.saveHistoryList();
+
+                        if (!!vue.params.Parent) {
+                            if (vue.params.Parent.$attrs.pgId == "DAI04040") {
+                                vue.params.Parent.conditionChanged(true);
+                            } else if (vue.params.Parent.$attrs.pgId == "DAI01030") {
+                                var ps = vue.params.Parent.$refs.PopupSelect_Customer;
+                                ps.getDataList(null, () => {
+                                    ps.setSelectValue(vue.params.Parent.viewModel.CustomerCd, true);
+                                });
+                            }
+                        }
 
                         //画面を閉じる
                         $(vue.$el).closest(".ui-dialog-content").dialog("close");
@@ -2124,7 +2140,6 @@ export default {
                     console.log(err);
                 }
             );
-            console.log("登録", params);
         },
         showCourse: function() {
             var vue = this;

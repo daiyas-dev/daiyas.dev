@@ -11,6 +11,7 @@
                         :disabled=disabled
                         :value=entity.code
                         :name=entity.name
+                        :checked=entity.checked
                         @change="onChanged"
                     >{{entity.label}}</label>
             </div>
@@ -67,8 +68,21 @@ export default {
                 }
             },
         },
+        entities : {
+            deep: true,
+            sync: true,
+            handler: function(newVal) {
+                var vue = this;
+                // console.log("VueCheckList entities watcher");
+                vue.entities.forEach(e => e.checked = vue.bindValues.includes(e.code));
+            },
+        },
     },
     computed: {
+        bindValues: function() {
+            var vue = this;
+            return vue.vmodel[vue.bind];
+        },
         isExists: function () {
             return (this.entities && this.entities.length && typeof this.entities == "object");
         },

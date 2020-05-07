@@ -15,74 +15,61 @@ class DAI01090Controller extends Controller
 {
 
     /**
-     *  ColumSerch
+     *  GetProductList
      */
 
-    public function ColSearch($vm)
+    public function GetProductList($request)
     {
-        $BushoCd = $vm->BushoCd;
-        $sql = "SELECT
-                    SHOHIN.商品ＣＤ   ,
-                    SHOHIN.商品名   ,
-                    SHOHIN.商品略称   ,
-                    SHOHIN.商品区分   ,
-                    SHOHIN.売価単価   ,
-                    SHOHIN.弁当区分   ,
-                    SHOHIN.ｸﾞﾙｰﾌﾟ区分   ,
-                    SHOHIN.副食ＣＤ   ,
-                    SHOHIN.主食ＣＤ   ,
-                    SHOHIN.修正担当者ＣＤ   ,
-                    SHOHIN.修正日
-                FROM
-                    商品マスタ SHOHIN   LEFT OUTER JOIN 各種テーブル BUSHOGRP ON     BUSHOGRP.各種CD = 26
-                    AND
-                    (SHOHIN.部署グループ = BUSHOGRP.サブ各種CD2 OR SHOHIN.部署グループ = 9)
-                WHERE
-                    SHOHIN.表示ＦＬＧ = 0
-                    AND SHOHIN.弁当区分 = 0
-                    AND BUSHOGRP.サブ各種CD1 = $BushoCd
-                ORDER BY   SHOHIN.商品区分   ,SHOHIN.商品ＣＤ";
+        $CustomerCd = $request->CustomerCd;
+        $DateStart = $request->DateStart;
+        $DateEnd = $request->DateEnd;
 
+        $sql = "
+            SELECT
+                MTT.*,
+                PM.商品名,
+                PM.商品略称,
+                PM.商品区分
+            FROM
+                (
+                    SELECT
+                        *
+                    FROM (
+                        SELECT
+                            *
+                            , RANK() OVER(PARTITION BY 得意先ＣＤ, 商品ＣＤ ORDER BY 適用開始日 DESC) AS RNK
+                        FROM
+                            得意先単価マスタ新
+                        WHERE
+                            得意先ＣＤ=$CustomerCd
+                        AND 適用開始日 <= '$DateStart'
+                    ) TT1
+                    WHERE
+                        RNK = 1
+					UNION
+                    SELECT
+                        *
+                    FROM (
+                        SELECT
+                            *
+                            , RANK() OVER(PARTITION BY 得意先ＣＤ, 商品ＣＤ ORDER BY 適用開始日 DESC) AS RNK
+                        FROM
+                            得意先単価マスタ新
+                        WHERE
+                            得意先ＣＤ=$CustomerCd
+                        AND 適用開始日 >= '$DateStart' AND 適用開始日 <= '$DateEnd'
+                    ) TT2
+                ) MTT
+                LEFT OUTER JOIN 商品マスタ PM
+                    ON	PM.商品ＣＤ=MTT.商品ＣＤ
+            ORDER BY
+                MTT.商品ＣＤ,
+                MTT.適用開始日 DESC
+        ";
 
         $DataList = DB::select($sql);
 
         return response()->json($DataList);
-    }
-
-    /**
-     * GetProductList
-     */
-    public function GetProductList($request)
-    {
-        $CustomerCd = $request->CustomerCd;
-
-        $sql = "
-SELECT
-	PM.商品ＣＤ,
-	PM.商品名,
-	PM.商品区分,
-	IIF(MTT.商品ＣＤ IS NOT NULL, MTT.単価, PM.売価単価) AS 売価単価
-FROM
-	商品マスタ PM
-	LEFT JOIN 得意先単価マスタ MTT
-		ON	PM.商品ＣＤ=MTT.商品ＣＤ
-		AND MTT.得意先ＣＤ=$CustomerCd
-WHERE
-     表示ＦＬＧ=0
-        ";
-
-        $Result = collect(DB::select($sql))
-            ->map(function ($product) {
-                $vm = (object) $product;
-
-                $vm->Cd = $product->商品ＣＤ;
-                $vm->CdNm = $product->商品名;
-
-                return $vm;
-            })
-            ->values();
-
-        return response()->json($Result);
     }
 
     /**

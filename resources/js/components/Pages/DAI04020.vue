@@ -343,6 +343,10 @@ export default {
                         }
                     );
 
+                    gridOptions.colModel
+                        .filter(c => ["郵便番号", "住所", "電話番号", "ＦＡＸ"].includes(c.dataIndx))
+                        .forEach(c => c.hidden = true);
+
                     //callback実行
                     callback();
                 })
@@ -402,7 +406,7 @@ export default {
                 isModal: true,
                 isChild: true,
                 width: 840,
-                height: 590,
+                height: 500,
             });
         },
         showNewDetail: function(rowData) {
@@ -416,7 +420,7 @@ export default {
                 isModal: true,
                 isChild: true,
                 width: 840,
-                height: 590,
+                height: 500,
             });
         },
     }
