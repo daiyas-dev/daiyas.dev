@@ -247,18 +247,18 @@ class DAI02010Controller extends Controller
         WITH 更新前データ1 AS
         (
         SELECT
-             T1.得意先ＣＤ
-            ,T1.得意先名
-            ,T1.売掛現金区分
-            ,T1.締区分
-            ,T1.締日１
-            ,T1.締日２
-            ,T1.支払サイト
-            ,T1.支払日
-            ,T1.集金区分
-            ,T1.税区分
-            ,T1.部署ＣＤ
-            ,T1.請求先ＣＤ
+             T2.得意先ＣＤ
+            ,T2.得意先名
+            ,T2.売掛現金区分
+            ,T2.締区分
+            ,T2.締日１
+            ,T2.締日２
+            ,T2.支払サイト
+            ,T2.支払日
+            ,T2.集金区分
+            ,T2.税区分
+            ,T2.部署ＣＤ
+            ,T2.請求先ＣＤ
             ,B1.今回入金額
             ,B1.今回売上額
             ,B1.消費税額
@@ -281,10 +281,12 @@ class DAI02010Controller extends Controller
             AND 締区分 IN ($SimeKbn)
             $WhereSimeDate
             ) T1
+        LEFT JOIN 得意先マスタ T2 ON
+            T1.請求先ＣＤ = T2.請求先ＣＤ
         --◆請求データ取得
         LEFT JOIN 請求データ B1 ON
-            B1.部署ＣＤ = T1.部署ＣＤ
-        AND B1.請求先ＣＤ = T1.得意先ＣＤ
+            B1.部署ＣＤ = T2.部署ＣＤ
+        AND B1.請求先ＣＤ = T2.得意先ＣＤ
         AND B1.請求日付 =
             (
             SELECT
@@ -295,6 +297,7 @@ class DAI02010Controller extends Controller
                 DAMMY.請求先ＣＤ = B1.請求先ＣＤ
             AND DAMMY.請求日付 < '$TargetDateMax'
             )
+        WHERE T1.得意先ＣＤ = T1.請求先ＣＤ
         ),
 
 		売上データ明細_集計 AS (
@@ -545,6 +548,7 @@ class DAI02010Controller extends Controller
              CASE WHEN (num1 != 0 OR num2 != 0 OR (num3 != 0 OR num5 != 0) OR num4 != 0) THEN DENSE_RANK() OVER(ORDER BY 請求先ＣＤ) END AS 請求SEQ
             ,請求日付
             ,部署ＣＤ
+            ,LAG(請求先ＣＤ) OVER(ORDER BY 請求先ＣＤ, 得意先ＣＤ) AS 請求先ＣＤ_LAG
             ,請求先ＣＤ
             ,得意先ＣＤ
             ,今回入金額
@@ -571,7 +575,8 @@ class DAI02010Controller extends Controller
         更新データ AS
         (
 		SELECT
-             請求SEQ
+            -- 請求SEQ
+             CASE WHEN ISNULL(請求先ＣＤ_LAG, 0) = ISNULL(請求先ＣＤ, 0) AND 請求先ＣＤ != 0 THEN LAG(請求SEQ) OVER(ORDER BY 請求先ＣＤ, 得意先ＣＤ) ELSE 請求SEQ END AS 請求SEQ
             ,請求日付
             ,部署ＣＤ
             ,請求先ＣＤ
@@ -636,15 +641,22 @@ class DAI02010Controller extends Controller
         WHERE
             請求日付 = '$TargetDateMax'
         AND 請求先ＣＤ IN (
+            SELECT T2.得意先ＣＤ FROM
+            (
             SELECT
-                得意先ＣＤ
+                得意先ＣＤ,
+                請求先ＣＤ
             FROM
                 得意先マスタ
             WHERE
                 締区分 IN ($SimeKbn)
             AND (締日１= $SimeDate OR 締日２ = $SimeDate)
             AND 請求先ＣＤ IN ($CustomerList)
-        )";
+			) T1
+			LEFT JOIN 得意先マスタ T2 ON
+				T1.請求先ＣＤ = T2.請求先ＣＤ
+        )
+        ";
 
         $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
@@ -814,15 +826,15 @@ class DAI02010Controller extends Controller
 
         // var_export($sql);
 
-        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-        $user = 'daiyas';
-        $password = 'daiyas';
+        // $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        // $user = 'daiyas';
+        // $password = 'daiyas';
 
-        $pdo = new PDO($dsn, $user, $password);
-        $stmt = $pdo->query($sql);
-        //$DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $pdo = null;
-        // DB::insert($sql);
+        // $pdo = new PDO($dsn, $user, $password);
+        // $stmt = $pdo->query($sql);
+        // //$DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // $pdo = null;
+        DB::insert($sql);
     }
 
     /**
