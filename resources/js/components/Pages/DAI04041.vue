@@ -2104,10 +2104,15 @@ export default {
 
             $(vue.$el).find(".has-error").removeClass("has-error");
 
-            //登録用controller method call
+            //登録中ダイアログ
+            var progressDlg = $.dialogProgress({
+                contents: "<i class='fa fa-spinner fa-spin' style='font-size: 24px; margin-right: 5px;'></i> 登録中…",
+            });
+
             axios.post("/DAI04041/Save", params)
                 .then(res => {
                     if(!!res.data.duplicate){
+                        progressDlg.dialog("close");
                         var duplicate = res.data.duplicate;
                         $.dialogInfo({
                             title: "登録失敗",
@@ -2121,14 +2126,13 @@ export default {
                         vue.saveTelList();
                         vue.saveHistoryList();
 
+                        progressDlg.dialog("close");
+
                         if (!!vue.params.Parent) {
                             if (vue.params.Parent.$attrs.pgId == "DAI04040") {
                                 vue.params.Parent.conditionChanged(true);
                             } else if (vue.params.Parent.$attrs.pgId == "DAI01030") {
-                                var ps = vue.params.Parent.$refs.PopupSelect_Customer;
-                                ps.getDataList(null, () => {
-                                    ps.setSelectValue(vue.params.Parent.viewModel.CustomerCd, true);
-                                });
+                                vue.params.Parent.updateCustomer();
                             }
                         }
 
@@ -2137,7 +2141,12 @@ export default {
                     }
                 })
                 .catch(err => {
+                    progressDlg.dialog("close");
                     console.log(err);
+                    $.dialogErr({
+                        title: "異常終了",
+                        contents: "登録に失敗しました<br/>",
+                    });
                 }
             );
         },

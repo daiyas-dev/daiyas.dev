@@ -481,18 +481,18 @@ export default {
                 }
                 th, td {
                     font-family: "MS UI Gothic";
-                    font-size: 8pt;
+                    font-size: 11pt;
                     font-weight: normal;
                     margin: 0px;
                     padding-left: 3px;
                     padding-right: 3px;
                 }
                 th {
-                    height: 12px;
+                    height: 19px;
                     text-align: center;
                 }
                 td {
-                    height: 12px;
+                    height: 20px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
@@ -500,18 +500,51 @@ export default {
                     text-align: left;
                     border: solid 1px black;
                 }
-                table.header-table th.blank-cell {
-                    border:none;
+                td.customer-nm {
+                    font-size: 12pt;
                 }
-                div.report-title-area{
-                    width:400px;
-                    height:35px;
+                div.title,
+                td.customer-cd-A{
+                    font-size: 18pt;
+                }
+                td.customer-cd-A,
+                td.customer-cd{
                     text-align: center;
-                    display:table-cell;
-                    vertical-align: middle;
-                    background-color: #c0ffff;
-                    border: 2px solid #000000;
-                    border-radius: 5px;
+                    padding-left: 200px;
+                }
+                div.kaisya-info{
+                    margin-left: 240px;
+                    margin-bottom: 30px;
+                }
+                div.chuui-gaki > div {
+                    font-size: 8pt;
+                }
+                table.header-table th:nth-child(1) {
+                    width: 41%;
+                }
+                table.header-table th:nth-child(2),
+                table.header-table th:nth-child(3) {
+                    width: 13%;
+                }
+                div.fax-tel {
+                    margin-left: 100px;
+                }
+                div.hizuke {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                    width: 150px;
+                    margin-left: 20px;
+                    padding: 3px;
+                }
+                span {
+                    margin-left: 8px;
+                    margin-right: 8px;
+                }
+                hr {
+                    border: none;
                 }
             `;
 
@@ -547,29 +580,32 @@ export default {
                             <div>
                                 <div class="header">
                                     <div>
-                                        <div>注文書</div>
+                                        <div class="title">
+                                            注文書
+                                        </div>
                                             <table style="width:100%;">
                                                 <tr>
-                                                    <td>
+                                                    <td class="customer-nm">
                                                         <span>${r.得意先名}</span><span>様</span>
                                                     </td>
-                                                    <td>
+                                                    <td class="customer-cd-A">
                                                         A${r.得意先ＣＤ}A
                                                     </td>
                                                 </tr>
                                                 <tr>
                                                     <td>
-                                                        <div><span>Fax.</span><span>${r.ＦＡＸ１}</span></div>
-                                                        <div><span>Tel.</span><span>${r.電話番号１}</span></div>
-                                                        <div>月　日　分</div>
+                                                        <div class="fax-tel"><span>Fax.</span><span>${r.ＦＡＸ１ ? r.ＦＡＸ１ : ""}</span></div>
+                                                        <div class="fax-tel"><span>Tel.</span><span>${r.電話番号１ ? r.電話番号１ : ""}</span></div>
+                                                        <div class="hizuke"><span/><span/><span>月</span><span/><span/>日分</div>
+                                                        <div style="height: 8px;"></div>
                                                     </td>
-                                                    <td>
-                                                        <span>顧客コード</span><span>${r.得意先ＣＤ}</span>
+                                                    <td class="customer-cd">
+                                                        <span>顧客コード</span><span/><span/><span>${r.得意先ＣＤ}</span>
                                                     </td>
                                                 </tr>
                                             </table>
                                         </div>
-                                        <table class="header-table" style="border-width: 0px; margin-bottom: 20px;">
+                                        <table class="header-table" style="border-width: 0px; margin-bottom: 8px;">
                                             <thead>
                                                 <tr>
                                                     <th>弁当名</th>
@@ -582,12 +618,12 @@ export default {
                                                 ${layout_product}
                                             </tbody>
                                         </table>
-                                        <div style="float:left;">
+                                        <div style="float:left;" class="chuui-gaki">
                                             <div>※本用紙をコピーしてお使い下さい。</div>
                                             <div>※本注文書は、御社専用です。他のお客様に流用しないでください。</div>
                                             <div>※ご注文、食数の変更はできるだけ午前９時１０分迄にお願いします。</div>
                                         </div>
-                                        <div style="float:left;">
+                                        <div style="float:left;" class="kaisya-info">
                                             <div>株式会社ダイヤス食品</div>
                                             <div>Fax.0836-21-4700</div>
                                             <div>Tel.0836-32-1113</div>

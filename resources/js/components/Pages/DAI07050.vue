@@ -1082,7 +1082,7 @@ export default {
                                         </tbody>
                                     </table>
                                     <div style="padding-top: 18px; height: 30px; padding-left:293px;">
-                                        （${moment(vue.viewModel.TargetDate, "YYYY年MM月DD日").day(6).format("YYYY/MM/DD")} 締）
+                                        ${!!r.請求先ＣＤ ? "（" + moment(vue.viewModel.TargetDate, "YYYY年MM月DD日").day(6).format("YYYY/MM/DD") + " 締）" : ""}
                                     </div>
                                 </div>
                             </div>
@@ -1091,7 +1091,7 @@ export default {
                                     <span/>${!!r.請求先ＣＤ ? ("000000000" + r.請求番号).slice(-9) : (moment(r.請求日付).format("YYMMDD") + " - " + r.請求番号)}
                                 </div>
                                 <div>
-                                    <span style="white-space: pre;">${moment(r.請求日付).format("  YY  年  MM  月  DD  日")}</span>
+                                    <span style="padding-left: 50px; letter-spacing: 0.8em;"> 年 月 日</span>
                                 </div>
                                 <div></div>
                             </div>

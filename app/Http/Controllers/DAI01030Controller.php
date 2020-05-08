@@ -151,7 +151,7 @@ class DAI01030Controller extends Controller
                 SELECT
                     MTT.得意先ＣＤ,
                     MTT.商品ＣＤ,
-                    MTT.単価,
+                    IIF(CD.予備金額１ != 0, CD.予備金額１, MTT.単価) AS 単価,
                     MTT.商品名,
                     MTT.商品区分,
                     CD.注文区分,
@@ -165,7 +165,7 @@ class DAI01030Controller extends Controller
                     CD.掛売個数,
                     CD.掛売金額,
                     CD.予備ＣＤ１,
-                    CD.予備金額1,
+                    CD.予備金額１,
                     CD.修正担当者ＣＤ,
                     CD.修正日
                 FROM
@@ -245,7 +245,7 @@ class DAI01030Controller extends Controller
                 SELECT DISTINCT
                     注文データ.得意先ＣＤ,
                     注文データ.商品ＣＤ,
-                    CASE  WHEN 得意先単価.単価 IS NULL THEN 注文データ.予備金額１ ELSE 得意先単価.単価 END 単価,
+                    CASE WHEN 注文データ.予備金額１ IS NULL THEN 得意先単価.単価 ELSE 注文データ.予備金額１ END 単価,
                     商品マスタ.商品名,
                     0 タイトルフラグ
                 FROM
@@ -563,6 +563,18 @@ class DAI01030Controller extends Controller
 
         try {
             $params = $request->all();
+
+            $DeleteList = $params['DeleteList'];
+            foreach ($DeleteList as $rec) {
+                注文データ::query()
+                    ->where('注文区分', $rec['注文区分'])
+                    ->where('注文日付', $rec['注文日付'])
+                    ->where('部署ＣＤ', $rec['部署ＣＤ'])
+                    ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
+                    ->where('配送日', $rec['配送日'])
+                    ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
+                    ->delete();
+            }
 
             $SaveList = $params['SaveList'];
 

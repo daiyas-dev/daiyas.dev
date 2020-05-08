@@ -318,7 +318,7 @@ export default {
                 }
                 th, td {
                     font-family: "MS UI Gothic";
-                    font-size: 10pt;
+                    font-size: 11pt;
                     font-weight: normal;
                     margin: 0px;
                     padding-left: 3px;
@@ -326,12 +326,16 @@ export default {
                 }
                 th {
                     height: 25px;
-                    text-align: center;
+                    text-align: left;
+                    padding-left: 10px;
+                    padding-right: 10px;
                 }
                 td {
                     height: 22px;
                     white-space: nowrap;
                     overflow: hidden;
+                    padding-left: 10px;
+                    padding-right: 10px;
                 }
                 table.header-table th.blank-cell {
                     border:none;
@@ -341,21 +345,28 @@ export default {
             var headerFunc = (header, idx, length) => {
                 return `
                     <div class="title">
-                        <h3>* * * 商品別売上一覧表 * * *</h3>
+                        <h3>* * 売上報告書 * *</h3>
                     </div>
                     <table class="header-table" style="border-width: 0px">
                         <thead>
                             <tr>
-                                <th>集計範囲</th>
-                                <th> (${vue.viewModel.DateStart}</th>
-                                <th>～</th>
-                                <th>${vue.viewModel.DateEnd})</th>
+                                <th style="width: 26%;" class="blank-cell"></th>
+                                <th style="width: 11%;">集計範囲</th>
+                                <th style="width: 12%;"> (${moment(vue.viewModel.DateStart, "YYYY年MM月DD日").format("YYYY/MM/DD")}</th>
+                                <th style="width: 3%;">～</th>
+                                <th style="width: 12%;">${moment(vue.viewModel.DateEnd, "YYYY年MM月DD日").format("YYYY/MM/DD")})</th>
+                                <th style="width: 26%;" class="blank-cell"></th>
                             </tr>
                             <tr>
-                                <th style="width: 10%;">${vue.KaishaMei}</th>
-                                <th style="width: 10%;" class="blank-cell"></th>
-                                <th style="width: 10%;" class="blank-cell"></th>
-                                <th style="width: 10%;" class="blank-cell"></th>
+                                <th class="shamei">${vue.KaishaMei}</th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                            </tr>
+                            <tr>
+                                <th colspan="6" class="blank-cell"></th>
                             </tr>
                         </thead>
                     </table>
@@ -363,12 +374,43 @@ export default {
             };
 
             var styleCustomers =`
+                th.shamei {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                }
                 table.DAI03130Grid1 tr:nth-child(1) th {
                     border-style: solid;
                     border-left-width: 0px;
                     border-top-width: 1px;
                     border-right-width: 0px;
                     border-bottom-width: 1px;
+                }
+                table.DAI03130Grid1 tr td {
+                    border-style: dotted;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.DAI03130Grid1 tr th:nth-child(1) {
+                    width: 12%;
+                }
+                table.DAI03130Grid1 tr th:nth-child(2) {
+                    width: 21%;
+                }
+                table.DAI03130Grid1 tr th:nth-child(3) {
+                    width: 13%;
+                    text-align: right;
+                }
+                table.DAI03130Grid1 tr th:nth-child(4) {
+                    width: 15%;
+                    text-align: right;
+                }
+                table.DAI03130Grid1 {
+                    width: 61%;
                 }
             `;
 
@@ -392,7 +434,7 @@ export default {
 
             var printOptions = {
                 type: "raw-html",
-                style: "@media print { @page { size: A4 landscape; } }",
+                style: "@media print { @page { size: A4;} }",
                 printable: printable,
             };
 

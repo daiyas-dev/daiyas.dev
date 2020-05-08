@@ -44,6 +44,7 @@ class DAI03120Controller extends Controller
                     AND URI.売掛現金区分 <> 4
                     AND URI.分配元数量 = 0
                     $WhereBusho1
+                    AND URI.商品ＣＤ <> 800
                 GROUP BY
                         URI.部署ＣＤ
                       , 部署マスタ.部署名

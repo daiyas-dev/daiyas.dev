@@ -134,7 +134,13 @@ ipcMain.on("Print_Req", (event, content, options) => {
     showLogs("main Print_Req", content, options, printOptions);
 
     var printStyle = printOptions.style.match(/@media print \{.+ \}/);
-    var landscape = printStyle.length && printStyle[0].includes("landscape");
+
+    if (!!printStyle.length) {
+        printOptions.landscape = printStyle[0].includes("landscape");
+        printOptions.color = printStyle[0].includes("color");
+    }
+
+    printOptions.printBackground = true;
 
     var mainBounds = mainWindow.getBounds();
     var mw = mainBounds.width;
@@ -144,12 +150,12 @@ ipcMain.on("Print_Req", (event, content, options) => {
     var sh = screen.getPrimaryDisplay().workAreaSize.height;
 
     var w, h;
-    if (landscape) {
+    if (printOptions.landscape) {
         w = sw * 0.7;
         h = w * 5 / 7;
     } else {
-        h = sh * 0.9;
-        w = h * 5 / 7;
+        w = sw * 0.6;
+        h = sh * 0.8;
     }
 
     // printWindow.setMenu(null);   //TODO: to debug
@@ -157,7 +163,7 @@ ipcMain.on("Print_Req", (event, content, options) => {
     showLogs("show PrintWindow", Math.round(w), Math.round(h));
     printWindow.setBounds({
         x: Math.round(sw / 2 - w / 2),
-        y: landscape ? Math.round(sh / 2 - h / 2) : 50,
+        y: printOptions.landscape ? Math.round(sh / 2 - h / 2) : 50,
         width: Math.round(w),
         height: Math.round(h),
     });

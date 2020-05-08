@@ -291,7 +291,8 @@ export default {
             handler: function(newVal) {
                 var vue = this;
                 var disabled = !(!!vue.viewModel.CustomerCd && vue.$refs.PopupSelect_Customer.isValid);
-                vue.footerButtons.find(v => v.id == "DAI01030Grid1_ShowMaint").disabled = disabled;
+                vue.footerButtons.find(v => v.id == "DAI01030Grid1_showCustomerMaint").disabled = disabled;
+                vue.footerButtons.find(v => v.id == "DAI01030Grid1_showProductMaint").disabled = disabled;
             },
         },
     },
@@ -582,7 +583,7 @@ export default {
             vue.footerButtons.push(
                 { visible: "true", value: "検索", id: "DAI01030Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
-                        vue.conditionChanged(null, true);
+                        vue.conditionChanged(true);
                     }
                 },
                 {visible: "false"},
@@ -607,12 +608,16 @@ export default {
                         vue.showBalance();
                     }
                 },
-                { visible: "true", value: "得意先<br>マスタメンテ", id: "DAI01030Grid1_ShowMaint", disabled: true, shortcut: "F7",
+                { visible: "true", value: "得意先<br>マスタメンテ", id: "DAI01030Grid1_showCustomerMaint", disabled: true, shortcut: "F7",
                     onClick: function () {
-                        vue.showMaint();
+                        vue.showCustomerMaint();
                     }
                 },
-                {visible: "false"},
+                { visible: "true", value: "得意先単価<br>マスタメンテ", id: "DAI01030Grid1_showProductMaint", disabled: true, shortcut: "F8",
+                    onClick: function () {
+                        vue.showProductMaint();
+                    }
+                },
                 { visible: "true", value: "登録", id: "DAI01030Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         vue.saveOrder();
@@ -652,7 +657,7 @@ export default {
                             ;
                     })
                     //検索
-                    vue.conditionChanged(null, true);
+                    vue.conditionChanged(true);
                 });
 
                 return;
@@ -681,7 +686,6 @@ export default {
         },
         onCustomerChanged: function(code, entity, comp) {
             var vue = this;
-            console.log("1030 onCustomerChanged");
 
             if (!!entity && !_.isEmpty(entity)) {
                 vue.CustomerChanged(entity, comp.isValid);
@@ -720,7 +724,7 @@ export default {
             //vue.setGroupCustomer(vue.viewModel.CustomerCd);
 
             //条件変更ハンドラ
-            vue.conditionChanged(true);
+            vue.conditionChanged();
         },
         conditionChanged: function(force) {
             var vue = this;
@@ -731,27 +735,23 @@ export default {
 
             if (!force && _.isEqual(grid.options.dataModel.postData, vue.searchParams)) return;
 
-            if (grid.options.dataModel.postData.CustomerCd != vue.searchParams.CustomerCd) {
-                grid.showLoading();
+            grid.showLoading();
 
-                //商品リスト検索
-                axios.post("/DAI01030/GetProductList", vue.searchParams)
-                    .then(res => {
-                        grid.hideLoading();
-                        vue.ProductList = res.data;
-                        vue.DAI01030Grid1.searchData(vue.searchParams);
-                    })
-                    .catch(err => {
-                        grid.hideLoading();
-                        console.log("/DAI01030/GetProductList Error", err)
-                        $.dialogErr({
-                            title: "商品マスタ検索失敗",
-                            contents: "商品マスタの検索に失敗しました" + "<br/>" + err.message,
-                        });
+            //商品リスト検索
+            axios.post("/DAI01030/GetProductList", vue.searchParams)
+                .then(res => {
+                    grid.hideLoading();
+                    vue.ProductList = res.data;
+                    vue.DAI01030Grid1.searchData(vue.searchParams);
+                })
+                .catch(err => {
+                    grid.hideLoading();
+                    console.log("/DAI01030/GetProductList Error", err)
+                    $.dialogErr({
+                        title: "商品マスタ検索失敗",
+                        contents: "商品マスタの検索に失敗しました" + "<br/>" + err.message,
                     });
-            } else {
-                vue.DAI01030Grid1.searchData(vue.searchParams);
-            }
+                });
         },
         getProductList: function() {
             var vue = this;
@@ -1029,12 +1029,21 @@ export default {
                 delete v.sortIndx;
             });
 
+            var DeleteList = grid.getChanges().deleteList
+                .map(v => {
+                    var ret = _.cloneDeep(v.InitialValue);
+                    ret.部署ＣＤ = vue.viewModel.BushoCd;
+
+                    return ret;
+                });
+
             //保存実行
             grid.saveData(
                 {
                     uri: "/DAI01030/Save",
                     params: {
                         SaveList: SaveList,
+                        DeleteList: DeleteList,
                     },
                     optional: this.searchParams,
                     confirm: {
@@ -1053,7 +1062,8 @@ export default {
                                 });
                                 grid.blinkDiff(res.current);
                             } else {
-                                grid.setLocalData(res.current);
+                                // grid.setLocalData(res.current);
+                                grid.refreshDataAndView();
                                 vue.viewModel.IsEdit = true;
                             }
 
@@ -1246,7 +1256,7 @@ export default {
                 }
             });
         },
-        showMaint: function() {
+        showCustomerMaint: function() {
             var vue = this;
 
             var cd = vue.viewModel.CustomerCd;
@@ -1278,6 +1288,88 @@ export default {
                         contents: "得意先マスタの検索に失敗しました"
                     })
                 })
+        },
+        updateCustomer: function() {
+            var vue = this;
+            var ps = vue.$refs.PopupSelect_Customer;
+
+            ps.getDataList(null, () => {
+                console.log("update customer", ps.selectRow);
+                var info = ps.dataList.find(v => v.Cd == vue.viewModel.CustomerCd);
+                vue.CustomerChanged(info);
+            });
+        },
+        showProductMaint: function() {
+            var vue = this;
+
+            var cd = vue.viewModel.CustomerCd;
+            if (!cd) return;
+
+            var params = { 得意先ＣＤ: cd, 得意先名: vue.viewModel.CustomerNm };
+            params.IsNew = false;
+            params.Available = "1";
+            params.TargetDate = moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD");
+            params.Parent = vue;
+
+            //DAI04051を子画面表示
+            PageDialog.show({
+                pgId: "DAI04051",
+                params: params,
+                isModal: true,
+                isChild: true,
+                resizable: false,
+                width: 880,
+                height: 600,
+                onBeforeClose: (event, ui) => {
+                    console.log("onBeforeClose", event, ui);
+
+                    if ($(window.event.target).attr("shortcut") == "ESC") return true;
+
+                    var dlg = $(event.target);
+                    var editting = dlg.find(".pq-grid")
+                        .map((i, v) => $(v).pqGrid("getInstance").grid)
+                        .get()
+                        .some(g => !_.isEmpty(g.getEditCell()));
+                    var isEscOnEditor = !!window.event && window.event.key == "Escape"
+                        && (
+                            $(window.event.target).hasClass("target-input") ||
+                            $(window.event.target).hasClass("pq-cell-editor")
+                        );
+
+                    return !editting && !isEscOnEditor;
+                }
+            });
+        },
+        updateProduct: function() {
+            var vue = this;
+            var grid = vue.DAI01030Grid1;
+
+            var params = _.cloneDeep(vue.searchParams);
+            params.noCache = true;
+
+            //商品リスト検索
+            axios.post("/DAI01030/GetProductList", params)
+                .then(res => {
+                    vue.ProductList = res.data;
+                    grid.getData()
+                        .filter(r => !r.InitialValue && !!r.商品ＣＤ)
+                        .forEach(r => {
+                            var pd = vue.ProductList.find(p => p.商品ＣＤ == r.商品ＣＤ);
+                            if (!!pd) {
+                                r.単価 = pd.単価;
+                                r.現金金額 = r.単価 * 1 * r.現金個数 * 1;
+                                r.掛売金額 = r.単価 * 1 * r.掛売個数 * 1;
+                            }
+                        });
+                    grid.refreshView();
+                })
+                .catch(err => {
+                    console.log("/DAI01030/GetProductList Error", err)
+                    $.dialogErr({
+                        title: "商品マスタ検索失敗",
+                        contents: "商品マスタの検索に失敗しました" + "<br/>" + err.message,
+                    });
+                });
         },
     }
 }

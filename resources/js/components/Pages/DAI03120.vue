@@ -373,8 +373,10 @@ export default {
                     white-space: nowrap;
                     overflow: hidden;
                 }
-                table.header-table th.blank-cell {
+                div.header-table div.blank-cell {
                     border:none;
+                    color: transparent;
+
                 }
             `;
 
@@ -385,40 +387,84 @@ export default {
                     <div class="title">
                         <h3>* * * 商品別売上一覧表 * * *</h3>
                     </div>
-                    <table class="header-table" style="border-width: 0px">
-                        <thead>
-                            <tr>
-                                <th style="width: 10%;">部署</th>
-                                <th style="width: 10%; text-align: right;">${bushoCd}</th>
-                                <th style="width: 20%;">${bushoNm}</th>
-                                <th style="width: 10%;" class="blank-cell"></th>
-                                <th style="width: 10%;" class="blank-cell"></th>
-                                <th style="width: 10%;" class="blank-cell"></th>
-                                <th style="width: 10%;" class="blank-cell"></th>
-                                <th style="width: 10%;" class="blank-cell"></th>
-                            </tr>
-                            <tr>
-                                <th>${vue.viewModel.DateStart}</th>
-                                <th>～</th>
-                                <th>${vue.viewModel.DateEnd}</th>
-                                <th class="blank-cell"></th>
-                                <th>作成日</th>
-                                <th>${moment().format("YYYY年MM月DD日")}</th>
-                                <th>PAGE</th>
-                                <th style="text-align: right;">${idx + 1}</th>
-                            </tr>
-                        </thead>
-                    </table>
+                    <div class="header-table" style="border-width: 0px">
+                        <div>
+                            <div style="width: 8%;">部署</div>
+                            <div style="width: 8%; text-align: right;">${bushoCd}</div>
+                            <div style="width: 20%; padding-left: 10px;">${bushoNm}</div>
+                            <div style="width: 50%;" class="blank-cell">blank-cell</div>
+                        </div>
+                        <div>
+                            <div style="width: 14%; text-align: right;">${moment(vue.viewModel.DateStart, "YYYY年MM月DD日").format("YYYY/MM/DD")}</div>
+                            <div style="width: 4%; text-align: center;">～</div>
+                            <div style="width: 14%; text-align: right;">${moment(vue.viewModel.DateEnd, "YYYY年MM月DD日").format("YYYY/MM/DD")}</div>
+                            <div style="width: 21.6%;" class="blank-cell">blank-cell</div>
+                            <div style="width: 7%;">作成日</div>
+                            <div style="width: 17%; text-align: right;">${moment().format("YYYY年MM月DD日")}</div>
+                            <div style="width: 7%;">PAGE</div>
+                            <div style="width: 7.2%; text-align: right;">${idx + 1}/${length}</div>
+                        </div>
+                    </div>
                 `;
             };
 
             var styleCustomers =`
-                table.DAI03120Grid1 tr:nth-child(1) th {
+                div.header-table{
+                    width: 100%
+                }
+                div.header-table > div {
+                    clear: left;
+                    width: 100%
+                }
+                div.header-table > div > div {
+                    float: left;
+                }
+                div.header-table > div > div {
+                    font-size: 10pt;
+                    padding-left: 3px;
+                    padding-right: 3px;
+                }
+                div.header-table > div:nth-child(1) > div {
                     border-style: solid;
-                    border-left-width: 0px;
+                    border-left-width: 1px;
                     border-top-width: 1px;
                     border-right-width: 0px;
                     border-bottom-width: 1px;
+                }
+                div.header-table > div:nth-child(2) > div:nth-child(1) ,
+                div.header-table > div:nth-child(2) > div:nth-child(2) ,
+                div.header-table > div:nth-child(2) > div:nth-child(3) {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                div.header-table > div:nth-child(2) > div:nth-child(5) ,
+                div.header-table > div:nth-child(2) > div:nth-child(6) ,
+                div.header-table > div:nth-child(2) > div:nth-child(7) ,
+                div.header-table > div:nth-child(2) > div:nth-child(8) {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                div.header-table > div > div:nth-child(3),
+                div.header-table > div > div:last-child {
+                    border-right-width: 1px !important;
+                }
+                table.DAI03120Grid1 tr:nth-child(1) th ,
+                table.DAI03120Grid1 tr td {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.DAI03120Grid1 tr:nth-child(1) th:last-child ,
+                table.DAI03120Grid1 tr td:last-child {
+                    border-right-width: 1px;
                 }
                 table.DAI03120Grid1 tr.group-summary td {
                     border-style: solid;
@@ -431,41 +477,67 @@ export default {
                     text-align: right;
                     padding-right: 50px;
                 }
-                table.DAI03120Grid1 tr[level="0"].group-summary td {
-                    border-style: dotted;
-                    border-left-width: 0px;
+                table.DAI03120Grid1 tr[level="0"].group-summary td{
+                    border-style: solid;
+                    border-top-style: dotted;
+                    border-left-width: 1px;
                     border-top-width: 1px;
                     border-right-width: 0px;
                     border-bottom-width: 0px;
                 }
-                table.DAI03120Grid1 tr[level="0"].group-summary td:nth-child(2) {
+                table.DAI03120Grid1 tr[level="0"].group-summary td:nth-child(2) ,
+                table.DAI03120Grid1 tr.grand-summary td:nth-child(2) {
                     text-align: right;
-                    padding-right: 30px;
+                    padding-right: 15px;
+                    letter-spacing: 0.3em;
                 }
-                table.DAI03120Grid1 tr.grand-summary td {
+                table.DAI03120Grid1 tr[level="0"].group-summary td:nth-child(2):before ,
+                table.DAI03120Grid1 tr.grand-summary td:nth-child(2):before {
+                    content: "* * ";
+                }
+                table.DAI03120Grid1 tr[level="0"].group-summary td:nth-child(2):after ,
+                table.DAI03120Grid1 tr.grand-summary td:nth-child(2):after {
+                    content: " * *";
+                }
+                table.DAI03120Grid1 tr.grand-summary td:nth-child(1) {
                     border-style: solid;
                     border-left-width: 0px;
                     border-top-width: 1px;
                     border-right-width: 0px;
                     border-bottom-width: 0px;
                 }
+                table.DAI03120Grid1 tr.grand-summary td:not(:nth-child(1)) {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI03120Grid1 tr td:last-child {
+                    border-right-width: 1px !important;
+                }
                 table.DAI03120Grid1 tr.grand-summary td:nth-child(2) {
                     text-align: right;
                 }
-                table.DAI03120Grid1 tr.grand-summary td:nth-child(3) {
-                    text-align: left;
-                }
                 table.DAI03120Grid1 tr th:nth-child(1) {
-                    width: 4.5%;
+                    width: 10%;
                 }
                 table.DAI03120Grid1 tr th:nth-child(3) {
-                    width: 4.5%;
+                    width: 10%;
                 }
-                table.DAI03120Grid1 tr th:nth-child(n+4):nth-child(-n+12) {
-                    width: 6%;
+                table.DAI03120Grid1 tr th:nth-child(4),
+                table.DAI03120Grid1 tr th:nth-child(5) {
+                    width: 13%;
                 }
-                table.DAI03120Grid1 tr th:nth-child(13) {
-                    width: 7%;
+                table.DAI03120Grid1 tr td:nth-child(1) ,
+                table.DAI03120Grid1 tr td:nth-child(3) ,
+                table.DAI03120Grid1 tr td:nth-child(4) ,
+                table.DAI03120Grid1 tr td:nth-child(5) {
+                   text-align: right;
+                    padding-right: 10px;
+                }
+                table.DAI03120Grid1 tr td:nth-child(2) {
+                    padding-left: 10px;
                 }
             `;
 
