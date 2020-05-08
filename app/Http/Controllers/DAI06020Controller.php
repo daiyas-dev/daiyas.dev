@@ -95,6 +95,7 @@ class DAI06020Controller extends Controller
             $params = $request->all();
 
             $date = Carbon::now()->format('Y-m-d H:i:s');
+            $InsatsuMaisu=$params['InsatsuMaisu'];
             $CustomerCd=$params['CustomerCd'];
             $TicketNo=$params['TicketNo'];
             $IssueDate=$params['IssueDate'];
@@ -104,22 +105,25 @@ class DAI06020Controller extends Controller
             $InsatsuTantoCd=$params['InsatsuTantoCd'];
             $SaveItem=$params['SaveList'][0];
 
-            $rec=array();
-            $rec['得意先ＣＤ'] = $CustomerCd;
-            $rec['チケット管理番号'] = $TicketNo;
-            $rec['印刷日時'] = $date;
-            $rec['発行日'] = $IssueDate;
-            $rec['有効期限'] = $ExpireDate;
-            $rec['チケット内数'] = $TicketSu;
-            $rec['SV内数'] = $SvTicketSu;
-            $rec['単価'] = $SaveItem['単価'];
-            $rec['金額'] = $rec['単価'] * $rec['チケット内数'];
-            $rec['商品ＣＤ'] = $SaveItem['商品ＣＤ'];
-            $rec['担当者ＣＤ'] = $InsatsuTantoCd;
-            $rec['廃棄'] = 0;
-            $rec['修正日'] = $date;
-            $rec['修正担当者ＣＤ'] = $InsatsuTantoCd;
-            チケット発行::insert($rec);
+            for($i=0;$i<$InsatsuMaisu;$i++)
+            {
+                $rec=array();
+                $rec['得意先ＣＤ'] = $CustomerCd;
+                $rec['チケット管理番号'] = $TicketNo+$i;
+                $rec['印刷日時'] = $date;
+                $rec['発行日'] = $IssueDate;
+                $rec['有効期限'] = $ExpireDate;
+                $rec['チケット内数'] = $TicketSu;
+                $rec['SV内数'] = $SvTicketSu;
+                $rec['単価'] = $SaveItem['単価'];
+                $rec['金額'] = $rec['単価'] * $rec['チケット内数'];
+                $rec['商品ＣＤ'] = $SaveItem['商品ＣＤ'];
+                $rec['担当者ＣＤ'] = $InsatsuTantoCd;
+                $rec['廃棄'] = 0;
+                $rec['修正日'] = $date;
+                $rec['修正担当者ＣＤ'] = $InsatsuTantoCd;
+                チケット発行::insert($rec);
+            }
 
             DB::commit();
         } catch (Exception $exception) {
