@@ -8,7 +8,7 @@ builder.build(
     {
         config: {
             "releaseInfo": {
-                "releaseNotes": "XXXXの修正"
+                "releaseNotes": "初版"
             },
             "win": {
                 "target": "nsis",

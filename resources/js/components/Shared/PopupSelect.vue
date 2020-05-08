@@ -533,8 +533,12 @@ export default {
                         if (!vue.dataList || !!vue.dataListReset) {
                             vue.dataList = res;
                         } else if (!_.isEqual(vue.dataList, res)) {
-                            var ins = res.filter(v => !vue.dataList.map(v => v.Cd).includes(v.Cd));
-                            vue.dataList = vue.dataList.concat(ins);
+                            // var ins = res.filter(v => !vue.dataList.map(v => v.Cd).includes(v.Cd));
+                            // vue.dataList = vue.dataList.concat(ins);
+
+                            var list = res.concat(vue.dataList);
+                            list = _.uniqBy(list, "Cd");
+                            vue.dataList = list;
                         }
                     }
 
