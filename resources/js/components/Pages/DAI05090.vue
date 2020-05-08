@@ -917,14 +917,18 @@ export default {
                 table.DAI05090Grid1 tr th:nth-child(1) {
                     width: 4.5%;
                 }
+                table.DAI05090Grid1 tr th:nth-child(1) {
+                    width: 10%;
+                }
                 table.DAI05090Grid1 tr th:nth-child(3) {
                     width: 4.5%;
                 }
-                table.DAI05090Grid1 tr th:nth-child(n+4):nth-child(-n+12) {
+                table.DAI05090Grid1 tr th:nth-last-child(1) {
                     width: 6%;
                 }
-                table.DAI05090Grid1 tr th:nth-child(13) {
-                    width: 7%;
+                table.DAI05090Grid1 tr th:nth-last-child(2) ,
+                table.DAI05090Grid1 tr th:nth-last-child(3) {
+                    width: 5%;
                 }
             `;
 
@@ -948,7 +952,7 @@ export default {
 
             var printOptions = {
                 type: "raw-html",
-                style: "@media print { @page { size: A4 portrait; } }",
+                style: "@media print { @page { size: A4 landscape; } }",
                 printable: printable,
             };
 
