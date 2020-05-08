@@ -91,7 +91,7 @@ class DAI06050Controller extends Controller
                 SELECT 部署CD, 請求先CD, MAX(請求日付) AS 請求日付 FROM 請求データ
                     WHERE
                         部署CD = $BushoCd
-                    AND CONVERT(VARCHAR, 請求日付, 112) < '$DateStart'
+                    AND 請求日付 < '$DateStart'
         GROUP BY 部署CD, 請求先CD
         ) T2 ON
             T1.請求日付   = T2.請求日付
@@ -108,7 +108,7 @@ class DAI06050Controller extends Controller
             LEFT JOIN (
                 SELECT 請求先CD, MAX(請求日付) AS 請求日付 FROM 請求データ
                 WHERE 部署CD = $BushoCd
-                    AND CONVERT(VARCHAR, 請求日付, 112) < '$DateStart'
+                    AND 請求日付 < '$DateStart'
                 GROUP BY 請求先CD
                 ) T2 ON  T1.得意先ＣＤ = T2.請求先ＣＤ
         WHERE
@@ -116,7 +116,7 @@ class DAI06050Controller extends Controller
         AND T1.商品区分     = 9     -- チケット
         AND T1.売掛現金区分 = 1     -- 売掛
         AND T1.日付 > T2.請求日付
-        AND CONVERT(VARCHAR, T1.日付, 112) < '$DateStart'
+        AND T1.日付 < '$DateStart'
         GROUP BY 得意先ＣＤ
         ),
 
@@ -131,13 +131,13 @@ class DAI06050Controller extends Controller
             LEFT JOIN (
             SELECT 請求先CD, MAX(請求日付) AS 請求日付 FROM 請求データ
                 WHERE 部署CD = $BushoCd
-                AND CONVERT(VARCHAR, 請求日付, 112) < '$DateStart'
+                AND 請求日付 < '$DateStart'
                 GROUP BY 請求先CD
             ) T2 ON  T1.得意先ＣＤ = T2.請求先ＣＤ
         WHERE
             T1.部署ＣＤ = $BushoCd
         AND T1.入金日付 > T2.請求日付
-        AND CONVERT(VARCHAR, T1.入金日付, 112) < '$DateStart'
+        AND T1.入金日付 < '$DateStart'
         GROUP BY 得意先ＣＤ
         ),
 
@@ -182,8 +182,8 @@ class DAI06050Controller extends Controller
                 URIAGE_MEISAI.得意先ＣＤ = ZAN_NYUKIN.得意先ＣＤ
         where
                 URIAGE_MEISAI.部署ＣＤ = $BushoCd
-            and CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) >= '$DateStart'
-            and CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) <= '$DateEnd'
+            and URIAGE_MEISAI.日付 >= '$DateStart'
+            and URIAGE_MEISAI.日付 <= '$DateEnd'
             and URIAGE_MEISAI.得意先ＣＤ >= 0
             and URIAGE_MEISAI.得意先ＣＤ <= 9999999
             and URIAGE_MEISAI.商品区分 = 9
@@ -235,8 +235,8 @@ class DAI06050Controller extends Controller
                     部署ＣＤ = $BushoCd
                 ) T on
                     T.得意先ＣＤ = N.得意先ＣＤ
-                AND CONVERT(VARCHAR, 入金日付, 112) >= '$DateStart'
-                AND CONVERT(VARCHAR, 入金日付, 112) <= '$DateEnd'
+                AND 入金日付 >= '$DateStart'
+                AND 入金日付 <= '$DateEnd'
         ),
 
         抽出データ3 AS
