@@ -826,15 +826,15 @@ class DAI02010Controller extends Controller
 
         // var_export($sql);
 
-        // $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-        // $user = 'daiyas';
-        // $password = 'daiyas';
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
 
-        // $pdo = new PDO($dsn, $user, $password);
-        // $stmt = $pdo->query($sql);
-        // //$DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        // $pdo = null;
-        DB::insert($sql);
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        //$DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = null;
+        // DB::insert($sql);
     }
 
     /**
