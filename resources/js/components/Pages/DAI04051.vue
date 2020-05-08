@@ -70,6 +70,7 @@ export default {
             var vue = this;
             return {
                 CustomerCd: vue.viewModel.CustomerCd,
+                TargetDate: vue.viewModel.TargetDate,
             }
         },
         hasSelectionRow: function() {
@@ -88,6 +89,7 @@ export default {
             viewModel: {
                 CustomerCd: null,
                 CustomerNm: null,
+                TargetDate: null,
                 Available: "0",
             },
             CustomerKeyWord: null,
@@ -288,6 +290,7 @@ export default {
                 }
             );
 
+            vue.filterChanged();
         },
         onAvailableChanged: function() {
             var vue = this;
@@ -449,10 +452,7 @@ export default {
                         vue.params.ParentGrid.refreshDataAndView();
                     }
                     if (!!vue.params.Parent && vue.params.Parent.$attrs.pgId == "DAI01030") {
-                        var ps = vue.params.Parent.$refs.PopupSelect_Customer;
-                        ps.getDataList(null, () => {
-                            ps.setSelectValue(vue.params.Parent.viewModel.CustomerCd, true);
-                        });
+                        vue.params.Parent.updateProduct();
                     }
 
                     progressDlg.dialog("close");

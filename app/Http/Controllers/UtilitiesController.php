@@ -1986,6 +1986,9 @@ ORDER BY
         $ProductCd = $request->ProductCd;
         $WhereProductCd = !!$ProductCd ? "AND TT.商品ＣＤ=$ProductCd" : "";
 
+        $TargetDate = $request->TargetDate;
+        $OrderTargetDate = !!$TargetDate ? "IIF(TT.適用開始日 <= '$TargetDate', 0, 1)," : "";
+
         $sql = "
             SELECT
                 TT.*
@@ -1996,7 +1999,7 @@ ORDER BY
                 ,IIF(
                     FIRST_VALUE(TT.適用開始日) OVER(
                         PARTITION BY TT.得意先ＣＤ, TT.商品ＣＤ
-                        ORDER BY TT.適用開始日 DESC
+                        ORDER BY $OrderTargetDate TT.適用開始日 DESC
                     ) = TT.適用開始日,
                     1, 0
                 ) AS 状況
