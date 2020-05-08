@@ -493,6 +493,11 @@ export default {
                     padding-right: 3px;
                     height:80px;
                 }
+                td.ticket-outer{
+                    width:calc(100vw/3);
+                    height:calc(100vh/9);
+                    padding:0px 10px 0px 10px;
+                }
                 div.ticket-content{
                     display:inline-block;
                     vertical-align:top;
@@ -519,8 +524,10 @@ export default {
                     var str_TicketNo = ( '000000' + ticketno ).slice( -6 );
                     var str_seq = ( '00' + seq ).slice( -2 );
 
+                    var str_customer_name=vue.viewModel.CustomerName.substr(0,24);//得意先名は先頭から24文字を取得
                     var str_service = kind==1 ? "(サービス)": kind==2 ? "(サービス半券)": "";
-                    var is_service=(kind==1 || kind==2);//kindが1か2ならサービス券扱い
+                    var str_product_style=(kind==1 || kind==2) ? "color:green;background-color:peachpuff":"color:red;" ;//商品名のスタイル設定(通常チケット:背景色=なし,文字色=赤 / サービス:背景色=オレンジ,文字色=緑)
+                    var str_product_name = kind==1 ? vue.viewModel.ProductName.substr(0,7) : kind==2 ? vue.viewModel.ProductName.substr(0,5) : vue.viewModel.ProductName.substr(0,12);//商品名。通常チケットは先頭から12文字、サービスチケットは先頭から7文字、サービス半券は先頭から5文字を取得
 
                     var str_IssueDate= vue.viewModel.IsPrintIssueDate=='1' ? "発行:"+ moment(vue.viewModel.IssueDate, "YYYY年MM月DD日").format("YYYY/MM/DD") : "";
                     var str_ExpireDate=vue.viewModel.IsPrintExpireDate=='1' ? "有効期限:"+moment(vue.viewModel.ExpireDate, "YYYY年MM月DD日").format("YYYY/MM/DD") : "";
@@ -532,12 +539,12 @@ export default {
                                     <img src="./images/TicketIcon/${str_icon_filename}" style="width:15px;">
                                 </div>
                                 <div class="ticket-content" style="width:89%;padding-top:5px;margin-bottom:5px;">
-                                    <div class="ticket-content">${vue.viewModel.CustomerName}</div>
+                                    <div class="ticket-content" style="width:75%;word-wrap:break-word;">${str_customer_name}</div>
                                     <div class="ticket-content" style="text-align:right; float:right">様<br/>(${vue.viewModel.CustomerCd})</div>
                                     <div style="clear:both"></div>
                                 </div>
-                                <div style="width:98%;text-align:center;margin-bottom:5px;color:red;">
-                                    ${vue.viewModel.ProductName}${str_service}&nbsp;&nbsp;&yen;${vue.viewModel.Price}
+                                <div style="width:98%;text-align:center;margin-bottom:5px;${str_product_style}">
+                                    ${str_product_name}${str_service}&nbsp;&nbsp;&yen;${vue.viewModel.Price}
                                 </div>
                                 <div class="ticket-content">${str_IssueDate}</div>
                                 <div class="ticket-content" style="text-align:right; float:right">${str_ExpireDate}</div>
@@ -621,13 +628,13 @@ export default {
                 [...Array(9)].map(r=>{
                         layout_page_html += `
                             <tr>
-                                <td>
+                                <td class="ticket-outer">
                                     ${layout_content[j].data}
                                 </td>
-                                <td>
+                                <td class="ticket-outer">
                                     ${layout_content[j+1].data}
                                 </td>
-                                <td>
+                                <td class="ticket-outer">
                                     ${layout_content[j+2].data}
                                 </td>
                             </tr>
@@ -669,10 +676,10 @@ export default {
                 .prop("outerHTML")
                 ;
 
-            //TODO:カラー印刷未対応
+            //TODO:カラー印刷はブラウザから印刷設定を制御できないようなので、定義のみ記述しました。
             var printOptions = {
                 type: "raw-html",
-                style: "@media print { @page { size: A4 portrait; } }",
+                style: "@media print and (color) { @page { size: A4 portrait; } }",
                 printable: printable,
             };
             printJS(printOptions);
