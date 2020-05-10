@@ -30,7 +30,7 @@
                     bind="CustomerCd"
                     buddy="CustomerNm"
                     dataUrl="/Utilities/GetCustomerListForSelect"
-                    :params="{ KeyWord: null }"
+                    :params="{ KeyWord: null, UserBushoCd: getLoginInfo().bushoCd }"
                     :isPreload=true
                     title="得意先一覧"
                     labelCd="得意先CD"

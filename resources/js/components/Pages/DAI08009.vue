@@ -48,7 +48,7 @@
                     bind="CustomerCd"
                     buddy="CustomerNm"
                     dataUrl="/Utilities/GetCustomerListForSelect"
-                    :params="{ CustomerCd: null, KeyWord: null }"
+                    :params="{ CustomerCd: null, KeyWord: null, UserBushoCd: getLoginInfo().bushoCd }"
                     :isPreload=true
                     title="得意先一覧"
                     labelCd="得意先CD"
@@ -551,9 +551,9 @@ export default {
             params.IsChild = true;
             params.IsNew = false;
 
-            //DAI05140を子画面表示
+            //DAI08010を子画面表示
             PageDialog.show({
-                pgId: "DAI05140",
+                pgId: "DAI08010",
                 params: params,
                 isModal: true,
                 isChild: true,
@@ -565,9 +565,9 @@ export default {
 
             var params = { IsChild: true, IsNew: true };
 
-            //DAI05140を子画面表示
+            //DAI08010を子画面表示
             PageDialog.show({
-                pgId: "DAI05140",
+                pgId: "DAI08010",
                 params: params,
                 isModal: true,
                 isChild: true,

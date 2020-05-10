@@ -85,7 +85,7 @@
                     bind="CustomerCd"
                     buddy="CustomerNm"
                     dataUrl="/Utilities/GetCustomerListForSelect"
-                    :params="{ BushoCd: !!viewModel.CourseCd ? viewModel.BushoCd : null, CourseCd: viewModel.CourseCd, KeyWord: null }"
+                    :params="{ BushoCd: !!viewModel.CourseCd ? viewModel.BushoCd : null, CourseCd: viewModel.CourseCd, KeyWord: null, UserBushoCd: getLoginInfo().bushoCd }"
                     :isPreload=true
                     title="得意先一覧"
                     labelCd="得意先CD"

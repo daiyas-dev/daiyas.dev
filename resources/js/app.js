@@ -283,6 +283,9 @@ var watcher = res => {
 };
 
 var targets = [
+    //得意先マスタ
+    //window.axios.post("/Utilities/GetCustomerAndCourseList", { targetDate: moment().format("YYYYMMDD") }).then(res => watcher(res)),
+    window.axios.post("/Utilities/GetCustomerListForSelect", { CustomerCd: null, KeyWord: null }).then(res => watcher(res)),
     //メニューリスト
     window.axios.post("/Account/GetMenuList").then(res => watcher(res)),
     //部署マスタ
@@ -294,9 +297,6 @@ var targets = [
     window.axios.post("/Utilities/GetCodeList").then(res => watcher(res)),
     //金融機関マスタ
     window.axios.post("/Utilities/GetBankList").then(res => watcher(res)),
-    //得意先マスタ
-    //window.axios.post("/Utilities/GetCustomerAndCourseList", { targetDate: moment().format("YYYYMMDD") }).then(res => watcher(res)),
-    window.axios.post("/Utilities/GetCustomerListForSelect", { CustomerCd: null, KeyWord: null }).then(res => watcher(res)),
 ];
 
 window.axios.all(targets)

@@ -959,6 +959,12 @@ $WhereCourseKbn
                 )"
             : "";
 
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+
         if (is_numeric($KeyWord) && ctype_digit($KeyWord)) {
             $WhereCustomer = " AND TM.得意先ＣＤ=$KeyWord";
 
@@ -988,9 +994,11 @@ $WhereCourseKbn
                 $WhereCustomer
             ";
 
-            $Result = DB::select($ByCustomerSql);
+            $stmt = $pdo->query($ByCustomerSql);
+            $Result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             if (count($Result) == 1) {
+                $pdo = null;
                 return response()->json($Result);
             }
         }
@@ -1006,9 +1014,11 @@ $WhereCourseKbn
             $WhereCourseCd
         ";
 
-        $Result = DB::select($CountSql);
+        $stmt = $pdo->query($CountSql);
+        $Result = $stmt->fetch();
+        // $Result = DB::select($CountSql);
 
-        $Count = $Result[0]->CNT;
+        $Count = $Result["CNT"];
         $CountMax = $request->CountMax ?? 100;
         $SelectTop = !!$request->NoLimit ? "" : ($Count > $CountMax ? "TOP $CountMax" : "");
 
@@ -1065,13 +1075,6 @@ $WhereCourseKbn
                 TM.得意先ＣＤ
         ";
 
-        //TODO: 高速化対応
-        // $DataList = DB::select($sql);
-        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-        $user = 'daiyas';
-        $password = 'daiyas';
-
-        $pdo = new PDO($dsn, $user, $password);
         $stmt = $pdo->query($sql);
         $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $pdo = null;
@@ -1697,211 +1700,6 @@ $OrderBy
         $pdo = null;
 
         // $DataList = DB::select($sql);
-
-        return response()->json($DataList);
-    }
-
-    /**
-     * GetShidashiOrderNoList
-     */
-    public function GetShidashiOrderNoList($request)
-    {
-        $DeliveryDate = $request->targetDate;
-
-        $WhereDeliveryDate = $DeliveryDate ? " AND 配達日付 = '$DeliveryDate'" : "";
-
-        $sql = "
-WITH 仕出顧客 AS (
-SELECT
-    CHUMON.部署ＣＤ
-    ,MB.部署名
-    ,CHUMON.受注Ｎｏ
-    ,CHUMON.配達日付
-    ,CHUMON.配達時間,
-    CHUMON.得意先ＣＤ
-    ,TOK.得意先名
-    ,TOK.電話番号１
-    ,TOK.ＦＡＸ１
-    ,CHUMON.注文日付
-    ,ISNULL(TOK.住所１,'')  +  ISNULL(TOK.住所２,'') AS 住所
-    ,ISNULL(CHUMON.配達先１,'')  + ISNULL(CHUMON.配達先２,'') AS 配達先
-    ,CHUMON.エリアＣＤ
-    ,COUM.コース名 AS エリア名称
-    ,CHUMON.地域区分
-    ,KAKUSHU_TIKU.各種名称 AS 地区名称
-    ,CHUMON.配達区分
-    ,KAKUSHU_HAITATSU.各種名称 AS 配達名称
-    ,CHUMON.税区分
-    ,KAKUSHU_ZEI.各種名称 AS 税名称
-	,RANK() OVER(PARTITION BY CHUMON.得意先ＣＤ ORDER BY CHUMON.注文日付 DESC, CHUMON.受注Ｎｏ DESC) AS RNK
-FROM
-    仕出し注文データ CHUMON
-    LEFT OUTER JOIN 得意先マスタ TOK ON
-    CHUMON.得意先ＣＤ = TOK.得意先ＣＤ
-    LEFT OUTER JOIN 各種テーブル KAKUSHU_TIKU ON
-    KAKUSHU_TIKU.各種CD = 32
-    AND KAKUSHU_TIKU.行NO = CHUMON.地域区分
-    LEFT OUTER JOIN 各種テーブル KAKUSHU_HAITATSU ON
-    KAKUSHU_HAITATSU.各種CD = 31
-    AND KAKUSHU_HAITATSU.行NO = CHUMON.配達区分
-    LEFT OUTER JOIN 各種テーブル KAKUSHU_ZEI ON
-    KAKUSHU_ZEI.各種CD = 20
-    AND KAKUSHU_ZEI.行NO = CHUMON.税区分
-    LEFT OUTER JOIN コースマスタ COUM ON
-    COUM.部署ＣＤ = CHUMON.部署ＣＤ
-    AND COUM.コースＣＤ = CHUMON.エリアＣＤ
-    LEFT OUTER JOIN 部署マスタ MB
-    ON MB.部署CD = CHUMON.部署ＣＤ
-)
-SELECT
-    DISTINCT
-    受注Ｎｏ AS Cd,
-    得意先名 AS CdNm,
-	*
-FROM
-	仕出顧客
-WHERE
-    RNK = 1
-    $WhereDeliveryDate
-ORDER BY
-    得意先ＣＤ
-        ";
-
-        try {
-            $DataList = DB::select($sql);
-            return response()->json($DataList);
-        } catch (\Throwable $th) {
-            return response()->json($th);
-        }
-    }
-
-    /**
-     * GetShidashiCustomerList
-     */
-    public function GetShidashiCustomerList($request)
-    {
-        $CustomerCd = $request->CustomerCd;
-
-        $sql = "
-WITH 顧客 AS (
-SELECT
-    TOK.部署ＣＤ
-    ,MB.部署名
-    ,TOK.得意先ＣＤ
-    ,TOK.得意先名
-    ,TOK.得意先名カナ
-    ,TOK.電話番号１
-    ,TOK.電話番号２
-    ,TOK.ＦＡＸ１
-    ,ISNULL(TOK.住所１,'')  +  ISNULL(TOK.住所２,'') AS 住所
-    ,ISNULL(CHUMON.配達先１,'')  + ISNULL(CHUMON.配達先２,'') AS 配達先
-    ,CHUMON.地域区分
-    ,KAKUSHU_TIKU.各種名称 AS 地区名称
-	,RANK() OVER(PARTITION BY CHUMON.得意先ＣＤ ORDER BY CHUMON.注文日付 DESC, CHUMON.受注Ｎｏ DESC) AS RNK
-FROM
-	得意先マスタ TOK
-    LEFT OUTER JOIN 仕出し注文データ CHUMON ON
-    CHUMON.得意先ＣＤ = TOK.得意先ＣＤ
-    LEFT OUTER JOIN 各種テーブル KAKUSHU_TIKU ON
-    KAKUSHU_TIKU.各種CD = 32
-    AND KAKUSHU_TIKU.行NO = CHUMON.地域区分
-    LEFT OUTER JOIN 部署マスタ MB
-    ON MB.部署CD = TOK.部署ＣＤ
-)
-SELECT
-	DISTINCT
-    得意先ＣＤ AS Cd,
-    得意先名 AS CdNm,
-	*
-FROM
-	顧客
-WHERE
-	RNK = 1
-ORDER BY
-    得意先ＣＤ
-        ";
-
-        try {
-            $DataList = DB::select($sql);
-            return response()->json($DataList);
-        } catch (\Throwable $th) {
-            return response()->json($th);
-        }
-    }
-
-    /**
-     * GetShidashiCustomer
-     */
-    public function GetShidashiCustomer($request)
-    {
-        $BushoCd = $request->bushoCd;
-        $OrderNo = $request->orderNo;
-        $CustomerCd = $request->customerCd;
-
-        $WhereBusho = $BushoCd ? " AND 部署ＣＤ=$BushoCd" : "";
-        $WhereOrderNo = $OrderNo ? " AND 受注Ｎｏ=$OrderNo" : " AND RNK=1";
-        $WhereCustomerCd = $CustomerCd ? " AND 得意先ＣＤ=$CustomerCd" : "";
-
-        $sql = "
-WITH 顧客 AS (
-SELECT
-    TOK.部署ＣＤ
-    ,MB.部署名
-    ,CHUMON.受注Ｎｏ
-    ,CHUMON.配達日付
-    ,CHUMON.配達時間,
-    TOK.得意先ＣＤ
-    ,TOK.得意先名
-    ,TOK.得意先名カナ
-    ,TOK.電話番号１
-    ,TOK.電話番号２
-    ,TOK.ＦＡＸ１
-    ,CHUMON.注文日付
-    ,ISNULL(TOK.住所１,'')  +  ISNULL(TOK.住所２,'') AS 住所
-    ,ISNULL(CHUMON.配達先１,'')  + ISNULL(CHUMON.配達先２,'') AS 配達先
-    ,CHUMON.エリアＣＤ
-    ,COUM.コース名 AS エリア名称
-    ,CHUMON.地域区分
-    ,KAKUSHU_TIKU.各種名称 AS 地区名称
-    ,CHUMON.配達区分
-    ,KAKUSHU_HAITATSU.各種名称 AS 配達名称
-    ,CHUMON.税区分
-    ,KAKUSHU_ZEI.各種名称 AS 税名称
-	,RANK() OVER(PARTITION BY CHUMON.得意先ＣＤ ORDER BY CHUMON.注文日付 DESC, CHUMON.受注Ｎｏ DESC) AS RNK
-FROM
-	得意先マスタ TOK
-    LEFT OUTER JOIN 仕出し注文データ CHUMON ON
-    CHUMON.得意先ＣＤ = TOK.得意先ＣＤ
-    LEFT OUTER JOIN 各種テーブル KAKUSHU_TIKU ON
-    KAKUSHU_TIKU.各種CD = 32
-    AND KAKUSHU_TIKU.行NO = CHUMON.地域区分
-    LEFT OUTER JOIN 各種テーブル KAKUSHU_HAITATSU ON
-    KAKUSHU_HAITATSU.各種CD = 31
-    AND KAKUSHU_HAITATSU.行NO = CHUMON.配達区分
-    LEFT OUTER JOIN 各種テーブル KAKUSHU_ZEI ON
-    KAKUSHU_ZEI.各種CD = 20
-    AND KAKUSHU_ZEI.行NO = CHUMON.税区分
-    LEFT OUTER JOIN コースマスタ COUM ON
-    COUM.部署ＣＤ = CHUMON.部署ＣＤ
-    AND COUM.コースＣＤ = CHUMON.エリアＣＤ
-    LEFT OUTER JOIN 部署マスタ MB
-    ON MB.部署CD = TOK.部署ＣＤ
-)
-SELECT
-	DISTINCT
-	*
-FROM
-	顧客
-WHERE
-    0=0
-    $WhereBusho
-    $WhereOrderNo
-    $WhereCustomerCd
-ORDER BY
-    得意先ＣＤ
-        ";
-
-        $DataList = DB::select($sql);
 
         return response()->json($DataList);
     }

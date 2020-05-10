@@ -737,8 +737,11 @@ export default {
 
             grid.showLoading();
 
+            var params = _.cloneDeep(vue.searchParams);
+            params.noCache = true;
+
             //商品リスト検索
-            axios.post("/DAI01030/GetProductList", vue.searchParams)
+            axios.post("/DAI01030/GetProductList", params)
                 .then(res => {
                     grid.hideLoading();
                     vue.ProductList = res.data;

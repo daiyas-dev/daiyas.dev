@@ -50,7 +50,7 @@
                     bind="CustomerCd"
                     :buddies='{ CustomerNm: "CdNm", Address: "住所１", Tel: "電話番号１", Fax: "ＦＡＸ１", Sime: "締日１" }'
                     dataUrl="/Utilities/GetCustomerListForSelect"
-                    :params="{ KeyWord: null }"
+                    :params="{ KeyWord: null, UserBushoCd: getLoginInfo().bushoCd }"
                     :isPreload=true
                     title="得意先一覧"
                     labelCd="得意先CD"

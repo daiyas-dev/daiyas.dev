@@ -1335,7 +1335,7 @@ export default {
                 if (vue.isMultiRowSelectable) {
                     return true;
                 } else {
-                    return window.event.ctrlKey || !!ui.addList.length;
+                    return (!!window.event && !!window.event.ctrlKey) || !!ui.addList.length;
                 }
             },
             cellRightClick: function( event, ui ) {

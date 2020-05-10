@@ -82,7 +82,7 @@
                     bind="SeikyuCd"
                     buddy="SeikyuNm"
                     dataUrl="/Utilities/GetCustomerListForSelect"
-                    :params="{ BushoCd: viewModel.BushoCd, KeyWord: null }"
+                    :params="{ BushoCd: viewModel.BushoCd, KeyWord: null, UserBushoCd: getLoginInfo().bushoCd }"
                     :isPreload=true
                     title="請求先一覧"
                     labelCd="請求先CD"
@@ -118,7 +118,7 @@
                     bind="CustomerCd"
                     buddy="CustomerNm"
                     dataUrl="/Utilities/GetCustomerListForSelect"
-                    :params="{ BushoCd: viewModel.BushoCd, KeyWord: null }"
+                    :params="{ BushoCd: viewModel.BushoCd, KeyWord: null, UserBushoCd: getLoginInfo().bushoCd }"
                     :isPreload=true
                     title="得意先一覧"
                     labelCd="得意先CD"
@@ -154,7 +154,7 @@
                     bind="JuchuCd"
                     buddy="JuchuNm"
                     dataUrl="/Utilities/GetCustomerListForSelect"
-                    :params="{ KeyWord: null }"
+                    :params="{ KeyWord: null, UserBushoCd: getLoginInfo().bushoCd }"
                     :isPreload=true
                     title="受注得意先一覧"
                     labelCd="受注得意先CD"

@@ -71,7 +71,7 @@
                     ref="PopupSelect_Customer"
                     :vmodel=viewModel
                     dataUrl="/Utilities/GetCustomerListForSelect"
-                    :params="{ CustomerCd: null, KeyWord: null }"
+                    :params="{ CustomerCd: null, KeyWord: null, UserBushoCd: getLoginInfo().bushoCd }"
                     bind="CustomerCd"
                     :buddies='{CustomerNm: "CdNm"}'
                     :isPreload=true

@@ -400,7 +400,7 @@
                                 bind="請求先ＣＤ"
                                 buddy="請求先名"
                                 dataUrl="/Utilities/GetCustomerListForSelect"
-                                :params="{ CustomerCd: null, KeyWord: BillingKeyWord }"
+                                :params="{ CustomerCd: null, KeyWord: BillingKeyWord, UserBushoCd: getLoginInfo().bushoCd }"
                                 :isPreload=true
                                 title="請求先一覧"
                                 labelCd="請求先CD"
@@ -755,7 +755,7 @@
                                         bind="受注得意先ＣＤ"
                                         buddy="受注得意先名"
                                         dataUrl="/Utilities/GetCustomerListForSelect"
-                                        :params="{ CustomerCd: null, KeyWord: JuchuCustomerKeyWord }"
+                                        :params="{ CustomerCd: null, KeyWord: JuchuCustomerKeyWord, UserBushoCd: getLoginInfo().bushoCd }"
                                         :isPreload=true
                                         title="得意先一覧"
                                         labelCd="得意先CD"

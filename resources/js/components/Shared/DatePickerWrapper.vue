@@ -24,7 +24,7 @@
             :id="_id + '_calendar_btn'" @click="showCalendar"
             :disabled=!editable
         >
-            <i class="fas fa-calendar-check fa-lg"></i>
+            <i class="fas fa-lg" :class='format.includes("HH") || format.includes("mm") ? "fa-clock" : "fa-calendar-check"'></i>
         </button>
     </div>
 </template>
