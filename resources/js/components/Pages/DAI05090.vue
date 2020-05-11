@@ -238,6 +238,7 @@ export default {
             viewModel: {
                 BushoOption: "2",
                 BushoCd: null,
+                BushoNm: null,
                 DateStart: null,
                 DateEnd: null,
                 SaveDateStart: null,
@@ -810,7 +811,7 @@ export default {
                 }
                 th, td {
                     font-family: "MS UI Gothic";
-                    font-size: 10pt;
+                    font-size: 9pt;
                     font-weight: normal;
                     margin: 0px;
                     padding-left: 3px;
@@ -844,27 +845,37 @@ export default {
                 }
                 return `
                     <div class="title">
-                        <h3>* * * 顧客売上推移表 * * *</h3>
+                        <h3>* * 顧客売上推移表 * *</h3>
                     </div>
                     <table class="header-table" style="border-width: 0px">
                         <thead>
                             <tr>
-                                <th>営業担当者</th>
-                                <th>${eigyoNmKey1}</th>
-                                <th class="blank-cell"></th>
-                                <th>獲得営業担当者</th>
-                                <th>${eigyoNmKey2}</th>
-                                <th class="blank-cell"></th>
+                                <th class="blank-cell" style="width: 30%;"></th>
+                                <th style="width: 8%;">対象範囲</th>
+                                <th style="width: 9.5%;">（${vue.viewModel.DateStart}</th>
+                                <th style="width: 2%;">～</th>
+                                <th style="width: 9.5%;">${vue.viewModel.DateEnd}）</th>
+                                <th style="width: 11%;" class="blank-cell"></th>
+                                <th style="width: 20%; text-align:right; font-weight: bold;">[営業食数－担当者]</th>
+                                <th style="width: 10%; text-align: right;">${idx + 1} / ${length}</th>
                             </tr>
                             <tr>
-                                <th>${vue.viewModel.DateStart}</th>
-                                <th>～</th>
-                                <th>${vue.viewModel.DateEnd}</th>
                                 <th class="blank-cell"></th>
-                                <th>作成日</th>
-                                <th>${moment().format("YYYY年MM月DD日")}</th>
-                                <th>PAGE</th>
-                                <th style="text-align: right;">${idx + 1}</th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th style="text-align: right;">作成日:</th>
+                                <th>${moment().format("YYYY/MM/DD hh:mm")}</th>
+                            </tr>
+                            <tr>
+                                <th>${vue.viewModel.BushoNm}</th>
+                                <th>営業担当者：</th>
+                                <th colspan="3">${eigyoNmKey1}</th>
+                                <th style="text-align: right;">獲得営業担当者：</th>
+                                <th>${eigyoNmKey2}</th>
+                                <th class="blank-cell"></th>
                             </tr>
                         </thead>
                     </table>
@@ -872,63 +883,65 @@ export default {
             };
 
             var styleCustomers =`
-                table.DAI05090Grid1 tr:nth-child(1) th {
-                    border-style: solid;
-                    border-left-width: 0px;
-                    border-top-width: 1px;
-                    border-right-width: 0px;
-                    border-bottom-width: 1px;
-                }
-                table.DAI05090Grid1 tr.group-summary td {
-                    border-style: solid;
-                    border-left-width: 0px;
-                    border-top-width: 1px;
-                    border-right-width: 0px;
-                    border-bottom-width: 0px;
-                }
-                table.DAI05090Grid1 tr.group-summary td:nth-child(2) {
-                    text-align: right;
-                    padding-right: 50px;
-                }
-                table.DAI05090Grid1 tr[level="0"].group-summary td {
-                    border-style: dotted;
-                    border-left-width: 0px;
-                    border-top-width: 1px;
-                    border-right-width: 0px;
-                    border-bottom-width: 0px;
-                }
-                table.DAI05090Grid1 tr[level="0"].group-summary td:nth-child(2) {
-                    text-align: right;
-                    padding-right: 30px;
-                }
-                table.DAI05090Grid1 tr.grand-summary td {
-                    border-style: solid;
-                    border-left-width: 0px;
-                    border-top-width: 1px;
-                    border-right-width: 0px;
-                    border-bottom-width: 0px;
-                }
-                table.DAI05090Grid1 tr.grand-summary td:nth-child(2) {
-                    text-align: right;
-                }
-                table.DAI05090Grid1 tr.grand-summary td:nth-child(3) {
+                .header-table thead tr th {
                     text-align: left;
                 }
-                table.DAI05090Grid1 tr th:nth-child(1) {
-                    width: 4.5%;
+                table.DAI05090Grid1 tr th ,
+                table.DAI05090Grid1 tr td {
+                    font-size: 8pt;
+                }
+                table.DAI05090Grid1 tr:nth-child(1) th {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                    line-height: 1.3em;
+                }
+                table.DAI05090Grid1 tr td {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                table.DAI05090Grid1 tr th:last-child,
+                table.DAI05090Grid1 tr td:last-child {
+                    border-right-width: 1px;
+                }
+                table.DAI05090Grid1 tr:last-child td {
+                    border-bottom-width: 1px;
+                }
+                table.DAI05090Grid1 tr[level="0"].group-summary td:nth-child(2),
+                table.DAI05090Grid1 tr.group-summary td:nth-child(2) ,
+                table.DAI05090Grid1 tr.grand-summary td:nth-child(2) {
+                    text-align: center;
+                }
+                table.DAI05090Grid1 tr.grand-summary td:nth-child(n+3):nth-child(-n+33) {
+                    color: transparent;
+                    border-color: black;
                 }
                 table.DAI05090Grid1 tr th:nth-child(1) {
-                    width: 10%;
+                    width: 3.5%;
                 }
-                table.DAI05090Grid1 tr th:nth-child(3) {
-                    width: 4.5%;
+                table.DAI05090Grid1 tr th:nth-child(2) {
+                    width: 15%;
                 }
                 table.DAI05090Grid1 tr th:nth-last-child(1) {
-                    width: 6%;
+                    width: 5.2%;
                 }
                 table.DAI05090Grid1 tr th:nth-last-child(2) ,
-                table.DAI05090Grid1 tr th:nth-last-child(3) {
-                    width: 5%;
+                table.DAI05090Grid1 tr th:nth-last-child(3) ,
+                table.DAI05090Grid1 tr th:nth-last-child(4) {
+                    width: 3%;
+                }
+                table.DAI05090Grid1 tr th:nth-last-child(5) ,
+                table.DAI05090Grid1 tr th:nth-last-child(6) {
+                    width: 4.5%;
+                }
+                table.DAI05090Grid1 tr td {
+                    padding-left: 1px;
+                    padding-right: 1px;
                 }
             `;
 
