@@ -702,11 +702,15 @@ export default {
                 table.DAI05100Grid1 tr.grand-summary td:nth-child(3) {
                     text-align: left;
                 }
-                table.DAI05100Grid1 tr th:nth-child(1) {
-                    width: 4.5%;
+                table.DAI05100Grid1 tr th:nth-child(1),
+                table.DAI05100Grid1 tr th:nth-child(2) {
+                    width: 0%;
                 }
                 table.DAI05100Grid1 tr th:nth-child(3) {
-                    width: 4.5%;
+                    width: 8%;
+                }
+                table.DAI05100Grid1 tr th:nth-child(4) {
+                    width: 20%;
                 }
                 table.DAI05100Grid1 tr th:nth-child(n+4):nth-child(-n+12) {
                     width: 6%;

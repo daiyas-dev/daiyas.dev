@@ -295,6 +295,12 @@ export default {
                         fixed: true,
                     },
                     {
+                        title: "部署名",
+                        dataIndx: "部署名", dataType: "string",
+                        hidden: true,
+                        fixed: true,
+                    },
+                    {
                         title: "営業担当者ＣＤ",
                         dataIndx: "営業担当者ＣＤ", dataType: "string",
                         hidden: true,
@@ -830,7 +836,6 @@ export default {
                 }
             `;
 
-            //TODO:西山　部署名取得したい
             var bushoNm;
             var eigyoNmKey1;
             var eigyoNmKey2;
@@ -839,10 +844,12 @@ export default {
                 {
                     eigyoNmKey1 = header.ＧＫ営業担当者.split(" ")[1];
                     eigyoNmKey2 = eigyoNmKey1;
+                    bushoNm = header.children[0].children[0].部署名;
                 }
                 if (header.pq_level == 1)
                 {
                     eigyoNmKey2 = header.ＧＫ獲得営業者.split(" ")[1];
+                    bushoNm = header.children[0].部署名;
                 }
                 return `
                     <div class="title">
@@ -910,16 +917,16 @@ export default {
                 table.DAI05090Grid1 tr td:last-child {
                     border-right-width: 1px;
                 }
-                table.DAI05090Grid1 tr:last-child td {
+                table.DAI05090Grid1 tr:last-child td,
+                table.DAI05090Grid1 tr.group-summary td {
                     border-bottom-width: 1px;
                 }
                 table.DAI05090Grid1 tr[level="0"].group-summary td:nth-child(2),
-                table.DAI05090Grid1 tr.group-summary td:nth-child(2) ,
-                table.DAI05090Grid1 tr.grand-summary td:nth-child(2) {
+                table.DAI05090Grid1 tr.group-summary td:nth-child(2) {
                     text-align: center;
                 }
                 table.DAI05090Grid1 tr th:nth-child(1) {
-                    width: 3.5%;
+                    width: 4%;
                 }
                 table.DAI05090Grid1 tr th:nth-child(2) {
                     width: 15%;
@@ -939,6 +946,9 @@ export default {
                 table.DAI05090Grid1 tr td {
                     padding-left: 1px;
                     padding-right: 1px;
+                }
+                table.DAI05090Grid1 tr.grand-summary td {
+                    color: transparent;
                 }
             `;
 
