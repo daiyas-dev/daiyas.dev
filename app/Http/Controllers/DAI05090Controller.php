@@ -116,7 +116,6 @@ class DAI05090Controller extends Controller
 		(
 		SELECT
              部署ＣＤ
-            ,部署名
 			,営業担当者ＣＤ
 			,営業担当者名
 			,獲得営業者ＣＤ
@@ -131,7 +130,7 @@ class DAI05090Controller extends Controller
 		FROM
 			日毎集計データ
 		GROUP BY
-			部署ＣＤ, 部署名, 営業担当者ＣＤ, 営業担当者名, 獲得営業者ＣＤ, 獲得営業者名, 得意先ＣＤ, 得意先名
+			部署ＣＤ, 営業担当者ＣＤ, 営業担当者名, 獲得営業者ＣＤ, 獲得営業者名, 得意先ＣＤ, 得意先名
 		),
 
 		ピボット集計データ AS
