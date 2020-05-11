@@ -571,7 +571,7 @@ export default {
                     `;
 
                 //チケット枚数の取得
-                var maisu=vue.viewModel.TicketMaisu*1;
+                var maisu= 27<vue.viewModel.TicketMaisu*1 ? 27 : vue.viewModel.TicketMaisu*1;
 
                 //サービス券枚数の算出
                 var service_half_maisu=0;
@@ -579,12 +579,17 @@ export default {
                 if((vue.viewModel.SVTicketMaisu*1)==0.5)
                 {
                     //サービス半券枚数(サービス数が0.5のとき1枚)
-                    service_half_maisu=1;
+                    service_half_maisu= 27<=maisu? 0 : 1;
                 }
                 else if((vue.viewModel.SVTicketMaisu*1)>=1)
                 {
                     //サービス券枚数(サービスが1以上のとき、その枚数。小数は切り上げ。例：1.5ならサービス券を2枚)
+                    var aki_maisu=27-maisu*1;
                     var service_full_maisu=Math.ceil(vue.viewModel.SVTicketMaisu*1);
+                    if(aki_maisu<service_full_maisu)
+                    {
+                        service_full_maisu=aki_maisu;
+                    }
                 }
 
                 var layout_content=[];
@@ -597,27 +602,38 @@ export default {
                     });
 
                 //指定枚数のサービスチケットを作成する
-                [...Array(service_full_maisu)].map(r=>{
-                        layout_content[i]={val:i,data:ticketFunc(p_ticketno,i+1,1)};
-                        i++;
-                    });
-
+                if(0<service_full_maisu)
+                {
+                    [...Array(service_full_maisu)].map(r=>{
+                            layout_content[i]={val:i,data:ticketFunc(p_ticketno,i+1,1)};
+                            i++;
+                        });
+                }
                 //指定枚数のサービス半チケットを作成する
-                [...Array(service_half_maisu)].map(r=>{
-                        layout_content[i]={val:i,data:ticketFunc(p_ticketno,i+1,2)};
-                        i++;
-                    });
+                if(0<service_half_maisu)
+                {
+                    [...Array(service_half_maisu)].map(r=>{
+                            layout_content[i]={val:i,data:ticketFunc(p_ticketno,i+1,2)};
+                            i++;
+                        });
+                }
 
                 //notifyを作成する
-                layout_content[i]={val:i,data:ticket_notify};
-                i++;
+                if((maisu*1 + service_full_maisu*1 + service_half_maisu*1)<27)
+                {
+                    layout_content[i]={val:i,data:ticket_notify};
+                    i++;
+                }
 
                 //emptyを作成する
                 var empty_su = 27 - maisu - service_full_maisu - service_half_maisu - 1;
-                [...Array(empty_su)].map(r=>{
-                        layout_content[i]={val:i,data:ticket_empty};
-                        i++;
-                    });
+                if(0<empty_su)
+                {
+                    [...Array(empty_su)].map(r=>{
+                            layout_content[i]={val:i,data:ticket_empty};
+                            i++;
+                        });
+                }
 
                 //チケットを用紙の左上から縦並びに並べ替える
                 var layout_content = _.sortBy(layout_content,v=>v.val%9);
