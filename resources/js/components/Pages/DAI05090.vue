@@ -238,7 +238,6 @@ export default {
             viewModel: {
                 BushoOption: "2",
                 BushoCd: null,
-                BushoNm: null,
                 DateStart: null,
                 DateEnd: null,
                 SaveDateStart: null,
@@ -831,6 +830,8 @@ export default {
                 }
             `;
 
+            //TODO:西山　部署名取得したい
+            var bushoNm;
             var eigyoNmKey1;
             var eigyoNmKey2;
             var headerFunc = (header, idx, length) => {
@@ -870,7 +871,7 @@ export default {
                                 <th>${moment().format("YYYY/MM/DD hh:mm")}</th>
                             </tr>
                             <tr>
-                                <th>${vue.viewModel.BushoNm}</th>
+                                <th>${bushoNm}</th>
                                 <th>営業担当者：</th>
                                 <th colspan="3">${eigyoNmKey1}</th>
                                 <th style="text-align: right;">獲得営業担当者：</th>
@@ -916,10 +917,6 @@ export default {
                 table.DAI05090Grid1 tr.group-summary td:nth-child(2) ,
                 table.DAI05090Grid1 tr.grand-summary td:nth-child(2) {
                     text-align: center;
-                }
-                table.DAI05090Grid1 tr.grand-summary td:nth-child(n+3):nth-child(-n+33) {
-                    color: transparent;
-                    border-color: black;
                 }
                 table.DAI05090Grid1 tr th:nth-child(1) {
                     width: 3.5%;
