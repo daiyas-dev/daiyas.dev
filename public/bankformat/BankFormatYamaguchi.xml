@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BussinessDirect>
+	<Header>
+    <!--データ区分 -->
+		<record id="DataKbn" attribute="N" character="1" value="1" pad = "" padvalue = "" />
+    <!--種別コード -->
+		<record id="ShubetsuCode" attribute="N" character="2" value="91" pad = "" padvalue = "" />
+    <!--コード区分 -->
+		<record id="CodeKbn" attribute="N" character="1" value="0" pad = "" padvalue = "" />
+    <!--委託者コード -->
+		<record id="ItakuCode" attribute="N" character="10" value="7200000162" pad = "r" padvalue = "0" />
+    <!--委託者名 -->
+		<record id="ItakuName" attribute="C" character="40" value="ｶ)ﾀﾞｲﾔｽｼｮｸﾋﾝ" pad = "l" padvalue = " " />
+    <!--引落日 -->
+		<record id="HikiotoshiBi" attribute="N" character="4" value="Control.G銀行引落日" pad = "" padvalue = "" />
+    <!--取引銀行番号 -->
+		<record id="TorihikiBankCd" attribute="N" character="4" value="0170" pad = "r" padvalue = "0" />
+    <!--取引銀行名 -->
+		<record id="TorihikiBankName" attribute="C" character="15" value="ﾔﾏｸﾞﾁｷﾞﾝｺｳ" pad = "l" padvalue = "s" />
+    <!--取引支店番号 -->
+		<record id="TorihikiShitenNumber" attribute="N" character="3" value="029" pad = "r" padvalue = "0" />
+    <!--取引支店名 -->
+		<record id="TorihikiShitenName" attribute="C" character="15" value="ｳﾍﾞｼﾃﾝ" pad = "l" padvalue = "s" />
+    <!--預金種目 -->
+		<record id="YokinShumoku" attribute="N" character="1" value="1" pad = "l" padvalue = "s" />
+    <!--口座番号 -->
+		<record id="KozaNumber" attribute="C" character="7" value="0630024" pad = "r" padvalue = "s" />
+    <!--ダミー -->
+		<record id="Dammy" attribute="C" character="17" value="" pad = "l" padvalue = "s" />
+	</Header>
+	<Data>
+    <!--データ区分 -->
+		<record id="DataKbn" attribute="N" character="1" value="2" pad = "" padvalue = "" />
+    <!--引落銀行番号 -->
+		<record id="HikiotoshiBankCd" attribute="N" character="4" value="DB.引落銀行番号" pad = "r" padvalue = "0" />
+    <!--引落銀行名 -->
+		<record id="HikiotoshiBankName" attribute="C" character="15" value="DB.引落銀行名" pad = "l" padvalue = "s" />
+    <!--引落支店番号 -->
+		<record id="HikiotoshiShitenBankCd" attribute="N" character="3" value="DB.引落支店番号" pad = "r" padvalue = "0" />
+    <!--引落支店名 -->
+		<record id="HikiotoshiShitenBankName" attribute="C" character="15" value="DB.引落支店名" pad = "l" padvalue = "s" />
+    <!--ダミー -->
+		<record id="Dammy" attribute="C" character="4" value="" pad = "l" padvalue = "s" />
+    <!--預金種目 -->
+		<record id="YokinShumoku" attribute="N" character="1" value="DB.預金種目" pad = "" padvalue = "" />
+    <!--口座番号 -->
+		<record id="KozaNumber" attribute="C" character="7" value="DB.口座番号" pad = "r" padvalue = "0" />
+    <!--預金者名 -->
+		<record id="YokinName" attribute="C" character="30" value="DB.預金者名" pad = "l" padvalue = "s" />
+    <!--引落金額 -->
+		<record id="HikiotoshiMoney" attribute="N" character="10" value="DB.今回請求額" pad = "r" padvalue = "0" />
+    <!--新規コード -->
+		<record id="ShinkiCode" attribute="C" character="1" value="1" pad = "l" padvalue = "s" />
+    <!--顧客番号 -->
+		<record id="KokyakuNumber" attribute="C" character="20" value="DB.顧客番号" pad = "r" padvalue = "0" />
+    <!--振替結果コード -->
+		<record id="IraiKekkaCode" attribute="N" character="1" value="0" pad = "l" padvalue = "s" />
+    <!--ダミー -->
+		<record id="Dammy" attribute="C" character="8" value="" pad = "l" padvalue = "s" />
+	</Data>
+	<Trailer>
+    <!--データ区分 -->
+		<record id="DataKbn" attribute="N" character="1" value="8" pad = "" padvalue = "" />
+    <!--合計件数 -->
+		<record id="GokeiKensu" attribute="N" character="6" value="CONST.GKENSU" pad = "r" padvalue = "0" />
+    <!--合計金額 -->
+		<record id="GokeiMoney" attribute="N" character="12" value="CONST.GMONEY" pad = "r" padvalue = "0" />
+    <!--振替済件数 -->
+		<record id="HurikaeZumiKensu" attribute="N" character="6" value="0" pad = "r" padvalue = "0" />
+    <!--振替済金額 -->
+		<record id="HurikaeZumiMoney" attribute="N" character="12" value="0" pad = "r" padvalue = "0" />
+    <!--振替不能件数 -->
+		<record id="HurikaeHunoKensu" attribute="N" character="6" value="0" pad = "r" padvalue = "0" />
+    <!--振替不能金額 -->
+		<record id="HurikaeHunoMoney" attribute="N" character="12" value="0" pad = "r" padvalue = "0" />
+    <!--ダミー -->
+		<record id="Dammy" attribute="C" character="65" value="" pad = "l" padvalue = "s" />
+	</Trailer>
+	<End>
+    <!--データ区分 -->
+		<record id="DataKbn" attribute="N" character="1" value="9" pad = "" padvalue = "" />
+    <!--ダミー -->
+		<record id="Dammy" attribute="C" character="119" value="" pad = "l" padvalue = "s" />
+	</End>
+</BussinessDirect>
