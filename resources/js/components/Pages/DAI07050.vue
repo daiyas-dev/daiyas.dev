@@ -176,7 +176,7 @@
                 />
             </div>
             <div class="col-md-1">
-                <label style="width: unset;">空領収書発行</label>
+                <label style="width: unset;">空領収証発行</label>
             </div>
             <div class="col-md-3">
                 <label class="mr-1" style="width: unset;">枚数:</label>
@@ -262,7 +262,7 @@ export default {
         var vue = this;
 
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "個人宅 > 領収書発行",
+            ScreenTitle: "個人宅 > 領収証発行",
             noViewModel: true,
             viewModel: {
                 BushoCd: null,
@@ -494,7 +494,7 @@ export default {
                 {visible: "false"},
                 {visible: "false"},
                 {visible: "false"},
-                { visible: "true", value: "空領収書<br>印刷", id: "DAI07050Grid1_PrintEmpty", disabled: false, shortcut: "F10",
+                { visible: "true", value: "空領収証<br>印刷", id: "DAI07050Grid1_PrintEmpty", disabled: false, shortcut: "F10",
                     onClick: function () {
                         var params = _.cloneDeep(vue.searchParams);
                         params.noCache = true;
@@ -849,7 +849,6 @@ export default {
                 vue.BushoInfo = entity.info;
             }
 
-            //TODO: 領収書のレイアウト用stylesheetを下記に追加
             //印刷用HTML全体適用CSS
             var globalStyles = `
                 body {
@@ -866,7 +865,7 @@ export default {
                     width: 100%;
                 }
                 .header-title{
-                	font-size: 18pt;
+                	font-size: 12pt;
                 	font-weight: bold;
                 	letter-spacing: 16px;
                     border-style: solid;
@@ -902,7 +901,7 @@ export default {
                     padding-bottom: 3px;
                     margin-top: 3px;
                     margin-bottom: 3px;
-                    font-size: 11pt;
+                    font-size: 10pt;
                     font-weight: bold;
                     height: 15px;
                 }
@@ -912,14 +911,13 @@ export default {
                     background-repeat: no-repeat;
                     background-image: url(${location.origin}/images/BushoStamp/${vue.BushoInfo.部署CD}.png);                    margin-left: 20px;
                     background-position-x: right;
-                    margin-right: 200px;
-                    margin-right: 240px;
+                    margin-right: 215px;
                     background-size: 38%;
                 }
                 table.header-table tbody th {
                     text-align: center;
                     font-family: "MS UI Gothic";
-                    font-size: 12pt;
+                    font-size: 10pt;
                     font-weight: normal;
                 }
                 table {
@@ -1018,6 +1016,7 @@ export default {
                     border-right-width: 1px;
                     border-bottom-width: 0px;
                     margin: 0px;
+                    margin-left: 40px;
                     padding-top: 2px;
                     text-align: center;
                     height: 15px !important;
@@ -1028,6 +1027,7 @@ export default {
                     border-top-width: 1px;
                     border-right-width: 1px;
                     border-bottom-width: 1px;
+                    margin-left: 40px;
                     height: 55px !important;
                 }
                 tr:not(:nth-child(1)) div.header {
@@ -1056,47 +1056,47 @@ export default {
                 var layout = `
                     <div>
                         <div class="header">
-                            <div style="float: left; width: 75%; height: 85px;">
+                            <div style="float: left; width: 80%; height: 85px;">
                                 <div style="clear: left;">
-                                    <div style="float: left; width: 40%">
+                                    <div style="float: left; width: 43%">
                                         ${!!r.請求先ＣＤ ? r.請求先ＣＤ + " - " + r.コースＣＤ : ""}
                                     </div>
-                                    <div class="header-title" style="float: left; width: 40%; text-align: center; margin-left:20px;">
-                                        領収書
+                                    <div class="header-title" style="float: left; width: 38%; text-align: center; margin-left:20px;">
+                                        領収証
                                     </div>
                                 </div>
                                 <div style="clear: left;">
-                                    <div class="header-tokuisaki" style="clear: left; width: 50%; margin-left: 20px;">
-                                        <div style="float: left; width: 90%;">
+                                    <div class="header-tokuisaki" style="clear: left; width: 58%; margin-left: 20px;">
+                                        <div style="float: left; width: 80%;">
                                             ${r.得意先名 || ""}
                                         </div>
-                                        <div style="float: left; width: 10%; text-align: right;">様
+                                        <div style="float: left; width: 15%; text-align: right; padding-right: 5px;">様
                                         </div>
                                     </div>
-                                    <table class="header-table" style="clear: left; float: left; border-width: 0px; margin-bottom: 10px; margin-left: 80px; width: 40%;">
+                                    <table class="header-table" style="clear: left; float: left; border-width: 0px; margin-bottom: 10px; margin-left: 80px; width: 46%;">
                                         <tbody>
                                             <tr>
                                                 <th style="width: 25%"> 金 額 </th>
-                                                <th style="width: 75%">￥${!!r.請求先ＣＤ ? pq.formatNumber(vue.viewModel.ValueKind == "0" ? r.今回請求額 : r.今回売上額, "#,###0") : ""}－</th>
+                                                <th style="width: 75%">${!!r.請求先ＣＤ ? "¥" + (pq.formatNumber(vue.viewModel.ValueKind == "0" ? r.今回請求額 : r.今回売上額, "#,###0")) + "-" : ""}</th>
                                             </tr>
                                         </tbody>
                                     </table>
                                     <div style="padding-top: 18px; height: 30px; padding-left:293px;">
-                                        ${!!r.請求先ＣＤ ? "（" + moment(vue.viewModel.TargetDate, "YYYY年MM月DD日").day(6).format("YYYY/MM/DD") + " 締）" : ""}
+                                        <span/><span/>${!!r.請求先ＣＤ ? "（" + moment(vue.viewModel.TargetDate, "YYYY年MM月DD日").day(6).format("YYYY/MM/DD") + " 締）" : ""}
                                     </div>
                                 </div>
                             </div>
-                            <div style="float: left; width: 25%">
+                            <div style="float: left; width: 20%">
                                 <div class="header-seikyu-no">
                                     <span/>${!!r.請求先ＣＤ ? ("000000000" + r.請求番号).slice(-9) : (moment(r.請求日付).format("YYMMDD") + " - " + r.請求番号)}
                                 </div>
-                                <div>
-                                    <span style="padding-left: 50px; letter-spacing: 0.8em;"> 年 月 日</span>
+                                <div style="margin-top: 10px;">
+                                    <span style="padding-left: 40px; letter-spacing: 0.8em;"> 年 月 日</span>
                                 </div>
                                 <div></div>
                             </div>
                             <div style="clear: left; width: 100%">
-                                <div style="float: left; width: 55%;">
+                                <div style="float: left; width: 60%;">
                                     <div style="margin-left: 100px;">
                                         但し　お弁当代として（軽減税率対象）
                                         <br>
@@ -1122,15 +1122,15 @@ export default {
                                         </div>
                                     </div>
                                 </div>
-                                <div style="float: left; width: 45%">
-                                    <div style="float: left; width: 25%">
+                                <div style="float: left; width: 40%">
+                                    <div style="float: left; width: 40%">
                                         <div style="clear: left; height:20px;" class="inkan">
                                             取扱者印
                                         </div>
                                         <div style="clear: left; height:60px;" class="inkan">
                                         </div>
                                     </div>
-                                    <div style="float: left; width: 75%">
+                                    <div style="float: left; width: 60%">
                                         <div style="clear: left; height:50px;"></div>
                                         <div style="clear: left; padding-left: 5px;">
                                             取扱者印なき<br>ものは無効
@@ -1164,7 +1164,7 @@ export default {
 
             var printOptions = {
                 type: "raw-html",
-                style: "@media print { @page { size: A4; margin: 0px 40px;} }",
+                style: "@media print { @page { size: A4; margin: 0px 50px;} }",
                 printable: printable,
             };
 

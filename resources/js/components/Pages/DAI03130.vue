@@ -318,7 +318,7 @@ export default {
                 }
                 th, td {
                     font-family: "MS UI Gothic";
-                    font-size: 11pt;
+                    font-size: 10pt;
                     font-weight: normal;
                     margin: 0px;
                     padding-left: 3px;
@@ -350,12 +350,12 @@ export default {
                     <table class="header-table" style="border-width: 0px">
                         <thead>
                             <tr>
-                                <th style="width: 26%;" class="blank-cell"></th>
-                                <th style="width: 11%;">集計範囲</th>
-                                <th style="width: 12%;"> (${moment(vue.viewModel.DateStart, "YYYY年MM月DD日").format("YYYY/MM/DD")}</th>
+                                <th style="width: 28.5%;" class="blank-cell"></th>
+                                <th style="width: 10%;">集計範囲</th>
+                                <th style="width: 10%;"> (${moment(vue.viewModel.DateStart, "YYYY年MM月DD日").format("YYYY/MM/DD")}</th>
                                 <th style="width: 3%;">～</th>
-                                <th style="width: 12%;">${moment(vue.viewModel.DateEnd, "YYYY年MM月DD日").format("YYYY/MM/DD")})</th>
-                                <th style="width: 26%;" class="blank-cell"></th>
+                                <th style="width: 10%;">${moment(vue.viewModel.DateEnd, "YYYY年MM月DD日").format("YYYY/MM/DD")})</th>
+                                <th style="width: 28.5%;" class="blank-cell"></th>
                             </tr>
                             <tr>
                                 <th class="shamei">${vue.KaishaMei}</th>
@@ -388,7 +388,7 @@ export default {
                     border-right-width: 0px;
                     border-bottom-width: 1px;
                 }
-                table.DAI03130Grid1 tr td {
+                table.DAI03130Grid1 tbody tr:not(:nth-child(1)) td {
                     border-style: dotted;
                     border-left-width: 0px;
                     border-top-width: 1px;

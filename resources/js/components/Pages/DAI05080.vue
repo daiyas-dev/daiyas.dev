@@ -514,7 +514,7 @@ export default {
                 }
                 div.kaisya-info{
                     margin-left: 240px;
-                    margin-bottom: 30px;
+                    margin-bottom: 26px;
                 }
                 div.chuui-gaki > div {
                     font-size: 8pt;

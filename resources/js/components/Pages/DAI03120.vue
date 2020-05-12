@@ -345,8 +345,8 @@ export default {
                     justify-content: center;
                 }
                 div.title > h3 {
-                    margin-top: 0px;
-                    margin-bottom: 0px;
+                    margin-top: 5px;
+                    margin-bottom: 25px;
                 }
                 table {
                     table-layout: fixed;
@@ -365,11 +365,11 @@ export default {
                     padding-right: 3px;
                 }
                 th {
-                    height: 25px;
+                    height: 19px;
                     text-align: center;
                 }
                 td {
-                    height: 22px;
+                    height: 19px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
@@ -398,11 +398,11 @@ export default {
                             <div style="width: 14%; text-align: right;">${moment(vue.viewModel.DateStart, "YYYY年MM月DD日").format("YYYY/MM/DD")}</div>
                             <div style="width: 4%; text-align: center;">～</div>
                             <div style="width: 14%; text-align: right;">${moment(vue.viewModel.DateEnd, "YYYY年MM月DD日").format("YYYY/MM/DD")}</div>
-                            <div style="width: 21.6%;" class="blank-cell">blank-cell</div>
-                            <div style="width: 7%;">作成日</div>
-                            <div style="width: 17%; text-align: right;">${moment().format("YYYY年MM月DD日")}</div>
-                            <div style="width: 7%;">PAGE</div>
-                            <div style="width: 7.2%; text-align: right;">${idx + 1}/${length}</div>
+                            <div style="width: 28.1%;" class="blank-cell">blank-cell</div>
+                            <div style="width: 5.5%;">作成日</div>
+                            <div style="width: 15%; text-align: right;">${moment().format("YYYY年MM月DD日")}</div>
+                            <div style="width: 5%;">PAGE</div>
+                            <div style="width: 6.2%; text-align: right;">${idx + 1}/${length}</div>
                         </div>
                     </div>
                 `;
@@ -420,7 +420,7 @@ export default {
                     float: left;
                 }
                 div.header-table > div > div {
-                    font-size: 10pt;
+                    font-size: 9pt;
                     padding-left: 3px;
                     padding-right: 3px;
                 }
@@ -479,7 +479,6 @@ export default {
                 }
                 table.DAI03120Grid1 tr[level="0"].group-summary td{
                     border-style: solid;
-                    border-top-style: dotted;
                     border-left-width: 1px;
                     border-top-width: 1px;
                     border-right-width: 0px;
@@ -522,12 +521,17 @@ export default {
                 table.DAI03120Grid1 tr th:nth-child(1) {
                     width: 10%;
                 }
-                table.DAI03120Grid1 tr th:nth-child(3) {
-                    width: 10%;
+                table.DAI03120Grid1 tr th:nth-child(2) {
+                    width: 30%;
                 }
-                table.DAI03120Grid1 tr th:nth-child(4),
-                table.DAI03120Grid1 tr th:nth-child(5) {
+                table.DAI03120Grid1 tr th:nth-child(3) {
+                    width: 11%;
+                }
+                table.DAI03120Grid1 tr th:nth-child(4) {
                     width: 13%;
+                }
+                table.DAI03120Grid1 tr th:nth-child(5) {
+                    width: 12%;
                 }
                 table.DAI03120Grid1 tr td:nth-child(1) ,
                 table.DAI03120Grid1 tr td:nth-child(3) ,
