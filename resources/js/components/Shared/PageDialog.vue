@@ -25,6 +25,16 @@
 
 <style scoped>
 </style>
+<style>
+.ui-dialog-buttonset .btn {
+    height: 50px !important;
+    padding-left: 0px;
+    padding-right: 0px;
+}
+.ui-dialog-buttonset .bt.multiline {
+    line-height: 15px;
+}
+</style>
 
 <script>
 import PageSelector from "@vcs/PageSelector.vue";
@@ -473,10 +483,12 @@ export default {
                     }
 
                     var text = v.value.includes(v.shortcut) ? v.value : (v.value + "\r\n" + "(" + v.shortcut + ")");
+                    text = text.replace(/<br\/*>/g, "\r\n");
+                    var multi = !!text.match(/\r\n/g) && text.match(/\r\n/g).length > 1;
 
                     return {
                             text: text,
-                            class: "btn btn-primary",
+                            class: "btn btn-primary" + (multi ? " multiline" : ""),
                             shortcut: v.shortcut,
                             click: v.onClick,
                             disabled: v.disabled || false,

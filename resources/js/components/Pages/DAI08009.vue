@@ -48,7 +48,7 @@
                     bind="CustomerCd"
                     buddy="CustomerNm"
                     dataUrl="/Utilities/GetCustomerListForSelect"
-                    :params="{ CustomerCd: null, KeyWord: null, UserBushoCd: getLoginInfo().bushoCd }"
+                    :params="{ KeyWord: viewModel.CustomerCd, UserBushoCd: getLoginInfo().bushoCd }"
                     :isPreload=true
                     title="得意先一覧"
                     labelCd="得意先CD"
@@ -404,6 +404,10 @@ export default {
                 }
             );
         },
+        CustomerParamsChangedCheckFunc: function(newVal, paramsPrev, vue) {
+            var ret = !!newVal.UserBushoCd;
+            return ret;
+        },
         onBushoChanged: function(code, entities) {
             var vue = this;
 
@@ -557,8 +561,8 @@ export default {
                 params: params,
                 isModal: true,
                 isChild: true,
-                width: 1200,
-                height: 700,
+                width: 1250,
+                height: 775,
             });
         },
         showNewDetail: function(rowData) {
@@ -571,8 +575,8 @@ export default {
                 params: params,
                 isModal: true,
                 isChild: true,
-                width: 1200,
-                height: 700,
+                width: 1250,
+                height: 775,
             });
         },
         print: function () {
