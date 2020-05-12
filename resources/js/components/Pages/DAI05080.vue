@@ -488,46 +488,81 @@ export default {
                     padding-right: 3px;
                 }
                 th {
-                    height: 19px;
+                    height: 21px;
                     text-align: center;
                 }
                 td {
-                    height: 20px;
+                    height: 22px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
                 table.header-table th {
                     text-align: left;
                     border: solid 1px black;
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                    font-size: 13.5pt;
+                }
+                table.header-table th:last-child {
+                    border-right-width: 1px;
+                }
+                table.header-table tbody tr:last-child th {
+                    border-bottom-width: 1px;
+                }
+                table.header-table thead th {
+                    font-size: 11pt;
+                    height: 22px;
+                    text-align: center;
+                }
+                table.header-table tbody th {
+                    height: 20.5x;
                 }
                 td.customer-nm {
-                    font-size: 12pt;
+                    font-size: 14pt;
+                    letter-spacing: 0.1em;
                 }
-                div.title,
+                div.title {
+                    font-size: 20pt;
+                }
                 td.customer-cd-A{
-                    font-size: 18pt;
+                    font-size: 20pt;
+                    text-align: center;
+                    padding-left: 170px;
                 }
-                td.customer-cd-A,
                 td.customer-cd{
                     text-align: center;
-                    padding-left: 200px;
+                    padding-left: 150px;
                 }
                 div.kaisya-info{
-                    margin-left: 240px;
-                    margin-bottom: 26px;
-                }
-                div.chuui-gaki > div {
+                    margin-left: 100px;
+                    margin-bottom: 20px;
                     font-size: 8pt;
                 }
+                div.kaisya-info > div:first-child {
+                    font-size: 11pt;
+                }
+                div.kaisya-info > div{
+                    text-align: right;
+                }
+                div.chuui-gaki > div {
+                    font-size: 8.5pt;
+                    letter-spacing: 0.2em;
+                    line-height: 15px;
+                }
                 table.header-table th:nth-child(1) {
-                    width: 41%;
+                    width: 42%;
                 }
                 table.header-table th:nth-child(2),
                 table.header-table th:nth-child(3) {
                     width: 13%;
+                    text-align: right;
+                    padding-right: 5px;
                 }
                 div.fax-tel {
-                    margin-left: 100px;
+                    margin-left: 125px;
                 }
                 div.hizuke {
                     border-style: solid;
@@ -545,6 +580,9 @@ export default {
                 }
                 hr {
                     border: none;
+                }
+                div.insatubi {
+                    font-size: 8pt;
                 }
             `;
 
@@ -596,11 +634,11 @@ export default {
                                                     <td>
                                                         <div class="fax-tel"><span>Fax.</span><span>${r.ＦＡＸ１ ? r.ＦＡＸ１ : ""}</span></div>
                                                         <div class="fax-tel"><span>Tel.</span><span>${r.電話番号１ ? r.電話番号１ : ""}</span></div>
-                                                        <div class="hizuke"><span/><span/><span>月</span><span/><span/>日分</div>
+                                                        <div class="hizuke"><span/><span/><span/><span>月<span/></span><span/><span/>日分</div>
                                                         <div style="height: 8px;"></div>
                                                     </td>
                                                     <td class="customer-cd">
-                                                        <span>顧客コード</span><span/><span/><span>${r.得意先ＣＤ}</span>
+                                                        <span>顧客コード<span/><span/></span><span/><span/><span>${r.得意先ＣＤ}</span>
                                                     </td>
                                                 </tr>
                                             </table>
@@ -624,10 +662,10 @@ export default {
                                             <div>※ご注文、食数の変更はできるだけ午前９時１０分迄にお願いします。</div>
                                         </div>
                                         <div style="float:left;" class="kaisya-info">
-                                            <div>株式会社ダイヤス食品</div>
-                                            <div>Fax.0836-21-4700</div>
-                                            <div>Tel.0836-32-1113</div>
-                                            <div>印刷日　${moment().format("YYYY/MM/DD")}</div>
+                                            <div>株式会社 <span/>ダイヤス食品<span/></div>
+                                            <div>Fax.<span/><span/>0836-21-4700</div>
+                                            <div>Tel.<span/><span/>0836-32-1113</div>
+                                            <div class="insatubi">印刷日　${moment().format("YYYY/MM/DD")}</div>
                                         </div>
                                     </div>
                                 </div>
