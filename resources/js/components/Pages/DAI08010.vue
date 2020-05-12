@@ -954,16 +954,18 @@ export default {
             );
         },
         mountedFunc: function(vue) {
-            //TODO:
-            vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
-            // vue.viewModel.DeliveryDate = moment("20190906").format("YYYY年MM月DD日");
-            vue.viewModel.DeliveryTime = moment().format("HH時mm分");
+            if (!vue.params) {
+                //TODO:
+                vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
+                // vue.viewModel.DeliveryDate = moment("20190906").format("YYYY年MM月DD日");
+                vue.viewModel.DeliveryTime = moment().format("HH時mm分");
 
-            vue.viewModel.OrderDate = vue.viewModel.DeliveryDate;
-            vue.viewModel.OrderTime = vue.viewModel.DeliveryTime;
+                vue.viewModel.OrderDate = vue.viewModel.DeliveryDate;
+                vue.viewModel.OrderTime = vue.viewModel.DeliveryTime;
 
-            //TODO:
-            vue.viewModel.BushoCd = "985";
+                //TODO:
+                vue.viewModel.BushoCd = "985";
+            }
 
             //watcher
             vue.$watch(

@@ -27,11 +27,11 @@
 </style>
 <style>
 .ui-dialog-buttonset .btn {
-    height: 50px !important;
     padding-left: 0px;
     padding-right: 0px;
 }
-.ui-dialog-buttonset .bt.multiline {
+.ui-dialog-buttonset .btn.multiline {
+    height: 50px !important;
     line-height: 15px;
 }
 </style>
