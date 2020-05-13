@@ -121,7 +121,7 @@
                     :vmodel=viewModel
                     bind="EigyoTantoCd"
                     dataUrl="/Utilities/GetTantoList"
-                    :params='{ bushoCd: viewModel.BushoOption == "2" ? viewModel.BushoCd : null }'
+                    :params='{}'
                     :dataListReset=true
                     title="営業担当者"
                     labelCd="営業担当者CD"
@@ -152,7 +152,7 @@
                     :vmodel=viewModel
                     bind="GetKakutokuTantoCd"
                     dataUrl="/Utilities/GetTantoList"
-                    :params='{ bushoCd: viewModel.BushoOption == "2" ? viewModel.BushoCd : null }'
+                    :params='{}'
                     :dataListReset=true
                     title="獲得営業担当者"
                     labelCd="獲得営業担当者CD"
@@ -778,7 +778,7 @@ export default {
             vue.footerButtons.find(v => v.id == "DAI05090Grid1_Print").disabled = false;
 
             res.forEach(r => {
-                    r.部署 = r.部署ＣＤ + " " + r.部署名;
+                    r.部署 = r.部署名 + (!!r.部署ＣＤ ? ":" + r.部署ＣＤ : "");
                     r.ＧＫ営業担当者 = r.営業担当者ＣＤ + " " + r.営業担当者名;
                     r.ＧＫ獲得営業者 = r.獲得営業者ＣＤ + " " + r.獲得営業者名;
                 });
@@ -839,7 +839,8 @@ export default {
             var headerFunc = (header, idx, length) => {
                 if (header.pq_level == 0)
                 {
-                    bushoNm = header.children[0].children[0].children[0].部署.split(" ")[1];
+                    // bushoNm = header.children[0].children[0].children[0].部署.split(" ")[1];
+                    bushoNm = header.children[0].children[0].children[0].部署;
                     eigyoNmKey1 = header.children[0].children[0].children[0].ＧＫ営業担当者.split(" ")[1];
                     eigyoNmKey2 = eigyoNmKey1;
                 }
@@ -847,12 +848,14 @@ export default {
                 {
                     eigyoNmKey1 = header.children[0].children[0].ＧＫ営業担当者.split(" ")[1];
                     eigyoNmKey2 = eigyoNmKey1;
-                    bushoNm = header.children[0].children[0].部署.split(" ")[1];
+                    // bushoNm = header.children[0].children[0].部署.split(" ")[1];
+                    bushoNm = header.children[0].children[0].部署;
                 }
                 if (header.pq_level == 2)
                 {
                     eigyoNmKey2 = header.children[0].ＧＫ獲得営業者.split(" ")[1];
-                    bushoNm = header.children[0].部署.split(" ")[1];
+                    // bushoNm = header.children[0].部署.split(" ")[1];
+                    bushoNm = header.children[0].部署;
                 }
                 return `
                     <div class="title">
