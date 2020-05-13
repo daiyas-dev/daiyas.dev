@@ -122,7 +122,6 @@
             :SearchOnCreate=false
             :SearchOnActivate=false
             :options=this.grid1Options
-            :onAfterSearchFunc=this.onAfterSearchFunc
             :autoToolTipDisabled=true
         />
     </form>
@@ -305,16 +304,17 @@ export default {
             //日付の初期値 -> 当日
             //TODO:
             console.log("mounted");//TODO:
-            vue.viewModel.TargetDate = moment("20190901").format("YYYY年MM月");
+            vue.viewModel.TargetDate = moment().format("YYYY年MM月");
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
-
+            vue.LatestSeikyuDateGet();
             //条件変更ハンドラ
             vue.conditionChanged();
         },
         onTargetDateChanged: function(code, entity) {
             var vue = this;
+            vue.WithdrawalDateGet();
             //条件変更ハンドラ
             vue.conditionChanged();
         },
@@ -367,10 +367,54 @@ export default {
 
             return params;
         },
+        LatestSeikyuDateGet: function(){
+            var vue = this;
+
+            if (!vue.viewModel.BushoArray || vue.viewModel.BushoArray.length==0){
+                vue.viewModel.TargetDate = moment().format("YYYY年MM月")+"01日";
+                return;
+            }
+            var BushoCd=vue.BushoCdArray[0];
+
+            var tc = new Date().getTime();//axios実行時のキャッシュを無効にするため、現在のタイムスタンプを渡す
+            axios.post("/DAI03080/LatestSeikyuDateGet", { BushoCd:BushoCd, timestamp:tc })
+                .then(response => {
+                    vue.viewModel.TargetDate = moment(response.data.前回請求日, "YYYY/MM/DD").format("YYYY年MM月")+"01日";
+                })
+            .catch(error => {
+                console.log(error);
+                if (!!grid) grid.hideLoading();
+
+                //失敗ダイアログ
+                $.dialogErr({
+                    title: " 各種テーブル検索失敗",
+                    contents: " 各種テーブル検索に失敗しました" + "<br/>" + error.message,
+                });
+            });
+        },
+        WithdrawalDateGet: function(){
+            var vue = this;
+            var tc = new Date().getTime();//axios実行時のキャッシュを無効にするため、現在のタイムスタンプを渡す
+            axios.post("/DAI03080/WithdrawalDateGet", { timestamp:tc })
+                .then(response => {
+                    vue.viewModel.WithdrawalDate = moment(vue.viewModel.TargetDate+"01日", "YYYY年MM月DD日").add(1,'month').format("YYYY年MM月") + ( '00' + response.data.銀行引落日 ).slice( -2 ) + "日";
+                })
+            .catch(error => {
+                console.log(error);
+                if (!!grid) grid.hideLoading();
+
+                //失敗ダイアログ
+                $.dialogErr({
+                    title: " 各種テーブル検索失敗",
+                    contents: " 各種テーブル検索に失敗しました" + "<br/>" + error.message,
+                });
+            });
+        },
         FileDownload: function() {
             var vue=this;
             if (!vue.viewModel.BushoArray || vue.viewModel.BushoArray.length==0) return;
 
+            var BankName =vue.viewModel.BankFormat=="0" ? "山口銀行" : "三菱東京ＵＦＪ";//銀行名が「三菱東京ＵＦＪ」になっているが、良いか。現在は「三菱ＵＦＪ銀行」
             var params=this.ParamGet();
 
             //登録実行
@@ -397,7 +441,7 @@ export default {
                     const bloburl = URL.createObjectURL(new Blob([response.data],{type: 'text/csv'}));
                     const link = document.createElement('a');
                     link.href = bloburl;
-                    link.download="abc.txt";
+                    link.download="ビジネスダイレクト"+ BankName + moment(params.WithdrawalDate, "YYYY年MM月DD日").format("YYYYMMDD") +".txt";
                     link.click();
                     URL.revokeObjectURL(bloburl);
                 });
