@@ -36,6 +36,7 @@ class DAI05090Controller extends Controller
         (
         select
             URIAGE_MEISAI.部署ＣＤ
+            , BUSYO.部署ＣＤ as 部署ＣＤ2
             , BUSYO.部署名
             , URIAGE_MEISAI.日付
             , (STR(TOKUISAKI.営業担当者ＣＤ) + STR(TOKUISAKI.獲得営業者ＣＤ)) as 担当者ＣＤ
@@ -92,7 +93,8 @@ class DAI05090Controller extends Controller
 		日毎集計データ AS
 		(
 		SELECT
-			 部署ＣＤ
+             部署ＣＤ
+            ,部署ＣＤ2
             ,部署名
             ,営業担当者ＣＤ
 			,営業担当者名
@@ -109,7 +111,7 @@ class DAI05090Controller extends Controller
 		FROM
 			売上データ
 		GROUP BY
-			部署ＣＤ, 部署名, 営業担当者ＣＤ, 営業担当者名, 獲得営業者ＣＤ, 獲得営業者名, 得意先ＣＤ, 得意先名, 日付
+			部署ＣＤ, 部署ＣＤ2, 部署名, 営業担当者ＣＤ, 営業担当者名, 獲得営業者ＣＤ, 獲得営業者名, 得意先ＣＤ, 得意先名, 日付
 		),
 
 		集計データ AS
@@ -130,13 +132,14 @@ class DAI05090Controller extends Controller
 		FROM
 			日毎集計データ
 		GROUP BY
-			部署ＣＤ, 営業担当者ＣＤ, 営業担当者名, 獲得営業者ＣＤ, 獲得営業者名, 得意先ＣＤ, 得意先名
+			部署ＣＤ, 部署ＣＤ2, 営業担当者ＣＤ, 営業担当者名, 獲得営業者ＣＤ, 獲得営業者名, 得意先ＣＤ, 得意先名
 		),
 
 		ピボット集計データ AS
 		(
 		SELECT
-			 部署ＣＤ
+             部署ＣＤ
+            ,部署ＣＤ2
             ,部署名
             ,営業担当者ＣＤ
 			,営業担当者名
@@ -175,7 +178,7 @@ class DAI05090Controller extends Controller
 		AND	D.獲得営業者ＣＤ = S.獲得営業者ＣＤ
 		AND	D.得意先ＣＤ = S.得意先ＣＤ
         ORDER BY
-            D.営業担当者ＣＤ, D.獲得営業者ＣＤ, D.得意先ＣＤ
+            D.部署ＣＤ2, D.営業担当者ＣＤ, D.獲得営業者ＣＤ, D.得意先ＣＤ
         ";
 
         //$DataList = DB::select($sql);

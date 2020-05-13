@@ -538,11 +538,15 @@ export default {
                 }
                 div.kaisya-info{
                     margin-left: 100px;
-                    margin-bottom: 20px;
+                    margin-bottom: 0px;
                     font-size: 8pt;
                 }
                 div.kaisya-info > div:first-child {
                     font-size: 11pt;
+                }
+                div.kaisya-info > div:nth-child(2),
+                div.kaisya-info > div:nth-child(3) {
+                    font-size: 10pt;
                 }
                 div.kaisya-info > div{
                     text-align: right;
@@ -580,6 +584,7 @@ export default {
                 }
                 hr {
                     border: none;
+                    margin: 22px;
                 }
                 div.insatubi {
                     font-size: 8pt;

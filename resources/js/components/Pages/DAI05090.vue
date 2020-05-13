@@ -278,7 +278,6 @@ export default {
                     header: false,
                     grandSummary: true,
                     indent: 10,
-                    // dataIndx: ["ＧＫ営業担当者", "ＧＫ獲得営業者"],
                     dataIndx: ["部署", "ＧＫ営業担当者", "ＧＫ獲得営業者"],
                     showSummary: [false, true],
                     collapsed: [false, false],
@@ -295,12 +294,6 @@ export default {
                         hidden: true,
                         fixed: true,
                     },
-                    // {
-                    //     title: "部署名",
-                    //     dataIndx: "部署名", dataType: "string",
-                    //     hidden: true,
-                    //     fixed: true,
-                    // },
                     {
                         title: "営業担当者ＣＤ",
                         dataIndx: "営業担当者ＣＤ", dataType: "string",
@@ -320,9 +313,6 @@ export default {
                         hidden: true,
                         fixed: true,
                         render: ui => {
-                            // if (ui.rowData.pq_level != 0) {
-                            //     return { text: "" };
-                            // }
                             if (ui.rowData.pq_level != 1) {
                                 return { text: "" };
                             }
@@ -367,8 +357,6 @@ export default {
                                 switch (ui.rowData.pq_level) {
                                     case 1:
                                         return { text: "合計" };
-                                    // case 2:
-                                    //     return { text: "合計" };
                                     default:
                                         return { text: "" };
                                 }
@@ -845,25 +833,12 @@ export default {
                 }
             `;
 
-            //TODO:西山確認中
             var bushoNm;
             var eigyoNmKey1;
             var eigyoNmKey2;
             var headerFunc = (header, idx, length) => {
-                // if (header.pq_level == 0)
-                // {
-                //     eigyoNmKey1 = header.ＧＫ営業担当者.split(" ")[1];
-                //     eigyoNmKey2 = eigyoNmKey1;
-                //     bushoNm = header.children[0].children[0].部署名;
-                // }
-                // if (header.pq_level == 1)
-                // {
-                //     eigyoNmKey2 = header.ＧＫ獲得営業者.split(" ")[1];
-                //     bushoNm = header.children[0].部署名;
-                // }
                 if (header.pq_level == 0)
                 {
-                    // bushoNm = header.children[0].children[0].children[0].部署名;
                     bushoNm = header.children[0].children[0].children[0].部署.split(" ")[1];
                     eigyoNmKey1 = header.children[0].children[0].children[0].ＧＫ営業担当者.split(" ")[1];
                     eigyoNmKey2 = eigyoNmKey1;
@@ -872,13 +847,11 @@ export default {
                 {
                     eigyoNmKey1 = header.children[0].children[0].ＧＫ営業担当者.split(" ")[1];
                     eigyoNmKey2 = eigyoNmKey1;
-                    // bushoNm = header.children[0].children[0].部署名;
                     bushoNm = header.children[0].children[0].部署.split(" ")[1];
                 }
                 if (header.pq_level == 2)
                 {
                     eigyoNmKey2 = header.children[0].ＧＫ獲得営業者.split(" ")[1];
-                    // bushoNm = header.children[0].部署名;
                     bushoNm = header.children[0].部署.split(" ")[1];
                 }
                 return `
