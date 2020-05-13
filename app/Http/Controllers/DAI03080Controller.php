@@ -7,9 +7,12 @@ use Illuminate\Support\Arr;
 use DB;
 use Illuminate\Support\Carbon;
 use PDO;
-
 class DAI03080Controller extends Controller
 {
+    //出力区分(金融機関)の指定
+    const BANK_YAMAGUCHI = '0';
+    const BANK_TOKYO_MITSUBISHI_UFJ = '1';
+
     /**
      * Search
      */
@@ -23,85 +26,96 @@ class DAI03080Controller extends Controller
      */
     private function getSeikyuData($vm)
     {
-        $DateStart = $vm->DateStart;
-        $DateEnd = $vm->DateEnd;
+        $StartDate=$vm->StartDate;
+        $EndDate=$vm->EndDate;
 
         //検索条件(部署ＣＤ)
         $BushoArray = $vm->BushoArray;
         $WhereBusho1="";
+        $WhereBusho2="";
+        $WhereBusho3="";
         if($BushoArray !=null && is_array($BushoArray) && 0<count($BushoArray))
         {
             $BushoList = implode(',',$BushoArray);
-            $WhereBusho1=" AND 得意先マスタ.部署ＣＤ IN( $BushoList )";
+            $WhereBusho1 = " AND 請求データ.部署ＣＤ IN( $BushoList )";
+            $WhereBusho2 = " AND 入金データ.部署ＣＤ IN( $BushoList )";
+            $WhereBusho3 = " AND SEIKYU.部署ＣＤ IN( $BushoList )";
         }
 
+        //検索条件(金融機関)
+        $BankFormat=$vm->BankFormat;
+        $WhereBank = $BankFormat==self::BANK_YAMAGUCHI ? " = 170" : " <> 170";
+
+        //検索条件(締日)
+        $Simebi1 = $vm->Simebi1 != null ? $vm->Simebi1 : "0";
+        $Simebi2 = $vm->Simebi2 != null ? $vm->Simebi2 : "0";
+        $Simebi3 = $vm->Simebi3 != null ? $vm->Simebi3 : "0";
+
         $sql = "
-        WITH 請求日付_MAX請求データ AS
-        (
-        SELECT MAX(請求日付) as 請求日付, 部署ＣＤ, 請求先ＣＤ
-          FROM 請求データ
-         WHERE 部署ＣＤ >= 101
-           AND 部署ＣＤ <= 101
-           AND 請求日付 >= '2019/09/01'
-           AND 請求日付 <= '2019/09/30'
-        GROUP BY 部署ＣＤ, 請求先ＣＤ
-        )
+                WITH 請求日付_MAX請求データ AS
+                (
+                    SELECT MAX(請求日付) as 請求日付, 部署ＣＤ, 請求先ＣＤ
+                    FROM 請求データ
+                    WHERE 0=0
+                        $WhereBusho1
+                        AND 請求日付 >= '$StartDate'
+                        AND 請求日付 <= '$EndDate'
+                    GROUP BY 部署ＣＤ, 請求先ＣＤ
+                )
 
-        SELECT
-          SEIKYU.請求先ＣＤ
-          ,SEIKYU.今回請求額 - ISNULL(入金額, 0) AS 今回請求額
-          ,TOK.金融機関CD AS 引落銀行番号
-          ,KINYU.銀行名カナ AS 引落銀行名
-          ,TOK.金融機関支店CD AS 引落支店番号
-          ,KINYU_SHITEN.支店名カナ AS 引落支店名
-          ,TOK.口座種別 AS 預金種目
-          ,TOK.口座番号
-          ,TOK.口座名義人 AS 預金者名
-          ,SEIKYU.請求先ＣＤ AS 顧客番号
-          ,TOK.得意先名
-        FROM
-          請求データ SEIKYU
-          INNER JOIN 請求日付_MAX請求データ SEIKYUMAX ON SEIKYUMAX.請求日付   = SEIKYU.請求日付
-                                                     AND SEIKYUMAX.部署ＣＤ   = SEIKYU.部署ＣＤ
-                                                     AND SEIKYUMAX.請求先ＣＤ = SEIKYU.請求先ＣＤ
-          LEFT OUTER JOIN 得意先マスタ TOK ON
-            SEIKYU.請求先ＣＤ = TOK.得意先ＣＤ
-          LEFT OUTER JOIN 金融機関名称 KINYU ON
-            KINYU.銀行CD = TOK.金融機関CD
-          LEFT OUTER JOIN 金融機関支店名称 KINYU_SHITEN ON
-            KINYU_SHITEN.銀行CD = TOK.金融機関CD
-            AND KINYU_SHITEN.支店CD = TOK.金融機関支店CD
-          LEFT OUTER JOIN
-          (
-              SELECT 部署ＣＤ,
-                     得意先ＣＤ,
-                     MAX(入金日付) AS 入金日付,
-                     SUM(ISNULL(現金,0) + ISNULL(小切手,0) + ISNULL(振込,0) + ISNULL(バークレー,0) + ISNULL(その他,0) + ISNULL(相殺,0) + ISNULL(値引,0)) AS 入金額
-                FROM 入金データ
-               WHERE 部署ＣＤ >= 101
-                 AND 部署ＣＤ <= 101
-                 AND 入金日付 >= '2019/09/01'
-              GROUP BY 部署ＣＤ,得意先ＣＤ
-          ) NYUKIN ON
-                SEIKYU.部署ＣＤ   = NYUKIN.部署ＣＤ
-            AND SEIKYU.請求先ＣＤ = NYUKIN.得意先ＣＤ
-            AND NYUKIN.入金日付   > SEIKYU.請求日付
+                SELECT
+                    SEIKYU.請求先ＣＤ
+                    ,SEIKYU.今回請求額 - ISNULL(入金額, 0) AS 今回請求額
+                    ,TOK.金融機関CD AS 引落銀行番号
+                    ,KINYU.銀行名カナ AS 引落銀行名
+                    ,TOK.金融機関支店CD AS 引落支店番号
+                    ,KINYU_SHITEN.支店名カナ AS 引落支店名
+                    ,TOK.口座種別 AS 預金種目
+                    ,TOK.口座番号
+                    ,TOK.口座名義人 AS 預金者名
+                    ,SEIKYU.請求先ＣＤ AS 顧客番号
+                    ,TOK.得意先名
+                FROM
+                    請求データ SEIKYU
+                    INNER JOIN 請求日付_MAX請求データ SEIKYUMAX ON SEIKYUMAX.請求日付   = SEIKYU.請求日付
+                                                                AND SEIKYUMAX.部署ＣＤ   = SEIKYU.部署ＣＤ
+                                                                AND SEIKYUMAX.請求先ＣＤ = SEIKYU.請求先ＣＤ
+                    LEFT OUTER JOIN 得意先マスタ TOK ON
+                        SEIKYU.請求先ＣＤ = TOK.得意先ＣＤ
+                    LEFT OUTER JOIN 金融機関名称 KINYU ON
+                        KINYU.銀行CD = TOK.金融機関CD
+                    LEFT OUTER JOIN 金融機関支店名称 KINYU_SHITEN ON
+                        KINYU_SHITEN.銀行CD = TOK.金融機関CD
+                        AND KINYU_SHITEN.支店CD = TOK.金融機関支店CD
+                    LEFT OUTER JOIN
+                    (
+                        SELECT 部署ＣＤ,
+                                得意先ＣＤ,
+                                MAX(入金日付) AS 入金日付,
+                                SUM(ISNULL(現金,0) + ISNULL(小切手,0) + ISNULL(振込,0) + ISNULL(バークレー,0) + ISNULL(その他,0) + ISNULL(相殺,0) + ISNULL(値引,0)) AS 入金額
+                        FROM 入金データ
+                        WHERE 0=0
+                            $WhereBusho2
+                            AND 入金日付 >= '$StartDate'
+                        GROUP BY 部署ＣＤ,得意先ＣＤ
+                    ) NYUKIN ON
+                            SEIKYU.部署ＣＤ   = NYUKIN.部署ＣＤ
+                        AND SEIKYU.請求先ＣＤ = NYUKIN.得意先ＣＤ
+                        AND NYUKIN.入金日付   > SEIKYU.請求日付
 
-        WHERE
-          SEIKYU.部署ＣＤ >= 101
-          AND SEIKYU.部署ＣＤ <= 101
-          AND SEIKYU.請求日付 >= '2019/09/01'
-          AND SEIKYU.請求日付 <= '2019/09/30'
-          AND TOK.支払方法１ = 4
-          AND TOK.金融機関CD  = 170
-
-          AND SEIKYU.今回請求額 - ISNULL(入金額, 0) > 0
-
-          AND TOK.締日１ IN(99,15,0)
-          AND TOK.得意先ＣＤ = TOK.請求先ＣＤ
-        ORDER BY
-          SEIKYU.部署ＣＤ,SEIKYU.請求先ＣＤ
-                        ";
+                WHERE
+                    0=0
+                    $WhereBusho3
+                    AND SEIKYU.請求日付 >= '$StartDate'
+                    AND SEIKYU.請求日付 <= '$EndDate'
+                    AND TOK.支払方法１ = 4
+                    AND TOK.金融機関CD $WhereBank
+                    AND SEIKYU.今回請求額 - ISNULL(入金額, 0) > 0
+                    AND TOK.締日１ IN($Simebi1 , $Simebi2 , $Simebi3)
+                    AND TOK.得意先ＣＤ = TOK.請求先ＣＤ
+                ORDER BY
+                    SEIKYU.部署ＣＤ,SEIKYU.請求先ＣＤ
+            ";
         $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
@@ -117,15 +131,40 @@ class DAI03080Controller extends Controller
      */
     public function FileDownload($request)
     {
+        //パラメータの取得
+        $param['出力区分']=$request->BankFormat;
+
+        //銀行引落日の取得
+        $date = Carbon::parse($request->WithdrawalDate);
+        $param['銀行引落日']=$date->format('md');//月日(各2桁)
+
         $BankHeader="";
         $BankData="";
         $BankTrailer="";
         $BankEnd="";
 
-        $param['銀行引落日']="1224";//TODO:ダミーデータ
-
-        $filename=public_path().'\bankformat\BankFormatYamaguchi.xml';
-        $xml = simplexml_load_file($filename);
+        //書式定義ファイルの読み込み
+        switch($param['出力区分'])
+        {
+            case self::BANK_YAMAGUCHI:
+            {
+                //0=山口銀行
+                $BankFormatFile='BankFormatYamaguchi.xml';
+                break;
+            }
+            case self::BANK_TOKYO_MITSUBISHI_UFJ:
+            {
+                //1=東京三菱UFJ
+                $BankFormatFile='BankFormatmitubishi.xml';
+                break;
+            }
+            default:
+            {
+                return "";
+            }
+        }
+        $Filename=public_path() . '\\bankformat\\' . $BankFormatFile;
+        $xml = simplexml_load_file($Filename);
 
         $DataList=$this->getSeikyuData($request);
         foreach ($DataList as $DataListRow) {
@@ -149,11 +188,15 @@ class DAI03080Controller extends Controller
 
     /**
      * 引落データの要素の文字列(パディング調整済)を取得する
+     * 引数：項目の定義内容(全件)
+     * 引数：画面からの呼び出し時に渡されたパラメータ
+     * 引数：SQLで取得した引落データ(1件)
      */
     private function getDataElement($format,$param,$DataListRow)
     {
         $retval="";
 
+        //書式の取得
         $character=$format['character'];//長さ
         $value=$format['value'];//値
         $pad=$format['pad'];//パディング
@@ -179,6 +222,9 @@ class DAI03080Controller extends Controller
 
     /**
      * 引落データの要素に指定された値を取得する
+     * 引数：項目の定義内容(1件)
+     * 引数：画面からの呼び出し時に渡されたパラメータ
+     * 引数：SQLで取得した引落データ(1件)
      */
     private function getBankValue($value,$param,$DataListRow)
     {
