@@ -94,7 +94,7 @@
                 <label>締日１</label>
             </div>
             <div class="col-md-3">
-                <input class="form-control p-0 text-center label-blue" style="width: 80px;" type="text" :value=viewModel.Simebi1>
+                <input class="form-control p-0 text-center label-blue" style="width: 80px;" type="text" :value=viewModel.Simebi1 @input="onSimebi1Changed">
                 <label style="width: 100px;">（月末：99）</label>
             </div>
         </div>
@@ -103,7 +103,7 @@
                 <label>締日２</label>
             </div>
             <div class="col-md-1">
-                <input class="form-control p-0 text-center label-blue" style="width: 80px;" type="text" :value=viewModel.Simebi2>
+                <input class="form-control p-0 text-center label-blue" style="width: 80px;" type="text" :value=viewModel.Simebi2 @input="onSimebi2Changed">
             </div>
         </div>
         <div class="row">
@@ -111,7 +111,7 @@
                 <label>締日３</label>
             </div>
             <div class="col-md-1">
-                <input class="form-control p-0 text-center label-blue" style="width: 80px;" type="text" :value=viewModel.Simebi3>
+                <input class="form-control p-0 text-center label-blue" style="width: 80px;" type="text" :value=viewModel.Simebi3 @input="onSimebi3Changed">
             </div>
         </div>
         <PqGridWrapper
@@ -182,8 +182,6 @@ export default {
                 Simebi1:null,
                 Simebi2:null,
                 Simebi3:null,
-                CourseCd: null,
-                CustomerCd: null,
             },
             DAI03080Grid1: null,
             grid1Options: {
@@ -195,7 +193,7 @@ export default {
                 numberCell: { show: true, title: "No.", resizable: false, },
                 autoRow: false,
                 rowHt: 35,
-                freezeCols: 1,
+                freezeCols: 2,
                 editable: false,
                 columnTemplate: {
                     editable: false,
@@ -224,7 +222,7 @@ export default {
                     {
                         title: "請求先ＣＤ",
                         dataIndx: "請求先ＣＤ", dataType: "string",
-                        width: 60, minWidth: 60, maxWidth: 60,
+                        width: 90, maxWidth: 90, minWidth: 90,
                     },
                     {
                         title: "得意先名",
@@ -246,22 +244,22 @@ export default {
                     {
                         title: "引落銀行番号",
                         dataIndx: "引落銀行番号", dataType: "string",
-                        width: 90, maxWidth: 90, minWidth: 90,
+                        width: 110, maxWidth: 110, minWidth: 110,
                     },
                     {
                         title: "引落銀行名",
                         dataIndx: "引落銀行名", dataType: "string",
-                        width: 90, maxWidth: 90, minWidth: 90,
+                        width: 110, maxWidth: 110, minWidth: 110,
                     },
                     {
                         title: "引落支店番号",
                         dataIndx: "引落支店番号", dataType: "string",
-                        width: 90, maxWidth: 90, minWidth: 90,
+                        width: 110, maxWidth: 110, minWidth: 110,
                     },
                     {
                         title: "引落支店名",
                         dataIndx: "引落支店名", dataType: "string",
-                        width: 90, maxWidth: 90, minWidth: 90,
+                        width: 110, maxWidth: 110, minWidth: 110,
                     },
                     {
                         title: "預金種目",
@@ -276,7 +274,8 @@ export default {
                     {
                         title: "預金者名",
                         dataIndx: "預金者名", dataType: "string",
-                        width: 90, maxWidth: 90, minWidth: 90,
+                        width: 120, maxWidth: 120, minWidth: 120,
+                        tooltip: true,
                     },
                     {
                         title: "顧客番号",
@@ -306,8 +305,7 @@ export default {
             //日付の初期値 -> 当日
             //TODO:
             console.log("mounted");//TODO:
-            vue.viewModel.TargetDate = moment("20190507").format("YYYY年MM月");
-            //vue.viewModel.CourseCd=101;
+            vue.viewModel.TargetDate = moment("20190901").format("YYYY年MM月");
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
@@ -331,6 +329,18 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
+        onSimebi1Changed: _.debounce(function(event) {
+            var vue = this;
+            vue.viewModel.Simebi1=event.target.value*1;
+        }, 300),
+        onSimebi2Changed: _.debounce(function(event) {
+            var vue = this;
+            vue.viewModel.Simebi2=event.target.value*1;
+        }, 300),
+        onSimebi3Changed: _.debounce(function(event) {
+            var vue = this;
+            vue.viewModel.Simebi3=event.target.value*1;
+        }, 300),
         conditionChanged: function(callback) {
             var vue = this;
             var grid = vue.DAI03080Grid1;
@@ -339,43 +349,29 @@ export default {
             if (!vue.viewModel.BushoArray || vue.viewModel.BushoArray.length==0) return;
             if (!vue.viewModel.TargetDate) return;
 
+            var params=this.ParamGet();
+            window.resp=_.cloneDeep(params);//TODO
+            grid.searchData(params, false, null, callback);
+        },
+        ParamGet: function(){
+            var vue = this;
             var params = $.extend(true, {}, vue.viewModel);
 
             //検索パラメータの加工
             //処理年月の1日から末日までの範囲を検索条件に指定する
-            params.DateStart  = params.TargetDate ? moment(params.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD") : null;
-            params.DateEnd    = params.TargetDate ? moment(params.DateStart).add(11, 'months').format("YYYYMMDD") : null;
+            params.TargetDate = params.TargetDate ? params.TargetDate+"01日" : null;
+            params.StartDate  = params.TargetDate ? moment(params.TargetDate, "YYYY年MM月DD日").format("YYYY/MM/DD") : null;
+            params.EndDate    = params.TargetDate ? moment(params.StartDate, "YYYY年MM月DD日").endOf('month').format("YYYY/MM/DD") : null;
+            params.WithdrawalDate= params.WithdrawalDate ? moment(params.WithdrawalDate, "YYYY年MM月DD日").format("YYYY/MM/DD") : null;
             params.BushoArray = vue.BushoCdArray;//部署コードのみ渡す
 
-            //フィルタするパラメータは除外
-            //delete params.CourseCd;
-            //delete params.CustomerCd;
-
-            grid.searchData(params, false, null, callback);
-        },
-        onAfterSearchFunc: function (vue, grid, res) {
-            var vue = this;
-            return res;
+            return params;
         },
         FileDownload: function() {
             var vue=this;
-            /*
-            if(vue.viewModel.BushoCd==null)
-            {
-                return;
-            }
-            */
+            if (!vue.viewModel.BushoArray || vue.viewModel.BushoArray.length==0) return;
 
-            //理由が理由2の場合、金額を更新する。
-            /*
-            var Kingaku=0;
-            if(vue.viewModel.AdjustmentReason==2)
-            {
-                Kingaku=vue.viewModel.Kingaku;
-            }
-            var AdjustmentDate=moment(vue.viewModel.AdjustmentDate,"YYYY年MM月DD日").format("YYYY/MM/DD");
-            var ShuseiTantoCd=vue.getLoginInfo()["uid"];
-            */
+            var params=this.ParamGet();
 
             //登録実行
             console.log("FileDownload");//TODO:
@@ -384,7 +380,18 @@ export default {
                     url: '/DAI03080/FileDownload',
                     method: 'POST',
                     responseType: 'blob', // これがないと文字化けする
-                    data : { timestamp:tc }
+                    data : {
+                        timestamp:tc,
+                        BushoArray:params.BushoArray,
+                        BankFormat:params.BankFormat,
+                        StartDate:params.StartDate,
+                        EndDate:params.EndDate,
+                        WithdrawalDate:params.WithdrawalDate,
+                        IsKouzaYose:params.IsKouzaYose,
+                        Simebi1:params.Simebi1,
+                        Simebi2:params.Simebi2,
+                        Simebi3:params.Simebi3,
+                    }
                 }).then((response) => {
                     window.resa=_.cloneDeep(response);//TODO
                     const bloburl = URL.createObjectURL(new Blob([response.data],{type: 'text/csv'}));
