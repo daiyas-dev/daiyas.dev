@@ -212,7 +212,6 @@
                     bind="エリアＣＤ"
                     dataUrl="/DAI08010/GetCourseList"
                     :params="{ BushoCd: viewModel.BushoCd, WithZero: true }"
-                    :ParamsChangedCheckFunc=CourseParamsChangedCheckFunc
                     :dataListReset=true
                     title="エリア一覧"
                     labelCd="エリアCD"
@@ -1552,15 +1551,15 @@ export default {
                 //CustomerInfo
                 var CustomerInfo = _.cloneDeep(vue.CustomerInfo);
 
-                CustomerInfo.部署CD = !!CustomerInfo.得意先ＣＤ ? CustomerInfo.部署CD : vue.viewModel.BushoCd;
-                CustomerInfo.得意先名略称 = !!CustomerInfo.得意先ＣＤ ? CustomerInfo.得意先名略称 : CustomerInfo.得意先名;
-                CustomerInfo.営業担当者ＣＤ = !!CustomerInfo.得意先ＣＤ ? CustomerInfo.営業担当者ＣＤ : vue.OrderInfo.営業担当者ＣＤ;
-                CustomerInfo.獲得営業者ＣＤ = !!CustomerInfo.得意先ＣＤ ? CustomerInfo.獲得営業者ＣＤ : vue.OrderInfo.営業担当者ＣＤ;
-                CustomerInfo.登録担当者ＣＤ = !!CustomerInfo.得意先ＣＤ ? CustomerInfo.登録担当者ＣＤ : vue.OrderInfo.担当者ＣＤ;
-                CustomerInfo.お届け先住所１ = !!CustomerInfo.得意先ＣＤ ? CustomerInfo.お届け先住所１ : vue.OrderInfo.配達先１;
-                CustomerInfo.お届け先住所２ = !!CustomerInfo.得意先ＣＤ ? CustomerInfo.お届け先住所２ : vue.OrderInfo.配達先２;
-                CustomerInfo.承認日 = date;
-                CustomerInfo.新規登録日 = date;
+                CustomerInfo.部署CD = vue.viewModel.BushoCd;
+                CustomerInfo.得意先名略称 = CustomerInfo.得意先名;
+                CustomerInfo.営業担当者ＣＤ = vue.OrderInfo.営業担当者ＣＤ;
+                CustomerInfo.獲得営業者ＣＤ = vue.OrderInfo.営業担当者ＣＤ;
+                CustomerInfo.登録担当者ＣＤ = vue.OrderInfo.担当者ＣＤ;
+                CustomerInfo.お届け先住所１ = vue.OrderInfo.配達先１;
+                CustomerInfo.お届け先住所２ = vue.OrderInfo.配達先２;
+                CustomerInfo.承認日 = !!CustomerInfo.得意先ＣＤ ? CustomerInfo.承認日 : date;
+                CustomerInfo.新規登録日 = !!CustomerInfo.得意先ＣＤ ? CustomerInfo.新規登録日 : date;
                 CustomerInfo.修正担当者ＣＤ = vue.getLoginInfo().uid;
 
                 if (!_.keys(diff(vue.CustomerInfoOrg, CustomerInfo)).length) {

@@ -1594,20 +1594,24 @@ export default {
             } else if ($btn.hasClass("toUpward")) {
                 grid.SelectRow().getSelection().forEach(v => {
                     if (v.rowIndx != 0) {
-                        grid.moveNodes(v.rowData, v.rowIndx - 1);
-                        moveAt = moveAt < v.rowIndx - 1 ? moveAt : v.rowIndx - 1;
+                        grid.moveNodes([v.rowData], v.rowIndx - 1);
+                        moveAt = moveAt < v.rowIndx - 1 ? (v.rowIndx - 1) : moveAt ;
+                    } else {
+                        moveAt = 0;
                     }
                 });
             } else if ($btn.hasClass("toDownward")) {
                 grid.SelectRow().getSelection().forEach(v => {
                     if (v.rowIndx != grid.pdata.length - 1) {
-                        grid.moveNodes(v.rowData, v.rowIndx + 1);
+                        grid.moveNodes([v.rowData], v.rowIndx + 1 + 1);
                         moveAt = moveAt > v.rowIndx + 1 ? moveAt : v.rowIndx + 1;
+                    } else {
+                        moveAt = grid.pdata.length - 1;
                     }
                 });
             } else if ($btn.hasClass("toLast")) {
                 moveAt = grid.pdata.length - 1;
-                grid.moveNodes(nodes, moveAt);
+                grid.moveNodes(nodes, moveAt + 1);
             }
             console.log("moveNodesSelf", nodes, moveAt);
             to.scrollRow({rowIndxPage: moveAt});
