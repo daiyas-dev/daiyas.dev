@@ -94,9 +94,9 @@
             </div>
         </div>
         <PqGridWrapper
-            :id='"DAI08009Grid1" + (!!params ? _uid : "")'
-            ref="DAI08009Grid1"
-            dataUrl="/DAI08009/GetChumonList"
+            :id='"DAI08030Grid1" + (!!params ? _uid : "")'
+            ref="DAI08030Grid1"
+            dataUrl="/DAI08030/GetChumonList"
             :query=searchParams
             :SearchOnCreate=false
             :SearchOnActivate=false
@@ -110,15 +110,15 @@
 <style scoped>
 </style>
 <style>
-form[pgid="DAI08009"] .multiselect.BushoCd .multiselect__tags {
+form[pgid="DAI08030"] .multiselect.BushoCd .multiselect__tags {
     height: unset;
     padding-top: 10px;
 }
-form[pgid="DAI08009"] .top-wrap {
+form[pgid="DAI08030"] .top-wrap {
     align-items: flex-start;
     white-space: pre-wrap !important;
 }
-form[pgid="DAI08009"] .pq-grid-header-table .pq-td-div {
+form[pgid="DAI08030"] .pq-grid-header-table .pq-td-div {
     height: 25px;
 }
 </style>
@@ -128,13 +128,13 @@ import PageBaseMixin from "@vcs/PageBaseMixin.vue";
 
 export default {
     mixins: [PageBaseMixin],
-    name: "DAI08009",
+    name: "DAI08030",
     components: {
     },
     computed: {
         hasSelectionRow: function() {
             var vue = this;
-            var grid = vue.DAI08009Grid1;
+            var grid = vue.DAI08030Grid1;
             return !!grid && !!grid.getSelectionRowData();
         },
         searchParams: function() {
@@ -154,7 +154,7 @@ export default {
     data() {
         var vue = this;
         return $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "仕出処理 > 受注問合せ",
+            ScreenTitle: "仕出処理 > 配送予定入力",
             noViewModel: true,
             conditionTrigger: true,
             viewModel: {
@@ -167,7 +167,7 @@ export default {
                 KeyWord: null,
                 FilterMode: "AND",
             },
-            DAI08009Grid1: null,
+            DAI08030Grid1: null,
             grid1Options: {
                 selectionModel: { type: "row", mode: "block", row: true },
                 showHeader: true,
@@ -360,28 +360,28 @@ export default {
         createdFunc: function(vue) {
             vue.footerButtons.push(
                 {visible: "false"},
-                { visible: "true", value: "検索", id: "DAI08009_Search", disabled: false, shortcut: "F5",
+                { visible: "true", value: "検索", id: "DAI08030_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
                         vue.conditionChanged(true);
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI08009_Print", disabled: false, shortcut: "F6",
+                { visible: "true", value: "印刷", id: "DAI08030_Print", disabled: false, shortcut: "F6",
                     onClick: function () {
                         vue.print();
                     }
                 },
-                { visible: "true", value: "CSV", id: "DAI08009_Download", disabled: false, shortcut: "F7",
+                { visible: "true", value: "CSV", id: "DAI08030_Download", disabled: false, shortcut: "F7",
                     onClick: function () {
                         //TODO: ダウンロード
                     }
                 },
                 {visible: "false"},
-                { visible: "true", value: "詳細", id: "DAI08009Grid1_Detail", disabled: true, shortcut: "F8",
+                { visible: "true", value: "詳細", id: "DAI08030Grid1_Detail", disabled: true, shortcut: "F8",
                     onClick: function () {
                         vue.showDetail();
                     }
                 },
-                { visible: "true", value: "新規登録", id: "DAI08009Grid1_Save", disabled: false, shortcut: "F9",
+                { visible: "true", value: "新規登録", id: "DAI08030Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         vue.showNewDetail();
                     }
@@ -404,15 +404,15 @@ export default {
 
             //for Child mode
             if (!!vue.params && !!vue.params.IsChild) {
-                vue.DAI08009Grid1 = vue.$refs.DAI08009Grid1.grid;
+                vue.DAI08030Grid1 = vue.$refs.DAI08030Grid1.grid;
             }
 
             //watcher
             vue.$watch(
-                "$refs.DAI08009Grid1.selectionRowCount",
+                "$refs.DAI08030Grid1.selectionRowCount",
                 cnt => {
                     console.log("selectionRowCount watcher: " + cnt);
-                    vue.footerButtons.find(v => v.id == "DAI08009Grid1_Detail").disabled = cnt == 0 || cnt > 1;
+                    vue.footerButtons.find(v => v.id == "DAI08030Grid1_Detail").disabled = cnt == 0 || cnt > 1;
                 }
             );
         },
@@ -455,7 +455,7 @@ export default {
         }, 300),
         conditionChanged: function(force) {
             var vue = this;
-            var grid = vue.DAI08009Grid1;
+            var grid = vue.DAI08030Grid1;
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.searchParams.BushoCd || !vue.searchParams.DateStart || !vue.searchParams.DateEnd) return;
@@ -472,7 +472,7 @@ export default {
         },
         filterChanged: function() {
             var vue = this;
-            var grid = vue.DAI08009Grid1;
+            var grid = vue.DAI08030Grid1;
 
             if (!grid) return;
 
@@ -547,7 +547,7 @@ export default {
         },
         showDetail: function(rowData) {
             var vue = this;
-            var grid = vue.DAI08009Grid1;
+            var grid = vue.DAI08030Grid1;
             if (!grid) return;
 
             var params;

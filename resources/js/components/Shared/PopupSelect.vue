@@ -53,7 +53,7 @@
             ]"
             :id="'btn_prev' + id"
             @click="prevList"
-            :disabled=isDisabled
+            :disabled=!isPrevEnabled
             :tabIndex="hasButtonFocus ? 0 : -1"
         >
             <i class="fa fa-caret-left fa-lg"></i>
@@ -102,6 +102,7 @@
                 readOnly == true ? 'readOnly' : ''
             ]"
             :disabled="!isNameEditable"
+            @change=onNameChanged
             v-model="selectName"
             :style='nameWidth ? ("width: " + nameWidth + "px") : ""'
         >
@@ -237,6 +238,7 @@ export default {
         showColumns: Array,
         onChangeFunc: Function,
         onAfterChangedFunc: Function,
+        onNameChangedFunc: Function,
         index: Number,
         isShowName: Boolean,
         isShowNameLabel: Boolean,
@@ -299,7 +301,7 @@ export default {
             var ret = !!vue.dataList
                 && !!vue.dataList.length
                 && !_.isEmpty(vue.selectRow)
-                && vue.dataList.indexOf(vue.selectRow) != 0;
+                && vue.dataList.map(v => v[vue.isGetName ? "CdNm" : "Cd"]).indexOf(vue.selectRow[vue.isGetName ? "CdNm" : "Cd"]) != 0;
             return ret;
         },
         isNextEnabled: function() {
@@ -310,7 +312,7 @@ export default {
                 (
                     _.isEmpty(vue.selectRow)
                     ||
-                    vue.dataList.indexOf(vue.selectRow) != vue.dataList.length - 1
+                    vue.dataList.map(v => v[vue.isGetName ? "CdNm" : "Cd"]).indexOf(vue.selectRow[vue.isGetName ? "CdNm" : "Cd"]) != vue.dataList.length - 1
                 );
             return ret;
         },
@@ -346,6 +348,8 @@ export default {
                         vue.setSelectValue(vue.vmodel[vue.bind], true, false);
                         if (!!vue.vmodel[vue.bind] && !vue.isValid) {
                             if (vue.isShowAutoComplete) {
+                                if (!!vue.$parent.params && !!vue.$parent.params.IsChild) return;
+
                                 if (!$(vue.$el).find("#" + vue.id).autocomplete("widget").is(":visible")) {
                                     $(vue.$el).find("#" + vue.id).autocomplete("search");
                                 }
@@ -409,24 +413,24 @@ export default {
             var vue = this;
             // console.log("PopupSelect accountChanged");
 
-            // if (vue.isPreload) {
-            //     if (!!vue.ParamsChangedCheckFunc && !vue.ParamsChangedCheckFunc(vue.params, vue.paramsPrev, vue)) {
-            //         return;
-            //     }
+            if (vue.isPreload) {
+                if (!!vue.ParamsChangedCheckFunc && !vue.ParamsChangedCheckFunc(vue.params, vue.paramsPrev, vue)) {
+                    return;
+                }
 
-            //     vue.dataList = null;
-            //     // $(vue.$el).children().prop("disabled", true);
+                vue.dataList = null;
+                // $(vue.$el).children().prop("disabled", true);
 
-            //     vue.getDataList(vue.params, (res) => {
-            //         if (vue.vmodel[vue.bind]) {
-            //             vue.setSelectValue(vue.vmodel[vue.bind], true);
-            //         }
-            //     });
-            // } else {
-            //     if (vue.vmodel[vue.bind]) {
-            //         vue.setSelectValue(vue.vmodel[vue.bind], true);
-            //     }
-            // }
+                vue.getDataList(vue.params, (res) => {
+                    if (vue.vmodel[vue.bind]) {
+                        vue.setSelectValue(vue.vmodel[vue.bind], true);
+                    }
+                });
+            } else {
+                if (vue.vmodel[vue.bind]) {
+                    vue.setSelectValue(vue.vmodel[vue.bind], true);
+                }
+            }
         },
         onChange: function(event) {
             var vue = this;
@@ -437,6 +441,14 @@ export default {
             console.log("onInput", event);
             if (!event.isComposing) {
                 vue.setSelectValue(event.target.value, true);
+            }
+        }, 300),
+        onNameChanged: _.debounce(function(event) {
+            var vue = this;
+            if (!event.isComposing) {
+                if (!!vue.onNameChangedFunc) {
+                    vue.onNameChangedFunc(event.target.value);
+                }
             }
         }, 300),
         clearValue: function() {
@@ -477,6 +489,12 @@ export default {
         getDataList: function(params, callback) {
             var vue = this;
 
+            params = _.cloneDeep(params || vue.params || {});
+
+            if (vue.ParamsChangedCheckFunc && !vue.ParamsChangedCheckFunc(params, vue.paramsPrev, vue)) {
+                return;
+            }
+
             if (vue.isShowAutoComplete) {
                 vue.disableAutoComplete();
             }
@@ -498,8 +516,6 @@ export default {
                 return;
             }
 
-            params = _.cloneDeep(params || vue.params || {});
-
             vue.searchParams = _.cloneDeep(params);
 
             axios.post(vue.dataUrl, params)
@@ -515,30 +531,37 @@ export default {
                         console.log(res);
 
                         return;
-                    } else if (!!res.CountConstraint) {
+                    }
+
+                    var ret = !!res.Data ? res.Data : res;
+
+                    //データリスト保持
+                    if (!!ret.length) {
+                        if (!vue.dataList || !!vue.dataListReset) {
+                            vue.dataList = ret;
+                        } else if (!_.isEqual(vue.dataList, ret)) {
+                            // var ins = ret.filter(v => !vue.dataList.map(v => v.Cd).includes(v.Cd));
+                            // vue.dataList = vue.dataList.concat(ins);
+
+                            var list = ret.concat(vue.dataList);
+                            list = _.uniqBy(list, "Cd");
+                            vue.dataList = list;
+                        }
+                    } else if (!!vue.dataListReset) {
+                        vue.dataList = [];
+                    }
+
+                    if (!!res.CountConstraint) {
                         //件数制約違反設定
                         vue.CountConstraint = res.CountConstraint * 1;
                         vue.ActualCounts = res.ActualCounts * 1;
-
-                        res = res.Data;
-                    } else if (res.Data) {
-                        vue.CountConstraint = null;
-                        res = res.Data;
                     } else {
-                        vue.CountConstraint = null;
-                    }
-
-                    //データリスト保持
-                    if (!!res.length) {
-                        if (!vue.dataList || !!vue.dataListReset) {
-                            vue.dataList = res;
-                        } else if (!_.isEqual(vue.dataList, res)) {
-                            // var ins = res.filter(v => !vue.dataList.map(v => v.Cd).includes(v.Cd));
-                            // vue.dataList = vue.dataList.concat(ins);
-
-                            var list = res.concat(vue.dataList);
-                            list = _.uniqBy(list, "Cd");
-                            vue.dataList = list;
+                        if (vue.CountConstraint) {
+                            if (vue.dataList.length < vue.CountConstraint) {
+                                    vue.CountConstraint = null;
+                            }
+                        } else {
+                            vue.CountConstraint = null;
                         }
                     }
 
@@ -559,7 +582,7 @@ export default {
 
                     //callback実行
                     if (callback) {
-                        callback(res);
+                        callback(ret);
                     }
                 })
                 .catch(error => {
@@ -881,7 +904,7 @@ export default {
                     var list = vue.getAutoCompleteList(newVal);
 
                     var isExcept = !!vue.exceptCheck && !!vue.exceptCheck.length && !vue.exceptCheck.some(v => _.keys(v).some(k => v[k] == newVal));
-                    if (list.length == 0 && !vue.noResearch && !isExcept) {
+                    if ((list.length == 0 || !!vue.CountConstraint) && !vue.noResearch && !isExcept) {
                     // if (list.length == 0 && !vue.noResearch && !vue.exceptCheck.some(v => _.keys(v).some(k => v[k] == newVal))) {
                         //該当が無い場合は再検索
                         var params = _.cloneDeep(vue.params) || {};
@@ -1100,12 +1123,20 @@ export default {
         },
         prevList: function() {
             var vue = this;
-            var prev = vue.dataList[vue.dataList.indexOf(vue.selectRow) - 1];
+            var prev = vue.dataList[
+                !vue.selectRow
+                ? 0 :
+                (vue.dataList.map(v => v[vue.isGetName ? "CdNm" : "Cd"]).indexOf(vue.selectRow[vue.isGetName ? "CdNm" : "Cd"]) - 1)
+            ];
             vue.setSelectValue(prev[vue.isGetName ? "CdNm" : "Cd"], true)
         },
         nextList: function() {
             var vue = this;
-            var next = vue.dataList[!vue.selectRow ? 0 : (vue.dataList.indexOf(vue.selectRow) + 1)];
+            var next = vue.dataList[
+                !vue.selectRow
+                ? 0 :
+                (vue.dataList.map(v => v[vue.isGetName ? "CdNm" : "Cd"]).indexOf(vue.selectRow[vue.isGetName ? "CdNm" : "Cd"]) + 1)
+            ];
             vue.setSelectValue(next[vue.isGetName ? "CdNm" : "Cd"], true)
         },
         focus: function(skip) {

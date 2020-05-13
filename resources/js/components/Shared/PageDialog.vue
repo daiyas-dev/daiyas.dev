@@ -25,6 +25,16 @@
 
 <style scoped>
 </style>
+<style>
+.ui-dialog-buttonset .btn {
+    padding-left: 0px;
+    padding-right: 0px;
+}
+.ui-dialog-buttonset .btn.multiline {
+    height: 50px !important;
+    line-height: 15px;
+}
+</style>
 
 <script>
 import PageSelector from "@vcs/PageSelector.vue";
@@ -247,6 +257,13 @@ export default {
 
             var d = $(event.target);
             var pg = d.find(".pq-grid");
+
+            var loading = pg
+                .map((i, v) => $(v).pqGrid("getInstance").grid)
+                .get()
+                .filter(g => g.$loading.is(":visible"))
+                .some(v => !!v);
+            if (!!loading) return false;
 
             var changed = pg
                 .map((i, v) => $(v).pqGrid("getInstance").grid)
@@ -473,10 +490,12 @@ export default {
                     }
 
                     var text = v.value.includes(v.shortcut) ? v.value : (v.value + "\r\n" + "(" + v.shortcut + ")");
+                    text = text.replace(/<br\/*>/g, "\r\n");
+                    var multi = !!text.match(/\r\n/g) && text.match(/\r\n/g).length > 1;
 
                     return {
                             text: text,
-                            class: "btn btn-primary",
+                            class: "btn btn-primary" + (multi ? " multiline" : ""),
                             shortcut: v.shortcut,
                             click: v.onClick,
                             disabled: v.disabled || false,

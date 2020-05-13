@@ -811,7 +811,8 @@ ORDER BY
         $orderBusho = !!$userBusho ? "ORDER BY sort, MB.部署CD, MC.コースCD" : "";
 
         $BushoCd = $request->bushoCd ?? $request->BushoCd;
-        $WhereBushoCd = !!$BushoCd ? " AND MC.部署CD=$BushoCd" : "";
+        $WithZero = $request->WithZero;
+        $WhereBushoCd = !!$BushoCd ? (!!$WithZero ? " AND (MC.部署CD=$BushoCd OR MC.コースCD=0)" : " AND MC.部署CD=$BushoCd") : "";
 
         $BushoArray = $request->BushoArray;
         $WhereBushoList = "";
@@ -1022,7 +1023,7 @@ $WhereCourseKbn
         $CountMax = $request->CountMax ?? 100;
         $SelectTop = !!$request->NoLimit ? "" : ($Count > $CountMax ? "TOP $CountMax" : "");
 
-        $UserBushoCd = $request->UserBushoCd ?? 99999;
+        $UserBushoCd = $request->UserBushoCd ?? Auth::user()->部署->部署CD ?? 99999;
 
         $sql = "
             WITH 部署ソート AS (

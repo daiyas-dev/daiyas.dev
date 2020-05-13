@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\注文データ;
+use App\Models\仕出し注文データ;
+use App\Models\仕出し注文明細データ;
+use App\Models\伝票ＮＯ管理マスタ;
+use App\Models\売上データ明細;
+use App\Models\得意先マスタ;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
@@ -14,69 +18,63 @@ class DAI08010Controller extends Controller
 {
 
     /**
-     * GetShidashiOrderNoList
+     * GetOrderNoList
      */
-    public function GetShidashiOrderNoList($request)
+    public function GetOrderNoList($request)
     {
-        $DeliveryDate = $request->targetDate;
+        $BushoCd = $request->BushoCd;
+        $DeliveryDate = $request->TargetDate;
 
-        $WhereDeliveryDate = $DeliveryDate ? " AND 配達日付 = '$DeliveryDate'" : "";
+        $sql= "
+           SELECT
+                仕出し注文データ.*
+                ,仕出し注文データ.受注Ｎｏ AS Cd
+                ,得意先マスタ.得意先名 AS CdNm
+            FROM
+                仕出し注文データ
+                INNER JOIN 得意先マスタ
+                    ON 得意先マスタ.得意先ＣＤ=仕出し注文データ.得意先CD
+            WHERE
+                仕出し注文データ.部署ＣＤ=$BushoCd
+            AND 仕出し注文データ.配達日付='$DeliveryDate'
+            ORDER BY
+                仕出し注文データ.受注Ｎｏ
+        ";
+
+
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $pdo = null;
+
+        return response()->json($DataList);
+    }
+
+    /**
+     * GetCourseList
+     */
+    public function GetCourseList($request)
+    {
+        $BushoCd = $request->BushoCd;
+
+        if (!isset($BushoCd)) return [];
 
         $sql = "
-            WITH 仕出顧客 AS (
-                SELECT
-                    CHUMON.部署ＣＤ
-                    ,MB.部署名
-                    ,CHUMON.受注Ｎｏ
-                    ,CHUMON.配達日付
-                    ,CHUMON.配達時間,
-                    CHUMON.得意先ＣＤ
-                    ,TOK.得意先名
-                    ,TOK.電話番号１
-                    ,TOK.ＦＡＸ１
-                    ,CHUMON.注文日付
-                    ,ISNULL(TOK.住所１,'')  +  ISNULL(TOK.住所２,'') AS 住所
-                    ,ISNULL(CHUMON.配達先１,'')  + ISNULL(CHUMON.配達先２,'') AS 配達先
-                    ,CHUMON.エリアＣＤ
-                    ,COUM.コース名 AS エリア名称
-                    ,CHUMON.地域区分
-                    ,KAKUSHU_TIKU.各種名称 AS 地区名称
-                    ,CHUMON.配達区分
-                    ,KAKUSHU_HAITATSU.各種名称 AS 配達名称
-                    ,CHUMON.税区分
-                    ,KAKUSHU_ZEI.各種名称 AS 税名称
-                    ,RANK() OVER(PARTITION BY CHUMON.得意先ＣＤ ORDER BY CHUMON.注文日付 DESC, CHUMON.受注Ｎｏ DESC) AS RNK
-                FROM
-                    仕出し注文データ CHUMON
-                    LEFT OUTER JOIN 得意先マスタ TOK ON
-                    CHUMON.得意先ＣＤ = TOK.得意先ＣＤ
-                    LEFT OUTER JOIN 各種テーブル KAKUSHU_TIKU ON
-                    KAKUSHU_TIKU.各種CD = 32
-                    AND KAKUSHU_TIKU.行NO = CHUMON.地域区分
-                    LEFT OUTER JOIN 各種テーブル KAKUSHU_HAITATSU ON
-                    KAKUSHU_HAITATSU.各種CD = 31
-                    AND KAKUSHU_HAITATSU.行NO = CHUMON.配達区分
-                    LEFT OUTER JOIN 各種テーブル KAKUSHU_ZEI ON
-                    KAKUSHU_ZEI.各種CD = 20
-                    AND KAKUSHU_ZEI.行NO = CHUMON.税区分
-                    LEFT OUTER JOIN コースマスタ COUM ON
-                    COUM.部署ＣＤ = CHUMON.部署ＣＤ
-                    AND COUM.コースＣＤ = CHUMON.エリアＣＤ
-                    LEFT OUTER JOIN 部署マスタ MB
-                    ON MB.部署CD = CHUMON.部署ＣＤ
-            )
             SELECT
-                DISTINCT
-                受注Ｎｏ AS Cd,
-                得意先名 AS CdNm,
                 *
+                ,コースＣＤ AS Cd
+                ,コース名 AS CdNm
             FROM
-                仕出顧客
+                コースマスタ
             WHERE
-                RNK = 1
-                $WhereDeliveryDate
+                部署ＣＤ=$BushoCd OR コースＣＤ = 0
             ORDER BY
-                得意先ＣＤ
+                コースＣＤ
         ";
 
         $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
@@ -101,11 +99,41 @@ class DAI08010Controller extends Controller
 
         return response()->json([
             [
-                "CustomerInfo" => $Utilities->GetCustomerList($request)[0],
-                "Order" => $this->GetOrder($request),
+                "CustomerInfo" => $this->GetCustomer($request),
+                "OrderInfo" => $this->GetOrder($request),
                 "MeisaiList" => $this->GetMeisaiList($request),
+                "CheckSeikyu" => $this->CheckSeikyu($request),
+                "CheckKaikei" => $this->CheckKaikei($request),
             ]
         ]);
+    }
+
+    /**
+     * GetCustomer
+     */
+    public function GetCustomer($request)
+    {
+        $CustomerCd = $request->CustomerCd;
+
+        $sql = "
+            SELECT
+                *
+            FROM
+                得意先マスタ
+            WHERE
+                得意先ＣＤ=$CustomerCd
+        ";
+
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $Result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $pdo = null;
+
+        return $Result;
     }
 
     /**
@@ -117,24 +145,24 @@ class DAI08010Controller extends Controller
         $CustomerCd = $request->CustomerCd;
         $DeliveryDate = $request->DeliveryDate;
 
-        $JuchuNo = $request->JuchuNo;
-        $WhereJuchuNo = !!$JuchuNo ? "AND 受注Ｎｏ=$JuchuNo" : "";
+        $OrderNo = $request->OrderNo;
+        $WhereOrderNo = !!$OrderNo ? "AND 仕出し注文データ.受注Ｎｏ=$OrderNo" : "";
 
         $sql = "
             SELECT TOP(1)
-                *
+                仕出し注文データ.*
                 ,担当者マスタ.担当者名 AS 修正担当者名
             FROM
                 仕出し注文データ
                 LEFT OUTER JOIN 担当者マスタ
                     ON 担当者マスタ.担当者ＣＤ=仕出し注文データ.修正担当者ＣＤ
             WHERE
-                部署ＣＤ=$BushoCd
-            AND 配達日付='$DeliveryDate'
-            AND 得意先ＣＤ=$CustomerCd
-            $WhereJuchuNo
+                仕出し注文データ.部署ＣＤ=$BushoCd
+            AND 仕出し注文データ.配達日付='$DeliveryDate'
+            AND 仕出し注文データ.得意先ＣＤ=$CustomerCd
+            $WhereOrderNo
             ORDER BY
-                受注Ｎｏ
+                仕出し注文データ.受注Ｎｏ
         ";
 
         $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
@@ -158,32 +186,34 @@ class DAI08010Controller extends Controller
         $CustomerCd = $request->CustomerCd;
         $DeliveryDate = $request->DeliveryDate;
 
-        $JuchuNo = $request->JuchuNo;
-        $WhereJuchuNo = !!$JuchuNo ? "AND 受注Ｎｏ=$JuchuNo" : "AND 受注Ｎｏ=注文データ.受注Ｎｏ";
+        $OrderNo = $request->OrderNo;
+        $WhereOrderNo = !!$OrderNo ? "AND 受注Ｎｏ=$OrderNo" : "AND 受注Ｎｏ=受注Ｎｏ";
 
         $sql = "
             WITH 注文データ AS (
-                SELECT
-                    受注Ｎｏ
+                SELECT TOP(1)
+                    部署ＣＤ,
+                    受注Ｎｏ,
+					配達日付,
+					得意先ＣＤ
                 FROM
                     仕出し注文データ
                 WHERE
                     部署ＣＤ=$BushoCd
                 AND 配達日付='$DeliveryDate'
                 AND 得意先ＣＤ=$CustomerCd
-                $WhereJuchuNo
+                $WhereOrderNo
                 ORDER BY
                     受注Ｎｏ
             )
             SELECT
-                *
+                仕出し注文明細データ.*
             FROM
                 仕出し注文明細データ
-            WHERE
-                部署ＣＤ=$BushoCd
-            AND 配達日付='$DeliveryDate'
-            AND 得意先ＣＤ=$CustomerCd
-            $WhereJuchuNo
+                INNER JOIN 注文データ
+					ON  注文データ.部署ＣＤ=仕出し注文明細データ.部署ＣＤ
+                    AND 注文データ.受注Ｎｏ=仕出し注文明細データ.受注Ｎｏ
+                    AND 注文データ.配達日付=仕出し注文明細データ.配達日付
             ORDER BY
                 明細Ｎｏ
         ";
@@ -201,39 +231,98 @@ class DAI08010Controller extends Controller
     }
 
     /**
+     * CheckSeikyu
+     */
+    public function CheckSeikyu($request)
+    {
+        $DeliveryDate = $request->DeliveryDate;
+        $CustomerCd = $request->CustomerCd;
+
+        $sql = "
+            SELECT
+            	IIF('$DeliveryDate' <= 請求日付, 1, 0) AS 請求済
+            FROM
+                請求データ
+            WHERE 請求データ.請求先ＣＤ = $CustomerCd
+            AND 請求日付 = (
+                SELECT MAX(請求日付) FROM 請求データ DUM
+                WHERE DUM.請求先ＣＤ = $CustomerCd )
+        ";
+
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $Result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $pdo = null;
+
+        return !!$Result ? $Result["請求済"] : 0;
+    }
+
+    /**
+     * CheckKaikei
+     */
+    public function CheckKaikei($request)
+    {
+        $DeliveryDate = $request->DeliveryDate;
+        $CustomerCd = $request->CustomerCd;
+
+        $sql = "
+            SELECT
+                IIF('$DeliveryDate' <= EOMONTH(日付), 1, 0) AS 会計処理済
+            FROM
+                売掛データ
+            WHERE 売掛データ.請求先ＣＤ = $CustomerCd
+            AND 日付 = (
+                SELECT MAX(日付) FROM 売掛データ DUM
+                WHERE DUM.請求先ＣＤ = $CustomerCd )
+        ";
+
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $Result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $pdo = null;
+
+        return !!$Result ? $Result["会計処理済"] : 0;
+    }
+
+    /**
      * GetProductList
      */
     public function GetProductList($request)
     {
-        $CustomerCd = $request->CustomerCd;
-        $DeliveryDate = $request->DeliveryDate;
+        $BushoCd = $request->BushoCd;
 
         $sql = "
-            SELECT
-                MTT.得意先ＣＤ,
-                MTT.商品ＣＤ,
-                PM.商品名,
-                PM.商品区分,
-                MTT.単価
+            SELECT DISTINCT
+                SHUBETSU.商品種類,
+                SHUBETSU.商品種類名,
+                SHUBETSU.商品ＣＤ,
+                PRODUCT.商品名,
+                PRODUCT.売価単価
             FROM
-                (
+                商品種類マスタ SHUBETSU
+                INNER JOIN 商品マスタ PRODUCT
+                    ON  PRODUCT.商品ＣＤ=SHUBETSU.商品ＣＤ
+            WHERE
+                SHUBETSU.部署グループ = (
                     SELECT
-                        *
-                    FROM (
-                        SELECT
-                            *
-                            , RANK() OVER(PARTITION BY 得意先ＣＤ, 商品ＣＤ ORDER BY 適用開始日 DESC) AS RNK
-                        FROM
-                            得意先単価マスタ新
-                        WHERE
-                            得意先ＣＤ=$CustomerCd
-                        AND 適用開始日 <= '$DeliveryDate'
-                    ) TT
+                        MAX(サブ各種CD2)
+                    FROM
+                        各種テーブル
                     WHERE
-                        RNK = 1
-                ) MTT
-                LEFT OUTER JOIN 商品マスタ PM
-                    ON	PM.商品ＣＤ=MTT.商品ＣＤ
+                        各種CD=26
+                    AND サブ各種CD1=$BushoCd
+                )
+            ORDER BY
+                SHUBETSU.商品種類,
+                SHUBETSU.商品ＣＤ
         ";
 
         $Result = collect(DB::select($sql))
@@ -251,139 +340,43 @@ class DAI08010Controller extends Controller
     }
 
     /**
-     * GetTodayOrder
+     * GetTaxList
      */
-    public function GetTodayOrder($request)
-    {
-        $TantoCd = $request->TantoCd;
-
-        $sql = "
-            SELECT
-                ROW_NUMBER() OVER (ORDER BY CONVERT(varchar, 修正日, 108) desc) AS no,
-                注文区分,
-                注文日付,
-                部署ＣＤ,
-                得意先CD,
-                配送日,
-                COUNT(得意先CD) AS 件数,
-                CONVERT(varchar, 修正日, 108) 修正時間
-            FROM
-                注文データ
-            WHERE
-                CONVERT(varchar, 修正日, 112) = CONVERT(date, GETDATE())
-                AND 修正担当者CD=$TantoCd
-            GROUP BY
-                注文区分,
-                注文日付,
-                部署ＣＤ,
-                得意先CD,
-                配送日,
-                CONVERT(varchar, 修正日, 108)
-            ORDER BY
-                CONVERT(varchar, 修正日, 108) DESC
-        ";
-
-        $Result = DB::select($sql);
-
-        return response()->json($Result);
-
-    }
-
-    /**
-     * GetBikou()
-     */
-    public function GetBikou($request)
-    {
-        $BushoCd = $request->BushoCd;
-        $CustomerCd = $request->CustomerCd;
+    public function GetTaxList($request) {
         $DeliveryDate = $request->DeliveryDate;
 
         $sql = "
             SELECT
-                CD.備考１,
-                CD.備考２,
-                CD.備考３,
-                CD.備考４,
-                CD.備考５
+                KAKU_NAIGAI.行NO AS 注文税区分
+                ,SHOHIZEI.税区分
+                ,SHOHIZEI.消費税名称
+                ,SHOHIZEI.消費税率
+                ,SHOHIZEI.内外区分
+                ,SHOHIZEI.適用年月
+                ,SHOHIZEI.現在使用FLG
+                ,SHOHIZEI.修正担当者ＣＤ
+                ,SHOHIZEI.修正日
             FROM
-                注文データ CD
+                消費税率マスタ SHOHIZEI
+                INNER JOIN 各種テーブル KAKU_NAIGAI ON
+                    KAKU_NAIGAI.各種CD = 20
+                AND SHOHIZEI.内外区分 = KAKU_NAIGAI.サブ各種CD1
             WHERE
-                CD.得意先ＣＤ = $CustomerCd
-                AND	CD.部署ＣＤ = $BushoCd
-                AND CD.配送日 = '$DeliveryDate'
-        ";
-
-        $Result = DB::select($sql);
-
-        return response()->json($Result);
-    }
-
-    /**
-     * GetLastEdit()
-     */
-    public function GetLastEdit($request) {
-        $BushoCd = $request->BushoCd;
-        $CustomerCd = $request->CustomerCd;
-        $DeliveryDate = $request->DeliveryDate;
-
-        $sql = "
-                WITH 得意先単価 AS (
-                    SELECT
-                        MTT.得意先ＣＤ,
-                        MTT.商品ＣＤ,
-                        PM.商品名,
-                        PM.商品区分,
-                        MTT.単価
-                    FROM
-                        (
-                            SELECT
-                                *
-                            FROM (
-                                SELECT
-                                    *
-                                    , RANK() OVER(PARTITION BY 得意先ＣＤ, 商品ＣＤ ORDER BY 適用開始日 DESC) AS RNK
-                                FROM
-                                    得意先単価マスタ新
-                                WHERE
-                                    得意先ＣＤ=$CustomerCd
-                                AND 適用開始日 <= '$DeliveryDate'
-                            ) TT
-                            WHERE
-                                RNK = 1
-                        ) MTT
-                        LEFT OUTER JOIN 商品マスタ PM
-                            ON	PM.商品ＣＤ=MTT.商品ＣＤ
-                ),
-                注文最終修正 AS (
-                    SELECT
-                        MTT.得意先ＣＤ,
-                        CD.配送日,
-                        CD.修正担当者ＣＤ,
-                        TM.担当者名 AS 修正担当者名,
-                        CD.修正日,
-                        MAX(CD.修正日) OVER () AS 注文最終修正日
-                    FROM
-                        得意先単価 MTT
-                        LEFT OUTER JOIN 注文データ CD
-                            ON  CD.得意先ＣＤ = MTT.得意先ＣＤ
-                            AND CD.商品ＣＤ = MTT.商品ＣＤ
-                            AND	CD.部署ＣＤ = $BushoCd
-                            AND CD.配送日 = '$DeliveryDate'
-                            AND CD.注文区分=0
-                        LEFT OUTER JOIN 担当者マスタ TM
-                            ON  TM.担当者ＣＤ = CD.修正担当者ＣＤ
-                )
+                SHOHIZEI.現在使用FLG = 1
+            AND SHOHIZEI.適用年月 = (
                 SELECT
-                    *
+                    MAX(DMY.適用年月)
                 FROM
-                    注文最終修正
+                    消費税率マスタ DMY
                 WHERE
-                    修正日 = 注文最終修正日
+                    DMY.内外区分 = SHOHIZEI.内外区分
+                    AND DMY.現在使用FLG = SHOHIZEI.現在使用FLG
+                    AND DMY.適用年月 <= '$DeliveryDate'
+                )
         ";
 
-        $Result = DB::selectOne($sql);
-
-        return response()->json($Result);
+        $DataList = DB::select($sql);
+        return response()->json($DataList);
     }
 
     /**
@@ -415,155 +408,6 @@ class DAI08010Controller extends Controller
     }
 
     /**
-     * GetCustomerAndCourseList
-     */
-    public function GetCustomerAndCourseList($request, $KeywordOnly = false)
-    {
-        $BushoCd = $request->BushoCd ?? $request->bushoCd;
-        $TargetDate = $request->targetDate;
-        $IsOyaOnly = $request->isOyaOnly ?? true;
-        $Keyword = $request->keyword;
-
-        $WhereOyaOnly = $IsOyaOnly ? " AND (M1.受注得意先ＣＤ = 0 OR M1.受注得意先ＣＤ = M1.得意先ＣＤ)" : "";
-
-
-        $WhereCourseKbn = $TargetDate
-            ? "AND MC.コース区分 =
-                                            CASE
-                                                WHEN (SELECT 対象日付 FROM 祝日マスタ WHERE 対象日付 = '$TargetDate') IS NOT NULL THEN 4
-                                                ELSE
-                                                    CASE DATEPART(WEEKDAY, '$TargetDate')
-                                                        WHEN 1 THEN 3
-                                                        WHEN 7 THEN 2
-                                                        ELSE 1
-                                                    END
-                                            END"
-            : "";
-
-        $WhereKeyword = "";
-        if (isset($Keyword)) {
-            if (!is_numeric($Keyword) || !ctype_digit($Keyword)) {
-                $WhereKeyword = "AND (
-                    M1.得意先名 LIKE '$Keyword%' OR
-                    M1.得意先名略称 LIKE '$Keyword%' OR
-                    M1.得意先名カナ LIKE '$Keyword%' OR
-                    M1.電話番号１ LIKE '$Keyword%'
-                )";
-            } else {
-                $WhereKeyword = "AND M1.得意先CD LIKE '$Keyword%'";
-            }
-
-            if ($KeywordOnly) {
-                $WhereCourseKbn = "";
-            }
-        }
-
-        $sql = "
-            WITH 部署ソート AS (
-                SELECT
-                    *
-                    ,IIF(
-                        部署CD=$BushoCd,
-                        0,
-                        CASE 部署CD
-                            WHEN 101 THEN 1
-                            WHEN 201 THEN 2
-                            WHEN 301 THEN 3
-                            WHEN 401 THEN 4
-                            WHEN 901 THEN 5
-                            WHEN 701 THEN 6
-                            WHEN 601 THEN 7
-                            WHEN 0 THEN 9999
-                            ELSE 部署CD
-                        END
-                    ) AS ソート
-                FROM
-                    部署マスタ
-            ),
-            得意先_コース一覧 AS
-            (
-                SELECT
-                    MB.ソート,
-                    M1.部署CD,
-                    MB.部署名,
-                    M1.得意先CD,
-                    M1.得意先名,
-                    M1.得意先名略称,
-                    M1.得意先名カナ,
-                    M1.売掛現金区分,
-                    M1.電話番号１,
-                    M1.備考１,
-                    M1.備考２,
-                    M1.備考３,
-                    MC.担当者ＣＤ,
-                    MT.担当者名,
-                    MC.コース区分,
-                    MC.コースCD,
-                    MC.コース名,
-                    RANK() OVER(PARTITION BY M1.部署CD, M1.得意先CD ORDER BY MC.コース区分) AS RNK
-                FROM
-                    得意先マスタ M1
-                    LEFT OUTER JOIN 部署ソート MB
-                        ON MB.部署CD = M1.部署CD
-                    LEFT OUTER JOIN コーステーブル TC
-                        ON M1.部署CD = TC.部署CD AND M1.得意先CD = TC.得意先CD
-                    LEFT OUTER JOIN コースマスタ MC
-                        ON TC.部署CD = MC.部署CD AND TC.コースCD = MC.コースCD
-                    LEFT OUTER JOIN 担当者マスタ MT
-                        ON MT.担当者ＣＤ = MC.担当者ＣＤ
-                WHERE
-                    0=0
-                    $WhereOyaOnly
-                    $WhereCourseKbn
-                    $WhereKeyword
-            )
-            SELECT
-                ソート,
-                得意先CD AS Cd,
-                得意先名 AS CdNm,
-                部署CD,
-                部署名,
-                得意先CD,
-                得意先名,
-                得意先名略称,
-                得意先名カナ,
-                売掛現金区分,
-                電話番号１,
-                備考１,
-                備考２,
-                備考３,
-                担当者ＣＤ,
-                担当者名,
-                コース区分,
-                コースCD,
-                コース名
-            FROM
-                得意先_コース一覧
-            WHERE
-                RNK = 1
-            ORDER BY
-                ISNULL(ソート, 9999),
-                得意先ＣＤ
-        ";
-
-        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-        $user = 'daiyas';
-        $password = 'daiyas';
-
-        $pdo = new PDO($dsn, $user, $password);
-        $stmt = $pdo->query($sql);
-        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        $pdo = null;
-
-        if (count($DataList) == 0 && isset($Keyword)) {
-            return $this->GetCustomerAndCourseList($request, true);
-        }
-
-        return response()->json($DataList);
-    }
-
-    /**
      * Save
      */
     public function Save($request)
@@ -572,34 +416,143 @@ class DAI08010Controller extends Controller
 
         DB::beginTransaction();
 
+        $UriageDelCnt = 0;
+
         try {
             $params = $request->all();
+            $date = Carbon::now()->format('Y-m-d H:i:s');
+
+            //得意先マスタ
+            $CustomerInfo = $params['CustomerInfo'];
+            $TCode = 0;
+
+            if (!!isset($CustomerInfo)) {
+                $CustomerModel = new 得意先マスタ();
+                $CustomerModel->fill($CustomerInfo);
+
+                $CustomerData = collect($CustomerModel)->all();
+                $TCode = $CustomerInfo['得意先ＣＤ'];
+
+                if (!isset($TCode)) {
+                    $GetTCodeSql = "
+                        WITH TAISHO_NUM AS (
+                            SELECT 299999 AS 得意先ＣＤ
+                                UNION
+                            SELECT
+                                TOK.得意先ＣＤ
+                            FROM
+                                得意先マスタ TOK
+                            WHERE
+                                TOK.得意先ＣＤ BETWEEN 300000 AND 399999
+                        )
+                        SELECT TOP 1
+                            TOK.得意先ＣＤ + 1 AS 得意先ＣＤ
+                        FROM
+                            TAISHO_NUM TOK
+                            LEFT OUTER JOIN 得意先マスタ TOK_NEXT ON
+                                (TOK.得意先ＣＤ + 1) = TOK_NEXT.得意先ＣＤ
+                        WHERE
+                            TOK_NEXT.得意先ＣＤ IS NULL
+                        ORDER BY
+                        TOK.得意先ＣＤ
+                    ";
+
+                    $TCode = DB::selectOne($GetTCodeSql)->得意先ＣＤ;
+                    $request->CustomerCd = $TCode;
+                }
+
+                $CustomerData['得意先ＣＤ'] = $TCode;
+                $CustomerData['請求先ＣＤ'] = $TCode;
+                $CustomerData['受注得意先ＣＤ'] = $TCode;
+
+                $CustomerData['修正日'] = $date;
+
+                得意先マスタ::query()->updateOrInsert(
+                    ['得意先ＣＤ' => $CustomerData['得意先ＣＤ']],
+                    $CustomerData
+                );
+            }
+
+            //仕出し注文データ
+            $OrderInfo = $params['OrderInfo'];
+
+            $JNo = 1;
+            if (!!isset($OrderInfo)) {
+                $OrderModel = new 仕出し注文データ();
+                $OrderModel->fill($OrderInfo);
+
+                $OrderData = collect($OrderModel)->all();
+
+                $JNo = $OrderInfo['受注Ｎｏ'];
+                if (!isset($JNo)) {
+                    $fd = Carbon::parse($OrderInfo['配達日付'])->firstOfMonth()->toDateString();
+
+                    $JNo = 伝票ＮＯ管理マスタ::query()
+                        ->where('部署ＣＤ', $OrderInfo['部署ＣＤ'])
+                        ->where('伝票種類', 1)
+                        ->where('日付', $fd)
+                        ->max('伝票ＮＯ') + 1;
+
+                    $request->OrderNo = $JNo;
+
+                    if ($JNo == 1) {
+                        伝票ＮＯ管理マスタ::insert(
+                            [
+                                "部署ＣＤ" => $OrderInfo['部署ＣＤ'],
+                                "伝票種類" => 1,
+                                "日付" => $fd,
+                                "伝票ＮＯ" => $JNo,
+                                "修正担当者ＣＤ" => $OrderInfo['修正担当者ＣＤ'],
+                                "修正日" => $OrderInfo['修正日'],
+                            ]
+                        );
+                    } else {
+                        伝票ＮＯ管理マスタ::query()
+                            ->where('部署ＣＤ', $OrderInfo['部署ＣＤ'])
+                            ->where('伝票種類', 1)
+                            ->where('日付', $fd)
+                            ->update(['伝票ＮＯ' => $JNo]);
+                    }
+                }
+
+                $OrderData['部署ＣＤ'] = $OrderInfo['部署ＣＤ'];
+                $OrderData['受注Ｎｏ'] = $JNo;
+                $OrderData['配達日付'] = $OrderInfo['配達日付'];
+                $OrderData['得意先ＣＤ'] = $OrderInfo['得意先ＣＤ'] ?? $TCode;
+                $OrderData['製造用特記'] = $OrderData['製造用特記'] ?? '';
+                $OrderData['事務用特記'] = $OrderData['事務用特記'] ?? '';
+                $OrderData['修正日'] = $date;
+
+                仕出し注文データ::query()->updateOrInsert(
+                    [
+                        '部署ＣＤ' => $OrderData['部署ＣＤ'],
+                        '受注Ｎｏ' => $OrderData['受注Ｎｏ'],
+                        '配達日付' => $OrderData['配達日付'],
+                    ],
+                    $OrderData
+                );
+            }
 
             $DeleteList = $params['DeleteList'];
             foreach ($DeleteList as $rec) {
-                注文データ::query()
-                    ->where('注文区分', $rec['注文区分'])
-                    ->where('注文日付', $rec['注文日付'])
+                仕出し注文明細データ::query()
                     ->where('部署ＣＤ', $rec['部署ＣＤ'])
-                    ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
-                    ->where('配送日', $rec['配送日'])
-                    ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
+                    ->where('受注Ｎｏ', $rec['受注Ｎｏ'])
+                    ->where('配達日付', $rec['配達日付'])
+                    ->where('明細Ｎｏ', $rec['明細Ｎｏ'])
                     ->delete();
             }
 
             $SaveList = $params['SaveList'];
 
-            $date = Carbon::now()->format('Y-m-d H:i:s');
             foreach ($SaveList as $rec) {
                 $no = null;
                 if (isset($rec['修正日']) && !!$rec['修正日']) {
-                    $r = 注文データ::query()
-                        ->where('注文区分', $rec['注文区分'])
-                        ->where('注文日付', $rec['注文日付'])
+                    $r = 仕出し注文明細データ::query()
                         ->where('部署ＣＤ', $rec['部署ＣＤ'])
-                        ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
-                        ->where('配送日', $rec['配送日'])
-                        ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
+                        ->where('受注Ｎｏ', $rec['受注Ｎｏ'])
+                        ->where('配達日付', $rec['配達日付'])
+                        ->where('明細Ｎｏ', $rec['明細Ｎｏ'])
                         ->get();
 
                     if (count($r) != 1) {
@@ -610,39 +563,40 @@ class DAI08010Controller extends Controller
                         continue;
                     }
 
-                    $no = $rec['明細行Ｎｏ'];
+                    $no = $rec['明細Ｎｏ'];
 
-                    注文データ::query()
-                        ->where('注文区分', $rec['注文区分'])
-                        ->where('注文日付', $rec['注文日付'])
+                    仕出し注文明細データ::query()
                         ->where('部署ＣＤ', $rec['部署ＣＤ'])
-                        ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
-                        ->where('配送日', $rec['配送日'])
-                        ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
+                        ->where('受注Ｎｏ', $rec['受注Ｎｏ'])
+                        ->where('配達日付', $rec['配達日付'])
+                        ->where('明細Ｎｏ', $rec['明細Ｎｏ'])
                         ->delete();
                 } else {
-                    $no = 注文データ::query()
-                        ->where('注文区分', $rec['注文区分'])
-                        ->where('注文日付', $rec['注文日付'])
+                    $no = 仕出し注文明細データ::query()
                         ->where('部署ＣＤ', $rec['部署ＣＤ'])
-                        ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
-                        ->where('配送日', $rec['配送日'])
-                        ->max('明細行Ｎｏ') + 1;
+                        ->where('受注Ｎｏ', $JNo)
+                        ->where('配達日付', $rec['配達日付'])
+                        ->max('明細Ｎｏ') + 1;
                 }
 
-                if (!!isset($rec['現金個数']) && !!isset($rec['掛売個数'])) {
-                    $data = $rec;
-                    $data['修正日'] = $date;
-                    $data['明細行Ｎｏ'] = $no;
-                    $data['備考１'] = $data['備考１'] ?? '';
-                    $data['備考２'] = $data['備考２'] ?? '';
-                    $data['備考３'] = $data['備考３'] ?? '';
-                    $data['備考４'] = $data['備考４'] ?? '';
-                    $data['備考５'] = $data['備考５'] ?? '';
+                $data = $rec;
+                $data['受注Ｎｏ'] = $data['受注Ｎｏ'] ?? $JNo;
+                $data['修正日'] = $date;
+                $data['明細Ｎｏ'] = $no;
+                $data['数量'] = $data['数量'] ?? 0;
+                $data['金額'] = $data['金額'] ?? 0;
+                $data['消費税'] = $data['消費税'] ?? 0;
+                $data['備考'] = $data['備考'] ?? '';
 
-                    注文データ::insert($data);
-                }
+                仕出し注文明細データ::insert($data);
             }
+
+            //売上データ削除
+            $UriageDelCnt = 売上データ明細::query()
+                ->where('部署ＣＤ', $request->BushoCd)
+                ->where('日付', $request->DeliveryDate)
+                ->where('受注Ｎｏ', $request->OrderNo)
+                ->delete();
 
             if (count($skip) > 0) {
                 DB::rollBack();
@@ -657,7 +611,9 @@ class DAI08010Controller extends Controller
         return response()->json([
             'result' => true,
             "edited" => count($skip) > 0,
-            "current" => $this->GetOrderList($request),
+            "current" => $this->GetMeisaiList($request),
+            "params" => ["CustomerCd" => $request->CustomerCd, "OrderNo" => $request->OrderNo],
+            "isDeleteUriage" => $UriageDelCnt > 0,
         ]);
     }
 
