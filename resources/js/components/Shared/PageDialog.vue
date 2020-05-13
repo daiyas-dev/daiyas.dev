@@ -258,6 +258,13 @@ export default {
             var d = $(event.target);
             var pg = d.find(".pq-grid");
 
+            var loading = pg
+                .map((i, v) => $(v).pqGrid("getInstance").grid)
+                .get()
+                .filter(g => g.$loading.is(":visible"))
+                .some(v => !!v);
+            if (!!loading) return false;
+
             var changed = pg
                 .map((i, v) => $(v).pqGrid("getInstance").grid)
                 .get()

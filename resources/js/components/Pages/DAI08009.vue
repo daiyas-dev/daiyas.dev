@@ -94,7 +94,7 @@
             </div>
         </div>
         <PqGridWrapper
-            id="DAI08009Grid1"
+            :id='"DAI08009Grid1" + (!!params ? _uid : "")'
             ref="DAI08009Grid1"
             dataUrl="/DAI08009/GetChumonList"
             :query=searchParams
@@ -390,10 +390,22 @@ export default {
             );
         },
         mountedFunc: function(vue) {
-            //TODO
-            // vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
-            vue.viewModel.DateStart = moment("20190901").format("YYYY年MM月DD日");
-            vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
+            if (!vue.params) {
+                //TODO
+                // vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
+                vue.viewModel.DateStart = moment("20190901").format("YYYY年MM月DD日");
+                vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
+            } else {
+                vue.viewModel.BushoCd = vue.params.BushoCd;
+                vue.viewModel.CustomerCd = vue.params.CustomerCd;
+                vue.viewModel.DateStart = moment(vue.params.DeliveryDate, "YYYY年MM月DD日").add(-1, "month").startOf("month").format("YYYY年MM月DD日");
+                vue.viewModel.DateEnd = vue.params.DeliveryDate;
+            }
+
+            //for Child mode
+            if (!!vue.params && !!vue.params.IsChild) {
+                vue.DAI08009Grid1 = vue.$refs.DAI08009Grid1.grid;
+            }
 
             //watcher
             vue.$watch(

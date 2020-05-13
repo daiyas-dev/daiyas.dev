@@ -1023,7 +1023,7 @@ $WhereCourseKbn
         $CountMax = $request->CountMax ?? 100;
         $SelectTop = !!$request->NoLimit ? "" : ($Count > $CountMax ? "TOP $CountMax" : "");
 
-        $UserBushoCd = Auth::user()->部署->部署CD ?? 99999;
+        $UserBushoCd = $request->UserBushoCd ?? Auth::user()->部署->部署CD ?? 99999;
 
         $sql = "
             WITH 部署ソート AS (

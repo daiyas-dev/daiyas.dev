@@ -348,6 +348,8 @@ export default {
                         vue.setSelectValue(vue.vmodel[vue.bind], true, false);
                         if (!!vue.vmodel[vue.bind] && !vue.isValid) {
                             if (vue.isShowAutoComplete) {
+                                if (!!vue.$parent.params && !!vue.$parent.params.IsChild) return;
+
                                 if (!$(vue.$el).find("#" + vue.id).autocomplete("widget").is(":visible")) {
                                     $(vue.$el).find("#" + vue.id).autocomplete("search");
                                 }
@@ -487,6 +489,12 @@ export default {
         getDataList: function(params, callback) {
             var vue = this;
 
+            params = _.cloneDeep(params || vue.params || {});
+
+            if (vue.ParamsChangedCheckFunc && !vue.ParamsChangedCheckFunc(params, vue.paramsPrev, vue)) {
+                return;
+            }
+
             if (vue.isShowAutoComplete) {
                 vue.disableAutoComplete();
             }
@@ -507,8 +515,6 @@ export default {
                 }
                 return;
             }
-
-            params = _.cloneDeep(params || vue.params || {});
 
             vue.searchParams = _.cloneDeep(params);
 
@@ -541,6 +547,8 @@ export default {
                             list = _.uniqBy(list, "Cd");
                             vue.dataList = list;
                         }
+                    } else if (!!vue.dataListReset) {
+                        vue.dataList = [];
                     }
 
                     if (!!res.CountConstraint) {

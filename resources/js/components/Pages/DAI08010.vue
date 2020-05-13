@@ -1,5 +1,7 @@
 ﻿<template>
     <form id="this.$options.name">
+        <!-- prevent jQuery Dialog open autofucos -->
+        <span class="ui-helper-hidden-accessible"><input type="text"/></span>
         <div class="row">
             <div class="col-md-1">
                 <label>配達日付</label>
@@ -67,6 +69,7 @@
                     dataUrl="/DAI08010/GetOrderNoList"
                     :params="{ TargetDate: searchParams.DeliveryDate, BushoCd: searchParams.BushoCd }"
                     :isPreload=true
+                    :dataListReset=true
                     :ParamsChangedCheckFunc=OrderNoParamsChangedCheckFunc
                     title="受注No.一覧"
                     labelCd="受注No."
@@ -105,9 +108,8 @@
                     bind="得意先ＣＤ"
                     buddy="得意先名"
                     dataUrl="/Utilities/GetCustomerListForSelect"
-                    :params="{ KeyWord: viewModel.CustomerCd, UserBushoCd: getLoginInfo().bushoCd }"
+                    :params="{ KeyWord: viewModel.CustomerCd, UserBushoCd: viewModel.BushoCd }"
                     :isPreload=true
-                    :ParamsChangedCheckFunc=CustomerParamsChangedCheckFunc
                     title="顧客一覧"
                     labelCd="顧客CD"
                     labelCdNm="顧客名"
@@ -351,7 +353,7 @@
             </div>
         </div>
         <PqGridWrapper
-            id="DAI08010Grid1"
+            :id='"DAI08010Grid1" + (!!params ? _uid : "")'
             ref="DAI08010Grid1"
             dataUrl="/DAI08010/Search"
             :query=this.searchParams
@@ -463,9 +465,10 @@ export default {
     },
     computed: {
         searchParams: function() {
+            var mt = moment(this.viewModel.DeliveryDate, "YYYY年MM月DD日");
             return {
                 BushoCd: this.viewModel.BushoCd,
-                DeliveryDate: moment(this.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD"),
+                DeliveryDate: !!mt.isValid() ? mt.format("YYYYMMDD") : null,
                 OrderNo: this.viewModel.OrderNo,
                 CustomerCd: this.CustomerInfo.得意先ＣＤ,
             };
@@ -484,6 +487,13 @@ export default {
                 vue.footerButtons.find(v => v.id == "DAI08010Grid1_Save").disabled = disabled;
             },
         },
+        "CustomerInfo.得意先ＣＤ": {
+            handler: function(newVal) {
+                var vue = this;
+                var disabled = !vue.CustomerInfo.得意先ＣＤ
+                vue.footerButtons.find(v => v.id == "DAI08010Grid1_showOrderList").disabled = disabled;
+            },
+        },
         "OrderInfo.預り金": {
             handler: function(newVal) {
                 var vue = this;
@@ -498,6 +508,7 @@ export default {
         var data = $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "仕出処理->仕出注文入力",
             noViewModel: true,
+            IsFirstFocus: false,
             viewModel: {
                 OrderNo: null,
                 BushoCd: null,
@@ -903,11 +914,6 @@ export default {
             },
         });
 
-        if (!!vue.params && !!vue.params.CustomerInfo) {
-            vue.CustomerInfo = vue.params.CustomerInfo;
-            vue.CustomerChanged(vue.CustomerInfo);
-        }
-
         return data;
     },
     methods: {
@@ -954,7 +960,7 @@ export default {
             );
         },
         mountedFunc: function(vue) {
-            if (!vue.params) {
+            if (!vue.params || !!vue.params.IsNew) {
                 //TODO:
                 vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
                 // vue.viewModel.DeliveryDate = moment("20190906").format("YYYY年MM月DD日");
@@ -965,6 +971,15 @@ export default {
 
                 //TODO:
                 vue.viewModel.BushoCd = "985";
+            } else {
+                vue.viewModel.BushoCd = vue.params.部署ＣＤ;
+                vue.viewModel.DeliveryDate = moment(vue.params.配達日付).format("YYYY年MM月DD日");
+                vue.viewModel.OrderNo = vue.params.受注Ｎｏ;
+            }
+
+            //for Child mode
+            if (!!vue.params && !!vue.params.IsChild) {
+                vue.DAI08010Grid1 = vue.$refs.DAI08010Grid1.grid;
             }
 
             //watcher
@@ -1014,7 +1029,7 @@ export default {
             var vue = this;
 
             if (!code) {
-                vue.clearOrder();
+                vue.clearOrder(true);
             }
 
             if (code != vue.OrderInfo.受注Ｎｏ || entity.配達日付 != vue.OrderInfo.配達日付) {
@@ -1339,7 +1354,7 @@ export default {
                 keyAND = keyOR = [];
             }
 
-            var list = dataList
+            var list = _.sortBy(dataList, v => v.部署CD == vue.viewModel.BushoCd ? 0 : 1)
                 .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
                 .filter(v => {
                     return keyOR.length == 0
@@ -1402,10 +1417,7 @@ export default {
         CustomerParamsChangedCheckFunc: function(newVal, oldVal) {
             var vue = this;
 
-            newVal.UserBushoCd = !!vue.getLoginInfo() ? vue.getLoginInfo().bushoCd : null;
             var ret = !!newVal.UserBushoCd;
-
-            console.log("CustomerParamsChangedCheckFunc", ret, newVal);
             return ret;
         },
         CourseParamsChangedCheckFunc: function(newVal, oldVal) {
@@ -1450,7 +1462,7 @@ export default {
 
             return list;
         },
-        clearOrder: function() {
+        clearOrder: function(keepDate) {
             var vue = this;
             var grid = vue.DAI08010Grid1;
 
@@ -1461,9 +1473,12 @@ export default {
             vue.OrderInfoOrg = null;
 
             vue.viewModel.OrderNo = null;
-            vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
-            vue.viewModel.DeliveryTime = moment().format("HH時mm分");
-            vue.viewModel.TakeoutTime = null;
+
+            if (!keepDate) {
+                vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
+                vue.viewModel.DeliveryTime = moment().format("HH時mm分");
+                vue.viewModel.TakeoutTime = null;
+            }
             vue.viewModel.OrderDate = moment().format("YYYY年MM月DD日");
             vue.viewModel.OrderTime = moment().format("HH時mm分");
 
@@ -1725,32 +1740,19 @@ export default {
         },
         showOrderList: function() {
             var vue = this;
-            var grid = vue.DAI08009Grid1;
-            if (!grid) return;
 
-            var params;
-
-            var params;
-            if (rowData) {
-                params = _.cloneDeep(rowData);
-            } else {
-                var selection = grid.SelectRow().getSelection();
-
-                var rows = grid.SelectRow().getSelection();
-                if (rows.length != 1) return;
-
-                params = _.cloneDeep(rows[0].rowData);
-            }
+            var params = _.cloneDeep(vue.searchParams);
 
             params.IsChild = true;
             params.IsNew = false;
 
-            //DAI08010を子画面表示
+            //DAI08009を子画面表示
             PageDialog.show({
-                pgId: "DAI08010",
+                pgId: "DAI08009",
                 params: params,
                 isModal: true,
                 isChild: true,
+                reuse: false,
                 width: 1250,
                 height: 775,
             });
