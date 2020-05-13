@@ -13,6 +13,51 @@ class DAI03080Controller extends Controller
     const BANK_YAMAGUCHI = '0';
     const BANK_TOKYO_MITSUBISHI_UFJ = '1';
 
+    private $DataListCount=0;
+    private $Seikyukingaku=0;
+
+    /**
+     * 前回請求日を取得する
+     */
+    public function LatestSeikyuDateGet($request)
+    {
+        $BushoCd=$request->BushoCd;
+        $sql = "
+                SELECT
+                FORMAT(MAX(SEIKYU.請求日付),'yyyy/MM/dd') AS 前回請求日
+                FROM
+                    請求データ SEIKYU
+                WHERE
+                    SEIKYU.部署ＣＤ = $BushoCd;
+            ";
+        $Result = DB::selectOne($sql);
+        if($Result == null){
+            $date = new Carbon();
+            $Result = new \stdClass();
+            $Result->前回請求日=$date->format('Y/m/d');
+        }
+        return response()->json($Result);
+    }
+    /**
+     * 各種テーブルから銀行引落日を取得する
+     */
+    public function WithdrawalDateGet()
+    {
+        $sql = "
+            SELECT
+                サブ各種CD1 AS 銀行引落日
+            FROM
+                各種テーブル
+            WHERE 各種CD=29
+              AND 行NO=1
+            ";
+        $Result = DB::selectOne($sql);
+        if($Result == null){
+            $Result = new \stdClass();
+            $Result->銀行引落日="1";
+        }
+        return response()->json($Result);
+    }
     /**
      * Search
      */
@@ -148,13 +193,13 @@ class DAI03080Controller extends Controller
         {
             case self::BANK_YAMAGUCHI:
             {
-                //0=山口銀行
+                //山口銀行
                 $BankFormatFile='BankFormatYamaguchi.xml';
                 break;
             }
             case self::BANK_TOKYO_MITSUBISHI_UFJ:
             {
-                //1=東京三菱UFJ
+                //三菱UFJ
                 $BankFormatFile='BankFormatmitubishi.xml';
                 break;
             }
@@ -167,6 +212,7 @@ class DAI03080Controller extends Controller
         $xml = simplexml_load_file($Filename);
 
         $DataList=$this->getSeikyuData($request);
+        $this->DataListCount=count($DataList);
         foreach ($DataList as $DataListRow) {
             foreach ($xml->Header->record as $format) {
                 $BankHeader .= $this->getDataElement($format, $param, $DataListRow);
@@ -233,11 +279,21 @@ class DAI03080Controller extends Controller
         }
         else if (0 === strpos($value, "DB.")){
             $key=str_replace("DB.","",$value);
+            if($key=="今回請求額"){
+                $this->Seikyukingaku += array_key_exists($key,$DataListRow) ? $DataListRow[$key] : 0;
+            }
             return array_key_exists($key,$DataListRow) ? $DataListRow[$key] : "";
         }
         else if (0 === strpos($value, "CONST.")){
-            $key=str_replace("CONST.","",$value);
-            return 123456;//TODO:ダミーデータ
+            if (0 === strpos($value, "CONST.GKENSU")){
+                return $this->DataListCount;
+            }
+            else if (0 === strpos($value, "CONST.GMONEY")){
+                return $this->Seikyukingaku;
+            }
+            else{
+                return "";
+            }
         }
         else{
             return $value;
