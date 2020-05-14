@@ -279,7 +279,6 @@ export default {
                     grandSummary: true,
                     indent: 10,
                     dataIndx: ["部署", "ＧＫ営業担当者", "ＧＫ獲得営業者"],
-                    //TODO:西山　合計行の位置
                     showSummary: [false, false, true],
                     collapsed: [false, false, false],
                     summaryInTitleRow: "collapsed",
@@ -357,7 +356,7 @@ export default {
                             if (!!ui.rowData.pq_gsummary) {
                                 switch (ui.rowData.pq_level) {
                                     case 2:
-                                        return { text: "合計2" };
+                                        return { text: "合計" };
                                     default:
                                         return { text: "" };
                                 }
@@ -450,7 +449,7 @@ export default {
                             }
                             if (!!ui.rowData.pq_gsummary) {
                                 switch (ui.rowData.pq_level) {
-                                    case 1:
+                                    case 2:
                                         if (ui.rowData.得意先平日合計 * 1 == 0 || ui.rowData.得意先平日日数 * 1 == 0)
                                         {
                                             return { text: "" };
@@ -505,7 +504,7 @@ export default {
                             }
                             if (!!ui.rowData.pq_gsummary) {
                                 switch (ui.rowData.pq_level) {
-                                    case 1:
+                                    case 2:
                                         if (ui.rowData.得意先合計 * 1 == 0 || ui.rowData.得意先売上日数 * 1 == 0)
                                         {
                                             return { text: "" };
@@ -840,8 +839,7 @@ export default {
             var headerFunc = (header, idx, length) => {
                 if (header.pq_level == 0)
                 {
-                    // bushoNm = header.children[0].children[0].children[0].部署.split(" ")[1];
-                    bushoNm = header.children[0].children[0].children[0].部署;
+                    bushoNm = header.children[0].children[0].children[0].部署.split(":")[0];
                     eigyoNmKey1 = header.children[0].children[0].children[0].ＧＫ営業担当者.split(" ")[1];
                     eigyoNmKey2 = eigyoNmKey1;
                 }
@@ -849,14 +847,12 @@ export default {
                 {
                     eigyoNmKey1 = header.children[0].children[0].ＧＫ営業担当者.split(" ")[1];
                     eigyoNmKey2 = eigyoNmKey1;
-                    // bushoNm = header.children[0].children[0].部署.split(" ")[1];
-                    bushoNm = header.children[0].children[0].部署;
+                    bushoNm = header.children[0].children[0].部署.split(":")[0];
                 }
                 if (header.pq_level == 2)
                 {
                     eigyoNmKey2 = header.children[0].ＧＫ獲得営業者.split(" ")[1];
-                    // bushoNm = header.children[0].部署.split(" ")[1];
-                    bushoNm = header.children[0].部署;
+                    bushoNm = header.children[0].部署.split(":")[0];
                 }
                 return `
                     <div class="title">
@@ -905,6 +901,9 @@ export default {
                 table.DAI05090Grid1 tr td {
                     font-size: 8pt;
                 }
+                table.DAI05090Grid1 tr:not(.group-summary) td:nth-child(2) {
+                    font-size: 6pt;
+                }
                 table.DAI05090Grid1 tr:nth-child(1) th {
                     border-style: solid;
                     border-left-width: 1px;
@@ -933,10 +932,10 @@ export default {
                     text-align: center;
                 }
                 table.DAI05090Grid1 tr th:nth-child(1) {
-                    width: 4%;
+                    width: 4.2%;
                 }
                 table.DAI05090Grid1 tr th:nth-child(2) {
-                    width: 15%;
+                    width: 12%;
                 }
                 table.DAI05090Grid1 tr th:nth-last-child(1) {
                     width: 5.2%;
@@ -967,7 +966,8 @@ export default {
                             vue.DAI05090Grid1.generateHtml(
                                 styleCustomers,
                                 headerFunc,
-                                //TODO:西山 36,
+                                //TODO:西山　印刷確認未完　用紙サイズ確認　
+                                //36,
                                 30,
                                 false,
                                 true,

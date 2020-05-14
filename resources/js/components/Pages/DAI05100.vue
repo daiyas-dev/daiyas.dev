@@ -290,6 +290,8 @@ export default {
                         title: "営業担当者",
                         dataIndx: "ＧＫ営業担当者", dataType: "string",
                         width: 100, minWidth: 100, maxWidth: 100,
+                        hidden: true,
+                        fixed: true,
                         render: ui => {
                             if (ui.rowData.pq_level != 0) {
                                 return { text: "" };
@@ -301,6 +303,8 @@ export default {
                         title: "獲得営業者",
                         dataIndx: "ＧＫ獲得営業者", dataType: "string",
                         width: 100, minWidth: 100, maxWidth: 100,
+                        hidden: true,
+                        fixed: true,
                         render: ui => {
                             switch (ui.rowData.pq_level) {
                                 case 0:
@@ -702,9 +706,11 @@ export default {
                 table.DAI05100Grid1 tr.grand-summary td:nth-child(3) {
                     text-align: left;
                 }
-                table.DAI05100Grid1 tr th:nth-child(1),
+                table.DAI05100Grid1 tr th:nth-child(1) {
+                    width: 5%;
+                }
                 table.DAI05100Grid1 tr th:nth-child(2) {
-                    width: 0%;
+                    width: 15%;
                 }
                 table.DAI05100Grid1 tr th:nth-child(3) {
                     width: 8%;

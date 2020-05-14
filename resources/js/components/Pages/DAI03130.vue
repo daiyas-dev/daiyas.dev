@@ -406,11 +406,12 @@ export default {
                     text-align: right;
                 }
                 table.DAI03130Grid1 tr th:nth-child(4) {
-                    width: 15%;
                     text-align: right;
+                    padding-right: 280px;
                 }
-                table.DAI03130Grid1 {
-                    width: 61%;
+                table.DAI03130Grid1 tr td:nth-child(4) {
+                    text-align: right;
+                    padding-right: 280px;
                 }
             `;
 
