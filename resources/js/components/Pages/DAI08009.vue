@@ -566,6 +566,7 @@ export default {
 
             params.IsChild = true;
             params.IsNew = false;
+            params.Parent = vue;
 
             //DAI08010を子画面表示
             PageDialog.show({
@@ -578,8 +579,12 @@ export default {
             });
         },
         showNewDetail: function(rowData) {
+            var vue = this;
 
-            var params = { IsChild: true, IsNew: true };
+            var params = {};
+            params.IsChild = true;
+            params.IsNew = true;
+            params.Parent = vue;
 
             //DAI08010を子画面表示
             PageDialog.show({

@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\仕出しエリアデータ;
+use App\Models\仕出し注文明細データ;
+use App\Models\売上データ明細;
 use App\Models\祝日マスタ;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -13,6 +16,42 @@ use PDO;
 
 class DAI08030Controller extends Controller
 {
+
+    /**
+     * GetCourseList
+     */
+    public function GetCourseList($request)
+    {
+        $BushoCd = $request->BushoCd;
+
+        if (!isset($BushoCd)) return [];
+
+        $sql = "
+            SELECT
+                *
+                ,コースＣＤ AS Cd
+                ,コース名 AS CdNm
+            FROM
+                コースマスタ
+            WHERE
+                部署ＣＤ=$BushoCd OR コースＣＤ = 0
+            ORDER BY
+                コースＣＤ
+        ";
+
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $pdo = null;
+
+        return response()->json($DataList);
+    }
+
     /**
      * GetChumonList
      */
@@ -57,6 +96,10 @@ class DAI08030Controller extends Controller
                 ,SCHUMON.合計金額
                 ,SCHUMON.合計消費税
                 ,URIM.修正日 AS 完了時間
+                ,SCHUMON.部署ＣＤ
+                ,SCHUMON.配達日付 AS 日付
+                ,SAREA.エリアＣＤ AS コースＣＤ
+                ,SAREA.配達順 AS 行Ｎｏ
             FROM
                 仕出し注文データ SCHUMON
                     LEFT OUTER JOIN 仕出しエリアデータ SAREA ON
@@ -142,5 +185,141 @@ class DAI08030Controller extends Controller
         $pdo = null;
 
         return $DataList;
+    }
+
+    /**
+     * Save
+     */
+    public function Save($request)
+    {
+        DB::beginTransaction();
+
+        try {
+            $params = $request->all();
+
+            $SaveList = $params['SaveList'];
+
+            foreach ($SaveList as $rec) {
+                仕出しエリアデータ::query()->updateOrInsert(
+                    [
+                        '部署ＣＤ' => $rec['部署ＣＤ'],
+                        '受注Ｎｏ' => $rec['受注Ｎｏ'],
+                        '注文日付' => $rec['注文日付'],
+                    ],
+                    $rec
+                );
+            }
+
+            DB::commit();
+        } catch (Exception $exception) {
+            DB::rollBack();
+            throw $exception;
+        }
+
+        return response()->json([
+            'result' => true,
+        ]);
+    }
+
+    /**
+     * UpdateUriage
+     */
+    public function UpdateUriage($request)
+    {
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+
+        DB::beginTransaction();
+
+        try {
+            $params = $request->all();
+
+            $SaveList = $params['SaveList'];
+
+            foreach ($SaveList as $rec) {
+                $BushoCd = $rec['部署ＣＤ'];
+                $OrderNo = $rec['受注Ｎｏ'];
+                $DeliveryDate = $rec['配達日付'];
+
+                $GetMeisaiSQL = "
+                    SELECT
+                        C.配達日付 AS 日付
+                        ,C.部署ＣＤ
+                        ,C.エリアＣＤ AS コースＣＤ
+                        ,A.配達順 AS 行Ｎｏ
+                        ,C.得意先ＣＤ AS 得意先ＣＤ
+                        ,C.受注Ｎｏ AS 受注Ｎｏ
+                        ,M.明細Ｎｏ AS 明細行Ｎｏ
+                        ,M.商品ＣＤ AS 商品ＣＤ
+                        ,P.商品区分 AS 商品区分
+                        ,IIF(T.売掛現金区分 = 0, M.数量, 0) AS 現金個数
+                        ,IIF(T.売掛現金区分 = 0, M.金額, 0) AS 現金金額
+                        ,0 AS 現金値引
+                        ,0 AS 現金値引事由ＣＤ
+                        ,IIF(T.売掛現金区分 = 1, M.数量, 0) AS 掛売個数
+                        ,IIF(T.売掛現金区分 = 1, M.金額, 0) AS 掛売金額
+                        ,0 AS 掛売値引
+                        ,0 AS 掛売値引事由ＣＤ
+                        ,'' AS 請求日付
+                        ,M.単価 AS 予備金額１
+                        ,0 AS 予備金額２
+                        ,T.売掛現金区分 AS 売掛現金区分
+                        ,0 AS 予備ＣＤ２
+                        ,P.主食ＣＤ AS 主食ＣＤ
+                        ,P.副食ＣＤ AS 副食ＣＤ
+                        ,0 AS 分配元数量
+                    FROM
+                        仕出し注文データ C
+                            INNER JOIN 得意先マスタ T
+                                ON  T.得意先ＣＤ=C.得意先ＣＤ
+                            INNER JOIN 仕出し注文明細データ M
+                                ON  M.部署ＣＤ = C.部署ＣＤ
+                                AND M.受注Ｎｏ = C.受注Ｎｏ
+                                AND M.配達日付 = C.配達日付
+                            INNER JOIN 仕出しエリアデータ A
+                                ON  A.部署ＣＤ = C.部署ＣＤ
+                                AND A.受注Ｎｏ = C.受注Ｎｏ
+                                AND A.注文日付 = C.配達日付
+                            LEFT OUTER JOIN 商品マスタ P
+                                ON  P.商品ＣＤ = M.商品ＣＤ
+                    WHERE
+                        C.部署ＣＤ=$BushoCd
+                    AND C.配達日付='$DeliveryDate'
+                    AND C.受注Ｎｏ=$OrderNo
+                ";
+
+                // $MeisaiList = DB::select($GetMeisaiSQL);
+                $stmt = $pdo->query($GetMeisaiSQL);
+                $MeisaiList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                //売上データ削除
+                売上データ明細::query()
+                    ->where('部署ＣＤ', $BushoCd)
+                    ->where('日付', $DeliveryDate)
+                    ->where('受注Ｎｏ', $OrderNo)
+                    ->delete();
+
+                foreach ($MeisaiList as $meisai) {
+                    $meisai['修正日'] = $rec['修正日'];
+                    $meisai['修正担当者ＣＤ'] = $rec['修正担当者ＣＤ'];
+
+                    売上データ明細::insert($meisai);
+                }
+            }
+
+            $pdo = null;
+            DB::commit();
+        } catch (Exception $exception) {
+            $pdo = null;
+            DB::rollBack();
+            throw $exception;
+        }
+
+        return response()->json([
+            'result' => true,
+        ]);
     }
 }
