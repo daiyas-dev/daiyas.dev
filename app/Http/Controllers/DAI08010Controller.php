@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CTelToCust;
 use App\Models\仕出し注文データ;
 use App\Models\仕出し注文明細データ;
 use App\Models\伝票ＮＯ管理マスタ;
@@ -471,6 +472,26 @@ class DAI08010Controller extends Controller
                     ['得意先ＣＤ' => $CustomerData['得意先ＣＤ']],
                     $CustomerData
                 );
+
+                //C_TelToCust
+                $TelToCust = CTelToCust::query()
+                    ->where('Tel_TelNo', $CustomerData['電話番号１'])
+                    ->where('Tel_CustNo', $CustomerData['得意先ＣＤ'])
+                    ->get();
+
+                if (count($TelToCust) == 0) {
+                    $TelDate = Carbon::parse($CustomerData['修正日'])->format('Y/m/d');
+                    $TelToCust = CTelToCust::query()->insert(
+                        [
+                            "Tel_TelNo" => $CustomerData['電話番号１'],
+                            "Tel_CustNo" => $CustomerData['得意先ＣＤ'],
+                            "Tel_RepFlg" => 0,
+                            "Tel_DelFlg" => 0,
+                            "Tel_NewDate" => $TelDate,
+                            "Tel_UpdDate" => $TelDate,
+                        ]
+                    );
+                }
             }
 
             //仕出し注文データ
