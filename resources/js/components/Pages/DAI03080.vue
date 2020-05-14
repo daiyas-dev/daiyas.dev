@@ -122,6 +122,7 @@
             :SearchOnCreate=false
             :SearchOnActivate=false
             :options=this.grid1Options
+            :onAfterSearchFunc=this.onAfterSearchFunc
             :autoToolTipDisabled=true
         />
     </form>
@@ -182,6 +183,7 @@ export default {
                 Simebi2:null,
                 Simebi3:null,
             },
+            IsShowDialog:false,
             DAI03080Grid1: null,
             grid1Options: {
                 selectionModel: { type: "cell", mode: "single", row: true },
@@ -293,7 +295,7 @@ export default {
                         vue.conditionChanged();
                     }
                 },
-                { visible: "true", value: "実行", id: "DAI03080Grid1_Download", disabled: false, shortcut: "F6",
+                { visible: "true", value: "実行", id: "DAI03080Grid1_Download", disabled: true, shortcut: "F6",
                     onClick: function () {
                         vue.FileDownload();
                     }
@@ -320,26 +322,70 @@ export default {
         },
         onWithdrawalDateChanged: function(code, entity) {
             var vue = this;
-            //条件変更ハンドラ
-            vue.conditionChanged();
+            if(vue.IsShowDialog){
+                return;
+            }
+
+            //銀行引落日が土日でなければ処理終了
+            var dayno = moment(vue.viewModel.WithdrawalDate, "YYYY年MM月DD日").day();
+            if((dayno!=0) && (dayno!=6)){
+                return;
+            }
+            var next_monday;
+            if(dayno==0){
+                next_monday = moment(vue.viewModel.WithdrawalDate, "YYYY年MM月DD日").add('days', 1).format("YYYY年MM月DD日");
+            }
+            else if(dayno==6){
+                next_monday = moment(vue.viewModel.WithdrawalDate, "YYYY年MM月DD日").add('days', 2).format("YYYY年MM月DD日");
+            }
+
+            vue.IsShowDialog=true;
+            $.dialogConfirm({
+                title: "確認",
+                contents: "引落日が休日です。<br/>引落日を【"+ moment(next_monday, "YYYY年MM月DD日").format("MM月DD日") +"】に変更しますか？",
+                buttons:[
+                    {
+                        text: "はい",
+                        class: "btn btn-primary",
+                        click: function(){
+                            $(this).dialog("close");
+                            vue.viewModel.WithdrawalDate=next_monday;
+                            vue.IsShowDialog=false;
+                        }
+                    },
+                    {
+                        text: "いいえ",
+                        class: "btn btn-danger",
+                        click: function(){
+                            $(this).dialog("close");
+                            vue.IsShowDialog=false;
+                        }
+                    },
+                ],
+            });
         },
         onBankFormatChanged: function(code, entities) {
             var vue = this;
-
             //条件変更ハンドラ
             vue.conditionChanged();
         },
         onSimebi1Changed: _.debounce(function(event) {
             var vue = this;
             vue.viewModel.Simebi1=event.target.value*1;
+            //条件変更ハンドラ
+            vue.conditionChanged();
         }, 300),
         onSimebi2Changed: _.debounce(function(event) {
             var vue = this;
             vue.viewModel.Simebi2=event.target.value*1;
+            //条件変更ハンドラ
+            vue.conditionChanged();
         }, 300),
         onSimebi3Changed: _.debounce(function(event) {
             var vue = this;
             vue.viewModel.Simebi3=event.target.value*1;
+            //条件変更ハンドラ
+            vue.conditionChanged();
         }, 300),
         conditionChanged: function(callback) {
             var vue = this;
@@ -352,6 +398,11 @@ export default {
             var params=this.ParamGet();
             window.resp=_.cloneDeep(params);//TODO
             grid.searchData(params, false, null, callback);
+        },
+        onAfterSearchFunc: function (vue, grid, res) {
+            var vue = this;
+            vue.footerButtons.find(v => v.id == "DAI03080Grid1_Download").disabled = !res.length;
+            return res;
         },
         ParamGet: function(){
             var vue = this;
