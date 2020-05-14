@@ -640,23 +640,50 @@ export default {
                     </div>
                     <table class="header-table" style="border-width: 0px">
                         <thead>
-                            <tr>
-                                <th>営業担当者</th>
-                                <th>${eigyoNmKey1}</th>
-                                <th class="blank-cell"></th>
-                                <th>獲得営業担当者</th>
-                                <th>${eigyoNmKey2}</th>
-                                <th class="blank-cell"></th>
+                            <tr class="width-settei">
+                                <th style="width: 12%;"></th>
+                                <th style="width: 10%;"></th>
+                                <th class="blank-cell" style="width: 4.8%;"></th>
+                                <th class="blank-cell" style="width: 3%;"></th>
+                                <th class="blank-cell" style="width: 8%;"></th>
+                                <th class="blank-cell" style="width: 6.8%;"></th>
+                                <th class="blank-cell" style="width: 8%;"></th>
+                                <th class="blank-cell" style="width: 15%;"></th>
+                                <th class="blank-cell" style="width: 7.6%;"></th>
+                                <th class="blank-cell" style="width: 20%;"></th>
+                                <th class="blank-cell" style="width: 5%;"></th>
                             </tr>
                             <tr>
-                                <th>${vue.viewModel.DateStart}</th>
+                                <th style="width: 12%;">部署名ＸＸＸ</th>
+                                <th class="blank-cell" style="width: 14.8%;"></th>
+                                <th class="blank-cell" style="width: 14.8%;"></th>
+                                <th class="blank-cell" style="width: 3%;"></th>
+                                <th class="blank-cell" style="width: 8%;"></th>
+                                <th class="blank-cell" style="width: 6.8%;"></th>
+                                <th class="blank-cell" style="width: 8%;"></th>
+                                <th class="blank-cell" style="width: 15%;"></th>
+                                <th class="blank-cell" style="width: 7.6%;"></th>
+                                <th class="blank-cell" style="width: 20%;"></th>
+                                <th class="blank-cell" style="width: 5%;"></th>
+                            </tr>
+                            <tr>
+                                <th>対象日付：</th>
+                                <th colspan="2">${vue.viewModel.DateStart}</th>
                                 <th>～</th>
-                                <th>${vue.viewModel.DateEnd}</th>
+                                <th colspan="2">${vue.viewModel.DateEnd}</th>
                                 <th class="blank-cell"></th>
-                                <th>作成日</th>
-                                <th>${moment().format("YYYY年MM月DD日")}</th>
-                                <th>PAGE</th>
-                                <th style="text-align: right;">${idx + 1}</th>
+                                <th class="blank-cell"></th>
+                                <th colspan="2" style="font-weight: bold;">[営業売上金額－担当者]</th>
+                                <th style="text-align: right;">${idx + 1}/${length}</th>
+                            </tr>
+                            <tr>
+                                <th>営業担当者：</th>
+                                <th colspan="2">${eigyoNmKey1}</th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th colspan="2">獲得営業担当者：</th>
+                                <th colspan="2">${eigyoNmKey2}</th>
+                                <th colspan="2" style="text-align: right;">作成日:${moment().format("YYYY/MM/DD/ HH:MM")}</th>
                             </tr>
                         </thead>
                     </table>
@@ -723,6 +750,12 @@ export default {
                 }
                 table.DAI05100Grid1 tr th:nth-child(13) {
                     width: 7%;
+                }
+                table.header-table th {
+                    text-align: left;
+                }
+                tr.width-settei > th {
+                    height: 0px;
                 }
             `;
 
