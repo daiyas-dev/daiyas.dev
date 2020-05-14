@@ -302,6 +302,8 @@ class DAI08010Controller extends Controller
 
         $sql = "
             SELECT DISTINCT
+                SHUBETSU.商品ＣＤ AS Cd,
+                PRODUCT.商品名 AS CdNm,
                 SHUBETSU.商品種類,
                 SHUBETSU.商品種類名,
                 SHUBETSU.商品ＣＤ,
@@ -326,18 +328,16 @@ class DAI08010Controller extends Controller
                 SHUBETSU.商品ＣＤ
         ";
 
-        $Result = collect(DB::select($sql))
-            ->map(function ($product) {
-                $vm = (object) $product;
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
 
-                $vm->Cd = $product->商品ＣＤ;
-                $vm->CdNm = $product->商品名;
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = null;
 
-                return $vm;
-            })
-            ->values();
-
-        return response()->json($Result);
+        return response()->json($DataList);
     }
 
     /**
@@ -376,36 +376,16 @@ class DAI08010Controller extends Controller
                 )
         ";
 
-        $DataList = DB::select($sql);
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = null;
+
         return response()->json($DataList);
-    }
-
-    /**
-     * IsDeliveried()
-     */
-    public function IsDeliveried($request)
-    {
-        $CustomerCd = $request->CustomerCd;
-        $DeliveryDate = $request->DeliveryDate;
-        $CourseCd = $request->CourseCd;
-
-        $WhereCourseCd = isset($CourseCd) ? "AND コースCD=$CourseCd" : "";
-
-        $sql = "
-            SELECT
-                実績数
-            FROM
-                モバイル_販売入力
-            WHERE
-                得意先CD=$CustomerCd AND
-                実績入力=1 AND
-                日付='$DeliveryDate'
-                $WhereCourseCd
-        ";
-
-        $Result = DB::select($sql);
-
-        return response()->json(["IsDeliveried"=>count($Result) > 0]);
     }
 
     /**

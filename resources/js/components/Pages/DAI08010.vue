@@ -213,6 +213,7 @@
                     dataUrl="/DAI08010/GetCourseList"
                     :params="{ BushoCd: viewModel.BushoCd, WithZero: true }"
                     :dataListReset=true
+                    :exceptCheck="[{ Cd: 0 }]"
                     title="エリア一覧"
                     labelCd="エリアCD"
                     labelCdNm="エリア名"
@@ -1658,6 +1659,9 @@ export default {
                                         });
                                     }
                                 }
+                                if (!!vue.params && !!vue.params.Parent) {
+                                    vue.params.Parent.conditionChanged(true);
+                                }
 
                                 return false;
                             },
@@ -1728,6 +1732,9 @@ export default {
                                         title: "仕出し売上削除",
                                         contents: "注文削除により、仕出しに対応する売上を削除しました。",
                                     });
+                                }
+                                if (!!vue.params && !!vue.params.Parent) {
+                                    vue.params.Parent.conditionChanged(true);
                                 }
                             }
 

@@ -217,10 +217,11 @@ class DAI03080Controller extends Controller
         foreach ($xml->Header->record as $format) {
             $BankHeader .= $this->getDataElement($format, $param, null);
         }
+        $BankHeader .= "\r\n";
 
         $DataList=$this->getSeikyuData($request);
         if($param['口座寄せ']=="1"){
-            //口座寄せをする(同一の支店、口座の請求額を合算して1レコードに集計する。)
+            //口座寄せをする
             $DataList=self::KouzaYose($xml->Data,$DataList);
         }
         $this->DataListCount=count($DataList);
@@ -228,24 +229,29 @@ class DAI03080Controller extends Controller
             foreach ($xml->Data->record as $format) {
                 $BankData .= $this->getDataElement($format, $param, $DataListRow);
             }
+            $BankData .= "\r\n";
         }
         foreach ($xml->Trailer->record as $format) {
             $BankTrailer .= $this->getDataElement($format, $param, null);
         }
+        $BankTrailer .= "\r\n";
+
         foreach ($xml->End->record as $format) {
             $BankEnd .= $this->getDataElement($format, $param, null);
         }
+        $BankEnd .= "\r\n";
 
-        $RetBankData = $BankHeader ."\n". $BankData ."\n". $BankTrailer ."\n". $BankEnd;
-        return $RetBankData;
+        $RetBankData = $BankHeader . $BankData . $BankTrailer . $BankEnd;
+        return mb_convert_encoding($RetBankData, "SJIS", "UTF-8");
     }
     /*
     * 口座寄せ処理
+    * 同一の支店、口座の請求額を合算して1レコードに集計する。
     */
     private function KouzaYose($format,$DataList)
     {
         $DataListMarge=array();
-
+        //書式定義ファイルより、引落支店番号、口座番号の文字長を取得する
         foreach ($format->record as $FormatRow) {
             if ($FormatRow['id']=='HikiotoshiShitenBankCd') {
                 $LenSitenNo=$FormatRow['character'];
