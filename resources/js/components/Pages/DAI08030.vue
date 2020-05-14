@@ -65,7 +65,7 @@
                     ref="PopupSelect_Area"
                     :vmodel=viewModel
                     bind="AreaCd"
-                    dataUrl="/DAI08010/GetCourseList"
+                    dataUrl="/DAI08030/GetCourseList"
                     :params="{ BushoCd: viewModel.BushoCd, WithZero: true }"
                     :dataListReset=true
                     title="エリア一覧"
@@ -507,15 +507,24 @@ export default {
                     }
                 },
                 {visible: "false"},
-                {visible: "false"},
-                {visible: "false"},
                 { visible: "true", value: "注文入力", id: "DAI08030Grid1_Detail", disabled: true, shortcut: "F5",
                     onClick: function () {
                         vue.showDetail();
                     }
                 },
                 {visible: "false"},
-                { visible: "true", value: "登録", id: "DAI08030Grid1_Save", disabled: false, shortcut: "F9",
+                { visible: "true", value: "個別売上反映", id: "DAI08030Grid1_UpdUriage", disabled: true, shortcut: "F7",
+                    onClick: function () {
+                        vue.updateUriage();
+                    }
+                },
+                { visible: "true", value: "売上反映", id: "DAI08030Grid1_UpdUriageAll", disabled: true, shortcut: "F8",
+                    onClick: function () {
+                        vue.updateUriage(true);
+                    }
+                },
+                {visible: "false"},
+                { visible: "true", value: "登録", id: "DAI08030Grid1_Save", disabled: true, shortcut: "F9",
                     onClick: function () {
                         vue.save();
                     }
@@ -526,7 +535,8 @@ export default {
         mountedFunc: function(vue) {
             //TODO
             // vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
-            vue.viewModel.DeliveryDate = moment("20190906").format("YYYY年MM月DD日");
+            // vue.viewModel.DeliveryDate = moment("20190906").format("YYYY年MM月DD日");
+            vue.viewModel.DeliveryDate = moment("20200512").format("YYYY年MM月DD日");
 
             //watcher
             vue.$watch(
@@ -534,6 +544,7 @@ export default {
                 cnt => {
                     console.log("selectionRowCount watcher: " + cnt);
                     vue.footerButtons.find(v => v.id == "DAI08030Grid1_Detail").disabled = cnt == 0 || cnt > 1;
+                    vue.footerButtons.find(v => v.id == "DAI08030Grid1_UpdUriage").disabled = cnt == 0 || cnt > 1;
                 }
             );
 
@@ -663,6 +674,9 @@ export default {
         onAfterSearchFunc: function (gridVue, grid, res) {
             var vue = this;
 
+            vue.footerButtons.find(v => v.id == "DAI08030Grid1_Save").disabled = !res || !res.length;
+            vue.footerButtons.find(v => v.id == "DAI08030Grid1_UpdUriageAll").disabled = !res || !res.length;
+
             return res;
         },
         showDetail: function(rowData) {
@@ -686,6 +700,7 @@ export default {
 
             params.IsChild = true;
             params.IsNew = false;
+            params.Parent = vue;
             params.部署ＣＤ = vue.searchParams.BushoCd;
             params.配達日付 = vue.searchParams.DeliveryDate;
 
@@ -698,6 +713,100 @@ export default {
                 width: 1250,
                 height: 775,
             });
+        },
+        save: function() {
+            var vue = this;
+            var grid = vue.DAI08030Grid1;
+
+            var date = moment().format("YYYY-MM-DD HH:mm:ss");
+
+            var SaveList = _(_.cloneDeep(grid.pdata))
+                .groupBy(v => v.エリアＣＤ)
+                .values()
+                .map(g => g.map((v, i) => {
+                    //仕出しエリアデータの型に整形
+                    var ret = {};
+                    ret.部署ＣＤ = v.部署ＣＤ;
+                    ret.受注Ｎｏ = v.受注Ｎｏ;
+                    ret.注文日付 = moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD");
+                    ret.エリアＣＤ = v.エリアＣＤ;
+                    ret.配達順 = i + 1;
+                    ret.得意先ＣＤ = v.得意先ＣＤ;
+                    ret.修正担当者ＣＤ = vue.getLoginInfo().uid;
+                    ret.修正日 = date;
+
+                    return ret;
+                }))
+                .flatten()
+                .value()
+                ;
+
+            //保存実行
+            grid.saveData(
+                {
+                    uri: "/DAI08030/Save",
+                    params: {
+                        SaveList: SaveList,
+                    },
+                    optional: this.searchParams,
+                    confirm: {
+                        isShow: false,
+                    },
+                    done: {
+                        isShow: false,
+                    },
+                }
+            );
+        },
+        updateUriage: function(isAll) {
+            var vue = this;
+            var grid = vue.DAI08030Grid1;
+
+            var date = moment().format("YYYY-MM-DD HH:mm:ss");
+
+            var SaveList = _.cloneDeep(!!isAll ? grid.pdata : grid.SelectRow().getSelection().map(r => r.rowData))
+                .filter(v => !!v.配達順)
+                .map(v => {
+                    var ret = {};
+                    ret.配達日付 = moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD");
+                    ret.部署ＣＤ = v.部署ＣＤ;
+                    ret.受注Ｎｏ = v.受注Ｎｏ;
+                    ret.修正担当者ＣＤ = vue.getLoginInfo().uid;
+                    ret.修正日 = date;
+
+                    return ret;
+                });
+
+            //保存実行
+            grid.saveData(
+                {
+                    uri: "/DAI08030/UpdateUriage",
+                    params: {
+                        SaveList: SaveList,
+                    },
+                    optional: this.searchParams,
+                    confirm: {
+                        isShow: true,
+                        title: "売上反映",
+                        message: "注文データより売上データを作成します。\n宜しいですか？",
+                    },
+                    done: {
+                        isShow: false,
+                        callback: (gridVue, grid, res)=>{
+                            if (!!res.edited) {
+                                $.dialogInfo({
+                                    title: "登録チェック",
+                                    contents: "他で変更されたデータがあります。",
+                                });
+                                grid.blinkDiff(res.current);
+                                return false;
+                            } else {
+                                return true;
+                            }
+                        },
+                    },
+                }
+            );
         },
     }
 }
