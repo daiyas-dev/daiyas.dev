@@ -16,7 +16,7 @@ class DAI05090Controller extends Controller
     public function Search($vm)
     {
         $BushoCd = $vm->BushoCd;
-        $WhereBushoCd = isset($BushoCd) ? "AND URIAGE_MEISAI.部署ＣＤ=$BushoCd" : "";
+        $WhereBushoCd = isset($BushoCd) ? "AND TOKUISAKI.部署ＣＤ=$BushoCd" : "";
 
         $DateStart = $vm->DateStart;
         $DateEnd = $vm->DateEnd;

@@ -279,8 +279,9 @@ export default {
                     grandSummary: true,
                     indent: 10,
                     dataIndx: ["部署", "ＧＫ営業担当者", "ＧＫ獲得営業者"],
-                    showSummary: [false, true],
-                    collapsed: [false, false],
+                    //TODO:西山　合計行の位置
+                    showSummary: [false, false, true],
+                    collapsed: [false, false, false],
                     summaryInTitleRow: "collapsed",
                 },
                 summaryData: [
@@ -355,8 +356,8 @@ export default {
                             }
                             if (!!ui.rowData.pq_gsummary) {
                                 switch (ui.rowData.pq_level) {
-                                    case 1:
-                                        return { text: "合計" };
+                                    case 2:
+                                        return { text: "合計2" };
                                     default:
                                         return { text: "" };
                                 }
@@ -824,7 +825,7 @@ export default {
                     text-align: center;
                 }
                 td {
-                    height: 22px;
+                    height: 15px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
@@ -966,7 +967,8 @@ export default {
                             vue.DAI05090Grid1.generateHtml(
                                 styleCustomers,
                                 headerFunc,
-                                36,
+                                //TODO:西山 36,
+                                30,
                                 false,
                                 true,
                                 true,
