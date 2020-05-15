@@ -165,6 +165,7 @@
             :onCompleteFunc=onCompleteFunc
             :onAfterSearchFunc=this.onAfterSearchFunc
             :onSelectChangeFunc=onSelectChangeFunc
+            :setMoveNextCell=setMoveNextCell
             :autoToolTipDisabled=true
             :autoEmptyRow=true
             :autoEmptyRowCount=1
@@ -910,6 +911,27 @@ export default {
                 vue.viewModel.DeliveryDate = moment(postData.DeliveryDate, "YYYYMMDD").format("YYYY年MM月DD日");
             }
         },
+        setMoveNextCell: function(grid, ui, reverse) {
+            if (grid.getEditCell().$editor) {
+                grid.saveEditCell();
+            }
+
+            if (ui.dataIndx == "商品ＣＤ") {
+                grid.setSelection({
+                    rowIndx: ui.rowIndx,
+                    colIndx: _(grid.columns).pickBy((v, k) => k.endsWith("個数") && !v.hidden).values().value()[0].leftPos,
+                });
+            } else if (ui.dataIndx.includes("個数")) {
+                grid.setSelection({
+                    rowIndx: ui.rowIndx + 1,
+                    colIndx: grid.columns["商品ＣＤ"].leftPos,
+                });
+            } else {
+                return true;
+            }
+
+            return false;
+        },
         CustomerParamsChangedCheckFunc: function(newVal, oldVal) {
             var ret = !!newVal.targetDate && newVal.bushoCd;
             return ret;
@@ -941,7 +963,8 @@ export default {
 
             if (!dataList.length) return [];
 
-            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keywords = editKeywords(input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v));
+
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 

@@ -320,13 +320,13 @@ export default {
 
                 if (!grid) return;
 
-                var keywords = vue.keyword.split(/[, 、]/g);
+                var keywords = editKeywords(vue.keyword.split(/[, 、]/g));
 
                 var rules = keywords.map(k => {
                     return { condition: "contain", value: k };
                 });
 
-                grid.filter({ oper: "replace", mode: "AND", rules: [{ dataIndx: "keyword", mode: "AND", crules: rules }] });
+                grid.filter({ oper: "replace", mode: "AND", rules: [{ dataIndx: "keyword", mode: "OR", crules: rules }] });
             }));
 
             if (!target.value && !!vue.selector) {

@@ -7,6 +7,7 @@
         <span v-if="label" class="text-nowrap d-flex align-items-center mr-1" :for="'btn' + id">{{label}}</span>
 		<input
             type="text"
+            inputmode="numeric"
             :id="id"
             :ref="id"
             :class="[

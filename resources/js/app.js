@@ -30,6 +30,26 @@ window.printJS = printJS;
 window.Dropzone = require("dropzone");
 
 window.Moji = require("moji");
+var editKeywords = keywords => {
+    var ret = _(keywords.filter(k => !!k))
+        .map(v => {
+            return _.uniq(
+                [
+                    v,
+                    Moji(v).convert('ZE', 'HE').convert('ZK', 'HK').toString(),
+                    Moji(v).convert('HE', 'ZE').convert('HK', 'ZK').toString(),
+                ]
+            );
+        })
+        .flatten()
+        .uniq()
+        .value()
+        ;
+
+    return ret;
+};
+window.editKeywords = editKeywords;
+Vue.use(editKeywords);
 
 //int only directive
 import onlyInt from "vue-input-only-number";

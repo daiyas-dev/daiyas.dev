@@ -749,123 +749,10 @@ export default {
                                 if (!!config.trigger && config.trigger(ui) == false) return;
 
                                 var source = config.source;
-                                source = _.isFunction(source) ? source(ui) : source;
+                                source = _.isFunction(source) ? source(ui, grid) : source;
+                                config.sourceList = source;
 
-                                // $input.on("keydown", event => {
-
-                                //     //PqGrid表示時の選択状態復元callback
-                                //     var callback = function(grid) {
-                                //         if (grid) {
-                                //             //gridのloading待ちpromise
-                                //             new Promise((resolve, reject) => {
-                                //                 var timer = setInterval(function() {
-                                //                     if (!!grid && !grid.options.loading) {
-                                //                         //interval解除
-                                //                         clearInterval(timer);
-
-                                //                         //wrapperIdのdiv設定が完了したら、resolve
-                                //                         return resolve(grid);
-                                //                     }
-                                //                 }, 10);
-                                //             })
-                                //             .then((grid) => {
-                                //                 if (!!$input.val()) {
-                                //                     var rowIndx = grid.getRowIndx({ rowData: grid.pdata.find(v => v.Cd == $input.val()) }).rowIndx || 0;
-
-                                //                     grid.scrollRow({ rowIndx: rowIndx });
-                                //                     grid.SelectRow().removeAll();
-                                //                     grid.setSelection({ rowIndx: rowIndx });
-                                //                 } else {
-                                //                     if (_.keys(grid.getSelectionData()).length == 0 && grid.getData().length > 0) {
-                                //                         try {
-                                //                             grid.scrollRow({ rowIndx: 0 });
-                                //                             grid.SelectRow().removeAll();
-                                //                             grid.setSelection({ rowIndx: 0 });
-                                //                         } catch {
-                                //                         }
-                                //                     }
-                                //                 }
-                                //                 grid.widget().css("visibility", "visible");
-                                //             });
-                                //         }
-                                //     };
-
-                                //     var showSelector = function(dataUrl, params) {
-                                //         var p = _.cloneDeep(params) || {};
-                                //         p.NoLimit = true,
-                                //         PageDialog.showSelector({
-                                //             source: source,
-                                //             title: ui.column.title + "一覧",
-                                //             labelCd: ui.column.title || "コード",
-                                //             labelCdNm: ui.column.title + "名称",
-                                //             isModal: true,
-                                //             isCodeOnly: false,
-                                //             showColumns: vue.showColumns,
-                                //             width: vue.popupWidth || null,
-                                //             height: vue.popupHeight || null,
-                                //             reuse: vue.reuse,
-                                //             callback: callback,
-                                //             buttons: [
-                                //                 {
-                                //                     text: "選択",
-                                //                     class: "btn btn-primary",
-                                //                     shortcut: "Enter",
-                                //                     target: p.target,
-                                //                     click: function(gridVue, grid) {
-                                //                         if (event.target.name == "SearchStrings" && event.type == "keydown" && (event.key == "Process" || event.which == 13)) {
-                                //                             return false;
-                                //                         }
-
-                                //                         var selection = grid.SelectRow().getSelection();
-                                //                         var rowIndx = !!selection.length ? selection[0].rowIndx : null;
-
-                                //                         if (rowIndx != null) {
-                                //                             var rowData = grid.getRowData({ rowIndx: rowIndx });
-
-                                //                             //コード及び名称の指定された値を取得
-                                //                             var value = rowData[vue.isGetName ? "CdNm" : "Cd"];
-                                //                             var name  = rowData[vue.isGetName ? "Cd" : "CdNm"];
-
-                                //                             //保持データに設定
-                                //                             vue.selectRow = rowData;
-                                //                             vue.selectName = name;
-                                //                             vue.selectValue = value;
-
-                                //                             if (!_.find(vue.dataList, rowData)) {
-                                //                                 vue.dataList.push(rowData);
-                                //                             }
-
-                                //                             //画面項目に設定
-                                //                             if (vue.vmodel && vue.bind) {
-                                //                                 vue.vmodel[vue.bind] = value;
-                                //                                 if (vue.buddy) {
-                                //                                     vue.vmodel[vue.buddy] = name;
-                                //                                 }
-                                //                                 if (!!vue.buddies) {
-                                //                                     _.forIn(vue.buddies, (v, k) => vue.vmodel[k] = rowData[v]);
-                                //                                 }
-                                //                             }
-
-                                //                             if (!!vue.onAfterChangedFunc) {
-                                //                                 vue.onAfterChangedFunc(value, rowData, vue);
-                                //                             }
-
-                                //                             if (this.target) {
-                                //                                 this.target.val(value);
-                                //                             }
-                                //                         }
-                                //                     },
-                                //                 },
-                                //             ],
-                                //         });
-                                //     }
-
-                                //     showSelector(vue.dataUrl, params);
-
-                                //     return false;
-                                // });
-
-                                var rowData = ui.rowData;
+                               var rowData = ui.rowData;
 
                                 $input.autocomplete({
                                     source: (request, response) => {
@@ -998,8 +885,13 @@ export default {
                                         return true;
                                     },
                                 }).focus(function () {
-                                    $(this).autocomplete("search", "");
-                                });
+                                    $input.autocomplete("search", "");
+                                }).on("keydown", event =>{
+                                    if (event.key == "F8") {
+                                        $input.autocomplete("search", " ");
+                                    }
+                                })
+                                ;
                             }
                         }
                         ui.column.postRender = function (ui) {
@@ -1013,6 +905,21 @@ export default {
                             gridCell.addClass("autocomplete-cell");
 
                             ui.rowData.pq_inputErrors = ui.rowData.pq_inputErrors || {};
+
+                            if (!!config.sourceList && !!config.sourceList.length) {
+                                var key = ui.rowData[ui.dataIndx];
+                                if (!_.isEmptyEx(key)) {
+                                    var matched = config.sourceList.filter(v => v == key || v.Cd == key);
+
+                                    if (matched.length != 1) {
+                                        var msg = matched.length > 1　? "対象で複数に該当します"　: "対象に存在しません";
+
+                                        //エラー項目設定
+                                        ui.rowData.pq_inputErrors[ui.dataIndx] = msg;
+                                    }
+                                }
+                            }
+
                             var inputError = ui.rowData.pq_inputErrors[ui.dataIndx];
                             if (inputError) {
                                 gridCell
@@ -3272,7 +3179,8 @@ export default {
                 var next;
 
                 if (vue.setMoveNextCell) {
-                    return vue.setMoveNextCell(grid, ui, reverse);
+                    var ret = vue.setMoveNextCell(grid, ui, reverse);
+                    if (!ret) return ret;
                 }
 
                 var indices = grid.widget()

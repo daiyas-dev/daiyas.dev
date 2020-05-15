@@ -15,6 +15,7 @@
                     :SearchOnCreate=true
                     :SearchOnActivate=false
                     :options=grid1Options
+                    :setMoveNextCell=setMoveNextCell
                     :isMultiRowSelectable=true
                     :autoToolTipDisabled=true
                     :autoEmptyRow=true
@@ -40,6 +41,7 @@
                     :SearchOnCreate=true
                     :SearchOnActivate=false
                     :options=grid1Options
+                    :setMoveNextCell=setMoveNextCell
                     :isMultiRowSelectable=true
                     :autoToolTipDisabled=true
                     :autoEmptyRow=true
@@ -187,16 +189,16 @@ export default {
                     {
                         title: "相手コースCD",
                         dataIndx: "相手コースＣＤ",
-                        dataType: "string",
+                        dataType: "integer",
                         key: true,
                         editable: true,
                         width: 125, maxWidth: 125, minWidth: 125,
                         autocomplete: {
-                            source: () => vue.getCourseList(),
+                            source: (ui, grid) => vue.getCourseList(ui, grid),
                             bind: "相手コースＣＤ",
                             buddies: { "相手コース名": "CdNm" },
                             AutoCompleteFunc: vue.CourseAutoCompleteFuncInGrid,
-                            AutoCompleteMinLength: 0,
+                            AutoCompleteMinLength: 1,
                         },
                     },
                     {
@@ -208,16 +210,16 @@ export default {
                     {
                         title: "商品",
                         dataIndx: "商品ＣＤ",
-                        dataType: "string",
+                        dataType: "integer",
                         key: true,
                         editable: true,
                         width: 75, maxWidth: 75, minWidth: 75,
                         autocomplete: {
-                            source: () => vue.getProductList(),
+                            source: (ui, grid) => vue.getProductList(ui, grid),
                             bind: "商品ＣＤ",
                             buddies: { "商品名": "CdNm" },
                             AutoCompleteFunc: vue.ProductAutoCompleteFuncInGrid,
-                            AutoCompleteMinLength: 0,
+                            AutoCompleteMinLength: 1,
                         },
                     },
                     {
@@ -378,16 +380,42 @@ export default {
         },
         mountedFunc: function(vue) {
         },
-        getCourseList: function() {
+        setMoveNextCell: function(grid, ui, reverse) {
+            if (grid.getEditCell().$editor) {
+                grid.saveEditCell();
+            }
+
+            if (ui.dataIndx == "相手コースＣＤ") {
+                grid.setSelection({
+                    rowIndx: ui.rowIndx,
+                    colIndx: grid.columns["商品ＣＤ"].leftPos,
+                });
+            } else if (ui.dataIndx == "商品ＣＤ") {
+                grid.setSelection({
+                    rowIndx: ui.rowIndx,
+                    colIndx: grid.columns["個数"].leftPos,
+                });
+            } else if (ui.dataIndx == "個数") {
+                grid.setSelection({
+                    rowIndx: ui.rowIndx + 1,
+                    colIndx: grid.columns["相手コースＣＤ"].leftPos,
+                });
+            } else {
+                return true;
+            }
+
+            return false;
+        },
+        getCourseList: function(ui, grid) {
             var vue = this;
-            return vue.params.CourseList;
+            return vue.params.CourseList.filter(v => v.Cd != vue.params.CourseCd);
         },
         CourseAutoCompleteFuncInGrid: function(input, dataList, comp) {
             var vue = this;
 
             if (!dataList.length) return [];
 
-            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keywords = editKeywords(input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v));
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 
@@ -418,16 +446,17 @@ export default {
 
             return list;
         },
-        getProductList: function() {
+        getProductList: function(ui, grid) {
             var vue = this;
-            return vue.params.ProductList;
+            var excepts = grid.pdata.filter(v => v.相手コースＣＤ == ui.rowData.相手コースＣＤ).map(v => v.商品ＣＤ);
+            return vue.params.ProductList.filter(v => !excepts.includes(v.商品ＣＤ) || v.商品ＣＤ == ui.rowData.商品ＣＤ);
         },
         ProductAutoCompleteFuncInGrid: function(input, dataList, comp) {
             var vue = this;
 
             if (!dataList.length) return [];
 
-            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keywords = editKeywords(input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v));
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 
