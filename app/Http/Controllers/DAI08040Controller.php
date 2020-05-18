@@ -14,57 +14,25 @@ use PDO;
 class DAI08040Controller extends Controller
 {
     /**
-     * GetChumonList
+     * GetCourseList
      */
-    public function GetChumonList($request) {
+    public function GetCourseList($request)
+    {
         $BushoCd = $request->BushoCd;
 
-        $DateStart = $request->DateStart;
-        $DateEnd = $request->DateEnd;
+        if (!isset($BushoCd)) return [];
 
         $sql = "
             SELECT
-                CHUMON.部署ＣＤ
-                ,CHUMON.受注Ｎｏ
-                ,CHUMON.配達日付
-                ,CHUMON.配達時間
-                ,CHUMON.得意先ＣＤ
-                ,TOK.得意先名
-                ,TOK.電話番号１
-                ,TOK.ＦＡＸ１
-                ,CHUMON.注文日付
-                ,ISNULL(TOK.住所１,'')  +  ISNULL(TOK.住所２,'') AS 住所
-                ,ISNULL(CHUMON.配達先１,'')  + ISNULL(CHUMON.配達先２,'') AS 配達先
-                ,CHUMON.エリアＣＤ
-                ,COUM.コース名 AS エリア名称
-                ,CHUMON.地域区分
-                ,KAKUSHU_TIKU.各種名称 AS 地区名称
-                ,CHUMON.配達区分
-                ,KAKUSHU_HAITATSU.各種名称 AS 配達名称
-                ,CHUMON.税区分
-                ,KAKUSHU_ZEI.各種名称 AS 税名称
+                *
+                ,コースＣＤ AS Cd
+                ,コース名 AS CdNm
             FROM
-                仕出し注文データ CHUMON
-                LEFT OUTER JOIN 得意先マスタ TOK ON
-                    CHUMON.得意先ＣＤ = TOK.得意先ＣＤ
-                LEFT OUTER JOIN 各種テーブル KAKUSHU_TIKU ON
-                    KAKUSHU_TIKU.各種CD = 32
-                AND KAKUSHU_TIKU.行NO = CHUMON.地域区分
-                LEFT OUTER JOIN 各種テーブル KAKUSHU_HAITATSU ON
-                    KAKUSHU_HAITATSU.各種CD = 31
-                AND KAKUSHU_HAITATSU.行NO = CHUMON.配達区分
-                LEFT OUTER JOIN 各種テーブル KAKUSHU_ZEI ON
-                    KAKUSHU_ZEI.各種CD = 20
-                    AND KAKUSHU_ZEI.行NO = CHUMON.税区分
-                LEFT OUTER JOIN コースマスタ COUM ON
-                    COUM.部署ＣＤ = CHUMON.部署ＣＤ
-                AND COUM.コースＣＤ = CHUMON.エリアＣＤ
+                コースマスタ
             WHERE
-                CHUMON.部署ＣＤ=$BushoCd
-            AND CHUMON.配達日付 >= '$DateStart' AND CHUMON.配達日付 <= '$DateEnd'
+                部署ＣＤ=$BushoCd OR コースＣＤ = 0
             ORDER BY
-                CHUMON.配達日付,
-                CHUMON.配達時間
+                コースＣＤ
         ";
 
         $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
@@ -74,7 +42,182 @@ class DAI08040Controller extends Controller
         $pdo = new PDO($dsn, $user, $password);
         $stmt = $pdo->query($sql);
         $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
         $pdo = null;
+
+        return response()->json($DataList);
+    }
+
+    /**
+     * GetChumonList
+     */
+    public function GetHaisoYoteiHyo($request) {
+        $BushoCd = $request->BushoCd;
+        $DeliveryDate = $request->DeliveryDate;
+        $AreaCd = $request->AreaCd;
+        $DeliveryKbn = $request->DeliveryKbn;
+        $IsPrintOut = $request->IsPrintOut;
+        $PrintOrder = $request->PrintOrder;
+
+        $WhereBusho = !!$BushoCd ? "AND Hchu.部署ＣＤ = $BushoCd" : "";
+        $WhereArea = !!$AreaCd ? "AND area.エリアＣＤ = $AreaCd" : "";
+        $WherePrintout = $IsPrintOut=="1"? "AND Hchu.預り金 <> 0" : "";
+
+        $WhereDeliveryKbn = "";
+        if ($DeliveryKbn == "0") $WhereDeliveryKbn = "AND Hchu.配達区分 = 0";
+        if ($DeliveryKbn == "1") $WhereDeliveryKbn = "AND Hchu.配達区分 = 1";
+
+        $OrderPrint="";
+        if ($PrintOrder=="0") $OrderPrint = "部署ＣＤ,エリアＣＤ,配達順,受注Ｎｏ,明細Ｎｏ";
+        if ($PrintOrder=="1") $OrderPrint = "部署ＣＤ,受注Ｎｏ,明細Ｎｏ";
+
+        $sql = "
+        WITH 抽出データ AS
+        (
+        SELECT
+             Hchu.部署ＣＤ
+            ,area.エリアＣＤ
+            ,cmas.コース名
+            ,area.配達順
+            ,Hchu.配達時間
+            ,kmas3.各種名称 AS 売掛現金区分
+            ,Hchu.受注Ｎｏ
+            ,kmas.各種名称 AS 連絡区分
+            ,kmas4.各種名称 AS 配達区分
+            ,Mchu.明細Ｎｏ
+            ,Hchu.得意先ＣＤ
+            ,tmas.得意先名
+            ,tmas.住所１+tmas.住所２ as 住所
+            ,kmas2.各種名称 AS 地域区分
+            ,Hchu.配達先１ + Hchu.配達先２ as 配達先
+            ,tmas.電話番号１
+            ,ssmas.商品種類
+            ,ssmas.商品種類名
+            ,Mchu.商品ＣＤ
+            ,Mchu.商品名
+            ,Mchu.備考
+            ,Mchu.数量
+            ,Mchu.単価
+            ,Mchu.金額
+            ,Mchu.消費税
+            ,Hchu.預り金
+            ,Hchu.AMPM区分
+            ,Hchu.税区分
+            ,Mchu.提げ袋
+            ,Mchu.風呂敷
+        FROM
+            仕出しエリアデータ area
+            left join 仕出し注文明細データ Mchu on Mchu.部署ＣＤ = area.部署ＣＤ AND Mchu.受注Ｎｏ = area.受注Ｎｏ AND Mchu.配達日付 = area.注文日付
+            left join 仕出し注文データ Hchu on Hchu.部署ＣＤ = area.部署ＣＤ AND Hchu.受注Ｎｏ = area.受注Ｎｏ AND Hchu.配達日付 = area.注文日付
+            left join 商品マスタ smas on smas.商品ＣＤ = Mchu.商品ＣＤ
+            left join 商品種類マスタ ssmas on ssmas.商品ＣＤ = Mchu.商品ＣＤ
+            left join 得意先マスタ tmas on tmas.得意先ＣＤ = Hchu.得意先ＣＤ
+            left join 各種テーブル kmas on kmas.各種CD = 30 AND kmas.行NO = Hchu.連絡区分
+            left join 各種テーブル kmas2 on kmas2.各種CD = 32 AND kmas2.行NO = Hchu.地域区分
+            left join 各種テーブル kmas3 on kmas3.各種CD = 1  AND kmas3.行NO = tmas.売掛現金区分
+            left join 各種テーブル kmas4 on kmas4.各種CD = 31 AND kmas4.行NO = Hchu.配達区分
+            left join 各種テーブル kmas5 on kmas5.各種CD = 26 AND kmas5.サブ各種CD1 = Hchu.部署ＣＤ
+            left join コースマスタ cmas on cmas.部署ＣＤ = area.部署ＣＤ  AND cmas.コース区分 = 1 AND cmas.コースＣＤ = area.エリアＣＤ
+        where
+            smas.部署ｸﾞﾙｰﾌﾟ = kmas5.サブ各種CD2
+        $WhereBusho
+        AND Hchu.配達日付 = '$DeliveryDate'
+        $WhereArea
+        $WherePrintout
+        $WhereDeliveryKbn
+        ),
+
+        抽出データ2 AS
+        (
+        SELECT
+             ROW_NUMBER() OVER(PARTITION BY B1.部署ＣＤ, 受注Ｎｏ ORDER BY B1.部署ＣＤ, 受注Ｎｏ,明細Ｎｏ) AS ROWNUMBER
+            ,B1.部署名
+            ,D1.*
+        FROM
+            抽出データ D1
+            LEFT JOIN 部署マスタ B1 on B1.部署ＣＤ = D1.部署ＣＤ
+        )
+
+        SELECT
+             ROWNUMBER
+            ,部署ＣＤ
+            ,部署名
+            ,エリアＣＤ
+            ,コース名
+            ,配達順
+            ,配達時間
+            ,受注Ｎｏ
+            ,連絡区分
+            ,配達区分
+            ,明細Ｎｏ
+            ,IIF(ROWNUMBER = 2, 住所, CONVERT(VARCHAR, 得意先ＣＤ) + '　' + 得意先名) AS 得意先
+            ,住所
+            ,IIF(ROWNUMBER = 2, IIF(AMPM区分 != '0', 'PM', 'AM'), 地域区分)  AS 地域区分
+            ,IIF(ROWNUMBER = 1, 電話番号１, NULL) AS 電話番号１
+            ,商品種類
+            ,商品種類名
+            ,商品ＣＤ
+            ,商品名
+            ,備考
+            ,数量
+            ,単価
+            ,IIF(税区分 = '0', 金額 - 消費税, 金額) AS 金額
+            ,金額 AS 合計
+            ,IIF(税区分 = '0', 消費税, 0) AS 消費税
+            ,預り金
+            ,AMPM区分
+            ,税区分
+            ,提げ袋
+            ,風呂敷
+        FROM
+            抽出データ2
+        UNION
+        SELECT
+             NULL AS ROWNUMBER
+            ,部署ＣＤ
+            ,部署名
+            ,エリアＣＤ
+            ,コース名
+            ,配達順
+            ,売掛現金区分 AS 配達時間
+            ,受注Ｎｏ
+            ,NULL AS 連絡区分
+            ,配達区分
+            ,99 AS 明細Ｎｏ
+            ,配達先 AS 得意先
+            ,NULL AS 住所
+            ,NULL AS 地域区分
+            ,NULL AS 電話番号１
+            ,NULL AS 商品種類
+            ,NULL AS 商品種類名
+            ,NULL AS 商品ＣＤ
+            ,NULL AS 商品名
+            ,NULL AS 備考
+            ,NULL AS 数量
+            ,NULL AS 単価
+            ,NULL AS 金額
+            ,NULL AS 合計
+            ,NULL AS 消費税
+            ,NULL AS 預り金
+            ,NULL AS AMPM区分
+            ,NULL AS 税区分
+            ,NULL AS 提げ袋
+            ,NULL AS 風呂敷
+        FROM
+            抽出データ2
+        ORDER BY
+            $OrderPrint
+        ";
+
+        $DataList = DB::select($sql);
+        // $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        // $user = 'daiyas';
+        // $password = 'daiyas';
+
+        // $pdo = new PDO($dsn, $user, $password);
+        // $stmt = $pdo->query($sql);
+        // $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // $pdo = null;
 
         return $DataList;
     }
