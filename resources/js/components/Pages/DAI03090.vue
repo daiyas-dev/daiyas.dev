@@ -4,15 +4,17 @@
             <div class="col-md-1">
                 <label style="width: unset;">振替ファイル</label>
             </div>
-            <div
-                class="col-md-6 pl-2 droppable"
-                style="cursor: pointer;"
-                empty-text="対象ファイルをドロップ、もしくはここをクリックして選択"
-                data-url="/DAI03090/UploadFile"
-                data-addedfile-callback="addFileCallback"
-                data-drop-callback="dropCallback"
-                data-upload-callback="uploadCallback"
-            >
+            <div class="col-md-6">
+                <div
+                    class="UploadFile droppable d-flex align-items-center w-100 h-100 pl-2"
+                    style="cursor: pointer;"
+                    data-empty-text="対象ファイルをドロップ、もしくはここをクリックして選択"
+                    data-path-text="xxx"
+                    data-url="/DAI03090/UploadFile"
+                    data-addedfile-callback="addFileCallback"
+                    data-upload-callback="uploadFileCallback"
+                >
+                </div>
             </div>
             <div class="col-md-1">
                 <label>入金日</label>
@@ -48,10 +50,13 @@
 </style>
 <style>
 form[pgid="DAI03090"] .droppable {
-    background-color: orange;
+    background-color: aqua;
 }
 form[pgid="DAI03090"] .droppable:empty:before{
-    content:attr(empty-text)
+    content:attr(data-empty-text)
+}
+form[pgid="DAI03090"] .droppable:before{
+    content:attr(data-path-text)
 }
 </style>
 
@@ -315,13 +320,10 @@ export default {
         },
         addFileCallback: function(event) {
             var vue = this;
-            console.log("addFileCallback", event);
+            console.log("3090 addFileFileCallback", event);
+            $(vue.$el).find(".UploadFile").attr("data-path-text", event.name);
         },
-        dropCallback: function(event) {
-            var vue = this;
-            console.log("dropCallback", event);
-        },
-        uploadCallback: function(res) {
+        uploadFileCallback: function(res) {
             var vue = this;
 
             if (!!res.result) {

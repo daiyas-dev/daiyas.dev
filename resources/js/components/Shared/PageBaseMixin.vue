@@ -154,25 +154,21 @@ export default {
                         uploadMultiple: false,
                         init: function() {
                             this.on("addedfile", function(event) {
-                                console.log("added file", event);
                                 if ($(v).attr("data-addedfile-callback")) {
                                     vue[$(v).attr("data-addedfile-callback")](event);
                                 }
                             });
                             this.on("drop", function(event) {
-                                console.log("file drop", event);
                                 if ($(v).attr("data-drop-callback")) {
                                     vue[$(v).attr("data-drop-callback")](event);
                                 }
                             });
                             this.on("success", function(event, json) {
-                                console.log("upload success", event, json);
                                 if ($(v).attr("data-upload-callback")) {
                                     vue[$(v).attr("data-upload-callback")](json);
                                 }
                             });
                             this.on("error", async function(event, errorMessage) {
-                                console.log("drop error", event, errorMessage);
                                 if ($(v).attr("data-drop-error-callback")) {
                                     vue[$(v).attr("data-drop-error-callback")](event, errorMessage);
                                 }
