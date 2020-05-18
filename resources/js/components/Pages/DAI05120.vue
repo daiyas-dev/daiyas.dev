@@ -439,10 +439,10 @@ export default {
             //列定義更新
             grid.options.colModel = grid.options.colModel.filter(c => !!c.fixed);
             if(vue.viewModel.SearchType=="1"){
-                grid.options.colModel = vue.colModelBushoBetsu;
+                grid.options.colModel.push(...vue.colModelBushoBetsu);
             }
             else if(vue.viewModel.SearchType=="2"){
-                grid.options.colModel = vue.colModelEigyoBetsu;
+                grid.options.colModel.push(...vue.colModelEigyoBetsu);
             }
             else if(vue.viewModel.SearchType=="3"){
                 grid.options.colModel.push(...vue.colModelKokyakuBetsu);
