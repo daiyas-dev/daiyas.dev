@@ -139,8 +139,6 @@ export default {
         //set dropzone
         $(vue.$el).parent().find(".droppable[data-url]")
             .each((i, v) => {
-                console.log($(v).attr("data-url"));
-
                 var dz = new Dropzone(v,
                     {
                         url: $(v).attr("data-url"),
@@ -149,23 +147,29 @@ export default {
                         },
                         params: {
                         },
-                        clickable: false,
+                        clickable: true,
                         createImageThumbnails: false,
-                        previewTemplate : '<div style="display:none"></div>',
-                        dictDefaultMessage: "",
+                        previewTemplate : '<div></div>',
+                        dictDefaultMessage: "対象ファイルをドロップ、もしくはここをクリックして選択",
                         uploadMultiple: false,
                         init: function() {
-                            this.on("drop", function(file) {
-                                console.log("drop file", file);
+                            this.on("drop", function(event) {
+                                console.log("file drop", event);
+                                if ($(v).attr("data-drop-callback")) {
+                                    vue[$(v).attr("data-drop-callback")](event);
+                                }
                             });
-                            this.on("success", function(file, json) {
-                                console.log("drop success", file, json);
+                            this.on("success", function(event, json) {
+                                console.log("upload success", event, json);
                                 if ($(v).attr("data-upload-callback")) {
                                     vue[$(v).attr("data-upload-callback")](json);
                                 }
                             });
-                            this.on("error", async function(file, errorMessage) {
-                                console.log("drop error", file, errorMessage);
+                            this.on("error", async function(event, errorMessage) {
+                                console.log("drop error", event, errorMessage);
+                                if ($(v).attr("data-drop-error-callback")) {
+                                    vue[$(v).attr("data-drop-error-callback")](event, errorMessage);
+                                }
                             });
                         },
                         addedFile: file => console.log(file),

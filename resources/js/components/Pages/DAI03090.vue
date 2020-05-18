@@ -2,152 +2,51 @@
     <form id="this.$options.name">
         <div class="row">
             <div class="col-md-1">
-                <label>部署</label>
+                <label style="width: unset;">振替ファイル</label>
             </div>
-            <div class="col-md-11">
-                <VueMultiSelect
-                    id="BushoCd"
-                    ref="VueMultiSelect_Busho"
-                    :vmodel=viewModel
-                    bind="BushoArray"
-                    uri="/Utilities/GetBushoList"
-                    :hasNull=true
-                    :withCode=true
-                    customStyle="{ width: 200px; }"
-                    :onChangedFunc=onBushoChanged
-                />
+            <div
+                class="col-md-6 droppable"
+                data-url="/DAI03090/UploadFile"
+                data-drop-callback="dropCallback"
+                data-upload-callback="uploadCallback"
+            >
+                <span class="message pl-2">対象ファイルをドロップ、もしくはここをクリックして選択</span>
             </div>
-        </div>
-        <div class="row">
             <div class="col-md-1">
-                <label>出力区分</label>
+                <label>入金日</label>
             </div>
-            <div class="col-md-5">
-                <VueOptions
-                    id="BankFormat"
-                    ref="VueOptions_BankFormat"
-                    customItemStyle="text-align: center; margin-right: 10px;"
-                    :vmodel=viewModel
-                    bind="BankFormat"
-                    :list="[
-                        {code: '0', name: '山口銀行', label: '0:山口銀行'},
-                        {code: '1', name: '東京三菱UFJ', label: '1:東京三菱UFJ'},
-                    ]"
-                    :onChangedFunc=onBankFormatChanged
-                />
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-1">
-                <label>処理年月</label>
-            </div>
-            <div class="col-md-4">
+            <div class="col-md-2">
                 <DatePickerWrapper
                     id="TargetDate"
-                    ref="DatePicker_Date"
-                    format="YYYY年MM月"
+                    ref="DatePicker_TargetDate"
+                    format="YYYY年MM月DD日"
                     dayViewHeaderFormat="YYYY年MM月"
                     :vmodel=viewModel
                     bind="TargetDate"
                     :editable=true
-                    :onChangedFunc=onTargetDateChanged
                 />
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-1">
-                <label>銀行引落日</label>
-            </div>
-            <div class="col-md-4">
-                <DatePickerWrapper
-                    id="WithdrawalDate"
-                    ref="DatePicker_Date"
-                    format="YYYY年MM月DD日"
-                    dayViewHeaderFormat="YYYY年MM月DD日"
-                    :vmodel=viewModel
-                    bind="WithdrawalDate"
-                    :editable=true
-                    :onChangedFunc=onWithdrawalDateChanged
-                />
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-1">
-            </div>
-            <div class="col-md-4">
-                <VueCheck
-                    id="VueCheck_IsKouzaYose"
-                    ref="VueCheck_IsKouzaYose"
-                    :vmodel=viewModel
-                    bind="IsKouzaYose"
-                    checkedCode="1"
-                    customContainerStyle="border: none;"
-                    :list="[
-                        {code: '0', name: '口座寄せを行わない', label: '口座寄せを行う'},
-                        {code: '1', name: '口座寄せを行う', label: '口座寄せを行う'},
-                    ]"
-                />
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-1">
-                <label>締日１</label>
-            </div>
-            <div class="col-md-3">
-                <input class="form-control p-0 text-center label-blue" style="width: 80px;" type="text" :value=viewModel.Simebi1 @input="onSimebi1Changed">
-                <label style="width: 100px;">（月末：99）</label>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-1">
-                <label>締日２</label>
-            </div>
-            <div class="col-md-1">
-                <input class="form-control p-0 text-center label-blue" style="width: 80px;" type="text" :value=viewModel.Simebi2 @input="onSimebi2Changed">
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-1">
-                <label>締日３</label>
-            </div>
-            <div class="col-md-1">
-                <input class="form-control p-0 text-center label-blue" style="width: 80px;" type="text" :value=viewModel.Simebi3 @input="onSimebi3Changed">
             </div>
         </div>
         <PqGridWrapper
             id="DAI03090Grid1"
             ref="DAI03090Grid1"
-            dataUrl="/DAI03090/Search"
-            :query=this.viewModel
+            dataUrl="/DAI03090/GetFurikaeList"
+            :query=this.searchParams
             :SearchOnCreate=false
             :SearchOnActivate=false
+            :checkChanged=false
             :options=this.grid1Options
-            :onAfterSearchFunc=this.onAfterSearchFunc
+            :onAfterSearchFunc=onAfterSearchFunc
+            :onCompleteFunc=onCompleteFunc
             :autoToolTipDisabled=true
         />
     </form>
 </template>
-
+<style scoped>
+</style>
 <style>
-#DAI03090Grid1 .pq-group-toggle-none {
-    display: none !important;
-}
-#DAI03090Grid1 .pq-group-icon {
-    display: none !important;
-}
-#DAI03090Grid1 .pq-td-div {
-    display: flex;
-    line-height: 13px !important;
-    justify-content: center;
-    align-items: center;
-    height: 50px;
-}
-#DAI03090Grid1 .pq-td-div span {
-    line-height: inherit;
-    text-align: center;
-}
-label{
-    width: 80px;
+form[pgid="DAI03090"] .droppable {
+    background-color: orange;
 }
 </style>
 
@@ -159,50 +58,56 @@ export default {
     name: "DAI03090",
     components: {
     },
-    props: {
-        query: Object,
-        vm: Object,
-    },
     computed: {
-        BushoCdArray: function() {
+        searchParams: function() {
             var vue = this;
-            return vue.viewModel.BushoArray.map(v => v.code);
+            return {
+                BushoCd: vue.viewModel.BushoCd,
+            }
+        },
+        hasSelectionRow: function() {
+            var vue = this;
+            var grid = vue.DAI03090Grid1;
+            return !!grid && !!grid.getSelectionRowData();
         },
     },
+    watch: {
+    },
     data() {
-        return $.extend(true, {}, PageBaseMixin.data(), {
+        var vue = this;
+        var data = $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "月次処理 > 一括入金入力",
             noViewModel: true,
             viewModel: {
-                BushoArray: [],
-                BankFormat: "0",
                 TargetDate: null,
-                WithdrawalDate:null,
-                IsKouzaYose:"0",
-                Simebi1:null,
-                Simebi2:null,
-                Simebi3:null,
             },
-            IsShowDialog:false,
             DAI03090Grid1: null,
             grid1Options: {
-                selectionModel: { type: "cell", mode: "single", row: true },
+                selectionModel: { type: "row", mode: "single", row: true },
                 showHeader: true,
                 showToolbar: false,
                 columnBorders: true,
                 fillHandle: "",
                 numberCell: { show: true, title: "No.", resizable: false, },
                 autoRow: false,
-                rowHt: 35,
-                freezeCols: 2,
+                rowHtHead: 50,
                 editable: false,
                 columnTemplate: {
                     editable: false,
                     sortable: false,
                 },
+                trackModel: { on: true },
+                historyModel: { on: true },
+                editModel: {
+                    clicksToEdit: 2,
+                    keyUpDown: false,
+                    saveKey: $.ui.keyCode.ENTER,
+                    onSave: "nextFocus",
+                    onTab: "nextFocus",
+                },
                 filterModel: {
                     on: true,
-                    mode: "AND",
+                    mode: "OR",
                     header: false,
                     menuIcon: false,
                     hideRows: false,
@@ -210,293 +115,300 @@ export default {
                 sortModel: {
                     on: true,
                     cancel: false,
-                    type: "remote",
+                    type: "local",
+                    sorter:[ { dataIndx: "sortIndx", dir: "up" } ],
                 },
                 groupModel: {
                     on: false,
+                    header: false,
+                    grandSummary: false,
                 },
-                summaryData: [
-                ],
                 formulas: [
+                    [
+                        "sortIndx",
+                        function(rowData){
+                            return (rowData["商品区分"] || "9") + "_" + _.padStart(rowData["商品ＣＤ"] || "99999", 5, "0");
+                        }
+                    ],
                 ],
                 colModel: [
                     {
-                        title: "請求先ＣＤ",
-                        dataIndx: "請求先ＣＤ", dataType: "string",
-                        width: 90, maxWidth: 90, minWidth: 90,
+                        title: "sortIndx",
+                        dataIndx: "sortIndx", dataType: "string",
+                        hidden: true,
+                    },
+                    {
+                        title: "部署ＣＤ",
+                        dataIndx: "部署ＣＤ", dataType: "integer",
+                        hidden: true,
+                    },
+                    {
+                        title: "部署名",
+                        dataIndx: "部署名",
+                        dataType: "string",
+                        width: 150, maxWidth: 150, minWidth: 150,
+                    },
+                    {
+                        title: "得意先ＣＤ",
+                        dataIndx: "得意先ＣＤ", dataType: "integer",
+                        width: 100, maxWidth: 100, minWidth: 100,
                     },
                     {
                         title: "得意先名",
-                        dataIndx: "得意先名", dataType: "string",
-                        width: 200, minWidth: 200,maxWidth: 200,
-                        tooltip: true,
+                        dataIndx: "得意先名",
+                        dataType: "string",
+                        width: 200, maxWidth: 200, minWidth: 200,
                     },
                     {
-                        title: "今回請求額",
-                        dataIndx: "今回請求額", dataType: "integer", format: "#,##0",
-                        width: 90, maxWidth: 90, minWidth: 90,
+                        title: "金融機関ＣＤ",
+                        dataIndx: "金融機関ＣＤ", dataType: "integer",
+                        hidden: true,
+                    },
+                    {
+                        title: "銀行名",
+                        dataIndx: "金融機関名",
+                        dataType: "string",
+                        width: 150, maxWidth: 150, minWidth: 150,
+                    },
+                    {
+                        title: "金融機関支店ＣＤ",
+                        dataIndx: "金融機関支店ＣＤ", dataType: "integer",
+                        hidden: true,
+                    },
+                    {
+                        title: "支店名",
+                        dataIndx: "金融機関支店名",
+                        dataType: "string",
+                        width: 150, maxWidth: 150, minWidth: 150,
+                    },
+                    {
+                        title: "種別",
+                        dataIndx: "種別",
+                        dataType: "integer",
+                        hidden: true,
+                    },
+                    {
+                        title: "種別",
+                        dataIndx: "種別名",
+                        dataType: "string",
+                        width: 50, maxWidth: 50, minWidth: 50,
+                    },
+                    {
+                        title: "引落金額",
+                        dataIndx: "引落金額",
+                        dataType: "integer",
+                        format: "#,##0",
+                        width: 100, maxWidth: 100, minWidth: 100,
+                    },
+                    {
+                        title: "入金額",
+                        dataIndx: "入金額",
+                        dataType: "integer",
+                        format: "#,##0",
+                        width: 100, maxWidth: 100, minWidth: 100,
+                    },
+                    {
+                        title: "エラー",
+                        dataIndx: "エラー",
+                        dataType: "string",
+                        width: 50, maxWidth: 50, minWidth: 50,
+                    },
+                    {
+                        title: "処理",
+                        dataIndx: "処理",
+                        type: "checkbox",
+                        cbId: "処理FLG",
+                        width: 50, minWidth: 50, maxWidth: 50,
+                        align: "center",
+                        editable: true,
+                        editor: false,
+                        hiddenOnExport: true,
                         render: ui => {
-                            if (!ui.rowData[ui.dataIndx]) {
-                                return { text: "0" };
+                            if (ui.rowData.summaryRow) {
+                                return "";
                             }
-                            return ui;
                         },
                     },
                     {
-                        title: "引落銀行番号",
-                        dataIndx: "引落銀行番号", dataType: "string",
-                        width: 110, maxWidth: 110, minWidth: 110,
-                    },
-                    {
-                        title: "引落銀行名",
-                        dataIndx: "引落銀行名", dataType: "string",
-                        width: 110, maxWidth: 110, minWidth: 110,
-                    },
-                    {
-                        title: "引落支店番号",
-                        dataIndx: "引落支店番号", dataType: "string",
-                        width: 110, maxWidth: 110, minWidth: 110,
-                    },
-                    {
-                        title: "引落支店名",
-                        dataIndx: "引落支店名", dataType: "string",
-                        width: 110, maxWidth: 110, minWidth: 110,
-                    },
-                    {
-                        title: "預金種目",
-                        dataIndx: "預金種目", dataType: "string",
-                        width: 90, maxWidth: 90, minWidth: 90,
-                    },
-                    {
-                        title: "口座番号",
-                        dataIndx: "口座番号", dataType: "string",
-                        width: 90, maxWidth: 90, minWidth: 90,
-                    },
-                    {
-                        title: "預金者名",
-                        dataIndx: "預金者名", dataType: "string",
-                        width: 120, maxWidth: 120, minWidth: 120,
-                        tooltip: true,
-                    },
-                    {
-                        title: "顧客番号",
-                        dataIndx: "顧客番号", dataType: "string",
-                        width: 90, maxWidth: 90, minWidth: 90,
+                        title: "処理",
+                        dataIndx: "処理FLG",
+                        dataType: "string",
+                        align: "center",
+                        editable: true,
+                        cb: {
+                            header: false,
+                            check: "1",
+                            uncheck: "0",
+                        },
+                        hidden: true,
+                        hiddenOnExport: false,
                     },
                 ],
             },
         });
+
+        return data;
     },
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
                 { visible: "true", value: "検索", id: "DAI03090Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
-                        vue.conditionChanged();
+                        vue.conditionChanged(true);
                     }
                 },
-                { visible: "true", value: "実行", id: "DAI03090Grid1_Download", disabled: true, shortcut: "F6",
+                { visible: "true", value: "印刷", id: "DAI03090Grid1_Printout", disabled: false, shortcut: "F6",
                     onClick: function () {
-                        vue.FileDownload();
+                        vue.print();
                     }
+                },
+                { visible: "true", value: "CSV", id: "DAI03090_Download", disabled: false, shortcut: "F7",
+                    onClick: function () {
+                        //TODO: ダウンロード
+                    }
+                },
+                {visible: "false"},
+                {visible: "false"},
+                { visible: "true", value: "行削除", id: "DAI03090Grid1_DeleteRow", disabled: true, shortcut: "F3",
+                    onClick: function () {
+                        vue.deleteRow();
+                    }
+                },
+                {visible: "false"},
+                { visible: "true", value: "登録", id: "DAI03090Grid1_Save", disabled: false, shortcut: "F9",
+                    onClick: function () {
+                        vue.save();
+                    }
+                },
+                {visible: "false"},
+            );
+
+        },
+        mountedFunc: function(vue) {
+            //TODO
+            // vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
+            vue.viewModel.TargetDate = moment("20191212").format("YYYY年MM月DD日");
+
+            //watcher
+            vue.$watch(
+                "$refs.DAI03090Grid1.selectionRowCount",
+                cnt => {
+                    console.log("selectionRowCount watcher: " + cnt);
+                    vue.footerButtons.find(v => v.id == "DAI03090Grid1_DeleteRow").disabled = cnt == 0 || cnt > 1;
                 }
             );
         },
-        mountedFunc: function(vue) {
-            //日付の初期値 -> 当日
-            //TODO:
-            console.log("mounted");//TODO:
-            vue.viewModel.TargetDate = moment().format("YYYY年MM月");
-        },
-        onBushoChanged: function(code, entities) {
-            var vue = this;
-            vue.LatestSeikyuDateGet();
-            //条件変更ハンドラ
-            vue.conditionChanged();
-        },
-        onTargetDateChanged: function(code, entity) {
-            var vue = this;
-            vue.WithdrawalDateGet();
-            //条件変更ハンドラ
-            vue.conditionChanged();
-        },
-        onWithdrawalDateChanged: function(code, entity) {
-            var vue = this;
-            if(vue.IsShowDialog){
-                return;
-            }
-
-            //銀行引落日が土日でなければ処理終了
-            var dayno = moment(vue.viewModel.WithdrawalDate, "YYYY年MM月DD日").day();
-            if((dayno!=0) && (dayno!=6)){
-                return;
-            }
-            var next_monday;
-            if(dayno==0){
-                next_monday = moment(vue.viewModel.WithdrawalDate, "YYYY年MM月DD日").add('days', 1).format("YYYY年MM月DD日");
-            }
-            else if(dayno==6){
-                next_monday = moment(vue.viewModel.WithdrawalDate, "YYYY年MM月DD日").add('days', 2).format("YYYY年MM月DD日");
-            }
-
-            vue.IsShowDialog=true;
-            $.dialogConfirm({
-                title: "確認",
-                contents: "引落日が休日です。<br/>引落日を【"+ moment(next_monday, "YYYY年MM月DD日").format("MM月DD日") +"】に変更しますか？",
-                buttons:[
-                    {
-                        text: "はい",
-                        class: "btn btn-primary",
-                        click: function(){
-                            $(this).dialog("close");
-                            vue.viewModel.WithdrawalDate=next_monday;
-                            vue.IsShowDialog=false;
-                        }
-                    },
-                    {
-                        text: "いいえ",
-                        class: "btn btn-danger",
-                        click: function(){
-                            $(this).dialog("close");
-                            vue.IsShowDialog=false;
-                        }
-                    },
-                ],
-            });
-        },
-        onBankFormatChanged: function(code, entities) {
-            var vue = this;
-            //条件変更ハンドラ
-            vue.conditionChanged();
-        },
-        onSimebi1Changed: _.debounce(function(event) {
-            var vue = this;
-            vue.viewModel.Simebi1=event.target.value*1;
-            //条件変更ハンドラ
-            vue.conditionChanged();
-        }, 300),
-        onSimebi2Changed: _.debounce(function(event) {
-            var vue = this;
-            vue.viewModel.Simebi2=event.target.value*1;
-            //条件変更ハンドラ
-            vue.conditionChanged();
-        }, 300),
-        onSimebi3Changed: _.debounce(function(event) {
-            var vue = this;
-            vue.viewModel.Simebi3=event.target.value*1;
-            //条件変更ハンドラ
-            vue.conditionChanged();
-        }, 300),
-        conditionChanged: function(callback) {
+        conditionChanged: function(force) {
             var vue = this;
             var grid = vue.DAI03090Grid1;
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
-            if (!vue.viewModel.BushoArray || vue.viewModel.BushoArray.length==0) return;
-            if (!vue.viewModel.TargetDate) return;
 
-            var params=this.ParamGet();
-            window.resp=_.cloneDeep(params);//TODO
-            grid.searchData(params, false, null, callback);
+            if (!force && _.isEqual(grid.options.dataModel.postData, vue.searchParams)) return;
+
+            grid.searchData(vue.searchParams, false);
+        },
+        dropCallback: function(file) {
+            var vue = this;
+            console.log("dropCallback", file);
+        },
+        uploadCallback: function(res) {
+            var vue = this;
+
+            if (!!res.result) {
+                console.log("3090 uploadCallback", res)
+            } else {
+                $.dialogErr({
+                    title: "アップロード失敗",
+                    contents: res.message,
+                });
+            }
         },
         onAfterSearchFunc: function (vue, grid, res) {
             var vue = this;
-            vue.footerButtons.find(v => v.id == "DAI03090Grid1_Download").disabled = !res.length;
+
             return res;
         },
-        ParamGet: function(){
+        onCompleteFunc: function(grid, ui) {
             var vue = this;
-            var params = $.extend(true, {}, vue.viewModel);
-
-            //検索パラメータの加工
-            //処理年月の1日から末日までの範囲を検索条件に指定する
-            params.TargetDate = params.TargetDate ? params.TargetDate+"01日" : null;
-            params.StartDate  = params.TargetDate ? moment(params.TargetDate, "YYYY年MM月DD日").format("YYYY/MM/DD") : null;
-            params.EndDate    = params.TargetDate ? moment(params.StartDate, "YYYY年MM月DD日").endOf('month').format("YYYY/MM/DD") : null;
-            params.WithdrawalDate= params.WithdrawalDate ? moment(params.WithdrawalDate, "YYYY年MM月DD日").format("YYYY/MM/DD") : null;
-            params.BushoArray = vue.BushoCdArray;//部署コードのみ渡す
-
-            return params;
         },
-        LatestSeikyuDateGet: function(){
+        save: function() {
             var vue = this;
+            var grid = vue.DAI03090Grid1;
 
-            if (!vue.viewModel.BushoArray || vue.viewModel.BushoArray.length==0){
-                vue.viewModel.TargetDate = moment().format("YYYY年MM月")+"01日";
+            var hasError = !!$(vue.$el).find(".has-error").length || !!grid.widget().find(".ui-state-error").length;
+
+            if(hasError){
+                $.dialogErr({
+                    title: "入力値エラー",
+                    contents: "エラー項目があるため、登録できません。",
+                });
                 return;
             }
-            var BushoCd=vue.BushoCdArray[0];
 
-            var tc = new Date().getTime();//axios実行時のキャッシュを無効にするため、現在のタイムスタンプを渡す
-            axios.post("/DAI03090/LatestSeikyuDateGet", { BushoCd:BushoCd, timestamp:tc })
-                .then(response => {
-                    vue.viewModel.TargetDate = moment(response.data.前回請求日, "YYYY/MM/DD").format("YYYY年MM月")+"01日";
-                })
-            .catch(error => {
-                console.log(error);
-                if (!!grid) grid.hideLoading();
+            var SaveList = _.cloneDeep(grid.createSaveParams());
 
-                //失敗ダイアログ
-                $.dialogErr({
-                    title: " 各種テーブル検索失敗",
-                    contents: " 各種テーブル検索に失敗しました" + "<br/>" + error.message,
+            _.forIn(SaveList,
+                (v, k) => {
+                    var list = v.filter(r => {
+                        return r.商品ＣＤ != null && r.商品ＣＤ != undefined　&& r.商品ＣＤ != "";
+                    })
+                    .map(r => {
+                        r.部署ＣＤ = vue.viewModel.BushoCd;
+
+                        r.販売期間開始 = !!r.販売期間開始
+                            ? moment(r.販売期間開始, "YYYY/MM/DD").format("YYYY-MM-DD HH:mm:ss.SSS")
+                            : null;
+                        r.販売期間終了 = !!r.販売期間終了
+                            ? moment(r.販売期間終了, "YYYY/MM/DD").format("YYYY-MM-DD HH:mm:ss.SSS")
+                            : null;
+
+                        r.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
+                        delete r.商品区分;
+                        delete r.商品名;
+                        delete r.主要商品;
+                        delete r.特別商品;
+                        delete r.sortIndx;
+                        return r;
+                    })
+                    ;
+                    SaveList[k] = list;
+                }
+            );
+
+            if (_.values(SaveList).every(v => !v.length)) {
+                //変更無し
+                $.dialogInfo({
+                    title: "変更無し",
+                    contents: "データが変更されていません。",
                 });
+                return;
+            }
+
+            //保存実行
+            var params = {SaveList: SaveList, CustomerCd: vue.viewModel.CustomerCd};
+            params.noCache = true;
+
+            //登録中ダイアログ
+            var progressDlg = $.dialogProgress({
+                contents: "<i class='fa fa-spinner fa-spin' style='font-size: 24px; margin-right: 5px;'></i> 登録中…",
             });
-        },
-        WithdrawalDateGet: function(){
-            var vue = this;
-            var tc = new Date().getTime();//axios実行時のキャッシュを無効にするため、現在のタイムスタンプを渡す
-            axios.post("/DAI03090/WithdrawalDateGet", { timestamp:tc })
-                .then(response => {
-                    vue.viewModel.WithdrawalDate = moment(vue.viewModel.TargetDate+"01日", "YYYY年MM月DD日").add(1,'month').format("YYYY年MM月") + ( '00' + response.data.銀行引落日 ).slice( -2 ) + "日";
+
+            axios.post("/DAI03090/Save", params)
+                .then(res => {
+                    progressDlg.dialog("close");
+                    grid.refreshDataAndView();
                 })
-            .catch(error => {
-                console.log(error);
-                if (!!grid) grid.hideLoading();
-
-                //失敗ダイアログ
-                $.dialogErr({
-                    title: " 各種テーブル検索失敗",
-                    contents: " 各種テーブル検索に失敗しました" + "<br/>" + error.message,
-                });
-            });
-        },
-        FileDownload: function() {
-            var vue=this;
-            if (!vue.viewModel.BushoArray || vue.viewModel.BushoArray.length==0) return;
-
-            var BankName =vue.viewModel.BankFormat=="0" ? "山口銀行" : "三菱東京ＵＦＪ";//銀行名が「三菱東京ＵＦＪ」になっているが、良いか。現在は「三菱ＵＦＪ銀行」
-            var params=this.ParamGet();
-
-            //登録実行
-            console.log("FileDownload");//TODO:
-            var tc = new Date().getTime();//axios実行時のキャッシュを無効にするため、現在のタイムスタンプを渡す
-            axios({
-                    url: '/DAI03090/FileDownload',
-                    method: 'POST',
-                    responseType: 'blob', // これがないと文字化けする
-                    data : {
-                        timestamp:tc,
-                        BushoArray:params.BushoArray,
-                        BankFormat:params.BankFormat,
-                        StartDate:params.StartDate,
-                        EndDate:params.EndDate,
-                        WithdrawalDate:params.WithdrawalDate,
-                        IsKouzaYose:params.IsKouzaYose,
-                        Simebi1:params.Simebi1,
-                        Simebi2:params.Simebi2,
-                        Simebi3:params.Simebi3,
-                    }
-                }).then((response) => {
-                    window.resa=_.cloneDeep(response);//TODO
-                    const bloburl = URL.createObjectURL(new Blob([response.data],{type: 'text/csv'}));
-                    const link = document.createElement('a');
-                    link.href = bloburl;
-                    link.download="ビジネスダイレクト"+ BankName + moment(params.WithdrawalDate, "YYYY年MM月DD日").format("YYYYMMDD") +".txt";
-                    link.click();
-                    URL.revokeObjectURL(bloburl);
+                .catch(err => {
+                    progressDlg.dialog("close");
+                    console.log(err);
+                    $.dialogErr({
+                        title: "異常終了",
+                        contents: "登録に失敗しました<br/>",
+                    });
                 });
         },
     }
 }
 </script>
+
