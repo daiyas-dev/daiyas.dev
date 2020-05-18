@@ -5,12 +5,14 @@
                 <label style="width: unset;">振替ファイル</label>
             </div>
             <div
-                class="col-md-6 droppable"
+                class="col-md-6 pl-2 droppable"
+                style="cursor: pointer;"
+                empty-text="対象ファイルをドロップ、もしくはここをクリックして選択"
                 data-url="/DAI03090/UploadFile"
+                data-addedfile-callback="addFileCallback"
                 data-drop-callback="dropCallback"
                 data-upload-callback="uploadCallback"
             >
-                <span class="message pl-2">対象ファイルをドロップ、もしくはここをクリックして選択</span>
             </div>
             <div class="col-md-1">
                 <label>入金日</label>
@@ -47,6 +49,9 @@
 <style>
 form[pgid="DAI03090"] .droppable {
     background-color: orange;
+}
+form[pgid="DAI03090"] .droppable:empty:before{
+    content:attr(empty-text)
 }
 </style>
 
@@ -308,9 +313,13 @@ export default {
 
             grid.searchData(vue.searchParams, false);
         },
-        dropCallback: function(file) {
+        addFileCallback: function(event) {
             var vue = this;
-            console.log("dropCallback", file);
+            console.log("addFileCallback", event);
+        },
+        dropCallback: function(event) {
+            var vue = this;
+            console.log("dropCallback", event);
         },
         uploadCallback: function(res) {
             var vue = this;

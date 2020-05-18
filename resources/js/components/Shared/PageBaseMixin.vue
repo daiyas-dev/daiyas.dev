@@ -153,6 +153,12 @@ export default {
                         dictDefaultMessage: "対象ファイルをドロップ、もしくはここをクリックして選択",
                         uploadMultiple: false,
                         init: function() {
+                            this.on("addedfile", function(event) {
+                                console.log("added file", event);
+                                if ($(v).attr("data-addedfile-callback")) {
+                                    vue[$(v).attr("data-addedfile-callback")](event);
+                                }
+                            });
                             this.on("drop", function(event) {
                                 console.log("file drop", event);
                                 if ($(v).attr("data-drop-callback")) {
