@@ -199,6 +199,7 @@ export default {
                             buddies: { "相手コース名": "CdNm" },
                             AutoCompleteFunc: vue.CourseAutoCompleteFuncInGrid,
                             AutoCompleteMinLength: 1,
+                            selectSave: true,
                         },
                     },
                     {
@@ -220,6 +221,7 @@ export default {
                             buddies: { "商品名": "CdNm" },
                             AutoCompleteFunc: vue.ProductAutoCompleteFuncInGrid,
                             AutoCompleteMinLength: 1,
+                            selectSave: true,
                         },
                     },
                     {
@@ -415,7 +417,7 @@ export default {
 
             if (!dataList.length) return [];
 
-            var keywords = editKeywords(input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v));
+            var keywords = editKeywords((input + "").split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v));
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 
@@ -456,7 +458,7 @@ export default {
 
             if (!dataList.length) return [];
 
-            var keywords = editKeywords(input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v));
+            var keywords = editKeywords((input + "").split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v));
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 
