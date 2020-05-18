@@ -75,6 +75,7 @@ export default {
         autoEmptyRowCheckFunc: Function,
         autoEmptyRowFormula: String,
         autoEmptyRowFunc: Function,
+        onAfterAddAutoEmptyRowFunc: Function,
         onBeforeCreateFunc: Function,
         onRefreshFunc: Function,
         onCompleteFunc: Function,
@@ -738,11 +739,12 @@ export default {
                                 var $input = ui.$cell.find("input");
                                 $input.attr("autocomplete", "off");
 
-                                if (ui.column.dataType == "integer") {
-                                    $input.attr("type", "number");
-                                } else {
-                                    $input.attr("type", "text");
-                                }
+                                // if (ui.column.dataType == "integer") {
+                                //     $input.attr("type", "number");
+                                // } else {
+                                //     $input.attr("type", "text");
+                                // }
+                                $input.attr("inputmode", "numeric");
 
                                 var config = ui.column.autocomplete;
 
@@ -758,6 +760,7 @@ export default {
                                     source: (request, response) => {
                                         var makeList = () => {
                                             var key = request.term;
+                                            console.log("pq autocomplete", key);
 
                                             if (key == config.autoCompleteKey && !config.autoCompleteList) {
                                                 // console.log("getAutoCompleteList: same key " + key);
@@ -859,8 +862,6 @@ export default {
                                             if (!!config.buddies) {
                                                 // console.log("set buddies", config.buddies);
                                                 _.forIn(config.buddies, (v, k) => ui.rowData[k] = match[v]);
-
-                                                console.log("autocomplete closed", _.pick(ui.rowData, _.keys(config.buddies)));
                                             }
 
                                             if (!!config.onSelect) config.onSelect(ui.rowData, match, ui);
@@ -880,13 +881,23 @@ export default {
                                             //エラー項目設定
                                             ui.rowData.pq_inputErrors = ui.rowData.pq_inputErrors || {};
                                             ui.rowData.pq_inputErrors[ui.dataIndx] = msg;
+
+                                            if (!!config.buddy) {
+                                                ui.rowData[config.buddy] = "";
+                                            }
+                                            if (!!config.buddies) {
+                                                // console.log("set buddies", config.buddies);
+                                                _.forIn(config.buddies, (v, k) => ui.rowData[k] = "");
+                                            }
                                         }
 
                                         return true;
                                     },
-                                }).focus(function () {
+                                })
+                                .focus(function () {
                                     $input.autocomplete("search", "");
-                                }).on("keydown", event =>{
+                                })
+                                .on("keydown", event =>{
                                     if (event.key == "F8") {
                                         $input.autocomplete("search", " ");
                                     }
@@ -908,14 +919,42 @@ export default {
 
                             if (!!config.sourceList && !!config.sourceList.length) {
                                 var key = ui.rowData[ui.dataIndx];
+                                var list = config.AutoCompleteFunc
+                                    ? config.AutoCompleteFunc(key, config.sourceList, vue)
+                                    : source
+                                        .filter(v => v.Cd.includes(key))
+                                        .map(v => {
+                                            var ret = v;
+                                            ret.value = v.Cd;
+                                            ret.text = vCdNm;
+                                            ret.label = ret.value + " : " + ret.text;
+                                            return ret;
+                                        })
+                                        ;
+
+
                                 if (!_.isEmptyEx(key)) {
-                                    var matched = config.sourceList.filter(v => v == key || v.Cd == key);
+                                    var matched = list.filter(v => v == key || v.Cd == key);
 
                                     if (matched.length != 1) {
                                         var msg = matched.length > 1　? "対象で複数に該当します"　: "対象に存在しません";
 
                                         //エラー項目設定
                                         ui.rowData.pq_inputErrors[ui.dataIndx] = msg;
+                                        if (!!config.buddy) {
+                                            ui.rowData[config.buddy] = "";
+                                        }
+                                        if (!!config.buddies) {
+                                            // console.log("set buddies", config.buddies);
+                                            _.forIn(config.buddies, (v, k) => ui.rowData[k] = "");
+                                        }
+                                    } else {
+                                        if (!!config.buddy) {
+                                            ui.rowData[config.buddy] = matched[0].CdNm;
+                                        }
+                                        if (!!config.buddies) {
+                                            _.forIn(config.buddies, (v, k) => ui.rowData[k] = matched[0][v]);
+                                        }
                                     }
                                 }
                             }
@@ -1503,6 +1542,11 @@ export default {
                 //絞り込み条件変更時に値が失われることの対処
                 var vue = this;
                 var grid = getGrid(evt.target);
+
+                console.log("before filter")
+                if (!!grid.pdata && !!grid.options.groupModel.on && !!grid.options.groupModel.dataIndx.length) {
+                    vue.setNavigatorSelect(grid);
+                }
 
                 if (!ui.rules.length) return;
 
@@ -3610,6 +3654,10 @@ export default {
                             rowList: rowList,
                             checkEditable: false,
                         });
+                    }
+
+                    if (!!vue.onAfterAddAutoEmptyRowFunc) {
+                        vue.onAfterAddAutoEmptyRowFunc(grid, rowList);
                     }
 
                     return rowList;

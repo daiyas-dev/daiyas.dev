@@ -828,11 +828,13 @@ export default {
                         title: "商品名",
                         dataIndx: "商品名", dataType: "string",
                         width: 200, minWidth: 200, maxWidth: 200,
+                        editable: true,
                     },
                     {
                         title: "備考",
                         dataIndx: "備考", dataType: "string",
                         width: 200, minWidth: 200, maxWidth: 200,
+                        editable: true,
                     },
                     {
                         title: "数量",
@@ -1112,7 +1114,7 @@ export default {
 
             if (!dataList || !dataList.length) return [];
 
-            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keywords = (input + "").split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 
@@ -1286,7 +1288,7 @@ export default {
             };
         },
         autoEmptyRowCheckFunc: function(rowData) {
-            return !rowData["商品ＣＤ"];
+            return !rowData["商品名"];
         },
         deleteRow: function(grid, event) {
             var vue = this;
@@ -1534,7 +1536,7 @@ export default {
                 return;
             }
 
-            var checkRequire = grid => grid.pdata.map(r => [r.商品ＣＤ]).every(r => r.every(v => !!v) || r.every(v => !v));
+            var checkRequire = grid => grid.pdata.map(r => [r.商品名]).every(r => r.every(v => !!v) || r.every(v => !v));
 
             var require = checkRequire(grid);
 
@@ -1585,7 +1587,7 @@ export default {
                     OrderInfo = null;
                 }
 
-                var SaveList = _.cloneDeep(grid.getPlainPData().filter(v => !!v.商品ＣＤ));
+                var SaveList = _.cloneDeep(grid.getPlainPData().filter(v => !!v.商品名));
 
                 //注文明細データの型に整形
                 SaveList.forEach((v, i) => {
@@ -1594,7 +1596,7 @@ export default {
                     v.配達日付 = v.配達日付 || moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD");
                     v.明細Ｎｏ = v.明細Ｎｏ;
                     v.商品種類 = v.商品種類;
-                    v.商品ＣＤ = v.商品ＣＤ;
+                    v.商品ＣＤ = v.商品ＣＤ || 0;
                     v.商品名 = v.商品名;
                     v.備考 = v.備考;
                     v.数量 = v.数量;
