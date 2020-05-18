@@ -106,7 +106,7 @@
                     :onChangedFunc=onBushoChanged
                 />
                 <VueSelectBusho
-                    :hasNull=true
+                    :hasNull=false
                 />
             </div>
         </div>
@@ -222,7 +222,6 @@ export default {
             ScreenTitle: "随時処理 > 顧客売上表",
             noViewModel: true,
             viewModel: {
-                Customet: null,
                 Busho: null,
                 BushoCd: null,
                 ProductArray: [],
@@ -337,14 +336,14 @@ export default {
                         width: 500, minWidth: 500, maxWidth: 500,
                         render: ui => {
                             if (!!ui.rowData.pq_grandsummary) {
-                                return { text: "**総合計**" };
+                                return { text: "** 総合計 **" };
                             }
                             if (!!ui.rowData.pq_gsummary) {
                                 switch (ui.rowData.pq_level) {
                                     case 0:
-                                        return { text: "**営業担当合計**" };
+                                        return { text: "** 営業担当合計 **" };
                                     case 1:
-                                        return { text: "**合計**" };
+                                        return { text: "** 合計 **" };
                                     default:
                                         return { text: "" };
                                 }
@@ -383,7 +382,7 @@ export default {
                         // },
                         render: ui => {
                             if (ui.rowData[ui.dataIndx] * 1 == 0 || ui.rowData.食数合計 * 1 == 0 || ui.rowData.稼働日 * 1 == 0) {
-                                return { text: "0" };
+                                return { text: "0.0" };
                             }
                             else
                             {
@@ -588,7 +587,7 @@ export default {
                     display: flex;
                     justify-content: center;
                 }
-                div.title > h3 {
+                div.title > h2 {
                     margin-top: 0px;
                     margin-bottom: 0px;
                 }
@@ -602,7 +601,7 @@ export default {
                 }
                 th, td {
                     font-family: "MS UI Gothic";
-                    font-size: 10pt;
+                    font-size: 10.5pt;
                     font-weight: normal;
                     margin: 0px;
                     padding-left: 3px;
@@ -624,19 +623,22 @@ export default {
 
             var eigyoNmKey1;
             var eigyoNmKey2;
+            var bushoNm;
             var headerFunc = (header, idx, length) => {
                 if (header.pq_level == 0)
                 {
                     eigyoNmKey1 = header.ＧＫ営業担当者.split(" ")[1];
                     eigyoNmKey2 = eigyoNmKey1;
+                    bushoNm = header.children[0].children[0].部署名;
                 }
                 if (header.pq_level == 1)
                 {
                     eigyoNmKey2 = header.ＧＫ獲得営業者.split(" ")[1];
+                    bushoNm = header.children[0].部署名;
                 }
                 return `
                     <div class="title">
-                        <h3>* * * 顧客売上表 * * *</h3>
+                        <h2>* * * 顧客売上表 * * *</h2>
                     </div>
                     <table class="header-table" style="border-width: 0px">
                         <thead>
@@ -647,24 +649,24 @@ export default {
                                 <th class="blank-cell" style="width: 3%;"></th>
                                 <th class="blank-cell" style="width: 8%;"></th>
                                 <th class="blank-cell" style="width: 6.8%;"></th>
-                                <th class="blank-cell" style="width: 8%;"></th>
+                                <th class="blank-cell" style="width: 10%;"></th>
                                 <th class="blank-cell" style="width: 15%;"></th>
-                                <th class="blank-cell" style="width: 7.6%;"></th>
+                                <th class="blank-cell" style="width: 5.6%;"></th>
                                 <th class="blank-cell" style="width: 20%;"></th>
                                 <th class="blank-cell" style="width: 5%;"></th>
                             </tr>
                             <tr>
-                                <th style="width: 12%;">部署名ＸＸＸ</th>
-                                <th class="blank-cell" style="width: 14.8%;"></th>
-                                <th class="blank-cell" style="width: 14.8%;"></th>
-                                <th class="blank-cell" style="width: 3%;"></th>
-                                <th class="blank-cell" style="width: 8%;"></th>
-                                <th class="blank-cell" style="width: 6.8%;"></th>
-                                <th class="blank-cell" style="width: 8%;"></th>
-                                <th class="blank-cell" style="width: 15%;"></th>
-                                <th class="blank-cell" style="width: 7.6%;"></th>
-                                <th class="blank-cell" style="width: 20%;"></th>
-                                <th class="blank-cell" style="width: 5%;"></th>
+                                <th style="width: 12%;">${vue.viewModel.Busho != 0 ? bushoNm : ""}</th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
                             </tr>
                             <tr>
                                 <th>対象日付：</th>
@@ -691,6 +693,13 @@ export default {
             };
 
             var styleCustomers =`
+                table.DAI05100Grid1 tr:nth-child(1) th:nth-child(1),
+                table.DAI05100Grid1 tr:nth-child(1) th:nth-child(2){
+                   text-align: left;
+                }
+                table.DAI05100Grid1 tr:nth-child(1) th:nth-child(n+3){
+                   text-align: right;
+                }
                 table.DAI05100Grid1 tr:nth-child(1) th {
                     border-style: solid;
                     border-left-width: 0px;
@@ -698,49 +707,31 @@ export default {
                     border-right-width: 0px;
                     border-bottom-width: 1px;
                 }
-                table.DAI05100Grid1 tr.group-summary td {
+                table.DAI05100Grid1 tr[level="1"].group-summary td {
                     border-style: solid;
                     border-left-width: 0px;
                     border-top-width: 1px;
                     border-right-width: 0px;
                     border-bottom-width: 0px;
                 }
-                table.DAI05100Grid1 tr.group-summary td:nth-child(2) {
+                table.DAI05100Grid1 tr.group-summary td:nth-child(2),
+                table.DAI05100Grid1 tr[level="0"].group-summary td:nth-child(2),
+                table.DAI05100Grid1 tr.grand-summary td:nth-child(2) {
                     text-align: right;
-                    padding-right: 50px;
-                }
-                table.DAI05100Grid1 tr[level="0"].group-summary td {
-                    border-style: dotted;
-                    border-left-width: 0px;
-                    border-top-width: 1px;
-                    border-right-width: 0px;
-                    border-bottom-width: 0px;
-                }
-                table.DAI05100Grid1 tr[level="0"].group-summary td:nth-child(2) {
-                    text-align: right;
-                    padding-right: 30px;
-                }
-                table.DAI05100Grid1 tr.grand-summary td {
-                    border-style: solid;
-                    border-left-width: 0px;
-                    border-top-width: 1px;
-                    border-right-width: 0px;
-                    border-bottom-width: 0px;
+                    padding-right: 20px;
+                    height: 25px;
                 }
                 table.DAI05100Grid1 tr.grand-summary td:nth-child(2) {
                     text-align: right;
                 }
-                table.DAI05100Grid1 tr.grand-summary td:nth-child(3) {
-                    text-align: left;
-                }
                 table.DAI05100Grid1 tr th:nth-child(1) {
-                    width: 5%;
+                    width: 3.5%;
                 }
                 table.DAI05100Grid1 tr th:nth-child(2) {
-                    width: 15%;
+                    width: 12.5%;
                 }
                 table.DAI05100Grid1 tr th:nth-child(3) {
-                    width: 8%;
+                    width: 4%;
                 }
                 table.DAI05100Grid1 tr th:nth-child(4) {
                     width: 20%;
@@ -756,6 +747,9 @@ export default {
                 }
                 tr.width-settei > th {
                     height: 0px;
+                }
+                table.DAI05100Grid1 tr td:nth-child(1) {
+                    padding-right: 8px;;
                 }
             `;
 

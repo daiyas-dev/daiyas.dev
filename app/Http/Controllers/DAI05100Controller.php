@@ -31,13 +31,17 @@ class DAI05100Controller extends Controller
         $WehreEigyoTantoCd = !!$EigyoTantoCd  ? "AND TOKUISAKI.営業担当者ＣＤ = $EigyoTantoCd" : "";
         $WehreGetEigyoTantoCd = !!$GetEigyoTantoCd  ? "AND TOKUISAKI.獲得営業者ＣＤ = $GetEigyoTantoCd" : "";
         $WhereBusho = $Busho == "2" && !!$BushoCd ? "AND TOKUISAKI.部署ＣＤ = $BushoCd" : "";
-        $OrderByBusho = $Busho == "2" ? "TOKUISAKI.部署ＣＤ," : "";
+        // $OrderByBusho = $Busho == "2" ? "TOKUISAKI.部署ＣＤ," : "";
+        //TODO:西山
+        $OrderByBusho = $Busho == "0" ? "" : "部署ＣＤ2,";
+
 
         $sql = "
         WITH 売上データ AS
         (
         SELECT
             URIAGE_MEISAI.部署ＣＤ
+            , BUSYO.部署ＣＤ as 部署ＣＤ2
             , BUSYO.部署名
             , URIAGE_MEISAI.日付
             , (STR(TOKUISAKI.営業担当者ＣＤ) + STR(TOKUISAKI.獲得営業者ＣＤ)) AS 担当者ＣＤ
@@ -82,7 +86,9 @@ class DAI05100Controller extends Controller
         売上データ日付 AS
         (
         SELECT
-             営業担当者ＣＤ
+            部署ＣＤ2
+            ,部署名
+            ,営業担当者ＣＤ
             ,営業担当者名
             ,獲得営業者ＣＤ
             ,獲得営業者名
@@ -94,7 +100,9 @@ class DAI05100Controller extends Controller
         FROM
             売上データ
         GROUP BY
-             営業担当者ＣＤ
+            部署ＣＤ2
+            ,部署名
+            ,営業担当者ＣＤ
             ,営業担当者名
             ,獲得営業者ＣＤ
             ,獲得営業者名
@@ -104,7 +112,9 @@ class DAI05100Controller extends Controller
         )
 
         SELECT
-             営業担当者ＣＤ
+            部署ＣＤ2
+            ,部署名
+            ,営業担当者ＣＤ
             ,営業担当者名
             ,獲得営業者ＣＤ
             ,獲得営業者名
@@ -117,13 +127,16 @@ class DAI05100Controller extends Controller
         FROM
             売上データ日付
         GROUP BY
-             営業担当者ＣＤ
+            部署ＣＤ2
+            ,部署名
+            ,営業担当者ＣＤ
             ,営業担当者名
             ,獲得営業者ＣＤ
             ,獲得営業者名
             ,得意先ＣＤ
             ,得意先名
         ORDER BY
+            $OrderByBusho
             営業担当者ＣＤ, 獲得営業者ＣＤ, 得意先ＣＤ
         ";
 
