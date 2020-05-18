@@ -11,7 +11,16 @@
                 <label style="width:90px">部署</label>
             </div>
             <div class="col-md-2">
-                <VueSelectBusho
+                <VueSelectBusho v-if="!params.IsChild"
+                    :withCode=true
+                    :onChangedFunc=onBushoCdChanged
+                />
+                <VueSelect v-else
+                    id="Busho"
+                    :vmodel=viewModel
+                    bind="BushoCd"
+                    uri="/Utilities/GetBushoList"
+                    :withCode=true
                     :onChangedFunc=onBushoCdChanged
                 />
             </div>
@@ -38,7 +47,7 @@
             <div class="col-md-5">
                 <input type="text" class="form-control" :value="viewModel.KeyWord" @input="onKeyWordChanged">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <VueOptions
                     title="検索条件:"
                     customLabelStyle="text-align: center;"
@@ -101,7 +110,7 @@ export default {
     },
     data() {
         var vue = this;
-        return $.extend(true, {}, PageBaseMixin.data(), {
+        var data = $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "マスタメンテ > 商品種類マスタメンテ",
             noViewModel: true,
             conditionTrigger: true,
@@ -164,7 +173,6 @@ export default {
                         "商品種類名",
                         function(rowData){
                             var grid = vue.DAI04180Grid1;
-                            console.log("formula 商品種類名")
                             var list = grid.getData().filter(v => !!v.商品種類名 && !!v.InitialValue).map(v => { return { 商品種類: v.商品種類, 商品種類名: v.商品種類名 }; });
                             var match = list.find(v => v.商品種類 == rowData["商品種類"]);
                             return !!match ? match.商品種類名 : rowData["商品種類名"];
@@ -234,6 +242,12 @@ export default {
                 ],
             },
         });
+
+        if(!!vue.params){
+            data.viewModel.BushoCd = vue.params.BushoCd;
+        }
+
+        return data;
     },
     methods: {
         createdFunc: function(vue) {
@@ -274,9 +288,14 @@ export default {
 
             var grid = vue.DAI04180Grid1;
             grid.sort(grid.options.sortModel.sorter);
+
+            if (vue.params.IsChild) {
+                vue.conditionChanged(true);
+            }
         },
         onBushoCdChanged: function(code, entity) {
             var vue = this;
+            console.log("4180 onBushoCdChanged", code)
 
             //条件変更ハンドラ
             vue.conditionChanged();
@@ -338,7 +357,7 @@ export default {
                 );
             }
             if (!!vue.viewModel.ProductCd) {
-                rules.push({ dataIndx: "商品ＣＤ", condition: "equal", value: vue.viewModel.ProductCd });
+                rules.push({ dataIndx: "商品ＣＤ", condition: "begin", value: vue.viewModel.ProductCd });
             }
             if (!!vue.viewModel.KeyWord) {
                 var keywords = vue.viewModel.KeyWord.split(/[, 、　]/)
@@ -585,6 +604,10 @@ export default {
                         callback: (gridVue, grid, res)=>{
                             grid.commit();
                             grid.refreshDataAndView();
+
+                            if (!!vue.params.Parent) {
+                                vue.params.Parent.updateProduct();
+                            }
 
                             return false;
                         },

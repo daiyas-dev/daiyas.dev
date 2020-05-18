@@ -808,7 +808,7 @@ export default {
                     },
                     {
                         title: "コード",
-                        dataIndx: "商品ＣＤ", dataType: "integer",
+                        dataIndx: "商品ＣＤ", dataType: "string",
                         width: 120, maxWidth: 120, minWidth: 120,
                         editable: true,
                         key: true,
@@ -821,6 +821,7 @@ export default {
                             },
                             AutoCompleteFunc: vue.ProductAutoCompleteFuncInGrid,
                             AutoCompleteMinLength: 0,
+                            GetMatchedFunc: vue.ProductAutoCompleteGetMatched,
                             selectSave: true,
                         },
                     },
@@ -944,7 +945,7 @@ export default {
                     }
                 },
                 {visible: "false"},
-                { visible: "true", value: "得意先単価<br>マスタメンテ", id: "DAI08010Grid1_showProductMaint", disabled: true, shortcut: "F8",
+                { visible: "true", value: "商品種類<br>マスタメンテ", id: "DAI08010Grid1_showProductMaint", disabled: false, shortcut: "F8",
                     onClick: function () {
                         vue.showProductMaint();
                     }
@@ -1107,6 +1108,11 @@ export default {
         },
         getProductList: function() {
             var vue = this;
+            vue.ProductList.forEach(v => {
+                v.Cd = v.商品ＣＤ;
+                v.CdNm = v.商品名;
+                return v;
+            });
             return vue.ProductList;
         },
         ProductAutoCompleteFuncInGrid: function(input, dataList, comp) {
@@ -1136,7 +1142,7 @@ export default {
                 })
                 .map(v => {
                     var ret = v;
-                    ret.label = v.Cd + " : " + v.CdNm;
+                    ret.label = v.Cd + " : " + v.CdNm + "[" + v.商品種類名 + "]";
                     ret.value = v.Cd;
                     ret.text = v.CdNm;
                     return ret;
@@ -1144,6 +1150,9 @@ export default {
                 ;
 
             return list;
+        },
+        ProductAutoCompleteGetMatched: function(dataList, key, rowData) {
+            return dataList.filter(v => v.商品種類 == rowData.商品種類 && v.商品ＣＤ == key);
         },
         onAfterSearchFunc: function (gridVue, grid, res) {
             var vue = this;
@@ -1764,6 +1773,47 @@ export default {
                 width: 1250,
                 height: 775,
             });
+        },
+        showProductMaint: function() {
+            var vue = this;
+
+            var cd = vue.viewModel.BushoCd;
+            if (!cd) return;
+
+            var params = { BushoCd: cd };
+            params.IsNew = false;
+            params.IsChild = true;
+            params.Parent = vue;
+
+            //DAI04180を子画面表示
+            PageDialog.show({
+                pgId: "DAI04180",
+                params: params,
+                isModal: true,
+                isChild: true,
+                resizable: false,
+                width: 1000,
+                height: 750,
+            });
+        },
+        updateProduct: function() {
+            var vue = this;
+            var grid = vue.DAI01030Grid1;
+
+            var params = _.cloneDeep(vue.searchParams);
+            params.noCache = true;
+
+            //商品リスト検索
+            axios.post("/DAI08010/GetProductList", params)
+                .then(res => {
+                    vue.ProductList = res.data;
+                })
+                .catch(err => {
+                    $.dialogErr({
+                        title: "商品種類マスタ検索失敗",
+                        contents: "商品種類マスタの検索に失敗しました" + "<br/>" + err.message,
+                    });
+                });
         },
     }
 }

@@ -302,8 +302,6 @@ class DAI08010Controller extends Controller
 
         $sql = "
             SELECT DISTINCT
-                SHUBETSU.商品ＣＤ AS Cd,
-                PRODUCT.商品名 AS CdNm,
                 SHUBETSU.商品種類,
                 SHUBETSU.商品種類名,
                 SHUBETSU.商品ＣＤ,

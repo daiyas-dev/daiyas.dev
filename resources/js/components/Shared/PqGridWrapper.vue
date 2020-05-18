@@ -849,22 +849,25 @@ export default {
                                                 })
                                                 ;
 
-                                        var match = list.find(v => v == key || v.Cd == key);
+                                        // var match = list.find(v => v == key || v.Cd == key);
+                                        var matched = !!config.GetMatchedFunc
+                                            ? config.GetMatchedFunc(list, key, ui.rowData)
+                                            : list.filter(v => v == key || v.Cd == key);
 
-                                        if (!!match) {
+                                        if (matched.length == 1) {
                                             //エラー項目設定除去
                                             ui.rowData.pq_inputErrors = ui.rowData.pq_inputErrors || {};
                                             delete ui.rowData.pq_inputErrors[ui.dataIndx];
 
                                             if (!!config.buddy) {
-                                                ui.rowData[config.buddy] = match.CdNm;
+                                                ui.rowData[config.buddy] = matched[0].CdNm;
                                             }
                                             if (!!config.buddies) {
                                                 // console.log("set buddies", config.buddies);
-                                                _.forIn(config.buddies, (v, k) => ui.rowData[k] = match[v]);
+                                                _.forIn(config.buddies, (v, k) => ui.rowData[k] = matched[0][v]);
                                             }
 
-                                            if (!!config.onSelect) config.onSelect(ui.rowData, match, ui);
+                                            if (!!config.onSelect) config.onSelect(ui.rowData, matched[0], ui);
 
                                             if (config.selectSave) {
                                                 ui.$editor.trigger($.Event("keydown", {
@@ -876,7 +879,7 @@ export default {
                                             if (key == "" || event.which == 27) return;
                                             if (!!config.noCheck) return;
 
-                                            var msg = list.length > 1　? "対象で複数に該当します"　: "対象に存在しません";
+                                            var msg = matched.length > 1　? "対象で複数に該当します"　: "対象に存在しません";
 
                                             //エラー項目設定
                                             ui.rowData.pq_inputErrors = ui.rowData.pq_inputErrors || {};
@@ -934,7 +937,9 @@ export default {
 
 
                                 if (!_.isEmptyEx(key)) {
-                                    var matched = list.filter(v => v == key || v.Cd == key);
+                                    var matched = !!config.GetMatchedFunc
+                                        ? config.GetMatchedFunc(list, key, ui.rowData)
+                                        : list.filter(v => v == key || v.Cd == key);
 
                                     if (matched.length != 1) {
                                         var msg = matched.length > 1　? "対象で複数に該当します"　: "対象に存在しません";
