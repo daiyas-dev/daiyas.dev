@@ -23,17 +23,18 @@ class DAI05100Controller extends Controller
         $ShowSyonin = $vm->ShowSyonin;
         $EigyoTantoCd = $vm->EigyoTantoCd;
         $GetEigyoTantoCd = $vm->GetEigyoTantoCd;
-        $Busho = $vm->Busho;
+        // $Busho = $vm->Busho;
+        $BushoOption = $vm->BushoOption;
         $BushoCd = $vm->BushoCd;
 
         $WehreSaveDate = $Customer == "1" ? "AND CONVERT(VARCHAR, TOKUISAKI.新規登録日, 112) >= '$SaveDateStart' AND CONVERT(VARCHAR, TOKUISAKI.新規登録日, 112) <= '$SaveDateEnd'" : "";
         $WehreShowSyonin = $ShowSyonin == "1" ? "AND TOKUISAKI.状態区分 IN (10, 20)" : "";
         $WehreEigyoTantoCd = !!$EigyoTantoCd  ? "AND TOKUISAKI.営業担当者ＣＤ = $EigyoTantoCd" : "";
         $WehreGetEigyoTantoCd = !!$GetEigyoTantoCd  ? "AND TOKUISAKI.獲得営業者ＣＤ = $GetEigyoTantoCd" : "";
-        $WhereBusho = $Busho == "2" && !!$BushoCd ? "AND TOKUISAKI.部署ＣＤ = $BushoCd" : "";
+        $WhereBusho = $BushoOption == "2" && !!$BushoCd ? "AND TOKUISAKI.部署ＣＤ = $BushoCd" : "";
         // $OrderByBusho = $Busho == "2" ? "TOKUISAKI.部署ＣＤ," : "";
         //TODO:西山
-        $OrderByBusho = $Busho == "0" ? "" : "部署ＣＤ2,";
+        $OrderByBusho = $BushoOption == "0" ? "" : "部署ＣＤ2,";
 
 
         $sql = "

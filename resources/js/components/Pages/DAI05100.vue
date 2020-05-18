@@ -93,20 +93,20 @@
             </div>
             <div class="col-md-5">
                 <VueOptions
-                    id="Busho"
+                    id="BushoOption"
                     ref="VueOptions_Busho"
                     customItemStyle="text-align: center; margin-right: 10px; border: none;"
                     :vmodel=viewModel
-                    bind="Busho"
+                    bind="BushoOption"
                     :list="[
                         {code: '0', name: '部署なし', label: '部署なし'},
                         {code: '1', name: '全社', label: '全社　　'},
                         {code: '2', name: '部署', label: '部署'},
                     ]"
-                    :onChangedFunc=onBushoChanged
+                    :onChangedFunc=onBushoOptionChanged
                 />
                 <VueSelectBusho
-                    :hasNull=false
+                    :onChangedFunc=onBushoCdChanged
                 />
             </div>
         </div>
@@ -121,7 +121,7 @@
                     :vmodel=viewModel
                     bind="EigyoTantoCd"
                     dataUrl="/Utilities/GetTantoList"
-                    :params='{ bushoCd: viewModel.BushoCd }'
+                    :params='{}'
                     :dataListReset=true
                     title="営業担当者"
                     labelCd="営業担当者CD"
@@ -152,7 +152,7 @@
                     :vmodel=viewModel
                     bind="GetEigyoTantoCd"
                     dataUrl="/Utilities/GetTantoList"
-                    :params='{ bushoCd: viewModel.BushoCd = viewModel.Busho == "2" ? viewModel.BushoCd : 0 }'
+                    :params='{}'
                     :dataListReset=true
                     title="獲得営業担当者"
                     labelCd="獲得営業担当者CD"
@@ -211,10 +211,6 @@ export default {
         vm: Object,
     },
     computed: {
-        ProductCdArray: function() {
-            var vue = this;
-            return vue.viewModel.ProductArray.map(v => v.code);
-        },
     },
     data() {
         var vue = this;
@@ -222,14 +218,14 @@ export default {
             ScreenTitle: "随時処理 > 顧客売上表",
             noViewModel: true,
             viewModel: {
-                Busho: null,
+                BushoOption: "2",
                 BushoCd: null,
-                ProductArray: [],
                 DateStart: null,
                 DateEnd: null,
                 SaveDateStart: null,
                 SaveDateEnd: null,
-                ProductCd: null,
+                Customer: "0",
+                ShowSyonin: "0",
             },
             DAI05100Grid1: null,
             grid1Options: {
@@ -265,9 +261,9 @@ export default {
                     header: false,
                     grandSummary: true,
                     indent: 10,
-                    dataIndx: ["ＧＫ営業担当者", "ＧＫ獲得営業者"],
-                    showSummary: [true, true],
-                    collapsed: [false, false],
+                    dataIndx: ["部署名", "ＧＫ営業担当者", "ＧＫ獲得営業者"],
+                    showSummary: [false, true, true],
+                    collapsed: [false, false, false],
                     summaryInTitleRow: "collapsed",
                 },
                 summaryData: [
@@ -292,7 +288,10 @@ export default {
                         hidden: true,
                         fixed: true,
                         render: ui => {
-                            if (ui.rowData.pq_level != 0) {
+                            // if (ui.rowData.pq_level != 0) {
+                            //     return { text: "" };
+                            // }
+                            if (ui.rowData.pq_level != 1) {
                                 return { text: "" };
                             }
                             return ui;
@@ -306,9 +305,15 @@ export default {
                         fixed: true,
                         render: ui => {
                             switch (ui.rowData.pq_level) {
+                                // case 0:
+                                //     return { text: "" };
+                                // case 1:
+                                //     return ui;
                                 case 0:
                                     return { text: "" };
                                 case 1:
+                                    return ui;
+                                case 2:
                                     return ui;
                                 default:
                                     return { text: "" };
@@ -317,7 +322,7 @@ export default {
                     },
                     {
                         title: "部署ＣＤ",
-                        dataIndx: "部署ＣＤ", dataType: "string",
+                        dataIndx: "部署ＣＤ2", dataType: "string",
                         hidden: true,
                     },
                     {
@@ -340,9 +345,13 @@ export default {
                             }
                             if (!!ui.rowData.pq_gsummary) {
                                 switch (ui.rowData.pq_level) {
-                                    case 0:
-                                        return { text: "** 営業担当合計 **" };
+                                    // case 0:
+                                    //     return { text: "** 営業担当合計 **" };
+                                    // case 1:
+                                    //     return { text: "** 合計 **" };
                                     case 1:
+                                        return { text: "** 営業担当合計 **" };
+                                    case 2:
                                         return { text: "** 合計 **" };
                                     default:
                                         return { text: "" };
@@ -393,9 +402,13 @@ export default {
                                 }
                                 if (!!ui.rowData.pq_gsummary) {
                                     switch (ui.rowData.pq_level) {
-                                        case 0:
-                                            return { text: eatAvgFmt };
+                                        // case 0:
+                                        //     return { text: eatAvgFmt };
+                                        // case 1:
+                                        //     return { text: eatAvgFmt };
                                         case 1:
+                                            return { text: eatAvgFmt };
+                                        case 2:
                                             return { text: eatAvgFmt };
                                     }
                                 }
@@ -458,7 +471,13 @@ export default {
             vue.viewModel.SaveDateStart = moment("20190801").format("YYYY年MM月01日");
             vue.viewModel.SaveDateEnd = moment("20190801").endOf('month').format("YYYY年MM月DD日");
         },
-        onBushoChanged: function(code, entities) {
+        onBushoOptionChanged: function(code, entities) {
+            var vue = this;
+
+            //条件変更ハンドラ
+            vue.conditionChanged();
+        },
+        onBushoCdChanged: function(code, entities) {
             var vue = this;
 
             //条件変更ハンドラ
@@ -477,8 +496,10 @@ export default {
         },
         onCustomerChanged: function(code, entity) {
             var vue = this;
-            //フィルタ変更ハンドラ
-            vue.filterChanged();
+            // //フィルタ変更ハンドラ
+            // vue.filterChanged();
+            //条件変更ハンドラ
+            vue.conditionChanged();
         },
         onEigyoTantoCdChanged: function(code, entity) {
             var vue = this;
@@ -538,9 +559,6 @@ export default {
             params.DateEnd = params.DateEnd ? moment(params.DateEnd, "YYYY年MM月DD日").format("YYYYMMDD") : null;
             params.SaveDateStart = params.SaveDateStart ? moment(params.SaveDateStart, "YYYY年MM月DD日").format("YYYYMMDD") : null;
             params.SaveDateEnd = params.SaveDateEnd ? moment(params.SaveDateEnd, "YYYY年MM月DD日").format("YYYYMMDD") : null;
-
-            //フィルタするパラメータは除外
-            delete params.ProductArray;
 
             grid.searchData(params, false, null, callback);
         },
@@ -625,10 +643,26 @@ export default {
             var eigyoNmKey2;
             var bushoNm;
             var headerFunc = (header, idx, length) => {
+                // if (header.pq_level == 0)
+                // {
+                //     eigyoNmKey1 = header.ＧＫ営業担当者.split(" ")[1];
+                //     eigyoNmKey2 = eigyoNmKey1;
+                //     bushoNm = header.children[0].children[0].部署名;
+                // }
+                // if (header.pq_level == 1)
+                // {
+                //     eigyoNmKey2 = header.ＧＫ獲得営業者.split(" ")[1];
+                //     bushoNm = header.children[0].部署名;
+                // }
                 if (header.pq_level == 0)
                 {
-                    eigyoNmKey1 = header.ＧＫ営業担当者.split(" ")[1];
+                    eigyoNmKey1 = header.children[0].children[0].children[0].ＧＫ営業担当者.split(" ")[1];
                     eigyoNmKey2 = eigyoNmKey1;
+                    bushoNm = header.children[0].children[0].children[0].部署名;
+                }
+                if (header.pq_level == 1)
+                {
+                    eigyoNmKey2 = header.children[0].children[0].ＧＫ獲得営業者.split(" ")[1];
                     bushoNm = header.children[0].children[0].部署名;
                 }
                 if (header.pq_level == 1)
@@ -656,7 +690,7 @@ export default {
                                 <th class="blank-cell" style="width: 5%;"></th>
                             </tr>
                             <tr>
-                                <th style="width: 12%;">${vue.viewModel.Busho != 0 ? bushoNm : ""}</th>
+                                <th style="width: 12%;">${vue.viewModel.BushoOption != 0 ? bushoNm : ""}</th>
                                 <th class="blank-cell"></th>
                                 <th class="blank-cell"></th>
                                 <th class="blank-cell"></th>
@@ -707,7 +741,7 @@ export default {
                     border-right-width: 0px;
                     border-bottom-width: 1px;
                 }
-                table.DAI05100Grid1 tr[level="1"].group-summary td {
+                table.DAI05100Grid1 tr[level="2"].group-summary td {
                     border-style: solid;
                     border-left-width: 0px;
                     border-top-width: 1px;
