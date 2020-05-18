@@ -854,7 +854,7 @@ export default {
                 type: "raw-html",
                 style: "@media print { @page { size: A4 portrait; } }",
                 printable: printable,
-                onPrintDialogClose: () => { vue.save(); },
+                onAfterPrint: () => { vue.save(); },
             };
 
             printJS(printOptions);
