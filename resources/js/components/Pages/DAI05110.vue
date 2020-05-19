@@ -713,17 +713,17 @@ export default {
                 }
                 return `
                     <div class="title">
-                        <h3>* * * 顧客売上累計表 * * *</h3>
+                        <h3>* * 顧客売上累計表 * *</h3>
                     </div>
                     <table class="header-table" style="border-width: 0px">
                         <thead>
                             <tr>
-                                <th style="width: 24%;" class="blank-cell"></th>
-                                <th style="width: 10%;">集計範囲</th>
-                                <th style="width: 9%;">（${vue.viewModel.DateStart}</th>
+                                <th style="width: 28%;" class="blank-cell"></th>
+                                <th style="width: 7%;">集計範囲</th>
+                                <th style="width: 7.5%;">（ ${vue.viewModel.DateStart}</th>
                                 <th style="width: 3%;">～</th>
-                                <th style="width: 9%;">${vue.viewModel.DateEnd}）</th>
-                                <th style="width: 19%;" colspan="2" style="font-weight: bold;">[営業売上金額]</th>
+                                <th style="width: 10.5%;">${vue.viewModel.DateEnd} ）</th>
+                                <th style="width: 18%;" colspan="2" style="font-weight: bold; text-align: center !important;">[営業売上金額]</th>
                                 <th style="width: 8%;" class="blank-cell"></th>
                                 <th style="width: 7%; text-align: right;">${idx + 1}/${length}</th>
                             </tr>
@@ -742,8 +742,7 @@ export default {
                                 <th>営業担当者：</th>
                                 <th colspan="3">${eigyoNmKey1}</th>
                                 <th>獲得営業担当者：</th>
-                                <th>${eigyoNmKey2}</th>
-                                <th colspan="2" class="blank-cell"></th>
+                                <th colspan="3">${eigyoNmKey2}</th>
                             </tr>
                         </thead>
                     </table>
@@ -751,16 +750,17 @@ export default {
             };
 
             var styleCustomers =`
-                table.DAI05110Grid1 tr:nth-child(1) th {
-                    border-style: solid;
-                    border-left-width: 0px;
-                    border-top-width: 1px;
-                    border-right-width: 0px;
-                    border-bottom-width: 1px;
+                div.title{
+                    padding-bottom: 5px;
                 }
-                table.DAI05110Grid1 tr.group-summary td {
+                table.header-table tr th{
+                    text-align: left;
+                    height: 20px
+                }
+                table.DAI05110Grid1 tr:nth-child(1) th ,
+                table.DAI05110Grid1 tr td {
                     border-style: solid;
-                    border-left-width: 0px;
+                    border-left-width: 1px;
                     border-top-width: 1px;
                     border-right-width: 0px;
                     border-bottom-width: 0px;
@@ -769,23 +769,9 @@ export default {
                     text-align: right;
                     padding-right: 50px;
                 }
-                table.DAI05110Grid1 tr[level="0"].group-summary td {
-                    border-style: dotted;
-                    border-left-width: 0px;
-                    border-top-width: 1px;
-                    border-right-width: 0px;
-                    border-bottom-width: 0px;
-                }
                 table.DAI05110Grid1 tr[level="0"].group-summary td:nth-child(2) {
                     text-align: right;
                     padding-right: 30px;
-                }
-                table.DAI05110Grid1 tr.grand-summary td {
-                    border-style: solid;
-                    border-left-width: 0px;
-                    border-top-width: 1px;
-                    border-right-width: 0px;
-                    border-bottom-width: 0px;
                 }
                 table.DAI05110Grid1 tr.grand-summary td:nth-child(2) {
                     text-align: right;
@@ -794,7 +780,7 @@ export default {
                     text-align: left;
                 }
                 table.DAI05110Grid1 tr th:nth-child(1) {
-                    width: 5%;
+                    width: 5.5%;
                 }
                 table.DAI05110Grid1 tr th:nth-child(2) {
                     width: 15%;
