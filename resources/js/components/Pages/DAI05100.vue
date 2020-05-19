@@ -552,9 +552,16 @@ export default {
             //TODO:西山　グループキー切替
             var grid = vue.DAI05100Grid1;
             if (vue.viewModel.BushoOption == 0){
-                grid.Group().option({ "dataIndx": ["ＧＫ営業担当者", "ＧＫ獲得営業者"]});
+                grid.Group().option({
+                    "dataIndx": ["ＧＫ営業担当者", "ＧＫ獲得営業者"],
+                    "showSummary": [true, true],
+                    "collapsed": [false, false],
+                });
             } else {
-                grid.Group().option({ "dataIndx": ["部署名", "ＧＫ営業担当者", "ＧＫ獲得営業者"]});
+                grid.Group().option({ "dataIndx": ["部署名", "ＧＫ営業担当者", "ＧＫ獲得営業者"],
+                    "showSummary": [false, true, true],
+                    "collapsed": [false, false, false],
+                });
             }
 
             //条件変更ハンドラ
