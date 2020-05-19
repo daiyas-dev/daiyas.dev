@@ -35,14 +35,11 @@
         <PqGridWrapper
             id="DAI03090Grid1"
             ref="DAI03090Grid1"
-            dataUrl="/DAI03090/GetFurikaeList"
-            :query=this.searchParams
+            dataUrl="/DAI03090/Dummy"
             :SearchOnCreate=false
             :SearchOnActivate=false
-            :checkChanged=false
             :options=this.grid1Options
-            :onAfterSearchFunc=onAfterSearchFunc
-            :onCompleteFunc=onCompleteFunc
+            :onRefreshFunc=onRefreshFunc
             :autoToolTipDisabled=true
         />
     </form>
@@ -58,6 +55,12 @@ form[pgid="DAI03090"] .droppable:empty:before{
 }
 form[pgid="DAI03090"] .droppable:before{
     content:attr(data-path-text)
+}
+form[pgid="DAI03090"] .pq-group-toggle-none {
+    display: none !important;
+}
+form[pgid="DAI03090"] .pq-group-icon {
+    display: none !important;
 }
 </style>
 
@@ -92,6 +95,8 @@ export default {
             viewModel: {
                 TargetDate: null,
             },
+            CompanyInfo: null,
+            CustomerInfoArray: [],
             DAI03090Grid1: null,
             grid1Options: {
                 selectionModel: { type: "row", mode: "single", row: true },
@@ -101,6 +106,7 @@ export default {
                 fillHandle: "",
                 numberCell: { show: true, title: "No.", resizable: false, },
                 autoRow: false,
+                rowHtHead: 50,
                 editable: false,
                 columnTemplate: {
                     editable: false,
@@ -129,9 +135,14 @@ export default {
                     sorter:[ { dataIndx: "sortIndx", dir: "up" } ],
                 },
                 groupModel: {
-                    on: false,
+                    on: true,
                     header: false,
-                    grandSummary: false,
+                    grandSummary: true,
+                    indent: 10,
+                    dataIndx: ["部署"],
+                    showSummary: [true],
+                    collapsed: [false],
+                    summaryInTitleRow: "collapsed",
                 },
                 formulas: [
                     [
@@ -145,6 +156,11 @@ export default {
                     {
                         title: "sortIndx",
                         dataIndx: "sortIndx", dataType: "string",
+                        hidden: true,
+                    },
+                    {
+                        title: "部署",
+                        dataIndx: "部署", dataType: "string",
                         hidden: true,
                     },
                     {
@@ -221,6 +237,9 @@ export default {
                         dataType: "integer",
                         format: "#,##0",
                         width: 75, maxWidth: 75, minWidth: 75,
+                        summary: {
+                            type: "TotalInt",
+                        },
                     },
                     {
                         title: "入金額",
@@ -228,6 +247,9 @@ export default {
                         dataType: "integer",
                         format: "#,##0",
                         width: 75, maxWidth: 75, minWidth: 75,
+                        summary: {
+                            type: "TotalInt",
+                        },
                     },
                     {
                         title: "エラー",
@@ -240,7 +262,7 @@ export default {
                         dataIndx: "処理",
                         type: "checkbox",
                         cbId: "処理FLG",
-                        width: 50, minWidth: 50, maxWidth: 50,
+                        width: 75, maxWidth: 75, minWidth: 75,
                         align: "center",
                         editable: true,
                         editor: false,
@@ -258,9 +280,9 @@ export default {
                         align: "center",
                         editable: true,
                         cb: {
-                            header: false,
-                            check: "1",
-                            uncheck: "0",
+                            header: true,
+                            check: "true",
+                            uncheck: "false",
                         },
                         hidden: true,
                         hiddenOnExport: false,
@@ -274,32 +296,28 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "検索", id: "DAI03090Grid1_Search", disabled: false, shortcut: "F5",
+                { visible: "true", value: "クリア", id: "DAI03090Grid1_Clear", disabled: true, shortcut: "F2",
                     onClick: function () {
-                        vue.conditionChanged(true);
+                        vue.clear();
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI03090Grid1_Printout", disabled: false, shortcut: "F6",
+                {visible: "false"},
+                {visible: "false"},
+                { visible: "true", value: "実行", id: "DAI03090Grid1_Save", disabled: true, shortcut: "F5",
+                    onClick: function () {
+                        vue.save();
+                    }
+                },
+                {visible: "false"},
+                {visible: "false"},
+                { visible: "true", value: "印刷", id: "DAI03090Grid1_Printout", disabled: true, shortcut: "F6",
                     onClick: function () {
                         vue.print();
                     }
                 },
-                { visible: "true", value: "CSV", id: "DAI03090_Download", disabled: false, shortcut: "F7",
+                { visible: "true", value: "CSV", id: "DAI03090Grid1_Download", disabled: true, shortcut: "F7",
                     onClick: function () {
                         //TODO: ダウンロード
-                    }
-                },
-                {visible: "false"},
-                {visible: "false"},
-                { visible: "true", value: "行削除", id: "DAI03090Grid1_DeleteRow", disabled: true, shortcut: "F3",
-                    onClick: function () {
-                        vue.deleteRow();
-                    }
-                },
-                {visible: "false"},
-                { visible: "true", value: "登録", id: "DAI03090Grid1_Save", disabled: false, shortcut: "F9",
-                    onClick: function () {
-                        vue.save();
                     }
                 },
                 {visible: "false"},
@@ -310,25 +328,6 @@ export default {
             //TODO
             // vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
             vue.viewModel.TargetDate = moment("20191212").format("YYYY年MM月DD日");
-
-            //watcher
-            vue.$watch(
-                "$refs.DAI03090Grid1.selectionRowCount",
-                cnt => {
-                    console.log("selectionRowCount watcher: " + cnt);
-                    vue.footerButtons.find(v => v.id == "DAI03090Grid1_DeleteRow").disabled = cnt == 0 || cnt > 1;
-                }
-            );
-        },
-        conditionChanged: function(force) {
-            var vue = this;
-            var grid = vue.DAI03090Grid1;
-
-            if (!grid || !vue.getLoginInfo().isLogOn) return;
-
-            if (!force && _.isEqual(grid.options.dataModel.postData, vue.searchParams)) return;
-
-            grid.searchData(vue.searchParams, false);
         },
         addFileCallback: function(event) {
             var vue = this;
@@ -343,108 +342,123 @@ export default {
             var grid = vue.DAI03090Grid1;
 
             if (!!res.result) {
-                var customers = res.customers
-                    .map(v => {
-                        v.得意先CD = !!v.得意先CD ? v.得意先CD * 1 : null;
-                        v.引落金額 = !!v.引落金額 ? v.引落金額 * 1 : null;
-                        v.入金額 = !!v.入金額 ? v.入金額 * 1 : null;
 
-                        return v;
-                    });
+                vue.Contents = _.cloneDeep(res.Contents);
+                vue.CompanyInfo = _.cloneDeep(res.Company);
+                vue.CustomerInfoArray = _.cloneDeep(res.Customers);
 
-                customers = _.sortBy(customers, v => v.部署CD);
-
-                grid.setLocalData(_.cloneDeep(customers));
+                vue.setLocalData(vue.CustomerInfoArray);
             } else {
+                vue.Contents = null;
+                vue.CompanyInfo = null;
+                vue.CustomerInfoArray = [];
+
+                grid.clearData();
+
+                vue.footerButtons.find(v => v.id == "DAI03090Grid1_Clear").disabled = true;
+                vue.footerButtons.find(v => v.id == "DAI03090Grid1_Save").disabled = true;
+                vue.footerButtons.find(v => v.id == "DAI03090Grid1_Printout").disabled = true;
+                vue.footerButtons.find(v => v.id == "DAI03090Grid1_Download").disabled = true;
+
                 $.dialogErr({
                     title: "アップロード失敗",
                     contents: res.message,
                 });
             }
         },
-        onAfterSearchFunc: function (vue, grid, res) {
+        setLocalData: function(data, keep) {
+            var vue = this;
+            var grid = vue.DAI03090Grid1;
+
+            var customers = data
+                .map(v => {
+                    v.部署 = !!v.部署CD ? (v.部署CD + ":" + v.部署名) : "部署無し";
+                    v.得意先CD = !!v.得意先CD ? v.得意先CD * 1 : null;
+                    v.引落金額 = !!v.引落金額 ? v.引落金額 * 1 : null;
+                    v.入金額 = !!v.入金額 ? v.入金額 * 1 : null;
+
+                    if (!!keep && !!v.得意先CD) {
+                        v.処理FLG = grid.prevData.find(r => r.得意先CD == v.得意先CD).処理FLG;
+                    }
+
+                    return v;
+                });
+
+            customers = _.sortBy(customers, v => v.部署CD);
+
+            vue.footerButtons.find(v => v.id == "DAI03090Grid1_Clear").disabled = !customers.length;
+            vue.footerButtons.find(v => v.id == "DAI03090Grid1_Printout").disabled = !customers.length;
+            vue.footerButtons.find(v => v.id == "DAI03090Grid1_Download").disabled = !customers.length;
+
+            grid.setLocalData(_.cloneDeep(customers));
+        },
+        onRefreshFunc: function(grid) {
             var vue = this;
 
-            return res;
-        },
-        onCompleteFunc: function(grid, ui) {
-            var vue = this;
+            vue.footerButtons.find(v => v.id == "DAI03090Grid1_Save").disabled = !grid.pdata.some(v => !!v.処理FLG);
         },
         save: function() {
             var vue = this;
             var grid = vue.DAI03090Grid1;
 
-            var hasError = !!$(vue.$el).find(".has-error").length || !!grid.widget().find(".ui-state-error").length;
+            var tekiyo = Moji(moment(vue.searchParams.TargetDate).format("M")).convert("HE", "ZE").toString() + "月分入金";
+            var date = moment(vue.searchParams.TargetDate).endOf("month").format("YYYYMMDD");
+            var now = moment().format("YYYY-MM-DD HH:mm:ss");
 
-            if(hasError){
-                $.dialogErr({
-                    title: "入力値エラー",
-                    contents: "エラー項目があるため、登録できません。",
+            var SaveList = grid.pdata.filter(v => !!v.処理FLG)
+                .map(r => {
+                    var v = {};
+
+                    v.入金日付 = vue.searchParams.TargetDate;
+                    v.伝票Ｎｏ = null;
+                    v.部署ＣＤ = r.部署CD;
+                    v.得意先ＣＤ = r.得意先CD;
+                    v.入金区分 = 3;
+                    v.現金 = 0;
+                    v.小切手 = 0;
+                    v.振込 = 0;
+                    v.バークレー = r.引落金額;
+                    v.その他 = 0;
+                    v.相殺 = 0;
+                    v.値引 = 0;
+                    v.摘要 = tekiyo;
+                    v.備考 = "一括入金";
+                    v.請求日付 = date;
+                    v.予備金額１ = 0;
+                    v.予備金額２ = 0;
+                    v.予備ＣＤ１ = 0;
+                    v.予備ＣＤ２ = 0;
+                    v.修正日 = now;
+                    v.修正担当者ＣＤ = 9998;    //vue.getLoginInfo().uid;
+
+                    return v;
                 });
-                return;
-            }
 
-            var SaveList = _.cloneDeep(grid.createSaveParams());
-
-            _.forIn(SaveList,
-                (v, k) => {
-                    var list = v.filter(r => {
-                        return r.商品ＣＤ != null && r.商品ＣＤ != undefined　&& r.商品ＣＤ != "";
-                    })
-                    .map(r => {
-                        r.部署ＣＤ = vue.viewModel.BushoCd;
-
-                        r.販売期間開始 = !!r.販売期間開始
-                            ? moment(r.販売期間開始, "YYYY/MM/DD").format("YYYY-MM-DD HH:mm:ss.SSS")
-                            : null;
-                        r.販売期間終了 = !!r.販売期間終了
-                            ? moment(r.販売期間終了, "YYYY/MM/DD").format("YYYY-MM-DD HH:mm:ss.SSS")
-                            : null;
-
-                        r.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
-                        delete r.商品区分;
-                        delete r.商品名;
-                        delete r.主要商品;
-                        delete r.特別商品;
-                        delete r.sortIndx;
-                        return r;
-                    })
-                    ;
-                    SaveList[k] = list;
-                }
-            );
-
-            if (_.values(SaveList).every(v => !v.length)) {
-                //変更無し
-                $.dialogInfo({
-                    title: "変更無し",
-                    contents: "データが変更されていません。",
-                });
-                return;
-            }
+            grid.prevData = _.cloneDeep(grid.pdata);
 
             //保存実行
-            var params = {SaveList: SaveList, CustomerCd: vue.viewModel.CustomerCd};
+            var params = { SaveList: SaveList, Contents: vue.Contents };
             params.noCache = true;
 
-            //登録中ダイアログ
-            var progressDlg = $.dialogProgress({
-                contents: "<i class='fa fa-spinner fa-spin' style='font-size: 24px; margin-right: 5px;'></i> 登録中…",
-            });
+            grid.saveData(
+                {
+                    uri: "/DAI03090/Save",
+                    params: params,
+                    optional: vue.searchParams,
+                    confirm: {
+                        isShow: false,
+                    },
+                    done: {
+                        isShow: false,
+                        callback: (gridVue, grid, res)=>{
+                            grid.commit();
+                            vue.setLocalData(_.cloneDeep(res.Customers), true);
 
-            axios.post("/DAI03090/Save", params)
-                .then(res => {
-                    progressDlg.dialog("close");
-                    grid.refreshDataAndView();
-                })
-                .catch(err => {
-                    progressDlg.dialog("close");
-                    console.log(err);
-                    $.dialogErr({
-                        title: "異常終了",
-                        contents: "登録に失敗しました<br/>",
-                    });
-                });
+                            return false;
+                        },
+                    },
+                }
+            );
         },
         print: function() {
             var vue = this;
