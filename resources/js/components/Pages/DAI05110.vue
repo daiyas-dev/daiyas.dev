@@ -273,6 +273,7 @@ export default {
                         title: "営業担当者",
                         dataIndx: "ＧＫ営業担当者", dataType: "string",
                         width: 90, minWidth: 90, maxWidth: 90,
+                        hidden: true,
                         fixed: true,
                         render: ui => {
                             if (ui.rowData.pq_level != 0) {
@@ -285,6 +286,7 @@ export default {
                         title: "獲得営業者",
                         dataIndx: "ＧＫ獲得営業者", dataType: "string",
                         width: 90, minWidth: 90, maxWidth: 90,
+                        hidden: true,
                         fixed: true,
                         render: ui => {
                             switch (ui.rowData.pq_level) {
@@ -716,22 +718,32 @@ export default {
                     <table class="header-table" style="border-width: 0px">
                         <thead>
                             <tr>
-                                <th>営業担当者</th>
-                                <th>${eigyoNmKey1}</th>
-                                <th class="blank-cell"></th>
-                                <th>獲得営業担当者</th>
-                                <th>${eigyoNmKey2}</th>
-                                <th class="blank-cell"></th>
+                                <th style="width: 24%;" class="blank-cell"></th>
+                                <th style="width: 10%;">集計範囲</th>
+                                <th style="width: 9%;">（${vue.viewModel.DateStart}</th>
+                                <th style="width: 3%;">～</th>
+                                <th style="width: 9%;">${vue.viewModel.DateEnd}）</th>
+                                <th style="width: 19%;" colspan="2" style="font-weight: bold;">[営業売上金額]</th>
+                                <th style="width: 8%;" class="blank-cell"></th>
+                                <th style="width: 7%; text-align: right;">${idx + 1}/${length}</th>
                             </tr>
                             <tr>
-                                <th>${vue.viewModel.DateStart}</th>
-                                <th>～</th>
-                                <th>${vue.viewModel.DateEnd}</th>
                                 <th class="blank-cell"></th>
-                                <th>作成日</th>
-                                <th>${moment().format("YYYY年MM月DD日")}</th>
-                                <th>PAGE</th>
-                                <th style="text-align: right;">${idx + 1}</th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th colspan="2">作成日： ${moment().format("YYYY/MM/DD HH:MM")}</th>
+                            </tr>
+                            <tr>
+                                <th>部署名ＸＸＸ</th>
+                                <th>営業担当者：</th>
+                                <th colspan="3">${eigyoNmKey1}</th>
+                                <th>獲得営業担当者：</th>
+                                <th>${eigyoNmKey2}</th>
+                                <th colspan="2" class="blank-cell"></th>
                             </tr>
                         </thead>
                     </table>
@@ -782,16 +794,10 @@ export default {
                     text-align: left;
                 }
                 table.DAI05110Grid1 tr th:nth-child(1) {
-                    width: 4.5%;
+                    width: 5%;
                 }
-                table.DAI05110Grid1 tr th:nth-child(3) {
-                    width: 4.5%;
-                }
-                table.DAI05110Grid1 tr th:nth-child(n+4):nth-child(-n+12) {
-                    width: 6%;
-                }
-                table.DAI05110Grid1 tr th:nth-child(13) {
-                    width: 7%;
+                table.DAI05110Grid1 tr th:nth-child(2) {
+                    width: 15%;
                 }
             `;
 
@@ -815,7 +821,7 @@ export default {
 
             var printOptions = {
                 type: "raw-html",
-                style: "@media print { @page { size: A4 portrait; } }",
+                style: "@media print { @page { size: A4 landscape; } }",
                 printable: printable,
             };
 
