@@ -759,7 +759,7 @@ export default {
                         eigyoNmKey2 = header.children[0].children[0].ＧＫ獲得営業者.split(" ")[1];
                         bushoNm = header.children[0].children[0].部署名;
                     }
-                    if (header.pq_level == 1)
+                    if (header.pq_level == 2)
                     {
                         eigyoNmKey2 = header.ＧＫ獲得営業者.split(" ")[1];
                         bushoNm = header.children[0].部署名;
@@ -921,8 +921,12 @@ export default {
                 true,
             );
 
+            //TODO:総合計行をグループ毎の最後に追加
             var grsRow = contents.find(".grand-summary");
-            contents.find("table.DAI05100Grid1 > tbody").append(grsRow);
+            if (vue.viewModel.BushoOption != 0) {
+                //contents.find("table.DAI05100Grid1 > tbody").append(grsRow);
+                contents.find('table.DAI05100Grid1 > tbody > tr[level="1"].group-summary').append(grsRow);
+            }
 
             var printable = $("<html>")
                 .append($("<head>").append($("<style>").text(globalStyles)))
