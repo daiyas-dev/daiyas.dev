@@ -288,12 +288,23 @@ export default {
                         hidden: true,
                         fixed: true,
                         render: ui => {
+                            //TODO:キー2つ
                             // if (ui.rowData.pq_level != 0) {
                             //     return { text: "" };
                             // }
-                            if (ui.rowData.pq_level != 1) {
-                                return { text: "" };
+                            if (vue.viewModel.BushoOption == 0){
+                                if (ui.rowData.pq_level != 0) {
+                                    return { text: "" };
+                                }
+                            } else {
+                                if (ui.rowData.pq_level != 1) {
+                                    return { text: "" };
+                                }
                             }
+                            //TODO:キー3つ
+                            // if (ui.rowData.pq_level != 1) {
+                            //     return { text: "" };
+                            // }
                             return ui;
                         },
                     },
@@ -304,20 +315,46 @@ export default {
                         hidden: true,
                         fixed: true,
                         render: ui => {
-                            switch (ui.rowData.pq_level) {
-                                // case 0:
-                                //     return { text: "" };
-                                // case 1:
-                                //     return ui;
-                                case 0:
-                                    return { text: "" };
-                                case 1:
-                                    return ui;
-                                case 2:
-                                    return ui;
-                                default:
-                                    return { text: "" };
+                            if (vue.viewModel.BushoOption == 0){
+                                switch (ui.rowData.pq_level) {
+                                    case 0:
+                                        return { text: "" };
+                                    case 1:
+                                        return ui;
+                                    default:
+                                        return { text: "" };
+                                }
+                            } else {
+                                switch (ui.rowData.pq_level) {
+                                    case 0:
+                                        return { text: "" };
+                                    case 1:
+                                        return ui;
+                                    case 2:
+                                        return ui;
+
+                                    default:
+                                        return { text: "" };
+                                }
                             }
+                            // switch (ui.rowData.pq_level) {
+                            //     //TODOキー2つ
+                            //     // case 0:
+                            //     //     return { text: "" };
+                            //     // case 1:
+                            //     //     return ui;
+
+                            //     //TODOキー3つ
+                            //     // case 0:
+                            //     //     return { text: "" };
+                            //     // case 1:
+                            //     //     return ui;
+                            //     // case 2:
+                            //     //     return ui;
+
+                            //     default:
+                            //         return { text: "" };
+                            // }
                         },
                     },
                     {
@@ -344,18 +381,39 @@ export default {
                                 return { text: "** 総合計 **" };
                             }
                             if (!!ui.rowData.pq_gsummary) {
-                                switch (ui.rowData.pq_level) {
-                                    // case 0:
-                                    //     return { text: "** 営業担当合計 **" };
-                                    // case 1:
-                                    //     return { text: "** 合計 **" };
-                                    case 1:
-                                        return { text: "** 営業担当合計 **" };
-                                    case 2:
-                                        return { text: "** 合計 **" };
-                                    default:
-                                        return { text: "" };
+                                if (vue.viewModel.BushoOption == 0){
+                                    switch (ui.rowData.pq_level) {
+                                        case 0:
+                                            return { text: "** 営業担当合計 **" };
+                                        case 1:
+                                            return { text: "** 合計 **" };
+                                        default:
+                                            return { text: "" };
+                                    }
+                                } else {
+                                    switch (ui.rowData.pq_level) {
+                                        case 1:
+                                            return { text: "** 営業担当合計 **" };
+                                        case 2:
+                                            return { text: "** 合計 **" };
+                                        default:
+                                            return { text: "" };
+                                    }
                                 }
+                                // switch (ui.rowData.pq_level) {
+                                //     //TODOキー2つ
+                                //     // case 0:
+                                //     //     return { text: "** 営業担当合計 **" };
+                                //     // case 1:
+                                //     //     return { text: "** 合計 **" };
+                                //     //TODOキー3つ
+                                //     case 1:
+                                //         return { text: "** 営業担当合計 **" };
+                                //     case 2:
+                                //         return { text: "** 合計 **" };
+                                //     default:
+                                //         return { text: "" };
+                                // }
                             }
                             return { text:ui };
                         },
@@ -401,16 +459,33 @@ export default {
                                     return { text: eatAvgFmt };
                                 }
                                 if (!!ui.rowData.pq_gsummary) {
-                                    switch (ui.rowData.pq_level) {
-                                        // case 0:
-                                        //     return { text: eatAvgFmt };
-                                        // case 1:
-                                        //     return { text: eatAvgFmt };
-                                        case 1:
-                                            return { text: eatAvgFmt };
-                                        case 2:
-                                            return { text: eatAvgFmt };
+                                    if (vue.viewModel.BushoOption == 0) {
+                                        switch (ui.rowData.pq_level) {
+                                            case 0:
+                                                return { text: eatAvgFmt };
+                                            case 1:
+                                                return { text: eatAvgFmt };
+                                        }
+                                    } else {
+                                        switch (ui.rowData.pq_level) {
+                                            case 1:
+                                                return { text: eatAvgFmt };
+                                            case 2:
+                                                return { text: eatAvgFmt };
+                                        }
                                     }
+                                    // switch (ui.rowData.pq_level) {
+                                    //     //TODOキー2つ
+                                    //     // case 0:
+                                    //     //     return { text: eatAvgFmt };
+                                    //     // case 1:
+                                    //     //     return { text: eatAvgFmt };
+                                    //     //TODOキー3つ
+                                    //     case 1:
+                                    //         return { text: eatAvgFmt };
+                                    //     case 2:
+                                    //         return { text: eatAvgFmt };
+                                    // }
                                 }
                             }
 
@@ -473,6 +548,14 @@ export default {
         },
         onBushoOptionChanged: function(code, entities) {
             var vue = this;
+
+            //TODO:西山　グループキー切替
+            var grid = vue.DAI05100Grid1;
+            if (vue.viewModel.BushoOption == 0){
+                grid.Group().option({ "dataIndx": ["ＧＫ営業担当者", "ＧＫ獲得営業者"]});
+            } else {
+                grid.Group().option({ "dataIndx": ["部署名", "ＧＫ営業担当者", "ＧＫ獲得営業者"]});
+            }
 
             //条件変更ハンドラ
             vue.conditionChanged();
@@ -643,6 +726,39 @@ export default {
             var eigyoNmKey2;
             var bushoNm;
             var headerFunc = (header, idx, length) => {
+
+                if (vue.viewModel.BushoOption == 0) {
+                    if (header.pq_level == 0)
+                    {
+                        eigyoNmKey1 = header.ＧＫ営業担当者.split(" ")[1];
+                        eigyoNmKey2 = eigyoNmKey1;
+                        bushoNm = header.children[0].children[0].部署名;
+                    }
+                    if (header.pq_level == 1)
+                    {
+                        eigyoNmKey2 = header.ＧＫ獲得営業者.split(" ")[1];
+                        bushoNm = header.children[0].部署名;
+                    }
+                } else {
+                    if (header.pq_level == 0)
+                    {
+                        eigyoNmKey1 = header.children[0].children[0].children[0].ＧＫ営業担当者.split(" ")[1];
+                        eigyoNmKey2 = eigyoNmKey1;
+                        bushoNm = header.children[0].children[0].children[0].部署名;
+                    }
+                    if (header.pq_level == 1)
+                    {
+                        eigyoNmKey2 = header.children[0].children[0].ＧＫ獲得営業者.split(" ")[1];
+                        bushoNm = header.children[0].children[0].部署名;
+                    }
+                    if (header.pq_level == 1)
+                    {
+                        eigyoNmKey2 = header.ＧＫ獲得営業者.split(" ")[1];
+                        bushoNm = header.children[0].部署名;
+                    }
+                }
+
+                //TODOキー2つ
                 // if (header.pq_level == 0)
                 // {
                 //     eigyoNmKey1 = header.ＧＫ営業担当者.split(" ")[1];
@@ -654,22 +770,23 @@ export default {
                 //     eigyoNmKey2 = header.ＧＫ獲得営業者.split(" ")[1];
                 //     bushoNm = header.children[0].部署名;
                 // }
-                if (header.pq_level == 0)
-                {
-                    eigyoNmKey1 = header.children[0].children[0].children[0].ＧＫ営業担当者.split(" ")[1];
-                    eigyoNmKey2 = eigyoNmKey1;
-                    bushoNm = header.children[0].children[0].children[0].部署名;
-                }
-                if (header.pq_level == 1)
-                {
-                    eigyoNmKey2 = header.children[0].children[0].ＧＫ獲得営業者.split(" ")[1];
-                    bushoNm = header.children[0].children[0].部署名;
-                }
-                if (header.pq_level == 1)
-                {
-                    eigyoNmKey2 = header.ＧＫ獲得営業者.split(" ")[1];
-                    bushoNm = header.children[0].部署名;
-                }
+                //TODOキー3つ
+                // if (header.pq_level == 0)
+                // {
+                //     eigyoNmKey1 = header.children[0].children[0].children[0].ＧＫ営業担当者.split(" ")[1];
+                //     eigyoNmKey2 = eigyoNmKey1;
+                //     bushoNm = header.children[0].children[0].children[0].部署名;
+                // }
+                // if (header.pq_level == 1)
+                // {
+                //     eigyoNmKey2 = header.children[0].children[0].ＧＫ獲得営業者.split(" ")[1];
+                //     bushoNm = header.children[0].children[0].部署名;
+                // }
+                // if (header.pq_level == 1)
+                // {
+                //     eigyoNmKey2 = header.ＧＫ獲得営業者.split(" ")[1];
+                //     bushoNm = header.children[0].部署名;
+                // }
                 return `
                     <div class="title">
                         <h2>* * * 顧客売上表 * * *</h2>
