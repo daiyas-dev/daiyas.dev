@@ -100,6 +100,8 @@
                     :inputWidth=100
                     :nameWidth=300
                     :isTrim=true
+                    :onAfterChangedFunc=onSearchTantoCdChanged
+
                 />
             </div>
         </div>
@@ -156,7 +158,6 @@ export default {
                 SearchType: null,
                 SearchTantoType: null,
                 TantoCd:null,
-                ColHeader : [],
             },
             DAI05120Grid1: null,
             grid1Options: {
@@ -176,23 +177,23 @@ export default {
                     sortable: false,
                 },
                 filterModel: {
-                    on: false,
+                    on: true,
                     mode: "AND",
                     header: false,
                     menuIcon: false,
                     hideRows: false,
                 },
                 sortModel: {
-                    on: false,
+                    on: true,
                     cancel: false,
                     type: "remote",
                 },
                 groupModel: {
-                    on: false,
+                    on: true,
                     header: false,
                     grandSummary: true,
                     indent: 10,
-                    dataIndx: ["部署ＣＤ"],
+                    dataIndx: [],
                     showSummary: [true],
                     collapsed: [false],
                     summaryInTitleRow: "collapsed",
@@ -203,22 +204,48 @@ export default {
                 ],
                 colModel: [
                     {
+                        title: "GroupKey1",
+                        dataIndx: "GroupKey1", dataType: "string",
+                        fixed: true,
+                        hidden:true,
+                    },
+                    {
                         title: "部署ＣＤ",
                         dataIndx: "部署ＣＤ", dataType: "string",
-                        width: 75, minWidth: 75, maxWidth: 75,
                         fixed: true,
+                        hidden:true,
                     },
                     {
                         title: "部署名",
                         dataIndx: "部署名", dataType: "string",
-                        width: 75, minWidth: 75, maxWidth: 75,
+                        width: 95, minWidth: 95, maxWidth: 95,
                         fixed: true,
+                        render: ui => {
+                            if (!!ui.rowData.pq_grandsummary) {
+                                return { text: "合計" };
+                            }
+                            if (!!ui.rowData.pq_gsummary) {
+                                return { text: ui.rowData.parentId + "　合計" };
+                            }
+                            return ui;
+                        },
                     },
                     {
                         title: "対象月",
                         dataIndx: "年月", dataType: "string",
-                        width: 75, minWidth: 75, maxWidth: 75,
+                        width: 95, minWidth: 95, maxWidth: 95,
                         fixed: true,
+                        render: ui => {
+                            if (!ui.rowData.pq_grandsummary && !ui.rowData.pq_gtitle) {
+                                if (!!ui.rowData[ui.dataIndx]) {
+                                    var year_month=ui.rowData[ui.dataIndx];
+                                    var str_year=year_month.substr(0,4) + "年";
+                                    var str_month=year_month.substr(4,2) + "月";
+                                    return {text: str_year + str_month};
+                                }
+                            }
+                            return ui;
+                        },
                     },
                 ],
             },
@@ -226,39 +253,27 @@ export default {
                     {
                         title: "既存客・食数",
                         dataIndx: "既存_売上個数", dataType: "integer", format: "#,###",
-                        width: 75, minWidth: 75, maxWidth: 75,
-                        summary: {
-                            type: "TotalInt",
-                        },
+                        width: 110, minWidth: 110, maxWidth: 110,
                     },
                     {
                         title: "既存客・金額",
                         dataIndx: "既存_売上金額", dataType: "integer", format: "#,###",
-                        width: 75, minWidth: 75, maxWidth: 75,
-                        summary: {
-                            type: "TotalInt",
-                        },
+                        width: 110, minWidth: 110, maxWidth: 110,
                     },
                     {
                         title: "新規客・食数",
                         dataIndx: "新規_売上個数", dataType: "integer", format: "#,###",
-                        width: 75, minWidth: 75, maxWidth: 75,
-                        summary: {
-                            type: "TotalInt",
-                        },
+                        width: 110, minWidth: 110, maxWidth: 110,
                     },
                     {
                         title: "新規客・金額",
                         dataIndx: "新規_売上金額", dataType: "integer", format: "#,###",
-                        width: 75, minWidth: 75, maxWidth: 75,
-                        summary: {
-                            type: "TotalInt",
-                        },
+                        width: 110, minWidth: 110, maxWidth: 110,
                     },
                     {
                         title: "食数合計",
                         dataIndx: "食数合計", dataType: "integer", format: "#,###",
-                        width: 75, minWidth: 75, maxWidth: 75,
+                        width: 110, minWidth: 110, maxWidth: 110,
                         summary: {
                             type: "TotalInt",
                         },
@@ -266,7 +281,7 @@ export default {
                     {
                         title: "金額合計",
                         dataIndx: "金額合計", dataType: "integer", format: "#,###",
-                        width: 75, minWidth: 75, maxWidth: 75,
+                        width: 110, minWidth: 110, maxWidth: 110,
                         summary: {
                             type: "TotalInt",
                         },
@@ -276,49 +291,38 @@ export default {
                     {
                         title: "営業担当ＣＤ",
                         dataIndx: "営業担当者ＣＤ", dataType: "string",
-                        width: 75, minWidth: 75, maxWidth: 75,
+                        width: 110, minWidth: 110, maxWidth: 110,
                     },
                     {
                         title: "営業担当",
                         dataIndx: "営業担当者名", dataType: "string",
-                        width: 75, minWidth: 75, maxWidth: 75,
+                        width: 110, minWidth: 110, maxWidth: 110,
+                        tooltip: true,
                     },
                     {
                         title: "既存客・食数",
                         dataIndx: "既存_売上個数", dataType: "integer", format: "#,###",
-                        width: 75, minWidth: 75, maxWidth: 75,
-                        summary: {
-                            type: "TotalInt",
-                        },
+                        width: 110, minWidth: 110, maxWidth: 110,
                     },
                     {
                         title: "既存客・金額",
                         dataIndx: "既存_売上金額", dataType: "integer", format: "#,###",
-                        width: 75, minWidth: 75, maxWidth: 75,
-                        summary: {
-                            type: "TotalInt",
-                        },
+                        width: 110, minWidth: 110, maxWidth: 110,
                     },
                     {
                         title: "新規客・食数",
                         dataIndx: "新規_売上個数", dataType: "integer", format: "#,###",
-                        width: 75, minWidth: 75, maxWidth: 75,
-                        summary: {
-                            type: "TotalInt",
-                        },
+                        width: 110, minWidth: 110, maxWidth: 110,
                     },
                     {
                         title: "新規客・金額",
                         dataIndx: "新規_売上金額", dataType: "integer", format: "#,###",
-                        width: 75, minWidth: 75, maxWidth: 75,
-                        summary: {
-                            type: "TotalInt",
-                        },
+                        width: 110, minWidth: 110, maxWidth: 110,
                     },
                     {
                         title: "食数合計",
                         dataIndx: "食数合計", dataType: "integer", format: "#,###",
-                        width: 75, minWidth: 75, maxWidth: 75,
+                        width: 110, minWidth: 110, maxWidth: 110,
                         summary: {
                             type: "TotalInt",
                         },
@@ -326,7 +330,7 @@ export default {
                     {
                         title: "金額合計",
                         dataIndx: "金額合計", dataType: "integer", format: "#,###",
-                        width: 75, minWidth: 75, maxWidth: 75,
+                        width: 110, minWidth: 110, maxWidth: 110,
                         summary: {
                             type: "TotalInt",
                         },
@@ -336,28 +340,23 @@ export default {
                     {
                         title: "顧客コード",
                         dataIndx: "得意先ＣＤ", dataType: "string",
-                        width: 75, minWidth: 75, maxWidth: 75,
+                        width: 95, minWidth: 95, maxWidth: 95,
                     },
                     {
                         title: "顧客名",
                         dataIndx: "得意先名", dataType: "string",
-                        width: 75, minWidth: 75, maxWidth: 75,
+                        width: 130, minWidth: 130, maxWidth: 130,
+                        tooltip: true,
                     },
                     {
                         title: "食数",
                         dataIndx: "売上個数", dataType: "integer", format: "#,###",
-                        width: 75, minWidth: 75, maxWidth: 75,
-                        summary: {
-                            type: "TotalInt",
-                        },
+                        width: 110, minWidth: 110, maxWidth: 110,
                     },
                     {
                         title: "金額",
                         dataIndx: "売上金額", dataType: "integer", format: "#,###",
-                        width: 75, minWidth: 75, maxWidth: 75,
-                        summary: {
-                            type: "TotalInt",
-                        },
+                        width: 110, minWidth: 110, maxWidth: 110,
                     },
                     {
                         title: "新規区分",
@@ -414,6 +413,11 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
+        onSearchTantoCdChanged: function(code, entities) {
+            var vue = this;
+            //条件変更ハンドラ
+            vue.conditionChanged();
+        },
         onDateChanged: function(code, entity) {
             var vue = this;
             //条件変更ハンドラ
@@ -436,18 +440,34 @@ export default {
 
             vue.footerButtons.find(v => v.id == "DAI05120Grid1_CSV").disabled = !res.length;
 
-            //列定義更新
+            //列定義・集計定義更新
             grid.options.colModel = grid.options.colModel.filter(c => !!c.fixed);
             if(vue.viewModel.SearchType=="1"){
                 grid.options.colModel.push(...vue.colModelBushoBetsu);
+                grid.Group().option({"grandSummary": true});
             }
             else if(vue.viewModel.SearchType=="2"){
                 grid.options.colModel.push(...vue.colModelEigyoBetsu);
+                grid.Group().option({"grandSummary": false});
             }
             else if(vue.viewModel.SearchType=="3"){
                 grid.options.colModel.push(...vue.colModelKokyakuBetsu);
+                grid.Group().option({"grandSummary": false});
             }
             grid.refreshCM();
+
+            //Grouping再設定
+            var keys = [];
+            if(vue.viewModel.SearchType=="2"){
+                _.map(res,r=>{
+                    r.GroupKey1 = r.営業担当者名;
+                });
+
+                keys.push("GroupKey1");
+            }
+            grid.Group().option({"dataIndx": keys});
+            grid.refreshCM();
+
             return res;
         },
         setNavigator: function(evt, ui) {
