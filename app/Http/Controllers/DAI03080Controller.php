@@ -253,7 +253,10 @@ class DAI03080Controller extends Controller
         $DataListMarge=array();
         //書式定義ファイルより、引落支店番号、口座番号の文字長を取得する
         foreach ($format->record as $FormatRow) {
-            if ($FormatRow['id']=='HikiotoshiShitenBankCd') {
+            if ($FormatRow['id']=='HikiotoshiBankCd') {
+                $LenGinkoNo=$FormatRow['character'];
+            }
+            elseif ($FormatRow['id']=='HikiotoshiShitenBankCd') {
                 $LenSitenNo=$FormatRow['character'];
             }
             elseif ($FormatRow['id']=='KozaNumber') {
@@ -261,9 +264,11 @@ class DAI03080Controller extends Controller
             }
         }
 
-        foreach($DataList as $DataListKey=>$DataListRow)
+        foreach($DataList as $DataListRow)
         {
-            $key=str_pad($DataListRow['引落支店番号'], (int)$LenSitenNo, "0", STR_PAD_LEFT) . str_pad($DataListRow['口座番号'], (int)$LenKouzaNo, "0", STR_PAD_LEFT);
+            $key = str_pad($DataListRow['引落銀行番号'], (int)$LenGinkoNo, "0", STR_PAD_LEFT)
+                 . str_pad($DataListRow['引落支店番号'], (int)$LenSitenNo, "0", STR_PAD_LEFT)
+                 . str_pad($DataListRow['口座番号'], (int)$LenKouzaNo, "0", STR_PAD_LEFT);
             if(array_key_exists($key,$DataListMarge)){
                 $DataListMarge[$key]['今回請求額'] += $DataListRow['今回請求額'];
             }
