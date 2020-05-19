@@ -9,9 +9,10 @@
                     class="UploadFile droppable d-flex align-items-center w-100 h-100 pl-2"
                     style="cursor: pointer;"
                     data-empty-text="対象ファイルをドロップ、もしくはここをクリックして選択"
-                    data-path-text="xxx"
+                    data-path-text=""
                     data-url="/DAI03090/UploadFile"
                     data-addedfile-callback="addFileCallback"
+                    data-sending-callback="sendingCallback"
                     data-upload-callback="uploadFileCallback"
                 >
                 </div>
@@ -72,8 +73,8 @@ export default {
         searchParams: function() {
             var vue = this;
             return {
-                BushoCd: vue.viewModel.BushoCd,
-            }
+                TargetDate: moment(vue.viewModel.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD"),
+            };
         },
         hasSelectionRow: function() {
             var vue = this;
@@ -100,7 +101,6 @@ export default {
                 fillHandle: "",
                 numberCell: { show: true, title: "No.", resizable: false, },
                 autoRow: false,
-                rowHtHead: 50,
                 editable: false,
                 columnTemplate: {
                     editable: false,
@@ -148,30 +148,33 @@ export default {
                         hidden: true,
                     },
                     {
-                        title: "部署ＣＤ",
-                        dataIndx: "部署ＣＤ", dataType: "integer",
+                        title: "部署CD",
+                        dataIndx: "部署CD", dataType: "integer",
                         hidden: true,
                     },
                     {
                         title: "部署名",
                         dataIndx: "部署名",
                         dataType: "string",
-                        width: 150, maxWidth: 150, minWidth: 150,
+                        width: 125, maxWidth: 125, minWidth: 125,
                     },
                     {
-                        title: "得意先ＣＤ",
-                        dataIndx: "得意先ＣＤ", dataType: "integer",
-                        width: 100, maxWidth: 100, minWidth: 100,
+                        title: "得意先CD",
+                        dataIndx: "得意先CD", dataType: "integer",
+                        width: 75, maxWidth: 75, minWidth: 75,
                     },
                     {
                         title: "得意先名",
                         dataIndx: "得意先名",
                         dataType: "string",
-                        width: 200, maxWidth: 200, minWidth: 200,
+                        width: 200, minWidth: 200,
+                        tooltip: true,
                     },
                     {
-                        title: "金融機関ＣＤ",
-                        dataIndx: "金融機関ＣＤ", dataType: "integer",
+                        title: "金融機関CD",
+                        dataIndx: "金融機関CD",
+                        dataType: "string",
+                        align: "center",
                         hidden: true,
                     },
                     {
@@ -181,8 +184,10 @@ export default {
                         width: 150, maxWidth: 150, minWidth: 150,
                     },
                     {
-                        title: "金融機関支店ＣＤ",
-                        dataIndx: "金融機関支店ＣＤ", dataType: "integer",
+                        title: "金融機関支店CD",
+                        dataIndx: "金融機関支店CD",
+                        dataType: "string",
+                        align: "center",
                         hidden: true,
                     },
                     {
@@ -192,36 +197,43 @@ export default {
                         width: 150, maxWidth: 150, minWidth: 150,
                     },
                     {
-                        title: "種別",
-                        dataIndx: "種別",
+                        title: "口座種別",
+                        dataIndx: "口座種別",
                         dataType: "integer",
                         hidden: true,
                     },
                     {
                         title: "種別",
-                        dataIndx: "種別名",
+                        dataIndx: "口座種別名",
                         dataType: "string",
                         width: 50, maxWidth: 50, minWidth: 50,
+                    },
+                    {
+                        title: "口座",
+                        dataIndx: "口座番号",
+                        dataType: "string",
+                        align: "center",
+                        width: 75, maxWidth: 75, minWidth: 75,
                     },
                     {
                         title: "引落金額",
                         dataIndx: "引落金額",
                         dataType: "integer",
                         format: "#,##0",
-                        width: 100, maxWidth: 100, minWidth: 100,
+                        width: 75, maxWidth: 75, minWidth: 75,
                     },
                     {
                         title: "入金額",
                         dataIndx: "入金額",
                         dataType: "integer",
                         format: "#,##0",
-                        width: 100, maxWidth: 100, minWidth: 100,
+                        width: 75, maxWidth: 75, minWidth: 75,
                     },
                     {
                         title: "エラー",
                         dataIndx: "エラー",
                         dataType: "string",
-                        width: 50, maxWidth: 50, minWidth: 50,
+                        width: 75, maxWidth: 75, minWidth: 75,
                     },
                     {
                         title: "処理",
@@ -320,14 +332,29 @@ export default {
         },
         addFileCallback: function(event) {
             var vue = this;
-            console.log("3090 addFileFileCallback", event);
             $(vue.$el).find(".UploadFile").attr("data-path-text", event.name);
+        },
+        sendingCallback: function(event, xhr, formData) {
+            var vue = this;
+            formData.append("TargetDate", vue.searchParams.TargetDate);
         },
         uploadFileCallback: function(res) {
             var vue = this;
+            var grid = vue.DAI03090Grid1;
 
             if (!!res.result) {
-                console.log("3090 uploadCallback", res)
+                var customers = res.customers
+                    .map(v => {
+                        v.得意先CD = !!v.得意先CD ? v.得意先CD * 1 : null;
+                        v.引落金額 = !!v.引落金額 ? v.引落金額 * 1 : null;
+                        v.入金額 = !!v.入金額 ? v.入金額 * 1 : null;
+
+                        return v;
+                    });
+
+                customers = _.sortBy(customers, v => v.部署CD);
+
+                grid.setLocalData(_.cloneDeep(customers));
             } else {
                 $.dialogErr({
                     title: "アップロード失敗",
@@ -418,6 +445,165 @@ export default {
                         contents: "登録に失敗しました<br/>",
                     });
                 });
+        },
+        print: function() {
+            var vue = this;
+
+            //印刷用HTML全体適用CSS
+            var globalStyles = `
+                body {
+                    -webkit-print-color-adjust: exact;
+                }
+                div.title {
+                    width: 100%;
+                    display: flex;
+                    justify-content: center;
+                }
+                div.title > h3 {
+                    margin-top: 0px;
+                    margin-bottom: 0px;
+                }
+                table {
+                    table-layout: fixed;
+                    margin-left: 0px;
+                    margin-right: 0px;
+                    width: 100%;
+                    border-spacing: unset;
+                    border: solid 0px black;
+                }
+                th, td {
+                    font-family: "MS UI Gothic";
+                    font-size: 9pt;
+                    font-weight: normal;
+                    margin: 0px;
+                    padding-left: 3px;
+                    padding-right: 3px;
+                }
+                th {
+                    height: 30px;
+                    text-align: center;
+                }
+                td {
+                    height: 17px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                }
+            `;
+
+            var headerFunc = (chunk, idx, length) => {
+                return `
+                    <div class="title">
+                        <h3>* * * 売上明細表 * * *</h3>
+                    </div>
+                    <table class="header-table" style="border-width: 0px">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">${vue.viewModel.BushoCd}:${vue.viewModel.BushoNm}</th>
+                                <th style="width: 46%;"></th>
+                                <th style="width: 10%;">作成日</th>
+                                <th style="width: 15%;">${moment().format("YYYY年MM月DD日")}</th>
+                                <th style="width: 8%;">PAGE</th>
+                                <th style="width: 6%; text-align: right;">${idx + 1}/${length}</th>
+                            </tr>
+                        </thead>
+                    </table>
+                `;
+            };
+
+            var printable = $("<html>")
+                .append($("<head>").append($("<style>").text(globalStyles)))
+                .append(
+                    $("<body>")
+                        .append(
+                            vue.DAI03090Grid1.generateHtml(
+                                `
+                                    table.DAI03090Grid1 tr:nth-child(1) th {
+                                        border-style: solid;
+                                        border-left-width: 0px;
+                                        border-top-width: 1px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 1px;
+                                    }
+                                    table.DAI03090Grid1 tr.grand-summary td {
+                                        border-style: solid;
+                                        border-left-width: 0px;
+                                        border-top-width: 1px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 1px;
+                                    }
+                                    table.DAI03090Grid1 tr th:nth-child(1) {
+                                        width: 8.5%;
+                                    }
+
+                                    table.DAI03090Grid1 tr th:nth-child(2) {
+                                        width: 4.2%;
+                                    }
+
+                                    table.DAI03090Grid1 tr th:nth-child(3) {
+                                        width: 13.6%;
+                                    }
+
+                                    table.DAI03090Grid1 tr th:nth-child(4) {
+                                        width: 5.5%;
+                                    }
+
+                                    table.DAI03090Grid1 tr th:nth-child(5) {
+                                        width: 17.9%;
+                                    }
+
+                                    table.DAI03090Grid1 tr th:nth-child(6) {
+                                        width: 4.2%;
+                                    }
+
+                                    table.DAI03090Grid1 tr th:nth-child(7) {
+                                        width: 8.5%;
+                                    }
+
+                                    table.DAI03090Grid1 tr th:nth-child(8) {
+                                        width: 4.2%;
+                                    }
+
+                                    table.DAI03090Grid1 tr th:nth-child(9) {
+                                        width: 4.2%;
+                                    }
+
+                                    table.DAI03090Grid1 tr th:nth-child(10) {
+                                        width: 5.5%;
+                                    }
+
+                                    table.DAI03090Grid1 tr th:nth-child(11) {
+                                        width: 5.5%;
+                                    }
+
+                                    table.DAI03090Grid1 tr th:nth-child(12) {
+                                        width: 5.5%;
+                                    }
+
+                                    table.DAI03090Grid1 tr th:nth-child(13) {
+                                        width: 8.5%;
+                                    }
+
+                                    table.DAI03090Grid1 tr th:nth-child(14) {
+                                        width: 4.2%;
+                                    }
+                                `,
+                                headerFunc,
+                                32,
+                            )
+                        )
+                )
+                .prop("outerHTML")
+                ;
+
+            var printOptions = {
+                type: "raw-html",
+                style: "@media print { @page { size: A4 landscape; } }",
+                printable: printable,
+            };
+
+            printJS(printOptions);
+            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //$("#printJS").contents().find("html").html()
         },
     }
 }
