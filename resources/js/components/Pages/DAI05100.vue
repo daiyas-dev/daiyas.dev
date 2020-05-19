@@ -684,6 +684,7 @@ export default {
         },
         print: function() {
             var vue = this;
+            var grid = vue.DAI05100Grid1;
 
             //印刷用HTML全体適用CSS
             var globalStyles = `
@@ -911,20 +912,22 @@ export default {
                 }
             `;
 
+            var contents = grid.generateHtml(
+                styleCustomers,
+                headerFunc,
+                36,
+                false,
+                true,
+                true,
+            );
+
+            var grsRow = contents.find(".grand-summary");
+            contents.find("table.DAI05100Grid1 > tbody").append(grsRow);
+
             var printable = $("<html>")
                 .append($("<head>").append($("<style>").text(globalStyles)))
                 .append(
-                    $("<body>")
-                        .append(
-                            vue.DAI05100Grid1.generateHtml(
-                                styleCustomers,
-                                headerFunc,
-                                36,
-                                false,
-                                true,
-                                true,
-                            )
-                        )
+                    $("<body>").append(contents)
                 )
                 .prop("outerHTML")
                 ;
