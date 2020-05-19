@@ -6,6 +6,7 @@
             </div>
             <div class="col-md-2">
                 <VueSelectBusho
+                    :hasNull=true
                     :withCode=true
                     style="width:200px"
                     :onChangedFunc=onBushoChanged
@@ -14,25 +15,32 @@
             <div class="col-md-5">
                 <label>配達日付</label>
                 <DatePickerWrapper
-                    id="DateStart"
+                    id="DeliveryDate"
                     ref="DatePicker_Date"
                     format="YYYY年MM月DD日"
                     dayViewHeaderFormat="YYYY年MM月"
                     :vmodel=viewModel
-                    bind="DateStart"
+                    bind="DeliveryDate"
                     :editable=true
                     :onChangedFunc=onDateChanged
                 />
-                <label style="width: unset; text-align: center; margin-left: 5px; margin-right: 5px;">～</label>
-                <DatePickerWrapper
-                    id="DateEnd"
-                    ref="DatePicker_Date"
-                    format="YYYY年MM月DD日"
-                    dayViewHeaderFormat="YYYY年MM月"
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1">
+                <label>配達区分</label>
+            </div>
+            <div class="col-md-1">
+                <VueSelect
+                    id="DeliveryKbn"
+                    :hasNull=true
                     :vmodel=viewModel
-                    bind="DateEnd"
-                    :editable=true
-                    :onChangedFunc=onDateChanged
+                    bind="DeliveryKbn"
+                    uri="/Utilities/GetCodeList"
+                    :params="{ cd: 31 }"
+                    :withCode=true
+                    customStyle="{ width: 100px; }"
+                    :onChangedFunc=onDeliveryKbnChanged
                 />
             </div>
         </div>
@@ -63,7 +71,7 @@
                     :editable=true
                     :reuse=true
                     :existsCheck=true
-                    :inputWidth=150
+                    :inputWidth=100
                     :nameWidth=400
                     :onAfterChangedFunc=onCustomerChanged
                     :isShowAutoComplete=true
@@ -73,30 +81,72 @@
         </div>
         <div class="row">
             <div class="col-md-1">
-                <label>キーワード</label>
-            </div>
-            <div class="col-md-5">
-                <input type="text" class="form-control" :value="viewModel.KeyWord" @input="onKeyWordChanged">
+                <label>エリア</label>
             </div>
             <div class="col-md-3">
-                <VueOptions
-                    title="検索条件:"
-                    customLabelStyle="text-align: center;"
-                    id="FilterMode"
+                <PopupSelect
+                    id="AreaSelect"
+                    ref="PopupSelect_Area"
                     :vmodel=viewModel
-                    bind="FilterMode"
+                    bind="AreaCd"
+                    dataUrl="/DAI08040/GetCourseList"
+                    :params="{ BushoCd: viewModel.BushoCd, WithZero: true }"
+                    :dataListReset=true
+                    :exceptCheck="[{ Cd: 0 }]"
+                    title="エリア一覧"
+                    labelCd="エリアCD"
+                    labelCdNm="エリア名"
+                    :showColumns='[
+                    ]'
+                    :isShowName=true
+                    :isModal=true
+                    :editable=true
+                    :reuse=true
+                    :existsCheck=true
+                    :inputWidth=80
+                    :nameWidth=250
+                    :isShowAutoComplete=true
+                />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1">
+                <label>出力順</label>
+            </div>
+            <div class="col-md-5">
+                <VueOptions
+                    id="PrintOrder"
+                    ref="VueOptions_PrintOrder"
+                    customItemStyle="text-align: center; margin-right: 10px;"
+                    :vmodel=viewModel
+                    bind="PrintOrder"
                     :list="[
-                        {code: 'AND', name: 'AND', label: '全て含む'},
-                        {code: 'OR', name: 'OR', label: 'いずれかを含む'},
+                        {code: '0', name: '配達順', label: '0:配達順'},
+                        {code: '1', name: '受注Ｎｏ順', label: '1:受注Ｎｏ順'},
                     ]"
-                    :onChangedFunc=onFilterModeChanged
+                    :onChangedFunc=onPrintOrderChanged
+                />
+            </div>
+            <div class="col-md-2">
+               <VueCheck
+                    id="VueCheck_PrintOut"
+                    ref="VueCheck_PrintOut"
+                    :vmodel=viewModel
+                    bind="IsPrintOut"
+                    checkedCode="1"
+                    customContainerStyle="border: none;"
+                    :list="[
+                        {code: '0', name: 'しない', label: '預り金有りのみ出力する'},
+                        {code: '1', name: 'する', label: '預り金有りのみ出力する'},
+                    ]"
+                    :onChangedFunc=onPrintoutChanged
                 />
             </div>
         </div>
         <PqGridWrapper
             :id='"DAI08040Grid1" + (!!params ? _uid : "")'
             ref="DAI08040Grid1"
-            dataUrl="/DAI08040/GetChumonList"
+            dataUrl="/DAI08040/GetHaisoYoteiHyo"
             :query=searchParams
             :SearchOnCreate=false
             :SearchOnActivate=false
@@ -139,13 +189,15 @@ export default {
         },
         searchParams: function() {
             var vue = this;
-            var ms = moment(vue.viewModel.DateStart, "YYYY年MM月DD日");
-            var me = moment(vue.viewModel.DateEnd, "YYYY年MM月DD日");
+            var ms = moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日");
             return {
                 BushoCd: vue.viewModel.BushoCd,
+                AreaCd: vue.viewModel.AreaCd,
                 CustomerCd: vue.viewModel.CustomerCd,
-                DateStart: ms.isValid() ? ms.format("YYYYMMDD") : null,
-                DateEnd: me.isValid() ? me.format("YYYYMMDD") : null,
+                DeliveryDate: ms.isValid() ? ms.format("YYYYMMDD") : null,
+                DeliveryKbn: vue.viewModel.DeliveryKbn,
+                IsPrintOut: vue.viewModel.IsPrintOut,
+                PrintOrder: vue.viewModel.PrintOrder,
             };
         },
     },
@@ -160,12 +212,14 @@ export default {
             viewModel: {
                 BushoCd: null,
                 BushoNm: null,
+                AreaCd: null,
                 CustomerCd: null,
                 CustomerNm: null,
-                DateStart: null,
-                DateEnd: null,
-                KeyWord: null,
+                DeliveryDate: null,
                 FilterMode: "AND",
+                DeliveryKbn: null,
+                IsPrintOut: "0",
+                PrintOrder: "0",
             },
             DAI08040Grid1: null,
             grid1Options: {
@@ -176,7 +230,7 @@ export default {
                 fillHandle: "",
                 numberCell: { show: true, title: "No.", resizable: false, width: 45, minWidth: 45 },
                 autoRow: false,
-                rowHt: 50,
+                rowHt: 35,
                 editable: false,
                 columnTemplate: {
                     editable: false,
@@ -191,7 +245,39 @@ export default {
                     menuIcon: false,
                     hideRows: false,
                 },
+                groupModel: {
+                    on: true,
+                    header: false,
+                    grandSummary: true,
+                    indent: 10,
+                    dataIndx: ["ＧＫ部署", "ＧＫエリア", "ＧＫ受注Ｎｏ"],
+                    showSummary: [false, false, true],
+                    collapsed: [false, false, false],
+                    summaryInTitleRow: "collapsed",
+                },
+                summaryData: [
+                ],
+                formulas:[
+                ],
                 colModel: [
+                    {
+                        title: "ＧＫ部署",
+                        dataIndx: "ＧＫ部署",
+                        dataType: "string",
+                        hidden: true,
+                    },
+                    {
+                        title: "ＧＫエリア",
+                        dataIndx: "ＧＫエリア",
+                        dataType: "string",
+                        hidden: true,
+                    },
+                    {
+                        title: "ＧＫ受注Ｎｏ",
+                        dataIndx: "ＧＫ受注Ｎｏ",
+                        dataType: "string",
+                        hidden: true,
+                    },
                     {
                         title: "配達時間",
                         dataIndx: "配達時間",
@@ -200,154 +286,173 @@ export default {
                         width: 75, minWidth: 75, maxWidth: 75,
                     },
                     {
-                        title: "受注No",
-                        dataIndx: "受注No",
-                        colModel: [
-                            {
-                                title: "配達日付",
-                                dataIndx: "配達日付",
-                                dataType: "string",
-                                width: 100, minWidth: 100, maxWidth: 100,
-                                render: ui => {
-                                    var $div = $("<div>")
-                                        .append(
-                                            $("<div>").addClass("text-left").text(ui.rowData.受注Ｎｏ)
-                                        )
-                                        .append(
-                                            $("<div>").addClass("text-center").addClass("w-100").text(moment(ui.rowData.配達日付).format("YYYY/MM/DD"))
-                                        )
-                                        ;
-
-                                    return $div.prop("outerHTML");
-                                },
-                            },
-                        ],
-                    },
-                    {
-                        title: "顧客名",
-                        dataIndx: "得意先名",
-                        tooltip: true,
-                        colModel: [
-                            {
-                                title: () => {
-                                    return $("<div>").addClass("d-flex")
-                                        .append(
-                                            $("<div>").addClass("text-center").text("電話番号").width(125)
-                                        )
-                                        .append(
-                                            $("<div>").addClass("text-center").text("FAX").width(125)
-                                        )
-                                        .prop("outerHTML");
-                                },
-                                dataIndx: "電話番号１",
-                                dataType: "string",
-                                width: 250, minWidth: 250, maxWidth: 250,
-                                tooltip: true,
-                                render: ui => {
-                                    var $div = $("<div>")
-                                        .append(
-                                            $("<div>").addClass("d-flex")
-                                                .append(
-                                                    $("<div>").addClass("text-left").text(ui.rowData.得意先ＣＤ).width(75)
-                                                )
-                                                .append(
-                                                    $("<div>").addClass("text-left").text(ui.rowData.得意先名)
-                                                )
-                                        )
-                                        .append(
-                                            $("<div>").addClass("d-flex")
-                                                .append(
-                                                    $("<div>").addClass("text-left").html(ui.rowData.電話番号１ || "&nbsp").width(125)
-                                                )
-                                                .append(
-                                                    $("<div>").addClass("text-left").html(ui.rowData.ＦＡＸ１ || "&nbsp")
-                                                )
-                                        )
-                                        ;
-
-                                    return $div.prop("outerHTML");
-                                },
-                            },
-                        ],
-                    },
-                    {
-                        title: "住所/配達先",
-                        dataIndx: "住所",
+                        title: "受注Ｎｏ",
+                        dataIndx: "受注Ｎｏ",
                         dataType: "string",
-                        width: 200, minWidth: 200,
-                        tooltip: true,
-                        render: ui => {
-                            var $div = $("<div>")
-                                .append(
-                                    $("<div>").addClass("text-left").html(ui.rowData.住所 || "&nbsp")
-                                )
-                                .append(
-                                    $("<div>").addClass("text-center").html(ui.rowData.配達先 || "&nbsp")
-                                )
-                                ;
-
-                            return $div.prop("outerHTML");
-                        },
+                        align: "center",
+                        width: 75, minWidth: 75, maxWidth: 75,
                     },
                     {
-                        title: "エリア",
-                        dataIndx: "エリアＣＤ",
-                        colModel: [
-                            {
-                                title: "配達区分",
-                                dataIndx: "配達区分",
-                                dataType: "string",
-                                width: 150, minWidth: 150, maxWidth: 150,
-                                render: ui => {
-                                    var $div = $("<div>")
-                                        .append(
-                                            $("<div>").addClass("text-left").html(ui.rowData.エリアＣＤ + ":" + (ui.rowData.エリア名称 || "&nbsp"))
-                                        )
-                                        .append(
-                                            $("<div>").addClass("text-left").html(ui.rowData.配達名称 || "&nbsp")
-                                        )
-                                        ;
-
-                                    return $div.prop("outerHTML");
-                                },
-                            },
-                        ],
+                        title: "得意先名",
+                        dataIndx: "得意先",
+                        dataType: "string",
+                        width: 300, minWidth: 300, maxWidth: 300,
+                        tooltip: true,
+                    },
+                    {
+                        title: "電話番号",
+                        dataIndx: "電話番号１",
+                        dataType: "string",
+                        width: 120, minWidth: 120, maxWidth: 120,
                     },
                     {
                         title: "地域",
                         dataIndx: "地域区分",
-                        colModel: [
-                            {
-                                title: "税区分",
-                                dataIndx: "税区分",
-                                dataType: "string",
-                                width: 75, minWidth: 75, maxWidth: 75,
-                                render: ui => {
-                                    var $div = $("<div>")
-                                        .append(
-                                            $("<div>").addClass("text-left").html(ui.rowData.地区名称 || "&nbsp")
-                                        )
-                                        .append(
-                                            $("<div>").addClass("text-left").html(ui.rowData.税名称 || "&nbsp")
-                                        )
-                                        ;
-
-                                    return $div.prop("outerHTML");
-                                },
-                            },
-                        ],
+                        dataType: "string",
+                        width: 70, minWidth: 70, maxWidth: 70,
                     },
                     {
-                        title: "得意先ＣＤ",
-                        dataIndx: "得意先ＣＤ",
+                        title: "ＣＤ",
+                        dataIndx: "商品ＣＤ",
                         dataType: "string",
-                        hidden: true,
+                        width: 75, minWidth: 75, maxWidth: 75,
                     },
                     {
-                        title: "KeyWord",
-                        dataIndx: "KeyWord",
+                        title: "商品名",
+                        dataIndx: "商品名",
                         dataType: "string",
-                        hidden: true,
+                        width: 200, minWidth: 200, maxWidth: 200,
+                        tooltip: true,
+                        render: ui => {
+                            if (!!ui.rowData.pq_grandsummary) {
+                                return { text: "＊ ＊　合　　計　＊ ＊" };
+                            }
+                            if (!!ui.rowData.pq_gsummary) {
+                                switch (ui.rowData.pq_level) {
+                                    case 2:
+                                        return { text: "＊ ＊　伝票合計　＊ ＊" };
+                                    default:
+                                        return { text: "" };
+                                }
+                            }
+                            return { text:ui };
+                        },
+                    },
+                    {
+                        title: "数量",
+                        dataIndx: "数量",
+                        dataType: "integer",
+                        format: "#,##0",
+                        width: 50, minWidth: 50, maxWidth: 50,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                        render: ui => {
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "" };
+                            }
+                            return ui;
+                        },
+                    },
+                    {
+                        title: "単価",
+                        dataIndx: "単価",
+                        dataType: "integer",
+                        format: "#,##0",
+                        width: 80, minWidth: 80, maxWidth: 80,
+                    },
+                    {
+                        title: "金額",
+                        dataIndx: "金額",
+                        dataType: "integer",
+                        format: "#,##0",
+                        width: 100, minWidth: 100, maxWidth: 100,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                        render: ui => {
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "0" };
+                            }
+                            return ui;
+                        },
+                    },
+                    {
+                        title: "消費税",
+                        dataIndx: "消費税",
+                        dataType: "integer",
+                        format: "#,##0",
+                        width: 100, minWidth: 100, maxWidth: 100,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                        render: ui => {
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "0" };
+                            }
+                            return ui;
+                        },
+                    },
+                    {
+                        title: "合計",
+                        dataIndx: "合計",
+                        dataType: "integer",
+                        format: "#,##0",
+                        width: 100, minWidth: 100, maxWidth: 100,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                        render: ui => {
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "0" };
+                            }
+                            return ui;
+                        },
+                    },
+                    {
+                        title: "預り金",
+                        dataIndx: "預り金",
+                        dataType: "integer",
+                        format: "#,##0",
+                        width: 80, minWidth: 80, maxWidth: 80,
+                    },
+                    {
+                        title: "提げ袋",
+                        dataIndx: "提げ袋",
+                        dataType: "integer",
+                        format: "#,##0",
+                        width: 80, minWidth: 80, maxWidth: 80,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                        render: ui => {
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "0" };
+                            }
+                            return ui;
+                        },
+                    },
+                    {
+                        title: "風呂敷",
+                        dataIndx: "風呂敷",
+                        dataType: "integer",
+                        format: "#,##0",
+                        width: 80, minWidth: 80, maxWidth: 80,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                        render: ui => {
+                            // hide zero
+                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "0" };
+                            }
+                            return ui;
+                        },
                     },
                 ],
                 rowDblClick: function (event, ui) {
@@ -360,46 +465,40 @@ export default {
         createdFunc: function(vue) {
             vue.footerButtons.push(
                 {visible: "false"},
-                { visible: "true", value: "検索", id: "DAI08040_Search", disabled: false, shortcut: "F5",
+                { visible: "true", value: "検索", id: "DAI08040Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
-                        vue.conditionChanged(true);
+                        vue.DAI08040Grid1.searchData(vue.searchParams);
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI08040_Print", disabled: false, shortcut: "F6",
+                {visible: "false"},
+                { visible: "true", value: "CSV", id: "DAI08040Grid1_CSV", disabled: true, shortcut: "F10",
+                    onClick: function () {
+                        vue.DAI08040Grid1.vue.exportData("csv", false, true);
+                    }
+                },
+                { visible: "true", value: "Excel", id: "DAI08040Grid1_Excel", disabled: true, shortcut: "F9",
+                    onClick: function () {
+                        vue.DAI08040Grid1.vue.exportData("xlsx", false, true);
+                    }
+                },
+                { visible: "true", value: "印刷", id: "DAI08040Grid1_Print", disabled: true, shortcut: "F11",
                     onClick: function () {
                         vue.print();
                     }
                 },
-                { visible: "true", value: "CSV", id: "DAI08040_Download", disabled: false, shortcut: "F7",
-                    onClick: function () {
-                        //TODO: ダウンロード
-                    }
-                },
-                {visible: "false"},
-                { visible: "true", value: "詳細", id: "DAI08040Grid1_Detail", disabled: true, shortcut: "F8",
-                    onClick: function () {
-                        vue.showDetail();
-                    }
-                },
-                { visible: "true", value: "新規登録", id: "DAI08040Grid1_Save", disabled: false, shortcut: "F9",
-                    onClick: function () {
-                        vue.showNewDetail();
-                    }
-                },
-                {visible: "false"},
             );
         },
         mountedFunc: function(vue) {
             if (!vue.params) {
                 //TODO
-                // vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
-                vue.viewModel.DateStart = moment("20190901").format("YYYY年MM月DD日");
-                vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
+                // vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
+                vue.viewModel.DeliveryDate = moment("20190901").format("YYYY年MM月DD日");
             } else {
                 vue.viewModel.BushoCd = vue.params.BushoCd;
+                vue.viewModel.AreaCd = vue.params.AreaCd;
                 vue.viewModel.CustomerCd = vue.params.CustomerCd;
-                vue.viewModel.DateStart = moment(vue.params.DeliveryDate, "YYYY年MM月DD日").add(-1, "month").startOf("month").format("YYYY年MM月DD日");
-                vue.viewModel.DateEnd = vue.params.DeliveryDate;
+                vue.viewModel.DeliveryDate = moment(vue.params.DeliveryDate, "YYYY年MM月DD日").add(-1, "month").startOf("month").format("YYYY年MM月DD日");
+                vue.viewModel.DeliveryKbn = vue.params.DeliveryKbn;
             }
 
             //for Child mode
@@ -415,10 +514,6 @@ export default {
                     vue.footerButtons.find(v => v.id == "DAI08040Grid1_Detail").disabled = cnt == 0 || cnt > 1;
                 }
             );
-        },
-        CustomerParamsChangedCheckFunc: function(newVal, paramsPrev, vue) {
-            var ret = !!newVal.UserBushoCd;
-            return ret;
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
@@ -445,21 +540,31 @@ export default {
             //条件変更
             vue.conditionChanged();
         },
-        onKeyWordChanged: _.debounce(function(event) {
+        onDeliveryKbnChanged: function(code, entity) {
             var vue = this;
 
-            vue.viewModel.KeyWord = event.target.value;
+            //条件変更
+            vue.conditionChanged();
+        },
+        onPrintoutChanged: function(code, entity) {
+            var vue = this;
 
-            //フィルタ変更
-            vue.filterChanged();
-        }, 300),
+            //条件変更
+            vue.conditionChanged();
+        },
+        onPrintOrderChanged: function(code, entities) {
+            var vue = this;
+
+            //条件変更
+            vue.conditionChanged();
+        },
         conditionChanged: function(force) {
             var vue = this;
             var grid = vue.DAI08040Grid1;
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
-            if (!vue.searchParams.BushoCd || !vue.searchParams.DateStart || !vue.searchParams.DateEnd) return;
 
+            if (!vue.searchParams.DeliveryDate || !vue.searchParams.IsPrintOut || !vue.searchParams.PrintOrder) return;
             if (!force && _.isEqual(grid.options.dataModel.postData, vue.searchParams)) return;
 
             grid.searchData(vue.searchParams);
@@ -535,64 +640,359 @@ export default {
         onAfterSearchFunc: function (gridVue, grid, res) {
             var vue = this;
 
-            //キーワード追加
-            res = res.map(v => {
-                v.KeyWord = _.keys(v).filter(k => k != "InitialValue" && k != /^pq.*/).map(k => v[k]).join(",");
-                return v;
-            });
+            vue.footerButtons.find(v => v.id == "DAI08040Grid1_CSV").disabled = !res.length;
+            vue.footerButtons.find(v => v.id == "DAI08040Grid1_Excel").disabled = !res.length;
+            vue.footerButtons.find(v => v.id == "DAI08040Grid1_Print").disabled = !res.length;
 
-            vue.filterChanged();
+            res.forEach(r => {
+                    r.ＧＫ部署 = r.部署ＣＤ + " " + r.部署名;
+                    r.ＧＫエリア = r.エリアＣＤ + " " + r.コース名;
+                    r.ＧＫ受注Ｎｏ = r.受注Ｎｏ;
+                });
 
             return res;
         },
-        showDetail: function(rowData) {
+        print: function () {
             var vue = this;
             var grid = vue.DAI08040Grid1;
-            if (!grid) return;
 
-            var params;
+            //印刷用HTML全体適用CSS
+            var targetData = grid.pdata;
+            var globalStyles = `
+                body {
+                    -webkit-print-color-adjust: exact;
+                }
+                div.title {
+                    width: 100%;
+                    display: flex;
+                    justify-content: center;
+                }
+                div.title > h3 {
+                    margin-top: 0px;
+                    margin-bottom: 0px;
+                }
+                table {
+                    table-layout: fixed;
+                    margin-left: 0px;
+                    margin-right: 0px;
+                    width: 100%;
+                    border-spacing: unset;
+                    border: solid 0px black;
+                }
+                th, td {
+                    font-family: "MS UI Gothic";
+                    font-size: 11pt;
+                    font-weight: normal;
+                    margin: 0px;
+                    padding-left: 3px;
+                    padding-right: 3px;
+                }
+                th {
+                    height: 21px;
+                    text-align: center;
+                }
+                td {
+                    height: 22px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                }
+                table.header-table th {
+                    text-align: left;
+                    border: solid 1px black;
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                    font-size: 13.5pt;
+                }
+                table.header-table th:last-child {
+                    border-right-width: 1px;
+                }
+                table.header-table tbody tr:last-child th {
+                    border-bottom-width: 1px;
+                }
+                table.header-table thead th {
+                    font-size: 11pt;
+                    height: 22px;
+                    text-align: center;
+                }
+                table.header-table tbody th {
+                    height: 20.5x;
+                }
+                td.customer-nm {
+                    font-size: 14pt;
+                    letter-spacing: 0.1em;
+                }
+                div.title {
+                    font-size: 20pt;
+                }
+                td.customer-cd-A{
+                    font-size: 20pt;
+                    text-align: center;
+                    padding-left: 170px;
+                }
+                td.customer-cd{
+                    text-align: center;
+                    padding-left: 150px;
+                }
+                div.kaisya-info{
+                    margin-left: 100px;
+                    margin-bottom: 0px;
+                    font-size: 8pt;
+                }
+                div.kaisya-info > div:first-child {
+                    font-size: 11pt;
+                }
+                div.kaisya-info > div:nth-child(2),
+                div.kaisya-info > div:nth-child(3) {
+                    font-size: 10pt;
+                }
+                div.kaisya-info > div{
+                    text-align: right;
+                }
+                div.chuui-gaki > div {
+                    font-size: 8.5pt;
+                    letter-spacing: 0.2em;
+                    line-height: 15px;
+                }
+                table.header-table th:nth-child(1) {
+                    width: 30%;
+                }
+                table.header-table th:nth-child(2),
+                table.header-table th:nth-child(3),
+                table.header-table th:nth-child(4) {
+                    width: 12%;
+                    text-align: right;
+                    padding-right: 5px;
+                }
+                div.fax-tel {
+                    margin-left: 125px;
+                }
+                div.hizuke {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                    width: 400px;
+                    margin-left: 20px;
+                    padding: 3px;
+                }
+                span {
+                    margin-left: 8px;
+                    margin-right: 8px;
+                }
+                hr {
+                    border: none;
+                    margin: 22px;
+                }
+                div.insatubi {
+                    font-size: 8pt;
+                }
+            `;
 
-            var params;
-            if (rowData) {
-                params = _.cloneDeep(rowData);
-            } else {
-                var selection = grid.SelectRow().getSelection();
-
-                var rows = grid.SelectRow().getSelection();
-                if (rows.length != 1) return;
-
-                params = _.cloneDeep(rows[0].rowData);
-            }
-
-            params.IsChild = true;
-            params.IsNew = false;
-
-            //DAI08010を子画面表示
-            PageDialog.show({
-                pgId: "DAI08010",
-                params: params,
-                isModal: true,
-                isChild: true,
-                width: 1250,
-                height: 775,
+            var target = targetData.filter(k=>k.pq_level==undefined)
+                .map(r => {
+                    var products=r.商品名;
+                    var layout_product_body=``;
+                    var tel=r.電話番号;
+                    console.log("tel", r.電話番号);
+                    layout_product_body += `
+                        <tr>
+                            <th>${r.商品名}</th>
+                            <th>${r.数量}</th>
+                            <th>${r.単価}</th>
+                            <th>${r.金額}</th>
+                            <th>
+                                <table>
+                                <th style="width: 8%; border: none;">電話番号</th>
+                                <th style="border: none; text-align: left;">${r.電話番号 ? r.電話番号.replace('\n', "<br>") : ""}</th>
+                                </table>
+                            </th>
+                        </tr>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th rowspan="6">
+                                <div>配達先</div>
+                                <div>${r.配達先 ? r.配達先 : ""}</div>
+                            </th>
+                        </tr>
+                    `;
+                    var row=5;
+                    if(0<row){
+                        [...Array(row)].map(r=>{
+                            layout_product_body += `
+                                <tr>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                </tr>
+                            `;
+                        });
+                    }
+                    var layout_bikou1 = `
+                        <th rowspan="3" colspan="2">
+                            <div>備考</div>
+                        </th>
+                    `;
+                    var layout_bikou2 = `
+                        <th rowspan="3" colspan="2">
+                            <div>備考</div>
+                            <div>${r.部署ＣＤ} ${r.部署名} 仕上時間 ${r.製造締切時間}</div>
+                        </th>
+                    `;
+                    var layout_product_head = `
+                        <thead>
+                            <tr>
+                                <th>商品名</th>
+                                <th>数量</th>
+                                <th>単価</th>
+                                <th>金額</th>
+                                <th>配達</th>
+                            </tr>
+                        </thead>
+                    `;
+                    var layout_product1 = `
+                        ${layout_product_head}
+                        <tbody>
+                            ${layout_product_body}
+                            <tr>
+                                ${layout_bikou1}
+                                <th>小計</th><th>${r.小計}</th>
+                                <th rowspan="3">
+                                    <div style="text-align: left;">${r.注文日付}</div>
+                                    <div>受付店：${r.会社名称}</div>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th>消費税</th><th>${r.消費税}</th>
+                            </tr>
+                            <tr>
+                                <th>金額合計</th><th>${r.合計}</th>
+                            </tr>
+                        </tbody>
+                    `;
+                    var layout_product2 =  `
+                        ${layout_product_head}
+                        <tbody>
+                            ${layout_product_body}
+                            <tr>
+                                ${layout_bikou2}
+                                <th>小計</th><th>${r.小計}</th>
+                                <th rowspan="3">
+                                    <div style="text-align: left;">${r.注文日付}</div>
+                                    <div>受付店：${r.会社名称}</div>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th>消費税</th><th>${r.消費税}</th>
+                            </tr>
+                            <tr>
+                                <th>金額合計</th><th>${r.合計}</th>
+                            </tr>
+                        </tbody>
+                    `;
+                    var layout=`
+                        <table style="width:100%;">
+                            <td>
+                                <span/>伝票No.　${r.受注Ｎｏ}
+                            </td>
+                            <tr>
+                                <td>
+                                    <div><span/>${r.会社名称}</div>
+                                    <div><span/>${r.住所欄}</div>
+                                    <div><span/>${r.TEL欄}</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="customer-nm">
+                                    <span/><span/><span>${r.得意先名}</span><span>様</span>
+                                </td>
+                                <td>
+                                    <div><span>取引金融機関</span></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div><span>${r.会社_銀行名1}　${r.会社_支店名1}</span></div>
+                                    <div><span>${r.会社_口座種別名1}　${r.会社_口座番号1}　${r.会社_口座名義人1}</span></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="hizuke"><span>納品日：${r.配達日付} 時刻：（${r.配達時間}）</span></div>
+                                    <div style="height: 8px;"></div>
+                                </td>
+                            </tr>
+                        </table>
+                    `;
+                    var layout_1=`
+                        <div>
+                            <div class="header">
+                                <div>
+                                    <div class="title">
+                                        請求書
+                                    </div>
+                                    ${layout}
+                                    <table class="header-table" style="border-width: 0px; margin-bottom: 8px;">
+                                        ${layout_product1}
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    var layout_2=`
+                        <div>
+                            <div class="header">
+                                <div>
+                                    <div class="title">
+                                        納品書
+                                    </div>
+                                    ${layout}
+                                    <table class="header-table" style="border-width: 0px; margin-bottom: 8px;">
+                                        ${layout_product2}
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    layout = layout_1 + `<div style="clear:left"></div><hr noshade/>` + layout_2;
+                return { contents: layout };
             });
-        },
-        showNewDetail: function(rowData) {
+            window.res_tg = _.cloneDeep(target);//TODO:
 
-            var params = { IsChild: true, IsNew: true };
+            var printable = $("<html>")
+                .append($("<head>").append($("<style>").text(globalStyles)))
+                .append(
+                    $("<body>")
+                        .append(
+                            grid.generateHtmlFromJson(
+                                target,
+                                ``,
+                                null,
+                                1,
+                                false,
+                                true,
+                            )
+                        )
+                )
+                .prop("outerHTML")
+                ;
+            var printOptions = {
+                type: "raw-html",
+                style: "@media print { @page { size: A4 portrait; } }",
+                printable: printable,
+                onPrintDialogClose: () => { vue.save(); },
+            };
 
-            //DAI08010を子画面表示
-            PageDialog.show({
-                pgId: "DAI08010",
-                params: params,
-                isModal: true,
-                isChild: true,
-                width: 1250,
-                height: 775,
-            });
-        },
-        print: function () {
-            //TODO
+            printJS(printOptions);
+            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //$("#printJS").contents().find("html").html()
         },
     }
 }
