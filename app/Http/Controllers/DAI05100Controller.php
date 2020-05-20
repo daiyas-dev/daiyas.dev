@@ -23,7 +23,6 @@ class DAI05100Controller extends Controller
         $ShowSyonin = $vm->ShowSyonin;
         $EigyoTantoCd = $vm->EigyoTantoCd;
         $GetEigyoTantoCd = $vm->GetEigyoTantoCd;
-        // $Busho = $vm->Busho;
         $BushoOption = $vm->BushoOption;
         $BushoCd = $vm->BushoCd;
 
@@ -32,8 +31,6 @@ class DAI05100Controller extends Controller
         $WehreEigyoTantoCd = !!$EigyoTantoCd  ? "AND TOKUISAKI.営業担当者ＣＤ = $EigyoTantoCd" : "";
         $WehreGetEigyoTantoCd = !!$GetEigyoTantoCd  ? "AND TOKUISAKI.獲得営業者ＣＤ = $GetEigyoTantoCd" : "";
         $WhereBusho = $BushoOption == "2" && !!$BushoCd ? "AND TOKUISAKI.部署ＣＤ = $BushoCd" : "";
-        // $OrderByBusho = $Busho == "2" ? "TOKUISAKI.部署ＣＤ," : "";
-        //TODO:西山
         $OrderByBusho = $BushoOption == "0" ? "" : "部署ＣＤ2,";
 
 

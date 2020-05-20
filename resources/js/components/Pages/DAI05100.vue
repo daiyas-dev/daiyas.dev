@@ -13,7 +13,7 @@
                     :vmodel=viewModel
                     bind="DateStart"
                     :editable=true
-                    :onChangedFunc=onDateChanged
+                    :onChangedFunc=onDateStartChanged
                 />
                 <label>～</label>
                 <DatePickerWrapper
@@ -24,7 +24,7 @@
                     :vmodel=viewModel
                     bind="DateEnd"
                     :editable=true
-                    :onChangedFunc=onDateChanged
+                    :onChangedFunc=onDateEndChanged
                 />
             </div>
             <div class="col-md-1">
@@ -57,7 +57,7 @@
                     :vmodel=viewModel
                     bind="SaveDateStart"
                     :editable=true
-                    :onChangedFunc=onDateChanged
+                    :onChangedFunc=onSaveDateStartChanged
                 />
                 <label>～</label>
                 <DatePickerWrapper
@@ -68,7 +68,7 @@
                     :vmodel=viewModel
                     bind="SaveDateEnd"
                     :editable=true
-                    :onChangedFunc=onDateChanged
+                    :onChangedFunc=onSaveDateEndChanged
                 />
             </div>
             <div class="col-md-1">
@@ -493,6 +493,33 @@ export default {
             vue.viewModel.DateEnd = moment("20190801").endOf('month').format("YYYY年MM月DD日");
             vue.viewModel.SaveDateStart = moment("20190801").format("YYYY年MM月01日");
             vue.viewModel.SaveDateEnd = moment("20190801").endOf('month').format("YYYY年MM月DD日");
+
+            vue.refreshCols();
+
+        },
+        refreshCols: function(callback) {
+            var vue = this;
+            var grid = vue.DAI05100Grid1;
+
+            var mt = moment(vue.viewModel.DateStart, "YYYY年MM月DD日");
+            var days = _.range(1, mt.endOf("month").format("D") * 1 + 1);
+            var max = 31;
+            days = days.length == max ? days : days.concat(_.range(0, days.length - max).fill(null));
+
+            grid.options.colModel.filter(c => !!c.days).map((c, i) => {
+                var d = days[i];
+                var date = mt.startOf("month").add("days", i);
+
+                c.title = !!d ? (date.format("ddd") + "<br>" + d) : "<br>";
+                c.dataIndx = !!d ? date.format("D") : ("empty" + i);
+
+                return c;
+            });
+
+            grid.refreshCM();
+            grid.refresh();
+
+            if (!!callback) callback();
         },
         onBushoOptionChanged: function(code, entities) {
             var vue = this;
@@ -521,21 +548,67 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        onDateChanged: function(code, entity) {
+        onDateStartChanged: function(code, entity) {
             var vue = this;
 
-            //条件変更ハンドラ
-            //vue.conditionChanged();
+            var ms = moment(vue.viewModel.DateStart, "YYYY年MM月DD日");
+            var me = moment(vue.viewModel.DateEnd, "YYYY年MM月DD日");
+
+            if (ms.month() != me.month()) {
+                vue.viewModel.DateEnd = ms.endOf("month").format("YYYY年MM月DD日");
+            } else {
+                //列定義変更 + 条件変更ハンドラ
+                vue.refreshCols(vue.conditionChanged);
+            }
+        },
+        onDateEndChanged: function(code, entity) {
+            var vue = this;
+
+            var ms = moment(vue.viewModel.DateStart, "YYYY年MM月DD日");
+            var me = moment(vue.viewModel.DateEnd, "YYYY年MM月DD日");
+
+            if (ms.month() != me.month()) {
+                vue.viewModel.DateStart = me.startOf("month").format("YYYY年MM月DD日");
+            } else {
+                //列定義変更 + 条件変更ハンドラ
+                vue.refreshCols(vue.conditionChanged);
+            }
+        },
+        onSaveDateStartChanged: function(code, entity) {
+            var vue = this;
+
+            var ms = moment(vue.viewModel.SaveDateStart, "YYYY年MM月DD日");
+            var me = moment(vue.viewModel.SaveDateEnd, "YYYY年MM月DD日");
+
+            if (ms.month() != me.month()) {
+                vue.viewModel.SaveDateEnd = ms.endOf("month").format("YYYY年MM月DD日");
+            } else {
+                //条件変更ハンドラ
+                vue.conditionChanged();
+            }
+        },
+        onSaveDateEndChanged: function(code, entity) {
+            var vue = this;
+
+            var ms = moment(vue.viewModel.SaveDateStart, "YYYY年MM月DD日");
+            var me = moment(vue.viewModel.SaveDateEnd, "YYYY年MM月DD日");
+
+            if (ms.month() != me.month()) {
+                vue.viewModel.SaveDateStart = me.startOf("month").format("YYYY年MM月DD日");
+            } else {
+                //条件変更ハンドラ
+                vue.conditionChanged();
+            }
         },
         onShowSyoninChanged: function(code, entity) {
             var vue = this;
-            //フィルタ変更ハンドラ
-            vue.filterChanged();
+            // //フィルタ変更ハンドラ
+            // vue.filterChanged();
+            //条件変更ハンドラ
+            vue.conditionChanged();
         },
         onCustomerChanged: function(code, entity) {
             var vue = this;
-            // //フィルタ変更ハンドラ
-            // vue.filterChanged();
             //条件変更ハンドラ
             vue.conditionChanged();
         },
