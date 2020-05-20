@@ -423,6 +423,10 @@ export default {
                                             width: gridCell.width(),
                                             editable: true,
                                             hideButton: true,
+                                            config: {
+                                                format: !!ui.column.format ? (ui.column.format.includes("HH") ? "HH:mm:ss" : "YYYY/MM/DD") : "YYYY/MM/DD",
+                                                dayViewHeaderFormat: "YYYY年MM月",
+                                            },
                                             onCalendarHiddenFunc: (event) => {
                                                 grid.getEditCell().$editor.trigger($.Event("keydown", {keyCode: 13, which: 13}))
                                             },
