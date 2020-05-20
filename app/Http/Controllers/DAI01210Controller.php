@@ -82,7 +82,7 @@ class DAI01210Controller extends Controller
         $sql = "
             WITH
             部署SUB AS (
-                SELECT サブ各種CD2 FROM 各種テーブル WHERE 各種テーブル.各種CD = 26 AND 各種テーブル.サブ各種CD1 = 101
+                SELECT サブ各種CD2 FROM 各種テーブル WHERE 各種テーブル.各種CD = 26 AND 各種テーブル.サブ各種CD1 = $BushoCd
             ),
             商品区分マスタ AS (
                 SELECT TOP(7)

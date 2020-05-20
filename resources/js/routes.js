@@ -90,6 +90,14 @@ export default [
         },
     },
     {
+        path: "/DAI07/DAI07080",
+        component: PageSelector,
+        props: { pgId: "DAI02030" },
+        meta: {
+            keepAlive: true,
+        },
+    },
+    {
         path: "/DAI07/DAI07090",
         component: PageSelector,
         props: { pgId: "DAI02030" },

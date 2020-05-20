@@ -127,7 +127,7 @@ class DAI05120Controller extends Controller
                         URIAGE_MEISAI.日付 >= '$StartDate'
                     and URIAGE_MEISAI.日付 <= '$EndDate'
                     and URIAGE_MEISAI.商品区分 in (1,2,3,7)
-                    and URIAGE_MEISAI.部署ＣＤ = 101
+                    and URIAGE_MEISAI.部署ＣＤ = $BushoCd
                     and (
                                 TOKUISAKI.新規登録日 >= '$StartDate'
                             and TOKUISAKI.新規登録日 <= '$EndDate'
