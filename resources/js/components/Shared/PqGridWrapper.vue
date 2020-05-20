@@ -2755,7 +2755,10 @@ export default {
                     if (!_.isArray(json)) json = [json];
 
                     var keys =keyArray || _.keys(json[0]);
-                    var headers = !!isShowheader ? $("<tr>").append(keys.map((k, i) => $("<th>").text(!!colArray ? colArray[i] : k))).get() : [];
+                    var headers = !!isShowheader
+                        ? $("<tr>").append(
+                            keys.map((k, i) => $("<th>")[!!byHtml ? "html" : "text"](!!colArray ? colArray[i] : k))).get()
+                        : [];
                     var bodies = json.map(v => $("<tr>").addClass(v.class || "")
                         .append(
                             keys.map(k => !!byHtml ? $("<td>").html(v[k]) : $("<td>").text(v[k]))
