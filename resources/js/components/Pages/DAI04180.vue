@@ -570,10 +570,13 @@ export default {
                 return;
             }
 
+            var date = moment().format("YYYY-MM-DD HH:mm:ss")
             var SaveList = _.cloneDeep(grid.createSaveParams());
             _.forIn(SaveList, (l, k) => {
                 l.map(v => {
                     v.部署グループ = vue.BushoGroupList.find(b => b.部署ＣＤ == vue.viewModel.BushoCd).部署グループ;
+                    v.修正担当者ＣＤ = vue.getLoginInfo().uid;
+                    v.修正日 = date;
                     delete v.sortIndx;
                     delete v.部署CD;
                     delete v.部署名;
@@ -588,7 +591,6 @@ export default {
             var params = {SaveList: SaveList};
             params.noCache = true;
 
-            //保存実行
             grid.saveData(
                 {
                     uri: "/DAI04180/Save",

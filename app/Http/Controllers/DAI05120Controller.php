@@ -30,11 +30,12 @@ class DAI05120Controller extends Controller
         $params['TantoCd']=$vm->TantoCd;
 
         $DateStart=preg_replace('/年|月/','',$vm->DateStart);
-        $params['StartDate']=substr($DateStart,0,6) . "01";
+        $StartFirstDay=Carbon::create(substr($DateStart,0,4), substr($DateStart,4,2), "01");
+        $params['StartDate']=$StartFirstDay->format('Y/m/d');
 
         $DateEnd=preg_replace('/年|月/','',$vm->DateEnd);
         $EndLastDay = Carbon::create(substr($DateEnd,0,4),substr($DateEnd,4,2),1)->lastOfMonth();
-        $params['EndDate']= $EndLastDay->format('Ymd');
+        $params['EndDate']= $EndLastDay->format('Y/m/d');
 
         if ($params['SearchType']==self::SEARCH_TYPE_BUSYOBETSU) {
             $DataList = $this->SearchBushoBetsu($params);
@@ -92,13 +93,13 @@ class DAI05120Controller extends Controller
                         left join 担当者マスタ TANTO2 on
                         TOKUISAKI.獲得営業者ＣＤ = TANTO2.担当者ＣＤ
                     where
-                        CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) >= '$StartDate'
-                    and CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) <= '$EndDate'
+                        URIAGE_MEISAI.日付 >= '$StartDate'
+                    and URIAGE_MEISAI.日付 <= '$EndDate'
                     and URIAGE_MEISAI.商品区分 in (1,2,3,10)
                     and URIAGE_MEISAI.部署ＣＤ = $BushoCd
                     and not (
-                            CONVERT(VARCHAR, TOKUISAKI.新規登録日, 112) >= '$StartDate'
-                        and CONVERT(VARCHAR, TOKUISAKI.新規登録日, 112) <= '$EndDate'
+                            TOKUISAKI.新規登録日 >= '$StartDate'
+                        and TOKUISAKI.新規登録日 <= '$EndDate'
                         )
                 union all
                     -- 新規客 ------------------------
@@ -123,13 +124,13 @@ class DAI05120Controller extends Controller
                         left join 担当者マスタ TANTO2 on
                         TOKUISAKI.獲得営業者ＣＤ = TANTO2.担当者ＣＤ
                     where
-                            CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) >= '$StartDate'
-                    and CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112)   <= '$EndDate'
+                        URIAGE_MEISAI.日付 >= '$StartDate'
+                    and URIAGE_MEISAI.日付 <= '$EndDate'
                     and URIAGE_MEISAI.商品区分 in (1,2,3,7)
                     and URIAGE_MEISAI.部署ＣＤ = 101
                     and (
-                                CONVERT(VARCHAR, TOKUISAKI.新規登録日, 112) >= '$StartDate'
-                            and CONVERT(VARCHAR, TOKUISAKI.新規登録日, 112) <= '$EndDate'
+                                TOKUISAKI.新規登録日 >= '$StartDate'
+                            and TOKUISAKI.新規登録日 <= '$EndDate'
                         )
                 ) main
                 group by 部署ＣＤ, 部署名, 年月
@@ -200,13 +201,13 @@ class DAI05120Controller extends Controller
                     left join 担当者マスタ TANTO2 on
                     TOKUISAKI.獲得営業者ＣＤ = TANTO2.担当者ＣＤ
                 where
-                        CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) >= '$StartDate'
-                    and CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) <= '$EndDate'
+                        URIAGE_MEISAI.日付 >= '$StartDate'
+                    and URIAGE_MEISAI.日付 <= '$EndDate'
                     and URIAGE_MEISAI.商品区分 in (1,2,3,10)
                     and URIAGE_MEISAI.部署ＣＤ = $BushoCd
                     and not (
-                            CONVERT(VARCHAR, TOKUISAKI.新規登録日, 112) >= '$StartDate'
-                        and CONVERT(VARCHAR, TOKUISAKI.新規登録日, 112) <= '$EndDate'
+                            TOKUISAKI.新規登録日 >= '$StartDate'
+                        and TOKUISAKI.新規登録日 <= '$EndDate'
                     )
 
                 union all
@@ -233,13 +234,13 @@ class DAI05120Controller extends Controller
                         left join 担当者マスタ TANTO2 on
                         TOKUISAKI.獲得営業者ＣＤ = TANTO2.担当者ＣＤ
                     where
-                            CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) >= '$StartDate'
-                    and CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112)   <= '$EndDate'
+                        URIAGE_MEISAI.日付 >= '$StartDate'
+                    and URIAGE_MEISAI.日付 <= '$EndDate'
                     and URIAGE_MEISAI.商品区分 in (1,2,3,10)
                     and URIAGE_MEISAI.部署ＣＤ = $BushoCd
                     and (
-                            CONVERT(VARCHAR, TOKUISAKI.新規登録日, 112) >= '$StartDate'
-                        and CONVERT(VARCHAR, TOKUISAKI.新規登録日, 112) <= '$EndDate'
+                            TOKUISAKI.新規登録日 >= '$StartDate'
+                        and TOKUISAKI.新規登録日 <= '$EndDate'
                         )
                 ) main
                 where 0=0
@@ -300,13 +301,13 @@ class DAI05120Controller extends Controller
                         left join 担当者マスタ TANTO2 on
                         TOKUISAKI.獲得営業者ＣＤ = TANTO2.担当者ＣＤ
                     where
-                        CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) >= '$StartDate'
-                    and CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) <= '$EndDate'
+                        URIAGE_MEISAI.日付 >= '$StartDate'
+                    and URIAGE_MEISAI.日付 <= '$EndDate'
                     and URIAGE_MEISAI.商品区分 in (1,2,3,10)
                     and URIAGE_MEISAI.部署ＣＤ = $BushoCd
                     and not (
-                            CONVERT(VARCHAR, TOKUISAKI.新規登録日, 112) >= '$StartDate'
-                        and CONVERT(VARCHAR, TOKUISAKI.新規登録日, 112) <= '$EndDate'
+                            TOKUISAKI.新規登録日 >= '$StartDate'
+                        and TOKUISAKI.新規登録日 <= '$EndDate'
                         )
 
                     union all
@@ -333,13 +334,13 @@ class DAI05120Controller extends Controller
                         left join 担当者マスタ TANTO2 on
                         TOKUISAKI.獲得営業者ＣＤ = TANTO2.担当者ＣＤ
                     where
-                            CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112) >= '$StartDate'
-                    and CONVERT(VARCHAR, URIAGE_MEISAI.日付, 112)   <= '$EndDate'
+                        URIAGE_MEISAI.日付 >= '$StartDate'
+                    and URIAGE_MEISAI.日付 <= '$EndDate'
                     and URIAGE_MEISAI.商品区分 in (1,2,3,10)
                     and URIAGE_MEISAI.部署ＣＤ = $BushoCd
                     and (
-                                CONVERT(VARCHAR, TOKUISAKI.新規登録日, 112) >= '$StartDate'
-                            and CONVERT(VARCHAR, TOKUISAKI.新規登録日, 112) <= '$EndDate'
+                                TOKUISAKI.新規登録日 >= '$StartDate'
+                            and TOKUISAKI.新規登録日 <= '$EndDate'
                         )
                 ) main
 
