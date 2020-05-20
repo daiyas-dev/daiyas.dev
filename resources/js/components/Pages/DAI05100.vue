@@ -602,8 +602,6 @@ export default {
         },
         onShowSyoninChanged: function(code, entity) {
             var vue = this;
-            // //フィルタ変更ハンドラ
-            // vue.filterChanged();
             //条件変更ハンドラ
             vue.conditionChanged();
         },
@@ -757,32 +755,27 @@ export default {
             var headerFunc = (header, idx, length) => {
 
                 if (vue.viewModel.BushoOption == 0) {
-                    if (header.pq_level == 0)
-                    {
+                    if (header.pq_level == 0) {
                         eigyoNmKey1 = header.ＧＫ営業担当者.split(" ")[1];
                         eigyoNmKey2 = header.children[0].ＧＫ獲得営業者.split(" ")[1];
                         bushoNm = header.children[0].children[0].部署名;
                     }
-                    if (header.pq_level == 1)
-                    {
+                    if (header.pq_level == 1) {
                         eigyoNmKey2 = header.ＧＫ獲得営業者.split(" ")[1];
                         bushoNm = header.children[0].部署名;
                     }
                 } else {
-                    if (header.pq_level == 0)
-                    {
+                    if (header.pq_level == 0) {
                         eigyoNmKey1 = header.children[0].ＧＫ営業担当者.split(" ")[1];
                         eigyoNmKey2 = header.children[0].children[0].ＧＫ獲得営業者.split(" ")[1];
                         bushoNm = header.children[0].children[0].children[0].部署名;
                     }
-                    if (header.pq_level == 1)
-                    {
+                    if (header.pq_level == 1) {
                         eigyoNmKey1 = header.ＧＫ営業担当者.split(" ")[1];
                         eigyoNmKey2 = header.children[0].ＧＫ獲得営業者.split(" ")[1];
                         bushoNm = header.children[0].children[0].部署名;
                     }
-                    if (header.pq_level == 2)
-                    {
+                    if (header.pq_level == 2) {
                         eigyoNmKey2 = header.ＧＫ獲得営業者.split(" ")[1];
                         bushoNm = header.children[0].部署名;
                     }
