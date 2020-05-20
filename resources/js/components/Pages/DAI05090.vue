@@ -278,7 +278,7 @@ export default {
                     header: false,
                     grandSummary: true,
                     indent: 10,
-                    dataIndx: ["部署", "ＧＫ営業担当者", "ＧＫ獲得営業者"],
+                    dataIndx: ["部署名", "ＧＫ営業担当者", "ＧＫ獲得営業者"],
                     showSummary: [false, false, true],
                     collapsed: [false, false, false],
                     summaryInTitleRow: "collapsed",
@@ -288,9 +288,21 @@ export default {
                 formulas:[
                 ],
                 colModel: [
+                    // {
+                    //     title: "部署",
+                    //     dataIndx: "部署", dataType: "string",
+                    //     hidden: true,
+                    //     fixed: true,
+                    // },
                     {
-                        title: "部署",
-                        dataIndx: "部署", dataType: "string",
+                        title: "部署ＣＤ",
+                        dataIndx: "部署ＣＤ2", dataType: "string",
+                        hidden: true,
+                        fixed: true,
+                    },
+                    {
+                        title: "部署名",
+                        dataIndx: "部署名", dataType: "string",
                         hidden: true,
                         fixed: true,
                     },
@@ -313,8 +325,18 @@ export default {
                         hidden: true,
                         fixed: true,
                         render: ui => {
-                            if (ui.rowData.pq_level != 1) {
-                                return { text: "" };
+                            // if (ui.rowData.pq_level != 1) {
+                            //     return { text: "" };
+                            // }
+                            // return ui;
+                            if (vue.viewModel.BushoOption == 0){
+                                if (ui.rowData.pq_level != 0) {
+                                    return { text: "" };
+                                }
+                            } else {
+                                if (ui.rowData.pq_level != 1) {
+                                    return { text: "" };
+                                }
                             }
                             return ui;
                         },
@@ -326,15 +348,37 @@ export default {
                         hidden: true,
                         fixed: true,
                         render: ui => {
-                            switch (ui.rowData.pq_level) {
-                                case 0:
-                                    return { text: "" };
-                                case 1:
-                                    return ui;
-                                case 2:
-                                    return ui;
-                                default:
-                                    return { text: "" };
+                            // switch (ui.rowData.pq_level) {
+                            //     case 0:
+                            //         return { text: "" };
+                            //     case 1:
+                            //         return ui;
+                            //     case 2:
+                            //         return ui;
+                            //     default:
+                            //         return { text: "" };
+                            // }
+                            if (vue.viewModel.BushoOption == 0){
+                                switch (ui.rowData.pq_level) {
+                                    case 0:
+                                        return { text: "" };
+                                    case 1:
+                                        return ui;
+                                    default:
+                                        return { text: "" };
+                                }
+                            } else {
+                                switch (ui.rowData.pq_level) {
+                                    case 0:
+                                        return { text: "" };
+                                    case 1:
+                                        return ui;
+                                    case 2:
+                                        return ui;
+
+                                    default:
+                                        return { text: "" };
+                                }
                             }
                         },
                     },
@@ -354,11 +398,26 @@ export default {
                                 return { text: "総合計" };
                             }
                             if (!!ui.rowData.pq_gsummary) {
-                                switch (ui.rowData.pq_level) {
-                                    case 2:
-                                        return { text: "合計" };
-                                    default:
-                                        return { text: "" };
+                                // switch (ui.rowData.pq_level) {
+                                //     case 2:
+                                //         return { text: "合計" };
+                                //     default:
+                                //         return { text: "" };
+                                // }
+                                if (vue.viewModel.BushoOption == 0){
+                                    switch (ui.rowData.pq_level) {
+                                        case 1:
+                                            return { text: "合計" };
+                                        default:
+                                            return { text: "" };
+                                    }
+                                } else {
+                                    switch (ui.rowData.pq_level) {
+                                        case 2:
+                                            return { text: "合計" };
+                                        default:
+                                            return { text: "" };
+                                    }
                                 }
                             }
                             return { text:ui };
@@ -448,20 +507,53 @@ export default {
                                 }
                             }
                             if (!!ui.rowData.pq_gsummary) {
-                                switch (ui.rowData.pq_level) {
-                                    case 2:
-                                        if (ui.rowData.得意先平日合計 * 1 == 0 || ui.rowData.得意先平日日数 * 1 == 0)
-                                        {
+                                // switch (ui.rowData.pq_level) {
+                                //     case 2:
+                                //         if (ui.rowData.得意先平日合計 * 1 == 0 || ui.rowData.得意先平日日数 * 1 == 0)
+                                //         {
+                                //             return { text: "" };
+                                //         }
+                                //         else
+                                //         {
+                                //             var avgVal = (ui.rowData.得意先平日合計.replace(",", "") * 1) / (ui.rowData.得意先平日日数.replace(",", "") * 1);
+                                //             var avgValFmt = avgVal.toFixed(1).toString();
+                                //             return { text: avgValFmt };
+                                //         }
+                                //     default:
+                                //         return { text: "" };
+                                // }
+                                if (vue.viewModel.BushoOption == 0) {
+                                    switch (ui.rowData.pq_level) {
+                                        case 1:
+                                            if (ui.rowData.得意先平日合計 * 1 == 0 || ui.rowData.得意先平日日数 * 1 == 0)
+                                            {
+                                                return { text: "" };
+                                            }
+                                            else
+                                            {
+                                                var avgVal = (ui.rowData.得意先平日合計.replace(",", "") * 1) / (ui.rowData.得意先平日日数.replace(",", "") * 1);
+                                                var avgValFmt = avgVal.toFixed(1).toString();
+                                                return { text: avgValFmt };
+                                            }
+                                        default:
                                             return { text: "" };
-                                        }
-                                        else
-                                        {
-                                            var avgVal = (ui.rowData.得意先平日合計.replace(",", "") * 1) / (ui.rowData.得意先平日日数.replace(",", "") * 1);
-                                            var avgValFmt = avgVal.toFixed(1).toString();
-                                            return { text: avgValFmt };
-                                        }
-                                    default:
-                                        return { text: "" };
+                                    }
+                                } else {
+                                    switch (ui.rowData.pq_level) {
+                                        case 2:
+                                            if (ui.rowData.得意先平日合計 * 1 == 0 || ui.rowData.得意先平日日数 * 1 == 0)
+                                            {
+                                                return { text: "" };
+                                            }
+                                            else
+                                            {
+                                                var avgVal = (ui.rowData.得意先平日合計.replace(",", "") * 1) / (ui.rowData.得意先平日日数.replace(",", "") * 1);
+                                                var avgValFmt = avgVal.toFixed(1).toString();
+                                                return { text: avgValFmt };
+                                            }
+                                        default:
+                                            return { text: "" };
+                                    }
                                 }
                             }
                             if (ui.rowData[ui.dataIndx] * 1 == 0) {
@@ -503,20 +595,53 @@ export default {
                                 }
                             }
                             if (!!ui.rowData.pq_gsummary) {
-                                switch (ui.rowData.pq_level) {
-                                    case 2:
-                                        if (ui.rowData.得意先合計 * 1 == 0 || ui.rowData.得意先売上日数 * 1 == 0)
-                                        {
+                                // switch (ui.rowData.pq_level) {
+                                //     case 2:
+                                //         if (ui.rowData.得意先合計 * 1 == 0 || ui.rowData.得意先売上日数 * 1 == 0)
+                                //         {
+                                //             return { text: "" };
+                                //         }
+                                //         else
+                                //         {
+                                //             var avgVal = (ui.rowData.得意先合計.replace(",", "") * 1) / (ui.rowData.得意先売上日数.replace(",", "") * 1);
+                                //             var avgValFmt = avgVal.toFixed(1).toString();
+                                //             return { text: avgValFmt };
+                                //         }
+                                //     default:
+                                //         return { text: "" };
+                                // }
+                                if (vue.viewModel.BushoOption == 0) {
+                                    switch (ui.rowData.pq_level) {
+                                        case 1:
+                                            if (ui.rowData.得意先合計 * 1 == 0 || ui.rowData.得意先売上日数 * 1 == 0)
+                                            {
+                                                return { text: "" };
+                                            }
+                                            else
+                                            {
+                                                var avgVal = (ui.rowData.得意先合計.replace(",", "") * 1) / (ui.rowData.得意先売上日数.replace(",", "") * 1);
+                                                var avgValFmt = avgVal.toFixed(1).toString();
+                                                return { text: avgValFmt };
+                                            }
+                                        default:
                                             return { text: "" };
-                                        }
-                                        else
-                                        {
-                                            var avgVal = (ui.rowData.得意先合計.replace(",", "") * 1) / (ui.rowData.得意先売上日数.replace(",", "") * 1);
-                                            var avgValFmt = avgVal.toFixed(1).toString();
-                                            return { text: avgValFmt };
-                                        }
-                                    default:
-                                        return { text: "" };
+                                    }
+                                } else {
+                                    switch (ui.rowData.pq_level) {
+                                        case 2:
+                                            if (ui.rowData.得意先合計 * 1 == 0 || ui.rowData.得意先売上日数 * 1 == 0)
+                                            {
+                                                return { text: "" };
+                                            }
+                                            else
+                                            {
+                                                var avgVal = (ui.rowData.得意先合計.replace(",", "") * 1) / (ui.rowData.得意先売上日数.replace(",", "") * 1);
+                                                var avgValFmt = avgVal.toFixed(1).toString();
+                                                return { text: avgValFmt };
+                                            }
+                                        default:
+                                            return { text: "" };
+                                    }
                                 }
                             }
                             if (ui.rowData[ui.dataIndx] * 1 == 0) {
@@ -622,6 +747,21 @@ export default {
         },
         onBushoOptionChanged: function(code, entities) {
             var vue = this;
+
+            //グループキー切替
+            var grid = vue.DAI05090Grid1;
+            if (vue.viewModel.BushoOption == 0){
+                grid.Group().option({
+                    "dataIndx": ["ＧＫ営業担当者", "ＧＫ獲得営業者"],
+                    "showSummary": [false, true],
+                    "collapsed": [false, false],
+                });
+            } else {
+                grid.Group().option({ "dataIndx": ["部署名", "ＧＫ営業担当者", "ＧＫ獲得営業者"],
+                    "showSummary": [false, false, true],
+                    "collapsed": [false, false, false],
+                });
+            }
 
             //条件変更ハンドラ
             vue.conditionChanged();
@@ -778,7 +918,7 @@ export default {
             vue.footerButtons.find(v => v.id == "DAI05090Grid1_Print").disabled = false;
 
             res.forEach(r => {
-                    r.部署 = r.部署名 + (!!r.部署ＣＤ ? ":" + r.部署ＣＤ : "");
+                    // r.部署 = r.部署名 + (!!r.部署ＣＤ ? ":" + r.部署ＣＤ : "");
                     r.ＧＫ営業担当者 = r.営業担当者ＣＤ + " " + r.営業担当者名;
                     r.ＧＫ獲得営業者 = r.獲得営業者ＣＤ + " " + r.獲得営業者名;
                 });
@@ -837,23 +977,53 @@ export default {
             var eigyoNmKey1;
             var eigyoNmKey2;
             var headerFunc = (header, idx, length) => {
-                if (header.pq_level == 0)
-                {
-                    bushoNm = header.children[0].children[0].children[0].部署.split(":")[0];
-                    eigyoNmKey1 = header.children[0].children[0].children[0].ＧＫ営業担当者.split(" ")[1];
-                    eigyoNmKey2 = eigyoNmKey1;
+                //TODO:西山確認修正中
+                if (vue.viewModel.BushoOption == 0) {
+                    if (header.pq_level == 0) {
+                        eigyoNmKey1 = header.children[0].children[0].ＧＫ営業担当者.split(" ")[1];
+                        eigyoNmKey2 = eigyoNmKey1;
+                        bushoNm = header.children[0].children[0].部署名.split(":")[0];
+                    }
+                    if (header.pq_level == 1) {
+                        eigyoNmKey2 = header.children[0].ＧＫ獲得営業者.split(" ")[1];
+                        bushoNm = header.children[0].部署名.split(":")[0];
+                    }
+                } else {
+                    if (header.pq_level == 0) {
+                        // bushoNm = header.children[0].children[0].children[0].部署.split(":")[0];
+                        bushoNm = header.部署名.split(":")[0];
+                        // eigyoNmKey1 = header.children[0].children[0].children[0].ＧＫ営業担当者.split(" ")[1];
+                        eigyoNmKey1 = header.children[0].ＧＫ営業担当者.split(" ")[1];
+                        eigyoNmKey2 = eigyoNmKey1;
+                    }
+                    if (header.pq_level == 1) {
+                        eigyoNmKey1 = header.children[0].children[0].ＧＫ営業担当者.split(" ")[1];
+                        eigyoNmKey2 = eigyoNmKey1;
+                        bushoNm = header.children[0].children[0].部署名.split(":")[0];
+                    }
+                    if (header.pq_level == 2) {
+                        // eigyoNmKey2 = header.children[0].ＧＫ獲得営業者.split(" ")[1];
+                        eigyoNmKey2 = header.ＧＫ獲得営業者.split(" ")[1];
+                        bushoNm = header.children[0].部署名.split(":")[0];
+                    }
                 }
-                if (header.pq_level == 1)
-                {
-                    eigyoNmKey1 = header.children[0].children[0].ＧＫ営業担当者.split(" ")[1];
-                    eigyoNmKey2 = eigyoNmKey1;
-                    bushoNm = header.children[0].children[0].部署.split(":")[0];
-                }
-                if (header.pq_level == 2)
-                {
-                    eigyoNmKey2 = header.children[0].ＧＫ獲得営業者.split(" ")[1];
-                    bushoNm = header.children[0].部署.split(":")[0];
-                }
+                // if (header.pq_level == 0)
+                // {
+                //     bushoNm = header.children[0].children[0].children[0].部署.split(":")[0];
+                //     eigyoNmKey1 = header.children[0].children[0].children[0].ＧＫ営業担当者.split(" ")[1];
+                //     eigyoNmKey2 = eigyoNmKey1;
+                // }
+                // if (header.pq_level == 1)
+                // {
+                //     eigyoNmKey1 = header.children[0].children[0].ＧＫ営業担当者.split(" ")[1];
+                //     eigyoNmKey2 = eigyoNmKey1;
+                //     bushoNm = header.children[0].children[0].部署.split(":")[0];
+                // }
+                // if (header.pq_level == 2)
+                // {
+                //     eigyoNmKey2 = header.children[0].ＧＫ獲得営業者.split(" ")[1];
+                //     bushoNm = header.children[0].部署.split(":")[0];
+                // }
                 return `
                     <div class="title">
                         <h3>* * 顧客売上推移表 * *</h3>
