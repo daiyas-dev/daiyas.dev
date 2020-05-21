@@ -30,6 +30,8 @@ class DAI05090Controller extends Controller
         $WehreCustomer = $Customer == "1" ? "AND TOKUISAKI.新規登録日 >= '$SaveDateStart' AND TOKUISAKI.新規登録日 <= '$SaveDateEnd'" : "";
         $WehreShowSyonin = $ShowSyonin == "1" ? "AND TOKUISAKI.状態区分 IN (10, 20)" : "";
 
+        $BushoOption = $vm->BushoOption;
+        $OrderByBusho = $BushoOption == "0" ? "" : "部署ＣＤ2,";
 
         $sql = "
         WITH 売上データ AS
@@ -178,7 +180,8 @@ class DAI05090Controller extends Controller
 		AND	D.獲得営業者ＣＤ = S.獲得営業者ＣＤ
 		AND	D.得意先ＣＤ = S.得意先ＣＤ
         ORDER BY
-            D.部署ＣＤ2, D.営業担当者ＣＤ, D.獲得営業者ＣＤ, D.得意先ＣＤ
+            $OrderByBusho
+            D.営業担当者ＣＤ, D.獲得営業者ＣＤ, D.得意先ＣＤ
         ";
 
         //$DataList = DB::select($sql);

@@ -227,6 +227,7 @@ export default {
                 SaveDateEnd: getYYYYMMDD(vue.viewModel.SaveDateEnd),
                 Customer: vue.viewModel.Customer,
                 ShowSyonin: vue.viewModel.ShowSyonin,
+                BushoOption: vue.viewModel.BushoOption,
             };
         },
     },
@@ -288,12 +289,6 @@ export default {
                 formulas:[
                 ],
                 colModel: [
-                    // {
-                    //     title: "部署",
-                    //     dataIndx: "部署", dataType: "string",
-                    //     hidden: true,
-                    //     fixed: true,
-                    // },
                     {
                         title: "部署ＣＤ",
                         dataIndx: "部署ＣＤ2", dataType: "string",
@@ -325,10 +320,6 @@ export default {
                         hidden: true,
                         fixed: true,
                         render: ui => {
-                            // if (ui.rowData.pq_level != 1) {
-                            //     return { text: "" };
-                            // }
-                            // return ui;
                             if (vue.viewModel.BushoOption == 0){
                                 if (ui.rowData.pq_level != 0) {
                                     return { text: "" };
@@ -348,16 +339,6 @@ export default {
                         hidden: true,
                         fixed: true,
                         render: ui => {
-                            // switch (ui.rowData.pq_level) {
-                            //     case 0:
-                            //         return { text: "" };
-                            //     case 1:
-                            //         return ui;
-                            //     case 2:
-                            //         return ui;
-                            //     default:
-                            //         return { text: "" };
-                            // }
                             if (vue.viewModel.BushoOption == 0){
                                 switch (ui.rowData.pq_level) {
                                     case 0:
@@ -398,12 +379,6 @@ export default {
                                 return { text: "総合計" };
                             }
                             if (!!ui.rowData.pq_gsummary) {
-                                // switch (ui.rowData.pq_level) {
-                                //     case 2:
-                                //         return { text: "合計" };
-                                //     default:
-                                //         return { text: "" };
-                                // }
                                 if (vue.viewModel.BushoOption == 0){
                                     switch (ui.rowData.pq_level) {
                                         case 1:
@@ -507,21 +482,6 @@ export default {
                                 }
                             }
                             if (!!ui.rowData.pq_gsummary) {
-                                // switch (ui.rowData.pq_level) {
-                                //     case 2:
-                                //         if (ui.rowData.得意先平日合計 * 1 == 0 || ui.rowData.得意先平日日数 * 1 == 0)
-                                //         {
-                                //             return { text: "" };
-                                //         }
-                                //         else
-                                //         {
-                                //             var avgVal = (ui.rowData.得意先平日合計.replace(",", "") * 1) / (ui.rowData.得意先平日日数.replace(",", "") * 1);
-                                //             var avgValFmt = avgVal.toFixed(1).toString();
-                                //             return { text: avgValFmt };
-                                //         }
-                                //     default:
-                                //         return { text: "" };
-                                // }
                                 if (vue.viewModel.BushoOption == 0) {
                                     switch (ui.rowData.pq_level) {
                                         case 1:
@@ -595,21 +555,6 @@ export default {
                                 }
                             }
                             if (!!ui.rowData.pq_gsummary) {
-                                // switch (ui.rowData.pq_level) {
-                                //     case 2:
-                                //         if (ui.rowData.得意先合計 * 1 == 0 || ui.rowData.得意先売上日数 * 1 == 0)
-                                //         {
-                                //             return { text: "" };
-                                //         }
-                                //         else
-                                //         {
-                                //             var avgVal = (ui.rowData.得意先合計.replace(",", "") * 1) / (ui.rowData.得意先売上日数.replace(",", "") * 1);
-                                //             var avgValFmt = avgVal.toFixed(1).toString();
-                                //             return { text: avgValFmt };
-                                //         }
-                                //     default:
-                                //         return { text: "" };
-                                // }
                                 if (vue.viewModel.BushoOption == 0) {
                                     switch (ui.rowData.pq_level) {
                                         case 1:
@@ -918,7 +863,6 @@ export default {
             vue.footerButtons.find(v => v.id == "DAI05090Grid1_Print").disabled = false;
 
             res.forEach(r => {
-                    // r.部署 = r.部署名 + (!!r.部署ＣＤ ? ":" + r.部署ＣＤ : "");
                     r.ＧＫ営業担当者 = r.営業担当者ＣＤ + " " + r.営業担当者名;
                     r.ＧＫ獲得営業者 = r.獲得営業者ＣＤ + " " + r.獲得営業者名;
                 });
@@ -977,53 +921,32 @@ export default {
             var eigyoNmKey1;
             var eigyoNmKey2;
             var headerFunc = (header, idx, length) => {
-                //TODO:西山確認修正中
                 if (vue.viewModel.BushoOption == 0) {
                     if (header.pq_level == 0) {
-                        eigyoNmKey1 = header.children[0].children[0].ＧＫ営業担当者.split(" ")[1];
-                        eigyoNmKey2 = eigyoNmKey1;
-                        bushoNm = header.children[0].children[0].部署名.split(":")[0];
+                        bushoNm = header.children[0].children[0].部署名;
+                        eigyoNmKey1 = header.ＧＫ営業担当者.split(" ")[1];
+                        eigyoNmKey2 = header.children[0].ＧＫ獲得営業者.split(" ")[1];;
                     }
                     if (header.pq_level == 1) {
-                        eigyoNmKey2 = header.children[0].ＧＫ獲得営業者.split(" ")[1];
-                        bushoNm = header.children[0].部署名.split(":")[0];
+                        bushoNm = header.children[0].部署名;
+                        eigyoNmKey2 = header.ＧＫ獲得営業者.split(" ")[1];
                     }
                 } else {
                     if (header.pq_level == 0) {
-                        // bushoNm = header.children[0].children[0].children[0].部署.split(":")[0];
-                        bushoNm = header.部署名.split(":")[0];
-                        // eigyoNmKey1 = header.children[0].children[0].children[0].ＧＫ営業担当者.split(" ")[1];
+                        bushoNm = header.部署名;
                         eigyoNmKey1 = header.children[0].ＧＫ営業担当者.split(" ")[1];
-                        eigyoNmKey2 = eigyoNmKey1;
+                        eigyoNmKey2 = header.children[0].children[0].ＧＫ獲得営業者.split(" ")[1];
                     }
                     if (header.pq_level == 1) {
-                        eigyoNmKey1 = header.children[0].children[0].ＧＫ営業担当者.split(" ")[1];
-                        eigyoNmKey2 = eigyoNmKey1;
-                        bushoNm = header.children[0].children[0].部署名.split(":")[0];
+                        bushoNm = header.children[0].children[0].部署名;
+                        eigyoNmKey1 = header.ＧＫ営業担当者.split(" ")[1];
+                        eigyoNmKey2 = header.children[0].ＧＫ獲得営業者.split(" ")[1];
                     }
                     if (header.pq_level == 2) {
-                        // eigyoNmKey2 = header.children[0].ＧＫ獲得営業者.split(" ")[1];
+                        bushoNm = header.children[0].部署名;
                         eigyoNmKey2 = header.ＧＫ獲得営業者.split(" ")[1];
-                        bushoNm = header.children[0].部署名.split(":")[0];
                     }
                 }
-                // if (header.pq_level == 0)
-                // {
-                //     bushoNm = header.children[0].children[0].children[0].部署.split(":")[0];
-                //     eigyoNmKey1 = header.children[0].children[0].children[0].ＧＫ営業担当者.split(" ")[1];
-                //     eigyoNmKey2 = eigyoNmKey1;
-                // }
-                // if (header.pq_level == 1)
-                // {
-                //     eigyoNmKey1 = header.children[0].children[0].ＧＫ営業担当者.split(" ")[1];
-                //     eigyoNmKey2 = eigyoNmKey1;
-                //     bushoNm = header.children[0].children[0].部署.split(":")[0];
-                // }
-                // if (header.pq_level == 2)
-                // {
-                //     eigyoNmKey2 = header.children[0].ＧＫ獲得営業者.split(" ")[1];
-                //     bushoNm = header.children[0].部署.split(":")[0];
-                // }
                 return `
                     <div class="title">
                         <h3>* * 顧客売上推移表 * *</h3>
@@ -1051,7 +974,7 @@ export default {
                                 <th>${moment().format("YYYY/MM/DD hh:mm")}</th>
                             </tr>
                             <tr>
-                                <th>${bushoNm}</th>
+                                <th>${vue.viewModel.BushoOption != 0 ? bushoNm : ""}</th>
                                 <th>営業担当者：</th>
                                 <th colspan="3">${eigyoNmKey1}</th>
                                 <th style="text-align: right;">獲得営業担当者：</th>
