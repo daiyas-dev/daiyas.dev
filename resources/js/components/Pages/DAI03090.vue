@@ -95,6 +95,7 @@ export default {
             viewModel: {
                 TargetDate: null,
             },
+            FileName: null,
             CompanyInfo: null,
             CustomerInfoArray: [],
             DAI03090Grid1: null,
@@ -185,6 +186,15 @@ export default {
                         dataType: "string",
                         width: 200, minWidth: 200,
                         tooltip: true,
+                        render: ui => {
+                            if (!!ui.rowData.pq_grandsummary) {
+                                return { text: " * * 合　計 * * " };
+                            } else if (!!ui.rowData.pq_gsummary) {
+                                return { text: " * * 小　計 * * " };
+                            } else {
+                                return ui;
+                            }
+                        },
                     },
                     {
                         title: "金融機関CD",
@@ -285,7 +295,6 @@ export default {
                             uncheck: "false",
                         },
                         hidden: true,
-                        hiddenOnExport: false,
                     },
                 ],
             },
@@ -332,15 +341,18 @@ export default {
         addFileCallback: function(event) {
             var vue = this;
             $(vue.$el).find(".UploadFile").attr("data-path-text", event.name);
+            vue.FileName = event.name;
         },
         sendingCallback: function(event, xhr, formData) {
             var vue = this;
+            vue.DAI03090Grid1.showLoading();
             formData.append("TargetDate", vue.searchParams.TargetDate);
         },
         uploadFileCallback: function(res) {
             var vue = this;
             var grid = vue.DAI03090Grid1;
 
+            vue.DAI03090Grid1.hideLoading();
             if (!!res.result) {
 
                 vue.Contents = _.cloneDeep(res.Contents);
@@ -462,20 +474,12 @@ export default {
         },
         print: function() {
             var vue = this;
+            var grid = vue.DAI03090Grid1;
 
             //印刷用HTML全体適用CSS
             var globalStyles = `
                 body {
                     -webkit-print-color-adjust: exact;
-                }
-                div.title {
-                    width: 100%;
-                    display: flex;
-                    justify-content: center;
-                }
-                div.title > h3 {
-                    margin-top: 0px;
-                    margin-bottom: 0px;
                 }
                 table {
                     table-layout: fixed;
@@ -494,33 +498,83 @@ export default {
                     padding-right: 3px;
                 }
                 th {
-                    height: 30px;
+                    height: 16px;
                     text-align: center;
                 }
                 td {
-                    height: 17px;
+                    height: 16px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
+                table.row-table:nth-child(even) {
+                	break-before: page;
+                }
+                table.row-table > tbody > tr > td {
+                    border-style: dotted;
+                    border-left-width: 0px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                    padding-bottom: 20px;
+                }
+                table.row-table:nth-child(even) > tbody > tr > td {
+                    border-bottom-width: 1px;
+                }
+                table.row-table > tbody > tr > td:first-child {
+                    border-right-width: 1px;
+                }
+                table.row-table > tbody > tr > td > div {
+                    padding-left: 15px;
+                    padding-right: 15px;
+                }
+                div.title {
+                    display: block;
+                    text-align: center;
+                }
+                div.title > h3, div.title > h5 {
+                    margin-top: 10px;
+                    margin-bottom: 10px;
+                }
             `;
 
-            var headerFunc = (chunk, idx, length) => {
+            var headerFunc = (header, idx, length, chunk, chunks) => {
+                var TargetDateFrom = moment(vue.searchParams.DateStart, "YYYYMMDD").format("YYYY/MM/DD");
+                var TargetDateTo = moment(vue.searchParams.DateEnd, "YYYYMMDD").format("YYYY/MM/DD");
+
+                var Busho = header.pq_gid.split(":");
+                var BushoCd = Busho[0] || "";
+                var BushoNm = Busho[1] || "部署無し";
+
+                var match = vue.FileName.replace(".txt", "").match(/\d+$/);
+                var HikiDate = !!match && match[0].includes(vue.CompanyInfo.引落日)
+                    ? moment(match[0]).format("YYYY/MM/DD")
+                    : ""
+                    ;
+
                 return `
-                    <div class="title">
-                        <h3>* * * 売上明細表 * * *</h3>
+                    <div class="header">
+                        <div class="title" style="float: left; width: 100%">
+                            <h3>* * * <span></span>振替一覧表<span></span> * * *</h3>
+                        </div>
+                        <div style="float: left; width: 100%; margin-bottom: 10px;">
+                            <div style="float: left; width: 10%; text-align: left;">ファイル名</div>
+                            <div style="float: left; width: 30%; text-align: left;">${vue.FileName}</div>
+                            <div style="float: left; width: 60%;">&nbsp</div>
+
+                            <div style="float: left; width: 10%; text-align: left;">引落日</div>
+                            <div style="float: left; width: 20%; text-align: left;">${HikiDate}</div>
+                            <div style="float: left; width: 70%;">&nbsp</div>
+
+                            <div style="float: left; width: 10%; text-align: left;">入金日</div>
+                            <div style="float: left; width: 20%; text-align: left;">${moment(vue.searchParams.TargetDate).format("YYYY/MM/DD")}</div>
+
+                            <div style="float: left; width: 38%;">&nbsp</div>
+                            <div style="float: left; width: 7%; text-align: right;">作成日</div>
+                            <div style="float: left; width: 15%; text-align: center;">${moment().format("YYYY年MM月DD日")}</div>
+                            <div style="float: left; width: 5%; text-align: center;">PAGE</div>
+                            <div style="float: left; width: 5%; text-align: center;">${idx + 1}/${length}</div>
+                        </div>
                     </div>
-                    <table class="header-table" style="border-width: 0px">
-                        <thead>
-                            <tr>
-                                <th style="width: 15%;">${vue.viewModel.BushoCd}:${vue.viewModel.BushoNm}</th>
-                                <th style="width: 46%;"></th>
-                                <th style="width: 10%;">作成日</th>
-                                <th style="width: 15%;">${moment().format("YYYY年MM月DD日")}</th>
-                                <th style="width: 8%;">PAGE</th>
-                                <th style="width: 6%; text-align: right;">${idx + 1}/${length}</th>
-                            </tr>
-                        </thead>
-                    </table>
                 `;
             };
 
@@ -529,80 +583,105 @@ export default {
                 .append(
                     $("<body>")
                         .append(
-                            vue.DAI03090Grid1.generateHtml(
+                            grid.generateHtml(
                                 `
-                                    table.DAI03090Grid1 tr:nth-child(1) th {
+                                    div.header > div > div > span {
+                                        padding-left: 8px;
+                                        padding-right: 8px;
+                                    }
+                                    div.header-box > div{
                                         border-style: solid;
-                                        border-left-width: 0px;
+                                        border-left-width: 1px;
                                         border-top-width: 1px;
                                         border-right-width: 0px;
-                                        border-bottom-width: 1px;
+                                        border-bottom-width: 0px;
+                                        padding-left: 3px;
+                                        padding-top: 3px;
+                                        height: 20px;
                                     }
-                                    table.DAI03090Grid1 tr.grand-summary td {
-                                        border-style: solid;
-                                        border-left-width: 0px;
-                                        border-top-width: 1px;
-                                        border-right-width: 0px;
-                                        border-bottom-width: 1px;
+                                    div.header div:not(.title) {
+                                        font-size: 12px;
                                     }
-                                    table.DAI03090Grid1 tr th:nth-child(1) {
-                                        width: 8.5%;
+                                    div.header-box > div:last-child {
+                                        border-right-width: 1px;
                                     }
-
-                                    table.DAI03090Grid1 tr th:nth-child(2) {
-                                        width: 4.2%;
+                                    table.DAI03090Grid1 {
+                                        border-collapse:collapse;
                                     }
-
-                                    table.DAI03090Grid1 tr th:nth-child(3) {
-                                        width: 13.6%;
+                                    table.DAI03090Grid1 thead tr:first-child {
+                                        border-top: solid 1px black;
                                     }
-
-                                    table.DAI03090Grid1 tr th:nth-child(4) {
-                                        width: 5.5%;
+                                    table.DAI03090Grid1 tbody tr {
+                                        border-bottom: dotted 1px black;
+                                        height: 24px;
+                                        min-height: 24px;
                                     }
-
-                                    table.DAI03090Grid1 tr th:nth-child(5) {
-                                        width: 17.9%;
+                                    table.DAI03090Grid1 tbody tr.group-summary,
+                                    table.DAI03090Grid1 tbody tr.grand-summary {
+                                        border-bottom-width: 0px;
                                     }
-
-                                    table.DAI03090Grid1 tr th:nth-child(6) {
-                                        width: 4.2%;
+                                    table.DAI03090Grid1 tbody tr.group-summary td:nth-child(n+3),
+                                    table.DAI03090Grid1 tbody tr.grand-summary td:nth-child(n+3) {
+                                        border-bottom: dotted 1px black;
                                     }
-
-                                    table.DAI03090Grid1 tr th:nth-child(7) {
-                                        width: 8.5%;
+                                    table.DAI03090Grid1 tbody tr:first-child {
+                                        border-bottom: dotted 1px black;
                                     }
-
-                                    table.DAI03090Grid1 tr th:nth-child(8) {
-                                        width: 4.2%;
+                                    table.DAI03090Grid1 thead tr th {
+                                        text-align: left;
+                                        padding-left: 2px;
                                     }
-
-                                    table.DAI03090Grid1 tr th:nth-child(9) {
-                                        width: 4.2%;
+                                    table.DAI03090Grid1 thead tr th:nth-child(1) {
+                                        width: 10%;
                                     }
-
-                                    table.DAI03090Grid1 tr th:nth-child(10) {
-                                        width: 5.5%;
+                                    table.DAI03090Grid1 thead tr th:nth-child(2) {
+                                        width: 6%;
                                     }
-
-                                    table.DAI03090Grid1 tr th:nth-child(11) {
-                                        width: 5.5%;
+                                    table.DAI03090Grid1 thead tr th:nth-child(3) {
+                                        width: 32%;
                                     }
-
-                                    table.DAI03090Grid1 tr th:nth-child(12) {
-                                        width: 5.5%;
+                                    table.DAI03090Grid1 thead tr th:nth-child(4) {
+                                        width: 10%;
                                     }
-
-                                    table.DAI03090Grid1 tr th:nth-child(13) {
-                                        width: 8.5%;
+                                    table.DAI03090Grid1 thead tr th:nth-child(5) {
+                                        width: 10%;
                                     }
-
-                                    table.DAI03090Grid1 tr th:nth-child(14) {
-                                        width: 4.2%;
+                                    table.DAI03090Grid1 thead tr th:nth-child(6) {
+                                        width: 5%;
+                                    }
+                                    table.DAI03090Grid1 thead tr th:nth-child(7) {
+                                        width: 6%;
+                                    }
+                                    table.DAI03090Grid1 thead tr th:nth-child(8) {
+                                        width: 8%;
+                                        text-align: right;
+                                    }
+                                    table.DAI03090Grid1 thead tr th:nth-child(9) {
+                                        width: 8%;
+                                        text-align: right;
+                                    }
+                                    table.DAI03090Grid1 thead tr th:nth-child(10) {
+                                        width: 5%;
+                                        text-align: center;
+                                    }
+                                    table.DAI03090Grid1 tbody tr td {
+                                        text-align: left;
+                                    }
+                                    table.DAI03090Grid1 tbody tr td:nth-child(8) {
+                                        text-align: right;
+                                    }
+                                    table.DAI03090Grid1 tbody tr td:nth-child(9) {
+                                        text-align: right;
+                                    }
+                                    table.DAI03090Grid1 tbody tr td:nth-child(10) {
+                                        text-align: center;
                                     }
                                 `,
                                 headerFunc,
-                                32,
+                                24,
+                                false,
+                                true,
+                                true,
                             )
                         )
                 )
