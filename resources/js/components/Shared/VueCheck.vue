@@ -156,7 +156,7 @@ export default {
         onChanged: function (event) {
             var vue = this;
 
-            var code = $(event.target).val();
+            var code = $(event.target).attr(event.target.checked + "-value");
 
             if (vue.buddy) {
                 vue.vmodel[vue.buddy] = _.find(vue.entities, v => v.code == code).name;
