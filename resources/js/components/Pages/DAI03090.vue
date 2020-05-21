@@ -506,9 +506,6 @@ export default {
                     white-space: nowrap;
                     overflow: hidden;
                 }
-                table.row-table:nth-child(even) {
-                	break-before: page;
-                }
                 table.row-table > tbody > tr > td {
                     border-style: dotted;
                     border-left-width: 0px;
@@ -608,8 +605,9 @@ export default {
                                     table.DAI03090Grid1 {
                                         border-collapse:collapse;
                                     }
-                                    table.DAI03090Grid1 thead tr:first-child {
+                                    table.DAI03090Grid1 thead tr {
                                         border-top: solid 1px black;
+                                        border-bottom: solid 1px black;
                                     }
                                     table.DAI03090Grid1 tbody tr {
                                         border-bottom: dotted 1px black;

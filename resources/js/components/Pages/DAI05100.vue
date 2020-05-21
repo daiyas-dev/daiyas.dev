@@ -342,7 +342,7 @@ export default {
                         hidden: true,
                     },
                     {
-                        title: "顧客ＣＤ",
+                        title: "顧客CD",
                         dataIndx: "得意先ＣＤ", dataType: "string",
                         width: 75, minWidth: 75, maxWidth: 75, align: "right",
                     },
@@ -781,6 +781,7 @@ export default {
                     }
                 }
 
+                //旧部署CDのため部署CD=nullのデータは帳票に部署なしとして出力する
                 return `
                     <div class="title">
                         <h2>* * 顧客売上表 * *</h2>
@@ -801,7 +802,8 @@ export default {
                                 <th class="blank-cell" style="width: 5%;"></th>
                             </tr>
                             <tr>
-                                <th style="width: 12%;">${vue.viewModel.BushoOption != 0 ? bushoNm : ""}</th>
+                                <th style="width: 12%;">${vue.viewModel.BushoOption != 0 ?
+                                    (bushoNm == null ? "部署なし" : bushoNm ): ""}</th>
                                 <th class="blank-cell"></th>
                                 <th class="blank-cell"></th>
                                 <th class="blank-cell"></th>
