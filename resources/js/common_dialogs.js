@@ -17,10 +17,8 @@ var dialogCustom = function(options) {
         minWidth: 300,
         iconClass: null,
         reuse: false,
-        //TODO: edge/IEのレンダリングエンジンが弱すぎるので
-        //TODO: ダイアログ内のPQGridの再描画が間に合わないのでエフェクト停止
-        show: { effect: "clip", duration: 100},
-        hide: { effect: "clip", duration: 100},
+        show: { effect: "clip", duration: 300},
+        hide: { effect: "clip", duration: 200},
         create: function () {
             var op = $(this).dialog("option");
 
