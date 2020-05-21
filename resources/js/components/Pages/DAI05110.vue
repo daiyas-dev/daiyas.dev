@@ -13,7 +13,7 @@
                     :vmodel=viewModel
                     bind="DateStart"
                     :editable=true
-                    :onChangedFunc=onDateChanged
+                    :onChangedFunc=onDateStartChanged
                 />
                 <label>～</label>
                 <DatePickerWrapper
@@ -24,7 +24,7 @@
                     :vmodel=viewModel
                     bind="DateEnd"
                     :editable=true
-                    :onChangedFunc=onDateChanged
+                    :onChangedFunc=onDateEndChanged
                 />
             </div>
         </div>
@@ -92,7 +92,7 @@
                     :vmodel=viewModel
                     bind="EigyoTantoCd"
                     dataUrl="/Utilities/GetTantoList"
-                    :params='{ bushoCd: viewModel.BushoOption == "2" ? viewModel.BushoCd : null }'
+                    :params='{}'
                     :dataListReset=true
                     title="営業担当者"
                     labelCd="営業担当者CD"
@@ -123,7 +123,7 @@
                     :vmodel=viewModel
                     bind="GetEigyoTantoCd"
                     dataUrl="/Utilities/GetTantoList"
-                    :params='{ bushoCd: viewModel.BushoOption == "2" ? viewModel.BushoCd : null }'
+                    :params='{}'
                     :dataListReset=true
                     title="獲得営業担当者"
                     labelCd="獲得営業担当者CD"
@@ -201,7 +201,6 @@ export default {
             viewModel: {
                 BushoOption: "2",
                 BushoCd: null,
-                ProductArray: [],
                 DateStart: null,
                 DateEnd: null,
                 Customer: "0",
@@ -241,9 +240,9 @@ export default {
                     header: false,
                     grandSummary: true,
                     indent: 10,
-                    dataIndx: ["ＧＫ営業担当者", "ＧＫ獲得営業者"],
-                    showSummary: [false, true],
-                    collapsed: [false, false],
+                    dataIndx: ["部署名", "ＧＫ営業担当者", "ＧＫ獲得営業者"],
+                    showSummary: [false, false, true],
+                    collapsed: [false, false, false],
                     summaryInTitleRow: "collapsed",
                 },
                 summaryData: ["a", "b"
@@ -251,6 +250,18 @@ export default {
                 formulas:[
                 ],
                 colModel: [
+                    {
+                        title: "部署ＣＤ",
+                        dataIndx: "部署ＣＤ", dataType: "string",
+                        hidden: true,
+                        fixed: true,
+                    },
+                    {
+                        title: "部署名",
+                        dataIndx: "部署名", dataType: "string",
+                        hidden: true,
+                        fixed: true,
+                    },
                     {
                         title: "営業担当者ＣＤ",
                         dataIndx: "営業担当者ＣＤ", dataType: "string",
@@ -264,20 +275,23 @@ export default {
                         fixed: true,
                     },
                     {
-                        title: "部署ＣＤ",
-                        dataIndx: "部署ＣＤ", dataType: "string",
-                        hidden: true,
-                        fixed: true,
-                    },
-                    {
                         title: "営業担当者",
                         dataIndx: "ＧＫ営業担当者", dataType: "string",
                         width: 90, minWidth: 90, maxWidth: 90,
                         hidden: true,
                         fixed: true,
                         render: ui => {
-                            if (ui.rowData.pq_level != 0) {
-                                return { text: "" };
+                            // if (ui.rowData.pq_level != 0) {
+                            //     return { text: "" };
+                            // }
+                            if (vue.viewModel.BushoOption == 0){
+                                if (ui.rowData.pq_level != 0) {
+                                    return { text: "" };
+                                }
+                            } else {
+                                if (ui.rowData.pq_level != 1) {
+                                    return { text: "" };
+                                }
                             }
                             return ui;
                         },
@@ -289,18 +303,40 @@ export default {
                         hidden: true,
                         fixed: true,
                         render: ui => {
-                            switch (ui.rowData.pq_level) {
-                                case 0:
-                                    return { text: "" };
-                                case 1:
-                                    return ui;
-                                default:
-                                    return { text: "" };
+                            // switch (ui.rowData.pq_level) {
+                            //     case 0:
+                            //         return { text: "" };
+                            //     case 1:
+                            //         return ui;
+                            //     default:
+                            //         return { text: "" };
+                            // }
+                            if (vue.viewModel.BushoOption == 0){
+                                switch (ui.rowData.pq_level) {
+                                    case 0:
+                                        return { text: "" };
+                                    case 1:
+                                        return ui;
+                                    default:
+                                        return { text: "" };
+                                }
+                            } else {
+                                switch (ui.rowData.pq_level) {
+                                    case 0:
+                                        return { text: "" };
+                                    case 1:
+                                        return ui;
+                                    case 2:
+                                        return ui;
+
+                                    default:
+                                        return { text: "" };
+                                }
                             }
                         },
                     },
                     {
-                        title: "顧客ＣＤ",
+                        title: "顧客CD",
                         dataIndx: "得意先ＣＤ", dataType: "string",
                         width: 70, minWidth: 70, maxWidth: 70, align: "right",
                         fixed: true,
@@ -315,11 +351,26 @@ export default {
                                 return { text: "売上金額総合計&nbsp;\n新規客総合計" };
                             }
                             if (!!ui.rowData.pq_gsummary) {
-                                switch (ui.rowData.pq_level) {
-                                    case 1:
-                                        return { text: "売上金額合計&nbsp;\n新規客計" };
-                                    default:
-                                        return { text: "" };
+                            //     switch (ui.rowData.pq_level) {
+                            //         case 1:
+                            //             return { text: "売上金額合計&nbsp;\n新規客計" };
+                            //         default:
+                            //             return { text: "" };
+                            //     }
+                                if (vue.viewModel.BushoOption == 0){
+                                    switch (ui.rowData.pq_level) {
+                                        case 1:
+                                            return { text: "売上金額合計&nbsp;\n新規客計" };
+                                        default:
+                                            return { text: "" };
+                                    }
+                                } else {
+                                    switch (ui.rowData.pq_level) {
+                                        case 2:
+                                            return { text: "売上金額合計&nbsp;\n新規客計" };
+                                        default:
+                                            return { text: "" };
+                                    }
                                 }
                             }
                             return { text:ui };
@@ -368,6 +419,21 @@ export default {
         onBushoOptionChanged: function(code, entities) {
             var vue = this;
 
+            //グループキー切替
+            var grid = vue.DAI05110Grid1;
+            if (vue.viewModel.BushoOption == 0){
+                grid.Group().option({
+                    "dataIndx": ["ＧＫ営業担当者", "ＧＫ獲得営業者"],
+                    "showSummary": [false, true],
+                    "collapsed": [false, false],
+                });
+            } else {
+                grid.Group().option({ "dataIndx": ["部署名", "ＧＫ営業担当者", "ＧＫ獲得営業者"],
+                    "showSummary": [false, false, true],
+                    "collapsed": [false, false, false],
+                });
+            }
+
             //条件変更ハンドラ
             vue.conditionChanged();
         },
@@ -377,14 +443,40 @@ export default {
             //条件変更ハンドラ
             vue.filterChanged();
         },
-        onDateChanged: function(code, entity) {
+        // onDateChanged: function(code, entity) {
+        //     var vue = this;
+
+        //     //列定義変更 + 条件変更ハンドラ
+        //     vue.refreshCols(vue.conditionChanged);
+
+        //     //条件変更ハンドラ
+        //     //vue.conditionChanged();
+        // },
+        onDateStartChanged: function(code, entity) {
             var vue = this;
 
-            //列定義変更 + 条件変更ハンドラ
-            vue.refreshCols(vue.conditionChanged);
+            var ms = moment(vue.viewModel.DateStart, "YYYY年MM月DD日");
+            var me = moment(vue.viewModel.DateEnd, "YYYY年MM月DD日");
 
-            //条件変更ハンドラ
-            //vue.conditionChanged();
+            if (ms.month() != me.month()) {
+                vue.viewModel.DateEnd = ms.endOf("month").format("YYYY年MM月DD日");
+            } else {
+                //列定義変更 + 条件変更ハンドラ
+                vue.refreshCols(vue.conditionChanged);
+            }
+        },
+        onDateEndChanged: function(code, entity) {
+            var vue = this;
+
+            var ms = moment(vue.viewModel.DateStart, "YYYY年MM月DD日");
+            var me = moment(vue.viewModel.DateEnd, "YYYY年MM月DD日");
+
+            if (ms.month() != me.month()) {
+                vue.viewModel.DateStart = me.startOf("month").format("YYYY年MM月DD日");
+            } else {
+                //列定義変更 + 条件変更ハンドラ
+                vue.refreshCols(vue.conditionChanged);
+            }
         },
         onShowSyoninChanged: function(code, entity) {
             var vue = this;
@@ -690,7 +782,7 @@ export default {
                     text-align: center;
                 }
                 td {
-                    height: 22px;
+                    height: 15px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
@@ -699,18 +791,46 @@ export default {
                 }
             `;
 
+            //TODO部署名取得
+            var bushoNm;
             var eigyoNmKey1;
             var eigyoNmKey2;
             var headerFunc = (header, idx, length) => {
-                if (header.pq_level == 0)
-                {
-                    eigyoNmKey1 = header.ＧＫ営業担当者.split(" ")[1];
-                    eigyoNmKey2 = eigyoNmKey1;
+                if (vue.viewModel.BushoOption == 0) {
+                    if (header.pq_level == 0) {
+                        bushoNm = header.children[0].children[0].部署名;
+                        eigyoNmKey1 = header.ＧＫ営業担当者.split(" ")[1];
+                        eigyoNmKey2 = header.children[0].ＧＫ獲得営業者.split(" ")[1];;
+                    }
+                    if (header.pq_level == 1) {
+                        bushoNm = header.children[0].部署名;
+                        eigyoNmKey2 = header.ＧＫ獲得営業者.split(" ")[1];
+                    }
+                } else {
+                    if (header.pq_level == 0) {
+                        bushoNm = header.部署名;
+                        eigyoNmKey1 = header.children[0].ＧＫ営業担当者.split(" ")[1];
+                        eigyoNmKey2 = header.children[0].children[0].ＧＫ獲得営業者.split(" ")[1];
+                    }
+                    if (header.pq_level == 1) {
+                        bushoNm = header.children[0].children[0].部署名;
+                        eigyoNmKey1 = header.ＧＫ営業担当者.split(" ")[1];
+                        eigyoNmKey2 = header.children[0].ＧＫ獲得営業者.split(" ")[1];
+                    }
+                    if (header.pq_level == 2) {
+                        bushoNm = header.children[0].部署名;
+                        eigyoNmKey2 = header.ＧＫ獲得営業者.split(" ")[1];
+                    }
                 }
-                if (header.pq_level == 1)
-                {
-                    eigyoNmKey2 = header.ＧＫ獲得営業者.split(" ")[1];
-                }
+                // if (header.pq_level == 0)
+                // {
+                //     eigyoNmKey1 = header.ＧＫ営業担当者.split(" ")[1];
+                //     eigyoNmKey2 = eigyoNmKey1;
+                // }
+                // if (header.pq_level == 1)
+                // {
+                //     eigyoNmKey2 = header.ＧＫ獲得営業者.split(" ")[1];
+                // }
                 return `
                     <div class="title">
                         <h3>* * 顧客売上累計表 * *</h3>
@@ -738,7 +858,7 @@ export default {
                                 <th colspan="2">作成日： ${moment().format("YYYY/MM/DD HH:MM")}</th>
                             </tr>
                             <tr>
-                                <th>部署名ＸＸＸ</th>
+                                <th>${vue.viewModel.BushoOption != 0 ? bushoNm : ""}</th>
                                 <th>営業担当者：</th>
                                 <th colspan="3">${eigyoNmKey1}</th>
                                 <th>獲得営業担当者：</th>
@@ -764,6 +884,13 @@ export default {
                     border-top-width: 1px;
                     border-right-width: 0px;
                     border-bottom-width: 0px;
+                }
+                table.DAI05110Grid1 tr:nth-child(1) th:last-child ,
+                table.DAI05110Grid1 tr td:last-child {
+                    border-right-width: 1px;
+                }
+                table.DAI05110Grid1 tr:last-child td {
+                    border-bottom-width: 1px;
                 }
                 table.DAI05110Grid1 tr.group-summary td:nth-child(2) {
                     text-align: right;
@@ -795,7 +922,9 @@ export default {
                             vue.DAI05110Grid1.generateHtml(
                                 styleCustomers,
                                 headerFunc,
-                                36,
+                                //TODO:西山　印刷確認未完　用紙サイズ確認　
+                                //36,
+                                30,
                                 false,
                                 true,
                                 true,

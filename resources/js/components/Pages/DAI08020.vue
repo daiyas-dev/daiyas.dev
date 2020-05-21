@@ -215,6 +215,20 @@ export default {
                     menuIcon: false,
                     hideRows: false,
                 },
+                groupModel: {
+                    on: true,
+                    header: false,
+                    grandSummary: true,
+                    indent: 10,
+                    dataIndx: ["受注Ｎｏ"],
+                    showSummary: true,
+                    collapsed: false,
+                    summaryInTitleRow: "collapsed",
+                },
+                summaryData: [
+                ],
+                formulas:[
+                ],
                 colModel: [
                     {
                         title: "得意先名",
@@ -362,13 +376,10 @@ export default {
 
             if (!!entity && !_.isEmpty(entity)) {
                 vue.viewModel.BushoCd = entity["部署CD"];
-
-                //フィルタ変更
-                vue.filterChanged();
-
-                //条件変更
-                vue.conditionChanged();
             }
+
+            //フィルタ変更
+            vue.filterChanged();
         },
         onDateChanged: function() {
             var vue = this;
@@ -421,17 +432,6 @@ export default {
 
             if (!!vue.viewModel.CustomerCd) {
                 rules.push({ dataIndx: "得意先ＣＤ", condition: "equal", value: vue.viewModel.CustomerCd });
-            }
-
-            if (!!vue.viewModel.KeyWord) {
-                var keywords = vue.viewModel.KeyWord.split(/[, 、　]/)
-                    .map(v => _.trim(v))
-                    .map(k => k.replace(/^[\+＋]/, ""))
-                    .filter(v => !!v);
-
-                var rulesKeyWord = keywords.map(k => { return { condition: "contain", value: k }; });
-
-                rules.push({ dataIndx: "KeyWord", mode: vue.viewModel.FilterMode, condition: "equal", crules: rulesKeyWord });
             }
 
             grid.filter({ oper: "replace", mode: "AND", rules: rules });
@@ -661,35 +661,45 @@ export default {
 
             var target = targetData.filter(k=>k.pq_level==undefined)
                 .map(r => {
-                    var products=r.商品名;
+                    var products=r.商品名.split("\n");
                     var layout_product_body=``;
-                    var tel=r.電話番号;
-                    console.log("tel", r.電話番号);
-                    layout_product_body += `
-                        <tr>
-                            <th>${r.商品名}</th>
-                            <th>${r.数量}</th>
-                            <th>${r.単価}</th>
-                            <th>${r.金額}</th>
-                            <th>
-                                <table>
-                                <th style="width: 8%; border: none;">電話番号</th>
-                                <th style="border: none; text-align: left;">${r.電話番号 ? r.電話番号.replace('\n', "<br>") : ""}</th>
-                                </table>
-                            </th>
-                        </tr>
-                        <tr>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th rowspan="6">
-                                <div>配達先</div>
-                                <div>${r.配達先 ? r.配達先 : ""}</div>
-                            </th>
-                        </tr>
-                    `;
-                    var row=5;
+                    products.map(pr=>{
+                        layout_product_body += `
+                            <tr>
+                                <th>${r.商品名}</th>
+                                <th>${r.数量}</th>
+                                <th>${r.単価}</th>
+                                <th>${r.金額}</th>
+                            </tr>
+                        `;
+                    });
+                    // var layout_product_body=``;
+                    // layout_product_body += `
+                    //     <tr>
+                    //         <th>${r.商品名}</th>
+                    //         <th>${r.数量}</th>
+                    //         <th>${r.単価}</th>
+                    //         <th>${r.金額}</th>
+                    //         <th>
+                    //             <table>
+                    //             <th style="width: 8%; border: none;">電話番号</th>
+                    //             <th style="border: none; text-align: left;">${r.電話番号 ? r.電話番号.replace('\n', "<br>") : ""}</th>
+                    //             </table>
+                    //         </th>
+                    //     </tr>
+                    //     <tr>
+                    //         <th></th>
+                    //         <th></th>
+                    //         <th></th>
+                    //         <th></th>
+                    //         <th rowspan="6">
+                    //             <div>配達先</div>
+                    //             <div>${r.配達先 ? r.配達先 : ""}</div>
+                    //         </th>
+                    //     </tr>
+                    // `;
+                    // var row=5;
+                    var row=7-products.length;
                     if(0<row){
                         [...Array(row)].map(r=>{
                             layout_product_body += `
@@ -833,16 +843,85 @@ export default {
             });
             window.res_tg = _.cloneDeep(target);//TODO:
 
+            var busyoCd;
+            var busyoNm;
+            var courseCd;
+            var courseNm;
+            var headerFunc = (header, idx, length) => {
+                if (header.pq_level == 0)
+                {
+                    // busyoCd = header.ＧＫ部署.split(" ")[0];
+                    // busyoNm = header.ＧＫ部署.split(" ")[1];
+                    // courseCd = header.children[0].ＧＫエリア.split(" ")[0];
+                    // courseNm = header.children[0].ＧＫエリア.split(" ")[1];
+                }
+                return `
+                    <div class="title">
+                        <h3><div class="report-title-area">得意先別実績表<div></h3>
+                    </div>
+                    <table class="header-table" style="border-width: 0px">
+                        <thead>
+                            <tr>
+                                <th style="width:  5%;">部署</th>
+                                <th style="width:  5%; text-align: right;">${busyoCd}</th>
+                                <th style="width: 18%;">${busyoNm}</th>
+                                <th style="width:  5%;" class="blank-cell"></th>
+                                <th style="width:  5%;" class="blank-cell"></th>
+                                <th style="width: 15%;" class="blank-cell"></th>
+                                <th style="width: 20%;" class="blank-cell"></th>
+                                <th style="width:  5%;" class="blank-cell"></th>
+                                <th style="width: 12%;" class="blank-cell"></th>
+                                <th style="width:  5%;" class="blank-cell"></th>
+                                <th style="width:  5%;" class="blank-cell"></th>
+                            </tr>
+                            <tr>
+                                <th>配達日付</th>
+                                <th colspan="2">${vue.viewModel.DeliveryDate}</th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                            </tr>
+                            <tr>
+                                <th style="text-align: right;">${courseCd}</th>
+                                <th>${courseNm}</th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th>作成日</th>
+                                <th style="text-align: right;">${moment().format("YYYY年MM月DD日")}</th>
+                                <th>PAGE</th>
+                                <th style="text-align: right;">${idx + 1}</th>
+                            </tr>
+                        </thead>
+                    </table>
+                `;
+            };
+
             var printable = $("<html>")
                 .append($("<head>").append($("<style>").text(globalStyles)))
                 .append(
                     $("<body>")
                         .append(
+                            // grid.generateHtml(
+                            //     ``,
+                            //     headerFunc,
+                            //     7,
+                            //     false,
+                            //     false,
+                            //     true,
+                            // )
                             grid.generateHtmlFromJson(
                                 target,
                                 ``,
                                 null,
-                                1,
+                                7,
                                 false,
                                 true,
                             )
