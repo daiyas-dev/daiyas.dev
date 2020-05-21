@@ -290,16 +290,6 @@ export default {
                         vue.conditionChanged(true);
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI05070Grid1_Printout", disabled: false, shortcut: "F6",
-                    onClick: function () {
-                        vue.print();
-                    }
-                },
-                { visible: "true", value: "CSV", id: "DAI05070_Download", disabled: false, shortcut: "F7",
-                    onClick: function () {
-                        //TODO: ダウンロード
-                    }
-                },
                 {visible: "false"},
                 {visible: "false"},
                 { visible: "true", value: "明細", id: "DAI05070Grid1_Detail", disabled: false, shortcut: "Enter",
@@ -308,11 +298,6 @@ export default {
                     }
                 },
                {visible: "false"},
-                { visible: "true", value: "登録", id: "DAI05070Grid1_Save", disabled: false, shortcut: "F9",
-                    onClick: function () {
-                        vue.save();
-                    }
-                },
                 {visible: "false"},
             );
 
@@ -348,6 +333,7 @@ export default {
 
             if (!!res.result) {
                 console.log("5070 uploadCallback", res)
+                vue.showDetail(null,res.result);
             } else {
                 $.dialogErr({
                     title: "アップロード失敗",
@@ -363,12 +349,27 @@ export default {
         onCompleteFunc: function(grid, ui) {
             var vue = this;
         },
-        showDetail: function(isNew, rowData) {
+        showDetail: function(rowData,fileData) {
             var vue = this;
             var grid = vue.DAI05070Grid1;
 
             var data;
-            if (!!rowData) {
+            if (!!fileData) {
+                //data = _.cloneDeep(fileData);
+                //TODO:ダミーデータをセット
+                console.log("5070 showDetail by file")//TODO:
+                data = {
+                    ファイル名:"MEISAI20161024150450.txt",
+                    ファイル日時:"2016-10-24 15:04:44.900",
+                    処理日付:"2020-05-20 00:00:00.000",
+                    銀行:"山口銀行",
+                    本支店:"宇部支店",
+                    口座番号:"630024",
+                    種別:"普通",
+                    振込合計金額:"57876",
+                };
+                window.resd=_.cloneDeep(data);//TODO
+            } else if (!!rowData) {
                 data = _.cloneDeep(rowData);
             } else {
                 var selection = grid.SelectRow().getSelection();
@@ -382,10 +383,18 @@ export default {
             var params = {
                 BushoCd: vue.viewModel.BushoCd,
                 BushoNm: vue.viewModel.BushoNm,
+                TargetDate: data.処理日付,
+                FurikomiFileName: data.ファイル名,
+                FurikomiFileDate: data.ファイル日時,
+                Kouza:data.銀行 +" " + data.本支店 + " " + data.口座番号 + " " + data.種別,
+                GinkoMei: data.銀行,
+                SitenMei: data.本支店,
+                KouzaBangou: data.口座番号,
+                KouzaSyubetu: data.種別,
+                FurikomiKingaku: data.振込合計金額,
                 /*
                 CustomerCd: data.請求先ＣＤ,
                 CustomerNm: data.得意先名,
-                TargetDate: TargetDate,
                 DateStart: TargetDate,
                 DateEnd: moment(TargetDate,"YYYY年MM月DD日").endOf('month').format("YYYY年MM月DD日"),
                 //SimeDate: data.締日１,
