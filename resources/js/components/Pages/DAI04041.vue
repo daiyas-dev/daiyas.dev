@@ -101,11 +101,16 @@
                     <div class="row">
                         <div class="col-md-4">
                             <label style="">部署</label>
-                            <VueSelectBusho
+                            <VueSelect
                                 id="BushoCd"
-                                ref="VueSelectBusho"
+                                ref="BushoCdSelect"
                                 :vmodel=viewModel
                                 bind="部署CD"
+                                uri="/Utilities/GetBushoList"
+                                :params="{ cds: null }"
+                                :withCode=true
+                                :isShowInvalid=!viewModel.IsNew
+                                customStyle="{ width: 100px; }"
                             />
                         </div>
                         <div class="col-md-3">
