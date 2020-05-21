@@ -19,8 +19,7 @@ class DAI08040Controller extends Controller
     public function GetCourseList($request)
     {
         $BushoCd = $request->BushoCd;
-
-        if (!isset($BushoCd)) return [];
+        $BushoCd = !!$BushoCd ? "$BushoCd" : "''";
 
         $sql = "
             SELECT
@@ -30,7 +29,7 @@ class DAI08040Controller extends Controller
             FROM
                 コースマスタ
             WHERE
-                部署ＣＤ=$BushoCd OR コースＣＤ = 0
+                部署ＣＤ=$BushoCd
             ORDER BY
                 コースＣＤ
         ";
@@ -139,18 +138,18 @@ class DAI08040Controller extends Controller
         )
 
         SELECT
-             ROWNUMBER
+			 ROWNUMBER
             ,部署ＣＤ
             ,部署名
             ,エリアＣＤ
             ,コース名
             ,配達順
-            ,配達時間
+            ,IIF(ROWNUMBER = 1, 配達時間, NULL) AS 配達時間
             ,受注Ｎｏ
-            ,連絡区分
-            ,配達区分
+            ,IIF(ROWNUMBER = 2, 連絡区分, CONVERT(varchar, 受注Ｎｏ)) AS 受注連絡
             ,明細Ｎｏ
-            ,IIF(ROWNUMBER = 2, 住所, CONVERT(VARCHAR, 得意先ＣＤ) + '　' + 得意先名) AS 得意先
+            ,得意先ＣＤ
+            ,IIF(ROWNUMBER = 2, 住所, CONVERT(VARCHAR, 得意先ＣＤ) + '　' + ISNULL(得意先名, '')) AS 得意先
             ,住所
             ,IIF(ROWNUMBER = 2, IIF(AMPM区分 != '0', 'PM', 'AM'), 地域区分)  AS 地域区分
             ,IIF(ROWNUMBER = 1, 電話番号１, NULL) AS 電話番号１
@@ -164,7 +163,7 @@ class DAI08040Controller extends Controller
             ,IIF(税区分 = '0', 金額 - 消費税, 金額) AS 金額
             ,金額 AS 合計
             ,IIF(税区分 = '0', 消費税, 0) AS 消費税
-            ,預り金
+            ,IIF(ROWNUMBER = 1, 預り金, NULL) AS 預り金
             ,AMPM区分
             ,税区分
             ,提げ袋
@@ -173,7 +172,44 @@ class DAI08040Controller extends Controller
             抽出データ2
         UNION
         SELECT
-             NULL AS ROWNUMBER
+             2 AS ROWNUMBER
+            ,D1.部署ＣＤ
+            ,部署名
+            ,エリアＣＤ
+            ,コース名
+            ,配達順
+            ,NULL AS 配達時間
+            ,D1.受注Ｎｏ
+            ,連絡区分 AS 受注連絡
+            ,99 AS 明細Ｎｏ
+            ,得意先ＣＤ
+            ,住所 AS 得意先
+            ,NULL AS 住所
+            ,IIF(AMPM区分 != '0', 'PM', 'AM') AS 地域区分
+            ,NULL AS 電話番号１
+            ,NULL AS 商品種類
+            ,NULL AS 商品種類名
+            ,NULL AS 商品ＣＤ
+            ,NULL AS 商品名
+            ,NULL AS 備考
+            ,NULL AS 数量
+            ,NULL AS 単価
+            ,NULL AS 金額
+            ,NULL AS 合計
+            ,NULL AS 消費税
+            ,NULL AS 預り金
+            ,NULL AS AMPM区分
+            ,NULL AS 税区分
+            ,NULL AS 提げ袋
+            ,NULL AS 風呂敷
+        FROM
+            抽出データ2 D1
+            INNER JOIN (SELECT 部署ＣＤ, 受注Ｎｏ FROM 抽出データ2 GROUP BY 部署ＣＤ, 受注Ｎｏ HAVING COUNT(*) = 1) D2 ON
+                    D1.部署ＣＤ = D2.部署ＣＤ
+                AND D1.受注Ｎｏ = D2.受注Ｎｏ
+        UNION
+        SELECT
+			 99 AS ROWNUMBER
             ,部署ＣＤ
             ,部署名
             ,エリアＣＤ
@@ -181,9 +217,9 @@ class DAI08040Controller extends Controller
             ,配達順
             ,売掛現金区分 AS 配達時間
             ,受注Ｎｏ
-            ,NULL AS 連絡区分
-            ,配達区分
+            ,配達区分 AS 受注連絡
             ,99 AS 明細Ｎｏ
+            ,得意先ＣＤ
             ,配達先 AS 得意先
             ,NULL AS 住所
             ,NULL AS 地域区分
@@ -209,15 +245,15 @@ class DAI08040Controller extends Controller
             $OrderPrint
         ";
 
-        $DataList = DB::select($sql);
-        // $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-        // $user = 'daiyas';
-        // $password = 'daiyas';
+        // $DataList = DB::select($sql);
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
 
-        // $pdo = new PDO($dsn, $user, $password);
-        // $stmt = $pdo->query($sql);
-        // $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        // $pdo = null;
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = null;
 
         return $DataList;
     }

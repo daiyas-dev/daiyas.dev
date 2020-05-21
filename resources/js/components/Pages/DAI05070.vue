@@ -2,6 +2,30 @@
     <form id="this.$options.name">
         <div class="row">
             <div class="col-md-1">
+                <label>部署</label>
+            </div>
+            <div class="col-md-2">
+                <VueSelectBusho
+                    :onChangedFunc=onChanged
+                />
+            </div>
+            <div class="col-md-1">
+                <label>処理日付</label>
+            </div>
+            <div class="col-md-2">
+                <DatePickerWrapper
+                    id="TargetDate"
+                    ref="DatePicker_TargetDate"
+                    format="YYYY年MM月DD日"
+                    dayViewHeaderFormat="YYYY年MM月"
+                    :vmodel=viewModel
+                    bind="TargetDate"
+                    :editable=true
+                />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1">
                 <label style="width: unset;">振替ファイル</label>
             </div>
             <div class="col-md-6">
@@ -16,26 +40,40 @@
                 >
                 </div>
             </div>
+        </div>
+        <div class="row">
             <div class="col-md-1">
-                <label>入金日</label>
+                <label>処理日付</label>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-4">
                 <DatePickerWrapper
-                    id="TargetDate"
-                    ref="DatePicker_TargetDate"
+                    id="DateStart"
+                    ref="DatePicker_Date"
                     format="YYYY年MM月DD日"
-                    dayViewHeaderFormat="YYYY年MM月"
+                    dayViewHeaderFormat="YYYY年MM月DD日"
                     :vmodel=viewModel
-                    bind="TargetDate"
+                    bind="DateStart"
                     :editable=true
+                    :onChangedFunc=onChanged
+                />
+                <label>～</label>
+                <DatePickerWrapper
+                    id="DateEnd"
+                    ref="DatePicker_Date"
+                    format="YYYY年MM月DD日"
+                    dayViewHeaderFormat="YYYY年MM月DD日"
+                    :vmodel=viewModel
+                    bind="DateEnd"
+                    :editable=true
+                    :onChangedFunc=onChanged
                 />
             </div>
         </div>
         <PqGridWrapper
             id="DAI05070Grid1"
             ref="DAI05070Grid1"
-            dataUrl="/DAI05070/GetFurikaeList"
-            :query=this.searchParams
+            dataUrl="/DAI05070/GetFurikomiList"
+            :query=this.viewModel
             :SearchOnCreate=false
             :SearchOnActivate=false
             :checkChanged=false
@@ -89,7 +127,11 @@ export default {
             ScreenTitle: "月次処理 > 一括入金入力",
             noViewModel: true,
             viewModel: {
+                BushoCd: null,
+                BushoNm: null,
                 TargetDate: null,
+                DateStart: null,
+                DateEnd: null,
             },
             DAI05070Grid1: null,
             grid1Options: {
@@ -133,14 +175,6 @@ export default {
                     header: false,
                     grandSummary: false,
                 },
-                formulas: [
-                    [
-                        "sortIndx",
-                        function(rowData){
-                            return (rowData["商品区分"] || "9") + "_" + _.padStart(rowData["商品ＣＤ"] || "99999", 5, "0");
-                        }
-                    ],
-                ],
                 colModel: [
                     {
                         title: "sortIndx",
@@ -148,112 +182,101 @@ export default {
                         hidden: true,
                     },
                     {
-                        title: "部署ＣＤ",
-                        dataIndx: "部署ＣＤ", dataType: "integer",
-                        hidden: true,
-                    },
-                    {
-                        title: "部署名",
-                        dataIndx: "部署名",
+                        title: "ファイル名",
+                        dataIndx: "ファイル名",
                         dataType: "string",
                         width: 150, maxWidth: 150, minWidth: 150,
                     },
                     {
-                        title: "得意先ＣＤ",
-                        dataIndx: "得意先ＣＤ", dataType: "integer",
-                        width: 100, maxWidth: 100, minWidth: 100,
-                    },
-                    {
-                        title: "得意先名",
-                        dataIndx: "得意先名",
-                        dataType: "string",
-                        width: 200, maxWidth: 200, minWidth: 200,
-                    },
-                    {
-                        title: "金融機関ＣＤ",
-                        dataIndx: "金融機関ＣＤ", dataType: "integer",
-                        hidden: true,
-                    },
-                    {
-                        title: "銀行名",
-                        dataIndx: "金融機関名",
+                        title: "ファイル日時",
+                        dataIndx: "ファイル日時",
                         dataType: "string",
                         width: 150, maxWidth: 150, minWidth: 150,
                     },
                     {
-                        title: "金融機関支店ＣＤ",
-                        dataIndx: "金融機関支店ＣＤ", dataType: "integer",
-                        hidden: true,
+                        title: "処理日付",
+                        dataIndx: "処理日付",
+                        dataType: "string",
+                        width: 150, maxWidth: 150, minWidth: 150,
                     },
                     {
-                        title: "支店名",
-                        dataIndx: "金融機関支店名",
+                        title: "銀行",
+                        dataIndx: "銀行",
+                        dataType: "string",
+                        width: 150, maxWidth: 150, minWidth: 150,
+                    },
+                    {
+                        title: "本支店",
+                        dataIndx: "本支店",
                         dataType: "string",
                         width: 150, maxWidth: 150, minWidth: 150,
                     },
                     {
                         title: "種別",
                         dataIndx: "種別",
-                        dataType: "integer",
-                        hidden: true,
-                    },
-                    {
-                        title: "種別",
-                        dataIndx: "種別名",
                         dataType: "string",
-                        width: 50, maxWidth: 50, minWidth: 50,
+                        width: 150, maxWidth: 150, minWidth: 150,
                     },
                     {
-                        title: "引落金額",
-                        dataIndx: "引落金額",
+                        title: "口座番号",
+                        dataIndx: "口座番号",
+                        dataType: "string",
+                        width: 150, maxWidth: 150, minWidth: 150,
+                    },
+                    {
+                        title: "振込合計金額",
+                        dataIndx: "振込合計金額",
                         dataType: "integer",
                         format: "#,##0",
                         width: 100, maxWidth: 100, minWidth: 100,
                     },
                     {
-                        title: "入金額",
-                        dataIndx: "入金額",
-                        dataType: "integer",
-                        format: "#,##0",
-                        width: 100, maxWidth: 100, minWidth: 100,
-                    },
-                    {
-                        title: "エラー",
-                        dataIndx: "エラー",
+                        title: "結果",
+                        dataIndx: "結果",
                         dataType: "string",
                         width: 50, maxWidth: 50, minWidth: 50,
-                    },
-                    {
-                        title: "処理",
-                        dataIndx: "処理",
-                        type: "checkbox",
-                        cbId: "処理FLG",
-                        width: 50, minWidth: 50, maxWidth: 50,
                         align: "center",
-                        editable: true,
-                        editor: false,
-                        hiddenOnExport: true,
-                        render: ui => {
-                            if (ui.rowData.summaryRow) {
-                                return "";
+                    },
+                    {
+                        title: "詳細",
+                        editable: false,
+                        width: 75, maxWidth: 75, minWidth: 75,
+                        align: "center",
+                        sortable: false,
+                        render: function (ui) {
+                            return "<button type='button' class='edit_btn'>詳細</button>";
+                        },
+                        postRender: function (ui) {
+                            var rowIndx = ui.rowIndx,
+                                grid = this,
+                                $cell = grid.getCell(ui);
+                            //TODO:ボタンの処理はこれから記述
+                            if(grid.hasClass({ rowData: ui.rowData, cls: 'pq-row-edit' })){
+                                //update button
+                                $cell.find(".edit_btn")
+                                .button({ label: "Update", icons: { primary: 'ui-icon-check'} })
+                                .off("click")
+                                .on("click", function () {
+                                    return update(rowIndx, grid);
+                                });
                             }
-                        },
-                    },
-                    {
-                        title: "処理",
-                        dataIndx: "処理FLG",
-                        dataType: "string",
-                        align: "center",
-                        editable: true,
-                        cb: {
-                            header: false,
-                            check: "1",
-                            uncheck: "0",
-                        },
-                        hidden: true,
-                        hiddenOnExport: false,
+                            else{
+                                //edit button
+                                $cell.find(".edit_btn").button({ icons: { primary: 'ui-icon-pencil'} })
+                                .off("click")
+                                .on("click", function (evt) {
+                                    if (isEditing(grid)) {
+                                        return false;
+                                    }
+                                    editRow(rowIndx, grid );
+                                });
+                            }
+                        }
                     },
                 ],
+                rowDblClick: function (event, ui) {
+                    vue.showDetail(ui.rowData);
+                },
             },
         });
 
@@ -279,12 +302,12 @@ export default {
                 },
                 {visible: "false"},
                 {visible: "false"},
-                { visible: "true", value: "行削除", id: "DAI05070Grid1_DeleteRow", disabled: true, shortcut: "F3",
+                { visible: "true", value: "明細", id: "DAI05070Grid1_Detail", disabled: false, shortcut: "Enter",
                     onClick: function () {
-                        vue.deleteRow();
+                        vue.showDetail();
                     }
                 },
-                {visible: "false"},
+               {visible: "false"},
                 { visible: "true", value: "登録", id: "DAI05070Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         vue.save();
@@ -298,15 +321,12 @@ export default {
             //TODO
             // vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
             vue.viewModel.TargetDate = moment("20191212").format("YYYY年MM月DD日");
-
-            //watcher
-            vue.$watch(
-                "$refs.DAI05070Grid1.selectionRowCount",
-                cnt => {
-                    console.log("selectionRowCount watcher: " + cnt);
-                    vue.footerButtons.find(v => v.id == "DAI05070Grid1_DeleteRow").disabled = cnt == 0 || cnt > 1;
-                }
-            );
+        },
+        onChanged: function(code, entities) {
+            //TODO:ダミーハンドラ
+            //var vue = this;
+            //条件変更ハンドラ
+            //vue.conditionChanged();
         },
         conditionChanged: function(force) {
             var vue = this;
@@ -342,6 +362,48 @@ export default {
         },
         onCompleteFunc: function(grid, ui) {
             var vue = this;
+        },
+        showDetail: function(isNew, rowData) {
+            var vue = this;
+            var grid = vue.DAI05070Grid1;
+
+            var data;
+            if (!!rowData) {
+                data = _.cloneDeep(rowData);
+            } else {
+                var selection = grid.SelectRow().getSelection();
+
+                var rows = grid.SelectRow().getSelection();
+                if (rows.length != 1) return;
+
+                data = _.cloneDeep(rows[0].rowData);
+            }
+            var TargetDate=vue.viewModel.TargetDate + "01日";
+            var params = {
+                BushoCd: vue.viewModel.BushoCd,
+                BushoNm: vue.viewModel.BushoNm,
+                /*
+                CustomerCd: data.請求先ＣＤ,
+                CustomerNm: data.得意先名,
+                TargetDate: TargetDate,
+                DateStart: TargetDate,
+                DateEnd: moment(TargetDate,"YYYY年MM月DD日").endOf('month').format("YYYY年MM月DD日"),
+                //SimeDate: data.締日１,
+                CourseCd: data.コースＣＤ,
+                CourseNm: data.コース名,
+                //CourseKbn: data.コース区分,
+                */
+            };
+
+            PageDialog.show({
+                pgId: "DAI05071",
+                params: params,
+                isModal: true,
+                isChild: true,
+                reuse: false,
+                width: 900,
+                height: 725,
+            });
         },
         save: function() {
             var vue = this;

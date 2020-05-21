@@ -105,6 +105,7 @@
                     :existsCheck=true
                     :inputWidth=80
                     :nameWidth=250
+                    :onAfterChangedFunc=onAreaChanged
                     :isShowAutoComplete=true
                 />
             </div>
@@ -144,7 +145,7 @@
             </div>
         </div>
         <PqGridWrapper
-            :id='"DAI08040Grid1" + (!!params ? _uid : "")'
+            id="DAI08040Grid1"
             ref="DAI08040Grid1"
             dataUrl="/DAI08040/GetHaisoYoteiHyo"
             :query=searchParams
@@ -169,7 +170,7 @@ form[pgid="DAI08040"] .top-wrap {
     white-space: pre-wrap !important;
 }
 form[pgid="DAI08040"] .pq-grid-header-table .pq-td-div {
-    height: 25px;
+    height: 50px;
 }
 </style>
 
@@ -223,13 +224,14 @@ export default {
             },
             DAI08040Grid1: null,
             grid1Options: {
-                selectionModel: { type: "row", mode: "block", row: true },
+                selectionModel: { type: "row", mode: "single", row: true },
                 showHeader: true,
                 showToolbar: false,
                 columnBorders: true,
                 fillHandle: "",
-                numberCell: { show: true, title: "No.", resizable: false, width: 45, minWidth: 45 },
+                numberCell: { show: true, title: "No.", resizable: false, },
                 autoRow: false,
+                rowHtHead:50,
                 rowHt: 35,
                 editable: false,
                 columnTemplate: {
@@ -249,7 +251,7 @@ export default {
                     on: true,
                     header: false,
                     grandSummary: true,
-                    indent: 10,
+                    indent: 20,
                     dataIndx: ["ＧＫ部署", "ＧＫエリア", "ＧＫ受注Ｎｏ"],
                     showSummary: [false, false, true],
                     collapsed: [false, false, false],
@@ -279,25 +281,37 @@ export default {
                         hidden: true,
                     },
                     {
-                        title: "配達時間",
+                        title: "受渡<br/>時間",
                         dataIndx: "配達時間",
                         dataType: "string",
                         align: "center",
                         width: 75, minWidth: 75, maxWidth: 75,
                     },
                     {
-                        title: "受注Ｎｏ",
-                        dataIndx: "受注Ｎｏ",
+                        title: "受注Ｎｏ<br/>連絡/配達",
+                        dataIndx: "受注連絡",
                         dataType: "string",
                         align: "center",
                         width: 75, minWidth: 75, maxWidth: 75,
                     },
                     {
-                        title: "得意先名",
+                        title: "得意先ＣＤ",
+                        dataIndx: "得意先ＣＤ",
+                        dataType: "string",
+                        hidden: true,
+                    },
+                    {
+                        title: "得意先名<br/>住所/配達先",
                         dataIndx: "得意先",
                         dataType: "string",
                         width: 300, minWidth: 300, maxWidth: 300,
                         tooltip: true,
+                    },
+                    {
+                        title: "エリアＣＤ",
+                        dataIndx: "エリアＣＤ",
+                        dataType: "string",
+                        hidden: true,
                     },
                     {
                         title: "電話番号",
@@ -306,7 +320,7 @@ export default {
                         width: 120, minWidth: 120, maxWidth: 120,
                     },
                     {
-                        title: "地域",
+                        title: "地域<br/>AMPM",
                         dataIndx: "地域区分",
                         dataType: "string",
                         width: 70, minWidth: 70, maxWidth: 70,
@@ -373,7 +387,7 @@ export default {
                         },
                         render: ui => {
                             // hide zero
-                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                            if (ui.rowData.pq_level == 2 && ui.rowData[ui.dataIndx] * 1 == 0) {
                                 return { text: "0" };
                             }
                             return ui;
@@ -390,7 +404,7 @@ export default {
                         },
                         render: ui => {
                             // hide zero
-                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                            if (ui.rowData.pq_level == 2 && ui.rowData[ui.dataIndx] * 1 == 0) {
                                 return { text: "0" };
                             }
                             return ui;
@@ -407,7 +421,7 @@ export default {
                         },
                         render: ui => {
                             // hide zero
-                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                            if (ui.rowData.pq_level == 2 && ui.rowData[ui.dataIndx] * 1 == 0) {
                                 return { text: "0" };
                             }
                             return ui;
@@ -419,6 +433,16 @@ export default {
                         dataType: "integer",
                         format: "#,##0",
                         width: 80, minWidth: 80, maxWidth: 80,
+                        summary: {
+                            type: "TotalInt",
+                        },
+                        render: ui => {
+                            // hide zero
+                            if (ui.rowData.pq_level == 2 && ui.rowData[ui.dataIndx] * 1 == 0) {
+                                return { text: "0" };
+                            }
+                            return ui;
+                        },
                     },
                     {
                         title: "提げ袋",
@@ -431,7 +455,7 @@ export default {
                         },
                         render: ui => {
                             // hide zero
-                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                            if (ui.rowData.pq_level == 2 && ui.rowData[ui.dataIndx] * 1 == 0) {
                                 return { text: "0" };
                             }
                             return ui;
@@ -448,7 +472,7 @@ export default {
                         },
                         render: ui => {
                             // hide zero
-                            if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                            if (ui.rowData.pq_level == 2 && ui.rowData[ui.dataIndx] * 1 == 0) {
                                 return { text: "0" };
                             }
                             return ui;
@@ -526,13 +550,20 @@ export default {
 
             if (!!entity && !_.isEmpty(entity)) {
                 vue.viewModel.BushoCd = entity["部署CD"];
-
-                //フィルタ変更
-                vue.filterChanged();
-
-                //条件変更
-                vue.conditionChanged();
             }
+
+            //フィルタ変更
+            vue.filterChanged();
+        },
+        onAreaChanged: function(code, entities) {
+            var vue = this;
+
+            if (!!entity && !_.isEmpty(entity)) {
+                vue.viewModel.BushoCd = entity["部署CD"];
+            }
+
+            //フィルタ変更
+            vue.filterChanged();
         },
         onDateChanged: function() {
             var vue = this;
@@ -587,15 +618,8 @@ export default {
                 rules.push({ dataIndx: "得意先ＣＤ", condition: "equal", value: vue.viewModel.CustomerCd });
             }
 
-            if (!!vue.viewModel.KeyWord) {
-                var keywords = vue.viewModel.KeyWord.split(/[, 、　]/)
-                    .map(v => _.trim(v))
-                    .map(k => k.replace(/^[\+＋]/, ""))
-                    .filter(v => !!v);
-
-                var rulesKeyWord = keywords.map(k => { return { condition: "contain", value: k }; });
-
-                rules.push({ dataIndx: "KeyWord", mode: vue.viewModel.FilterMode, condition: "equal", crules: rulesKeyWord });
+            if (!!vue.viewModel.AreaCd) {
+                rules.push({ dataIndx: "エリアＣＤ", condition: "equal", value: vue.viewModel.AreaCd });
             }
 
             grid.filter({ oper: "replace", mode: "AND", rules: rules });
@@ -652,12 +676,10 @@ export default {
 
             return res;
         },
-        print: function () {
+        print: function() {
             var vue = this;
-            var grid = vue.DAI08040Grid1;
 
             //印刷用HTML全体適用CSS
-            var targetData = grid.pdata;
             var globalStyles = `
                 body {
                     -webkit-print-color-adjust: exact;
@@ -681,303 +703,146 @@ export default {
                 }
                 th, td {
                     font-family: "MS UI Gothic";
-                    font-size: 11pt;
+                    font-size: 8pt;
                     font-weight: normal;
                     margin: 0px;
                     padding-left: 3px;
                     padding-right: 3px;
                 }
                 th {
-                    height: 21px;
+                    height: 12px;
                     text-align: center;
                 }
                 td {
-                    height: 22px;
+                    height: 12px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
                 table.header-table th {
                     text-align: left;
                     border: solid 1px black;
-                    border-style: solid;
-                    border-left-width: 1px;
-                    border-top-width: 1px;
-                    border-right-width: 0px;
-                    border-bottom-width: 0px;
-                    font-size: 13.5pt;
                 }
-                table.header-table th:last-child {
-                    border-right-width: 1px;
+                table.header-table th.blank-cell {
+                    border:none;
                 }
-                table.header-table tbody tr:last-child th {
-                    border-bottom-width: 1px;
-                }
-                table.header-table thead th {
-                    font-size: 11pt;
-                    height: 22px;
+                div.report-title-area{
+                    width:400px;
+                    height:35px;
                     text-align: center;
-                }
-                table.header-table tbody th {
-                    height: 20.5x;
-                }
-                td.customer-nm {
-                    font-size: 14pt;
-                    letter-spacing: 0.1em;
-                }
-                div.title {
-                    font-size: 20pt;
-                }
-                td.customer-cd-A{
-                    font-size: 20pt;
-                    text-align: center;
-                    padding-left: 170px;
-                }
-                td.customer-cd{
-                    text-align: center;
-                    padding-left: 150px;
-                }
-                div.kaisya-info{
-                    margin-left: 100px;
-                    margin-bottom: 0px;
-                    font-size: 8pt;
-                }
-                div.kaisya-info > div:first-child {
-                    font-size: 11pt;
-                }
-                div.kaisya-info > div:nth-child(2),
-                div.kaisya-info > div:nth-child(3) {
-                    font-size: 10pt;
-                }
-                div.kaisya-info > div{
-                    text-align: right;
-                }
-                div.chuui-gaki > div {
-                    font-size: 8.5pt;
-                    letter-spacing: 0.2em;
-                    line-height: 15px;
-                }
-                table.header-table th:nth-child(1) {
-                    width: 30%;
-                }
-                table.header-table th:nth-child(2),
-                table.header-table th:nth-child(3),
-                table.header-table th:nth-child(4) {
-                    width: 12%;
-                    text-align: right;
-                    padding-right: 5px;
-                }
-                div.fax-tel {
-                    margin-left: 125px;
-                }
-                div.hizuke {
-                    border-style: solid;
-                    border-left-width: 0px;
-                    border-top-width: 0px;
-                    border-right-width: 0px;
-                    border-bottom-width: 1px;
-                    width: 400px;
-                    margin-left: 20px;
-                    padding: 3px;
-                }
-                span {
-                    margin-left: 8px;
-                    margin-right: 8px;
-                }
-                hr {
-                    border: none;
-                    margin: 22px;
-                }
-                div.insatubi {
-                    font-size: 8pt;
+                    display:table-cell;
+                    vertical-align: middle;
+                    background-color: #c0ffff;
+                    border: 2px solid #000000;
+                    border-radius: 5px;
                 }
             `;
-
-            var target = targetData.filter(k=>k.pq_level==undefined)
-                .map(r => {
-                    var products=r.商品名;
-                    var layout_product_body=``;
-                    var tel=r.電話番号;
-                    console.log("tel", r.電話番号);
-                    layout_product_body += `
-                        <tr>
-                            <th>${r.商品名}</th>
-                            <th>${r.数量}</th>
-                            <th>${r.単価}</th>
-                            <th>${r.金額}</th>
-                            <th>
-                                <table>
-                                <th style="width: 8%; border: none;">電話番号</th>
-                                <th style="border: none; text-align: left;">${r.電話番号 ? r.電話番号.replace('\n', "<br>") : ""}</th>
-                                </table>
-                            </th>
-                        </tr>
-                        <tr>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th rowspan="6">
-                                <div>配達先</div>
-                                <div>${r.配達先 ? r.配達先 : ""}</div>
-                            </th>
-                        </tr>
-                    `;
-                    var row=5;
-                    if(0<row){
-                        [...Array(row)].map(r=>{
-                            layout_product_body += `
-                                <tr>
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
-                                </tr>
-                            `;
-                        });
-                    }
-                    var layout_bikou1 = `
-                        <th rowspan="3" colspan="2">
-                            <div>備考</div>
-                        </th>
-                    `;
-                    var layout_bikou2 = `
-                        <th rowspan="3" colspan="2">
-                            <div>備考</div>
-                            <div>${r.部署ＣＤ} ${r.部署名} 仕上時間 ${r.製造締切時間}</div>
-                        </th>
-                    `;
-                    var layout_product_head = `
+            var busyoCd;
+            var busyoNm;
+            var courseCd;
+            var courseNm;
+            var headerFunc = (header, idx, length) => {
+                if (header.pq_level == 0)
+                {
+                    busyoCd = header.ＧＫ部署.split(" ")[0];
+                    busyoNm = header.ＧＫ部署.split(" ")[1];
+                    courseCd = header.children[0].ＧＫエリア.split(" ")[0];
+                    courseNm = header.children[0].ＧＫエリア.split(" ")[1];
+                }
+                return `
+                    <div class="title">
+                        <h3><div class="report-title-area">得意先別実績表<div></h3>
+                    </div>
+                    <table class="header-table" style="border-width: 0px">
                         <thead>
                             <tr>
-                                <th>商品名</th>
-                                <th>数量</th>
-                                <th>単価</th>
-                                <th>金額</th>
-                                <th>配達</th>
+                                <th style="width:  5%;">部署</th>
+                                <th style="width:  5%; text-align: right;">${busyoCd}</th>
+                                <th style="width: 18%;">${busyoNm}</th>
+                                <th style="width:  5%;" class="blank-cell"></th>
+                                <th style="width:  5%;" class="blank-cell"></th>
+                                <th style="width: 15%;" class="blank-cell"></th>
+                                <th style="width: 20%;" class="blank-cell"></th>
+                                <th style="width:  5%;" class="blank-cell"></th>
+                                <th style="width: 12%;" class="blank-cell"></th>
+                                <th style="width:  5%;" class="blank-cell"></th>
+                                <th style="width:  5%;" class="blank-cell"></th>
+                            </tr>
+                            <tr>
+                                <th>配達日付</th>
+                                <th colspan="2">${moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYY/MM/DD（ddd曜日）")}</th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                            </tr>
+                            <tr>
+                                <th style="text-align: right;">${courseCd}</th>
+                                <th>${courseNm}</th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th class="blank-cell"></th>
+                                <th>作成日</th>
+                                <th style="text-align: right;">${moment().format("YYYY年MM月DD日")}</th>
+                                <th>PAGE</th>
+                                <th style="text-align: right;">${idx + 1}</th>
                             </tr>
                         </thead>
-                    `;
-                    var layout_product1 = `
-                        ${layout_product_head}
-                        <tbody>
-                            ${layout_product_body}
-                            <tr>
-                                ${layout_bikou1}
-                                <th>小計</th><th>${r.小計}</th>
-                                <th rowspan="3">
-                                    <div style="text-align: left;">${r.注文日付}</div>
-                                    <div>受付店：${r.会社名称}</div>
-                                </th>
-                            </tr>
-                            <tr>
-                                <th>消費税</th><th>${r.消費税}</th>
-                            </tr>
-                            <tr>
-                                <th>金額合計</th><th>${r.合計}</th>
-                            </tr>
-                        </tbody>
-                    `;
-                    var layout_product2 =  `
-                        ${layout_product_head}
-                        <tbody>
-                            ${layout_product_body}
-                            <tr>
-                                ${layout_bikou2}
-                                <th>小計</th><th>${r.小計}</th>
-                                <th rowspan="3">
-                                    <div style="text-align: left;">${r.注文日付}</div>
-                                    <div>受付店：${r.会社名称}</div>
-                                </th>
-                            </tr>
-                            <tr>
-                                <th>消費税</th><th>${r.消費税}</th>
-                            </tr>
-                            <tr>
-                                <th>金額合計</th><th>${r.合計}</th>
-                            </tr>
-                        </tbody>
-                    `;
-                    var layout=`
-                        <table style="width:100%;">
-                            <td>
-                                <span/>伝票No.　${r.受注Ｎｏ}
-                            </td>
-                            <tr>
-                                <td>
-                                    <div><span/>${r.会社名称}</div>
-                                    <div><span/>${r.住所欄}</div>
-                                    <div><span/>${r.TEL欄}</div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="customer-nm">
-                                    <span/><span/><span>${r.得意先名}</span><span>様</span>
-                                </td>
-                                <td>
-                                    <div><span>取引金融機関</span></div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div><span>${r.会社_銀行名1}　${r.会社_支店名1}</span></div>
-                                    <div><span>${r.会社_口座種別名1}　${r.会社_口座番号1}　${r.会社_口座名義人1}</span></div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="hizuke"><span>納品日：${r.配達日付} 時刻：（${r.配達時間}）</span></div>
-                                    <div style="height: 8px;"></div>
-                                </td>
-                            </tr>
-                        </table>
-                    `;
-                    var layout_1=`
-                        <div>
-                            <div class="header">
-                                <div>
-                                    <div class="title">
-                                        請求書
-                                    </div>
-                                    ${layout}
-                                    <table class="header-table" style="border-width: 0px; margin-bottom: 8px;">
-                                        ${layout_product1}
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    var layout_2=`
-                        <div>
-                            <div class="header">
-                                <div>
-                                    <div class="title">
-                                        納品書
-                                    </div>
-                                    ${layout}
-                                    <table class="header-table" style="border-width: 0px; margin-bottom: 8px;">
-                                        ${layout_product2}
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    layout = layout_1 + `<div style="clear:left"></div><hr noshade/>` + layout_2;
-                return { contents: layout };
-            });
-            window.res_tg = _.cloneDeep(target);//TODO:
+                    </table>
+                `;
+            };
 
+            var styleCustomers =`
+                table.DAI08040Grid1
+                table.DAI08040Grid1 tr,
+                table.DAI08040Grid1 th,
+                table.DAI08040Grid1 td {
+                    border-collapse: collapse;
+                    border:1px solid black;
+                }
+                table.DAI08040Grid1 tr th:nth-child(1) {
+                    width: 5%;
+                }
+                table.DAI08040Grid1 tr th:nth-child(2) {
+                    width: 6%;
+                    text-align:left;
+                }
+                table.DAI08040Grid1 tr td:nth-child(3) {
+                    width: 15%;
+                }
+                table.DAI08040Grid1 tr td:nth-child(4) {
+                    width: 7%;
+                }
+                table.DAI08040Grid1 tr td:nth-child(5) {
+                    width: 3%;
+                }
+                table.DAI08040Grid1 tr td:nth-child(6) {
+                    width: 3%;
+                }
+                table.DAI08040Grid1 tr td:nth-child(7) {
+                    width: 15%;
+                }
+                table.DAI08040Grid1 tr th:nth-child(n+8) {
+                    width: 5%;
+                }
+            `;
             var printable = $("<html>")
                 .append($("<head>").append($("<style>").text(globalStyles)))
                 .append(
                     $("<body>")
                         .append(
-                            grid.generateHtmlFromJson(
-                                target,
-                                ``,
-                                null,
-                                1,
+                            vue.DAI08040Grid1.generateHtml(
+                                styleCustomers,
+                                headerFunc,
+                                36,
                                 false,
-                                true,
+                                [false, false, true],
+                                [true, true, false],
                             )
                         )
                 )
@@ -985,11 +850,9 @@ export default {
                 ;
             var printOptions = {
                 type: "raw-html",
-                style: "@media print { @page { size: A4 portrait; } }",
+                style: "@media print { @page { size: A4 landscape; } }",
                 printable: printable,
-                onPrintDialogClose: () => { vue.save(); },
             };
-
             printJS(printOptions);
             //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()
