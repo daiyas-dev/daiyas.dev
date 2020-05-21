@@ -14,6 +14,7 @@ class DAI05070Controller extends Controller
 {
     /**
      * UploadFile
+     * 3090から移植
      */
     public function UploadFile($request)
     {
@@ -45,7 +46,78 @@ class DAI05070Controller extends Controller
     }
 
     /**
+     * GetFurikomiList
+     * 振替見出データを取得する
+     */
+    public function GetFurikomiList($request)
+    {
+        $BushoCd=$request->BushoCd;
+        $StartDate=$request->StartDate;
+        $EndDate=$request->EndDate;
+
+        //TODO:引数は固定
+        $StartDate='2020/05/01';
+        $EndDate='2020/05/31';
+        $sql = "
+                    SELECT
+                        0 AS No  ,     ----- 行番号
+                        T1.ファイル名,
+                        T1.ファイル日付 AS ファイル日時,
+                        T1.処理日付,
+                        M1.銀行名       AS 銀行,
+                        M2.支店名       AS 本支店,
+                        CASE WHEN 口座種別 = 1 THEN '普通'
+                             WHEN 口座種別 = 2 THEN '当座'
+                             WHEN 口座種別 = 3 THEN '定期'
+                             WHEN 口座種別 = 9 THEN 'その他'
+                        END AS 種別,
+                        口座番号,
+                        振込合計金額,
+                        CASE WHEN T2.MEISAI_COUNT = T3.MEISAI_OK_COUNT THEN '◯'
+                        ELSE '×'
+                        END AS 結果,
+                        '' AS 詳細      ----- 詳細ボタン
+                    FROM
+                        振込見出 T1
+                    LEFT OUTER JOIN 金融機関名称     M1 ON (T1.金融機関ＣＤ = M1.銀行CD)
+                    LEFT OUTER JOIN 金融機関支店名称 M2 ON (T1.金融機関ＣＤ = M2.銀行CD AND T1.金融機関支店ＣＤ = M2.支店CD)
+
+                    LEFT OUTER JOIN (
+                        SELECT 部署CD, ファイル名, COUNT(部署CD) AS MEISAI_COUNT
+                        FROM 振込明細
+                        WHERE 部署ＣＤ = $BushoCd
+                        GROUP BY 部署CD, ファイル名
+                    ) T2 ON (T1.部署CD = T2.部署CD AND T1.ファイル名 = T2.ファイル名)
+
+                    LEFT OUTER JOIN (
+                        SELECT 部署CD, ファイル名, COUNT(部署CD) AS MEISAI_OK_COUNT
+                        FROM 振込明細
+                        WHERE 部署ＣＤ = $BushoCd
+                        AND 結果 = 1
+                        GROUP BY 部署CD, ファイル名
+                    ) T3 ON (T1.部署CD = T3.部署CD AND T1.ファイル名 = T3.ファイル名)
+
+                    WHERE
+                        T1.部署ＣＤ = $BushoCd
+                    AND
+                        T1.処理日付 BETWEEN '$StartDate' AND '$EndDate'
+                    ORDER BY T1.ファイル日付 DESC
+                ";
+
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = null;
+        return response()->json($DataList);
+    }
+
+    /**
      * GetProductList
+     * 3090から移植
      */
     public function GetProductList($request)
     {
@@ -79,6 +151,7 @@ class DAI05070Controller extends Controller
 
     /**
      * GetMobileProductList
+     * 3090から移植
      */
     public function GetMobileProductList($request)
     {
@@ -116,6 +189,7 @@ class DAI05070Controller extends Controller
 
     /**
      * Save
+     * 3090から移植
      */
     public function Save($request)
     {
@@ -179,6 +253,7 @@ class DAI05070Controller extends Controller
 
     /**
      * Delete
+     * 3090から移植
      */
     public function Delete($request)
     {
