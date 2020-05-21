@@ -219,12 +219,30 @@ export default {
                     menuIcon: false,
                     hideRows: false,
                 },
+                groupModel: {
+                    on: false,
+                    header: false,
+                    grandSummary: false,
+                    dataIndx: ["管轄部門"],
+                    showSummary: [false],
+                    collapsed: [false],
+                    summaryInTitleRow: "collapsed",
+                },
                 colModel: [
+                    {
+                        title: "管轄部門",
+                        dataIndx: "管轄部門",
+                        dataType: "string",
+                        hidden: true,
+                    },
                     {
                         title: "クレームID",
                         dataIndx: "クレームID",
                         dataType: "integer",
                         width: 75, minWidth: 75, maxWidth: 75,
+                        render: ui => {
+                            return { text: ui.rowData.クレームID + "<br><br>" };
+                        },
                     },
                     {
                         title: "受付日時",
@@ -578,6 +596,7 @@ export default {
 
             //キーワード追加
             res = res.map(v => {
+                v.管轄部門 = v.管轄部門コード + ":" + v.管轄部門名;
                 v.KeyWord = v.クレーム内容;
                 return v;
             });
@@ -632,8 +651,219 @@ export default {
                 height: 700,
             });
         },
-        print: function () {
-            //TODO
+        print: function() {
+            var vue = this;
+            var grid = vue.DAI05150Grid1;
+
+            if (!!vue.viewModel.BushoCd && !vue.BushoInfo) {
+                var entity = vue.$refs.VueSelectBusho.$refs.BushoCd.entities.find(v => v.code == vue.viewModel.BushoCd);
+
+                if (!entity) return
+                vue.BushoInfo = entity.info;
+            }
+
+            //印刷用HTML全体適用CSS
+            var globalStyles = `
+                body {
+                    -webkit-print-color-adjust: exact;
+                }
+                table {
+                    table-layout: fixed;
+                    margin-left: 0px;
+                    margin-right: 0px;
+                    width: 100%;
+                    border-spacing: unset;
+                    border: solid 0px black;
+                }
+                th, td {
+                    font-family: "MS UI Gothic";
+                    font-size: 9pt;
+                    font-weight: normal;
+                    margin: 0px;
+                    padding-left: 3px;
+                    padding-right: 3px;
+                }
+                th {
+                    height: 16px;
+                    text-align: center;
+                }
+                td {
+                    height: 16px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                }
+                table.row-table:nth-child(even) {
+                	break-before: page;
+                }
+                table.row-table > tbody > tr > td {
+                    border-style: dotted;
+                    border-left-width: 0px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                    padding-bottom: 20px;
+                }
+                table.row-table:nth-child(even) > tbody > tr > td {
+                    border-bottom-width: 1px;
+                }
+                table.row-table > tbody > tr > td:first-child {
+                    border-right-width: 1px;
+                }
+                table.row-table > tbody > tr > td > div {
+                    padding-left: 15px;
+                    padding-right: 15px;
+                }
+                div.title {
+                    display: block;
+                    text-align: center;
+                }
+                div.title > h3, div.title > h5 {
+                    margin-top: 10px;
+                    margin-bottom: 10px;
+                }
+            `;
+
+            grid.Group().option({ "on": true });
+
+            var headerFunc = (header, idx, length, chunk, chunks) => {
+                var TargetDateFrom = moment(vue.searchParams.DateStart, "YYYYMMDD").format("YYYY/MM/DD");
+                var TargetDateTo = moment(vue.searchParams.DateEnd, "YYYYMMDD").format("YYYY/MM/DD");
+
+                var Busho = header.pq_gid.split(":");
+                var BushoCd = Busho[0] || "";
+                var BushoNm = Busho[1] || "部署無し";
+
+                return `
+                    <div class="header">
+                        <div class="title" style="float: left; width: 100%">
+                            <h3>* * * <span></span>クレーム一覧表<span></span> * * *</h3>
+                        </div>
+                        <div style="float: left; width: 100%;">
+                            <div style="float: left; width: 7%; text-align: center;">部署</div>
+                            <div style="float: left; width: 5%; text-align: center;">${BushoCd}</div>
+                            <div style="float: left; width: 20%;">${BushoNm}</div>
+                            <div style="float: left; width: 36%; text-align: center;">
+                                ${TargetDateFrom}
+                                <span>～</span>
+                                ${TargetDateTo}
+                            </div>
+                            <div style="float: left; width: 32%;">&nbsp</div>
+                            <div style="float: left; width: 68%;">&nbsp</div>
+                            <div style="float: left; width: 7%; text-align: right;">作成日</div>
+                            <div style="float: left; width: 15%; text-align: center;">${moment().format("YYYY年MM月DD日")}</div>
+                            <div style="float: left; width: 5%; text-align: center;">PAGE</div>
+                            <div style="float: left; width: 5%; text-align: center;">${idx + 1}/${length}</div>
+                        </div>
+                    </div>
+                `;
+            };
+
+            var printable = $("<html>")
+                .append($("<head>").append($("<style>").text(globalStyles)))
+                .append(
+                    $("<body>")
+                        .append(
+                            grid.generateHtml(
+                                `
+                                    div.header > div > div > span {
+                                        padding-left: 8px;
+                                        padding-right: 8px;
+                                    }
+                                    div.header-box > div{
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 1px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 0px;
+                                        padding-left: 3px;
+                                        padding-top: 3px;
+                                        height: 20px;
+                                    }
+                                    div.header div:not(.title) {
+                                        font-size: 12px;
+                                    }
+                                    div.header-box > div:last-child {
+                                        border-right-width: 1px;
+                                    }
+                                    table.DAI05150Grid1 {
+                                        border-collapse:collapse;
+                                    }
+                                    table.DAI05150Grid1 thead tr:first-child {
+                                        border-top: solid 1px black;
+                                    }
+                                    table.DAI05150Grid1 tbody tr {
+                                        border-bottom: dotted 1px black;
+                                        height: 37px;
+                                        min-height: 37px;
+                                    }
+                                    table.DAI05150Grid1 tbody tr:first-child {
+                                        border-top: solid 1px black;
+                                    }
+                                    table.DAI05150Grid1 thead tr th {
+                                        text-align: left;
+                                        padding-left: 2px;
+                                    }
+                                    table.DAI05150Grid1 thead tr th:nth-child(1) {
+                                        width: 6%;
+                                    }
+                                    table.DAI05150Grid1 thead tr th:nth-child(2) {
+                                        width: 12%;
+                                    }
+                                    table.DAI05150Grid1 thead tr th:nth-child(3) {
+                                        width: 20%;
+                                    }
+                                    table.DAI05150Grid1 thead tr th:nth-child(4) {
+                                        width: 7%;
+                                    }
+                                    table.DAI05150Grid1 thead tr th:nth-child(5) {
+                                        width: 8%;
+                                    }
+                                    table.DAI05150Grid1 thead tr th:nth-child(6) {
+                                        width: 40%;
+                                    }
+                                    table.DAI05150Grid1 thead tr th:nth-child(7) {
+                                        width: 6%;
+                                    }
+                                    table.DAI05150Grid1 tbody tr td {
+                                        text-align: left;
+                                        vertical-align: top;
+                                        padding-left: 2px;
+                                        white-space: pre-wrap;
+                                    }
+                                    table.DAI05150Grid1 tbody tr td div {
+                                        white-space: pre-wrap;
+                                    }
+                                    table.DAI05150Grid1 tbody tr td div.d-flex {
+                                        display: flex;
+                                    }
+                                    table.DAI05150Grid1 tbody tr td div[style='width: 75px;'] {
+                                        width: 20% !important;
+                                        min-width: 20%;
+                                    }
+                                `,
+                                headerFunc,
+                                45,
+                                false,
+                                false,
+                                true,
+                            )
+                        )
+                )
+                .prop("outerHTML")
+                ;
+
+            //Grouping解除
+            grid.Group().option({ "on": false });
+
+            var printOptions = {
+                type: "raw-html",
+                style: "@media print { @page { size: A4 landscape; margin: 10px 20px; } }",
+                printable: printable,
+            };
+
+            printJS(printOptions);
+            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //$("#printJS").contents().find("html").html()
         },
     }
 }

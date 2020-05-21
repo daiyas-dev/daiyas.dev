@@ -20,11 +20,14 @@
             :disabled=!editable
         >
         </date-picker>
-        <button type="button" class="input-group-addon calendar-button btn btn-info p-0 border-0" :class='[hideButton ? "d-none" : ""]'
+        <button
+            type="button"
+            class="input-group-addon calendar-button btn btn-info p-0 border-0"
+            :class='[hideButton ? "d-none" : ""]'
             :id="_id + '_calendar_btn'" @click="showCalendar"
             :disabled=!editable
         >
-            <i class="fas fa-lg" :class='format.includes("HH") || format.includes("mm") ? "fa-clock" : "fa-calendar-check"'></i>
+            <i class="fas fa-lg" :class='!!format && (format.includes("HH") || format.includes("mm")) ? "fa-clock" : "fa-calendar-check"'></i>
         </button>
     </div>
 </template>

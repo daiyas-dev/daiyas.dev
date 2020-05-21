@@ -170,7 +170,7 @@ export default {
                 autoRow: false,
                 rowHtHead: 50,
                 rowHt: 35,
-                freezeCols: 3,
+                freezeCols: 4,
                 editable: false,
                 columnTemplate: {
                     editable: false,
@@ -216,9 +216,9 @@ export default {
                         hidden:true,
                     },
                     {
-                        title: "部署名",
+                        title: "部署",
                         dataIndx: "部署名", dataType: "string",
-                        width: 95, minWidth: 95, maxWidth: 95,
+                        width: 150, minWidth: 150, maxWidth: 150,
                         fixed: true,
                         render: ui => {
                             if (!!ui.rowData.pq_grandsummary) {
@@ -233,7 +233,8 @@ export default {
                     {
                         title: "対象月",
                         dataIndx: "年月", dataType: "string",
-                        width: 95, minWidth: 95, maxWidth: 95,
+                        align: "center",
+                        width: 100, minWidth: 100, maxWidth: 100,
                         fixed: true,
                         render: ui => {
                             if (!ui.rowData.pq_grandsummary && !ui.rowData.pq_gtitle) {
@@ -292,6 +293,8 @@ export default {
                         title: "営業担当ＣＤ",
                         dataIndx: "営業担当者ＣＤ", dataType: "string",
                         width: 110, minWidth: 110, maxWidth: 110,
+                        hiddenOnExport: true,
+
                     },
                     {
                         title: "営業担当",
@@ -385,7 +388,11 @@ export default {
                 },
                 { visible: "true", value: "CSV", id: "DAI05120Grid1_CSV", disabled: true, shortcut: "F10",
                     onClick: function () {
+                        //印刷用に一時的にグループ行を非表示
+                        vue.DAI05120Grid1.pdata.filter(v => v.pq_level != undefined && !v.pq_gsummary).forEach(v => v.pq_hidden = true);
                         vue.DAI05120Grid1.vue.exportData("csv", false, true);
+                        vue.DAI05120Grid1.pdata.filter(v => v.pq_level != undefined && !v.pq_gsummary).forEach(v => v.pq_hidden = undefined);
+                        vue.DAI05120Grid1.refreshView();
                     }
                 },
             );
