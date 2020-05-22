@@ -455,27 +455,70 @@ export default {
         onDateStartChanged: function(code, entity) {
             var vue = this;
 
+            if (!vue.viewModel.DateStart || !vue.viewModel.DateEnd){
+                $.dialogErr({
+                    title: "検索不可",
+                    contents: "日付が入力されていません。",
+                })
+                return;
+            }
             var ms = moment(vue.viewModel.DateStart, "YYYY年MM月DD日");
             var me = moment(vue.viewModel.DateEnd, "YYYY年MM月DD日");
 
-            if (ms.month() != me.month()) {
-                vue.viewModel.DateEnd = ms.endOf("month").format("YYYY年MM月DD日");
-            } else {
-                //列定義変更 + 条件変更ハンドラ
-                vue.refreshCols(vue.conditionChanged);
+            if (!!vue.viewModel.DateStart && !!vue.viewModel.DateEnd) {
+                if (ms.isBefore(me, 'months') || (ms.year() == me.year() && ms.month() == me.month())) {
+                    if (ms.diff(me, 'months') < -5) {
+                        $.dialogErr({
+                            title: "検索不可",
+                            contents: "対象年月は6カ月以内で入力して下さい。",
+                        })
+                        return;
+                    } else {
+                        //列定義変更 + 条件変更ハンドラ
+                        vue.refreshCols(vue.conditionChanged);
+                    }
+                } else {
+                    $.dialogErr({
+                        title: "検索不可",
+                        contents: "範囲指定に誤りがあります。",
+                    })
+                    return;
+                }
             }
         },
         onDateEndChanged: function(code, entity) {
             var vue = this;
 
+            if (!vue.viewModel.DateStart || !vue.viewModel.DateEnd){
+                $.dialogErr({
+                    title: "検索不可",
+                    contents: "日付が入力されていません。",
+                })
+                return;
+            }
+
             var ms = moment(vue.viewModel.DateStart, "YYYY年MM月DD日");
             var me = moment(vue.viewModel.DateEnd, "YYYY年MM月DD日");
 
-            if (ms.month() != me.month()) {
-                vue.viewModel.DateStart = me.startOf("month").format("YYYY年MM月DD日");
-            } else {
-                //列定義変更 + 条件変更ハンドラ
-                vue.refreshCols(vue.conditionChanged);
+            if (!!vue.viewModel.DateStart && !!vue.viewModel.DateEnd) {
+                if (me.isAfter(ms, 'months') || (ms.year() == me.year() && ms.month() == me.month())) {
+                    if (ms.diff(me, 'months') > 0 || ms.diff(me, 'months') < -5) {
+                        $.dialogErr({
+                            title: "検索不可",
+                            contents: "対象年月は6カ月以内で入力して下さい。",
+                        })
+                        return;
+                    } else {
+                        //列定義変更 + 条件変更ハンドラ
+                        vue.refreshCols(vue.conditionChanged);
+                    }
+                } else {
+                    $.dialogErr({
+                        title: "検索不可",
+                        contents: "範囲指定に誤りがあります。",
+                    })
+                    return;
+                }
             }
         },
         onShowSyoninChanged: function(code, entity) {
@@ -922,9 +965,7 @@ export default {
                             vue.DAI05110Grid1.generateHtml(
                                 styleCustomers,
                                 headerFunc,
-                                //TODO:西山　印刷確認未完　用紙サイズ確認　
-                                //36,
-                                30,
+                                32,
                                 false,
                                 true,
                                 true,
