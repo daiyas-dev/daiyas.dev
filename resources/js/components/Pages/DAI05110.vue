@@ -281,9 +281,6 @@ export default {
                         hidden: true,
                         fixed: true,
                         render: ui => {
-                            // if (ui.rowData.pq_level != 0) {
-                            //     return { text: "" };
-                            // }
                             if (vue.viewModel.BushoOption == 0){
                                 if (ui.rowData.pq_level != 0) {
                                     return { text: "" };
@@ -303,14 +300,6 @@ export default {
                         hidden: true,
                         fixed: true,
                         render: ui => {
-                            // switch (ui.rowData.pq_level) {
-                            //     case 0:
-                            //         return { text: "" };
-                            //     case 1:
-                            //         return ui;
-                            //     default:
-                            //         return { text: "" };
-                            // }
                             if (vue.viewModel.BushoOption == 0){
                                 switch (ui.rowData.pq_level) {
                                     case 0:
@@ -352,12 +341,6 @@ export default {
                                 return { text: "売上金額総合計\n新規客総合計" };
                             }
                             if (!!ui.rowData.pq_gsummary) {
-                            //     switch (ui.rowData.pq_level) {
-                            //         case 1:
-                            //             return { text: "売上金額合計&nbsp;\n新規客計" };
-                            //         default:
-                            //             return { text: "" };
-                            //     }
                                 if (vue.viewModel.BushoOption == 0){
                                     switch (ui.rowData.pq_level) {
                                         case 1:
@@ -446,15 +429,6 @@ export default {
             //条件変更ハンドラ
             vue.filterChanged();
         },
-        // onDateChanged: function(code, entity) {
-        //     var vue = this;
-
-        //     //列定義変更 + 条件変更ハンドラ
-        //     vue.refreshCols(vue.conditionChanged);
-
-        //     //条件変更ハンドラ
-        //     //vue.conditionChanged();
-        // },
         onDateStartChanged: function(code, entity) {
             var vue = this;
 
@@ -872,15 +846,6 @@ export default {
                         eigyoNmKey2 = header.ＧＫ獲得営業者.split(" ")[1];
                     }
                 }
-                // if (header.pq_level == 0)
-                // {
-                //     eigyoNmKey1 = header.ＧＫ営業担当者.split(" ")[1];
-                //     eigyoNmKey2 = eigyoNmKey1;
-                // }
-                // if (header.pq_level == 1)
-                // {
-                //     eigyoNmKey2 = header.ＧＫ獲得営業者.split(" ")[1];
-                // }
                 return `
                     <div class="title">
                         <h3>* * 顧客売上累計表 * *</h3>
