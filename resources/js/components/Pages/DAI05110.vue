@@ -920,7 +920,6 @@ export default {
                 table.DAI05110Grid1 tr.grand-summary td:nth-child(2) {
                     border-left-width: 0px;
                     text-align: center;
-                    line-height: 1.2em;
                     padding-right: 50px;
                 }
                 table.DAI05110Grid1 tr th:nth-child(n+3):nth-child(-n+9) {
@@ -929,6 +928,35 @@ export default {
                 table.DAI05110Grid1 th,
                 table.DAI05110Grid1 td {
                     font-size: 9pt;
+                }
+                /* 集計行内部罫線(空セル) */
+                table.DAI05110Grid1 tr.group-summary td:empty,
+                table.DAI05110Grid1 tr.grand-summary td:empty {
+					padding: 0px;
+                }
+                table.DAI05110Grid1 tr.group-summary td:empty::before,
+                table.DAI05110Grid1 tr.grand-summary td:empty::before {
+					content: '';
+					display: block;
+					background: black;
+					height: 1px;
+					width: 100%;
+                }
+                /* 集計行内部罫線(内容有り) */
+                table.DAI05110Grid1 tr.group-summary td:not(:empty),
+                table.DAI05110Grid1 tr.grand-summary td:not(:empty) {
+                	line-height: 16px;
+                }
+                table.DAI05110Grid1 tr.group-summary td:not(:empty)::before,
+                table.DAI05110Grid1 tr.grand-summary td:not(:empty)::before {
+					content: '';
+					display: block;
+					position: relative;
+					top: 16px;
+					left: -3px;
+					background: black;
+					height: 1px;
+					width: calc(100% + 53px);
                 }
             `;
 
