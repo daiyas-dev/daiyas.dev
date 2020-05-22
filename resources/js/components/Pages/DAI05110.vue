@@ -32,30 +32,30 @@
             <div class="col-md-1">
             </div>
             <VueCheck
-                id="VueCheck_Customer"
-                ref="VueCheck_Customer"
-                :vmodel=viewModel
-                bind="Customer"
-                checkedCode="1"
-                customContainerStyle="border: none;"
-                :list="[
-                    {code: '0', name: '全顧客', label: '新規顧客のみ'},
-                    {code: '1', name: '新規顧客', label: '新規顧客のみ'},
-                ]"
-                :onChangedFunc=onCustomerChanged
-            />
-            <VueCheck
                 id="VueCheck_ShowSyonin"
                 ref="VueCheck_ShowSyonin"
                 :vmodel=viewModel
                 bind="ShowSyonin"
                 checkedCode="1"
-                customContainerStyle="margin-left: 50px; border: none;"
+                customContainerStyle="border: none;"
                 :list="[
                     {code: '0', name: 'しない', label: '承認・仮承認'},
                     {code: '1', name: 'する', label: '承認・仮承認'},
                 ]"
                 :onChangedFunc=onShowSyoninChanged
+            />
+            <VueCheck
+                id="VueCheck_Customer"
+                ref="VueCheck_Customer"
+                :vmodel=viewModel
+                bind="Customer"
+                checkedCode="1"
+                customContainerStyle="margin-left: 50px; border: none;"
+                :list="[
+                    {code: '0', name: '全顧客', label: '新規獲得顧客のみ'},
+                    {code: '1', name: '新規顧客', label: '新規獲得顧客のみ'},
+                ]"
+                :onChangedFunc=onCustomerChanged
             />
         </div>
         <div class="row">
@@ -348,7 +348,8 @@ export default {
                         fixed: true,
                         render: ui => {
                             if (!!ui.rowData.pq_grandsummary) {
-                                return { text: "売上金額総合計&nbsp;\n新規客総合計" };
+                                // return { text: "売上金額総合計&nbsp;\n新規客総合計" };
+                                return { text: "売上金額総合計\n新規客総合計" };
                             }
                             if (!!ui.rowData.pq_gsummary) {
                             //     switch (ui.rowData.pq_level) {
@@ -360,14 +361,16 @@ export default {
                                 if (vue.viewModel.BushoOption == 0){
                                     switch (ui.rowData.pq_level) {
                                         case 1:
-                                            return { text: "売上金額合計&nbsp;\n新規客計" };
+                                            // return { text: "売上金額合計&nbsp;\n新規客計" };
+                                            return { text: "売上金額合計\n新規客計" };
                                         default:
                                             return { text: "" };
                                     }
                                 } else {
                                     switch (ui.rowData.pq_level) {
                                         case 2:
-                                            return { text: "売上金額合計&nbsp;\n新規客計" };
+                                            // return { text: "売上金額合計&nbsp;\n新規客計" };
+                                            return { text: "売上金額合計\n新規客計" };
                                         default:
                                             return { text: "" };
                                     }
@@ -760,6 +763,11 @@ export default {
                             }
                         },
                     },
+                    {
+                        title: "備考", dataIndx: "備考", dataType: "string",
+                        hidden: true,
+                        hiddenOnExport: false,
+                    },
                 ]);
 
                 newCols.push(...[
@@ -821,7 +829,7 @@ export default {
                     padding-right: 3px;
                 }
                 th {
-                    height: 25px;
+                    height: 15px;
                     text-align: center;
                 }
                 td {
@@ -834,7 +842,6 @@ export default {
                 }
             `;
 
-            //TODO部署名取得
             var bushoNm;
             var eigyoNmKey1;
             var eigyoNmKey2;
@@ -935,25 +942,28 @@ export default {
                 table.DAI05110Grid1 tr:last-child td {
                     border-bottom-width: 1px;
                 }
-                table.DAI05110Grid1 tr.group-summary td:nth-child(2) {
-                    text-align: right;
-                    padding-right: 50px;
-                }
-                table.DAI05110Grid1 tr[level="0"].group-summary td:nth-child(2) {
-                    text-align: right;
-                    padding-right: 30px;
-                }
-                table.DAI05110Grid1 tr.grand-summary td:nth-child(2) {
-                    text-align: right;
-                }
-                table.DAI05110Grid1 tr.grand-summary td:nth-child(3) {
-                    text-align: left;
-                }
                 table.DAI05110Grid1 tr th:nth-child(1) {
-                    width: 5.5%;
+                    width: 5%;
                 }
                 table.DAI05110Grid1 tr th:nth-child(2) {
-                    width: 15%;
+                    width: 16%;
+                }
+                table.DAI05110Grid1 tr th:nth-child(10) {
+                    width: 18%;
+                }
+                table.DAI05110Grid1 tr.group-summary td:nth-child(2),
+                table.DAI05110Grid1 tr.grand-summary td:nth-child(2) {
+                    border-left-width: 0px;
+                    text-align: center;
+                    line-height: 1.2em;
+                    padding-right: 50px;
+                }
+                table.DAI05110Grid1 tr th:nth-child(n+3):nth-child(-n+9) {
+                    font-weight: bold;
+                }
+                table.DAI05110Grid1 th,
+                table.DAI05110Grid1 td {
+                    font-size: 9pt;
                 }
             `;
 

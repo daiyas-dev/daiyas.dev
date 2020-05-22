@@ -18,12 +18,12 @@ class DAI05110Controller extends Controller
         $DateStart = $vm->DateStart;
         $DateEnd = $vm->DateEnd;
 
-        $Customer = $vm->Customer;
         $ShowSyonin = $vm->ShowSyonin;
+        $Customer = $vm->Customer;
         $BushoCd = $vm->BushoCd;
 
-        $WehreCustomer = $Customer == "1" ? "AND TOKUISAKI.新規登録日 >= '$DateStart' AND TOKUISAKI.新規登録日 <= '$DateEnd'" : "";
         $WehreShowSyonin = $ShowSyonin == "1" ? "AND TOKUISAKI.状態区分 IN (10, 20)" : "";
+        $WehreCustomer = $Customer == "1" ? "AND TOKUISAKI.新規登録日 >= '$DateStart' AND TOKUISAKI.新規登録日 <= '$DateEnd'" : "";
         $WhereBushoCd = isset($BushoCd) ? "AND URIAGE_MEISAI.部署ＣＤ=$BushoCd" : "";
 
 
@@ -55,10 +55,11 @@ class DAI05110Controller extends Controller
                 TOKUISAKI.獲得営業者ＣＤ = TANTO2.担当者ＣＤ
             WHERE
                     URIAGE_MEISAI.商品区分 IN (1,2,3,7)
-                --AND URIAGE_MEISAI.日付 >= '$DateStart' AND URIAGE_MEISAI.日付 <= '$DateEnd'
-                AND URIAGE_MEISAI.日付 >= '$DateStart' AND URIAGE_MEISAI.日付 <= DATEADD(DAY,-1,DATEADD(MONTH,6,'$DateStart'))
-                $WehreCustomer
+                    AND URIAGE_MEISAI.日付 >= '$DateStart'
+                    AND URIAGE_MEISAI.日付 <= '$DateEnd'
+                    -- AND URIAGE_MEISAI.日付 <= DATEADD(DAY,-1,DATEADD(MONTH,6,'$DateStart'))
                 $WehreShowSyonin
+                $WehreCustomer
                 $WhereBushoCd
             ";
 
