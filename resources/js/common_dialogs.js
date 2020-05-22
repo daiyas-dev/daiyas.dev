@@ -50,8 +50,6 @@ var dialogCustom = function(options) {
 
             if (op.minWidth) $(this).css("minWidth", op.minWidth + "px");
             if (op.maxWidth) $(this).css("minWidth", op.maxWidth + "px");
-            if (op.minHeight) $(this).css("minHeight", op.minHeight + "px");
-            if (op.maxHeight) $(this).css("minHeight", op.maxHeight + "px");
         },
         close: function() {
             var op = $(this).dialog("option");
@@ -70,11 +68,6 @@ var dialogCustom = function(options) {
             },
         ],
     };
-
-    if (!options.resizable) {
-        options.maxWidth = options.width;
-        options.maxHeight = options.height;
-    }
 
     var opt = $.extend(true, defOpt, options);
     opt.buttons = (options && options.buttons) ? options.buttons : opt.buttons;

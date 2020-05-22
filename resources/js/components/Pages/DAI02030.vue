@@ -925,7 +925,6 @@ export default {
                 params: params,
                 isModal: true,
                 isChild: true,
-                reuse: false,
                 width: 900,
                 height: 725,
             });
