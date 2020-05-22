@@ -11,15 +11,15 @@
                 <label style="width:90px">部署</label>
             </div>
             <div class="col-md-2">
-                <VueSelectBusho v-if="!params.IsChild"
-                    :withCode=true
-                    :onChangedFunc=onBushoCdChanged
-                />
-                <VueSelect v-else
+                <VueSelect v-if="!!params && !!params.IsChild"
                     id="Busho"
                     :vmodel=viewModel
                     bind="BushoCd"
                     uri="/Utilities/GetBushoList"
+                    :withCode=true
+                    :onChangedFunc=onBushoCdChanged
+                />
+                <VueSelectBusho v-else
                     :withCode=true
                     :onChangedFunc=onBushoCdChanged
                 />
