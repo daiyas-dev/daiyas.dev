@@ -922,9 +922,7 @@ export default {
                             vue.DAI05110Grid1.generateHtml(
                                 styleCustomers,
                                 headerFunc,
-                                //TODO:西山　印刷確認未完　用紙サイズ確認　
-                                //36,
-                                30,
+                                32,
                                 false,
                                 true,
                                 true,

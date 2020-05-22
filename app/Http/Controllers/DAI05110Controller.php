@@ -20,6 +20,12 @@ class DAI05110Controller extends Controller
 
         $BushoCd = $vm->BushoCd;
         $WhereBushoCd = isset($BushoCd) ? "AND URIAGE_MEISAI.部署ＣＤ=$BushoCd" : "";
+        //TODO 新規顧客のみチェック有無
+        $Customer = $vm->Customer;
+        $WehreCustomer = $Customer == "1" ? "AND TOKUISAKI.新規登録日 >= '$DateStart' AND TOKUISAKI.新規登録日 <= '$DateEnd'" : "";
+　　　　//TODO承認チェック有無
+        $ShowSyonin = $vm->ShowSyonin;
+        $WehreShowSyonin = $ShowSyonin == "1" ? "AND TOKUISAKI.状態区分 IN (10, 20)" : "";
 
         $sql = "
             SELECT DISTINCT
@@ -49,8 +55,11 @@ class DAI05110Controller extends Controller
                 TOKUISAKI.獲得営業者ＣＤ = TANTO2.担当者ＣＤ
             WHERE
                     URIAGE_MEISAI.商品区分 IN (1,2,3,7)
-                AND URIAGE_MEISAI.日付 >= '$DateStart' AND URIAGE_MEISAI.日付 <= '$DateEnd'
+                --AND URIAGE_MEISAI.日付 >= '$DateStart' AND URIAGE_MEISAI.日付 <= '$DateEnd'
+                AND URIAGE_MEISAI.日付 >= '$DateStart' AND URIAGE_MEISAI.日付 <= DATEADD(DAY,-1,DATEADD(MONTH,6,'20190501'))
+                $WehreCustomer
                 $WhereBushoCd
+                $WehreShowSyonin
         ";
 
         $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
