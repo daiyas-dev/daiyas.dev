@@ -589,6 +589,9 @@ export default {
                 vue.BushoInfo = entity.info;
             }
 
+            //フィルタ変更ハンドラ
+            vue.filterChanged();
+
             //条件変更ハンドラ
             vue.conditionChanged();
         },
@@ -605,13 +608,21 @@ export default {
             //フィルタ変更ハンドラ
             vue.filterChanged();
 
+            if (vue.viewModel.SimeKbn == "2") {
+                vue.viewModel.TargetDateMax = moment(vue.viewModel.TargetDate, "YYYY年MM月DD日").endOf("month").format("YYYY年MM月DD日");
+            }
+
             //条件変更ハンドラ
             vue.conditionChanged();
         },
         onTargetDateChanged: function() {
             var vue = this;
 
-            vue.viewModel.TargetDateMax = vue.viewModel.TargetDate;
+            if (vue.viewModel.SimeKbn == "2") {
+                vue.viewModel.TargetDateMax = moment(vue.viewModel.TargetDate, "YYYY年MM月DD日").endOf("month").format("YYYY年MM月DD日");
+            } else {
+                vue.viewModel.TargetDateMax = vue.viewModel.TargetDate;
+            }
 
             //条件変更ハンドラ
             vue.conditionChanged();
@@ -740,7 +751,7 @@ export default {
             }
 
             //今回請求額ゼロ表示
-            if (!vue.viewModel.SearchOptions.includes("1")) {
+            if (!vue.viewModel.SearchOptions.length) {
                 if (vue.viewModel.BushoCd == 501) {
                     rules.push({ dataIndx: "今回請求額", condition: "great", value: "0" });
                 } else {
@@ -764,6 +775,8 @@ export default {
             var vue = this;
 
             vue.footerButtons.find(v => v.id == "DAI02030Grid1_Print").disabled = !res.length;
+
+            vue.filterChanged();
 
             return res;
         },
@@ -1567,9 +1580,9 @@ export default {
                                             </div>
                                             <div>
                                                 Tel
-                                                <span/><span/>${r.電話番号１}
+                                                <span/><span/>${r.電話番号１ || ""}
                                                 <span/><span/>Fax
-                                                <span/><span/>${r.ＦＡＸ１}
+                                                <span/><span/>${r.ＦＡＸ１ || ""}
                                             </div>
                                             </br>
                                         </div>
@@ -1589,7 +1602,7 @@ export default {
                                             </div>
                                             <div>
                                                 Fax
-                                                <span/><span/>${vue.BushoInfo.FAX}
+                                                <span/><span/>${vue.BushoInfo.FAX || ""}
                                             </div>
                                         </div>
                                         <div id="g-box">
