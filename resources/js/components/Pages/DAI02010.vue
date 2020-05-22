@@ -289,6 +289,7 @@ export default {
                 CustomerNm: null,
                 SearchOptions: [],
             },
+            pgId: "DAI02010",
             DAI02010Grid1: null,
             SimeDateDisabled: true,
             TargetDateMsg: null,
@@ -648,8 +649,29 @@ export default {
             vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
             vue.viewModel.TargetDateMax = moment().format("YYYY年MM月DD日");
 
+            vue.changeScreen(vue);
+
             //初期フィルタ
             vue.filterChanged();
+        },
+        activatedFunc: function(vue) {
+            vue.changeScreen(vue);
+        },
+        changeScreen(vue) {
+            var pgId = vue.$route.path == "/DAI07/DAI07070" ? "DAI07070" : "DAI02010";
+            var title = pgId == "DAI07070" ? "個人宅 > 請求締処理" : "締日処理 > 請求締処理";
+            vue.pgId = pgId;
+            vue.$root.$emit("setTitle", title);
+
+            switch (vue.pgId) {
+                case "DAI07070":
+                    // vue.viewModel.SimeKbn = "1";
+                    // vue.SimeKbnDisabled = true;
+                    break;
+                case "DAI02010":
+                    // vue.SimeKbnDisabled = false;
+                    break;
+            }
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
