@@ -260,23 +260,10 @@ export default {
                 ],
                 colModel: [
                     {
-                        title: "部署ＣＤ",
-                        dataIndx: "部署ＣＤ",
-                        dataType: "integer",
-                        hidden: true,
-                    },
-                    {
-                        title: "コースＣＤ",
-                        dataIndx: "コースＣＤ",
-                        dataType: "integer",
-                        width: 50, minWidth: 50, maxWidth: 50,
-                        hidden: true,
-                    },
-                    {
                         title: "コース名",
                         dataIndx: "コース名",
                         dataType: "string",
-                        width: 150, minWidth: 150, maxWidth: 150,
+                        width: 75, minWidth: 75, maxWidth: 75,
                         hiddenOnExport: true,
                         render: ui => {
                             if (ui.rowData.pq_level != 0) {
@@ -286,17 +273,10 @@ export default {
                         },
                     },
                     {
-                        title: "得意先ＣＤ",
-                        dataIndx: "得意先ＣＤ",
-                        dataType: "integer",
-                        width: 100, minWidth: 100, maxWidth: 100,
-                        hidden: true,
-                    },
-                    {
                         title: "得意先（商品）",
                         dataIndx: "得意先商品名",
                         dataType: "string",
-                        width: 150, minWidth: 150, maxWidth: 150,
+                        width: 125, minWidth: 125, maxWidth: 125,
                         render: ui => {
                             switch (ui.rowData.pq_level) {
                                 case 0:
@@ -311,33 +291,12 @@ export default {
                     {
                         title: "日付",
                         dataIndx: "日付",
-                        dataType: "date",
-                        format: "yy/mm/dd",
-                        align: "center",
-                        hidden: true,
-                        render: ui => {
-                            if (!!ui.Export && !ui.rowData.pq_grandsummary) {
-                                return { text: moment(ui.rowData[ui.dataIndx]).format("YYYY/MM/DD") };
-                            }
-                            return ui;
-                        },
-                    },
-                    {
-                        title: "曜日",
-                        dataIndx: "曜日",
                         dataType: "string",
                         align: "center",
-                        hidden: true,
-                    },
-                    {
-                        title: "日付",
-                        dataIndx: "日付曜日",
-                        dataType: "string",
-                        align: "center",
-                        width: 150, minWidth: 150, maxWidth: 150,
+                        width: 125, minWidth: 125, maxWidth: 125,
                         render: ui => {
                             if (!!ui.rowData.日付) {
-                                return { text: moment(ui.rowData.日付).format("YYYY/MM/DD") + "　" +  ui.rowData.曜日 };
+                                return { text: moment(ui.rowData.日付).format("YYYY/MM/DD　dd") };
                             }
                             if (!!ui.rowData.pq_gsummary) {
                                 return { text: "合計" };
@@ -360,7 +319,7 @@ export default {
                         dataIndx: "チケット販売",
                         dataType: "string",
                         align: "right",
-                        width: 150, minWidth: 150, maxWidth: 150,
+                        width: 125, minWidth: 125, maxWidth: 125,
                         summary: {
                             type: "TotalInt",
                         },
@@ -396,7 +355,7 @@ export default {
                         dataIndx: "弁当売上",
                         dataType: "integer",
                         format: "#,###",
-                        width: 150, minWidth: 150, maxWidth: 150,
+                        width: 125, minWidth: 125, maxWidth: 125,
                         summary: {
                             type: "TotalInt",
                         },
@@ -432,7 +391,7 @@ export default {
                         dataIndx: "調整",
                         dataType: "integer",
                         format: "#,###",
-                        width: 150, minWidth: 150, maxWidth: 150,
+                        width: 125, minWidth: 125, maxWidth: 125,
                         summary: {
                             type: "TotalInt",
                         },
@@ -465,7 +424,7 @@ export default {
                         dataIndx: "チケット残数",
                         dataType: "integer",
                         format: "#,###",
-                        width: 150, minWidth: 150, maxWidth: 150,
+                        width: 125, minWidth: 125, maxWidth: 125,
                         render: ui => {
                             if (!!ui.rowData.pq_gsummary) {
                                 return { text: "" };
@@ -828,7 +787,7 @@ export default {
                     text-align: center;
                 }
                 td {
-                    height: 22px;
+                    height: 23px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
@@ -843,88 +802,67 @@ export default {
                 {
                     courseNm = header.コース名;
                 }
+                var TargetDateFrom = moment(vue.searchParams.DateStart, "YYYYMMDD").format("YYYY/MM/DD");
+                var TargetDateTo = moment(vue.searchParams.DateEnd, "YYYYMMDD").format("YYYY/MM/DD");
+
                 return `
-                    <div class="title">
-                        <h3>＊＊チケット販売台帳＊＊</h3>
+                    <div class="header">
+                        <div class="title" style="float: left; width: 100%">
+                            <h3>＊＊チケット販売台帳＊＊</h3>
+                        </div>
+                        <div style="float: left; width: 100%;">
+                            <div style="float: left; width: 100%; text-align: center;">
+                                対象期間(${TargetDateFrom}<span> ～ </span>${TargetDateTo})
+                            </div>
+
+                            <div style="float: left; width: 90%;">&nbsp</div>
+                            <div style="float: left; width: 5%; text-align: center;">PAGE</div>
+                            <div style="float: left; width: 5%; text-align: center;">${idx + 1}/${length}</div>
+
+                            <div style="float: left; width: 100%;">&nbsp</div>
+
+                            <div style="float: left; width: 35%; text-align: left;">配送コース: ${courseNm}</div>
+                            <div style="float: left; width: 40%;">&nbsp</div>
+                            <div style="float: left; width: 10%; text-align: right;">作成日</div>
+                            <div style="float: left; width: 15%; text-align: right;">${moment().format("YYYY/MM/DD日")}</div>
+                        </div>
                     </div>
-                    <table class="header-table" style="border-width: 0px">
-                        <thead>
-                            <tr>
-                                <th>対象期間</th>
-                                <th>${vue.viewModel.DateStart}</th>
-                                <th>～</th>
-                                <th>${vue.viewModel.DateEnd}</th>
-                            </tr>
-                            <tr>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th>PAGE</th>
-                                <th style="text-align: right;">${idx + 1}/${length}</th>
-                            </tr>
-                            <tr>
-                                <th>コース</th>
-                                <th>${courseNm}</th>
-                                <th class="blank-cell"></th>
-                                <th>作成日</th>
-                                <th>${moment().format("YYYY年MM月DD日")}</th>
-                            </tr>
-                        </thead>
-                    </table>
                 `;
             };
 
             var styleCustomers =`
-                table.DAI06040Grid1 tr:nth-child(1) th {
-                    border-style: solid;
-                    border-left-width: 0px;
-                    border-top-width: 1px;
-                    border-right-width: 0px;
-                    border-bottom-width: 1px;
+                div.header div:not(.title) {
+                    font-size: 12px;
                 }
-                table.DAI06040Grid1 tr.group-summary td {
-                    border-style: solid;
-                    border-left-width: 0px;
-                    border-top-width: 1px;
-                    border-right-width: 0px;
-                    border-bottom-width: 0px;
+                table.DAI06040Grid1 {
+                    border-collapse:collapse;
                 }
-                table.DAI06040Grid1 tr.group-summary td:nth-child(2) {
-                    text-align: right;
-                    padding-right: 50px;
+                table.DAI06040Grid1 thead tr {
+                    border-top: solid 1px black;
                 }
-                table.DAI06040Grid1 tr[level="0"].group-summary td {
-                    border-style: dotted;
-                    border-left-width: 0px;
-                    border-top-width: 1px;
-                    border-right-width: 0px;
-                    border-bottom-width: 0px;
+                table.DAI06040Grid1 tbody tr[level="1"].group-row {
+                    border-top: solid 1px black;
                 }
-                table.DAI06040Grid1 tr[level="0"].group-summary td:nth-child(2) {
-                    text-align: right;
-                    padding-right: 30px;
+                table.DAI06040Grid1 tbody tr td {
+                    border-bottom: dotted 1px black;
                 }
-                table.DAI06040Grid1 tr.grand-summary td {
-                    border-style: solid;
-                    border-left-width: 0px;
-                    border-top-width: 1px;
-                    border-right-width: 0px;
-                    border-bottom-width: 0px;
+                table.DAI06040Grid1 tbody tr[level="1"].group-summary td {
+                    border-bottom: dotted 0px black;
                 }
-                table.DAI06040Grid1 tr.grand-summary td:nth-child(2) {
-                    text-align: right;
+                table.DAI06040Grid1 tbody tr.group-summary td {
+                    border-bottom: dotted 0px black;
                 }
-                table.DAI06040Grid1 tr.grand-summary td:nth-child(3) {
-                    text-align: left;
+                table.DAI06040Grid1 tbody tr.grand-summary td {
+                    border-bottom: dotted 0px black;
                 }
-                table.DAI06040Grid1 tr th:nth-child(1) {
+                table.DAI06040Grid1 tbody tr td:nth-child(1) {
+                    border-bottom: dotted 0px black;
+                }
+                table.DAI06040Grid1 thead tr th:nth-child(1) {
                     width: 20%;
                 }
-                table.DAI06040Grid1 tr th:nth-child(2) {
+                table.DAI06040Grid1 thead tr th:nth-child(2) {
                     width: 20%;
-                }
-                table.DAI06040Grid1 tr th:nth-child(n+3):nth-child(-n+6) {
-                    width: 15%;
                 }
             `;
 
@@ -936,7 +874,7 @@ export default {
                             vue.DAI06040Grid1.generateHtml(
                                 styleCustomers,
                                 headerFunc,
-                                36,
+                                35,
                                 [false, true],
                                 [false, true],
                                 [true, false],
