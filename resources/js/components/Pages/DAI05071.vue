@@ -497,19 +497,30 @@ export default {
                     newRow: {
                         取引日:v.取引日,
                         依頼人名:v.依頼人名,
-                        入金金額:v.入金金額
-                        },
+                        結果:v.結果,
+                        得意先ＣＤ:v.得意先ＣＤ,
+                        得意先名:v.得意先名,
+                        入金金額:v.入金金額,
+                        金融機関名:v.金融機関名,
+                        支店名:v.支店名,
+                        指定日:v.指定日,
+                        取引区分:v.取引区分,
+                        EDI情報:v.EDI情報,
+
+                        店番:FileData.Company.店番,
+                        取引店:FileData.Company.取引店,
+                        全銀科目コード:FileData.Company.全銀科目コード,
+                        預金種類コード:FileData.Company.預金種類コード,
+                        預金種類科目:FileData.Company.預金種類科目,
+                        口座番号:FileData.Company.口座番号,
+                        口座名義:FileData.Company.口座名義,
+                        照会期間:FileData.Company.照会期間,
+                        照会方法:FileData.Company.照会方法,
+                        操作日:FileData.Company.操作日,
+                        操作時刻:FileData.Company.操作時刻,
+                    },
                 });
-               /*
-                var rowIndx = grid.pdata.length;
-                grid.addRow({
-                    rowIndx: rowIndx,
-                    newRow: {},
-                });
-                grid.data({rowIndx: rowIndx,data:{依頼人名:'aaaaa'}});
-                */
             });
-            grid.refreshCM();
         },
         setGridTitle: function (title, grid) {
             return "件数: " + (grid.pdata || []).filter(v => !!v.伝票日付).length;

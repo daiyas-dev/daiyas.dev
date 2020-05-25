@@ -51,6 +51,11 @@ class DAI05070Controller extends Controller
      */
     public function GetResult($Contents)
     {
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+        $pdo = new PDO($dsn, $user, $password);
+
         try {
             $Lines = explode("\r\n", $Contents);
 
@@ -64,7 +69,7 @@ class DAI05070Controller extends Controller
                         $Company->取引店 = $this->getResultElement($Line, 4, 30);
                         $Company->全銀科目コード = $this->getResultElement($Line, 34, 1);
                         $Company->預金種類コード = $this->getResultElement($Line, 35, 1);
-                        $Company->預金種類（科目） = $this->getResultElement($Line, 36, 16);
+                        $Company->預金種類科目 = $this->getResultElement($Line, 36, 16);
                         $Company->口座番号 = $this->getResultElement($Line, 52, 7);
                         $Company->口座名義 = $this->getResultElement($Line, 59, 142);
                         $Company->照会期間 = $this->getResultElement($Line, 201, 21);
@@ -82,6 +87,31 @@ class DAI05070Controller extends Controller
                         $Customer->支店名 = $this->getResultElement($Line, 157, 30);
                         $Customer->EDI情報 = $this->getResultElement($Line, 187, 20);
                         $Customer->入金金額 = $this->getResultElement($Line, 207, 13);
+
+                        $stmt = $pdo->query("
+                            SELECT DISTINCT M1.得意先ＣＤ,
+                                            M1.振込依頼人名,
+                                            M2.得意先名,
+                                            M2.集金手数料
+                            FROM 得意先振込依頼人名 M1,
+                                得意先マスタ       M2
+                            WHERE M1.得意先ＣＤ = M2.得意先ＣＤ
+                              AND M1.振込依頼人名='$Customer->依頼人名'
+                        ");
+                        $furikomiirainin = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                        if(0<count($furikomiirainin))
+                        {
+                            $Customer->得意先ＣＤ = $furikomiirainin[0]['得意先ＣＤ'];
+                            $Customer->得意先名 = $furikomiirainin[0]['得意先名'];
+                            $Customer->集金手数料 = $furikomiirainin[0]['集金手数料'];
+                            $Customer->結果 = count($furikomiirainin) != 1 ? "◎":"◯";
+                        }
+                        else{
+                            $Customer->得意先ＣＤ = "";
+                            $Customer->得意先名 = "";
+                            $Customer->集金手数料 = "";
+                            $Customer->結果 = "";
+                        }
                         array_push($Customers, $Customer);
 
                         break;
@@ -106,6 +136,7 @@ class DAI05070Controller extends Controller
                 "message" => '取込に失敗しました。',
             ]);
         } finally {
+            $pdo = null;
         }
     }
 
