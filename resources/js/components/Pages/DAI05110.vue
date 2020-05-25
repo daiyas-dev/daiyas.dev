@@ -241,7 +241,8 @@ export default {
                     grandSummary: true,
                     indent: 10,
                     dataIndx: ["部署名", "ＧＫ営業担当者", "ＧＫ獲得営業者"],
-                    showSummary: [false, false, true],
+                    // showSummary: [false, false, true],
+                    showSummary: [false, true, true],
                     collapsed: [false, false, false],
                     summaryInTitleRow: "collapsed",
                 },
@@ -336,7 +337,11 @@ export default {
                         width: 300, minWidth: 300, maxWidth: 300,
                         fixed: true,
                         render: ui => {
-                            if (!!ui.rowData.pq_grandsummary) {
+                            // if (!!ui.rowData.pq_grandsummary) {
+                            //     // return { text: "売上金額総合計&nbsp;\n新規客総合計" };
+                            //     return { text: "売上金額総合計\n新規客総合計" };
+                            // }
+                            if (!!ui.rowData.pq_grandsummary && vue.viewModel.BushoOption == 0) {
                                 // return { text: "売上金額総合計&nbsp;\n新規客総合計" };
                                 return { text: "売上金額総合計\n新規客総合計" };
                             }
@@ -351,6 +356,10 @@ export default {
                                     }
                                 } else {
                                     switch (ui.rowData.pq_level) {
+                                        //TODO:全社、部署指定時の総計行はグループ毎
+                                        case 1:
+                                            // return { text: "売上金額合計&nbsp;\n新規客計" };
+                                            return { text: "売上金額総合計2\n新規総客計2" };
                                         case 2:
                                             // return { text: "売上金額合計&nbsp;\n新規客計" };
                                             return { text: "売上金額合計\n新規客計" };
@@ -415,7 +424,8 @@ export default {
                 });
             } else {
                 grid.Group().option({ "dataIndx": ["部署名", "ＧＫ営業担当者", "ＧＫ獲得営業者"],
-                    "showSummary": [false, false, true],
+                    // "showSummary": [false, false, true],
+                    "showSummary": [false, true, true],
                     "collapsed": [false, false, false],
                 });
             }
@@ -426,8 +436,11 @@ export default {
         onBushoCdChanged: function(code, entities) {
             var vue = this;
 
+            //TODO
+            // //条件変更ハンドラ
+            // vue.filterChanged();
             //条件変更ハンドラ
-            vue.filterChanged();
+            vue.conditionChanged();
         },
         onDateStartChanged: function(code, entity) {
             var vue = this;
@@ -858,7 +871,7 @@ export default {
                                 <th style="width: 7.5%;">（ ${vue.viewModel.DateStart}</th>
                                 <th style="width: 3%;">～</th>
                                 <th style="width: 10.5%;">${vue.viewModel.DateEnd} ）</th>
-                                <th style="width: 18%;" colspan="2" style="font-weight: bold; text-align: center !important;">[営業売上金額]</th>
+                                <th style="width: 18%;" colspan="2" class="eigyouriage">[営業売上金額]</th>
                                 <th style="width: 8%;" class="blank-cell"></th>
                                 <th style="width: 7%; text-align: right;">${idx + 1}/${length}</th>
                             </tr>
@@ -957,6 +970,10 @@ export default {
 					background: black;
 					height: 1px;
 					width: calc(100% + 53px);
+                }
+                .eigyouriage {
+                    font-weight: bold;
+                    text-align: center;
                 }
             `;
 

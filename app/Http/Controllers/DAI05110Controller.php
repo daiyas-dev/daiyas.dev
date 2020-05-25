@@ -30,6 +30,10 @@ class DAI05110Controller extends Controller
         $WehreCustomer = $Customer == "1" ? "AND TOKUISAKI.新規登録日 >= '$DateStart' AND TOKUISAKI.新規登録日 <= '$DateEnd'" : "";
         $WhereBushoCd = isset($BushoCd) ? "AND URIAGE_MEISAI.部署ＣＤ=$BushoCd" : "";
 
+        //TODO: 全社　部署指定時 orderby句に部署CD追加
+        $BushoOption = $vm->BushoOption;
+        $OrderByBusho = $BushoOption == "0" ? "" : "部署ＣＤ,";
+
 
         $sql = "
             SELECT
@@ -69,6 +73,7 @@ class DAI05110Controller extends Controller
                     $WhereBushoCd
             ) X
             ORDER BY
+                $OrderByBusho
                 営業担当者ＣＤ,
                 獲得営業者ＣＤ,
                 得意先ＣＤ
