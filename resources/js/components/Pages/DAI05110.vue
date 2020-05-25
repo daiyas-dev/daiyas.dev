@@ -607,7 +607,9 @@ export default {
                                 }
                             }
                             a["MONTH_" + v.月 + "_金額"] = (a["MONTH_" + v.月 + "_金額"] || 0) + v.金額 * 1;
-                            a["累計_金額"] = (a["累計_金額"] || 0) + v.金額 * 1;
+                            if (grid.options.colModel.map(c => c.dataIndx).includes("MONTH_" + v.月 + "_金額")) {
+                                a["累計_金額"] = (a["累計_金額"] || 0) + v.金額 * 1;
+                            }
 
                             return a;
                         },
