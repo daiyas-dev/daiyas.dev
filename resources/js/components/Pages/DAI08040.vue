@@ -172,6 +172,12 @@ form[pgid="DAI08040"] .top-wrap {
 form[pgid="DAI08040"] .pq-grid-header-table .pq-td-div {
     height: 50px;
 }
+form[pgid="DAI08040"] .pq-group-toggle-none {
+    display: none !important;
+}
+form[pgid="DAI08040"] .pq-group-icon {
+    display: none !important;
+}
 </style>
 
 <script>
@@ -749,86 +755,87 @@ export default {
                     courseNm = header.children[0].ＧＫエリア.split(" ")[1];
                 }
                 return `
-                    <div class="title">
-                        <h3><div class="report-title-area">得意先別実績表<div></h3>
+                    <div class="header">
+                        <div class="title" style="float: left; width: 100%">
+                            <h3>＊ ＊ ＊ 仕出し配送予定表 ＊ ＊ ＊</h3>
+                        </div>
+                        <div style="float: left; top: 30px; width: 100%;">
+                            <div style="float: left; width: 8%; text-align: center;">部署</div>
+                            <div style="float: left; width: 7%; text-align: center;">${busyoCd}</div>
+                            <div style="float: left; width: 15%; text-align: left;">${busyoNm}</div>
+                            <div style="float: left; width: 70%;">&nbsp</div>
+
+                            <div style="float: left; width: 8%; text-align: center;">配達日付</div>
+                            <div style="float: left; width: 15%; text-align: center;">${moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYY/MM/DD(dd曜日)")}</div>
+                            <div style="float: left; width: 77%;">&nbsp</div>
+
+                            <div style="float: left; width: 5%; text-align: center;">${courseCd}</div>
+                            <div style="float: left; width: 20%; text-align: left;">${courseNm}</div>
+                            <div style="float: left; width: 43%;">&nbsp</div>
+                            <div style="float: left; width: 7%; text-align: right;">作成日</div>
+                            <div style="float: left; width: 15%; text-align: center;">${moment().format("YYYY年MM月DD日")}</div>
+                            <div style="float: left; width: 5%; text-align: center;">PAGE</div>
+                            <div style="float: left; width: 5%; text-align: left;">${idx + 1}/${length}</div>
+                        </div>
                     </div>
-                    <table class="header-table" style="border-width: 0px">
-                        <thead>
-                            <tr>
-                                <th style="width:  5%;">部署</th>
-                                <th style="width:  5%; text-align: right;">${busyoCd}</th>
-                                <th style="width: 18%;">${busyoNm}</th>
-                                <th style="width:  5%;" class="blank-cell"></th>
-                                <th style="width:  5%;" class="blank-cell"></th>
-                                <th style="width: 15%;" class="blank-cell"></th>
-                                <th style="width: 20%;" class="blank-cell"></th>
-                                <th style="width:  5%;" class="blank-cell"></th>
-                                <th style="width: 12%;" class="blank-cell"></th>
-                                <th style="width:  5%;" class="blank-cell"></th>
-                                <th style="width:  5%;" class="blank-cell"></th>
-                            </tr>
-                            <tr>
-                                <th>配達日付</th>
-                                <th colspan="2">${moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYY/MM/DD（ddd曜日）")}</th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                            </tr>
-                            <tr>
-                                <th style="text-align: right;">${courseCd}</th>
-                                <th>${courseNm}</th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th>作成日</th>
-                                <th style="text-align: right;">${moment().format("YYYY年MM月DD日")}</th>
-                                <th>PAGE</th>
-                                <th style="text-align: right;">${idx + 1}</th>
-                            </tr>
-                        </thead>
-                    </table>
                 `;
             };
 
             var styleCustomers =`
-                table.DAI08040Grid1
-                table.DAI08040Grid1 tr,
-                table.DAI08040Grid1 th,
-                table.DAI08040Grid1 td {
-                    border-collapse: collapse;
-                    border:1px solid black;
+                div.header div:not(.title) {
+                    font-size: 12px;
+                }
+                table.DAI08040Grid1 {
+                    border-collapse:collapse;
+                }
+                table.DAI08040Grid1 thead tr {
+                    border-top: solid 1px black;
+                    border-bottom: solid 1px black;
+                }
+                table.DAI08040Grid1 tbody tr.group-summary {
+                    border-bottom: solid 1px black;
+                }
+                table.DAI08040Grid1 tbody tr.group-summary td:nth-child(n+6) {
+                    border-top: dotted 1px black;
+                }
+                table.DAI08040Grid1 th {
+                    text-align: center;
+                }
+                table.DAI08040Grid1 th:nth-child(n+8) {
+                    text-align: right;
                 }
                 table.DAI08040Grid1 tr th:nth-child(1) {
-                    width: 5%;
+                    width: 4%;
                 }
                 table.DAI08040Grid1 tr th:nth-child(2) {
                     width: 6%;
-                    text-align:left;
                 }
-                table.DAI08040Grid1 tr td:nth-child(3) {
-                    width: 15%;
+                table.DAI08040Grid1 tr th:nth-child(3) {
+                    width: 20%;
                 }
-                table.DAI08040Grid1 tr td:nth-child(4) {
-                    width: 7%;
+                table.DAI08040Grid1 tr th:nth-child(4) {
+                    width: 8%;
                 }
-                table.DAI08040Grid1 tr td:nth-child(5) {
-                    width: 3%;
+                table.DAI08040Grid1 tr th:nth-child(5) {
+                    width: 5%;
                 }
-                table.DAI08040Grid1 tr td:nth-child(6) {
-                    width: 3%;
+                table.DAI08040Grid1 tr th:nth-child(6) {
+                    width: 5%;
                 }
-                table.DAI08040Grid1 tr td:nth-child(7) {
-                    width: 15%;
+                table.DAI08040Grid1 tr th:nth-child(7) {
+                    width: 10%;
                 }
                 table.DAI08040Grid1 tr th:nth-child(n+8) {
-                    width: 5%;
+                    width: 4%;
+                }
+                table.DAI08040Grid1 tr td:nth-child(3) {
+                    white-space: pre-wrap;
+                }
+                table.DAI08040Grid1 tr td:nth-child(5) {
+                    text-align: center;
+                }
+                table.DAI08040Grid1 tr td:nth-child(6) {
+                    text-align: center;
                 }
             `;
             var printable = $("<html>")

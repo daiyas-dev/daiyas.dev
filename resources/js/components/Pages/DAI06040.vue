@@ -824,7 +824,7 @@ export default {
                             <div style="float: left; width: 35%; text-align: left;">配送コース: ${courseNm}</div>
                             <div style="float: left; width: 40%;">&nbsp</div>
                             <div style="float: left; width: 10%; text-align: right;">作成日</div>
-                            <div style="float: left; width: 15%; text-align: right;">${moment().format("YYYY/MM/DD日")}</div>
+                            <div style="float: left; width: 15%; text-align: right;">${moment().format("YYYY/MM/DD")}</div>
                         </div>
                     </div>
                 `;
