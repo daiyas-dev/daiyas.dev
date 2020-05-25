@@ -27,7 +27,6 @@ class DAI05110Controller extends Controller
         // $WehreCustomer = $Customer == "1" ? "AND TOKUISAKI.新規登録日 >= '$DateStart' AND TOKUISAKI.新規登録日 <= '$DateEnd'" : "";
 
         $WehreShowSyonin = $ShowSyonin == "1" ? "AND TOKUISAKI.状態区分 IN (10, 20)" : "";
-        $WehreCustomer = $Customer == "1" ? "AND TOKUISAKI.新規登録日 >= '$DateStart' AND TOKUISAKI.新規登録日 <= '$DateEnd'" : "";
         $WhereBushoCd = isset($BushoCd) ? "AND URIAGE_MEISAI.部署ＣＤ=$BushoCd" : "";
 
         //TODO: 全社　部署指定時 orderby句に部署CD追加

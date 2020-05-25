@@ -217,7 +217,7 @@ export default {
                 autoRow: true,
                 rowHtHead: 35,
                 rowHt: 35,
-                freezeCols: 7,
+                freezeCols: 8,
                 editable: false,
                 columnTemplate: {
                     editable: false,
@@ -240,10 +240,9 @@ export default {
                     header: false,
                     grandSummary: true,
                     indent: 10,
-                    dataIndx: ["部署名", "ＧＫ営業担当者", "ＧＫ獲得営業者"],
-                    // showSummary: [false, false, true],
-                    showSummary: [false, true, true],
-                    collapsed: [false, false, false],
+                    dataIndx: ["部署名", "ＧＫ担当者"],
+                    showSummary: [false, true],
+                    collapsed: [false, false],
                     summaryInTitleRow: "collapsed",
                 },
                 summaryData: ["a", "b"
@@ -276,9 +275,8 @@ export default {
                         fixed: true,
                     },
                     {
-                        title: "営業担当者",
-                        dataIndx: "ＧＫ営業担当者", dataType: "string",
-                        width: 90, minWidth: 90, maxWidth: 90,
+                        title: "担当者",
+                        dataIndx: "ＧＫ担当者", dataType: "string",
                         hidden: true,
                         fixed: true,
                         render: ui => {
@@ -295,37 +293,6 @@ export default {
                         },
                     },
                     {
-                        title: "獲得営業者",
-                        dataIndx: "ＧＫ獲得営業者", dataType: "string",
-                        width: 90, minWidth: 90, maxWidth: 90,
-                        hidden: true,
-                        fixed: true,
-                        render: ui => {
-                            if (vue.viewModel.BushoOption == 0){
-                                switch (ui.rowData.pq_level) {
-                                    case 0:
-                                        return { text: "" };
-                                    case 1:
-                                        return ui;
-                                    default:
-                                        return { text: "" };
-                                }
-                            } else {
-                                switch (ui.rowData.pq_level) {
-                                    case 0:
-                                        return { text: "" };
-                                    case 1:
-                                        return ui;
-                                    case 2:
-                                        return ui;
-
-                                    default:
-                                        return { text: "" };
-                                }
-                            }
-                        },
-                    },
-                    {
                         title: "顧客CD",
                         dataIndx: "得意先ＣＤ", dataType: "string",
                         width: 70, minWidth: 70, maxWidth: 70, align: "right",
@@ -337,35 +304,39 @@ export default {
                         width: 300, minWidth: 300, maxWidth: 300,
                         fixed: true,
                         render: ui => {
-                            // if (!!ui.rowData.pq_grandsummary) {
-                            //     // return { text: "売上金額総合計&nbsp;\n新規客総合計" };
-                            //     return { text: "売上金額総合計\n新規客総合計" };
-                            // }
-                            if (!!ui.rowData.pq_grandsummary && vue.viewModel.BushoOption == 0) {
-                                // return { text: "売上金額総合計&nbsp;\n新規客総合計" };
+                            if (!!ui.rowData.pq_grandsummary) {
                                 return { text: "売上金額総合計\n新規客総合計" };
                             }
                             if (!!ui.rowData.pq_gsummary) {
-                                if (vue.viewModel.BushoOption == 0){
-                                    switch (ui.rowData.pq_level) {
-                                        case 1:
-                                            // return { text: "売上金額合計&nbsp;\n新規客計" };
-                                            return { text: "売上金額合計\n新規客計" };
-                                        default:
-                                            return { text: "" };
-                                    }
-                                } else {
-                                    switch (ui.rowData.pq_level) {
-                                        //TODO:全社、部署指定時の総計行はグループ毎
-                                        case 1:
-                                            // return { text: "売上金額合計&nbsp;\n新規客計" };
-                                            return { text: "売上金額総合計2\n新規総客計2" };
-                                        case 2:
-                                            // return { text: "売上金額合計&nbsp;\n新規客計" };
-                                            return { text: "売上金額合計\n新規客計" };
-                                        default:
-                                            return { text: "" };
-                                    }
+                                switch (vue.viewModel.BushoOption) {
+                                    case "0":
+                                        switch (ui.rowData.pq_level) {
+                                            case 0:
+                                                return { text: "売上金額合計\n新規客計" };
+                                            default:
+                                                return { text: "" };
+                                        }
+                                        break;
+                                    case "1":
+                                        switch (ui.rowData.pq_level) {
+                                            case 0:
+                                            return { text: "売上金額部署計\n新規客部署計" };
+                                            case 1:
+                                                return { text: "売上金額合計\n新規客計" };
+                                            default:
+                                                return { text: "" };
+                                        }
+                                        break;
+                                    case "2":
+                                        switch (ui.rowData.pq_level) {
+                                            case 0:
+                                            return { text: "売上金額総合計\n新規総客計" };
+                                            case 1:
+                                                return { text: "売上金額合計\n新規客計" };
+                                            default:
+                                                return { text: "" };
+                                        }
+                                        break;
                                 }
                             }
                             return { text:ui };
@@ -416,18 +387,28 @@ export default {
 
             //グループキー切替
             var grid = vue.DAI05110Grid1;
-            if (vue.viewModel.BushoOption == 0){
-                grid.Group().option({
-                    "dataIndx": ["ＧＫ営業担当者", "ＧＫ獲得営業者"],
-                    "showSummary": [false, true],
-                    "collapsed": [false, false],
-                });
-            } else {
-                grid.Group().option({ "dataIndx": ["部署名", "ＧＫ営業担当者", "ＧＫ獲得営業者"],
-                    // "showSummary": [false, false, true],
-                    "showSummary": [false, true, true],
-                    "collapsed": [false, false, false],
-                });
+            switch (vue.viewModel.BushoOption) {
+                case "0":
+                    grid.Group().option({
+                        "dataIndx": ["ＧＫ担当者"],
+                        "showSummary": [true],
+                        "collapsed": [false],
+                    });
+                    break;
+                case "1":
+                    grid.Group().option({
+                        "dataIndx": ["部署名", "ＧＫ担当者"],
+                        "showSummary": [true, true],
+                        "collapsed": [false, false],
+                    });
+                    break;
+                case "2":
+                    grid.Group().option({
+                        "dataIndx": ["部署名", "ＧＫ担当者"],
+                        "showSummary": [false, true],
+                        "collapsed": [false, false],
+                    });
+                    break;
             }
 
             //条件変更ハンドラ
@@ -636,8 +617,7 @@ export default {
                         {}
                     );
 
-                    ret.ＧＫ営業担当者 = ret.営業担当者ＣＤ + " " + ret.営業担当者名;
-                    ret.ＧＫ獲得営業者 = ret.獲得営業者ＣＤ + " " + ret.獲得営業者名;
+                    ret.ＧＫ担当者 = ret.営業担当者名 + " / " + ret.獲得営業者名;
 
                     return ret;
                 })
@@ -647,8 +627,7 @@ export default {
             return groups;
 
             res.forEach(r => {
-                    r.ＧＫ営業担当者 = r.営業担当者ＣＤ + " " + r.営業担当者名;
-                    r.ＧＫ獲得営業者 = r.獲得営業者ＣＤ + " " + r.獲得営業者名;
+                    ret.ＧＫ担当者 = ret.営業担当者名 + " / " + ret.獲得営業者名;
                 });
             return res;
         },
@@ -842,28 +821,20 @@ export default {
             var headerFunc = (header, idx, length) => {
                 if (vue.viewModel.BushoOption == 0) {
                     if (header.pq_level == 0) {
-                        bushoNm = header.children[0].children[0].部署名;
-                        eigyoNmKey1 = header.ＧＫ営業担当者.split(" ")[1];
-                        eigyoNmKey2 = header.children[0].ＧＫ獲得営業者.split(" ")[1];;
-                    }
-                    if (header.pq_level == 1) {
                         bushoNm = header.children[0].部署名;
-                        eigyoNmKey2 = header.ＧＫ獲得営業者.split(" ")[1];
+                        eigyoNmKey1 = header.ＧＫ担当者.split(" / ")[0];
+                        eigyoNmKey2 = header.ＧＫ担当者.split(" / ")[1];
                     }
                 } else {
                     if (header.pq_level == 0) {
                         bushoNm = header.部署名;
-                        eigyoNmKey1 = header.children[0].ＧＫ営業担当者.split(" ")[1];
-                        eigyoNmKey2 = header.children[0].children[0].ＧＫ獲得営業者.split(" ")[1];
+                        eigyoNmKey1 = header.children[0].ＧＫ担当者.split(" / ")[0];
+                        eigyoNmKey2 = header.children[0].ＧＫ担当者.split(" / ")[1];
                     }
                     if (header.pq_level == 1) {
-                        bushoNm = header.children[0].children[0].部署名;
-                        eigyoNmKey1 = header.ＧＫ営業担当者.split(" ")[1];
-                        eigyoNmKey2 = header.children[0].ＧＫ獲得営業者.split(" ")[1];
-                    }
-                    if (header.pq_level == 2) {
                         bushoNm = header.children[0].部署名;
-                        eigyoNmKey2 = header.ＧＫ獲得営業者.split(" ")[1];
+                        eigyoNmKey1 = header.ＧＫ担当者.split(" / ")[0];
+                        eigyoNmKey2 = header.ＧＫ担当者.split(" / ")[1];
                     }
                 }
                 return `
