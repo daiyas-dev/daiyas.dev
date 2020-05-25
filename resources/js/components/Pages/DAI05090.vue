@@ -714,8 +714,10 @@ export default {
         onBushoCdChanged: function(code, entities) {
             var vue = this;
 
-            //条件変更ハンドラ
-            vue.conditionChanged();
+            if (vue.viewModel.BushoOption == 2) {
+                //条件変更ハンドラ
+                vue.conditionChanged();
+            }
         },
         onDateStartChanged: function(code, entity) {
             var vue = this;
