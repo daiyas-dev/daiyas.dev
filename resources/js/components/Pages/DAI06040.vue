@@ -787,7 +787,7 @@ export default {
                     text-align: center;
                 }
                 td {
-                    height: 23px;
+                    height: 22px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
@@ -874,7 +874,7 @@ export default {
                             vue.DAI06040Grid1.generateHtml(
                                 styleCustomers,
                                 headerFunc,
-                                35,
+                                36,
                                 [false, true],
                                 [false, true],
                                 [true, false],
