@@ -52,7 +52,7 @@
             id="DAI05071Grid1"
             ref="DAI05071Grid1"
             dataUrl="/DAI05071/Search"
-            :query=this.viewModel
+            :query=this.searchParams
             :SearchOnCreate=false
             :SearchOnActivate=false
             :options=this.gridOptions
@@ -215,15 +215,6 @@ export default {
                         dataType: "integer",
                         format: "#,##0",
                         width: 100, maxWidth: 100, minWidth: 100,
-                        render: ui => {
-                            if (!!ui.rowData.伝票Ｎｏ) {
-                                return { text: !!ui.rowData.IsBikoRow
-                                    ? ""
-                                    : pq.formatNumber(ui.rowData.入金金額, "#,##0")
-                                };
-                            }
-                            return ui;
-                        },
                     },
                     {
                         title: "入金額",
@@ -242,7 +233,7 @@ export default {
                         cbId: "依頼人登録FLG",
                         width: 150, maxWidth: 150, minWidth: 150,
                         align: "center",
-                        editable: true,
+                        editableColumn: true,
                         editor: false,
                     },
                     {
@@ -250,7 +241,7 @@ export default {
                         dataIndx: "依頼人登録FLG",
                         dataType: "string",
                         align: "center",
-                        editable: true,
+                        editableColumn: true,
                         cb: {
                             header: true,
                             check: "true",
@@ -265,7 +256,7 @@ export default {
                         cbId: "入金登録FLG",
                         width: 150, maxWidth: 150, minWidth: 150,
                         align: "center",
-                        editable: true,
+                        editableColumn: true,
                         editor: false,
                     },
                     {
@@ -273,7 +264,7 @@ export default {
                         dataIndx: "入金登録FLG",
                         dataType: "string",
                         align: "center",
-                        editable: true,
+                        editableColumn: true,
                         cb: {
                             header: true,
                             check: "true",
@@ -288,7 +279,7 @@ export default {
                         format: "yy/mm/dd",
                         align: "center",
                         width: 150, maxWidth: 150, minWidth: 150,
-                        editable: true,
+                        editableColumn: true,
                     },
                     {
                         title: "店番",
@@ -459,6 +450,7 @@ export default {
         },
         conditionChanged: function(force) {
             var vue = this;
+            var grid = vue.DAI05071Grid1;
             console.log("5071 conditionChanged")
 
             console.log('dialog show')//TODO:
@@ -468,12 +460,21 @@ export default {
             //if (!vue.viewModel.BushoCd || !vue.viewModel.CustomerCd || !vue.viewModel.DateStart || !vue.viewModel.DateEnd) return;
             //if (!!vue.viewModel.CustomerCd && !vue.$refs.PopupSelect_Customer.isValid) return;
 
+            grid.options.colModel.forEach(r =>{
+                r.editable=true;
+            });
             if(!!vue.params.FileData){
                 vue.getFileData(vue.params.FileData);
             }
             else{
-                vue.DAI05071Grid1.searchData(vue.searchParams);
+                grid.searchData(vue.searchParams);
             }
+            grid.options.colModel.forEach(r =>{
+                if(r.editableColumn!=true)
+                {
+                    r.editable=false;
+                }
+            });
         },
         getFileData: function(FileData)
         {
@@ -492,11 +493,21 @@ export default {
                     }
                 );
                 */
+                grid.addRow({
+                    newRow: {
+                        取引日:v.取引日,
+                        依頼人名:v.依頼人名,
+                        入金金額:v.入金金額
+                        },
+                });
+               /*
                 var rowIndx = grid.pdata.length;
                 grid.addRow({
                     rowIndx: rowIndx,
-                    newRow: {依頼人名:'aaaaa'},
+                    newRow: {},
                 });
+                grid.data({rowIndx: rowIndx,data:{依頼人名:'aaaaa'}});
+                */
             });
             grid.refreshCM();
         },
