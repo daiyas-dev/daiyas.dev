@@ -420,8 +420,11 @@ export default {
             //TODO
             // //条件変更ハンドラ
             // vue.filterChanged();
-            //条件変更ハンドラ
-            vue.conditionChanged();
+
+            if (vue.viewModel.BushoOption == 2) {
+                //条件変更ハンドラ
+                vue.conditionChanged();
+            }
         },
         onDateStartChanged: function(code, entity) {
             var vue = this;
@@ -673,7 +676,11 @@ export default {
                                     if (ui.rowData.pq_grandsummary || ui.rowData.pq_gsummary)
                                     {
                                         // hide zero
-                                        if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                        // if (ui.rowData[ui.dataIndx] * 1 == 0) {
+                                        //     return { text: "" };
+                                        // }
+                                        //TODO 0表示
+                                        if (ui.dataIndx.startsWith("empty")) {
                                             return { text: "" };
                                         }
                                         return (ui.rowData[ui.dataIndx] || 0)
