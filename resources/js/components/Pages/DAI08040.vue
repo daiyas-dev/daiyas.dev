@@ -239,6 +239,7 @@ export default {
                 autoRow: false,
                 rowHtHead:50,
                 rowHt: 35,
+                freezeCols: 6,
                 editable: false,
                 columnTemplate: {
                     editable: false,
@@ -257,10 +258,10 @@ export default {
                     on: true,
                     header: false,
                     grandSummary: true,
-                    indent: 20,
-                    dataIndx: ["ＧＫ部署", "ＧＫエリア", "ＧＫ受注Ｎｏ"],
-                    showSummary: [false, false, true],
-                    collapsed: [false, false, false],
+                    indent: 10,
+                    dataIndx: ["ＧＫエリア", "ＧＫ受注Ｎｏ"],
+                    showSummary: [true, true],
+                    collapsed: [false, false],
                     summaryInTitleRow: "collapsed",
                 },
                 summaryData: [
@@ -268,12 +269,6 @@ export default {
                 formulas:[
                 ],
                 colModel: [
-                    {
-                        title: "ＧＫ部署",
-                        dataIndx: "ＧＫ部署",
-                        dataType: "string",
-                        hidden: true,
-                    },
                     {
                         title: "ＧＫエリア",
                         dataIndx: "ＧＫエリア",
@@ -292,6 +287,18 @@ export default {
                         dataType: "string",
                         align: "center",
                         width: 75, minWidth: 75, maxWidth: 75,
+                        render: ui => {
+                            switch (ui.rowData.gidx) {
+                                case 0:
+                                    return ui;
+                                    break;
+                                case 2:
+                                    return { text: ui.rowData.売掛現金区分名称 };
+                                    break;
+                                default:
+                                    return { text: "" };
+                            }
+                        },
                     },
                     {
                         title: "受注Ｎｏ<br/>連絡/配達",
@@ -299,6 +306,21 @@ export default {
                         dataType: "string",
                         align: "center",
                         width: 75, minWidth: 75, maxWidth: 75,
+                        render: ui => {
+                            switch (ui.rowData.gidx) {
+                                case 0:
+                                    return { text: ui.rowData.受注Ｎｏ };
+                                    break;
+                                case 1:
+                                    return { text: ui.rowData.連絡区分名称 };
+                                    break;
+                                case 2:
+                                    return { text: ui.rowData.配達区分名称 };
+                                    break;
+                                default:
+                                    return { text: "" };
+                            }
+                        },
                     },
                     {
                         title: "得意先ＣＤ",
@@ -312,6 +334,21 @@ export default {
                         dataType: "string",
                         width: 300, minWidth: 300, maxWidth: 300,
                         tooltip: true,
+                        render: ui => {
+                            switch (ui.rowData.gidx) {
+                                case 0:
+                                    return { text: _.padStart(ui.rowData.得意先ＣＤ, 8, " ") + ui.rowData.得意先名 };
+                                    break;
+                                case 1:
+                                    return { text: ui.rowData.住所 };
+                                    break;
+                                case 2:
+                                    return { text: ui.rowData.配達先 };
+                                    break;
+                                default:
+                                    return { text: "" };
+                            }
+                        },
                     },
                     {
                         title: "エリアＣＤ",
@@ -324,12 +361,33 @@ export default {
                         dataIndx: "電話番号１",
                         dataType: "string",
                         width: 120, minWidth: 120, maxWidth: 120,
+                        render: ui => {
+                            switch (ui.rowData.gidx) {
+                                case 0:
+                                    return ui;
+                                    break;
+                                default:
+                                    return { text: "" };
+                            }
+                        },
                     },
                     {
                         title: "地域<br/>AMPM",
                         dataIndx: "地域区分",
                         dataType: "string",
                         width: 70, minWidth: 70, maxWidth: 70,
+                        render: ui => {
+                            switch (ui.rowData.gidx) {
+                                case 0:
+                                    return { text: ui.rowData.地域区分名称 };
+                                    break;
+                                case 1:
+                                    return { text: ui.rowData.AMPM区分名称 };
+                                    break;
+                                default:
+                                    return { text: "" };
+                            }
+                        },
                     },
                     {
                         title: "ＣＤ",
@@ -349,7 +407,9 @@ export default {
                             }
                             if (!!ui.rowData.pq_gsummary) {
                                 switch (ui.rowData.pq_level) {
-                                    case 2:
+                                    case 0:
+                                        return { text: "＊ ＊　エリア合計　＊ ＊" };
+                                    case 1:
                                         return { text: "＊ ＊　伝票合計　＊ ＊" };
                                     default:
                                         return { text: "" };
@@ -522,7 +582,7 @@ export default {
             if (!vue.params) {
                 //TODO
                 // vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
-                vue.viewModel.DeliveryDate = moment("20190901").format("YYYY年MM月DD日");
+                vue.viewModel.DeliveryDate = moment("20190906").format("YYYY年MM月DD日");
             } else {
                 vue.viewModel.BushoCd = vue.params.BushoCd;
                 vue.viewModel.AreaCd = vue.params.AreaCd;
@@ -675,10 +735,42 @@ export default {
             vue.footerButtons.find(v => v.id == "DAI08040Grid1_Print").disabled = !res.length;
 
             res.forEach(r => {
-                    r.ＧＫ部署 = r.部署ＣＤ + " " + r.部署名;
                     r.ＧＫエリア = r.エリアＣＤ + " " + r.コース名;
-                    r.ＧＫ受注Ｎｏ = r.受注Ｎｏ;
+                    r.ＧＫ受注Ｎｏ = "受注No: " + r.受注Ｎｏ;
+
+                    //税関連
+                    r.合計 = _.cloneDeep(r.金額);
+                    r.金額 = r.税区分 == 0 ? r.数量 * r.単価 : r.金額;
+                    r.消費税 = r.税区分 == 0 ? r.消費税 : 0;
                 });
+
+            res = _(res)
+                .groupBy(r => r.ＧＫ受注Ｎｏ)
+                .values()
+                .map(g => {
+                    if (g.length < 3) {
+                        g.push(..._.range(0, 3 - g.length).map(v => {
+                            var clone = _.cloneDeep(g[0]);
+                            clone.商品ＣＤ = "";
+                            clone.商品名 = "";
+                            clone.数量 = "";
+                            clone.単価 = "";
+                            clone.金額 = "";
+                            clone.合計 = "";
+                            clone.消費税 = "";
+                            clone.預り金 = "";
+                            clone.提げ袋 = "";
+                            clone.風呂敷 = "";
+
+                            return clone;
+                        }));
+                    }
+                    g.forEach((r, i) => r.gidx = i);
+
+                    return g;
+                })
+                .flatten()
+                .value();
 
             return res;
         },
@@ -749,10 +841,10 @@ export default {
             var headerFunc = (header, idx, length) => {
                 if (header.pq_level == 0)
                 {
-                    busyoCd = header.ＧＫ部署.split(" ")[0];
-                    busyoNm = header.ＧＫ部署.split(" ")[1];
-                    courseCd = header.children[0].ＧＫエリア.split(" ")[0];
-                    courseNm = header.children[0].ＧＫエリア.split(" ")[1];
+                    busyoCd = header.children[0].children[0].部署ＣＤ;
+                    busyoNm = header.children[0].children[0].部署名;
+                    courseCd = header.ＧＫエリア.split(" ")[0];
+                    courseNm = header.ＧＫエリア.split(" ")[1];
                 }
                 return `
                     <div class="header">
@@ -775,7 +867,7 @@ export default {
                             <div style="float: left; width: 7%; text-align: right;">作成日</div>
                             <div style="float: left; width: 15%; text-align: center;">${moment().format("YYYY年MM月DD日")}</div>
                             <div style="float: left; width: 5%; text-align: center;">PAGE</div>
-                            <div style="float: left; width: 5%; text-align: left;">${idx + 1}/${length}</div>
+                            <div style="float: left; width: 5%; text-align: right;">${idx + 1}/${length}</div>
                         </div>
                     </div>
                 `;
@@ -792,11 +884,17 @@ export default {
                     border-top: solid 1px black;
                     border-bottom: solid 1px black;
                 }
-                table.DAI08040Grid1 tbody tr.group-summary {
-                    border-bottom: solid 1px black;
+                table.DAI08040Grid1 tbody tr.grand-summary {
+                    border-top: solid 1px black;
+                }
+                table.DAI08040Grid1 tbody tr.group-summary td:nth-child(-n+5) {
+                    border-top: solid 0px black;
                 }
                 table.DAI08040Grid1 tbody tr.group-summary td:nth-child(n+6) {
-                    border-top: dotted 1px black;
+                    border-top: solid 1px black;
+                }
+                table.DAI08040Grid1 tbody tr.group-summary[level="1"] + tr:not(.group-summary) {
+                    border-top: solid 1px black;
                 }
                 table.DAI08040Grid1 th {
                     text-align: center;
@@ -848,8 +946,8 @@ export default {
                                 headerFunc,
                                 36,
                                 false,
-                                [false, false, true],
-                                [true, true, false],
+                                [true, true],
+                                [true, false],
                             )
                         )
                 )
