@@ -13,7 +13,7 @@
             <div class="col-md-1">
                 <label>得意先</label>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-5">
                 <PopupSelect
                     id="CustomerSelect"
                     ref="PopupSelect_Customer"
@@ -37,7 +37,7 @@
                     :reuse=true
                     :existsCheck=true
                     :inputWidth=100
-                    :nameWidth=250
+                    :nameWidth=300
                     :onAfterChangedFunc=onCustomerChanged
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=CustomerAutoCompleteFunc
@@ -536,7 +536,7 @@ export default {
                         <div>
                             <div style="width:98%;">
                                 <div class="ticket-content" style="padding:1px 0px 0px 1px;">
-                                    <img src="./images/TicketIcon/${str_icon_filename}" style="width:15px;">
+                                    <img src="${window.location.origin}/images/TicketIcon/${str_icon_filename}" style="width:15px;">
                                 </div>
                                 <div class="ticket-content" style="width:89%;padding-top:5px;margin-bottom:5px;">
                                     <div class="ticket-content" style="width:75%;word-wrap:break-word;">${str_customer_name}</div>
@@ -695,7 +695,7 @@ export default {
             //TODO:カラー印刷はブラウザから印刷設定を制御できないようなので、定義のみ記述しました。
             var printOptions = {
                 type: "raw-html",
-                style: "@media print and (color) { @page { size: A4 portrait; } }",
+                style: "@media print and (color) { @page { size: A4 portrait; }; -webkit-print-color-adjust: exact; }",
                 printable: printable,
             };
             printJS(printOptions);
