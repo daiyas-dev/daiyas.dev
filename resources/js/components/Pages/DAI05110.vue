@@ -190,6 +190,7 @@ export default {
                 DateEnd: moment(vue.viewModel.DateEnd, "YYYY年MM月DD日").endOf("month").format("YYYYMMDD"),
                 Customer: vue.viewModel.Customer,
                 ShowSyonin: vue.viewModel.ShowSyonin,
+                BushoOption: vue.viewModel.BushoOption,
             };
         },
     },
