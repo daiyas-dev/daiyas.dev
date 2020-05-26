@@ -6,7 +6,7 @@
             </div>
             <div class="col-md-2">
                 <VueSelectBusho
-                    :onChangedFunc=onChanged
+                    :onChangedFunc=onBushoChanged
                 />
             </div>
             <div class="col-md-1">
@@ -54,7 +54,7 @@
                     :vmodel=viewModel
                     bind="DateStart"
                     :editable=true
-                    :onChangedFunc=onChanged
+                    :onChangedFunc=onDateChanged
                 />
                 <label>～</label>
                 <DatePickerWrapper
@@ -65,7 +65,7 @@
                     :vmodel=viewModel
                     bind="DateEnd"
                     :editable=true
-                    :onChangedFunc=onChanged
+                    :onChangedFunc=onDateChanged
                 />
             </div>
         </div>
@@ -187,43 +187,59 @@ export default {
                         title: "ファイル名",
                         dataIndx: "ファイル名",
                         dataType: "string",
-                        width: 150, maxWidth: 150, minWidth: 150,
+                        width: 200, maxWidth: 200, minWidth: 200,
+                        tooltip: true,
                     },
                     {
                         title: "ファイル日時",
                         dataIndx: "ファイル日時",
                         dataType: "string",
                         width: 150, maxWidth: 150, minWidth: 150,
+                        tooltip: true,
+                        render: ui => {
+                            if (!!ui.rowData[ui.dataIndx]){
+                                return { text: moment(ui.rowData[ui.dataIndx]).format("YYYY年MM月DD日 HH時mm分ss秒") };
+                            }
+                            return ui;
+                        }
                     },
                     {
                         title: "処理日付",
                         dataIndx: "処理日付",
                         dataType: "string",
                         width: 150, maxWidth: 150, minWidth: 150,
+                        render: ui => {
+                            if (!!ui.rowData[ui.dataIndx]){
+                                return { text: moment(ui.rowData[ui.dataIndx]).format("YYYY年MM月DD日") };
+                            }
+                            return ui;
+                        }
                     },
                     {
                         title: "銀行",
                         dataIndx: "銀行",
                         dataType: "string",
                         width: 150, maxWidth: 150, minWidth: 150,
+                        tooltip: true,
                     },
                     {
                         title: "本支店",
                         dataIndx: "本支店",
                         dataType: "string",
-                        width: 150, maxWidth: 150, minWidth: 150,
+                        width: 100, maxWidth: 100, minWidth: 100,
+                        tooltip: true,
                     },
                     {
                         title: "種別",
                         dataIndx: "種別",
                         dataType: "string",
-                        width: 150, maxWidth: 150, minWidth: 150,
+                        width: 80, maxWidth: 80, minWidth: 80,
                     },
                     {
                         title: "口座番号",
                         dataIndx: "口座番号",
                         dataType: "string",
-                        width: 150, maxWidth: 150, minWidth: 150,
+                        width: 100, maxWidth: 100, minWidth: 100,
                     },
                     {
                         title: "振込合計金額",
@@ -238,42 +254,6 @@ export default {
                         dataType: "string",
                         width: 50, maxWidth: 50, minWidth: 50,
                         align: "center",
-                    },
-                    {
-                        title: "詳細",
-                        editable: false,
-                        width: 75, maxWidth: 75, minWidth: 75,
-                        align: "center",
-                        sortable: false,
-                        render: function (ui) {
-                            return "<button type='button' class='edit_btn'>詳細</button>";
-                        },
-                        postRender: function (ui) {
-                            var rowIndx = ui.rowIndx,
-                                grid = this,
-                                $cell = grid.getCell(ui);
-                            //TODO:ボタンの処理はこれから記述
-                            if(grid.hasClass({ rowData: ui.rowData, cls: 'pq-row-edit' })){
-                                //update button
-                                $cell.find(".edit_btn")
-                                .button({ label: "Update", icons: { primary: 'ui-icon-check'} })
-                                .off("click")
-                                .on("click", function () {
-                                    return update(rowIndx, grid);
-                                });
-                            }
-                            else{
-                                //edit button
-                                $cell.find(".edit_btn").button({ icons: { primary: 'ui-icon-pencil'} })
-                                .off("click")
-                                .on("click", function (evt) {
-                                    if (isEditing(grid)) {
-                                        return false;
-                                    }
-                                    editRow(rowIndx, grid );
-                                });
-                            }
-                        }
                     },
                 ],
                 rowDblClick: function (event, ui) {
@@ -305,25 +285,33 @@ export default {
 
         },
         mountedFunc: function(vue) {
-            //TODO
-            // vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
+            //日付の初期値 -> 当日
+            vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
+            vue.viewModel.DateStart = moment().startOf('month').format("YYYY年MM月DD日");
+            vue.viewModel.DateEnd = moment().endOf('month').format("YYYY年MM月DD日");
+
+            //TODO:検索条件を指定
             vue.viewModel.TargetDate = moment("20191212").format("YYYY年MM月DD日");
+            vue.viewModel.DateStart = moment("20200501").format("YYYY年MM月DD日");
+            vue.viewModel.DateEnd = moment("20200531").format("YYYY年MM月DD日");
         },
-        onChanged: function(code, entities) {
-            //TODO:ダミーハンドラ
-            //var vue = this;
-            //条件変更ハンドラ
-            //vue.conditionChanged();
-        },
-        conditionChanged: function(force) {
+        onBushoChanged: function(code, entities) {
             var vue = this;
-            var grid = vue.DAI05070Grid1;
-
-            if (!grid || !vue.getLoginInfo().isLogOn) return;
-
-            if (!force && _.isEqual(grid.options.dataModel.postData, vue.searchParams)) return;
-
-            grid.searchData(vue.searchParams, false);
+            //条件変更ハンドラ
+            vue.conditionChanged();
+        },
+        onDateChanged: function(code, entities) {
+            var vue = this;
+            //条件変更ハンドラ
+            vue.conditionChanged();
+        },
+        conditionChanged: function() {
+            var vue = this;
+            var params = $.extend(true, {}, vue.viewModel);
+            if (!vue.getLoginInfo().isLogOn) return;
+            params.StartDate  = params.DateStart ? moment(params.DateStart, "YYYY年MM月DD日").format("YYYY/MM/DD") : null;
+            params.EndDate  = params.DateEnd ? moment(params.DateEnd, "YYYY年MM月DD日").format("YYYY/MM/DD") : null;
+            grid.searchData(params, false);
         },
         addFileCallback: function(event) {
             var vue = this;
@@ -359,8 +347,6 @@ export default {
 
             var data;
             if (!!fileData) {
-                //data = _.cloneDeep(fileData);
-                //TODO:ダミーデータをセット
                 console.log("5070 showDetail by file")//TODO:
                 data = {
                     ファイル名:vue.UpdateFileName,
@@ -369,7 +355,6 @@ export default {
                     振込合計金額:fileData.Summary.合計金額,
                     ファイルデータ:fileData,
                 };
-                window.resd=_.cloneDeep(data);//TODO
             } else if (!!rowData) {
                 data = _.cloneDeep(rowData);
             } else {
@@ -410,82 +395,6 @@ export default {
                 width: 900,
                 height: 725,
             });
-        },
-        save: function() {
-            var vue = this;
-            var grid = vue.DAI05070Grid1;
-
-            var hasError = !!$(vue.$el).find(".has-error").length || !!grid.widget().find(".ui-state-error").length;
-
-            if(hasError){
-                $.dialogErr({
-                    title: "入力値エラー",
-                    contents: "エラー項目があるため、登録できません。",
-                });
-                return;
-            }
-
-            var SaveList = _.cloneDeep(grid.createSaveParams());
-
-            _.forIn(SaveList,
-                (v, k) => {
-                    var list = v.filter(r => {
-                        return r.商品ＣＤ != null && r.商品ＣＤ != undefined　&& r.商品ＣＤ != "";
-                    })
-                    .map(r => {
-                        r.部署ＣＤ = vue.viewModel.BushoCd;
-
-                        r.販売期間開始 = !!r.販売期間開始
-                            ? moment(r.販売期間開始, "YYYY/MM/DD").format("YYYY-MM-DD HH:mm:ss.SSS")
-                            : null;
-                        r.販売期間終了 = !!r.販売期間終了
-                            ? moment(r.販売期間終了, "YYYY/MM/DD").format("YYYY-MM-DD HH:mm:ss.SSS")
-                            : null;
-
-                        r.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
-                        delete r.商品区分;
-                        delete r.商品名;
-                        delete r.主要商品;
-                        delete r.特別商品;
-                        delete r.sortIndx;
-                        return r;
-                    })
-                    ;
-                    SaveList[k] = list;
-                }
-            );
-
-            if (_.values(SaveList).every(v => !v.length)) {
-                //変更無し
-                $.dialogInfo({
-                    title: "変更無し",
-                    contents: "データが変更されていません。",
-                });
-                return;
-            }
-
-            //保存実行
-            var params = {SaveList: SaveList, CustomerCd: vue.viewModel.CustomerCd};
-            params.noCache = true;
-
-            //登録中ダイアログ
-            var progressDlg = $.dialogProgress({
-                contents: "<i class='fa fa-spinner fa-spin' style='font-size: 24px; margin-right: 5px;'></i> 登録中…",
-            });
-
-            axios.post("/DAI05070/Save", params)
-                .then(res => {
-                    progressDlg.dialog("close");
-                    grid.refreshDataAndView();
-                })
-                .catch(err => {
-                    progressDlg.dialog("close");
-                    console.log(err);
-                    $.dialogErr({
-                        title: "異常終了",
-                        contents: "登録に失敗しました<br/>",
-                    });
-                });
         },
     }
 }

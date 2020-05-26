@@ -418,10 +418,6 @@ export default {
         onBushoCdChanged: function(code, entities) {
             var vue = this;
 
-            //TODO
-            // //条件変更ハンドラ
-            // vue.filterChanged();
-
             if (vue.viewModel.BushoOption == 2) {
                 //条件変更ハンドラ
                 vue.conditionChanged();
@@ -680,7 +676,8 @@ export default {
                                         // if (ui.rowData[ui.dataIndx] * 1 == 0) {
                                         //     return { text: "" };
                                         // }
-                                        //TODO 0表示
+
+                                        //0表示
                                         if (ui.dataIndx.startsWith("empty")) {
                                             return { text: "" };
                                         }
@@ -854,7 +851,7 @@ export default {
                                 <th style="width: 10.5%;">${vue.viewModel.DateEnd} ）</th>
                                 <th style="width: 18%;" colspan="2" class="eigyouriage">[営業売上金額]</th>
                                 <th style="width: 8%;" class="blank-cell"></th>
-                                <th style="width: 7%; text-align: right;">${idx + 1}/${length}</th>
+                                <th style="width: 7%; text-align: right;">${idx + 1} / ${length}</th>
                             </tr>
                             <tr>
                                 <th class="blank-cell"></th>
@@ -954,7 +951,7 @@ export default {
                 }
                 .eigyouriage {
                     font-weight: bold;
-                    text-align: center;
+                    text-align: right !important;
                 }
             `;
 
@@ -978,7 +975,7 @@ export default {
 
             var printOptions = {
                 type: "raw-html",
-                style: "@media print { @page { size: A4 landscape; } }",
+                style: "@media print { @page { size: A4 landscape; margin-left: 10px; margin-right: 10px; } }",
                 printable: printable,
             };
 
