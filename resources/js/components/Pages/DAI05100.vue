@@ -262,7 +262,8 @@ export default {
                     grandSummary: true,
                     indent: 10,
                     dataIndx: ["部署名", "ＧＫ営業担当者", "ＧＫ獲得営業者"],
-                    showSummary: [false, true, true],
+                    // showSummary: [false, true, true],
+                    showSummary: [true, true, true],
                     collapsed: [false, false, false],
                     summaryInTitleRow: "collapsed",
                 },
@@ -366,6 +367,9 @@ export default {
                                     }
                                 } else {
                                     switch (ui.rowData.pq_level) {
+                                        //TODO
+                                        case 0:
+                                            return { text: "** 部署合計**" };
                                         case 1:
                                             return { text: "** 営業担当合計 **" };
                                         case 2:
@@ -529,12 +533,16 @@ export default {
             if (vue.viewModel.BushoOption == 0){
                 grid.Group().option({
                     "dataIndx": ["ＧＫ営業担当者", "ＧＫ獲得営業者"],
+                    //TODO
+                    // "showSummary": [true, true],
                     "showSummary": [true, true],
                     "collapsed": [false, false],
                 });
             } else {
                 grid.Group().option({ "dataIndx": ["部署名", "ＧＫ営業担当者", "ＧＫ獲得営業者"],
-                    "showSummary": [false, true, true],
+                    //TODO
+                    // "showSummary": [false, true, true],
+                    "showSummary": [true, true, true],
                     "collapsed": [false, false, false],
                 });
             }
@@ -909,11 +917,12 @@ export default {
                 true,
             );
 
+            //TODO西山確認中
             //総合計行をグループ毎の最後に追加
             var grsRow = contents.find(".grand-summary");
-            if (vue.viewModel.BushoOption != 0) {
-                contents.find('table.DAI05100Grid1 > tbody > tr[level="1"].group-summary').append(grsRow);
-            }
+            // if (vue.viewModel.BushoOption != 0) {
+            //     contents.find('table.DAI05100Grid1 > tbody > tr[level="1"].group-summary').append(grsRow);
+            // }
 
             var printable = $("<html>")
                 .append($("<head>").append($("<style>").text(globalStyles)))
