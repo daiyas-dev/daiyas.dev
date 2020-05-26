@@ -187,43 +187,59 @@ export default {
                         title: "ファイル名",
                         dataIndx: "ファイル名",
                         dataType: "string",
-                        width: 150, maxWidth: 150, minWidth: 150,
+                        width: 200, maxWidth: 200, minWidth: 200,
+                        tooltip: true,
                     },
                     {
                         title: "ファイル日時",
                         dataIndx: "ファイル日時",
                         dataType: "string",
                         width: 150, maxWidth: 150, minWidth: 150,
+                        tooltip: true,
+                        render: ui => {
+                            if (!!ui.rowData[ui.dataIndx]){
+                                return { text: moment(ui.rowData[ui.dataIndx]).format("YYYY年MM月DD日 HH時mm分ss秒") };
+                            }
+                            return ui;
+                        }
                     },
                     {
                         title: "処理日付",
                         dataIndx: "処理日付",
                         dataType: "string",
                         width: 150, maxWidth: 150, minWidth: 150,
+                        render: ui => {
+                            if (!!ui.rowData[ui.dataIndx]){
+                                return { text: moment(ui.rowData[ui.dataIndx]).format("YYYY年MM月DD日") };
+                            }
+                            return ui;
+                        }
                     },
                     {
                         title: "銀行",
                         dataIndx: "銀行",
                         dataType: "string",
                         width: 150, maxWidth: 150, minWidth: 150,
+                        tooltip: true,
                     },
                     {
                         title: "本支店",
                         dataIndx: "本支店",
                         dataType: "string",
-                        width: 150, maxWidth: 150, minWidth: 150,
+                        width: 100, maxWidth: 100, minWidth: 100,
+                        tooltip: true,
                     },
                     {
                         title: "種別",
                         dataIndx: "種別",
                         dataType: "string",
-                        width: 150, maxWidth: 150, minWidth: 150,
+                        width: 80, maxWidth: 80, minWidth: 80,
                     },
                     {
                         title: "口座番号",
                         dataIndx: "口座番号",
                         dataType: "string",
-                        width: 150, maxWidth: 150, minWidth: 150,
+                        width: 100, maxWidth: 100, minWidth: 100,
                     },
                     {
                         title: "振込合計金額",

@@ -45,7 +45,7 @@
                 <label>振込合計金額</label>
             </div>
             <div class="col-md-2">
-                <input class="form-control p-0 label-blue" style="width: 120px;" type="text" :value=viewModel.FurikomiKingaku readonly tabindex="-1">
+                <input class="form-control p-0 label-blue" style="width: 120px; text-align:right;" type="text" :value=viewModel.FurikomiKingaku readonly tabindex="-1">
             </div>
         </div>
         <PqGridWrapper
@@ -411,6 +411,9 @@ export default {
                     var res = _.cloneDeep(response.data);
                     window.resr=_.cloneDeep(res);//TODO:
                     vue.viewModel.Kouza=res[0].銀行名 + " " + res[0].支店名 + " " + res[0].口座番号 + " " + res[0].種別;
+                    if(!vue.params.FileData){
+                        vue.viewModel.TargetDate=moment(vue.viewModel.TargetDate).format("YYYY年MM月DD日")
+                    }
                 })
             .catch(error => {
                 console.log(error);
