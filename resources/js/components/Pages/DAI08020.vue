@@ -215,20 +215,20 @@ export default {
                     menuIcon: false,
                     hideRows: false,
                 },
-                groupModel: {
-                    on: true,
-                    header: false,
-                    grandSummary: true,
-                    indent: 10,
-                    dataIndx: ["受注Ｎｏ"],
-                    showSummary: true,
-                    collapsed: false,
-                    summaryInTitleRow: "collapsed",
-                },
-                summaryData: [
-                ],
-                formulas:[
-                ],
+                // groupModel: {
+                //     on: true,
+                //     header: false,
+                //     grandSummary: true,
+                //     indent: 10,
+                //     dataIndx: ["受注Ｎｏ"],
+                //     showSummary: true,
+                //     collapsed: false,
+                //     summaryInTitleRow: "collapsed",
+                // },
+                // summaryData: [
+                // ],
+                // formulas:[
+                // ],
                 colModel: [
                     {
                         title: "得意先名",
@@ -343,7 +343,7 @@ export default {
             if (!vue.params) {
                 //TODO
                 // vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
-                vue.viewModel.DeliveryDate = moment("20190901").format("YYYY年MM月DD日");
+                vue.viewModel.DeliveryDate = moment("20190520").format("YYYY年MM月DD日");
             } else {
                 vue.viewModel.BushoCd = vue.params.BushoCd;
                 vue.viewModel.CustomerCd = vue.params.CustomerCd;
@@ -658,203 +658,205 @@ export default {
                     font-size: 8pt;
                 }
             `;
-
+            var 受注Ｎｏ = 0;
+            var tmp = null;
+            var layout = ``;
+            var layout_product_body = ``;
+            var product_cnt = 0;
             var target = targetData.filter(k=>k.pq_level==undefined)
                 .map(r => {
-                    var products=r.商品名.split("\n");
-                    var layout_product_body=``;
-                    products.map(pr=>{
-                        layout_product_body += `
-                            <tr>
-                                <th>${r.商品名}</th>
-                                <th>${r.数量}</th>
-                                <th>${r.単価}</th>
-                                <th>${r.金額}</th>
-                            </tr>
-                        `;
-                    });
-                    // var layout_product_body=``;
                     // layout_product_body += `
                     //     <tr>
                     //         <th>${r.商品名}</th>
                     //         <th>${r.数量}</th>
                     //         <th>${r.単価}</th>
                     //         <th>${r.金額}</th>
-                    //         <th>
-                    //             <table>
-                    //             <th style="width: 8%; border: none;">電話番号</th>
-                    //             <th style="border: none; text-align: left;">${r.電話番号 ? r.電話番号.replace('\n', "<br>") : ""}</th>
-                    //             </table>
-                    //         </th>
-                    //     </tr>
-                    //     <tr>
-                    //         <th></th>
-                    //         <th></th>
-                    //         <th></th>
-                    //         <th></th>
-                    //         <th rowspan="6">
-                    //             <div>配達先</div>
-                    //             <div>${r.配達先 ? r.配達先 : ""}</div>
-                    //         </th>
                     //     </tr>
                     // `;
-                    // var row=5;
-                    var row=7-products.length;
-                    if(0<row){
-                        [...Array(row)].map(r=>{
-                            layout_product_body += `
+                    // product_cnt++;
+                    if (product_cnt >= 7 || (受注Ｎｏ != 0 && r.受注Ｎｏ != 受注Ｎｏ)){
+                        var row = 7 - product_cnt;
+                        if(product_cnt < 7){
+                            [...Array(row)].map(r=>{
+                                layout_product_body += `
+                                    <tr>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                    </tr>
+                                `;
+                            });
+                        }
+
+                        var layout_bikou1 = `
+                            <th rowspan="3" colspan="2">
+                                <div>備考</div>
+                            </th>
+                        `;
+                        var layout_bikou2 = `
+                            <th rowspan="3" colspan="2">
+                                <div>備考</div>
+                                <div>${tmp.部署ＣＤ} ${tmp.部署名} 仕上時間 ${tmp.製造締切時間}</div>
+                            </th>
+                        `;
+                        var layout_product_head = `
+                            <thead>
                                 <tr>
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
+                                    <th>商品名</th>
+                                    <th>数量</th>
+                                    <th>単価</th>
+                                    <th>金額</th>
+                                    <th>配達</th>
                                 </tr>
-                            `;
-                        });
+                            </thead>
+                        `;
+                        var layout_product1 = `
+                            ${layout_product_head}
+                            <tbody>
+                                ${layout_product_body}
+                                <tr>
+                                    ${layout_bikou1}
+                                    <th>小計</th><th>${tmp.小計}</th>
+                                    <th rowspan="3">
+                                        <div style="text-align: left;">${tmp.注文日付}</div>
+                                        <div>受付店：${tmp.会社名称}</div>
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <th>消費税</th><th>${tmp.消費税}</th>
+                                </tr>
+                                <tr>
+                                    <th>金額合計</th><th>${tmp.合計}</th>
+                                </tr>
+                            </tbody>
+                        `;
+                        var layout_product2 =  `
+                            ${layout_product_head}
+                            <tbody>
+                                ${layout_product_body}
+                                <tr>
+                                    ${layout_bikou2}
+                                    <th>小計</th><th>${tmp.小計}</th>
+                                    <th rowspan="3">
+                                        <div style="text-align: left;">${tmp.注文日付}</div>
+                                        <div>受付店：${tmp.会社名称}</div>
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <th>消費税</th><th>${tmp.消費税}</th>
+                                </tr>
+                                <tr>
+                                    <th>金額合計</th><th>${tmp.合計}</th>
+                                </tr>
+                            </tbody>
+                        `;
+                        var layout_common=`
+                            <table style="width:100%;">
+                                <td>
+                                    <span/>伝票No.　${tmp.受注Ｎｏ}
+                                </td>
+                                <tr>
+                                    <td>
+                                        <div><span/>${tmp.会社名称}</div>
+                                        <div><span/>${tmp.住所欄}</div>
+                                        <div><span/>${tmp.TEL欄}</div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="customer-nm">
+                                        <span/><span/><span>${tmp.得意先名}</span><span>様</span>
+                                    </td>
+                                    <td>
+                                        <div><span>取引金融機関</span></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div><span>${tmp.会社_銀行名1}　${tmp.会社_支店名1}</span></div>
+                                        <div><span>${tmp.会社_口座種別名1}　${tmp.会社_口座番号1}　${tmp.会社_口座名義人1}</span></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="hizuke"><span>納品日：${tmp.配達日付} 時刻：（${tmp.配達時間}）</span></div>
+                                        <div style="height: 8px;"></div>
+                                    </td>
+                                </tr>
+                            </table>
+                        `;
+                        var layout_1=`
+                            <div>
+                                <div class="header">
+                                    <div>
+                                        <div class="title">
+                                            請求書
+                                        </div>
+                                        ${layout_common}
+                                        <table class="header-table" style="border-width: 0px; margin-bottom: 8px;">
+                                            ${layout_product1}
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        var layout_2=`
+                            <div>
+                                <div class="header">
+                                    <div>
+                                        <div class="title">
+                                            納品書
+                                        </div>
+                                        ${layout_common}
+                                        <table class="header-table" style="border-width: 0px; margin-bottom: 8px;">
+                                            ${layout_product2}
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        var layout = layout_1 + `<div style="clear:left"></div><hr noshade/>` + layout_2;
+                        // layout = layout_product_body;
+                        product_cnt = 0;
+                        layout_product_body = ``;
+
+                        //return { contents: layout };
                     }
-                    var layout_bikou1 = `
-                        <th rowspan="3" colspan="2">
-                            <div>備考</div>
-                        </th>
+
+                    layout_product_body += `
+                        <tr>
+                            <th>${r.商品名}</th>
+                            <th>${r.数量}</th>
+                            <th>${r.単価}</th>
+                            <th>${r.金額}</th>
+                        </tr>
                     `;
-                    var layout_bikou2 = `
-                        <th rowspan="3" colspan="2">
-                            <div>備考</div>
-                            <div>${r.部署ＣＤ} ${r.部署名} 仕上時間 ${r.製造締切時間}</div>
-                        </th>
-                    `;
-                    var layout_product_head = `
-                        <thead>
-                            <tr>
-                                <th>商品名</th>
-                                <th>数量</th>
-                                <th>単価</th>
-                                <th>金額</th>
-                                <th>配達</th>
-                            </tr>
-                        </thead>
-                    `;
-                    var layout_product1 = `
-                        ${layout_product_head}
-                        <tbody>
-                            ${layout_product_body}
-                            <tr>
-                                ${layout_bikou1}
-                                <th>小計</th><th>${r.小計}</th>
-                                <th rowspan="3">
-                                    <div style="text-align: left;">${r.注文日付}</div>
-                                    <div>受付店：${r.会社名称}</div>
-                                </th>
-                            </tr>
-                            <tr>
-                                <th>消費税</th><th>${r.消費税}</th>
-                            </tr>
-                            <tr>
-                                <th>金額合計</th><th>${r.合計}</th>
-                            </tr>
-                        </tbody>
-                    `;
-                    var layout_product2 =  `
-                        ${layout_product_head}
-                        <tbody>
-                            ${layout_product_body}
-                            <tr>
-                                ${layout_bikou2}
-                                <th>小計</th><th>${r.小計}</th>
-                                <th rowspan="3">
-                                    <div style="text-align: left;">${r.注文日付}</div>
-                                    <div>受付店：${r.会社名称}</div>
-                                </th>
-                            </tr>
-                            <tr>
-                                <th>消費税</th><th>${r.消費税}</th>
-                            </tr>
-                            <tr>
-                                <th>金額合計</th><th>${r.合計}</th>
-                            </tr>
-                        </tbody>
-                    `;
-                    var layout=`
-                        <table style="width:100%;">
-                            <td>
-                                <span/>伝票No.　${r.受注Ｎｏ}
-                            </td>
-                            <tr>
-                                <td>
-                                    <div><span/>${r.会社名称}</div>
-                                    <div><span/>${r.住所欄}</div>
-                                    <div><span/>${r.TEL欄}</div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="customer-nm">
-                                    <span/><span/><span>${r.得意先名}</span><span>様</span>
-                                </td>
-                                <td>
-                                    <div><span>取引金融機関</span></div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div><span>${r.会社_銀行名1}　${r.会社_支店名1}</span></div>
-                                    <div><span>${r.会社_口座種別名1}　${r.会社_口座番号1}　${r.会社_口座名義人1}</span></div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="hizuke"><span>納品日：${r.配達日付} 時刻：（${r.配達時間}）</span></div>
-                                    <div style="height: 8px;"></div>
-                                </td>
-                            </tr>
-                        </table>
-                    `;
-                    var layout_1=`
-                        <div>
-                            <div class="header">
-                                <div>
-                                    <div class="title">
-                                        請求書
-                                    </div>
-                                    ${layout}
-                                    <table class="header-table" style="border-width: 0px; margin-bottom: 8px;">
-                                        ${layout_product1}
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    var layout_2=`
-                        <div>
-                            <div class="header">
-                                <div>
-                                    <div class="title">
-                                        納品書
-                                    </div>
-                                    ${layout}
-                                    <table class="header-table" style="border-width: 0px; margin-bottom: 8px;">
-                                        ${layout_product2}
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    layout = layout_1 + `<div style="clear:left"></div><hr noshade/>` + layout_2;
-                return { contents: layout };
+                    product_cnt++;
+                    受注Ｎｏ = r.受注Ｎｏ;
+                    tmp = r;
+
+                    return { contents: layout };
             });
-            window.res_tg = _.cloneDeep(target);//TODO:
+
+            // var row = 7 - product_cnt;
+            // if(product_cnt < 7){
+            //     [...Array(row)].map(r=>{
+            //         layout_product_body += `
+            //             <tr>
+            //                 <th></th>
+            //                 <th></th>
+            //                 <th></th>
+            //                 <th></th>
+            //             </tr>
+            //         `;
+            //     });
+            // }
 
             var busyoCd;
             var busyoNm;
             var courseCd;
             var courseNm;
             var headerFunc = (header, idx, length) => {
-                if (header.pq_level == 0)
-                {
-                    // busyoCd = header.ＧＫ部署.split(" ")[0];
-                    // busyoNm = header.ＧＫ部署.split(" ")[1];
-                    // courseCd = header.children[0].ＧＫエリア.split(" ")[0];
-                    // courseNm = header.children[0].ＧＫエリア.split(" ")[1];
-                }
                 return `
                     <div class="title">
                         <h3><div class="report-title-area">得意先別実績表<div></h3>
@@ -903,20 +905,12 @@ export default {
                     </table>
                 `;
             };
-
+console.log("target", target);
             var printable = $("<html>")
                 .append($("<head>").append($("<style>").text(globalStyles)))
                 .append(
                     $("<body>")
                         .append(
-                            // grid.generateHtml(
-                            //     ``,
-                            //     headerFunc,
-                            //     7,
-                            //     false,
-                            //     false,
-                            //     true,
-                            // )
                             grid.generateHtmlFromJson(
                                 target,
                                 ``,
@@ -929,11 +923,11 @@ export default {
                 )
                 .prop("outerHTML")
                 ;
+
             var printOptions = {
                 type: "raw-html",
                 style: "@media print { @page { size: A4 portrait; } }",
                 printable: printable,
-                onAfterPrint: () => { vue.save(); },
             };
 
             printJS(printOptions);

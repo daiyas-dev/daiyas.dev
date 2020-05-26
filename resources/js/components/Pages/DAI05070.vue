@@ -126,6 +126,8 @@ export default {
         var data = $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "月次処理 > 一括入金入力",
             noViewModel: true,
+            UpdateFileName:null,
+            UpdateFileLastModifiedDate:null,
             viewModel: {
                 BushoCd: null,
                 BushoNm: null,
@@ -326,6 +328,8 @@ export default {
         addFileCallback: function(event) {
             var vue = this;
             console.log("5070 addFileFileCallback", event);
+            vue.UpdateFileName=event.name;
+            vue.UpdateFileLastModifiedDate=event.lastModifiedDate;
             $(vue.$el).find(".UploadFile").attr("data-path-text", event.name);
         },
         uploadFileCallback: function(res) {
@@ -333,7 +337,7 @@ export default {
 
             if (!!res.result) {
                 console.log("5070 uploadCallback", res)
-                vue.showDetail(null,res.result);
+                vue.showDetail(null,res);
             } else {
                 $.dialogErr({
                     title: "アップロード失敗",
@@ -359,14 +363,11 @@ export default {
                 //TODO:ダミーデータをセット
                 console.log("5070 showDetail by file")//TODO:
                 data = {
-                    ファイル名:"MEISAI20161024150450.txt",
-                    ファイル日時:"2016-10-24 15:04:44.900",
-                    処理日付:"2020-05-20 00:00:00.000",
-                    銀行:"山口銀行",
-                    本支店:"宇部支店",
-                    口座番号:"630024",
-                    種別:"普通",
-                    振込合計金額:"57876",
+                    ファイル名:vue.UpdateFileName,
+                    ファイル日時:moment(vue.UpdateFileLastModifiedDate).format("YYYY年MM月DD日 HH時mm分ss秒"),
+                    処理日付:vue.viewModel.TargetDate,
+                    振込合計金額:fileData.Summary.合計金額,
+                    ファイルデータ:fileData,
                 };
                 window.resd=_.cloneDeep(data);//TODO
             } else if (!!rowData) {
@@ -379,19 +380,15 @@ export default {
 
                 data = _.cloneDeep(rows[0].rowData);
             }
-            var TargetDate=vue.viewModel.TargetDate + "01日";
+
             var params = {
                 BushoCd: vue.viewModel.BushoCd,
                 BushoNm: vue.viewModel.BushoNm,
                 TargetDate: data.処理日付,
                 FurikomiFileName: data.ファイル名,
                 FurikomiFileDate: data.ファイル日時,
-                Kouza:data.銀行 +" " + data.本支店 + " " + data.口座番号 + " " + data.種別,
-                GinkoMei: data.銀行,
-                SitenMei: data.本支店,
-                KouzaBangou: data.口座番号,
-                KouzaSyubetu: data.種別,
                 FurikomiKingaku: data.振込合計金額,
+                FileData: data.ファイルデータ,
                 /*
                 CustomerCd: data.請求先ＣＤ,
                 CustomerNm: data.得意先名,

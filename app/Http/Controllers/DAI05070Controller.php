@@ -29,15 +29,10 @@ class DAI05070Controller extends Controller
             if ($request->file('file')->isValid([])) {
                 $spl = new \SplFileInfo($request->file);
 
-                $Contents = mb_convert_encoding(file_get_contents($spl->getPathname()), "utf-8", "sjis");
-                $TargetDate = $request->TargetDate;
+                $Contents = file_get_contents($spl->getPathname());//文字コードはShiftJIS
 
-                //TODO:ひとまずここまで実行させる
-                return response()->json([
-                    "result" => true,
-                ]);
                 //アップロードされたファイルを読み込み、内容を返す。
-                return $this->GetResult($Contents, $TargetDate);
+                return $this->GetResult($Contents);
             } else {
                 return response()->json([
                     'result' => false,
@@ -54,7 +49,7 @@ class DAI05070Controller extends Controller
     /**
      * GetResult
      */
-    public function GetResult($Contents, $TargetDate)
+    public function GetResult($Contents)
     {
         $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
@@ -66,107 +61,74 @@ class DAI05070Controller extends Controller
 
             $Company = (object)[];
             $Customers = [];
+            $Summary = (object)[];
             foreach ($Lines as $Line) {
-                switch (mb_substr($Line, 0, 1)) {
+                switch (substr($Line, 0, 1)) {
                     case "1":
-                        $Company->委託者 = mb_substr($Line, 4, 10);
-                        $Company->委託者名 = mb_substr($Line, 14, 40);
-                        $Company->引落日 = mb_substr($Line, 54, 4);
-                        $Company->銀行CD = mb_substr($Line, 58, 4);
-                        $Company->銀行名 = mb_substr($Line, 62, 15);
-                        $Company->支店CD = mb_substr($Line, 77, 3);
-                        $Company->支店名 = mb_substr($Line, 80, 15);
-                        $Company->口座番号 = mb_substr($Line, 95, 7);
+                        $Company->店番 = $this->getResultElement($Line, 1, 3);
+                        $Company->取引店 = $this->getResultElement($Line, 4, 30);
+                        $Company->全銀科目コード = $this->getResultElement($Line, 34, 1);
+                        $Company->預金種類コード = $this->getResultElement($Line, 35, 1);
+                        $Company->預金種類科目 = $this->getResultElement($Line, 36, 16);
+                        $Company->口座番号 = $this->getResultElement($Line, 52, 7);
+                        $Company->口座名義 = $this->getResultElement($Line, 59, 142);
+                        $Company->照会期間 = $this->getResultElement($Line, 201, 21);
+                        $Company->照会方法 = $this->getResultElement($Line, 222, 12);
+                        $Company->操作日 = $this->getResultElement($Line, 234, 10);
+                        $Company->操作時刻= $this->getResultElement($Line, 244, 5);
                         break;
                     case "2":
                         $Customer = (object)[];
-                        $Customer->金融機関CD = mb_substr($Line, 1, 4);
-                        $Customer->金融機関支店CD = mb_substr($Line, 20, 3);
-                        $Customer->口座番号 = mb_substr($Line, 43, 7);
-                        $Customer->引落金額 = mb_substr($Line, 80, 10);
-                        $Customer->得意先CD = mb_substr($Line, 101, 10);
+                        $Customer->取引日 = $this->getResultElement($Line, 1, 10);
+                        $Customer->指定日 = $this->getResultElement($Line, 11, 10);
+                        $Customer->取引区分 = $this->getResultElement($Line, 21, 10);
+                        $Customer->依頼人名 = $this->getResultElement($Line, 31, 96);
+                        $Customer->金融機関名 = $this->getResultElement($Line, 127, 30);
+                        $Customer->支店名 = $this->getResultElement($Line, 157, 30);
+                        $Customer->EDI情報 = $this->getResultElement($Line, 187, 20);
+                        $Customer->入金金額 = $this->getResultElement($Line, 207, 13);
 
                         $stmt = $pdo->query("
-                            SELECT
-                                得意先マスタ.得意先名略称,
-                                得意先マスタ.部署CD,
-                                部署マスタ.部署名
-                            FROM
-                                得意先マスタ
-                                LEFT OUTER JOIN 部署マスタ
-                                    ON 部署マスタ.部署CD = 得意先マスタ.部署CD
-                            WHERE
-                                得意先マスタ.得意先ＣＤ=$Customer->得意先CD
+                            SELECT DISTINCT M1.得意先ＣＤ,
+                                            M1.振込依頼人名,
+                                            M2.得意先名,
+                                            M2.集金手数料
+                            FROM 得意先振込依頼人名 M1,
+                                得意先マスタ       M2
+                            WHERE M1.得意先ＣＤ = M2.得意先ＣＤ
+                              AND M1.振込依頼人名='$Customer->依頼人名'
                         ");
-                        $names = $stmt->fetch(PDO::FETCH_ASSOC);
-                        $Customer->得意先名 = $names["得意先名略称"];
-                        $Customer->部署CD = $names["部署CD"];
-                        $Customer->部署名 = $names["部署名"];
-
-                        $stmt = $pdo->query("
-                            SELECT
-                                B.銀行名,
-                                S.支店名
-                            FROM
-                                金融機関名称 B
-                                LEFT OUTER JOIN 金融機関支店名称 S
-                                    ON  S.銀行CD = B.銀行CD
-                                    AND S.支店CD = $Customer->金融機関支店CD
-                            WHERE
-                                B.銀行CD = $Customer->金融機関CD
-                        ");
-                        $bnames = $stmt->fetch(PDO::FETCH_ASSOC);
-                        $Customer->金融機関名 = $bnames["銀行名"];
-                        $Customer->金融機関支店名 = $bnames["支店名"];
-
-                        $Customer->口座種別 = mb_substr($Line, 42, 1);
-                        $stmt = $pdo->query("
-                            SELECT
-                                K.各種名称 AS 種別名
-                            FROM
-                                各種テーブル K
-                            WHERE
-                                K.各種CD = 7
-                            AND K.行NO = $Customer->口座種別
-                        ");
-                        $knames = $stmt->fetch(PDO::FETCH_ASSOC);
-                        $Customer->口座種別名 = $knames["種別名"];
-
-                        $stmt = $pdo->query("
-                            SELECT
-                                ISNULL(現金, 0)
-                                    + ISNULL(小切手, 0)
-                                    + ISNULL(振込, 0)
-                                    + ISNULL(バークレー, 0)
-                                    + ISNULL(その他, 0)
-                                    + ISNULL(相殺, 0)
-                                    + ISNULL(値引, 0)
-                                AS 入金額
-                            FROM
-                                入金データ
-                            WHERE
-                                得意先ＣＤ=$Customer->得意先CD
-                            AND 入金日付 = '$TargetDate'
-                        ");
-                        $price = $stmt->fetch(PDO::FETCH_ASSOC);
-                        $Customer->入金額 = $price["入金額"];
-
-                        $err = mb_substr($Line, 111, 1);
-                        $Customer->エラー = $err != " " && $err != "0" ? "エラー" : "";
-
-                        $Customer->処理FLG = false;
-
+                        $furikomiirainin = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                        if(0<count($furikomiirainin))
+                        {
+                            $Customer->得意先ＣＤ = $furikomiirainin[0]['得意先ＣＤ'];
+                            $Customer->得意先名 = $furikomiirainin[0]['得意先名'];
+                            $Customer->集金手数料 = $furikomiirainin[0]['集金手数料'];
+                            $Customer->結果 = count($furikomiirainin) != 1 ? "◎":"◯";
+                        }
+                        else{
+                            $Customer->得意先ＣＤ = "";
+                            $Customer->得意先名 = "";
+                            $Customer->集金手数料 = "";
+                            $Customer->結果 = "";
+                        }
                         array_push($Customers, $Customer);
 
+                        break;
+                    case "9":
+                        $Summary->出力明細数 = $this->getResultElement($Line, 1, 4);
+                        //$Summary->ブランク = substr($Line, 5, 211);
+                        $Summary->合計金額 = $this->getResultElement($Line, 216, 14);
                         break;
                 }
             }
 
             return response()->json([
                 'result' => true,
-                'Contents' => $Contents,
+                'Contents' => mb_convert_encoding($Contents , "utf-8", "sjis"),
                 'Company' => $Company,
                 'Customers' => $Customers,
+                'Summary' => $Summary,
             ]);
         } catch (Exception $ex) {
             return response()->json([
@@ -176,6 +138,16 @@ class DAI05070Controller extends Controller
         } finally {
             $pdo = null;
         }
+    }
+
+    /**
+     * getResultElement
+     * ファイルの要素(S-JIS)を読み取って、UTF-8に変換して戻す
+     */
+    private function getResultElement($data,$pos,$len)
+    {
+        $str=trim(substr($data, $pos, $len));
+        return mb_convert_encoding($str , "utf-8", "sjis");
     }
 
     /**
