@@ -899,7 +899,7 @@ export default {
                 }
                 th, td {
                     font-family: "MS UI Gothic";
-                    font-size: 9pt;
+                    font-size: 9.5pt;
                     font-weight: normal;
                     margin: 0px;
                     padding-left: 3px;
@@ -956,14 +956,14 @@ export default {
                     <table class="header-table" style="border-width: 0px">
                         <thead>
                             <tr>
-                                <th class="blank-cell" style="width: 30%;"></th>
+                                <th class="blank-cell" style="width: 27%;"></th>
                                 <th style="width: 8%;">対象範囲</th>
-                                <th style="width: 9.5%;">（${vue.viewModel.DateStart}</th>
+                                <th style="width: 10.5%;">（${vue.viewModel.DateStart}</th>
                                 <th style="width: 2%;">～</th>
-                                <th style="width: 9.5%;">${vue.viewModel.DateEnd}）</th>
+                                <th style="width: 10.5%;">${vue.viewModel.DateEnd}）</th>
                                 <th style="width: 11%;" class="blank-cell"></th>
                                 <th style="width: 20%; text-align:right; font-weight: bold;">[営業食数－担当者]</th>
-                                <th style="width: 10%; text-align: right;">${idx + 1} / ${length}</th>
+                                <th style="width: 11%; text-align: right;">${idx + 1} / ${length}</th>
                             </tr>
                             <tr>
                                 <th class="blank-cell"></th>
@@ -997,7 +997,7 @@ export default {
                     font-size: 8pt;
                 }
                 table.DAI05090Grid1 tr:not(.group-summary) td:nth-child(2) {
-                    font-size: 6pt;
+                    font-size: 7pt;
                 }
                 table.DAI05090Grid1 tr:nth-child(1) th {
                     border-style: solid;
@@ -1061,8 +1061,6 @@ export default {
                             vue.DAI05090Grid1.generateHtml(
                                 styleCustomers,
                                 headerFunc,
-                                //TODO:西山　印刷確認未完　用紙サイズ確認　
-                                //36,
                                 30,
                                 false,
                                 true,
@@ -1075,7 +1073,7 @@ export default {
 
             var printOptions = {
                 type: "raw-html",
-                style: "@media print { @page { size: A4 landscape; } }",
+                style: "@media print { @page { size: A4 landscape; margin-left: 10px; margin-right: 10px; } }",
                 printable: printable,
             };
 

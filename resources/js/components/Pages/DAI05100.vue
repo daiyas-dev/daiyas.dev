@@ -262,7 +262,7 @@ export default {
                     grandSummary: true,
                     indent: 10,
                     dataIndx: ["部署名", "ＧＫ営業担当者", "ＧＫ獲得営業者"],
-                    showSummary: [false, true, true],
+                    showSummary: [true, true, true],
                     collapsed: [false, false, false],
                     summaryInTitleRow: "collapsed",
                 },
@@ -366,6 +366,8 @@ export default {
                                     }
                                 } else {
                                     switch (ui.rowData.pq_level) {
+                                        case 0:
+                                            return { text: "** 部署合計**" };
                                         case 1:
                                             return { text: "** 営業担当合計 **" };
                                         case 2:
@@ -404,9 +406,6 @@ export default {
                         title: "食数平均",
                         dataIndx: "食数平均", dataType: "float", format: "#,###.0",　
                         width: 100, minWidth: 100, maxWidth: 100,
-                        // summary: {
-                        //     type: "TotalInt",
-                        // },
                         render: ui => {
                             if (ui.rowData[ui.dataIndx] * 1 == 0 || ui.rowData.食数合計 * 1 == 0 || ui.rowData.稼働日 * 1 == 0) {
                                 return { text: "0.0" };
@@ -534,7 +533,7 @@ export default {
                 });
             } else {
                 grid.Group().option({ "dataIndx": ["部署名", "ＧＫ営業担当者", "ＧＫ獲得営業者"],
-                    "showSummary": [false, true, true],
+                    "showSummary": [true, true, true],
                     "collapsed": [false, false, false],
                 });
             }
@@ -729,7 +728,7 @@ export default {
                 }
                 th, td {
                     font-family: "MS UI Gothic";
-                    font-size: 10.5pt;
+                    font-size: 11pt;
                     font-weight: normal;
                     margin: 0px;
                     padding-left: 3px;
@@ -789,14 +788,14 @@ export default {
                     <table class="header-table" style="border-width: 0px">
                         <thead>
                             <tr class="width-settei">
-                                <th style="width: 12%;"></th>
-                                <th style="width: 10%;"></th>
-                                <th class="blank-cell" style="width: 4.8%;"></th>
+                                <th style="width: 12.5%;"></th>
+                                <th style="width: 10.5%;"></th>
+                                <th class="blank-cell" style="width: 5.8%;"></th>
                                 <th class="blank-cell" style="width: 3%;"></th>
                                 <th class="blank-cell" style="width: 8%;"></th>
-                                <th class="blank-cell" style="width: 6.8%;"></th>
+                                <th class="blank-cell" style="width: 7.8%;"></th>
                                 <th class="blank-cell" style="width: 10%;"></th>
-                                <th class="blank-cell" style="width: 15%;"></th>
+                                <th class="blank-cell" style="width: 12%;"></th>
                                 <th class="blank-cell" style="width: 5.6%;"></th>
                                 <th class="blank-cell" style="width: 20%;"></th>
                                 <th class="blank-cell" style="width: 5%;"></th>
@@ -823,7 +822,7 @@ export default {
                                 <th class="blank-cell"></th>
                                 <th class="blank-cell"></th>
                                 <th colspan="2" style="font-weight: bold;">[営業売上金額－担当者]</th>
-                                <th style="text-align: right;">${idx + 1}/${length}</th>
+                                <th style="text-align: right;">${idx + 1} / ${length}</th>
                             </tr>
                             <tr>
                                 <th>営業担当者：</th>
@@ -854,7 +853,7 @@ export default {
                     border-right-width: 0px;
                     border-bottom-width: 1px;
                 }
-                table.DAI05100Grid1 tr[level="2"].group-summary td {
+                table.DAI05100Grid1 tr:not(.group-summary) + tr.group-summary td {
                     border-style: solid;
                     border-left-width: 0px;
                     border-top-width: 1px;
@@ -909,12 +908,6 @@ export default {
                 true,
             );
 
-            //総合計行をグループ毎の最後に追加
-            var grsRow = contents.find(".grand-summary");
-            if (vue.viewModel.BushoOption != 0) {
-                contents.find('table.DAI05100Grid1 > tbody > tr[level="1"].group-summary').append(grsRow);
-            }
-
             var printable = $("<html>")
                 .append($("<head>").append($("<style>").text(globalStyles)))
                 .append(
@@ -925,7 +918,7 @@ export default {
 
             var printOptions = {
                 type: "raw-html",
-                style: "@media print { @page { size: A4 portrait; } }",
+                style: "@media print { @page { size: A4 portrait; margin-left: 15px; margin-right: 15px; } }",
                 printable: printable,
             };
 

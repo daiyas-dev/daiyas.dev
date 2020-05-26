@@ -720,12 +720,11 @@ export default {
                         </div>
                         <div style="float: left; width: 100%;">
                             <div style="float: left; width: 100%; text-align: center;">
-                                対象期間(${TargetDateFrom}<span> ～ </span>${TargetDateTo})
+                                対象期間 ( ${TargetDateFrom}<span> ～ </span>${TargetDateTo} )
                             </div>
 
                             <div style="float: left; width: 90%;">&nbsp</div>
-                            <div style="float: left; width: 5%; text-align: center;">PAGE</div>
-                            <div style="float: left; width: 5%; text-align: center;">${idx + 1}/${length}</div>
+                            <div style="float: left; width: 10%; text-align: right;">${idx + 1} / ${length}</div>
 
                             <div style="float: left; width: 100%;">&nbsp</div>
 

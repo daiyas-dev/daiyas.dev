@@ -64,9 +64,8 @@ class DAI05110Controller extends Controller
                     LEFT JOIN 担当者マスタ TANTO2 ON
                     TOKUISAKI.獲得営業者ＣＤ = TANTO2.担当者ＣＤ
                 WHERE
-                        URIAGE_MEISAI.商品区分 IN (1,2,3,7)
-                    AND URIAGE_MEISAI.日付 >= '$DateStart' AND URIAGE_MEISAI.日付 <= '$DateEnd'
-                    --AND URIAGE_MEISAI.日付 >= '$DateStart' AND URIAGE_MEISAI.日付 <= DATEADD(DAY,-1,DATEADD(MONTH,6,'$DateStart'))
+                    URIAGE_MEISAI.商品区分 IN (1,2,3,7)
+                    AND URIAGE_MEISAI.日付 >= '$DateStart' AND URIAGE_MEISAI.日付 <= DATEADD(DAY,-1,DATEADD(MONTH,6,'$DateStart'))
                     $WehreCustomer
                     $WehreShowSyonin
                     $WhereBushoCd

@@ -905,6 +905,9 @@ export default {
                     </table>
                 `;
             };
+//max7件 + 配列2倍化
+var ary = _(grid.pdata).groupBy(v => v.受注Ｎｏ).values().map(g => _.chunk(g, 7)).flatten().value();
+var ret = _.reduce(ary, (a, v) => { a.push(v); a.push(v); return a; }, []);
 console.log("target", target);
             var printable = $("<html>")
                 .append($("<head>").append($("<style>").text(globalStyles)))
