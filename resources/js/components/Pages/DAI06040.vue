@@ -260,6 +260,13 @@ export default {
                 ],
                 colModel: [
                     {
+                        title: "コースＣＤ",
+                        dataIndx: "コースＣＤ", dataType: "string",
+                        width: 60, minWidth: 60, maxWidth: 60,
+                        hidden:true,
+                        fixed: true,
+                    },
+                    {
                         title: "コース名",
                         dataIndx: "コース名",
                         dataType: "string",
@@ -271,6 +278,13 @@ export default {
                             }
                             return ui;
                         },
+                    },
+                    {
+                        title: "得意先ＣＤ",
+                        dataIndx: "得意先ＣＤ", dataType: "string",
+                        width: 60, minWidth: 60, maxWidth: 60,
+                        hidden:true,
+                        fixed: true,
                     },
                     {
                         title: "得意先（商品）",
@@ -299,7 +313,13 @@ export default {
                                 return { text: moment(ui.rowData.日付).format("YYYY/MM/DD　dd") };
                             }
                             if (!!ui.rowData.pq_gsummary) {
-                                return { text: "合計" };
+                                // return { text: "合計" };
+                                switch (ui.rowData.pq_level) {
+                                    case 1:
+                                        return { text: "合計" }
+                                    default:
+                                        return { text: "総合計" };
+                                }
                             }
                             return ui;
                         },
