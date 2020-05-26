@@ -28,8 +28,8 @@ function createWindow() {
     mainWindow = new BrowserWindow({
         title: "ダイヤスクライアント",
         icon: __dirname + "/daiyas48.ico",
-        width: 1800,
-        height: 800,
+        width: 1200,
+        height: 850,
         center: true,
         //fullscreen: true,
         webPreferences: {
@@ -133,7 +133,7 @@ ipcMain.on("Print_Req", (event, content, options) => {
     printOptions = options || {};
     showLogs("main Print_Req", content, options, printOptions);
 
-    var printStyle = printOptions.style.match(/@media print \{.+ \}/);
+    var printStyle = printOptions.style.match(/@media print .+\}/);
 
     if (!!printStyle.length) {
         printOptions.landscape = printStyle[0].includes("landscape");
