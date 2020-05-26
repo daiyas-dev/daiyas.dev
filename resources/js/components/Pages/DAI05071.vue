@@ -28,8 +28,8 @@
             <div class="col-md-1">
                 <label>ファイル日時</label>
             </div>
-            <div class="col-md-2">
-                <input class="form-control p-0 label-blue" style="width: 120px;" type="text" :value=viewModel.FurikomiFileDate readonly tabindex="-1">
+            <div class="col-md-4">
+                <input class="form-control p-0 label-blue" style="width: 240px;" type="text" :value=viewModel.FurikomiFileDate readonly tabindex="-1">
             </div>
         </div>
         <div class="row">
@@ -52,7 +52,7 @@
             id="DAI05071Grid1"
             ref="DAI05071Grid1"
             dataUrl="/DAI05071/Search"
-            :query=this.viewModel
+            :query=this.searchParams
             :SearchOnCreate=false
             :SearchOnActivate=false
             :options=this.gridOptions
@@ -124,7 +124,6 @@ export default {
     },
     data() {
         var vue = this;
-
         var data = $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "振込入金取込処理(明細)",
             noViewModel: true,
@@ -216,15 +215,6 @@ export default {
                         dataType: "integer",
                         format: "#,##0",
                         width: 100, maxWidth: 100, minWidth: 100,
-                        render: ui => {
-                            if (!!ui.rowData.伝票Ｎｏ) {
-                                return { text: !!ui.rowData.IsBikoRow
-                                    ? ""
-                                    : pq.formatNumber(ui.rowData.入金金額, "#,##0")
-                                };
-                            }
-                            return ui;
-                        },
                     },
                     {
                         title: "入金額",
@@ -233,28 +223,143 @@ export default {
                     },
                     {
                         title: "手数料(DD)",
-                        dataIndx: "手数料", dataType: "integer", format: "#,##0",
+                        dataIndx: "振込手数料", dataType: "integer", format: "#,##0",
                         width: 75, maxWidth: 75, minWidth: 75,
                     },
                     {
-                        title: "依頼人登録(CB)",
-                        dataIndx: "依頼人登録",
-                        dataType: "string",
+                        title: "依頼人登録",
+                        dataIndx: "依頼人登録区分",
+                        type: "checkbox",
+                        cbId: "依頼人登録FLG",
                         width: 150, maxWidth: 150, minWidth: 150,
+                        align: "center",
+                        editableColumn: true,
+                        editor: false,
                     },
                     {
-                        title: "入金登録(CB)",
-                        dataIndx: "入金登録",
+                        title: "依頼人登録",
+                        dataIndx: "依頼人登録FLG",
                         dataType: "string",
-                        width: 150, maxWidth: 150, minWidth: 150,
+                        align: "center",
+                        editableColumn: true,
+                        cb: {
+                            header: true,
+                            check: "true",
+                            uncheck: "false",
+                        },
+                        hidden: false,
                     },
                     {
-                        title: "入金日(DT)",
+                        title: "入金登録",
+                        dataIndx: "入金登録区分",
+                        type: "checkbox",
+                        cbId: "入金登録FLG",
+                        width: 150, maxWidth: 150, minWidth: 150,
+                        align: "center",
+                        editableColumn: true,
+                        editor: false,
+                    },
+                    {
+                        title: "入金登録",
+                        dataIndx: "入金登録FLG",
+                        dataType: "string",
+                        align: "center",
+                        editableColumn: true,
+                        cb: {
+                            header: true,
+                            check: "true",
+                            uncheck: "false",
+                        },
+                        hidden: false,
+                    },
+                    {
+                        title: "入金日",
                         dataIndx: "入金日",
                         dataType: "date",
                         format: "yy/mm/dd",
                         align: "center",
                         width: 150, maxWidth: 150, minWidth: 150,
+                        editableColumn: true,
+                    },
+                    {
+                        title: "店番",
+                        dataIndx: "店番",
+                        dataType: "string",
+                    },
+                    {
+                        title: "取引店",
+                        dataIndx: "取引店",
+                        dataType: "string",
+                    },
+                    {
+                        title: "全銀科目コード",
+                        dataIndx: "全銀科目コード",
+                        dataType: "string",
+                    },
+                    {
+                        title: "預金種類コード",
+                        dataIndx: "預金種類コード",
+                        dataType: "string",
+                    },
+                    {
+                        title: "預金種類",
+                        dataIndx: "預金種類",
+                        dataType: "string",
+                    },
+                    {
+                        title: "口座番号",
+                        dataIndx: "口座番号",
+                        dataType: "string",
+                    },
+                    {
+                        title: "口座名義",
+                        dataIndx: "口座名義",
+                        dataType: "string",
+                    },
+                    {
+                        title: "照会期間",
+                        dataIndx: "照会期間",
+                        dataType: "string",
+                    },
+                    {
+                        title: "照会方法",
+                        dataIndx: "照会方法",
+                        dataType: "string",
+                    },
+                    {
+                        title: "指定日",
+                        dataIndx: "指定日",
+                        dataType: "string",
+                    },
+                    {
+                        title: "取引区分",
+                        dataIndx: "取引区分",
+                        dataType: "string",
+                    },
+                    {
+                        title: "依頼人名",
+                        dataIndx: "依頼人名",
+                        dataType: "string",
+                    },
+                    {
+                        title: "金融期間名",
+                        dataIndx: "金融期間名",
+                        dataType: "string",
+                    },
+                    {
+                        title: "支店名",
+                        dataIndx: "支店名",
+                        dataType: "string",
+                    },
+                    {
+                        title: "EDI情報",
+                        dataIndx: "EDI情報",
+                        dataType: "string",
+                    },
+                    {
+                        title: "入金伝票Ｎｏ",
+                        dataIndx: "入金伝票Ｎｏ",
+                        dataType: "string",
                     },
                 ],
             },
@@ -293,13 +398,36 @@ export default {
         },
         mountedFunc: function(vue) {
             //watcher
+            /*
             vue.$watch(
                 "$refs.DAI05071Grid1.selectionRowCount",
                 cnt => {
                     vue.footerButtons.find(v => v.id == "DAI05071Grid1_Detail").disabled = cnt == 0 || cnt > 1;
                 }
             );
+            */
+            vue.showBushoInfo();
             vue.conditionChanged();
+        },
+        showBushoInfo: function(){
+            var vue = this;
+            var tc = new Date().getTime();//axios実行時のキャッシュを無効にするため、現在のタイムスタンプを渡す
+            axios.post("/DAI05071/GetBushoInfo", { BushoCd: vue.viewModel.BushoCd,timestamp:tc})
+                .then(response => {
+                    var res = _.cloneDeep(response.data);
+                    window.resr=_.cloneDeep(res);//TODO:
+                    vue.viewModel.Kouza=res[0].銀行名 + " " + res[0].支店名 + " " + res[0].口座番号 + " " + res[0].種別;
+                })
+            .catch(error => {
+                console.log(error);
+                if (!!grid) grid.hideLoading();
+
+                //失敗ダイアログ
+                $.dialogErr({
+                    title: " 部署データ検索失敗",
+                    contents: " 部署データ検索に失敗しました" + "<br/>" + error.message,
+                });
+            });
         },
         activatedFunc: function(vue) {
             vue.IsChild = !!vue.params;
@@ -322,19 +450,72 @@ export default {
         },
         conditionChanged: function(force) {
             var vue = this;
+            var grid = vue.DAI05071Grid1;
             console.log("5071 conditionChanged")
+
+            console.log('dialog show')//TODO:
+            window.resp=_.cloneDeep(vue.params);//TODO:
 
             if (!vue.DAI05071Grid1 || !vue.getLoginInfo().isLogOn) return;
             //if (!vue.viewModel.BushoCd || !vue.viewModel.CustomerCd || !vue.viewModel.DateStart || !vue.viewModel.DateEnd) return;
             //if (!!vue.viewModel.CustomerCd && !vue.$refs.PopupSelect_Customer.isValid) return;
-            vue.DAI05071Grid1.searchData(vue.searchParams);
+
+            grid.options.colModel.forEach(r =>{
+                r.editable=true;
+            });
+            if(!!vue.params.FileData){
+                vue.getFileData(vue.params.FileData);
+            }
+            else{
+                grid.searchData(vue.searchParams);
+            }
+            grid.options.colModel.forEach(r =>{
+                if(r.editableColumn!=true)
+                {
+                    r.editable=false;
+                }
+            });
+        },
+        getFileData: function(FileData)
+        {
+            var vue = this;
+            var grid = vue.DAI05071Grid1;
+            var rowIndex=1;
+            FileData.Customers.map((v,i)=>{
+                /*
+                grid.addRow(
+                    { newRow:{取引日:"2001/01/01",
+                    依頼人名:"aaaaa",入金金額:"0",
+                    結果:"a",
+                    得意先ＣＤ:"1",
+                    得意先名:"1",売掛金額:"0",入金金額:"0",手数料:"0",依頼人登録:"0",入金登録:"0",入金日:"2001/01/01"
+                    }, rowIndx: rowIndex++
+                    }
+                );
+                */
+                grid.addRow({
+                    newRow: {
+                        取引日:v.取引日,
+                        依頼人名:v.依頼人名,
+                        入金金額:v.入金金額
+                        },
+                });
+               /*
+                var rowIndx = grid.pdata.length;
+                grid.addRow({
+                    rowIndx: rowIndx,
+                    newRow: {},
+                });
+                grid.data({rowIndx: rowIndx,data:{依頼人名:'aaaaa'}});
+                */
+            });
+            grid.refreshCM();
         },
         setGridTitle: function (title, grid) {
             return "件数: " + (grid.pdata || []).filter(v => !!v.伝票日付).length;
         },
         onAfterSearchFunc: function (grieVue, grid, res) {
             var vue = this;
-            var gridSeikyu = vue.DAI05071Grid1;
             /*
             if (!res.length || !res[0].SeikyuData) {
                 gridSummary.options.dataModel.data = [
@@ -377,30 +558,54 @@ export default {
             }
 
             //登録データの作成
-            var SaveList=[];
+            var FurikomiList=[];
             _.forEach(grid.pdata,r=>{
                 var SaveItem={};
+                SaveItem.取引日=r.取引日;
                 SaveItem.振込依頼人名=r.依頼人名;
-                SaveList.push(SaveItem);
+                SaveItem.振込金額=r.振込金額;
+                SaveItem.結果=r.結果;
+                SaveItem.得意先ＣＤ=r.得意先ＣＤ;
+                SaveItem.得意先名=r.得意先名;
+                SaveItem.売掛金額=r.売掛金額;
+                SaveItem.入金金額=r.入金金額;
+                SaveItem.振込手数料=r.振込手数料;
+                SaveItem.依頼人登録区分=r.依頼人登録区分;
+                SaveItem.入金登録区分=r.入金登録区分;
+                SaveItem.入金日=r.入金日;
+                SaveItem.店番=r.店番;
+                SaveItem.取引店=r.取引店;
+                SaveItem.全銀科目コード=r.全銀科目コード;
+                SaveItem.預金種類コード=r.預金種類コード;
+                SaveItem.預金種類=r.預金種類;
+                SaveItem.口座番号=r.口座番号;
+                SaveItem.口座名義=r.口座名義;
+                SaveItem.照会期間=r.照会期間;
+                SaveItem.照会方法=r.照会方法;
+                SaveItem.指定日=r.指定日;
+                SaveItem.取引区分=r.取引区分;
+                SaveItem.依頼人名=r.依頼人名;
+                SaveItem.金融機関名=r.金融機関名;
+                SaveItem.支店名=r.支店名;
+                SaveItem.EDI情報=r.EDI情報;
+                SaveItem.入金伝票Ｎｏ=r.入金伝票Ｎｏ;
+                SaveItem.依頼人登録区分="1";//TODO:
+                SaveItem.入金登録区分="1";//TODO:
+                FurikomiList.push(SaveItem);
             });
 
             //登録実行
-            /*
-            vue.viewModel.CustomerName=SaveList[0].得意先名;
-            vue.viewModel.ProductCd=SaveList[0].商品ＣＤ;
-            vue.viewModel.ProductName=SaveList[0].商品名;
-            vue.viewModel.Price=SaveList[0].単価;
-            vue.viewModel.TicketMaisu=SaveList[0].チケット数;
-            vue.viewModel.SVTicketMaisu=SaveList[0].サービス数;
-            vue.viewModel.NowTicketNo=(vue.viewModel.LastTicketNo*1)+1;//チケット印刷をするため、チケット番号(開始値)を退避
-            */
             grid.saveData(
                 {
                     uri: "/DAI05071/Save",
                     params: {
                         BushoCd:vue.viewModel.BushoCd,
+                        TargetDate:vue.viewModel.TargetDate,
                         FurikomiFileName:vue.viewModel.FurikomiFileName,
-                        SaveList: SaveList,
+                        FurikomiFileDate:vue.viewModel.FurikomiFileDate,
+                        FurikomiKingaku:vue.viewModel.FurikomiKingaku,
+                        FurikomiList: FurikomiList,
+                        ShuseiTantoCd:vue.getLoginInfo()["uid"],
                     },
                     optional: vue.searchParams,
                     confirm: {
