@@ -61,7 +61,37 @@ class DAI05071Controller extends Controller
         $FurikomiFileName = $request->FurikomiFileName;
         $sql = "
                     SELECT
-                        　振込明細.*
+                          振込明細.部署ＣＤ
+                        , 振込明細.ファイル名
+                        , 振込明細.レコード番号
+                        , 振込明細.店番
+                        , 振込明細.取引店
+                        , 振込明細.全銀科目コード
+                        , 振込明細.預金種類コード
+                        , 振込明細.預金種類
+                        , 振込明細.口座番号
+                        , 振込明細.口座名義
+                        , 振込明細.照会期間
+                        , 振込明細.照会方法
+                        , 振込明細.操作日
+                        , 振込明細.操作時刻
+                        , 振込明細.取引日
+                        , 振込明細.指定日
+                        , 振込明細.取引区分
+                        , 振込明細.依頼人名
+                        , 振込明細.金融機関名
+                        , 振込明細.支店名
+                        , 振込明細.EDI情報
+                        , 振込明細.入金金額
+                        , 振込明細.振込手数料
+                        , 振込明細.得意先ＣＤ
+                        , CASE 振込明細.依頼人登録区分 WHEN 1 THEN 'true' ELSE 'false'END AS F依頼人登録区分
+                        , CASE 振込明細.入金登録区分 WHEN 1 THEN 'true' ELSE 'false'END AS F入金登録区分
+                        , 振込明細.入金日
+                        , 振込明細.入金伝票Ｎｏ
+                        , 振込明細.結果
+                        , 振込明細.修正担当者ＣＤ
+                        , 振込明細.修正日
                         , 得意先マスタ.得意先名
                     FROM 振込明細
                          LEFT JOIN 得意先マスタ ON 得意先マスタ.得意先ＣＤ = 振込明細.得意先ＣＤ
@@ -95,11 +125,11 @@ class DAI05071Controller extends Controller
             $RecordNo=0;
             foreach($FurikomiList as $SaveItem)
             {
-                if($SaveItem['入金登録区分']=="1")
+                if($SaveItem['入金登録区分']==true)
                 {
                     $this->SaveMidashi($params,$BushoInfo);
                     $this->SaveMeisai($params,$BushoInfo,$RecordNo,$SaveItem);
-                    if($SaveItem['依頼人登録区分']=="1")
+                    if($SaveItem['依頼人登録区分']==true)
                     {
                         $this->SaveIrainin($params,$SaveItem);
                     }
