@@ -695,7 +695,7 @@ export default {
             //TODO:カラー印刷はブラウザから印刷設定を制御できないようなので、定義のみ記述しました。
             var printOptions = {
                 type: "raw-html",
-                style: "@media print and (color) { @page { size: A4 portrait; }; -webkit-print-color-adjust: exact; }",
+                style: "@media print and (color) { @page { size: A4 portrait; }}",
                 printable: printable,
             };
             printJS(printOptions);
