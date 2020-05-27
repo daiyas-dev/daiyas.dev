@@ -286,19 +286,35 @@ class DAI01030Controller extends Controller
         $CustomerCd = $request->CustomerCd;
         $DeliveryDate = $request->DeliveryDate;
 
+        //TODO西山
+        // $sql = "
+        //     SELECT
+        //         CD.備考１,
+        //         CD.備考２,
+        //         CD.備考３,
+        //         CD.備考４,
+        //         CD.備考５
+        //     FROM
+        //         注文データ CD
+        //     WHERE
+        //         CD.得意先ＣＤ = $CustomerCd
+        //         AND	CD.部署ＣＤ = $BushoCd
+        //         AND CD.配送日 = '$DeliveryDate'
+        // ";
         $sql = "
             SELECT
-                CD.備考１,
-                CD.備考２,
-                CD.備考３,
-                CD.備考４,
-                CD.備考５
+                配送日,
+                注文日付,
+                特記_社内用,
+                特記_配送用,
+                特記_通知用
             FROM
-                注文データ CD
+                注文データ
             WHERE
-                CD.得意先ＣＤ = $CustomerCd
-                AND	CD.部署ＣＤ = $BushoCd
-                AND CD.配送日 = '$DeliveryDate'
+                得意先ＣＤ = $CustomerCd
+                AND	部署ＣＤ = $BushoCd
+                --AND 配送日 = '$DeliveryDate'
+            ORDER BY 注文日付 desc
         ";
 
         $Result = DB::select($sql);

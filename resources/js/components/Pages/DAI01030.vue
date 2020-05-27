@@ -178,23 +178,52 @@
                 <label style="width: auto; max-width: unset;">備考(社内)</label>
             </div>
             <div class="col-md-5 d-block">
-                <input v-for="(bikou, index) in viewModel.BikouForControl"
+                <!-- <input v-for="(bikou, index) in viewModel.BikouForControl"
                     v-bind:key=index
                     :id='"BikouForControl" + (index + 1)'
                     v-model=viewModel.BikouForControl[index]
                     class="bikou w-100"
-                />
+                /> -->
+                <textarea
+                    id="bikou-shanai"
+                    v-model=viewModel.BikouForControl
+                    type="text"
+                    v-maxBytes="200"
+                ></textarea>
             </div>
             <div class="col-md-1 d-block">
                 <label style="width: 100%; max-width: unset; text-align: center;">備考(配送)</label>
             </div>
             <div class="col-md-5 d-block">
-                <input v-for="(bikou, index) in viewModel.BikouForDelivery"
+                <!-- <input v-for="(bikou, index) in viewModel.BikouForDelivery"
                     v-bind:key=index
                     :id='"BikouForDelivery" + (index + 1)'
                     v-model=viewModel.BikouForDelivery[index]
                     class="bikou w-100"
-                />
+                /> -->
+                <textarea
+                    id="bikou-haiso"
+                    v-model=viewModel.BikouForDelivery
+                    type="text"
+                    v-maxBytes="200"
+                ></textarea>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1 d-block">
+            </div>
+            <div class="col-md-5 d-block">
+            </div>
+            <div class="col-md-1 d-block">
+                <label style="width: 100%; max-width: unset; text-align: center;">備考(通知)</label>
+            </div>
+            <div class="col-md-5 d-block">
+                <textarea
+                    id="bikou-tuuchi"
+                    v-model=viewModel.BikouForNotification
+                    type="text"
+                    v-maxBytes="200"
+                ></textarea>
             </div>
         </div>
         <div class="row">
@@ -321,8 +350,12 @@ export default {
                 IsDeliveried: false,
                 LastEditor: null,
                 LastEditDate: null,
-                BikouForControl: _.fill(Array(5), null),
-                BikouForDelivery: _.fill(Array(5), null),
+                //TODO
+                // BikouForControl: _.fill(Array(5), null),
+                // BikouForDelivery: _.fill(Array(5), null),
+                BikouForControl: null,
+                BikouForDelivery: null,
+                BikouForNotification: null,
                 IsShowAll: null,
                 GroupCustomerCd: null,
             },
@@ -836,6 +869,8 @@ export default {
             var deliverTime = _.max(res.map(v => v.注文時間));
             vue.viewModel.DeliveryTime = deliverTime || moment().format("HH:mm:ss");
 
+            //TODO確認用
+            vue.viewModel.IsEdit = true;
             if (vue.viewModel.IsEdit) {
                 var params = _.cloneDeep(vue.searchParams);
                 params.noCache = true;
@@ -843,13 +878,20 @@ export default {
                 //備考
                 axios.post("/DAI01030/GetBikou", params)
                     .then(res => {
-                        var bikou = res.data
-                            .reduce((a, c) => a = _.mergeWith(a, c, (o, s) => {
-                                if (s == "\r\n") s = "";
-                                return o.includes(s) ? o : (o + "," + s)
-                            }));
+                        //TODO西山確認中
+                        // var bikou = res.data
+                        //     .reduce((a, c) => a = _.mergeWith(a, c, (o, s) => {
+                        //         if (s == "\r\n") s = "";
+                        //         return o.includes(s) ? o : (o + "," + s)
+                        //     }));                        var bikou = res.data[0];
 
-                        _.values(bikou).map(v => !!v ? v.replace(/\r\n/g, "") : v).forEach((v, i) => vue.viewModel.BikouForControl.splice(i, 1, v));
+                        // _.values(bikou).map(v => !!v ? v.replace(/\r\n/g, "") : v).forEach((v, i) => vue.viewModel.BikouForControl.splice(i, 1, v));
+
+                        var bikou = res.data[0];
+                        vue.viewModel.BikouForControl = bikou.特記_社内用;
+                        vue.viewModel.BikouForDelivery = bikou.特記_配送用;
+                        vue.viewModel.BikouForNotification = bikou.特記_通知用;
+
                         console.log("GetBikou", res.data, bikou, vue.viewModel.BikouForControl);
                     })
                     .catch(err => {
@@ -878,6 +920,7 @@ export default {
                     ;
 
             } else {
+                //TODO西山
                 vue.viewModel.IsDeliveried = false;
                 vue.viewModel.BikouForControl.splice(0, 1, "登録");
                 vue.viewModel.BikouForControl.fill(null, 1);
@@ -1035,11 +1078,12 @@ export default {
                 v.得意先ＣＤ = vue.viewModel.CustomerCd;
                 v.配送日 = v.配送日 || moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYY-MM-DD");
                 v.入力区分 = 0;
-                v.備考１ = vue.viewModel.BikouForControl[0];
-                v.備考２ = vue.viewModel.BikouForControl[1];
-                v.備考３ = vue.viewModel.BikouForControl[2];
-                v.備考４ = vue.viewModel.BikouForControl[3];
-                v.備考５ = vue.viewModel.BikouForControl[4];
+                // v.備考１ = vue.viewModel.BikouForControl[0];
+                // v.備考２ = vue.viewModel.BikouForControl[1];
+                // v.備考３ = vue.viewModel.BikouForControl[2];
+                // v.備考４ = vue.viewModel.BikouForControl[3];
+                // v.備考５ = vue.viewModel.BikouForControl[4];
+                //TODO
                 v.予備金額１ = v.単価;
                 v.予備金額２ = 0;
                 v.予備ＣＤ１ = 0;
