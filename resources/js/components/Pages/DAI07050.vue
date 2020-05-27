@@ -909,10 +909,11 @@ export default {
                     -webkit-print-color-adjust: exact;
                     background-size: contain;
                     background-repeat: no-repeat;
-                    background-image: url(${location.origin}/images/BushoStamp/${vue.BushoInfo.部署CD}.png);                    margin-left: 20px;
+                    background-image: url(${window.location.origin}/images/BushoStamp/${vue.BushoInfo.部署CD}.png);
+                    margin-left: 20px;
                     background-position-x: right;
-                    margin-right: 215px;
-                    background-size: 38%;
+                    margin-right: 250px;
+                    background-size: 52px;
                 }
                 table.header-table tbody th {
                     text-align: center;
@@ -1171,7 +1172,11 @@ export default {
             //印鑑画像のロード待ち
             $("<img>")
                 .attr("src", location.origin + "/images/BushoStamp/" + vue.BushoInfo.部署CD + ".png")
-                .on("load", () => printJS(printOptions));
+                .on("load", () => printJS(printOptions))
+                .on("error", () => {
+                    printOptions.printable = printOptions.printable.replace(/^.+background-image:.+;\n/g, "");
+                    printJS(printOptions);
+                });
 
             //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()

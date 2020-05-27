@@ -90,7 +90,7 @@ class DAI02021Controller extends Controller
                 ISNULL(売上データ明細.予備金額１, 商品マスタ.売価単価) AS 単価,
                 売上データ明細.掛売金額 - ISNULL(売上データ明細.掛売値引, 0) AS 金額,
                 NULL AS 入金金額,
-                NULL AS 備考
+                売上データ明細.備考 AS 備考
             FROM
                 [売上データ明細]
                 INNER JOIN [商品マスタ]
