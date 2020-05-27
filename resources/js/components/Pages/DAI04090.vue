@@ -104,7 +104,7 @@ export default {
                 CourseCd: null,
                 CourseNm: null,
                 KeyWord: null,
-                MngKind: null,
+                MngKind: [],
                 FilterMode: "AND",
             },
             DAI04090Grid1: null,

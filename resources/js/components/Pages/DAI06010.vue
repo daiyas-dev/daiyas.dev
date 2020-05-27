@@ -278,7 +278,7 @@ export default {
                     },
                     {
                         title: "単価",
-                        dataIndx: "単価", dataType: "integer", format: "#,###",　
+                        dataIndx: "単価", dataType: "integer", format: "#,###",
                         width: 111, minWidth: 111, maxWidth: 111,
                         render: ui => {
                             if(ui.Export) {
@@ -300,7 +300,7 @@ export default {
                     },
                     {
                         title: "券数",
-                        dataIndx: "チケット内数", dataType: "integer", format: "#,###",　
+                        dataIndx: "チケット内数", dataType: "integer", format: "#,###",
                         width: 111, minWidth: 111, maxWidth: 111,
                         summary: {
                             type: "TotalInt",
@@ -322,7 +322,7 @@ export default {
                     },
                     {
                         title: "サービス",
-                        dataIndx: "SV内数", dataType: "float", format: "#,###.0",　
+                        dataIndx: "SV内数", dataType: "float", format: "#,###.0",
                         width: 111, minWidth: 111, maxWidth: 111,
                         summary: {
                             type: "TotalInt",
@@ -389,7 +389,7 @@ export default {
                     },
                     {
                         title: "有効チケット枚数",
-                        dataIndx: "有効チケット枚数", dataType: "integer", format: "#,###",　
+                        dataIndx: "有効チケット枚数", dataType: "integer", format: "#,###",
                         hidden:true,
                         summary: {
                             type: "TotalInt",
@@ -397,7 +397,7 @@ export default {
                     },
                     {
                         title: "チケット金額",
-                        dataIndx: "チケット金額", dataType: "integer", format: "#,###",　
+                        dataIndx: "チケット金額", dataType: "integer", format: "#,###",
                         hidden:true,
                         summary: {
                             type: "TotalInt",
@@ -406,14 +406,14 @@ export default {
                     {
                         title: "有効サービス枚数",
                         hidden:true,
-                        dataIndx: "有効サービス枚数", dataType: "float", format: "#,###.0",　
+                        dataIndx: "有効サービス枚数", dataType: "float", format: "#,###.0",
                         summary: {
                             type: "TotalInt",
                         },
                     },
                     {
                         title: "サービス金額",
-                        dataIndx: "サービス金額", dataType: "integer", format: "#,###",　
+                        dataIndx: "サービス金額", dataType: "integer", format: "#,###",
                         hidden:true,
                         summary: {
                             type: "TotalInt",
@@ -522,7 +522,7 @@ export default {
 
             if (!dataList.length) return [];
 
-            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keywords = !!input ? editKeywords(input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v)) : [];
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 

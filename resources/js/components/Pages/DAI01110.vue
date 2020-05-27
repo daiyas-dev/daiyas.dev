@@ -522,7 +522,7 @@ export default {
                         function(rowData) {
                             return (rowData.現金金額 || 0)
                                 - (rowData.現金売値引金額 || 0)
-                                + (rowData.その他現金 || 0)　
+                                + (rowData.その他現金 || 0)
                                 + (rowData.売掛入金 || 0)
                                 + (rowData.チケット代入金 || 0);
                         }
@@ -1403,7 +1403,7 @@ export default {
 
             if (!dataList.length) return [];
 
-            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keywords = !!input ? editKeywords(input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v)) : [];
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 
@@ -1439,7 +1439,7 @@ export default {
 
             if (!dataList.length) return [];
 
-            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keywords = !!input ? editKeywords(input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v)) : [];
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 

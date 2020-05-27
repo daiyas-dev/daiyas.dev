@@ -302,7 +302,7 @@ export default {
                     },
                     {
                         title: "バークレー",
-                        dataIndx: "バークレー", dataType: "integer", format: "#,###",　
+                        dataIndx: "バークレー", dataType: "integer", format: "#,###",
                         width: 75, minWidth: 75, maxWidth: 75,
                         fixed: true,
                         summary: {
@@ -311,7 +311,7 @@ export default {
                     },
                     {
                         title: "束売り",
-                        dataIndx: "束売り", dataType: "integer", format: "#,###",　
+                        dataIndx: "束売り", dataType: "integer", format: "#,###",
                         width: 75, minWidth: 75, maxWidth: 75,
                         fixed: true,
                         summary: {
@@ -515,7 +515,7 @@ export default {
 
             if (!dataList.length) return [];
 
-            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keywords = !!input ? editKeywords(input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v)) : [];
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 
