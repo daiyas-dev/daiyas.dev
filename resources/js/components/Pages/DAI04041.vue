@@ -1251,7 +1251,7 @@ export default {
         });
 
         if (!!vue.params || !!vue.query) {
-            data.viewModel = $.extend(true, {}, vue.params, vue.query);
+            data.viewModel = $.extend(true, {}, _.omit(vue.params, ["Parent"]), _.omit(vue.query, ["Parent"]));
         }
         //入力制御のため
         data.viewModel.支払方法１ = "";

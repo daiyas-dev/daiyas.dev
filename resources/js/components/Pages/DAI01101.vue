@@ -229,6 +229,7 @@ export default {
                                     data.食事区分 = upd["食事区分_" + cd]
                                         || (!!parent ? parent.食事区分 : !!product ? product.食事区分 : null);
                                     data.分配元数量 = 0;
+                                    data.備考 = upd.備考;
                                     data.修正日 = upd["修正日_" + cd];
                                     data.修正担当者ＣＤ = vue.getLoginInfo().uid;
 
