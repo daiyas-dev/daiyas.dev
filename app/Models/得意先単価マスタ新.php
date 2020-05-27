@@ -25,6 +25,6 @@ class 得意先単価マスタ新 extends BaseModel
     /**
      * @var array
      */
-    protected $fillable = ['単価', '固定数', '修正担当者ＣＤ', '修正日'];
+    protected $fillable = ['得意先ＣＤ', '商品ＣＤ', '単価', '適用開始日', '固定数', '修正担当者ＣＤ', '修正日'];
 
 }
