@@ -926,21 +926,21 @@ export default {
 
                             if (!!config.sourceList && !!config.sourceList.length) {
                                 var key = ui.rowData[ui.dataIndx];
-                                var list = config.AutoCompleteFunc
-                                    ? config.AutoCompleteFunc(key, config.sourceList, vue)
-                                    : source
-                                        .filter(v => v.Cd.includes(key))
-                                        .map(v => {
-                                            var ret = v;
-                                            ret.value = v.Cd;
-                                            ret.text = vCdNm;
-                                            ret.label = ret.value + " : " + ret.text;
-                                            return ret;
-                                        })
-                                        ;
-
 
                                 if (!_.isEmptyEx(key)) {
+                                    var list = config.AutoCompleteFunc
+                                        ? config.AutoCompleteFunc(key, config.sourceList, vue)
+                                        : source
+                                            .filter(v => v.Cd.includes(key))
+                                            .map(v => {
+                                                var ret = v;
+                                                ret.value = v.Cd;
+                                                ret.text = vCdNm;
+                                                ret.label = ret.value + " : " + ret.text;
+                                                return ret;
+                                            })
+                                            ;
+
                                     var matched = !!config.GetMatchedFunc
                                         ? config.GetMatchedFunc(list, key, ui.rowData)
                                         : list.filter(v => v == key || v.Cd == key);
