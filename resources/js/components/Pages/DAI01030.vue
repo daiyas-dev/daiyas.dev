@@ -933,21 +933,6 @@ export default {
                 })
                 ;
 
-            // //グループ検索
-            // axios.post("/Utilities/GetGroupCustomerList", params)
-            //     .then(res => {
-            //         // TODO西山確認中
-            //         var groupCustomer;
-            //         groupCustomer = res.data;
-            //         vue.viewModel.GroupCustomerCd = groupCustomer.map((v, i) => v.得意先ＣＤ);
-            //         vue.$refs.GroupCustomerCd.entities = groupCustomer;
-            //     })
-            //     .catch(err => {
-            //         console.log("/DAI01030/GroupCustomer Error", err);
-            //     })
-            //     ;
-
-
             return res;
         },
         onSelectChangeFunc: function(grid, ui) {
@@ -1019,6 +1004,8 @@ export default {
                     CustomerCd: vm.GroupCustomerCd,
                 }
             });
+
+            vue.viewModel.CustomerCd = vm.GroupCustomerCd;
         },
         CustomerAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
