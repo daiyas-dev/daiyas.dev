@@ -286,43 +286,22 @@ class DAI01030Controller extends Controller
         $CustomerCd = $request->CustomerCd;
         $DeliveryDate = $request->DeliveryDate;
 
-        //TODO西山
-        // $sql = "
-        //     SELECT
-        //         CD.備考１,
-        //         CD.備考２,
-        //         CD.備考３,
-        //         CD.備考４,
-        //         CD.備考５
-        //     FROM
-        //         注文データ CD
-        //     WHERE
-        //         CD.得意先ＣＤ = $CustomerCd
-        //         AND	CD.部署ＣＤ = $BushoCd
-        //         AND CD.配送日 = '$DeliveryDate'
-        // ";
-        // $sql = "
-        //     SELECT
-        //         配送日,
-        //         注文日付,
-        //         特記_社内用,
-        //         特記_配送用,
-        //         特記_通知用
-        //     FROM
-        //         注文データ
-        //     WHERE
-        //         得意先ＣＤ = $CustomerCd
-        //         AND	部署ＣＤ = $BushoCd
-        //         --AND 配送日 = '$DeliveryDate'
-        //     ORDER BY 注文日付 desc
-        // ";
         $sql = "
             SELECT TK.得意先ＣＤ
                 ,IIF(CD.得意先ＣＤ IS NULL, TK.備考１, CD.特記_社内用) AS 備考社内
                 ,IIF(CD.得意先ＣＤ IS NULL, TK.備考２, CD.特記_配送用) AS 備考配送
                 ,IIF(CD.得意先ＣＤ IS NULL, TK.備考３, CD.特記_通知用) AS 備考通知
-                ,TK.備考１ ,TK.備考２ ,TK.備考３
-                ,CD.特記_社内用 ,CD.特記_配送用 ,CD.特記_通知用
+                ,TK.備考１ as TK備考１
+                ,TK.備考２ as TK備考２
+                ,TK.備考３ as TK備考３
+                ,CD.備考１ as CD備考１
+                ,CD.備考２ as CD備考２
+                ,CD.備考３ as CD備考３
+                ,CD.備考４ as CD備考４
+                ,CD.備考５ as CD備考５
+                ,CD.特記_社内用
+                ,CD.特記_配送用
+                ,CD.特記_通知用
             FROM 得意先マスタ TK
 
             LEFT OUTER JOIN 注文データ CD

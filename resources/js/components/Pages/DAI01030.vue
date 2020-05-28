@@ -353,12 +353,14 @@ export default {
                 IsDeliveried: false,
                 LastEditor: null,
                 LastEditDate: null,
-                //TODO
-                // BikouForControl: _.fill(Array(5), null),
-                // BikouForDelivery: _.fill(Array(5), null),
                 BikouForControl: null,
                 BikouForDelivery: null,
                 BikouForNotification: null,
+                ChumonBikou1: null,
+                ChumonBikou2: null,
+                ChumonBikou3: null,
+                ChumonBikou4: null,
+                ChumonBikou5: null,
                 IsShowAll: null,
                 GroupCustomerCd: null,
             },
@@ -873,34 +875,9 @@ export default {
             var deliverTime = _.max(res.map(v => v.注文時間));
             vue.viewModel.DeliveryTime = deliverTime || moment().format("HH:mm:ss");
 
-            //TODO確認用
-            // vue.viewModel.IsEdit = true;
-            // if (vue.viewModel.IsEdit) {
-            if (!vue.viewModel.IsEdit) {
+            if (vue.viewModel.IsEdit) {
                 var params = _.cloneDeep(vue.searchParams);
                 params.noCache = true;
-
-                //備考
-                axios.post("/DAI01030/GetBikou", params)
-                    .then(res => {
-                        // TODO西山確認中
-                        var bikou;
-                        bikou = res.data
-                            .reduce((a, c) => a = _.mergeWith(a, c, (o, s) => {
-                                if (s == "\r\n") s = "";
-                                // return o.includes(s) ? o : (o + "," + s)
-                                return !!s ? (o.includes(s) ? o : (!!o ? (o + "\r\n" + s) : s)) : ""
-                            }));
-                        vue.viewModel.BikouForControl = bikou.備考社内;
-                        vue.viewModel.BikouForDelivery = bikou.備考配送;
-                        vue.viewModel.BikouForNotification = bikou.備考通知;
-
-                        // console.log("GetBikou", res.data, bikou, vue.viewModel.BikouForControl);
-                    })
-                    .catch(err => {
-                        console.log("/DAI01030/GetBikou Error", err);
-                    })
-                    ;
 
                 //最終修正日/担当者
                 axios.post("/DAI01030/GetLastEdit", params)
@@ -930,6 +907,35 @@ export default {
                 vue.viewModel.LastEditor = "";
                 vue.viewModel.LastEditDate = "";
             }
+
+            var params = _.cloneDeep(vue.searchParams);
+            params.noCache = true;
+
+            //備考
+            axios.post("/DAI01030/GetBikou", params)
+                .then(res => {
+                    // TODO西山確認中
+                    var bikou;
+                    bikou = res.data
+                        .reduce((a, c) => a = _.mergeWith(a, c, (o, s) => {
+                            if (s == "\r\n") s = "";
+                            // return o.includes(s) ? o : (o + "," + s)
+                            return !!s ? (o.includes(s) ? o : (!!o ? (o + "\r\n" + s) : s)) : ""
+                        }));
+                    vue.viewModel.BikouForControl = bikou.備考社内;
+                    vue.viewModel.BikouForDelivery = bikou.備考配送;
+                    vue.viewModel.BikouForNotification = bikou.備考通知;
+                    vue.viewModel.ChumonBikou1 = bikou.CD備考１;
+                    vue.viewModel.ChumonBikou2 = bikou.CD備考２;
+                    vue.viewModel.ChumonBikou3 = bikou.CD備考３;
+                    vue.viewModel.ChumonBikou4 = bikou.CD備考４;
+                    vue.viewModel.ChumonBikou5 = bikou.CD備考５;
+                    // console.log("GetBikou", res.data, bikou, vue.viewModel.BikouForControl);
+                })
+                .catch(err => {
+                    console.log("/DAI01030/GetBikou Error", err);
+                })
+                ;
 
 
             return res;
@@ -1081,11 +1087,11 @@ export default {
                 v.得意先ＣＤ = vue.viewModel.CustomerCd;
                 v.配送日 = v.配送日 || moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYY-MM-DD");
                 v.入力区分 = 0;
-                v.備考１ = vue.viewModel.BikouForControl[0];
-                v.備考２ = vue.viewModel.BikouForControl[1];
-                v.備考３ = vue.viewModel.BikouForControl[2];
-                v.備考４ = vue.viewModel.BikouForControl[3];
-                v.備考５ = vue.viewModel.BikouForControl[4];
+                v.備考１ = vue.viewModel.ChumonBikou1;
+                v.備考２ = vue.viewModel.ChumonBikou2;
+                v.備考３ = vue.viewModel.ChumonBikou3;
+                v.備考４ = vue.viewModel.ChumonBikou4;
+                v.備考５ = vue.viewModel.ChumonBikou5;
                 v.予備金額１ = v.単価;
                 v.予備金額２ = 0;
                 v.予備ＣＤ１ = 0;
