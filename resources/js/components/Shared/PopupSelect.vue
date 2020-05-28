@@ -483,7 +483,7 @@ export default {
             }
 
             if (vue.onAfterChangedFunc) {
-                vue.onAfterChangedFunc("");
+                vue.onAfterChangedFunc("", null, vue);
             }
             vue.getDataList();
         },

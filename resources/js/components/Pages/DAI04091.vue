@@ -477,8 +477,58 @@ export default {
             // options.dropModel.on = false;
             return options;
         },
+        canSearch: function() {
+            var vue = this;
+
+            return !!vue.viewModel.BushoCd && !!vue.viewModel.CourseCd && !!vue.viewModel.MngCd;
+        },
+        canSave: function() {
+            var vue = this;
+
+            return !!vue.viewModel.BushoCd && !!vue.viewModel.CourseCd && !!vue.viewModel.MngCd
+                && !!vue.viewModel.StartDate && !!vue.viewModel.EndDate;
+        },
+        canSearchOthers: function() {
+            var vue = this;
+
+            return !!vue.others.BushoCd && !!vue.others.CourseCd && !!vue.others.MngCd;
+        },
+        canSaveOthers: function() {
+            var vue = this;
+
+            return !!vue.others.BushoCd && !!vue.others.CourseCd && !!vue.others.MngCd
+                && !!vue.others.StartDate && !!vue.others.EndDate;
+        },
     },
     watch: {
+        canSearch: {
+            handler: function(newVal) {
+                var vue = this;
+                vue.footerButtons.find(v => v.id == "DAI04091_Search").disabled = !newVal;
+                vue.footerButtons.find(v => v.id == "DAI04091_SearchBoth").disabled = !newVal || !vue.canSearchOthers;
+            },
+        },
+        canSave: {
+            handler: function(newVal) {
+                var vue = this;
+                vue.footerButtons.find(v => v.id == "DAI04091_Save").disabled = !newVal;
+                vue.footerButtons.find(v => v.id == "DAI04091_SaveBoth").disabled = !newVal || !vue.canSearchOthers;
+            },
+        },
+        canSearchOthers: {
+            handler: function(newVal) {
+                var vue = this;
+                vue.footerButtons.find(v => v.id == "DAI04091_SearchOthers").disabled = !newVal;
+                vue.footerButtons.find(v => v.id == "DAI04091_SearchBoth").disabled = !newVal || !vue.canSearch;
+            },
+        },
+        canSaveOthers: {
+            handler: function(newVal) {
+                var vue = this;
+                vue.footerButtons.find(v => v.id == "DAI04091_SaveOthers").disabled = !newVal;
+                vue.footerButtons.find(v => v.id == "DAI04091_SaveBoth").disabled = !newVal || !vue.canSearch;
+            },
+        },
     },
     data() {
         var vue = this;
@@ -512,6 +562,7 @@ export default {
                 KindNm: null,
                 StartDate: null,
                 EndDate: null,
+                Memo: null,
             },
             DAI04091Grid1: null,
             DAI04091Grid2: null,
@@ -994,44 +1045,44 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
-                { visible: "true", value: "再検索(左)", id: "DAI04091_Search", disabled: false, shortcut: "F2",
+                { visible: "true", value: "再検索(左)", id: "DAI04091_Search", disabled: true, shortcut: "F2",
                     onClick: function () {
                         vue.conditionChanged(true);
                     }
                 },
-                { visible: "true", value: "保存(左)", id: "DAI04091_Save", disabled: false, shortcut: "F3",
+                { visible: "true", value: "保存(左)", id: "DAI04091_Save", disabled: true, shortcut: "F3",
                     onClick: function () {
                         vue.saveCourse();
                     }
                 },
-                { visible: "true", value: "削除(左)", id: "DAI04091_Delete", disabled: false, shortcut: "F4",
+                { visible: "true", value: "削除(左)", id: "DAI04091_Delete", disabled: true, shortcut: "F4",
                     onClick: function () {
                         vue.deleteCourse();
                     }
                 },
                 {visible: "false"},
-                { visible: "true", value: "再検索(両方)", id: "DAI04091_SearchBoth", disabled: false, shortcut: "F5",
+                { visible: "true", value: "再検索(両方)", id: "DAI04091_SearchBoth", disabled: true, shortcut: "F5",
                     onClick: function () {
                         vue.conditionChangedBoth(true);
                     }
                 },
-                { visible: "true", value: "保存(両方)", id: "DAI04091_SaveBoth", disabled: false, shortcut: "F6",
+                { visible: "true", value: "保存(両方)", id: "DAI04091_SaveBoth", disabled: true, shortcut: "F6",
                     onClick: function () {
                         vue.saveCourseBoth();
                     }
                 },
                 {visible: "false"},
-                { visible: "true", value: "再検索(右)", id: "DAI04091_SearchOthers", disabled: false, shortcut: "F9",
+                { visible: "true", value: "再検索(右)", id: "DAI04091_SearchOthers", disabled: true, shortcut: "F9",
                     onClick: function () {
                         vue.conditionChangedOthers(true);
                     }
                 },
-                { visible: "true", value: "保存(右)", id: "DAI04091_SaveOthers", disabled: false, shortcut: "F10",
+                { visible: "true", value: "保存(右)", id: "DAI04091_SaveOthers", disabled: true, shortcut: "F10",
                     onClick: function () {
                         vue.saveCourseOthers();
                     }
                 },
-                { visible: "true", value: "削除(右)", id: "DAI04091_DeleteOthers", disabled: false, shortcut: "F11",
+                { visible: "true", value: "削除(右)", id: "DAI04091_DeleteOthers", disabled: true, shortcut: "F11",
                     onClick: function () {
                         vue.deleteCourseOthers();
                     }
@@ -1067,6 +1118,10 @@ export default {
 
             vue.DAI04091Grid1.setLocalData(_.cloneDeep(empties));
             vue.DAI04091Grid2.setLocalData(_.cloneDeep(empties));
+
+            vue.footerButtons.find(v => v.id == "DAI04091_Search").disabled = !vue.canSearch;
+            vue.footerButtons.find(v => v.id == "DAI04091_SearchOthers").disabled = !vue.canSearchOthers;
+            vue.footerButtons.find(v => v.id == "DAI04091_SearchBoth").disabled = !vue.canSearch || !vue.canSearchOthers;
 
             //move node buttons
             $(vue.$el).find(".moveButtons .btn").on("click", event => vue.moveNodes(event, vue));
@@ -1363,6 +1418,92 @@ export default {
                                     contents: "変更内容の保存に失敗しました",
                                 });
                             }
+                            return false;
+                        },
+                    },
+                }
+            );
+        },
+        deleteCourse: function() {
+            var vue = this;
+            var grid1 = vue.DAI04091Grid1;
+
+            var params = _.cloneDeep(vue.viewModel);
+            params.idx = 0;
+
+            vue.delete(grid1, vue.viewModel, params);
+        },
+        deleteCourseOthers: function() {
+            var vue = this;
+            var grid2 = vue.DAI04091Grid2;
+
+            var params = _.cloneDeep(vue.others);
+            params.idx = 1;
+
+            vue.delete(grid2, vue.others, params);
+        },
+        delete: function(grid, model, params) {
+            var vue = this;
+
+            params.EditUserCd = vue.getLoginInfo().uid;
+
+            grid.saveData(
+                {
+                    uri: "/DAI04091/Delete",
+                    params: {
+                        Condition: params,
+                    },
+                    confirm: {
+                        isShow: true,
+                        title: "コーステーブル削除確認",
+                        message: "コーステーブルを削除します。宜しいですか？",
+                    },
+                    done: {
+                        isShow: false,
+                        callback: (gridVue, grid, res)=>{
+                            if (!!res.result) {
+                                $.dialogInfo({
+                                    title: "削除完了",
+                                    contents: "内容の削除が完了しました。",
+                                });
+                                vue.params.parent.conditionChanged();
+
+                                model.MngCd = null;
+
+                                var comp = params.idx == 0
+                                    ? vue.$refs.PopupSelect_MngCd
+                                    : vue.$refs.PopupSelect_MngCdOthers;
+
+                                comp.getDataList(
+                                    {
+                                        BushoCd: model.BushoCd,
+                                        CourseCd: model.CourseCd,
+                                        WithNew: true,
+                                        noCache: true,
+                                    }
+                                );
+
+                                grid.refreshDataAndView();
+
+                            } else {
+                                $.dialogErr({
+                                    title: "削除失敗",
+                                    contents: res.message,
+                                });
+                            }
+
+                            return false;
+                        },
+                    },
+                    error: {
+                        isShow: false,
+                        callback: (vue, grid, error)=>{
+                            console.log(error);
+                            $.dialogErr({
+                                title: "異常終了",
+                                contents: "内容の削除に失敗しました",
+                            });
+
                             return false;
                         },
                     },
