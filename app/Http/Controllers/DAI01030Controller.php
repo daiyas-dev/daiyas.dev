@@ -310,9 +310,6 @@ class DAI01030Controller extends Controller
             AND CD.部署ＣＤ = $BushoCd
             AND CD.配送日 = '$DeliveryDate'
             WHERE TK.得意先ＣＤ = $CustomerCd
-            --AND CD.部署ＣＤ = 101
-            --AND CD.配送日 = '20190904'
-            --WHERE TK.得意先ＣＤ IN (809, 2283, 2958)
         ";
 
         $Result = DB::select($sql);

@@ -37,8 +37,8 @@
                     id="GroupCustomerCd"
                     :vmodel=viewModel
                     bind="GroupCustomerCd"
-                    uri="/Utilities/GetCustomerAndCourseList"
-                    :params="{ targetDate: FormattedDeliveryDate, groupCustomerCd: viewModel.CustomerCd }"
+                    uri="/Utilities/GetGroupCustomerList"
+                    :params="{ CustomerCd: viewModel.CustomerCd }"
                     customStyle="{width: 200px}"
                     :withCode=true
                     :hasNull=true
@@ -900,10 +900,7 @@ export default {
                     ;
 
             } else {
-                //TODO西山
                 vue.viewModel.IsDeliveried = false;
-                // vue.viewModel.BikouForControl.splice(0, 1, "登録");
-                // vue.viewModel.BikouForControl.fill(null, 1);
                 vue.viewModel.LastEditor = "";
                 vue.viewModel.LastEditDate = "";
             }
@@ -914,7 +911,6 @@ export default {
             //備考
             axios.post("/DAI01030/GetBikou", params)
                 .then(res => {
-                    // TODO西山確認中
                     var bikou;
                     bikou = res.data
                         .reduce((a, c) => a = _.mergeWith(a, c, (o, s) => {
@@ -936,6 +932,20 @@ export default {
                     console.log("/DAI01030/GetBikou Error", err);
                 })
                 ;
+
+            // //グループ検索
+            // axios.post("/Utilities/GetGroupCustomerList", params)
+            //     .then(res => {
+            //         // TODO西山確認中
+            //         var groupCustomer;
+            //         groupCustomer = res.data;
+            //         vue.viewModel.GroupCustomerCd = groupCustomer.map((v, i) => v.得意先ＣＤ);
+            //         vue.$refs.GroupCustomerCd.entities = groupCustomer;
+            //     })
+            //     .catch(err => {
+            //         console.log("/DAI01030/GroupCustomer Error", err);
+            //     })
+            //     ;
 
 
             return res;
@@ -989,7 +999,7 @@ export default {
             return ret;
         },
         GroupCustomerParamsChangedCheckFunc: function(newVal, oldVal) {
-            var ret = !!newVal.targetDate && !!newVal.groupCustomerCd;
+            var ret = !!newVal.CustomerCd;
             return ret;
         },
         onGroupCustomerChanged: function() {
