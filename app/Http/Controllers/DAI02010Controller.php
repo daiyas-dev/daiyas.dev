@@ -183,10 +183,32 @@ class DAI02010Controller extends Controller
                 T1.部署ＣＤ = $BushoCd
             $WhereTargetDate
             $WehreCustomerCd
-        )
+        ),
+
+		未分配データ AS
+		(
+			SELECT 得意先ＣＤ
+			FROM
+				売上データ明細
+			WHERE 0=0
+			AND 日付 <= '$TargetDateMax'
+			AND 部署ＣＤ = $BushoCd
+			AND 得意先ＣＤ IN
+				(
+				SELECT 得意先ＣＤ
+				FROM 得意先マスタ
+				WHERE 0=0
+				--未分配の条件
+				AND	得意先ＣＤ != 受注得意先ＣＤ
+				AND 現金個数 + 掛売個数 > 0
+				GROUP BY 得意先ＣＤ
+				)
+			GROUP BY 得意先ＣＤ
+		)
 
         SELECT
-             M1.得意先ＣＤ
+             IIF(U1.得意先ＣＤ IS NOT NULL, '未分配', '') AS 分配区分
+            ,M1.得意先ＣＤ
             ,M1.得意先名
             ,M1.売掛現金区分
             ,M1.締区分
@@ -202,6 +224,7 @@ class DAI02010Controller extends Controller
             ,T1.*
         FROM
             得意先マスタ M1
+            LEFT OUTER JOIN 未分配データ U1 ON M1.得意先ＣＤ = U1.得意先ＣＤ
             $sqlCourse
             LEFT OUTER JOIN 属性データ T1 ON T1.請求先ＣＤ = M1.請求先ＣＤ
         WHERE

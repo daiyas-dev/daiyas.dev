@@ -123,6 +123,7 @@
                         {code: '1', name: '残高無しも出力', label: '残高無しも出力'},
                         {code: '2', name: '残高ゼロは出力しない', label: '残高ゼロは出力しない'},
                         {code: '3', name: 'ルートが無い得意先を出力', label: 'ルートが無い得意先を出力'},
+                        {code: '4', name: '未分配以外', label: '未分配以外'},
                     ]"
                     :onChangedFunc=onSearchOptionsChanged
                 />
@@ -394,6 +395,12 @@ export default {
                         dataType: "string",
                         width: 200, minWidth: 200,
                         tooltip: true,
+                    },
+                    {
+                        title: "分配区分",
+                        dataIndx: "分配区分",
+                        dataType: "string",
+                        width: 75, minWidth: 75, maxWidth: 75,
                     },
                     {
                         title: "コード",
@@ -865,6 +872,11 @@ export default {
                 if (vue.viewModel.PrintOrder == "1") {
                     rules.push({ dataIndx: "コースＣＤ", condition: "notequal", value: "0" });
                 }
+            }
+
+            //未分配
+            if (vue.viewModel.SearchOptions.includes("4")) {
+                rules.push({ dataIndx: "分配区分", condition: "notequal", value: "未分配" });
             }
 
             //コース
