@@ -362,7 +362,7 @@ export default {
 
             if (!dataList.length) return [];
 
-            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keywords = !!input ? editKeywords((input + "").split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v)) : [];
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 
@@ -695,7 +695,7 @@ export default {
             //TODO:カラー印刷はブラウザから印刷設定を制御できないようなので、定義のみ記述しました。
             var printOptions = {
                 type: "raw-html",
-                style: "@media print and (color) { @page { size: A4 portrait; }; -webkit-print-color-adjust: exact; }",
+                style: "@media print and (color) { @page { size: A4 portrait; }}",
                 printable: printable,
             };
             printJS(printOptions);

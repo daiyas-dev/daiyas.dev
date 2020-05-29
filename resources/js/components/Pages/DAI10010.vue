@@ -395,16 +395,24 @@ export default {
                         },
                     },
                     {
-                        title: "値引事由",
-                        dataIndx: "値引事由",
-                        dataType: "integer",
+                        title: "備考",
+                        dataIndx: "備考",
+                        dataType: "string",
                         align: "left",
                         width: 150, maxWidth: 150, minWidth: 150,
                         editable: true,
-                        selectList: "DiscountList",
-                        selectLabel: "Cd == 0 ? '' : (Cd + ')' + CdNm)",
-                        selectNullFirst: false,
                     },
+                    // {
+                    //     title: "値引事由",
+                    //     dataIndx: "値引事由",
+                    //     dataType: "integer",
+                    //     align: "left",
+                    //     width: 150, maxWidth: 150, minWidth: 150,
+                    //     editable: true,
+                    //     selectList: "DiscountList",
+                    //     selectLabel: "Cd == 0 ? '' : (Cd + ')' + CdNm)",
+                    //     selectNullFirst: false,
+                    // },
                     {
                         title: "売掛現金区分",
                         dataIndx: "売上売掛現金区分",
@@ -719,7 +727,7 @@ export default {
             if (!dataList.length) return [];
             if (input == null || input == undefined) return dataList;
 
-            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keywords = !!input ? editKeywords((input + "").split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v)) : [];
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 
@@ -755,7 +763,7 @@ export default {
 
             if (!dataList.length) return [];
 
-            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keywords = !!input ? editKeywords((input + "").split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v)) : [];
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 
@@ -796,7 +804,7 @@ export default {
 
             if (!dataList.length) return [];
 
-            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keywords = !!input ? editKeywords((input + "").split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v)) : [];
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 

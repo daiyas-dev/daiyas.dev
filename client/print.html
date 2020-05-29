@@ -5,10 +5,23 @@
     window.$ = window.jQuery = require("jquery");
     const ipcRenderer = require("electron").ipcRenderer;
 
-
     ipcRenderer.on("Print_Set", (event, content) => {
         document.body.innerHTML = content;
-        ipcRenderer.send("Print_Ready");
+
+        if (!!$("img").length) {
+            var tmr = setInterval(
+                () => {
+                    var loaded = $("img").map((i, e) => e.complete).get().every(v => v == true);
+                    if (!!loaded) {
+                        clearInterval(tmr);
+                        ipcRenderer.send("Print_Ready");
+                    }
+                },
+                100
+            );
+        } else {
+            ipcRenderer.send("Print_Ready");
+        }
     });
 </script>
 </head>

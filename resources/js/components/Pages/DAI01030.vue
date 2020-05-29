@@ -37,8 +37,8 @@
                     id="GroupCustomerCd"
                     :vmodel=viewModel
                     bind="GroupCustomerCd"
-                    uri="/Utilities/GetCustomerAndCourseList"
-                    :params="{ targetDate: FormattedDeliveryDate, groupCustomerCd: viewModel.CustomerCd }"
+                    uri="/Utilities/GetGroupCustomerList"
+                    :params="{ CustomerCd: viewModel.CustomerCd }"
                     customStyle="{width: 200px}"
                     :withCode=true
                     :hasNull=true
@@ -178,23 +178,55 @@
                 <label style="width: auto; max-width: unset;">備考(社内)</label>
             </div>
             <div class="col-md-5 d-block">
-                <input v-for="(bikou, index) in viewModel.BikouForControl"
+                <!-- <input v-for="(bikou, index) in viewModel.BikouForControl"
                     v-bind:key=index
                     :id='"BikouForControl" + (index + 1)'
                     v-model=viewModel.BikouForControl[index]
                     class="bikou w-100"
-                />
+                /> -->
+                <textarea
+                    id="bikou-shanai"
+                    v-model=viewModel.BikouForControl
+                    type="text"
+                    v-maxBytes="200"
+                    class="bikou w-100"
+                ></textarea>
             </div>
             <div class="col-md-1 d-block">
                 <label style="width: 100%; max-width: unset; text-align: center;">備考(配送)</label>
             </div>
             <div class="col-md-5 d-block">
-                <input v-for="(bikou, index) in viewModel.BikouForDelivery"
+                <!-- <input v-for="(bikou, index) in viewModel.BikouForDelivery"
                     v-bind:key=index
                     :id='"BikouForDelivery" + (index + 1)'
                     v-model=viewModel.BikouForDelivery[index]
                     class="bikou w-100"
-                />
+                /> -->
+                <textarea
+                    id="bikou-haiso"
+                    v-model=viewModel.BikouForDelivery
+                    type="text"
+                    v-maxBytes="200"
+                    class="bikou w-100"
+                ></textarea>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1 d-block">
+            </div>
+            <div class="col-md-5 d-block">
+            </div>
+            <div class="col-md-1 d-block">
+                <label style="width: 100%; max-width: unset; text-align: center;">備考(通知)</label>
+            </div>
+            <div class="col-md-5 d-block">
+                <textarea
+                    id="bikou-tuuchi"
+                    v-model=viewModel.BikouForNotification
+                    type="text"
+                    v-maxBytes="200"
+                    class="bikou w-100"
+                ></textarea>
             </div>
         </div>
         <div class="row">
@@ -321,8 +353,14 @@ export default {
                 IsDeliveried: false,
                 LastEditor: null,
                 LastEditDate: null,
-                BikouForControl: _.fill(Array(5), null),
-                BikouForDelivery: _.fill(Array(5), null),
+                BikouForControl: null,
+                BikouForDelivery: null,
+                BikouForNotification: null,
+                ChumonBikou1: null,
+                ChumonBikou2: null,
+                ChumonBikou3: null,
+                ChumonBikou4: null,
+                ChumonBikou5: null,
                 IsShowAll: null,
                 GroupCustomerCd: null,
             },
@@ -766,7 +804,8 @@ export default {
 
             if (!dataList || !dataList.length) return [];
 
-            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            console.log("1030 input", input);
+            var keywords = !!input ? editKeywords((input + "").split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v)) : [];
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 
@@ -840,23 +879,6 @@ export default {
                 var params = _.cloneDeep(vue.searchParams);
                 params.noCache = true;
 
-                //備考
-                axios.post("/DAI01030/GetBikou", params)
-                    .then(res => {
-                        var bikou = res.data
-                            .reduce((a, c) => a = _.mergeWith(a, c, (o, s) => {
-                                if (s == "\r\n") s = "";
-                                return o.includes(s) ? o : (o + "," + s)
-                            }));
-
-                        _.values(bikou).map(v => !!v ? v.replace(/\r\n/g, "") : v).forEach((v, i) => vue.viewModel.BikouForControl.splice(i, 1, v));
-                        console.log("GetBikou", res.data, bikou, vue.viewModel.BikouForControl);
-                    })
-                    .catch(err => {
-                        console.log("/DAI01030/GetBikou Error", err);
-                    })
-                    ;
-
                 //最終修正日/担当者
                 axios.post("/DAI01030/GetLastEdit", params)
                     .then(res => {
@@ -879,12 +901,37 @@ export default {
 
             } else {
                 vue.viewModel.IsDeliveried = false;
-                vue.viewModel.BikouForControl.splice(0, 1, "登録");
-                vue.viewModel.BikouForControl.fill(null, 1);
                 vue.viewModel.LastEditor = "";
                 vue.viewModel.LastEditDate = "";
             }
 
+            var params = _.cloneDeep(vue.searchParams);
+            params.noCache = true;
+
+            //備考
+            axios.post("/DAI01030/GetBikou", params)
+                .then(res => {
+                    var bikou;
+                    bikou = res.data
+                        .reduce((a, c) => a = _.mergeWith(a, c, (o, s) => {
+                            if (s == "\r\n") s = "";
+                            // return o.includes(s) ? o : (o + "," + s)
+                            return !!s ? (o.includes(s) ? o : (!!o ? (o + "\r\n" + s) : s)) : ""
+                        }));
+                    vue.viewModel.BikouForControl = bikou.備考社内;
+                    vue.viewModel.BikouForDelivery = bikou.備考配送;
+                    vue.viewModel.BikouForNotification = bikou.備考通知;
+                    vue.viewModel.ChumonBikou1 = bikou.CD備考１;
+                    vue.viewModel.ChumonBikou2 = bikou.CD備考２;
+                    vue.viewModel.ChumonBikou3 = bikou.CD備考３;
+                    vue.viewModel.ChumonBikou4 = bikou.CD備考４;
+                    vue.viewModel.ChumonBikou5 = bikou.CD備考５;
+                    // console.log("GetBikou", res.data, bikou, vue.viewModel.BikouForControl);
+                })
+                .catch(err => {
+                    console.log("/DAI01030/GetBikou Error", err);
+                })
+                ;
 
             return res;
         },
@@ -937,7 +984,7 @@ export default {
             return ret;
         },
         GroupCustomerParamsChangedCheckFunc: function(newVal, oldVal) {
-            var ret = !!newVal.targetDate && !!newVal.groupCustomerCd;
+            var ret = !!newVal.CustomerCd;
             return ret;
         },
         onGroupCustomerChanged: function() {
@@ -957,13 +1004,15 @@ export default {
                     CustomerCd: vm.GroupCustomerCd,
                 }
             });
+
+            vue.viewModel.CustomerCd = vm.GroupCustomerCd;
         },
         CustomerAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
 
             if (!dataList.length) return [];
 
-            var keywords = editKeywords(input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v));
+            var keywords = editKeywords((input + "").split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v));
 
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
@@ -1035,16 +1084,20 @@ export default {
                 v.得意先ＣＤ = vue.viewModel.CustomerCd;
                 v.配送日 = v.配送日 || moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYY-MM-DD");
                 v.入力区分 = 0;
-                v.備考１ = vue.viewModel.BikouForControl[0];
-                v.備考２ = vue.viewModel.BikouForControl[1];
-                v.備考３ = vue.viewModel.BikouForControl[2];
-                v.備考４ = vue.viewModel.BikouForControl[3];
-                v.備考５ = vue.viewModel.BikouForControl[4];
+                v.備考１ = vue.viewModel.ChumonBikou1;
+                v.備考２ = vue.viewModel.ChumonBikou2;
+                v.備考３ = vue.viewModel.ChumonBikou3;
+                v.備考４ = vue.viewModel.ChumonBikou4;
+                v.備考５ = vue.viewModel.ChumonBikou5;
                 v.予備金額１ = v.単価;
                 v.予備金額２ = 0;
                 v.予備ＣＤ１ = 0;
                 v.予備ＣＤ２ = 0;
                 v.修正担当者ＣＤ = vue.getLoginInfo().uid;
+                //TODO
+                v.特記_社内用 = vue.viewModel.BikouForControl;
+                v.特記_配送用 = vue.viewModel.BikouForDelivery;
+                v.特記_通知用 = vue.viewModel.BikouForNotification;
 
                 delete v.商品名;
                 delete v.単価;

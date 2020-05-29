@@ -560,7 +560,7 @@ export default {
             var comp = vue.$refs.PopupSelect_Course;
             if (input == comp.selectValue && comp.isUnique) return dataList;
 
-            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keywords = !!input ? editKeywords((input + "").split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v)) : [];
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 
@@ -595,7 +595,7 @@ export default {
             var comp = vue.$refs.PopupSelect_Customer;
             if (input == comp.selectValue && comp.isUnique) return dataList;
 
-            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keywords = !!input ? editKeywords((input + "").split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v)) : [];
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 
@@ -1107,6 +1107,7 @@ export default {
                             "副食ＣＤ": 0,
                             "分配元数量": 0,
                             "食事区分": upd.食事区分,
+                            "備考": "",
                             "修正担当者ＣＤ": vue.getLoginInfo().uid,
                             "修正日": !!upd[k + "_情報"] ? upd[k + "_情報"][0].修正日 : null,
                         };

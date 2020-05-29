@@ -61,7 +61,7 @@ class DAI04091Controller extends Controller
         $WhereMngCd = $Kind == 0 ? "" : "AND 管理ＣＤ=$MngCd";
 
         //期間重複チェック
-        $WhereSelf = is_numeric($MngCd) ? "AND 管理ＣＤ=$MngCd" : "";
+        $WhereSelf = is_numeric($MngCd) ? "AND 管理ＣＤ != $MngCd" : "";
         $ChkSql = "
                 SELECT
                     COUNT(管理ＣＤ) AS DupCnt
@@ -85,6 +85,10 @@ class DAI04091Controller extends Controller
         DB::beginTransaction();
 
         try {
+            if ($Kind == 0) {
+                $MngCd = 0;
+            }
+
             if (is_numeric($MngCd)) {
                 $DelSql = "
                     DELETE FROM コーステーブル管理
@@ -149,6 +153,55 @@ class DAI04091Controller extends Controller
 
                 DB::insert($InsDataSql);
             }
+
+            DB::commit();
+        } catch (Exception $exception) {
+            DB::rollBack();
+            throw $exception;
+        }
+
+        return response()->json([
+            "result" => true,
+            "MngCd" => $MngCd,
+        ]);
+    }
+
+    /**
+     * Delete
+     */
+    public function Delete($request)
+    {
+        $params = $request->all();
+
+        $Condition = $params['Condition'];
+        $BushoCd = $Condition['BushoCd'];
+        $CourseCd = $Condition['CourseCd'];
+        $MngCd = $Condition['MngCd'];
+        $Kind = $Condition['Kind'];
+
+        $Table = $Kind == 0 ? "コーステーブル" : "コーステーブル一時";
+        $WhereMngCd = $Kind == 0 ? "" : "AND 管理ＣＤ=$MngCd";
+
+        DB::beginTransaction();
+
+        try {
+            $DelSql = "
+                DELETE FROM コーステーブル管理
+                WHERE
+                    部署ＣＤ=$BushoCd
+                AND コースＣＤ=$CourseCd
+                AND 管理ＣＤ=$MngCd
+            ";
+            DB::delete($DelSql);
+
+            $DelSql = "
+                DELETE FROM $Table
+                WHERE
+                    部署ＣＤ=$BushoCd
+                AND コースＣＤ=$CourseCd
+                $WhereMngCd
+            ";
+            DB::delete($DelSql);
 
             DB::commit();
         } catch (Exception $exception) {

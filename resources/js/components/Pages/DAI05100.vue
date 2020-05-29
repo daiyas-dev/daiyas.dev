@@ -382,7 +382,7 @@ export default {
                     },
                     {
                         title: "稼働日",
-                        dataIndx: "稼働日", dataType: "integer", format: "#,###",　
+                        dataIndx: "稼働日", dataType: "integer", format: "#,###",
                         width: 100, minWidth: 100, maxWidth: 100,
                         summary: {
                             type: "TotalInt",
@@ -390,7 +390,7 @@ export default {
                     },
                     {
                         title: "食数合計",
-                        dataIndx: "食数合計", dataType: "integer", format: "#,###",　
+                        dataIndx: "食数合計", dataType: "integer", format: "#,###",
                         width: 100, minWidth: 100, maxWidth: 100,
                         summary: {
                             type: "TotalInt",
@@ -404,7 +404,7 @@ export default {
                     },
                     {
                         title: "食数平均",
-                        dataIndx: "食数平均", dataType: "float", format: "#,###.0",　
+                        dataIndx: "食数平均", dataType: "float", format: "#,###.0",
                         width: 100, minWidth: 100, maxWidth: 100,
                         render: ui => {
                             if (ui.rowData[ui.dataIndx] * 1 == 0 || ui.rowData.食数合計 * 1 == 0 || ui.rowData.稼働日 * 1 == 0) {
@@ -441,7 +441,7 @@ export default {
                     },
                     {
                         title: "売上金額",
-                        dataIndx: "売上金額", dataType: "integer", format: "#,###",　
+                        dataIndx: "売上金額", dataType: "integer", format: "#,###",
                         width: 115, minWidth: 115, maxWidth: 115,
                         summary: {
                             type: "TotalInt",
@@ -620,7 +620,7 @@ export default {
 
             if (!dataList.length) return [];
 
-            var keywords = input.split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v);
+            var keywords = !!input ? editKeywords((input + "").split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v)) : [];
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 

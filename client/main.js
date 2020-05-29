@@ -28,7 +28,7 @@ function createWindow() {
     mainWindow = new BrowserWindow({
         title: "ダイヤスクライアント",
         icon: __dirname + "/daiyas48.ico",
-        width: 1200,
+        width: 1250,
         height: 850,
         center: true,
         //fullscreen: true,
@@ -41,7 +41,7 @@ function createWindow() {
 
     //AutoUpdater
     autoUpdater = appUpdater(log);
-    mainWindow.webContents.send("log", "autoUpdater", autoUpdater);
+    //mainWindow.webContents.send("log", "autoUpdater", autoUpdater);
     var updateInterval = setInterval(() => autoUpdater.checkForUpdatesAndNotify(), 10000);
 
     //mainWindow.setMenu(null);
@@ -53,7 +53,6 @@ function createWindow() {
         mainWindow = null
     });
 
-
     //print window
     printWindow = new BrowserWindow({
         title: "印刷プレビュー",
@@ -62,7 +61,7 @@ function createWindow() {
         center: false,
         parent: mainWindow,
         modal: true,
-        resizable: false,
+        resizable: true,
         maximizable: false,
         minimizable: false,
         closable: false,
@@ -151,11 +150,15 @@ ipcMain.on("Print_Req", (event, content, options) => {
 
     var w, h;
     if (printOptions.landscape) {
-        w = sw * 0.7;
-        h = w * 5 / 7;
+        // w = sw * 0.7;
+        // h = w * 5 / 7;
+        w = 1050;
+        h = 800;
     } else {
-        w = sw * 0.6;
-        h = sh * 0.8;
+        // w = sw * 0.6;
+        // h = sh * 0.8;
+        w = 700;
+        h = 800;
     }
 
     // printWindow.setMenu(null);   //TODO: to debug

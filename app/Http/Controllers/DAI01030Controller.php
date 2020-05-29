@@ -253,9 +253,9 @@ class DAI01030Controller extends Controller
                     INNER JOIN
                         [商品マスタ] ON 商品マスタ.商品ＣＤ = 注文データ.商品ＣＤ
                     INNER JOIN
-                        得意先単価 ON 注文データ.商品ＣＤ = 得意先単価マスタ.商品ＣＤ
+                        得意先単価 ON 注文データ.商品ＣＤ = 得意先単価.商品ＣＤ
                     AND
-                        注文データ.得意先ＣＤ = 得意先単価マスタ.得意先ＣＤ
+                        注文データ.得意先ＣＤ = 得意先単価.得意先ＣＤ
                 WHERE 注文区分 = 0
                     AND 注文データ.部署ＣＤ   = $BushoCd
                     AND 注文データ.得意先ＣＤ = $CustomerCd
@@ -287,18 +287,29 @@ class DAI01030Controller extends Controller
         $DeliveryDate = $request->DeliveryDate;
 
         $sql = "
-            SELECT
-                CD.備考１,
-                CD.備考２,
-                CD.備考３,
-                CD.備考４,
-                CD.備考５
-            FROM
-                注文データ CD
-            WHERE
-                CD.得意先ＣＤ = $CustomerCd
-                AND	CD.部署ＣＤ = $BushoCd
-                AND CD.配送日 = '$DeliveryDate'
+            SELECT TK.得意先ＣＤ
+                ,IIF(CD.得意先ＣＤ IS NULL, TK.備考１, CD.特記_社内用) AS 備考社内
+                ,IIF(CD.得意先ＣＤ IS NULL, TK.備考２, CD.特記_配送用) AS 備考配送
+                ,IIF(CD.得意先ＣＤ IS NULL, TK.備考３, CD.特記_通知用) AS 備考通知
+                ,TK.備考１ as TK備考１
+                ,TK.備考２ as TK備考２
+                ,TK.備考３ as TK備考３
+                ,CD.備考１ as CD備考１
+                ,CD.備考２ as CD備考２
+                ,CD.備考３ as CD備考３
+                ,CD.備考４ as CD備考４
+                ,CD.備考５ as CD備考５
+                ,CD.特記_社内用
+                ,CD.特記_配送用
+                ,CD.特記_通知用
+            FROM 得意先マスタ TK
+
+            LEFT OUTER JOIN 注文データ CD
+                ON CD.得意先ＣＤ = TK.得意先ＣＤ
+
+            AND CD.部署ＣＤ = $BushoCd
+            AND CD.配送日 = '$DeliveryDate'
+            WHERE TK.得意先ＣＤ = $CustomerCd
         ";
 
         $Result = DB::select($sql);
@@ -628,6 +639,9 @@ class DAI01030Controller extends Controller
                     $data['備考３'] = $data['備考３'] ?? '';
                     $data['備考４'] = $data['備考４'] ?? '';
                     $data['備考５'] = $data['備考５'] ?? '';
+                    $data['特記_社内用'] = $data['特記_社内用'] ?? '';
+                    $data['特記_配送用'] = $data['特記_配送用'] ?? '';
+                    $data['特記_通知用'] = $data['特記_通知用'] ?? '';
 
                     注文データ::insert($data);
                 }
