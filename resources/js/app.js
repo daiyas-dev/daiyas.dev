@@ -270,7 +270,7 @@ var initVueApp = () => {
             this.adjustContentHeight();
 
             //システム名
-            this.$emit("setSystemName", "画面確認用");
+            this.$emit("setSystemName", "ダイヤスクライアント");
         },
         beforeDestroy: function () {
             window.removeEventListener("resize", this.setWindowSize, false);

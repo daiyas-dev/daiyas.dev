@@ -47,7 +47,8 @@ function createWindow() {
     //mainWindow.setMenu(null);
     mainWindow.webContents.openDevTools();    //TODO: to debug
 
-    mainWindow.loadURL("https://daiyas.dev/");
+    // mainWindow.loadURL("https://daiyas.dev/");
+    mainWindow.loadURL("http://192.168.10.5/");
     //mainWindow.loadURL("http://192.168.1.109/");
     //mainWindow.loadURL("http://192.168.10.220/");
 

@@ -264,8 +264,8 @@ class DAI02010Controller extends Controller
 
         $pdo = new PDO($dsn, $user, $password);
         $stmt = $pdo->query($sql);
-        // $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $DataList = DB::select($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // $DataList = DB::select($sql);
         $pdo = null;
 
         return $DataList;
@@ -443,8 +443,8 @@ class DAI02010Controller extends Controller
 
         $pdo = new PDO($dsn, $user, $password);
         $stmt = $pdo->query($sql);
-        // $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $DataList = DB::select($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // $DataList = DB::select($sql);
         $pdo = null;
 
         return $DataList;

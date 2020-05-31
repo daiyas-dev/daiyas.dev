@@ -535,34 +535,34 @@ export default {
             IsFirstFocus: false,
             menus: [],
             selected: null,
+            systemName: null,
             viewModel: {
             },
         });
     },
-    updated: function () {
-        var vue = this;
-        vue.setCurrentPage();
-    },
-    activated: function() {
-        var vue = this;
-        vue.setMenus();
-    },
     methods: {
         createdFunc: function(vue) {
             vue.$root.$on("logOn", this.logOn);
+            vue.$root.$on("setSystemName", val => vue.systemName = val);
         },
         mountedFunc: function(vue) {
+            vue.setMenus();
+        },
+        activatedFunc: function(vue) {
             vue.setMenus();
         },
         logOn: function (info) {
             var vue = this;
             vue.setMenus();
         },
-        setCurrentPage: function() {
-
-        },
         setMenus: function() {
             var vue = this;
+
+            //Windowタイトル
+            window.document.title = vue.ScreenTitle;
+
+            //AppHeaderタイトル
+            vue.$root.$emit("setTitle", vue.ScreenTitle);
 
             //TopMenu読込待ち
             new Promise((resolve, reject) => {
@@ -573,7 +573,7 @@ export default {
                         clearInterval(timer);
                         return resolve(TopMenu.menus);
                     }
-                }, 500);
+                }, 300);
             })
             .then(menus => {
                 vue.menus = menus;

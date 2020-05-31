@@ -272,7 +272,8 @@ export default {
 
             //Windowタイトル
             if (ScreenTitle) {
-                window.document.title = this.systemName + "-" + ScreenTitle;
+                // window.document.title = this.systemName + "-" + ScreenTitle;
+                window.document.title = ScreenTitle;
             }
         },
         goHome: function() {
