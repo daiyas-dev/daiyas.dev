@@ -2,10 +2,19 @@
     <form id="this.$options.name">
         <div class="row" style="display: flex; align-items: baseline;">
             <div class="col-md-3">
-                <p><a href="./client/win/DaiyasClientSetup.exe" download="ダイヤスクライアントセットアップ.exe">CTI連携用クライアントのダウンロード </a></p>
+                <p class="ml-1 mb-0"><a href="./client/win/DaiyasClientSetup.exe" download="ダイヤスクライアントセットアップ.exe">CTI連携用クライアントのダウンロード </a></p>
             </div>
             <div class="col-md-9">
                 <label style="width: unset;">※本社CTI連携機能をお使いの方は左記クライアントをインストールして、システムをご利用ください</label>
+            </div>
+        </div>
+        <div class="row" style="display: flex; align-items: baseline;">
+            <div class="col-md-12">
+                <button @click="() => testCTI()">非通知</button>
+                <button @click="() => testCTI('0836585044')">1件該当</button>
+                <button @click="() => testCTI('0836313929')">複数該当</button>
+                <button @click="() => testCTI('0120444444')">該当なし</button>
+                <button @click="() => testCTI('0120030561')">非顧客登録済</button>
             </div>
         </div>
         <div class="row menu-panel">
@@ -139,6 +148,9 @@
     padding-left: 0px;
     padding-right: 0px;
     padding-bottom: 0px;
+}
+.tab-content .tab-pane button {
+    border-width: 1px;
 }
 .tab-content .tab-pane button#menu_DAI01010 {
     top: 0px;
@@ -569,6 +581,11 @@ export default {
                     vue.selected = menus[0].functionId;
                 }
             });
+        },
+        testCTI: function(no) {
+            var vue = this;
+            vue.$root.$refs.CtiReceiver.checkTelNo(no, moment().format("HH:mm:ss"));
+            return false;
         },
     }
 }

@@ -112,7 +112,7 @@
         <div class="row">
             <div class="col-md-1">
             </div>
-            <div class="col-md-11">
+            <!-- <div class="col-md-6">
                 <VueCheckList
                     id="SearchOptions"
                     :vmodel=viewModel
@@ -123,9 +123,32 @@
                         {code: '1', name: '残高無しも出力', label: '残高無しも出力'},
                         {code: '2', name: '残高ゼロは出力しない', label: '残高ゼロは出力しない'},
                         {code: '3', name: 'ルートが無い得意先を出力', label: 'ルートが無い得意先を出力'},
-                        {code: '4', name: '未分配以外', label: '未分配以外'},
                     ]"
                     :onChangedFunc=onSearchOptionsChanged
+                />
+            </div> -->
+            <div class="col-md-3">
+                <VueCheckList
+                    id="Untreated"
+                    :vmodel=viewModel
+                    bind="Untreated"
+                    customTitleStyle="justify-content: center;"
+                    customContentStyle="width: auto; margin-right: 15px;"
+                    :list="[
+                        {code: '1', name: '未処理のみ', label: '未処理のみ'},
+                    ]"
+                    :onChangedFunc=onUntreatedChanged
+                />
+                <VueCheckList
+                    id="Unshared"
+                    :vmodel=viewModel
+                    bind="Unshared"
+                    customTitleStyle="justify-content: center;"
+                    customContentStyle="width: auto; margin-right: 15px;"
+                    :list="[
+                        {code: '1', name: '未分配のみ', label: '未分配のみ'},
+                    ]"
+                    :onChangedFunc=onUnsharedChanged
                 />
             </div>
         </div>
@@ -289,6 +312,8 @@ export default {
                 CustomerCd: null,
                 CustomerNm: null,
                 SearchOptions: [],
+                Untreated: [],
+                Unshared: [],
             },
             pgId: "DAI02010",
             DAI02010Grid1: null,
@@ -297,7 +322,7 @@ export default {
             TargetDateFormat: "YYYY年MM月DD日",
             TargetDateDayViewHeaderFormat: "YYYY年MM月",
             grid1Options: {
-                selectionModel: { type: "row", mode: "block", row: true, column: true, },
+                selectionModel: { type: "row", mode: "block", row: true, },
                 showHeader: true,
                 showToolbar: false,
                 columnBorders: true,
@@ -385,7 +410,7 @@ export default {
                     },
                     {
                         title: "コード",
-                        dataIndx: "得意先ＣＤ",
+                        dataIndx: "請求先ＣＤ",
                         dataType: "integer",
                         width: 75, minWidth: 75, maxWidth: 75,
                     },
@@ -397,12 +422,6 @@ export default {
                         tooltip: true,
                     },
                     {
-                        title: "分配区分",
-                        dataIndx: "分配区分",
-                        dataType: "string",
-                        width: 75, minWidth: 75, maxWidth: 75,
-                    },
-                    {
                         title: "コード",
                         dataIndx: "コースＣＤ",
                         dataType: "integer",
@@ -412,7 +431,7 @@ export default {
                         title: "コース名",
                         dataIndx: "コース名",
                         dataType: "string",
-                        width: 150, minWidth: 150,
+                        width: 150, minWidth: 125,
                         tooltip: true,
                         render: ui => {
                             if (!ui.Export) {
@@ -527,6 +546,26 @@ export default {
                         zeroToEmpty: [true, false],
                     },
                     {
+                        title: "済",
+                        dataIndx: "締処理済",
+                        dataType: "integer",
+                        align: "center",
+                        width: 50, minWidth: 50, maxWidth: 50,
+                        render: ui => {
+                            return { text: ui.rowData.締処理済 == "1" ? "済" : "" };
+                        },
+                    },
+                    {
+                        title: "未分配",
+                        dataIndx: "未分配",
+                        dataType: "string",
+                        align: "center",
+                        width: 55, minWidth: 55, maxWidth: 55,
+                        render: ui => {
+                            return { text: ui.rowData.未分配 == "1" ? "×" : "" };
+                        },
+                    },
+                    {
                         title: "残高有無判定",
                         dataIndx: "残高有無判定",
                         dataType: "bool",
@@ -556,7 +595,8 @@ export default {
                     }
                 },
                 { visible: "false" } ,
-                { visible: "true", value: "実行", id: "DAI02010Grid1_ExecuteAll", disabled: false, shortcut: "F5",
+                { visible: "false" } ,
+                { visible: "true", value: "実行", id: "DAI02010Grid1_ExecuteAll", disabled: true, shortcut: "F5",
                     onClick: function () {
                         var grid = vue.DAI02010Grid1;
 
@@ -565,7 +605,7 @@ export default {
                             {
                                 uri: "/DAI02010/Save",
                                 params: {
-                                    CustomerList: DAI02010Grid1.pdata.map(v => v.得意先ＣＤ),
+                                    CustomerList: DAI02010Grid1.pdata.map(v => v.請求先ＣＤ),
                                 },
                                 optional: vue.searchParams,
                                 confirm: {
@@ -578,7 +618,8 @@ export default {
                         );
                     }
                 },
-                { visible: "true", value: "個別実行", id: "DAI02010Grid1_ExecuteSingle", disabled: false, shortcut: "F6",
+                { visible: "false" } ,
+                { visible: "true", value: "個別実行", id: "DAI02010Grid1_ExecuteSingle", disabled: true, shortcut: "F6",
                     onClick: function () {
                         var grid = vue.DAI02010Grid1;
                         var selection = grid.SelectRow().getSelection();
@@ -593,7 +634,7 @@ export default {
                             {
                                 uri: "/DAI02010/Save",
                                 params: {
-                                    CustomerList: data.得意先ＣＤ,
+                                    CustomerList: data.請求先ＣＤ,
                                 },
                                 optional: vue.searchParams,
                                 confirm: {
@@ -606,7 +647,7 @@ export default {
                         );
                     }
                 },
-                { visible: "true", value: "個別解除", id: "DAI02010Grid1_ReleaseSingle", disabled: false, shortcut: "F7",
+                { visible: "true", value: "個別解除", id: "DAI02010Grid1_ReleaseSingle", disabled: true, shortcut: "F7",
                     onClick: function () {
                         var grid = vue.DAI02010Grid1;
                         var selection = grid.SelectRow().getSelection();
@@ -621,7 +662,7 @@ export default {
                             {
                                 uri: "/DAI02010/Release",
                                 params: {
-                                    CustomerList: data.得意先ＣＤ,
+                                    CustomerList: data.請求先ＣＤ,
                                 },
                                 optional: vue.searchParams,
                                 confirm: {
@@ -635,26 +676,42 @@ export default {
                     }
                 },
                 { visible: "false" } ,
-                { visible: "true", value: "CSV", id: "DAI02010Grid1_CSV", disabled: true, shortcut: "F10",
+                { visible: "false" } ,
+                { visible: "true", value: "未分配一覧", id: "DAI02010Grid1_ShowUnshared", disabled: true, shortcut: "F10",
                     onClick: function () {
-                        vue.DAI02010Grid1.vue.exportData("csv", false, true);
-                    }
-                },
-                { visible: "true", value: "Excel", id: "DAI02010Grid1_Excel", disabled: true, shortcut: "F9",
-                    onClick: function () {
-                        vue.DAI02010Grid1.vue.exportData("xlsx", false, true);
-                    }
-                },
-                { visible: "true", value: "印刷", id: "DAI02010Grid1_Print", disabled: true, shortcut: "F11",
-                    onClick: function () {
-                        vue.print();
+                        vue.showUnshared();
                     }
                 },
             );
         },
         mountedFunc: function(vue) {
-            vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
-            vue.viewModel.TargetDateMax = moment().format("YYYY年MM月DD日");
+            //TODO:
+            vue.viewModel.SimeKbn = "2";
+            vue.viewModel.SimeDate = "20";
+            vue.viewModel.TargetDate = moment('20190320').format("YYYY年MM月DD日");
+            vue.viewModel.TargetDateMax = moment(20190320).format("YYYY年MM月DD日");
+
+            // vue.viewModel.SimeKbn = "2";
+            // vue.viewModel.SimeDate = "15";
+            // vue.viewModel.TargetDate = moment('20190915').format("YYYY年MM月DD日");
+            // vue.viewModel.TargetDateMax = moment(20190915).format("YYYY年MM月DD日");
+
+            // vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
+            // vue.viewModel.TargetDateMax = moment().format("YYYY年MM月DD日");
+
+            //watcher
+            vue.$watch(
+                "$refs.DAI02010Grid1.selectionRowList",
+                list => {
+                    var data = list.map(v => v.rowData);
+                    console.log("2010 selectrow change")
+                    vue.footerButtons.find(v => v.id == "DAI02010Grid1_ExecuteSingle").disabled =
+                        data.some(r => r.締処理済 == 1) || data.some(r => r.未分配 == 1);
+                    vue.footerButtons.find(v => v.id == "DAI02010Grid1_ReleaseSingle").disabled =
+                        data.some(r => r.締処理済 == 0) || data.some(r => r.未分配 == 1);
+                    vue.footerButtons.find(v => v.id == "DAI02010Grid1_ShowUnshared").disabled = data.some(r => r.未分配 == 0);
+                }
+            );
 
             vue.changeScreen(vue);
 
@@ -782,6 +839,18 @@ export default {
             //フィルタ変更ハンドラ
             vue.filterChanged();
         },
+        onUntreatedChanged: function(code, entities) {
+            var vue = this;
+
+            //フィルタ変更ハンドラ
+            vue.filterChanged();
+        },
+        onUnsharedChanged: function(code, entities) {
+            var vue = this;
+
+            //フィルタ変更ハンドラ
+            vue.filterChanged();
+        },
         onCourseChanged: function(code, entity, comp) {
             var vue = this;
 
@@ -842,41 +911,46 @@ export default {
 
             var rules = [];
 
-            //締日
-            if (vue.viewModel.SimeKbn == "2") {
-                // if (!!vue.viewModel.SimeDateArray.length) {
-                //     var crules = vue.viewModel.SimeDateArray.map(d => {
-                //         return { condition: "contain", mode: "OR", value: "/" + d.code + "/" };
-                //     });
-                //     rules.push({ dataIndx: "締日", crules: crules });
-                // } else {
-                //     rules.push({ dataIndx: "締日", condition: "contain", value: "99" });
-                // }
-                rules.push({ dataIndx: "締日", condition: "contain", value: "0" });
-            }
+            // //締日
+            // if (vue.viewModel.SimeKbn == "2") {
+            //     // if (!!vue.viewModel.SimeDateArray.length) {
+            //     //     var crules = vue.viewModel.SimeDateArray.map(d => {
+            //     //         return { condition: "contain", mode: "OR", value: "/" + d.code + "/" };
+            //     //     });
+            //     //     rules.push({ dataIndx: "締日", crules: crules });
+            //     // } else {
+            //     //     rules.push({ dataIndx: "締日", condition: "contain", value: "99" });
+            //     // }
+            //     rules.push({ dataIndx: "締日", condition: "contain", value: "0" });
+            // }
 
-            //残高無し表示
-            if (!vue.viewModel.SearchOptions.includes("1")) {
-                rules.push({ dataIndx: "残高有無判定", condition: "equal", value: true });
-            }
+            // //残高無し表示
+            // if (!vue.viewModel.SearchOptions.includes("1")) {
+            //     rules.push({ dataIndx: "残高有無判定", condition: "equal", value: true });
+            // }
 
-            //残高ゼロ非表示
-            if (vue.viewModel.SearchOptions.includes("2")) {
-                rules.push({ dataIndx: "今回請求額", condition: "notequal", value: "0" });
-            }
+            // //残高ゼロ非表示
+            // if (vue.viewModel.SearchOptions.includes("2")) {
+            //     rules.push({ dataIndx: "今回請求額", condition: "notequal", value: "0" });
+            // }
 
-            //ルート無し表示
-            if (vue.viewModel.SearchOptions.includes("3")) {
-                rules.push({ dataIndx: "コースＣＤ", condition: "equal", value: "0" });
-            } else {
-                if (vue.viewModel.PrintOrder == "1") {
-                    rules.push({ dataIndx: "コースＣＤ", condition: "notequal", value: "0" });
-                }
+            // //ルート無し表示
+            // if (vue.viewModel.SearchOptions.includes("3")) {
+            //     rules.push({ dataIndx: "コースＣＤ", condition: "equal", value: "0" });
+            // } else {
+            //     if (vue.viewModel.PrintOrder == "1") {
+            //         rules.push({ dataIndx: "コースＣＤ", condition: "notequal", value: "0" });
+            //     }
+            // }
+
+            //締処理済
+            if (vue.viewModel.Untreated.includes("1")) {
+                rules.push({ dataIndx: "締処理済", condition: "equal", value: "0" });
             }
 
             //未分配
-            if (vue.viewModel.SearchOptions.includes("4")) {
-                rules.push({ dataIndx: "分配区分", condition: "notequal", value: "未分配" });
+            if (vue.viewModel.Unshared.includes("1")) {
+                rules.push({ dataIndx: "未分配", condition: "equal", value: "1" });
             }
 
             //コース
@@ -886,7 +960,7 @@ export default {
 
             //請求先
             if (!!vue.viewModel.CustomerCd && vue.$refs.PopupSelect_Customer.isValid) {
-                rules.push({ dataIndx: "得意先ＣＤ", condition: "equal", value: vue.viewModel.CustomerCd });
+                rules.push({ dataIndx: "請求先ＣＤ", condition: "equal", value: vue.viewModel.CustomerCd });
             }
 
             grid.filter({ oper: "replace", rules: rules });
@@ -897,9 +971,12 @@ export default {
             //最終締日
             vue.showLastSimeDate();
 
-            vue.footerButtons.find(v => v.id == "DAI02010Grid1_CSV").disabled = !res.length;
-            vue.footerButtons.find(v => v.id == "DAI02010Grid1_Excel").disabled = !res.length;
-            vue.footerButtons.find(v => v.id == "DAI02010Grid1_Print").disabled = !res.length;
+            // vue.footerButtons.find(v => v.id == "DAI02010Grid1_CSV").disabled = !res.length;
+            // vue.footerButtons.find(v => v.id == "DAI02010Grid1_Excel").disabled = !res.length;
+            // vue.footerButtons.find(v => v.id == "DAI02010Grid1_Print").disabled = !res.length;
+
+            vue.footerButtons.find(v => v.id == "DAI02010Grid1_ExecuteAll").disabled =
+                !res.length || res.some(v => v.未分配 == 1);
 
             return res;
         },
@@ -1317,6 +1394,33 @@ export default {
             printJS(printOptions);
             //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()
+        },
+        showUnshared: function() {
+            var vue = this;
+            var grid = vue.DAI02010Grid1;
+
+            var selection = grid.SelectRow().getSelection();
+
+            var rows = grid.SelectRow().getSelection().map(v => v.rowData);
+            if (!rows.length) return;
+
+            var params = {
+                BushoCd: vue.viewModel.BushoCd,
+                DateStart: _.min(rows.map(v => v.請求日範囲開始)),
+                DateEnd: _.max(rows.map(v => v.請求日範囲終了)),
+                IsChild: true,
+                Parent: vue,
+            };
+
+            PageDialog.show({
+                pgId: "DAI01250",
+                params: params,
+                isModal: true,
+                isChild: true,
+                reuse: false,
+                width: 1200,
+                height: 700,
+            });
         },
     }
 }

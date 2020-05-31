@@ -220,8 +220,10 @@ var dialogConfirm = function(options) {
     options = $.extend(true, {}, options);
     options.kind = "confirm";
 
-    options.buttons.find(v => v.text == "はい").shortcut = "Enter";
-    options.buttons.find(v => v.text == "いいえ").shortcut = "ESC";
+    var yesbtn = options.buttons.find(v => v.text == "はい");
+    if (!!yesbtn) yesbtn.shortcut = "Enter";
+    var nobtn = options.buttons.find(v => v.text == "いいえ");
+    if (!!nobtn) nobtn.shortcut = "ESC";
 
     return this.dialogCustom(options);
 };

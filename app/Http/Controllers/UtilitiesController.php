@@ -1864,6 +1864,190 @@ $OrderBy
     }
 
     /**
+     * SearchCustomerListPartial
+     */
+    public function SearchCustomerListPartial($request)
+    {
+        $BushoCd = $request->bushoCd ?? $request->BushoCd;
+        $WhereBusho = $BushoCd ? " AND TOK.部署CD=$BushoCd" : "";
+
+        $TelNo = $request->TelNo;
+        $WhereTelNo = $TelNo
+            ? "
+                AND TOK.得意先ＣＤ IN (
+					SELECT
+						Tel_CustNo
+					FROM C_TelToCust
+					WHERE
+						Tel_TelNo='$TelNo'
+				 )
+            "
+            : "";
+
+        $Start = $request->Start;
+        $Chunk = $request->Chunk;
+        $End = $Start + $Chunk - 1;
+
+        $KeyWords = $request->KeyWords ?? $request->Keywords;
+        $WhereKeyWord = "";
+        if (!!$KeyWords && !!count($KeyWords)) {
+            $Conditions = collect($KeyWords)
+                ->map(function ($KeyWord) {
+                    $Condition = "
+                        (
+                            TOK.得意先名 LIKE '%$KeyWord%' OR
+                            TOK.得意先名カナ LIKE '%$KeyWord%' OR
+                            TOK.得意先名略称 LIKE '%$KeyWord%' OR
+                            TOK.住所１ LIKE '%$KeyWord%' OR
+                            TOK.お届け先住所１ LIKE '%$KeyWord%' OR
+                            TOK.電話番号１ LIKE '$KeyWord%' OR
+                            TOK.備考１ LIKE '$KeyWord%' OR
+                            TOK.備考２ LIKE '$KeyWord%' OR
+                            TOK.備考３ LIKE '$KeyWord%'
+                        )
+                    ";
+
+                    return $Condition;
+                })
+                ->join(' OR ');
+
+            $WhereKeyWord = " AND ($Conditions)";
+        }
+
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+
+        $SearchSql = "
+            WITH CT_DISTINCT AS (
+                SELECT
+                    *
+                FROM (
+                    SELECT
+                        CT.部署ＣＤ
+                        ,CT.得意先ＣＤ
+                        ,CT.コースＣＤ
+                        ,CM.コース区分
+                        ,CM.コース名
+                        ,MIN(CM.コース区分) OVER(PARTITION BY CM.部署CD, CT.得意先ＣＤ)  AS 最小コース区分
+                    FROM コーステーブル CT
+                    LEFT OUTER JOIN コースマスタ CM
+                        ON CM.部署CD=CT.部署CD AND CT.コースＣＤ=CM.コースＣＤ
+                ) CT_MIN
+                WHERE
+                    コース区分 = 最小コース区分
+            )
+            SELECT
+            *
+            FROM (
+                SELECT
+                    TOK.部署CD
+                    ,BM.部署名
+                    ,TOK.得意先ＣＤ
+                    ,TOK.得意先名
+                    ,CT_DISTINCT.コースＣＤ
+                    ,CT_DISTINCT.コース名
+                    ,TOK.得意先ＣＤ AS Cd
+                    ,TOK.得意先名 AS CdNm
+					,ROW_NUMBER() OVER (ORDER BY TOK.得意先ＣＤ) AS ROWNUM
+                FROM 得意先マスタ TOK
+                    LEFT OUTER JOIN 部署マスタ BM
+                        ON BM.部署CD=TOK.部署CD
+                    LEFT OUTER JOIN CT_DISTINCT
+                        ON CT_DISTINCT.部署CD=TOK.部署CD AND CT_DISTINCT.得意先ＣＤ=TOK.得意先ＣＤ
+                WHERE 0=0
+                $WhereBusho
+                $WhereTelNo
+                $WhereKeyWord
+            ) AS T
+            WHERE
+                ROWNUM BETWEEN $Start AND $End
+            ORDER BY
+                ROWNUM
+        ";
+
+        // $DataList = DB::select($SearchSql);
+        $stmt = $pdo->query($SearchSql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $CountSql = "
+            SELECT
+                COUNT(TOK.部署CD) AS CNT
+            FROM 得意先マスタ TOK
+            WHERE 0=0
+            $WhereBusho
+            $WhereTelNo
+            $WhereKeyWord
+        ";
+        $stmt = $pdo->query($CountSql);
+        $Count = $stmt->fetch()["CNT"];
+
+        $pdo = null;
+
+        return response()->json([
+            [
+                "End" => $End,
+                "Count" => $Count,
+                "Result" => $DataList,
+            ]
+        ]);
+    }
+
+    /**
+     * CheckTelNo
+     */
+    public function CheckTelNo($request)
+    {
+        $TelNo = $request->TelNo;
+
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+
+        $CheckRejectSql = "
+            SELECT
+                *
+            FROM
+                非顧客電話番号マスタ
+            WHERE
+                電話番号 = '$TelNo'
+        ";
+
+        $stmt = $pdo->query($CheckRejectSql);
+        $Rejects = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (count($Rejects) > 0) {
+            return response()->json([
+                "Reject" => true,
+            ]);
+        }
+
+        $CheckRegistSql = "
+            SELECT
+                *
+            FROM
+                C_TelToCust
+            WHERE
+                Tel_TelNo = '$TelNo'
+        ";
+        $stmt = $pdo->query($CheckRegistSql);
+        $Regists = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $pdo = null;
+
+        return response()->json([
+            "Reject" => false,
+            "Unregist" => count($Regists) == 0,
+            "Unique" => count($Regists) == 1,
+            "CustomerCd" => count($Regists) == 1 ? $Regists[0]["Tel_CustNo"] : null,
+        ]);
+    }
+
+    /**
      * Push
      */
     public function Push($request)

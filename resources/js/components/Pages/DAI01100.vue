@@ -584,6 +584,7 @@ export default {
                 {visible: "false"},
                 { visible: "true", value: "登録", id: "DAI01100Grid1_Save", disabled: true, shortcut: "F9",
                     onClick: function () {
+                        var grid = vue.DAI01100Grid1;
                         var grid2 = vue.DAI01100Grid2;
 
                         var changes = _.cloneDeep(grid2.getChanges());

@@ -118,13 +118,171 @@ class DAI02010Controller extends Controller
      */
     public function GetSeikyuSimeList($vm)
     {
+        $BushoCd = $vm->BushoCd;
+        $TargetDateMax = $vm->TargetDateMax;
+
+        $SelectData = $this->SelectCustomerList($vm);
+
+        $sqlCourse = "
+            LEFT OUTER JOIN (
+                SELECT
+                    COU.部署ＣＤ  ,
+                    COU.得意先ＣＤ  ,
+                    MIN(COU.コースＣＤ) AS コースＣＤ
+                FROM
+                    コーステーブル COU
+                    LEFT OUTER JOIN コースマスタ COUM ON COU.部署ＣＤ = COUM.部署ＣＤ AND COU.コースＣＤ = COUM.コースＣＤ
+                WHERE
+                    COU.部署ＣＤ = $BushoCd
+                AND COUM.コース区分 IN (1,2,3)
+                GROUP BY  COU.部署ＣＤ, COU.得意先ＣＤ
+            ) COU_KEY ON
+                COU_KEY.部署ＣＤ = M1.部署ＣＤ
+                AND COU_KEY.得意先ＣＤ =
+                    CASE
+                        WHEN M1.受注得意先ＣＤ = 0 THEN M1.得意先ＣＤ
+                        ELSE M1.受注得意先ＣＤ
+                    END
+            LEFT OUTER JOIN [コーステーブル] COUT ON
+                COUT.部署ＣＤ = COU_KEY.部署ＣＤ
+                AND COUT.得意先ＣＤ = COU_KEY.得意先ＣＤ
+                AND COUT.コースＣＤ = COU_KEY.コースＣＤ
+            LEFT OUTER JOIN [コースマスタ] COUM ON
+                COUM.部署ＣＤ = COUT.部署ＣＤ
+                AND COUM.コースＣＤ = COUT.コースＣＤ
+        ";
+
+        $sql = "
+        $SelectData
+        ,締対象 AS (
+            SELECT
+				DATEADD(DAY, 0, '$TargetDateMax') AS 請求日付
+                ,部署ＣＤ
+                ,CASE WHEN NOT(ISNULL(請求先ＣＤ, 0) != 0 AND 請求先ＣＤ != 得意先ＣＤ) THEN 請求先ＣＤ ELSE 得意先ＣＤ END AS 請求先ＣＤ
+                ,num1 AS [３回前残高]
+                ,num2 AS 前々回残高
+                ,num3 AS 前回残高
+                ,num4 AS 今回入金額
+                ,CASE WHEN NOT(ISNULL(請求先ＣＤ, 0) != 0 AND 請求先ＣＤ != 得意先ＣＤ) THEN num11 ELSE num13 END AS 差引繰越額
+                ,num5 AS 今回売上額
+                ,num6 AS 消費税額
+                ,CASE WHEN NOT(ISNULL(請求先ＣＤ, 0) != 0 AND 請求先ＣＤ != 得意先ＣＤ) THEN num12 ELSE num14 END AS 今回請求額
+                ,FORMAT(請求日付, 'yyyyMMdd') AS 請求日範囲開始
+                ,'$TargetDateMax' AS 請求日範囲終了
+                ,0 AS 予備金額２
+                ,回収予定日
+                ,0 AS 予備ＣＤ１
+                ,0 AS 予備ＣＤ２
+            FROM
+                更新データ U1
+            WHERE
+                --要確認
+                num1 = 0	--[３回前残高]
+                AND
+                num5 > 0	--今回売上額
+        )
+		,未分配データ AS
+		(
+			SELECT
+				M.部署ＣＤ
+				,M.得意先ＣＤ
+				,日付
+				,(M.現金個数 + M.掛売個数) AS 未分配
+			FROM
+				売上データ明細 M
+			WHERE
+				M.部署ＣＤ = $BushoCd
+			AND M.得意先ＣＤ IN
+				(
+				SELECT
+					受注得意先ＣＤ
+				FROM 得意先マスタ
+				WHERE
+					得意先ＣＤ != 受注得意先ＣＤ AND 受注得意先ＣＤ != 0
+				AND 受注得意先ＣＤ = M.得意先ＣＤ
+				GROUP BY 受注得意先ＣＤ
+				)
+			AND (M.現金個数 + M.掛売個数) > 0
+		)
+        SELECT DISTINCT
+            ST.*
+            ,TM.得意先名
+            ,TM.受注得意先ＣＤ
+            ,TM.支払サイト
+            ,TM.支払日
+            ,COUM.コースＣＤ
+			,COUM.コース名
+            ,IIF(SD.予備金額１ IS NOT NULL, 1, 0) AS 締処理済
+            ,IIF(U1.得意先ＣＤ IS NOT NULL, 1, 0) AS 未分配
+        FROM
+            締対象 ST
+            LEFT OUTER JOIN 得意先マスタ TM
+                ON  TM.得意先ＣＤ=ST.請求先ＣＤ
+            LEFT OUTER JOIN (
+                SELECT
+                    COU.部署ＣＤ  ,
+                    COU.得意先ＣＤ  ,
+                    MIN(COU.コースＣＤ) AS コースＣＤ
+                FROM
+                    コーステーブル COU
+                    LEFT OUTER JOIN コースマスタ COUM ON COU.部署ＣＤ = COUM.部署ＣＤ AND COU.コースＣＤ = COUM.コースＣＤ
+                WHERE
+                    COU.部署ＣＤ = $BushoCd
+                AND COUM.コース区分 IN (1,2,3)
+                GROUP BY  COU.部署ＣＤ, COU.得意先ＣＤ
+            ) COU_KEY ON
+                COU_KEY.部署ＣＤ = TM.部署ＣＤ
+                AND COU_KEY.得意先ＣＤ =
+                    CASE
+                        WHEN TM.受注得意先ＣＤ = 0 THEN TM.得意先ＣＤ
+                        ELSE TM.受注得意先ＣＤ
+                    END
+            LEFT OUTER JOIN [コーステーブル] COUT ON
+                COUT.部署ＣＤ = COU_KEY.部署ＣＤ
+                AND COUT.得意先ＣＤ = COU_KEY.得意先ＣＤ
+                AND COUT.コースＣＤ = COU_KEY.コースＣＤ
+            LEFT OUTER JOIN [コースマスタ] COUM ON
+                COUM.部署ＣＤ = COUT.部署ＣＤ
+                AND COUM.コースＣＤ = COUT.コースＣＤ
+            LEFT OUTER JOIN 未分配データ U1
+				ON  U1.得意先ＣＤ = TM.受注得意先ＣＤ
+				AND U1.日付 >= IIF(ST.請求日範囲開始 IS NOT NULL, DATEADD(DAY, 1, ST.請求日範囲開始), TM.新規登録日)
+				AND U1.日付 <= DATEADD(DAY, 0, ST.請求日範囲終了)
+			LEFT OUTER JOIN 請求データ SD
+				ON  SD.請求日付=ST.請求日付
+                AND SD.請求先ＣＤ=ST.請求先ＣＤ
+		ORDER BY
+			ST.請求日付,
+			ST.請求先ＣＤ
+        ";
+
+        // var_export($sql);
+
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        // $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $DataList = DB::select($sql);
+        $pdo = null;
+
+        return $DataList;
+    }
+
+    /**
+     * GetSeikyuSimeListX
+     */
+    public function GetSeikyuSimeListX($vm)
+    {
         $SimeKbn = $vm->SimeKbn;
         $SimeDate = $vm->SimeDate;
         $TargetDate = $vm->TargetDate;
         $TargetDateMax = $vm->TargetDateMax;
 
         $WhereSimeDate = $SimeKbn == 2
-            ? "AND (M1.締日１= $SimeDate OR M1.締日２ = $SimeDate)"
+            ? ($SimeDate == 0 ? "AND M1.締日１= $SimeDate" : "AND (M1.締日１= $SimeDate OR M1.締日２ = $SimeDate)")
             : "";
         $WhereTargetDate = "AND T1.請求日付 = '$TargetDateMax'";
 
@@ -184,31 +342,55 @@ class DAI02010Controller extends Controller
             $WhereTargetDate
             $WehreCustomerCd
         ),
-
+        前回請求データ AS (
+            SELECT
+                Z.*
+            FROM (
+                    SELECT
+                        RANK() OVER(PARTITION BY T1.部署ＣＤ, T1.請求先ＣＤ ORDER BY T1.請求日付 DESC) AS RNK,
+                        T1.部署ＣＤ,
+                        T1.請求先ＣＤ,
+                        T1.請求日付,
+                        T1.請求日範囲開始,
+                        T1.請求日範囲終了
+                    FROM
+                        請求データ T1
+                        INNER JOIN 得意先マスタ M1 ON
+                                M1.得意先ＣＤ = T1.請求先ＣＤ
+                                $WhereSimeDate
+                            AND M1.締区分 IN (2)
+                    WHERE
+                        T1.部署ＣＤ = $BushoCd
+                    AND T1.請求日付 < '$TargetDateMax'
+            ) Z
+            WHERE Z.RNK=1
+        ),
 		未分配データ AS
 		(
-			SELECT 得意先ＣＤ
+			SELECT
+				M.部署ＣＤ
+				,M.得意先ＣＤ
+				,日付
+				,(M.現金個数 + M.掛売個数) AS 未分配
 			FROM
-				売上データ明細
-			WHERE 0=0
-			AND 日付 <= '$TargetDateMax'
-			AND 部署ＣＤ = $BushoCd
-			AND 得意先ＣＤ IN
+				売上データ明細 M
+			WHERE
+				M.部署ＣＤ = 101
+			AND M.得意先ＣＤ IN
 				(
-				SELECT 得意先ＣＤ
+				SELECT
+					受注得意先ＣＤ
 				FROM 得意先マスタ
-				WHERE 0=0
-				--未分配の条件
-				AND	得意先ＣＤ != 受注得意先ＣＤ
-				AND 現金個数 + 掛売個数 > 0
-				GROUP BY 得意先ＣＤ
+				WHERE
+					得意先ＣＤ != 受注得意先ＣＤ AND 受注得意先ＣＤ != 0
+				AND 受注得意先ＣＤ = M.得意先ＣＤ
+				GROUP BY 受注得意先ＣＤ
 				)
-			GROUP BY 得意先ＣＤ
+			AND (M.現金個数 + M.掛売個数) > 0
 		)
 
-        SELECT
-             IIF(U1.得意先ＣＤ IS NOT NULL, '未分配', '') AS 分配区分
-            ,M1.得意先ＣＤ
+        SELECT DISTINCT
+            M1.得意先ＣＤ
             ,M1.得意先名
             ,M1.売掛現金区分
             ,M1.締区分
@@ -222,18 +404,33 @@ class DAI02010Controller extends Controller
 			,COUM.コースＣＤ
 			,COUM.コース名
             ,T1.*
+            ,Z1.請求日範囲開始 AS 前回請求日範囲開始
+            ,Z1.請求日範囲終了 AS 前回請求日範囲終了
+            ,IIF(Z1.請求日範囲終了 IS NOT NULL, DATEADD(DAY, 1, Z1.請求日範囲終了), M1.新規登録日) AS 今回請求日範囲開始
+            ,DATEADD(DAY, 0, '$TargetDateMax') AS 今回請求日範囲終了
+            ,(
+				CASE M1.支払日
+					WHEN 99 THEN DATEADD(MONTH, M1.支払サイト, EOMONTH('$TargetDateMax'))
+					ELSE DATEADD(DAY, M1.支払日, DATEADD(MONTH, M1.支払サイト - 1, EOMONTH('$TargetDateMax')))
+				END
+			) AS 今回回収予定日
+            ,U1.得意先ＣＤ AS 未分配得意先ＣＤ
+            ,IIF(T1.予備金額１ > 0, 1, 0) AS 締処理済
+            ,IIF(U1.得意先ＣＤ IS NOT NULL, 1, 0) AS 未分配
         FROM
             得意先マスタ M1
-            LEFT OUTER JOIN 未分配データ U1 ON M1.得意先ＣＤ = U1.得意先ＣＤ
             $sqlCourse
             LEFT OUTER JOIN 属性データ T1 ON T1.請求先ＣＤ = M1.請求先ＣＤ
+            LEFT OUTER JOIN 前回請求データ Z1 ON Z1.請求先ＣＤ = M1.請求先ＣＤ
+            LEFT OUTER JOIN 未分配データ U1 ON U1.得意先ＣＤ = M1.受注得意先ＣＤ
+				AND U1.日付 >= IIF(Z1.請求日範囲終了 IS NOT NULL, DATEADD(DAY, 1, Z1.請求日範囲終了), M1.新規登録日)
+				AND U1.日付 <= DATEADD(DAY, 0, '$TargetDateMax')
         WHERE
             M1.締区分 IN ($SimeKbn)
         AND M1.部署CD = $BushoCd
-        AND M1.得意先ＣＤ >= 0
-        AND M1.得意先ＣＤ <= 9999999
         AND M1.売掛現金区分 IN (0,1,2)
         AND M1.得意先ＣＤ = M1.請求先ＣＤ
+        --AND M1.３回前残高 + M1.前々回残高 + M1.前回残高 + M1.今回入金額 + M1.今回売上額 > 0
         $WehreCourseCd
         ORDER BY 得意先ＣＤ
         ";
@@ -246,7 +443,8 @@ class DAI02010Controller extends Controller
 
         $pdo = new PDO($dsn, $user, $password);
         $stmt = $pdo->query($sql);
-        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $DataList = DB::select($sql);
         $pdo = null;
 
         return $DataList;
@@ -261,10 +459,12 @@ class DAI02010Controller extends Controller
         $SimeDate = $vm->SimeDate;
         $BushoCd = $vm->BushoCd;
         $TargetDateMax = $vm->TargetDateMax;
-        $CustomerList = is_array($vm->CustomerList) ? implode(",", $vm->CustomerList) : $vm->CustomerList;
         $WhereSimeDate = $SimeKbn == 2
-            ? "AND (締日１= $SimeDate OR 締日２ = $SimeDate)"
+            ? ($SimeDate == 0 ? "AND 締日１= $SimeDate" : "AND (締日１= $SimeDate OR 締日２ = $SimeDate)")
             : "";
+
+        $CustomerList = is_array($vm->CustomerList) ? implode(",", $vm->CustomerList) : $vm->CustomerList;
+        $WhereCustomerList = !!$CustomerList ? "AND 請求先ＣＤ IN ($CustomerList)" : "";
 
         $sql = "
         WITH 更新前データ1 AS
@@ -300,9 +500,9 @@ class DAI02010Controller extends Controller
             FROM
                 得意先マスタ
 			WHERE
-                請求先ＣＤ IN ($CustomerList)
-            AND 締区分 IN ($SimeKbn)
+                締区分 IN ($SimeKbn)
             $WhereSimeDate
+            $WhereCustomerList
             ) T1
         LEFT JOIN 得意先マスタ T2 ON
             T1.請求先ＣＤ = T2.請求先ＣＤ
@@ -474,7 +674,13 @@ class DAI02010Controller extends Controller
             ,消費税額
             ,今回請求額
             ,支払日
-            ,CASE WHEN (締日１ = 99 OR 締日２ = 99) THEN DATEADD(MONTH, 支払サイト, '$TargetDateMax') ELSE '$TargetDateMax' END AS 回収予定日
+            --,CASE WHEN (締日１ = 99 OR 締日２ = 99) THEN DATEADD(MONTH, 支払サイト, '$TargetDateMax') ELSE '$TargetDateMax' END AS 回収予定日
+            ,(
+				CASE 支払日
+					WHEN 99 THEN DATEADD(MONTH, 支払サイト, EOMONTH('$TargetDateMax'))
+					ELSE DATEADD(DAY, 支払日, DATEADD(MONTH, 支払サイト - 1, EOMONTH('$TargetDateMax')))
+				END
+			) AS 回収予定日
             ,税区分
             ,CASE WHEN (num1 != 0 AND num9 != 0) THEN CASE WHEN (num1 > num9) THEN num1 - num9 ELSE 0 END ELSE num1 END AS num1
 			,num2
@@ -499,7 +705,8 @@ class DAI02010Controller extends Controller
             ,今回売上額
             ,消費税額
             ,今回請求額
-            ,CASE WHEN (支払日 = 99) THEN EOMONTH(回収予定日) ELSE DATEADD(DAY, 支払日, EOMONTH(DATEADD(MONTH, -1, 回収予定日))) END AS 回収予定日
+            --,CASE WHEN (支払日 = 99) THEN EOMONTH(回収予定日) ELSE DATEADD(DAY, 支払日, EOMONTH(DATEADD(MONTH, -1, 回収予定日))) END AS 回収予定日
+            ,回収予定日 AS 回収予定日
             ,num1
             ,CASE WHEN (num2 != 0 AND num9 != 0) THEN CASE WHEN (num2 > num9) THEN num2 - num9 ELSE 0 END ELSE num2 END AS num2
 			,num3
@@ -659,6 +866,10 @@ class DAI02010Controller extends Controller
         $TargetDateMax = $vm->TargetDateMax;
         $CustomerList = is_array($vm->CustomerList) ? implode(",", $vm->CustomerList) : $vm->CustomerList;
 
+        $WhereSimeDate = $SimeKbn == 2
+            ? ($SimeDate == 0 ? "AND 締日１= $SimeDate" : "AND (締日１= $SimeDate OR 締日２ = $SimeDate)")
+            : "";
+
         $sql = "
         DELETE FROM 請求データ
         WHERE
@@ -673,7 +884,7 @@ class DAI02010Controller extends Controller
                 得意先マスタ
             WHERE
                 締区分 IN ($SimeKbn)
-            AND (締日１= $SimeDate OR 締日２ = $SimeDate)
+            $WhereSimeDate
             AND 請求先ＣＤ IN ($CustomerList)
 			) T1
 			LEFT JOIN 得意先マスタ T2 ON

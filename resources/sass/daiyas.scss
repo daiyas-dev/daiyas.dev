@@ -193,6 +193,8 @@ body {
     margin-top: 0px;
     padding-top: 0px;
     padding-bottom: 0px;
+    padding-left: 6px;
+    padding-right: 6px;
 }
 .ui-dialog .ui-dialog-buttonpane button {
     width: 100px;
@@ -291,6 +293,9 @@ label.label-blue {
 }
 .ui-dialog-buttonset button {
     width: 80px;
+}
+.ui-dialog .ui-dialog-buttonpane button:last-child {
+    margin-right: 0px;
 }
 
 /** bootstrap override **/

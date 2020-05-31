@@ -5,7 +5,6 @@
                 <span :class="['badge', this.isLogOn == true ? 'badge-success' : 'badge-danger']">{{title}}</span>
             </div>
             <div class="col-md-8 pr-2 justify-content-end">
-                <CtiReceiver></CtiReceiver>
             </div>
             <div class="col-md-2 justify-content-end">
                 <span :class="['ml-1', 'badge', this.isLogOn == true ? 'badge-success' : 'badge-danger']">{{nowDate}}</span>
@@ -23,7 +22,6 @@
 </style>
 
 <script>
-import CtiReceiver from "@vcs/CtiReceiver.vue";
 
 export default {
     name: "AppHeader",
@@ -36,7 +34,6 @@ export default {
         }
     },
     components: {
-        "CtiReceiver": CtiReceiver,
     },
     computed: {
         nowDate: function () {

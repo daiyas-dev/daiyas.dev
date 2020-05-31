@@ -31,13 +31,8 @@
 }
 </style>
 <style>
-/* 選択セル/行 */
-#DAI01101Grid1.pq-grid .pq-state-select.pq-grid-row{
-    background: transparent;
-}
-#DAI01101Grid1.pq-grid .pq-state-select.pq-grid-row .pq-grid-cell{
-    background: transparent;
-    color: black;
+#DAI01101Grid1 svg.pq-grid-overlay {
+    display: block;
 }
 #DAI01101Grid1 .pq-summary-outer *:not(.tooltip):not(.arrow):not(.tooltip-inner):not(.cell-disabled) {
     font-weight: bold;
@@ -92,11 +87,11 @@ export default {
             ParentDataList: [],
             ParentData: {},
             grid1Options: {
-                selectionModel: { type: "cell", mode: "single", row: true },
+                selectionModel: { type: "cell", mode: "block", row: true, column: true, },
                 showHeader: true,
                 showToolbar: false,
                 columnBorders: true,
-                fillHandle: "",
+                fillHandle: "all",
                 numberCell: { show: true, title: "No.", resizable: false, },
                 autoRow: false,
                 rowHtHead: 25,
@@ -109,10 +104,7 @@ export default {
                 trackModel: { on: true },
                 historyModel: { on: true },
                 editModel: {
-                    clicksToEdit: 2,
-                    keyUpDown: false,
-                    saveKey: $.ui.keyCode.ENTER,
-                    onSave: "nextFocus",
+                    onSave: null,
                     onTab: "nextFocus",
                 },
                 filterModel: {
@@ -185,6 +177,10 @@ export default {
                         var grid = vue.DAI01101Grid1;
                         var UpdateList = grid.getChanges().updateList;
                         var OldList = grid.getChanges().oldList;
+
+                        var params = _.cloneDeep(vue.searchParams);
+                        params.EditUser = vue.getLoginInfo().uid;
+                        params.noCache = true;
 
                         var UriageList = _.reduce(
                             OldList,
@@ -281,7 +277,7 @@ export default {
                                     UriageList: UriageList,
                                     NyukinList: NyukinList,
                                 },
-                                optional: vue.searchParams,
+                                optional: params,
                                 confirm: {
                                     isShow: false,
                                 },
@@ -298,6 +294,23 @@ export default {
                                             grid.blinkDiff(res.edited);
                                         } else {
                                             grid.commit();
+
+                                            var refresh = params => {
+                                                var parent = params.Parent;
+
+                                                if (!parent) return;
+
+                                                parent.conditionChanged(true);
+
+                                                if (!!parent.params) {
+                                                    refresh(parent.params);
+                                                }
+                                            };
+
+                                            if (!!vue.params) {
+                                                refresh(vue.params);
+                                            }
+
                                             $(vue.$el).closest(".ui-dialog-content").dialog("close");
                                         }
 

@@ -86,7 +86,8 @@ export default {
     computed: {
     },
     data() {
-        return $.extend(true, {}, PageBaseMixin.data(), {
+        var vue = this;
+        var data = $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "日時処理 > 未分配一覧表",
             noViewModel: true,
             viewModel: {
@@ -96,7 +97,7 @@ export default {
             },
             DAI01250Grid1: null,
             grid1Options: {
-                selectionModel: { type: "cell", mode: "single", row: true },
+                selectionModel: { type: "row", mode: "block", row: true, },
                 showHeader: true,
                 showToolbar: false,
                 columnBorders: true,
@@ -136,7 +137,7 @@ export default {
                         }
                     ],
                     [
-                        "コース名",
+                        "コース",
                         function(rowData){
                             return _.padStart(rowData.コースＣＤ, 4, "0") + " " + rowData.コース名;
                         }
@@ -168,7 +169,7 @@ export default {
                     },
                     {
                         title: "コース",
-                        dataIndx: "コース名", dataType: "string", key: true,
+                        dataIndx: "コース", dataType: "string", key: true,
                         width: 200, maxWidth: 200, minWidth: 200,
                         hidden: false,
                         editable: false,
@@ -178,7 +179,7 @@ export default {
                     {
                         title: "担当者",
                         dataIndx: "担当者名", dataType: "string", key: true,
-                        width: 170, maxWidth: 170, minWidth: 170,
+                        width: 170, maxWidth: 170,
                         hidden: false,
                         editable: false,
                         fixed: true,
@@ -228,31 +229,26 @@ export default {
                         fixed: true,
                     },
                 ],
+                rowDblClick: function (event, ui) {
+                    vue.showBunpai(ui.rowData);
+                },
             },
         });
+
+        if (!!vue.params) {
+            data.viewModel = $.extend(true, data.viewModel, _.omit(vue.params, ["Parent"]));
+        }
+
+        return data;
     },
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
                 { visible: "true", value: "検索", id: "DAI01250Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {
-                        vue.conditionChanged();
+                        vue.conditionChanged(true);
                     }
                 },
-                // { visible: "true", value: "印刷", id: "DAI01020Grid1_Printout", disabled: false, shortcut: "F6",
-                //     onClick: function () {
-                //         vue.DAI01250Grid1.print(vue.setPrintOptions);
-                //         //TODO: 印刷の追加
-
-                //     }
-                // },
-                // { visible: "true", value: "CSV出力", id: "DAI01020Grid1_Csvout", disabled: false, shortcut: "F7",
-                //     onClick: function () {
-                //         vue.DAI01250Grid1.print(vue.setPrintOptions);
-                //         //TODO: ＣＳＶ出力追加
-
-                //     }
-                // },
                 {visible: "false"},
                 { visible: "true", value: "CSV", id: "DAI01250Grid1_CSV", disabled: false, shortcut: "F10",
                     onClick: function () {
@@ -269,12 +265,31 @@ export default {
                         vue.print();
                     }
                 },
+                {visible: "false"},
+                { visible: "true", value: "分配入力", id: "DAI01250Grid1_Bunpai", disabled: true, shortcut: "F6",
+                    onClick: function () {
+                        vue.showBunpai();
+                    }
+                },
            );
         },
         mountedFunc: function(vue) {
             //配送日付の初期値 -> 当日
-            vue.viewModel.DateStart = moment();
-            vue.viewModel.DateEnd = moment();
+            if (!vue.params || !vue.params.DateStart) {
+                vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
+                vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
+            } else {
+                vue.conditionChanged();
+            }
+
+
+            //watcher
+            vue.$watch(
+                "$refs.DAI01250Grid1.selectionRowCount",
+                cnt => {
+                    vue.footerButtons.find(v => v.id == "DAI01250Grid1_Bunpai").disabled = cnt != 1;
+                }
+            );
         },
         setPrintOptions: function(grid) {
             var vue = this;
@@ -361,7 +376,7 @@ export default {
             vue.conditionChanged();
         },
 
-        conditionChanged: _.debounce(function(callback) {
+        conditionChanged: _.debounce(function(force) {
             var vue = this;
             var grid = vue.DAI01250Grid1;
 
@@ -382,7 +397,7 @@ export default {
                 params.DateStart = params.DateStart ? moment(params.DateStart, "YYYY年MM月DD日").format("YYYYMMDD") : null;
                 params.DateEnd = params.DateEnd ? moment(params.DateEnd, "YYYY年MM月DD日").format("YYYYMMDD") : null;
 
-                grid.searchData(params, false, null, callback);
+                grid.searchData(params, false, null);
             });
         }, 300),
         filterChanged: function() {
@@ -454,6 +469,7 @@ export default {
                             (acc, v, j) => {
                                 acc.コースＣＤ = v.コースＣＤ;
                                 acc.コース名 = v.コース名;
+                                acc.コース区分 = v.コース区分;
                                 items.forEach(item => {
                                     acc["商品ＣＤ_" + item.Cd] = (acc["商品ＣＤ_" + item.Cd] || 0)
                                                            + ([v.主食ＣＤ * 1, v.副食ＣＤ * 1].includes(item.Cd) ? (v.CHU注文数 * 1 || v.見込数 * 1) : 0);
@@ -701,6 +717,38 @@ export default {
             printJS(printOptions);
             //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()
+        },
+        showBunpai: function(rowData) {
+            var vue = this;
+            var grid = vue.DAI01250Grid1;
+
+            var selection = grid.SelectRow().getSelection();
+
+            var rows = grid.SelectRow().getSelection();
+            if (rows.length != 1) return;
+
+            var data = _.cloneDeep(rows[0].rowData);
+
+            var params = {
+                BushoCd: data.部署ＣＤ,
+                BushoNm: data.部署名,
+                TargetDate: moment(data.日付).format("YYYY年MM月DD日"),
+                CourseKbn: data.コース区分,
+                CourseCd: data.コースＣＤ,
+                CourseNm: data.コース名,
+                CustomerCd: data.得意先ＣＤ,
+                Parent: vue,
+            };
+
+            PageDialog.show({
+                pgId: "DAI01101",
+                params: params,
+                isModal: true,
+                isChild: true,
+                reuse: false,
+                width: 1175,
+                height: 600,
+            });
         },
     }
 }

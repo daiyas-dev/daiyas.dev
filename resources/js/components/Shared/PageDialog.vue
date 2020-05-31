@@ -17,6 +17,8 @@
                     :noViewModel=target.noViewModel
                     :callback=target.callback
                     :selector=target.selector
+                    :customElement=target.customElement
+                    :showBushoSelector=target.showBushoSelector
                 ></page-selector>
             </div>
         </template>
@@ -176,6 +178,8 @@ export default {
                 noViewModel: true,
                 callback: options.callback,
                 selector: options.selector,
+                customElement: options.customElement,
+                showBushoSelector: options.showBushoSelector,
             };
             this.targets.push(target);
 
@@ -257,6 +261,11 @@ export default {
 
             var d = $(event.target);
             var pg = d.find(".pq-grid");
+            var content = d.closest(".ui-dialog-content");
+
+            //ESC設定通常ボタン
+            var escbtn = d.closest(".ui-dialog").find(".ui-dialog-buttonset button.btn-primary[shortcut=ESC]")[0];
+            if (!!escbtn && !$(window.event.target).hasClass("btn-danger") && $(window.event.target).attr("shortcut") != "ESC") return false;
 
             var loading = pg
                 .map((i, v) => $(v).pqGrid("getInstance").grid)
@@ -284,7 +293,6 @@ export default {
 
             if (changed.length == 0) return !editting && !isEscOnEditor;
 
-            var content = d.closest(".ui-dialog-content");
             if (!!content.attr("closable")) return true;
             changed[0].notifyChanged(
                 "終了して宜しいですか？(変更は破棄されます)",

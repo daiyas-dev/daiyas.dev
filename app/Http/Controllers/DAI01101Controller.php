@@ -156,12 +156,38 @@ class DAI01101Controller extends Controller
         DB::beginTransaction();
 
         try {
+            $BushoCd = $request->BushoCd;
             $TargetDate = $request->TargetDate;
+            $CourseCd = $request->CourseCd;
+            $CustomerCd = $request->CustomerCd;
+            $EditUser = $request->EditUser;
+
             $params = $request->all();
 
             $UriageList = $params['UriageList'];
 
             $date = Carbon::now()->format('Y-m-d H:i:s');
+
+            //親得意先
+            $sql = "
+                UPDATE 売上データ明細
+                SET
+                    現金個数 = 0,
+                    掛売個数 = 0,
+                    分配元数量 = 現金個数 + 掛売個数,
+                    修正日 = '$date',
+                    修正担当者ＣＤ = $EditUser
+                WHERE
+                    日付 = '$TargetDate'
+                AND 部署ＣＤ = $BushoCd
+                AND コースＣＤ = $CourseCd
+                AND 得意先ＣＤ = $CustomerCd
+                AND 分配元数量 = 0
+            ";
+
+            DB::update($sql);
+
+            //子得意先
             foreach ($UriageList as $rec) {
                 if (isset($rec['修正日']) && !!$rec['修正日']) {
                     $r = 売上データ明細::query()

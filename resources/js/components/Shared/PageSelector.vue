@@ -17,6 +17,8 @@
         :labelCdNm=this.labelCdNm
         :callback=this.callback
         :selector=this.selector
+        :customElement=this.customElement
+        :showBushoSelector=this.showBushoSelector
         :uniqueId=this.uniqueId
         :isChild=this.isChild
         :isCodeOnly=this.isCodeOnly
@@ -202,6 +204,8 @@ export default {
         labelCdNm: String,
         callback: Function,
         selector: Function,
+        customElement: String,
+        showBushoSelector: Boolean,
         uniqueId: String,
         isSelector: Boolean,
         isChild: Boolean,

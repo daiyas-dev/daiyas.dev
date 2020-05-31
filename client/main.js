@@ -48,6 +48,8 @@ function createWindow() {
     mainWindow.webContents.openDevTools();    //TODO: to debug
 
     mainWindow.loadURL("https://daiyas.dev/");
+    //mainWindow.loadURL("http://192.168.1.109/");
+    //mainWindow.loadURL("http://192.168.10.220/");
 
     mainWindow.on("closed", function () {
         mainWindow = null
@@ -61,7 +63,7 @@ function createWindow() {
         center: false,
         parent: mainWindow,
         modal: true,
-        resizable: true,
+        resizable: false,
         maximizable: false,
         minimizable: false,
         closable: false,

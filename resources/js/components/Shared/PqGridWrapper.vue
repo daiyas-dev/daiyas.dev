@@ -29,6 +29,7 @@ export default {
             isActivated: false,
             selectionData: null,
             selectionRow: null,
+            selectionRowList: [],
             selectionRowCount: null,
             isSelection: false,
             isSelectionFirst: false,
@@ -1378,6 +1379,7 @@ export default {
                     vue.isSelection = isSelection;
                     vue.selectionRowCount = grid.SelectRow().getSelection().length;
                     vue.selectionRow = vue.selectionRowCount > 0 ? grid.SelectRow().getSelection()[0] : null;
+                    vue.selectionRowList = grid.SelectRow().getSelection();
                     return;
                 }
 
@@ -1688,7 +1690,9 @@ export default {
                         grid.prevData = _.cloneDeep(grid.getData());
 
                         //検索後callbackが指定されていれば実行
-                        if (vue._onAfterSearchFunc) res = vue._onAfterSearchFunc(vue, grid, res);
+                        if (vue._onAfterSearchFunc) {
+                            res = vue._onAfterSearchFunc(vue, grid, res);
+                        }
 
                         //PKを比較し、検索前のレコードが全てあるか判定
                         // if (grid.getData() && _.differenceWith(grid.getData(), res, (a, b) => a.PK == b.PK).length == 0) {
