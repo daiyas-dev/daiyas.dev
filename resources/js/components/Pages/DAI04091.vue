@@ -5,7 +5,18 @@
                 <label>部署</label>
             </div>
             <div class="col-md-4">
-                <VueSelectBusho
+                <VueSelect v-if="params.IsCTI"
+                    id="Busho"
+                    ref="VueSelectBusho"
+                    :vmodel=viewModel
+                    bind="BushoCd"
+                    buddy="BushoNm"
+                    uri="/Utilities/GetBushoList"
+                    :hasNull=true
+                    :withCode=true
+                    :onChangedFunc=onBushoChanged
+                />
+                <VueSelectBusho v-else
                     ref="VueSelectBusho"
                     :hasNull=false
                     :onChangedFunc=onBushoChanged
@@ -17,7 +28,18 @@
                 <label class="text-left">部署</label>
             </div>
             <div class="col-md-4">
-                <VueSelectBusho
+                <VueSelect v-if="params.IsCTI"
+                    id="Busho"
+                    ref="VueSelectBushoOthers"
+                    :vmodel=others
+                    bind="BushoCd"
+                    buddy="BushoNm"
+                    uri="/Utilities/GetBushoList"
+                    :hasNull=true
+                    :withCode=true
+                    :onChangedFunc=onBushoChanged
+                />
+                <VueSelectBusho v-else
                     ref="VueSelectBushoOthers"
                     :vmodel=others
                     bind="BushoCd"
@@ -1357,6 +1379,30 @@ export default {
                 return r;
             });
 
+            if (!!vue.params && !!vue.params.IsCTI  && !!vue.params.CustomerInfo && params.idx == 0) {
+                axios.post(
+                    "/DAI04091/Save",
+                    {
+                        Condition: params,
+                        SaveList: SaveList,
+                    },
+                )
+                    .then(res => {
+                        vue.params.Parent.after04091(vue.params.CustomerInfo);
+                        // $(vue.$el).closest(".ui-dialog-content").dialog("close");
+                        return;
+                    })
+                    .catch(err => {
+                        console.log(err);
+                        $.dialogErr({
+                            title: "保存失敗",
+                            contents: err.message,
+                        });
+                    });
+
+                return;
+            }
+
             grid.saveData(
                 {
                     uri: "/DAI04091/Save",
@@ -1376,7 +1422,12 @@ export default {
                                         title: "保存完了",
                                         contents: "内容の保存が完了しました。",
                                     });
-                                    vue.params.parent.conditionChanged();
+
+                                    if (!!vue.params && !!vue.params.IsCTI) {
+
+                                    } else {
+                                        vue.params.parent.conditionChanged();
+                                    }
                                 }
 
                                 grid.refreshDataAndView();
@@ -1396,6 +1447,7 @@ export default {
                                         () => comp.setSelectValue(res.MngCd),
                                     );
                                 }
+
                             } else {
                                 if (!isBoth) {
                                     $.dialogErr({
