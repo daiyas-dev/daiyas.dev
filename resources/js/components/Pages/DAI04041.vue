@@ -2236,6 +2236,17 @@ export default {
                 return v;
             });
 
+            if (!!vue.params && !!vue.params.電話番号１) {
+                res.push(
+                    {
+                        Tel_TelNo:  vue.params.電話番号１,
+                        Tel_CustNo: null,
+                        Tel_RepFlg: 0,
+                        Tel_DelFlg: 0,
+                    }
+                );
+            }
+
             return res;
         },
         saveTelList: function() {

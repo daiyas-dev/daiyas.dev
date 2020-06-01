@@ -205,12 +205,6 @@ export default {
 
                             var rowData = grid.getRowData({ rowIndx: rowIndx });
 
-                            var $dlg = $(this);
-                            var closeDlg = () => {
-                                console.log("closeDlg");
-                                $dlg.dialog("close");
-                            };
-
                             if (!!no) {
                                 if (!!regist) {
                                     $.dialogConfirm({
@@ -229,6 +223,7 @@ export default {
                                                             //1030注文入力表示
                                                             vue.show01030(rowData);
                                                             $dlg.dialog("close");
+                                                            $(gridVue.$el).closest(".ui-dialog-content").dialog("close");
                                                         })
                                                         .catch(err => {
                                                             console.log(err);
@@ -243,10 +238,9 @@ export default {
                                                 text: "いいえ",
                                                 class: "btn btn-danger",
                                                 click: function(){
-                                                    $(this).dialog("close");
+                                                    $dlg.dialog("close");
                                                     //1030注文入力表示: OK
                                                     vue.show01030(rowData);
-                                                    closeDlg();
                                                     $(gridVue.$el).closest(".ui-dialog-content").dialog("close");
                                                 }
                                             },
@@ -332,6 +326,7 @@ export default {
                 IsNew: true,
                 IsChild: true,
                 Parent: vue,
+                IsCTI: true,
             };
 
             //DAI04041を子画面表示
@@ -346,6 +341,7 @@ export default {
         },
         after04041: function(customerInfo) {
             var vue = this;
+            console.log("cti 4041 -> 1030")
             vue.show01030(customerInfo);
         },
     }
