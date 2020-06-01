@@ -301,6 +301,7 @@ export default {
         },
         hasNext: function() {
             var vue = this;
+            //TODO西山　CurrentOrder nullの時ある
             return !!vue.TodayOrders.length && _.first(vue.TodayOrders) != vue.CurrentOrder;
         },
         searchParams: function() {
@@ -1331,6 +1332,7 @@ export default {
                 return;
             }
 
+            //TODO西山 index確認中
             var idx = _.indexOf(vue.TodayOrders, vue.CurrentOrder) - 1;
             idx = idx < 0 ? 0 : idx;
             vue.loadOrder(idx);
