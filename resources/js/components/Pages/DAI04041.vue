@@ -2138,6 +2138,8 @@ export default {
                                 vue.params.Parent.conditionChanged(true);
                             } else if (vue.params.Parent.$attrs.pgId == "DAI01030") {
                                 vue.params.Parent.updateCustomer();
+                            } else if (!!vue.params.IsCTI) {
+                                vue.params.Parent.after04041(res.data.model);
                             }
                         }
 

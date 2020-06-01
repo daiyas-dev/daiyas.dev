@@ -265,7 +265,7 @@ export default {
 
             //ESC設定通常ボタン
             var escbtn = d.closest(".ui-dialog").find(".ui-dialog-buttonset button.btn-primary[shortcut=ESC]")[0];
-            if (!!escbtn && !$(window.event.target).hasClass("btn-danger") && $(window.event.target).attr("shortcut") != "ESC") return false;
+            if (!!escbtn && window.event.key == "Escape") return false;
 
             var loading = pg
                 .map((i, v) => $(v).pqGrid("getInstance").grid)

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\PrivateEvent;
 use App\Events\PublicEvent;
+use App\Models\CTelToCust;
 use App\Models\コーステーブル;
 use App\Models\コースマスタ;
 use App\Models\備考マスタ;
@@ -19,7 +20,9 @@ use App\Models\消費税率マスタ;
 use App\Models\得意先履歴テーブル;
 use App\Models\得意先単価マスタ;
 use App\Models\請求データ;
+use App\Models\非顧客電話番号マスタ;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -2028,11 +2031,16 @@ $OrderBy
 
         $CheckRegistSql = "
             SELECT
-                *
+                C_TelToCust.*
+                ,得意先マスタ.部署CD
+                ,得意先マスタ.得意先ＣＤ
+                ,得意先マスタ.得意先名
             FROM
                 C_TelToCust
+                LEFT OUTER JOIN 得意先マスタ
+                    ON 得意先マスタ.得意先ＣＤ = C_TelToCust.Tel_CustNo
             WHERE
-                Tel_TelNo = '$TelNo'
+                C_TelToCust.Tel_TelNo = '$TelNo'
         ";
         $stmt = $pdo->query($CheckRegistSql);
         $Regists = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -2043,8 +2051,80 @@ $OrderBy
             "Reject" => false,
             "Unregist" => count($Regists) == 0,
             "Unique" => count($Regists) == 1,
-            "CustomerCd" => count($Regists) == 1 ? $Regists[0]["Tel_CustNo"] : null,
+            "CustomerInfo" => count($Regists) == 1 ? $Regists[0] : null,
         ]);
+    }
+
+    /**
+     * InsertTelNo
+     */
+    public function InsertTelNo($request)
+    {
+        $TelNo = $request->TelNo;
+        $CustomerCd = $request->CustomerCd;
+        $EditUser = $request->EditUser;
+        $date = Carbon::now()->format('Y/m/d');
+
+        DB::beginTransaction();
+
+        try {
+            $model = [
+                'Tel_TelNo' => $TelNo,
+                'Tel_CustNo' => $CustomerCd,
+                'Tel_RepFlg' => 0,
+                'Tel_DelFlg' => 0,
+                'Tel_NewDate' => $date,
+                'Tel_UpdDate' => $date,
+            ];
+
+            CTelToCust::insert($model);
+
+            $customer = 得意先マスタ::query()
+                ->where("得意先ＣＤ", $CustomerCd)
+                ->first();
+
+            if (!isset($customer->電話番号１)) {
+                得意先マスタ::query()
+                    ->where("得意先ＣＤ", $CustomerCd)
+                    ->update(['電話番号１' => $TelNo, '修正担当者ＣＤ' => $EditUser, '修正日' => Carbon::now()->format('Y-m-d H:i:s')]);
+            }
+
+            DB::commit();
+        } catch (Exception $exception) {
+            DB::rollBack();
+            throw $exception;
+        }
+
+        return;
+    }
+
+    /**
+     * SetNonCustomer
+     */
+    public function SetNonCustomer($request)
+    {
+        $TelNo = $request->TelNo;
+        $EditUser = $request->EditUser;
+        $date = Carbon::now()->format('Y-m-d H:i:s');
+
+        DB::beginTransaction();
+
+        try {
+            $model = [
+                "電話番号" => $TelNo,
+                "修正担当者ＣＤ" => $EditUser,
+                "修正日" => $date,
+            ];
+
+            非顧客電話番号マスタ::insert($model);
+
+            DB::commit();
+        } catch (Exception $exception) {
+            DB::rollBack();
+            throw $exception;
+        }
+
+        return;
     }
 
     /**
