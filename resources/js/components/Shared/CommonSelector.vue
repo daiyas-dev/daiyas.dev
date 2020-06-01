@@ -380,10 +380,10 @@ export default {
                 grid.widget().css("visibility", "visible");
             }
 
-            // var result = res.map(v => {
-            //     v.keyword = "||" + _.values(v).filter(v => !_.isObject(v)).join("||") + "||";
-            //     return v;
-            // });
+            var result = res.map(v => {
+                v.keyword = "||" + _.values(v).filter(v => !_.isObject(v)).join("||") + "||";
+                return v;
+            });
 
             return res;
         },

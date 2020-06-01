@@ -2138,6 +2138,8 @@ export default {
                                 vue.params.Parent.conditionChanged(true);
                             } else if (vue.params.Parent.$attrs.pgId == "DAI01030") {
                                 vue.params.Parent.updateCustomer();
+                            } else if (!!vue.params.IsCTI) {
+                                vue.params.Parent.after04041(res.data.model);
                             }
                         }
 
@@ -2233,6 +2235,17 @@ export default {
             res = res.map(v => {
                 return v;
             });
+
+            if (!!vue.params && !!vue.params.電話番号１) {
+                res.push(
+                    {
+                        Tel_TelNo:  vue.params.電話番号１,
+                        Tel_CustNo: null,
+                        Tel_RepFlg: 0,
+                        Tel_DelFlg: 0,
+                    }
+                );
+            }
 
             return res;
         },

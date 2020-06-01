@@ -153,7 +153,7 @@
             </div>
         </div>
         <PqGridWrapper
-            id="DAI01030Grid1"
+            :id='"DAI01030Grid1" + (!!params ? _uid : "")'
             ref="DAI01030Grid1"
             dataUrl="/DAI01030/Search"
             :query=this.searchParams
@@ -185,11 +185,13 @@
                     class="bikou w-100"
                 /> -->
                 <textarea
+                    class="form-control"
+                    style="max-height: unset;"
+                    rows=3
                     id="bikou-shanai"
                     v-model=viewModel.BikouForControl
                     type="text"
                     v-maxBytes="200"
-                    class="form-control" style="max-height: unset;"
                 ></textarea>
             </div>
             <div class="col-md-1 d-block">
@@ -203,11 +205,13 @@
                     class="bikou w-100"
                 /> -->
                 <textarea
+                    class="form-control"
+                    style="max-height: unset;"
+                    rows=3
                     id="bikou-haiso"
                     v-model=viewModel.BikouForDelivery
                     type="text"
                     v-maxBytes="200"
-                    class="form-control" style="max-height: unset;"
                 ></textarea>
             </div>
         </div>
@@ -221,11 +225,13 @@
             </div>
             <div class="col-md-5 d-block">
                 <textarea
+                    class="form-control"
+                    style="max-height: unset;"
+                    rows=3
                     id="bikou-tuuchi"
                     v-model=viewModel.BikouForNotification
                     type="text"
                     v-maxBytes="200"
-                    class="form-control" style="max-height: unset;"
                 ></textarea>
             </div>
         </div>
@@ -258,12 +264,17 @@ label {
 .btn-light:not(.footer-button-visible-true):disabled {
     color: #aaaaaa;
 }
+textarea {
+    max-height: unset;
+    line-height: 16px;
+    resize: none;
+}
 </style>
 <style>
-#Page_DAI01030 .CustomerSelect .select-name {
+[pgid=DAI01030] .CustomerSelect .select-name {
     color: royalblue;
 }
-#DAI01030Grid1 svg.pq-grid-overlay {
+[pgid=DAI01030] .pq_grid svg.pq-grid-overlay {
     display: block;
 }
 </style>
@@ -613,7 +624,7 @@ export default {
         });
 
         if (!!vue.params || !!vue.query) {
-            data.viewModel = $.extend(true, data.viewModel, vue.params, vue.query);
+            data.viewModel = $.extend(true, data.viewModel, _.omit(vue.params, ["Parent"]), _.omit(vue.query, ["Parent"]));
         }
 
         return data;
@@ -684,9 +695,9 @@ export default {
 
             vue.viewModel.IsShowAll = false;
 
-
+            console.log("check params", vue.params)
             //queryがある場合は初期値設定しない
-            if (!_.isEmpty(_.omit(vue.query, "userId"))) {
+            if (!vue.params && !_.isEmpty(_.omit(vue.query, "userId"))) {
                 //本日注文履歴取得
                 vue.getTodayOrder(() => {
                     vue.CurrentOrder = vue.TodayOrders.find(v => {
@@ -701,6 +712,11 @@ export default {
                 });
 
                 return;
+            }
+
+            if (!!vue.params && vue.params.CustomerCd) {
+                vue.footerButtons.find(v => v.id == "DAI01030Grid1_showCustomerMaint").disabled = false;
+                vue.footerButtons.find(v => v.id == "DAI01030Grid1_showProductMaint").disabled = false;
             }
 
             //TODO:

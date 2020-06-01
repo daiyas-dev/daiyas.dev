@@ -1796,7 +1796,8 @@ export default {
 
                 //PqGrid参照設定
                 if (!this.grid) return;
-                this.$parent.$data[this.id] = this.grid;
+                var gridId = _.keys(vue.$parent.$refs).find(v => this.id.startsWith(v));
+                this.$parent.$data[gridId] = this.grid;
 
                 //bootstrap tooltip
                 if (!vue.autoToolTipDisabled) {

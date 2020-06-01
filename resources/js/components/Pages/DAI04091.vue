@@ -1148,9 +1148,9 @@ export default {
         onBushoChanged: function(code, entity) {
             var vue = this;
 
-            //得意先マスタ事前検索
-            // axios.post("/DAI04091/GetCustomerListForSelect", { bushoCd: code })
-            //     .then(res => vue.CustomerList = res.data);
+            // 得意先マスタ事前検索
+            axios.post("/DAI04091/GetCustomerListForSelect", { bushoCd: code, noCache: true, })
+                .then(res => vue.CustomerList = res.data);
 
             //条件変更ハンドラ
             vue.conditionChanged();
@@ -1176,9 +1176,9 @@ export default {
         onBushoChangedOthers: function(code, entity) {
             var vue = this;
 
-            //得意先マスタ事前検索
-            // axios.post("/DAI04091/GetCustomerListForSelect", { bushoCd: code })
-            //     .then(res => vue.CustomerListOthers = res.data);
+            // 得意先マスタ事前検索
+            axios.post("/DAI04091/GetCustomerListForSelect", { bushoCd: code, noCache: true, })
+                .then(res => vue.CustomerListOthers = res.data);
 
             //条件変更ハンドラ
             vue.conditionChangedOthers();
@@ -1213,7 +1213,7 @@ export default {
 
                 if (!!bushoChanged) {
                     console.log("get customer list")
-                    axios.post("/DAI04091/GetCustomerListForSelect", { bushoCd: vue.viewModel.BushoCd })
+                    axios.post("/DAI04091/GetCustomerListForSelect", { bushoCd: vue.viewModel.BushoCd, noCache: true })
                         .then(res => vue.CustomerList = res.data);
                 }
 

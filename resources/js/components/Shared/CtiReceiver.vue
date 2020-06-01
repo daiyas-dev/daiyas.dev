@@ -82,7 +82,6 @@ export default {
                             //未登録
                             $.dialogConfirm({
                                 title: "確認",
-                                // contents: "本電話番号はどの顧客にも登録されておりません。<br>この電話番号はをお客様の連絡先に登録しますか？",
                                 contents:
                                     $("<div>").addClass("d-block").addClass("text-center")
                                         .append(
@@ -107,31 +106,42 @@ export default {
                                         class: "btn btn-primary",
                                         click: function(){
                                             vue.showCustomerSelector(no, time, true);
-                                            $(this).dialog("close");
                                         }
                                     },
                                     {
                                         text: "新規登録",
                                         class: "btn btn-primary",
                                         click: function(){
-                                            //TODO: 4041得意先マスタメンテ詳細表示
-                                            //TODO: 1030注文入力表示
                                             console.log("得意先マスタメンテ & 注文入力表示", no);
-                                            $(this).dialog("close");
+                                            //4041得意先マスタメンテ詳細表示(ここでTelToCust登録)
+                                            //登録後1030注文入力表示
+                                            vue.show04041(no);
                                         }
                                     },
                                     {
                                         text: "非顧客登録",
-                                        class: "btn btn-danger",
+                                        class: "btn btn-warning",
                                         click: function(){
-                                            //TODO: 非顧客電話番号マスタに登録
-                                            console.log("非顧客登録", no);
-                                            $(this).dialog("close");
+                                            var $dlg = $(this);
+
+                                            //非顧客電話番号マスタに登録
+                                            axios.post("/Utilities/SetNonCustomer", { TelNo: no, EditUser: window.loginInfo.uid , noCache: true})
+                                                .then(res => {
+                                                    console.log("非顧客登録", no);
+                                                    $dlg.dialog("close");
+                                                })
+                                                .catch(err => {
+                                                    console.log(err);
+                                                    $.dialogErr({
+                                                        title: "非顧客電話番号マスタ登録失敗",
+                                                        contents: "非顧客電話番号マスタ登録に失敗しました" + "<br/>" + err.message,
+                                                    });
+                                                });
                                         }
                                     },
                                     {
-                                        text: "キャンセル",
-                                        class: "btn btn-primary",
+                                        text: "閉じる",
+                                        class: "btn btn-danger",
                                         click: function(){
                                             $(this).dialog("close");
                                         }
@@ -140,8 +150,8 @@ export default {
                             });
                         } else if (!!res.data.Unique) {
                             //1件該当
-                            //TODO: 1030注文入力表示
-                            console.log("注文入力表示", res.data.CustomerCd);
+                            //1030注文入力表示: OK
+                            vue.show01030(res.data.CustomerInfo);
                         } else {
                             //複数該当
                             vue.showCustomerSelector(no, time, false, true);
@@ -205,30 +215,46 @@ export default {
                                                 text: "はい",
                                                 class: "btn btn-primary",
                                                 click: function(){
-                                                    $(this).dialog("close");
-                                                    //TODO: TelToCust及び未登録の場合は得意先マスタ電話番号に登録
-                                                    //TODO: 1030注文入力表示
-                                                    console.log("電話番号登録 & 注文入力表示", rowData.得意先ＣＤ)
+                                                    var $dlg = $(this);
+
+                                                    //TelToCust及び未登録の場合は得意先マスタ電話番号に登録
+                                                    axios.post("/Utilities/InsertTelNo", { TelNo: no, CustomerCd: rowData.得意先ＣＤ, EditUser: window.loginInfo.uid , noCache: true})
+                                                        .then(res => {
+                                                            //1030注文入力表示
+                                                            vue.show01030(rowData);
+                                                            $dlg.dialog("close");
+                                                            $(gridVue.$el).closest(".ui-dialog-content").dialog("close");
+                                                        })
+                                                        .catch(err => {
+                                                            console.log(err);
+                                                            $.dialogErr({
+                                                                title: "電話番号マスタ登録失敗",
+                                                                contents: "電話番号マスタ登録に失敗しました" + "<br/>" + err.message,
+                                                            });
+                                                        });
                                                 }
                                             },
                                             {
                                                 text: "いいえ",
                                                 class: "btn btn-danger",
                                                 click: function(){
-                                                    $(this).dialog("close");
-                                                    //TODO: 1030注文入力表示
-                                                    console.log("注文入力表示", rowData.得意先ＣＤ)
+                                                    $dlg.dialog("close");
+                                                    //1030注文入力表示: OK
+                                                    vue.show01030(rowData);
+                                                    $(gridVue.$el).closest(".ui-dialog-content").dialog("close");
                                                 }
                                             },
                                         ],
                                     });
                                 } else {
-                                    //TODO: 1030注文入力表示
-                                    console.log("注文入力表示", rowData.得意先ＣＤ)
+                                    //1030注文入力表示: OK
+                                    vue.show01030(rowData);
+                                    return true;
                                 }
                             } else {
-                                //TODO: 1030注文入力表示
-                                 console.log("注文入力表示",rowData.得意先ＣＤ)
+                                //1030注文入力表示: OK
+                                 vue.show01030(rowData);
+                                 return true;
                            }
 
                             return false;
@@ -250,9 +276,9 @@ export default {
                                         class: "btn btn-primary",
                                         click: function(){
                                             $(this).dialog("close");
-                                            //TODO: 4041得意先マスタメンテ詳細表示
-                                            //TODO: 1030注文入力表示
-                                             console.log("得意先マスタメンテ & 注文入力表示", no)
+                                            //4041得意先マスタメンテ詳細表示(ここでTelToCust登録)
+                                            //登録後1030注文入力表示
+                                            vue.show04041(no);
                                         }
                                     },
                                     {
@@ -270,6 +296,53 @@ export default {
                     },
                 ],
             });
+        },
+        show01030: function(data) {
+            var vue = this;
+
+            var params = {
+                BushoCd: data.部署CD,
+                CustomerCd: data.得意先ＣＤ,
+                CustomerNm: data.得意先名,
+                IsChild: true,
+                Parent: vue,
+            };
+
+            PageDialog.show({
+                pgId: "DAI01030",
+                params: params,
+                isModal: true,
+                isChild: true,
+                reuse: false,
+                width: 1250,
+                height: 775,
+            });
+        },
+        show04041: function(no) {
+            var vue = this;
+
+            var params = {
+                電話番号１: no,
+                IsNew: true,
+                IsChild: true,
+                Parent: vue,
+                IsCTI: true,
+            };
+
+            //DAI04041を子画面表示
+            PageDialog.show({
+                pgId: "DAI04041",
+                params: params,
+                isModal: true,
+                isChild: true,
+                width: 1200,
+                height: 700,
+            });
+        },
+        after04041: function(customerInfo) {
+            var vue = this;
+            console.log("cti 4041 -> 1030")
+            vue.show01030(customerInfo);
         },
     }
 };
