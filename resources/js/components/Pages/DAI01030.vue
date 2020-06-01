@@ -189,7 +189,7 @@
                     v-model=viewModel.BikouForControl
                     type="text"
                     v-maxBytes="200"
-                    class="bikou w-100"
+                    class="form-control" style="max-height: unset;"
                 ></textarea>
             </div>
             <div class="col-md-1 d-block">
@@ -207,7 +207,7 @@
                     v-model=viewModel.BikouForDelivery
                     type="text"
                     v-maxBytes="200"
-                    class="bikou w-100"
+                    class="form-control" style="max-height: unset;"
                 ></textarea>
             </div>
         </div>
@@ -225,7 +225,7 @@
                     v-model=viewModel.BikouForNotification
                     type="text"
                     v-maxBytes="200"
-                    class="bikou w-100"
+                    class="form-control" style="max-height: unset;"
                 ></textarea>
             </div>
         </div>
@@ -290,6 +290,7 @@ export default {
         },
         hasNext: function() {
             var vue = this;
+            //TODO西山　CurrentOrder nullの時ある
             return !!vue.TodayOrders.length && _.first(vue.TodayOrders) != vue.CurrentOrder;
         },
         searchParams: function() {
@@ -1315,6 +1316,7 @@ export default {
                 return;
             }
 
+            //TODO西山 index確認中
             var idx = _.indexOf(vue.TodayOrders, vue.CurrentOrder) - 1;
             idx = idx < 0 ? 0 : idx;
             vue.loadOrder(idx);
