@@ -173,7 +173,7 @@ export default {
 
             PageDialog.showSelector({
                 dataUrl: "/Utilities/SearchCustomerListPartial",
-                params: { TelNo: !!regist ? null : no, Start: 1, Chunk: 100 },
+                params: { TelNo: !!regist ? null : no, Start: 1, Chunk: 1000 },
                 title: !!multi ? "得意先選択(電話番号が複数得意先で登録されています)" : "得意先一覧",
                 labelCd: "得意先CD",
                 labelCdNm: "得意先名",
@@ -306,6 +306,7 @@ export default {
                 CustomerNm: data.得意先名,
                 IsChild: true,
                 Parent: vue,
+                IsCTI: true,
             };
 
             PageDialog.show({
@@ -341,7 +342,36 @@ export default {
         },
         after04041: function(customerInfo) {
             var vue = this;
-            console.log("cti 4041 -> 1030")
+            vue.show04091(customerInfo);
+            // vue.show01030(customerInfo);
+        },
+        show04091: function(data) {
+            var vue = this;
+
+            var params = {
+                targets: [
+                    {
+                        部署ＣＤ: data.部署CD,
+                    }
+                ],
+                IsChild: true,
+                Parent: vue,
+                IsCTI: true,
+                CustomerInfo: data,
+            };
+
+            PageDialog.show({
+                pgId: "DAI04091",
+                params: params,
+                isModal: true,
+                isChild: true,
+                reuse: false,
+                width: 1200,
+                height: 750,
+            });
+        },
+        after04091: function(customerInfo) {
+            var vue = this;
             vue.show01030(customerInfo);
         },
     }

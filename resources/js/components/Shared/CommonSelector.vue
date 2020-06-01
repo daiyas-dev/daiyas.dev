@@ -182,6 +182,7 @@ export default {
 
                         if (_.isEqual(params, vue.scrollParams)) return;
 
+                        grid.showLoading();
                         axios.post(vue.dataUrl, params)
                             .then(res => {
                                 var row = res.data[0];
@@ -192,9 +193,11 @@ export default {
 
                                 grid.pdata.push(...row.Result);
                                 grid.refreshView();
+                                grid.hideLoading();
                             })
                             .catch(err => {
                                 console.log(err);
+                                grid.hideLoading();
                                 $.dialogErr({
                                     title: "異常終了",
                                     contents: "検索に失敗しました" + "<br/>" + err.message,
