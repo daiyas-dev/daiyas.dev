@@ -537,6 +537,14 @@ export default {
                 div.title > h3 {
                     margin-top: 0px;
                     margin-bottom: 0px;
+                    padding-top: 3px;
+                    padding-bottom: 3px;
+                    padding-left: 60px;
+                    padding-right: 60px;
+                    letter-spacing: 0.4em;
+                    background-color: #c0ffff;
+                    border: 1px solid #000000;
+                    border-radius: 1px;
                 }
                 table {
                     table-layout: fixed;
@@ -547,7 +555,7 @@ export default {
                     border: solid 0px black;
                 }
                 th, td {
-                    font-family: "MS UI Gothic";
+                    font-family: "MS Mincho";
                     font-size: 11pt;
                     font-weight: normal;
                     margin: 0px;
@@ -591,6 +599,18 @@ export default {
                     height: 22px;
                     text-align: center;
                 }
+                table.header-table tr:nth-child(2) th:last-child:nth-child(5),
+                table.header-table tr:nth-last-child(3) th:nth-child(1) {
+                    vertical-align: top;
+                    padding-top: 5px;
+                    padding-left: 5px;
+                }
+                table.header-table tr:nth-last-child(3) th:last-child:nth-child(4) {
+                    vertical-align: bottom;
+                    padding-bottom: 5px;
+                    padding-left: 5px;
+                    text-align: left;
+                }
                 table.header-table tbody th {
                     font-size: 9.5pt;
                 }
@@ -598,49 +618,24 @@ export default {
                     height: 25px;
                 }
                 div.customer-nm  {
-                    font-size: 14pt;
                     letter-spacing: 0.1em;
-                    margin-top: 30px;
-                    margin-bottom: 10px;
+                    margin-top: 50px;
+                    margin-bottom: 25px;
                 }
                 div.title {
-                    font-size: 20pt;
                     float: left;
-                    width: 70%;
+                    width: 50%;
+                    padding-left: 170px;
                 }
                 div.denpyo-no {
                     float: left;
-                    width: 30%;
-                    height: 27px;
-                }
-                td.customer-cd-A{
-                    font-size: 20pt;
-                    text-align: center;
-                    padding-left: 170px;
-                }
-                td.customer-cd{
-                    text-align: center;
-                    padding-left: 150px;
-                }
-                div.kaisya-info{
-                    margin-left: 100px;
-                    margin-bottom: 0px;
-                    font-size: 8pt;
-                }
-                div.kaisya-info > div:first-child {
-                    font-size: 11pt;
-                }
-                div.kaisya-info > div:nth-child(2),
-                div.kaisya-info > div:nth-child(3) {
-                    font-size: 10pt;
-                }
-                div.kaisya-info > div{
-                    text-align: right;
-                }
-                div.chuui-gaki > div {
-                    font-size: 8.5pt;
-                    letter-spacing: 0.2em;
-                    line-height: 15px;
+                    width: 22%;
+                    mardin-left: 20px;
+                    mardin-right: 50px;
+                    border: 1px solid #000000;
+                    border-radius: 1px;
+                    padding-top: 3px;
+                    padding-bottom: 3px;
                 }
                 table.header-table th:nth-child(1) {
                     width: 30%;
@@ -651,9 +646,6 @@ export default {
                     width: 12%;
                     text-align: right;
                     padding-right: 5px;
-                }
-                div.fax-tel {
-                    margin-left: 125px;
                 }
                 div.hizuke {
                     border-style: solid;
@@ -670,7 +662,8 @@ export default {
                     margin-right: 8px;
                 }
                 hr {
-                    margin: 22px;
+                    margin-top: 30px;
+                    margin-bottom: 40px;
                     border-color: black;
                     border-style: dotted;
                     border-top-width: 1px;
@@ -678,9 +671,6 @@ export default {
                     border-left-width: 0px;
                     border-right-width: 0px;
                     background-color: transparent;
-                }
-                div.insatubi {
-                    font-size: 8pt;
                 }
             `;
 
@@ -771,17 +761,17 @@ export default {
                             ${layout_product_body}
                             <tr>
                                 ${layout_bikou1}
-                                <th>小計</th><th>${h.小計}</th>
+                                <th>小計</th><th>${pq.formatNumber(h.小計, "#,##0")}</th>
                                 <th rowspan="3">
                                     <div style="text-align: left;">${h.注文日付}</div>
                                     <div>受付店：${h.会社名称}</div>
                                 </th>
                             </tr>
                             <tr>
-                                <th>消費税</th><th>${h.消費税}</th>
+                                <th>消費税</th><th>${pq.formatNumber(h.消費税, "#,##0")}</th>
                             </tr>
                             <tr>
-                                <th>金額合計</th><th>${h.合計}</th>
+                                <th>金額合計</th><th>${pq.formatNumber(h.合計, "#,##0")}</th>
                             </tr>
                         </tbody>
                     `;
@@ -807,11 +797,11 @@ export default {
                     `;
                     //TODO西山確認中
                     var layout_common=`
-                        <div style="width: 35%; float: right;">
+                        <div style="width: 35%; float: right; margin-top: 5px;">
                             <div style="font-size: 12pt;">
-                                <span/>${h.会社名称}]
+                                <span/>${h.会社名称}
                             </div>
-                            <div style="font-size: 9pt;">
+                            <div style="font-size: 9pt; margin-top: 3px;">
                                 <span/>${h.住所欄}
                             </div>
                             <div style="font-size: 9pt;">
@@ -820,7 +810,7 @@ export default {
                         </div>
                         <div style="width: 65%; float: left;">
                             <div class="customer-nm">
-                                <span/><span/><span>${h.得意先名}</span><span>様</span>
+                                <span/><span>${h.得意先名}</span><span>様</span>
                             </div>
                             <div class="hizuke"><span>納品日：${h.配達日付} 時刻：（${h.配達時間}）</span></div>
                         </div>
@@ -828,16 +818,20 @@ export default {
                             <div><span/>取引金融機関</div>
                             <div style="font-size: 8pt;">
                                 <div style="width: 50%; float: left;">
-                                    <div><span/><span/>${h.会社_銀行名1}</div>
-                                    <div><span/><span/>${h.会社_口座種別名1}　${h.会社_口座番号1}</div>
-                                    <div><span/><span/>${h.会社_銀行名2}</div>
-                                    <div><span/><span/>${h.会社_口座種別名2}　${h.会社_口座番号2}</div>
+                                    <div style="margin-top: 3px;">
+                                        <span/><span/>${!!h.会社_銀行名1 ? h.会社_銀行名1 : ""}
+                                    </div>
+                                    <div><span/><span/>${!!h.会社_口座種別名1 ? h.会社_口座種別名1 : ""}　${!!h.会社_口座番号1 ? h.会社_口座番号1 : ""}</div>
+                                    <div style="margin-top: 3px;">
+                                        <span/><span/>${!!h.会社_銀行名2 ? h.会社_銀行名2 : ""}
+                                    </div>
+                                    <div><span/><span/>${!!h.会社_口座種別名2 ? h.会社_口座種別名2 : ""}　${!!h.会社_口座番号2 ? h.会社_口座番号2 : ""}</div>
                                 </div>
                                 <div style="width: 50%; float: left;">
-                                    <div>${h.会社_支店名1}</div>
-                                    <div>${h.会社_口座名義人1}</div>
-                                    <div>${h.会社_支店名2}</div>
-                                    <div>${h.会社_口座名義人2}</div>
+                                    <div>${!!h.会社_支店名1 ? h.会社_支店名1 : ""}</div>
+                                    <div>${!!h.会社_口座名義人1 ? h.会社_口座名義人1 : ""}</div>
+                                    <div>${!!h.会社_支店名2 ? h.会社_支店名2 : ""}</div>
+                                    <div>${!!h.会社_口座名義人2 ? h.会社_口座名義人2 : ""}</div>
                                 </div>
                             </div>
                         </div>
@@ -848,18 +842,18 @@ export default {
                                 <div>
                                     <div>
                                         <div class="title">
-                                            請求書
+                                            <h3>請求書</h3>
                                         </div>
                                         <div class="denpyo-no">
-                                            <span/>伝票No.　${h.受注Ｎｏ}
+                                            <div style="float: left; padding-left: 10px;""> 伝票No. </div>
+                                            <div style="float: right; padding-right: 10px;"> ${h.受注Ｎｏ} </div>
                                         </div>
                                     </div>
                                     <table style="width:100%;">
                                         ${layout_common}
                                         <tr>
                                             <td>
-                                                <div><span>下記の通り納品いたしました。</span></div>
-                                                <div style="height: 8px;"></div>
+                                                <div style="font-size: 10pt;"><span>下記の通り納品いたしました。</span></div>
                                             </td>
                                         </tr>
                                     </table>
@@ -876,7 +870,7 @@ export default {
                                 <div>
                                     <div>
                                         <div class="title">
-                                            納品書
+                                            <h3>納品書</h3>
                                         </div>
                                         <div class="denpyo-no">
                                             <span/>伝票No.　${h.受注Ｎｏ}
@@ -886,8 +880,7 @@ export default {
                                         ${layout_common}
                                         <tr>
                                             <td>
-                                                <div><span>下記の通り納品いたしました。（${h.得意先ＣＤ}）</span></div>
-                                                <div style="height: 8px;"></div>
+                                                <div style="font-size: 10pt;"><span>下記の通り納品いたしました。（${h.得意先ＣＤ}）</span></div>
                                             </td>
                                         </tr>
                                     </table">
