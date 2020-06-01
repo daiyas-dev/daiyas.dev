@@ -573,7 +573,14 @@ export default {
                     border-bottom-width: 0px;
                     font-size: 13.5pt;
                 }
-                table.header-table th:last-child {
+                table.header-table tbody tr:nth-child(8) th:nth-child(1),
+                table.header-table tbody tr:nth-child(8) th:nth-child(4) {
+                    border-bottom-width: 1px;
+                }
+                table.header-table th:last-child:nth-child(5) {
+                    border-right-width: 1px;
+                }
+                table.header-table tr:nth-child(8) th:last-child:nth-child(4) {
                     border-right-width: 1px;
                 }
                 table.header-table tbody tr:last-child th {
@@ -585,14 +592,26 @@ export default {
                     text-align: center;
                 }
                 table.header-table tbody th {
-                    height: 20.5x;
+                    font-size: 9.5pt;
                 }
-                td.customer-nm {
+                table.header-table tbody th {
+                    height: 25px;
+                }
+                div.customer-nm  {
                     font-size: 14pt;
                     letter-spacing: 0.1em;
+                    margin-top: 30px;
+                    margin-bottom: 10px;
                 }
                 div.title {
                     font-size: 20pt;
+                    float: left;
+                    width: 70%;
+                }
+                div.denpyo-no {
+                    float: left;
+                    width: 30%;
+                    height: 27px;
                 }
                 td.customer-cd-A{
                     font-size: 20pt;
@@ -651,8 +670,14 @@ export default {
                     margin-right: 8px;
                 }
                 hr {
-                    border: none;
                     margin: 22px;
+                    border-color: black;
+                    border-style: dotted;
+                    border-top-width: 1px;
+                    border-bottom-width: 0px;
+                    border-left-width: 0px;
+                    border-right-width: 0px;
+                    background-color: transparent;
                 }
                 div.insatubi {
                     font-size: 8pt;
@@ -695,8 +720,8 @@ export default {
                             <tr>
                                 <th>${r.商品名}</th>
                                 <th>${r.数量}</th>
-                                <th>${r.単価}</th>
-                                <th>${r.金額}</th>
+                                <th>${pq.formatNumber(r.単価, "#,##0")}</th>
+                                <th>${pq.formatNumber(r.金額, "#,##0")}</th>
                                 ${layout_product_tel}
                                 ${layout_product_delivery}
                             </tr>
@@ -780,44 +805,54 @@ export default {
                             </tr>
                         </tbody>
                     `;
+                    //TODO西山確認中
                     var layout_common=`
-                        <td>
-                            <span/>伝票No.　${h.受注Ｎｏ}
-                        </td>
-                        <tr>
-                            <td>
-                                <div><span/>${h.会社名称}</div>
-                                <div><span/>${h.住所欄}</div>
-                                <div><span/>${h.TEL欄}</div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="customer-nm">
+                        <div style="width: 35%; float: right;">
+                            <div style="font-size: 12pt;">
+                                <span/>${h.会社名称}]
+                            </div>
+                            <div style="font-size: 9pt;">
+                                <span/>${h.住所欄}
+                            </div>
+                            <div style="font-size: 9pt;">
+                                <span/><span/>${h.TEL欄}
+                            </div>
+                        </div>
+                        <div style="width: 65%; float: left;">
+                            <div class="customer-nm">
                                 <span/><span/><span>${h.得意先名}</span><span>様</span>
-                            </td>
-                            <td>
-                                <div><span>取引金融機関</span></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div><span>${h.会社_銀行名1}　${h.会社_支店名1}</span></div>
-                                <div><span>${h.会社_口座種別名1}　${h.会社_口座番号1}　${h.会社_口座名義人1}</span></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="hizuke"><span>納品日：${h.配達日付} 時刻：（${h.配達時間}）</span></div>
-                                <div style="height: 8px;"></div>
-                            </td>
-                        </tr>
+                            </div>
+                            <div class="hizuke"><span>納品日：${h.配達日付} 時刻：（${h.配達時間}）</span></div>
+                        </div>
+                        <div style="width: 35%; float: right; margin-top: 5px;">
+                            <div><span/>取引金融機関</div>
+                            <div style="font-size: 8pt;">
+                                <div style="width: 50%; float: left;">
+                                    <div><span/><span/>${h.会社_銀行名1}</div>
+                                    <div><span/><span/>${h.会社_口座種別名1}　${h.会社_口座番号1}</div>
+                                    <div><span/><span/>${h.会社_銀行名2}</div>
+                                    <div><span/><span/>${h.会社_口座種別名2}　${h.会社_口座番号2}</div>
+                                </div>
+                                <div style="width: 50%; float: left;">
+                                    <div>${h.会社_支店名1}</div>
+                                    <div>${h.会社_口座名義人1}</div>
+                                    <div>${h.会社_支店名2}</div>
+                                    <div>${h.会社_口座名義人2}</div>
+                                </div>
+                            </div>
+                        </div>
                     `;
                     var layout_1=`
                         <div>
                             <div class="header">
                                 <div>
-                                    <div class="title">
-                                        請求書
+                                    <div>
+                                        <div class="title">
+                                            請求書
+                                        </div>
+                                        <div class="denpyo-no">
+                                            <span/>伝票No.　${h.受注Ｎｏ}
+                                        </div>
                                     </div>
                                     <table style="width:100%;">
                                         ${layout_common}
@@ -839,8 +874,13 @@ export default {
                         <div>
                             <div class="header">
                                 <div>
-                                    <div class="title">
-                                        納品書
+                                    <div>
+                                        <div class="title">
+                                            納品書
+                                        </div>
+                                        <div class="denpyo-no">
+                                            <span/>伝票No.　${h.受注Ｎｏ}
+                                        </div>
                                     </div>
                                     <table style="width:100%;">
                                         ${layout_common}
