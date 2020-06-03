@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use PDO;
 
+//バッチ処理の試作1(SQL実行とWebAPI呼出のテスト)
 class TestBatch extends Command
 {
     /**
@@ -13,7 +14,7 @@ class TestBatch extends Command
      *
      * @var string
      */
-    protected $signature = 'batch:test';
+    protected $signature = 'batch:test1';
 
     /**
      * The console command description.
@@ -46,6 +47,7 @@ class TestBatch extends Command
         $CustomerData = DB::selectOne($sql);
         $customerName=$CustomerData->得意先名カナ;
         */
+        /*
         //PDOでアクセス
         $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
@@ -55,7 +57,29 @@ class TestBatch extends Command
         $CustomerData = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $pdo = null;
         $customerName=$CustomerData[0]['得意先名カナ'];
-
         echo $customerName;
+        */
+        $this->CallWebAPI();
+    }
+    private function CallWebAPI()
+    {
+        $url = "http://localhost:49503/api/Hello";
+
+        // cURLセッションを初期化
+        $ch = curl_init();
+
+        // オプションを設定
+        curl_setopt($ch, CURLOPT_URL, $url); // 取得するURLを指定
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // 実行結果を文字列で返す
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // サーバー証明書の検証を行わない
+
+        // URLの情報を取得
+        $response =  curl_exec($ch);
+
+        // 取得結果を表示
+        echo $response;
+
+        // セッションを終了
+        curl_close($ch);
     }
 }
