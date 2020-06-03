@@ -6,15 +6,14 @@ use Illuminate\Console\Command;
 use PDO;
 
 //モバイル・Web受注から社内DBへ取込
-//バッチ処理の試作2(WebAPI呼出(受信)し、ZIPファイルを展開してSQLを実行する)
-class TestBatch2 extends Command
+class MobileDataRecieve extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'batch:test2';
+    protected $signature = 'batch:MobileDataRecieve';
 
     /**
      * The console command description.
@@ -35,6 +34,7 @@ class TestBatch2 extends Command
 
     /**
      * Execute the console command.
+     *
      * @return mixed
      */
     public function handle()
