@@ -2,7 +2,7 @@
     <form id="this.$options.name">
         <div class="row" style="display: flex; align-items: baseline;">
             <div class="col-md-3">
-                <p class="ml-1 mb-0"><a href="./client/win/DaiyasClientSetup.exe" download="ダイヤスクライアントセットアップ.exe">CTI連携用クライアントのダウンロード </a></p>
+                <p class="ml-1 mb-0"><a href="./client/win/ダイヤスクライアントSetup.exe" download="ダイヤスクライアントセットアップ.exe">CTI連携用クライアントのダウンロード </a></p>
             </div>
             <div class="col-md-9">
                 <label style="width: unset;">※本社CTI連携機能をお使いの方は左記クライアントをインストールして、システムをご利用ください</label>
