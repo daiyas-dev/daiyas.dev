@@ -34,7 +34,7 @@ class TestBatch2 extends Command
 
     /**
      * Execute the console command.
-     * WebAPIでZIP圧縮されたファイルを受け取り、解凍してSQL文字列を戻す。
+     * WebAPIでZIP圧縮されたファイルを受け取り、解凍してSQLを実行する。
      * @return mixed
      */
     public function handle()
