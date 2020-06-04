@@ -7,12 +7,9 @@ use Illuminate\Support\Carbon;
 //社内DBからモバイル・Web受注へ更新用SQLを送信する
 class DataSend
 {
-    public function Send($param)
+    public function Send($sql)
     {
         try {
-            //カラムマッピング・変換処理
-            $sql = $param;
-
             //現在日時を取得(ファイル名に使用)
             $dt_str = Carbon::now()->format('YmdHis');
 
