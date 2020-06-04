@@ -82,6 +82,7 @@
                     :onAfterChangedFunc=onCustomerChanged
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=CustomerAutoCompleteFunc
+                    :onAfterSearchFunc=onCustomerSearchFunc
                 />
                 <label class="label-blue text-center">TEL</label>
                 <input class="form-control p-0 text-center label-blue" style="width: 120px;" type="text" :value=viewModel.TelNo readonly tabindex="-1">
@@ -697,6 +698,7 @@ export default {
 
             console.log("check params", vue.params)
             //queryがある場合は初期値設定しない
+            //TODO:西山確認中
             if (!vue.params && !_.isEmpty(_.omit(vue.query, "userId"))) {
                 //本日注文履歴取得
                 vue.getTodayOrder(() => {
@@ -745,6 +747,15 @@ export default {
 
             if (!!entity && !_.isEmpty(entity)) {
                 vue.CustomerChanged(entity, comp.isValid);
+            }
+        },
+        onCustomerSearchFunc:  function() {
+            var vue = this;
+            if (!!$(vue.$el).find("#CustomerSelect")[0].value) {
+                if (!$(DAI01030.$el).find("#CustomerSelect").nextAll('input:first')[0].value) {
+                    vue.viewModel.CourseNm = "コーステーブル未登録です";
+                    vue.viewModel.TantoNm = "";
+                }
             }
         },
         CustomerChanged: function(info, isValid) {
