@@ -1,9 +1,9 @@
 <?php
 
 namespace App\Console\Commands;
-
+use Exception;
 use Illuminate\Console\Command;
-use PDO;
+use App\Libs\DataRecieve;
 
 //モバイル・Web受注から社内DBへ取込
 class MobileDataRecieve extends Command
@@ -39,63 +39,12 @@ class MobileDataRecieve extends Command
      */
     public function handle()
     {
-        //WebAPIからレスポンスを取得する
-        $url = "http://localhost:49503/api/Hello";
-
-        // cURLセッションを初期化
-        $ch = curl_init();
-
-        // オプションを設定
-        curl_setopt($ch, CURLOPT_URL, $url); // 取得するURLを指定
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // 実行結果を文字列で返す
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // サーバー証明書の検証を行わない
-
-        // URLの情報を取得
-        $response =  curl_exec($ch);
-        // セッションを終了
-        curl_close($ch);
-
-        //取得したレスポンスをファイルにする
-        $tmp_path=base_path()."\\tmp";
-        $tmpfile = tempnam($tmp_path, "zip");
-        if ($file_handle = fopen($tmpfile, "w")) {
-            // 書き込み
-            fwrite($file_handle, base64_decode($response));
-            // ファイルを閉じる
-            fclose($file_handle);
+        try {
+            $dr = new DataRecieve();
+            $dr->Recieve();
         }
-
-        //zipを解凍する
-        $zip = new \ZipArchive();
-        if ($zip->open($tmpfile) === true) {
-            $tmp_zip_path = $tmp_path."\\".basename($tmpfile,".tmp");
-            mkdir($tmp_zip_path);
-            $zip->extractTo($tmp_zip_path);
-            $zip->close();
-        }
-
-        //解凍したファイルを読み込んでSQLを実行
-        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-        $user = 'daiyas';
-        $password = 'daiyas';
-        $pdo = new PDO($dsn, $user, $password);
-        $pdo->beginTransaction();
-        foreach(glob($tmp_zip_path.'\\*') as $sqlfile){
-            if(is_file($sqlfile)){
-                $sql = file_get_contents($sqlfile);
-                $pdo->exec($sql);
-            }
-        }
-        $pdo->commit();
-        $pdo = null;
-
-        //使用したテンポラリファイルを消す
-        unlink($tmpfile);
-        foreach(glob($tmp_zip_path.'\\*') as $sqlfile){
-            if(is_file($sqlfile)){
-                unlink($sqlfile);
-            }
-            rmdir($tmp_zip_path);
+        catch (Exception $exception) {
+            echo $exception;
         }
     }
 }
