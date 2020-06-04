@@ -539,12 +539,13 @@ export default {
                     margin-bottom: 0px;
                     padding-top: 3px;
                     padding-bottom: 3px;
-                    padding-left: 60px;
-                    padding-right: 60px;
-                    letter-spacing: 0.4em;
+                    padding-left: 62px;
+                    padding-right: 46px;
+                    letter-spacing: 1.0em;
                     background-color: #c0ffff;
                     border: 1px solid #000000;
                     border-radius: 1px;
+                    font-size: 14pt;
                 }
                 table {
                     table-layout: fixed;
@@ -580,6 +581,10 @@ export default {
                     border-right-width: 0px;
                     border-bottom-width: 0px;
                     font-size: 13.5pt;
+                }
+                table.header-table tbody tr:not(:first-child):nth-child(-n+7) th {
+                    border-top-color: gray;
+                    border-top-width: 1px;
                 }
                 table.header-table tbody tr:nth-child(8) th:nth-child(1),
                 table.header-table tbody tr:nth-child(8) th:nth-child(4) {
@@ -624,14 +629,12 @@ export default {
                 }
                 div.title {
                     float: left;
-                    width: 50%;
+                    width: 46%;
                     padding-left: 170px;
                 }
                 div.denpyo-no {
                     float: left;
                     width: 22%;
-                    mardin-left: 20px;
-                    mardin-right: 50px;
                     border: 1px solid #000000;
                     border-radius: 1px;
                     padding-top: 3px;
@@ -646,6 +649,9 @@ export default {
                     width: 12%;
                     text-align: right;
                     padding-right: 5px;
+                }
+                table.header-table tr:nth-child(2) th:last-child > div {
+                    white-space: pre-wrap;
                 }
                 div.hizuke {
                     border-style: solid;
@@ -795,17 +801,17 @@ export default {
                             </tr>
                         </tbody>
                     `;
-                    //TODO西山確認中
+
                     var layout_common=`
                         <div style="width: 35%; float: right; margin-top: 5px;">
                             <div style="font-size: 12pt;">
                                 <span/>${h.会社名称}
                             </div>
-                            <div style="font-size: 9pt; margin-top: 3px;">
-                                <span/>${h.住所欄}
+                            <div style="font-size: 9pt; margin-top: 3px; text-align: right;">
+                                ${h.住所欄}
                             </div>
-                            <div style="font-size: 9pt;">
-                                <span/><span/>${h.TEL欄}
+                            <div style="font-size: 9pt; text-align: right;">
+                                ${h.TEL欄}
                             </div>
                         </div>
                         <div style="width: 65%; float: left;">
@@ -815,9 +821,9 @@ export default {
                             <div class="hizuke"><span>納品日：${h.配達日付} 時刻：（${h.配達時間}）</span></div>
                         </div>
                         <div style="width: 35%; float: right; margin-top: 5px;">
-                            <div><span/>取引金融機関</div>
+                            <div style="font-size: 9pt;"><span/>取引金融機関</div>
                             <div style="font-size: 8pt;">
-                                <div style="width: 50%; float: left;">
+                                <div style="width: 48%; float: left;">
                                     <div style="margin-top: 3px;">
                                         <span/><span/>${!!h.会社_銀行名1 ? h.会社_銀行名1 : ""}
                                     </div>
@@ -827,7 +833,7 @@ export default {
                                     </div>
                                     <div><span/><span/>${!!h.会社_口座種別名2 ? h.会社_口座種別名2 : ""}　${!!h.会社_口座番号2 ? h.会社_口座番号2 : ""}</div>
                                 </div>
-                                <div style="width: 50%; float: left;">
+                                <div style="width: 45%; float: left; margin-left: 15px;">
                                     <div>${!!h.会社_支店名1 ? h.会社_支店名1 : ""}</div>
                                     <div>${!!h.会社_口座名義人1 ? h.会社_口座名義人1 : ""}</div>
                                     <div>${!!h.会社_支店名2 ? h.会社_支店名2 : ""}</div>
