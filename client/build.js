@@ -8,7 +8,7 @@ builder.build(
     {
         config: {
             "releaseInfo": {
-                "releaseNotes": "初版"
+                "releaseNotes": "1.0.0"
             },
             "win": {
                 "target": "nsis",
@@ -17,6 +17,7 @@ builder.build(
                     {
                         "provider": "generic",
                         "url": "https://daiyas.dev/client/win/",
+                        // "url": "http://192.168.10.220/client/win/",
                     },
                 ],
             },

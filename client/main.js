@@ -7,6 +7,8 @@ const log = require("electron-log");
 const { appUpdater } = require("./autoUpdater.js");
 const version = app.getVersion();
 
+const appDir = app.getAppPath().replace("\\resources\\app.asar", "");
+
 let mainWindow;
 let printWindow;
 
@@ -18,12 +20,14 @@ const PORT_R = 2002;
 const PORT_S = 2010;
 
 function showLogs(...params) {
+    log.debug(params);
     console.log("log", params);
     mainWindow.webContents.send("log", params);
 }
 
 function createWindow() {
     log.transports.file.level = "debug";
+    log.transports.file.file = appDir + '\\log.log';
 
     mainWindow = new BrowserWindow({
         title: "ダイヤスクライアント",
@@ -34,22 +38,43 @@ function createWindow() {
         //fullscreen: true,
         webPreferences: {
             preload: path.join(__dirname, "preload.js"),
-            devTools: true,
             nodeIntegration: false,
         }
     });
 
     //AutoUpdater
     autoUpdater = appUpdater(log);
-    //mainWindow.webContents.send("log", "autoUpdater", autoUpdater);
+    mainWindow.webContents.send("log", "autoUpdater", autoUpdater);
     var updateInterval = setInterval(() => autoUpdater.checkForUpdatesAndNotify(), 10000);
 
-    //mainWindow.setMenu(null);
+    mainWindow.setMenu(null);
     mainWindow.webContents.openDevTools();    //TODO: to debug
 
-    // mainWindow.loadURL("https://daiyas.dev/");
-    mainWindow.loadURL("http://192.168.1.109/");
+    mainWindow.loadURL("https://daiyas.dev/");
+    // mainWindow.loadURL("http://192.168.1.109/");
     //mainWindow.loadURL("http://192.168.10.220/");
+
+    mainWindow.webContents.on("did-finish-load", () => {
+        //CTIService起動
+        require("child_process").exec('tasklist /FI "IMAGENAME eq CTIService.exe"', (error, stdout, stderr) => {
+            if (!stdout.includes("CTIService")) {
+                var ctiDir = app.getAppPath().replace("\\app.asar", "") + "\\cti";
+                var ctiExe = ctiDir + "\\CTIService.exe";
+                showLogs("cti service path", ctiExe);
+
+                var p = require("child_process").spawn(
+                    ctiExe,
+                    {
+                        cwd: ctiDir,
+                        detached: true,
+                        stdio: ["ignore", "ignore", "ignore", "ipc"]
+                    }
+                );
+                p.unref();
+                showLogs("cti service process", p);
+            }
+        });
+    });
 
     mainWindow.on("closed", function () {
         mainWindow = null
@@ -91,6 +116,7 @@ function createWindow() {
         });
 
         ctiSocket.bind(PORT_R, HOST);
+
     } catch (error) {
         mainWindow.webContents.send("CTI_BindError", error);
         showLogs("udp error", error);

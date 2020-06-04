@@ -15,6 +15,7 @@
     "electron-rebuild": "^1.8.2"
   },
   "dependencies": {
+    "child-process": "^1.0.2",
     "dgram": "^1.0.1",
     "electron-log": "^3.0.9",
     "electron-updater": "^4.2.0",
@@ -22,8 +23,11 @@
     "rimraf": "^3.0.0"
   },
   "build": {
-    "productName": "DaiyasClient",
+    "productName": "ダイヤスクライアント",
     "appId": "com.daiyas-foods.client",
+    "nsis": {
+      "include": "nsh/cti_shortcut.nsh"
+    },
     "directories": {
       "output": "build"
     },
@@ -31,6 +35,9 @@
       "./*",
       "dist/electron/**/*",
       "build/icons/*"
+    ],
+    "extraResources": [
+      "cti/*"
     ]
   }
 }
