@@ -5,6 +5,8 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 
+//社内DBからモバイル・Web受注へ送信
+//バッチ処理の試作3(SQLをファイルに書き出し、ZIP圧縮してWebAPI呼出(送信)する)
 class TestBatch3 extends Command
 {
     /**

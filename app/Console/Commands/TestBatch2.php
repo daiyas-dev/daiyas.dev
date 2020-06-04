@@ -5,7 +5,8 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use PDO;
 
-//バッチ処理の試作2(SQL実行とWebAPI呼出のテスト)
+//モバイル・Web受注から社内DBへ取込
+//バッチ処理の試作2(WebAPI呼出(受信)し、ZIPファイルを展開してSQLを実行する)
 class TestBatch2 extends Command
 {
     /**
@@ -34,7 +35,6 @@ class TestBatch2 extends Command
 
     /**
      * Execute the console command.
-     * WebAPIでZIP圧縮されたファイルを受け取り、解凍してSQLを実行する。
      * @return mixed
      */
     public function handle()
@@ -87,15 +87,15 @@ class TestBatch2 extends Command
             }
         }
         $pdo->commit();
-       $pdo = null;
+        $pdo = null;
 
-       //使用したテンポラリファイルを消す
-       unlink($tmpfile);
-       foreach(glob($tmp_zip_path.'\\*') as $sqlfile){
-        if(is_file($sqlfile)){
-            unlink($sqlfile);
+        //使用したテンポラリファイルを消す
+        unlink($tmpfile);
+        foreach(glob($tmp_zip_path.'\\*') as $sqlfile){
+            if(is_file($sqlfile)){
+                unlink($sqlfile);
+            }
+            rmdir($tmp_zip_path);
         }
-        rmdir($tmp_zip_path);
     }
-}
 }
