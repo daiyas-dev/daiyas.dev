@@ -51,7 +51,7 @@
             <div class="col-md-1">
                 <label>得意先</label>
             </div>
-            <div class="col-md-9">
+            <div class="col-md-11">
                 <PopupSelect
                     id="CustomerSelect"
                     ref="PopupSelect_Customer"
@@ -698,7 +698,6 @@ export default {
 
             console.log("check params", vue.params)
             //queryがある場合は初期値設定しない
-            //TODO:西山確認中
             if (!vue.params && !_.isEmpty(_.omit(vue.query, "userId"))) {
                 //本日注文履歴取得
                 vue.getTodayOrder(() => {
@@ -722,8 +721,8 @@ export default {
             }
 
             //TODO:
-            // vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
-            vue.viewModel.DeliveryDate = moment("20190904").format("YYYY年MM月DD日");
+            vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
+            // vue.viewModel.DeliveryDate = moment("20190904").format("YYYY年MM月DD日");
             vue.viewModel.DeliveryTime = moment().format("HH:mm:ss");
 
             //本日注文履歴取得
@@ -1343,7 +1342,6 @@ export default {
                 return;
             }
 
-            //TODO西山 index確認中
             var idx = _.indexOf(vue.TodayOrders, vue.CurrentOrder) - 1;
             idx = idx < 0 ? 0 : idx;
             vue.loadOrder(idx);

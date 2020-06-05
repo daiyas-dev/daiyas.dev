@@ -761,7 +761,7 @@ SELECT
 FROM
 	請求データ
 WHERE
-	請求先ＣＤ = 19
+	請求先ＣＤ = $SeikyuCd->請求先ＣＤ
 AND CONVERT(varchar, 請求日付, 112) = FORMAT(CONVERT(date, '$SeikyuDate->請求日付'), 'yyyyMMdd')
 AND 部署ＣＤ = $BushoCd
         ";
