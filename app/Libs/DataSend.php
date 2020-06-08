@@ -113,8 +113,16 @@ class DataSend
 
             // セッションを終了
             $result = curl_exec($ch);
+            $curl_error=curl_error($ch);
+            // セッションを終了
             curl_close($ch);
             echo 'RETURN:' . $result;
+
+            if($curl_error!="")
+            {
+                $this->ErrorSendList($send_id,"接続エラー",$curl_error);
+                return "";
+            }
 
             if ($result=="\"OK\"") {
                 //モバイル送信リストにOKを書き込む
