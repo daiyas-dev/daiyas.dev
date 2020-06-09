@@ -1192,6 +1192,9 @@ export default {
                                 vue.viewModel.IsEdit = true;
                             }
 
+                            //本日注文履歴 再取得
+                            vue.getTodayOrder();
+
                             return false;
                         },
                     },
@@ -1330,8 +1333,11 @@ export default {
 
             if (!vue.getLoginInfo().isLogOn) return;
 
+            var param = { TantoCd: vue.getLoginInfo().uid }
+            param.noCache = true;
+
             //今日の担当注文取得
-            axios.post("/DAI01030/GetTodayOrder", { TantoCd: vue.getLoginInfo().uid })
+            axios.post("/DAI01030/GetTodayOrder", param)
                 .then(res => {
                     vue.TodayOrders = res.data;
 
