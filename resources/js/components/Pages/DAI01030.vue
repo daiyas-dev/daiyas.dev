@@ -298,11 +298,30 @@ export default {
         },
         hasPrev: function() {
             var vue = this;
+            //TODO西山　CurrentOrder nullの時ある
+            if(!!vue.TodayOrders.length && !_.isEmpty(_.omit(vue.query, "userId"))) {
+                vue.CurrentOrder = vue.TodayOrders.find(v => {
+                    return v.部署ＣＤ == vue.query.BushoCd
+                        && moment(v.配送日).format("YYYY年MM月DD日") == vue.query.DeliveryDate
+                        && v.修正時間 == vue.query.DeliveryTime
+                        && v.得意先CD == vue.query.CustomerCd
+                        ;
+                })
+            }
             return !!vue.TodayOrders.length && _.last(vue.TodayOrders) != vue.CurrentOrder;
         },
         hasNext: function() {
             var vue = this;
             //TODO西山　CurrentOrder nullの時ある
+            if(!!vue.TodayOrders.length && !_.isEmpty(_.omit(vue.query, "userId"))) {
+                vue.CurrentOrder = vue.TodayOrders.find(v => {
+                    return v.部署ＣＤ == vue.query.BushoCd
+                        && moment(v.配送日).format("YYYY年MM月DD日") == vue.query.DeliveryDate
+                        && v.修正時間 == vue.query.DeliveryTime
+                        && v.得意先CD == vue.query.CustomerCd
+                        ;
+                })
+            }
             return !!vue.TodayOrders.length && _.first(vue.TodayOrders) != vue.CurrentOrder;
         },
         searchParams: function() {
@@ -1273,6 +1292,7 @@ export default {
                     CourseNm: vue.viewModel.CourseNm,
                     TantoCd: vue.viewModel.TantoCd,
                     TantoNm: vue.viewModel.TantoNm,
+                    CustomerCd: vue.viewModel.CustomerCd,
                 },
                 isModal: false,
                 isChild: true,

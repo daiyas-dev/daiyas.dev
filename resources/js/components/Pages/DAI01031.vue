@@ -56,6 +56,7 @@
                     :SearchOnCreate=false
                     :SearchOnActivate=false
                     :options=grid1Options
+                    :onCompleteFunc=onCompleteFunc
                     :autoToolTipDisabled=true
                     classes="mt-1 mb-1"
                 />
@@ -106,6 +107,7 @@ export default {
                 CourseNm: null,
                 TantoCd: null,
                 TantoNm: null,
+                CustomerCd: null,
             },
             DAI01031Grid1: null,
             grid1Options: {
@@ -175,6 +177,17 @@ export default {
         mountedFunc: function(vue) {
             vue.$root.$on("DAI01030_Deactivated", vue.parentDeactivated);
             vue.$root.$on("DAI01030_BushoChanged", vue.onBushoChanged);
+        },
+        onCompleteFunc: function(grid, ui) {
+            var vue = this;
+
+            if (grid.pdata.length > 0) {
+                var rowIndx = (grid.pdata.filter(v => v.得意先ＣＤ == vue.viewModel.CustomerCd)[0].ＳＥＱ) - 1;
+                grid.setSelection({ rowIndx: rowIndx });
+            }
+
+            $("#DAI01031Grid1 div.pq-grid-row.pq-state-select div.pq-grid-cell").addClass("currentCustomer");
+            $(".currentCustomer").css({"background":"#ADD8E6", "color":"black"});
         },
         onCourseChanged: function(code, entity) {
             var vue = this;
