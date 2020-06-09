@@ -11,7 +11,13 @@ builder.build(
                 "releaseNotes": "1.0.0"
             },
             "win": {
-                "target": "nsis",
+                "target": {
+                    "target": "nsis",
+                    "arch": [
+                        "x64",
+                        "ia32"
+                    ],
+                },
                 "icon": "./daiyas256.ico",
                 "publish": [
                     {
@@ -75,6 +81,7 @@ builder.build(
                     console.log("exe copy done");
                     //delete unpacked files
                     rimraf("./build/win-unpacked", () => console.log("unpacked files deleted"));
+                    rimraf("./build/win-ia32-unpacked", () => console.log("unpacked files deleted"));
                 }
             }
         );
