@@ -21,12 +21,16 @@ class DataSendWrapper extends DataSend
         }';
 
     /**
-     * 指定のテーブルのUpdateSQLをモバイルサーバに送る
+     * 指定のテーブルのUpdateSQLをモバイル送信リストに登録する
      * @param テーブル名
      * @param テーブルの値
+     * @param すぐに実行するか。null以外ならすぐに実行
+     * @param 部署CD
+     * @param 得意先CD
+     * @param コースCD
      * @return void
      */
-    public function Update($table_name,$table_data)
+    public function Update($table_name,$table_data,$Immediate = null,$busho_cd = null,$customer_cd=null,$course_cd=null)
     {
         try {
             $new_pk=array();
@@ -69,8 +73,8 @@ class DataSendWrapper extends DataSend
 
             $sql="update $new_table_name set $values where $where";
 
-            //送信
-            parent::send($sql);
+            //送信リストに登録
+            parent::StoreSendList($sql,$Immediate,$busho_cd,$customer_cd,$course_cd);
         }
         catch (Exception $exception) {
             throw $exception;
@@ -78,12 +82,13 @@ class DataSendWrapper extends DataSend
     }
 
     /**
-     * 指定のテーブルのInsertSQLをモバイルサーバに送る
+     * 指定のテーブルのInsertSQLをモバイル送信リストに登録する
      * @param テーブル名
      * @param テーブルの値
+     * @param すぐに実行するか。null以外ならすぐに実行
      * @return void
      */
-    public function Insert($table_name,$table_data)
+    public function Insert($table_name,$table_data,$Immediate = null)
     {
         try {
             $new_data=array();
@@ -114,8 +119,8 @@ class DataSendWrapper extends DataSend
             $values=substr($values,1);
             $sql="insert into $new_table_name ( $fields )values( $values )";
 
-            //送信
-            parent::send($sql);
+            //送信リストに登録
+            parent::StoreSendList($sql,$Immediate);
         }
         catch (Exception $exception) {
             throw $exception;
@@ -123,12 +128,13 @@ class DataSendWrapper extends DataSend
     }
 
     /**
-     * 指定のテーブルのDeleteSQLをモバイルサーバに送る
+     * 指定のテーブルのDeleteSQLをモバイル送信リストに登録する
      * @param テーブル名
      * @param テーブルの値
+     * @param すぐに実行するか。null以外ならすぐに実行
      * @return void
      */
-    public function Delete($table_name,$table_data)
+    public function Delete($table_name,$table_data,$Immediate = null)
     {
         try {
             $new_pk=array();
@@ -164,8 +170,23 @@ class DataSendWrapper extends DataSend
 
             $sql="delete from $new_table_name where $where";
 
-            //送信
-            parent::send($sql);
+            //送信リストに登録
+            parent::StoreSendList($sql,$Immediate);
+        }
+        catch (Exception $exception) {
+            throw $exception;
+        }
+    }
+    /**
+     * 指定したSQLをモバイル送信リストに登録する
+     * @param SQL
+     * @param すぐに実行するか。null以外ならすぐに実行
+     * @return void
+     */
+    public function Execute($sql,$Immediate = null)
+    {
+        try {
+            parent::StoreSendList($sql,$Immediate);
         }
         catch (Exception $exception) {
             throw $exception;
