@@ -298,29 +298,55 @@ export default {
         },
         hasPrev: function() {
             var vue = this;
-            //TODO西山　CurrentOrder nullの時ある
+            //CurrentOrder nullの時
             if(!!vue.TodayOrders.length && !_.isEmpty(_.omit(vue.query, "userId"))) {
                 vue.CurrentOrder = vue.TodayOrders.find(v => {
                     return v.部署ＣＤ == vue.query.BushoCd
-                        && moment(v.配送日).format("YYYY年MM月DD日") == vue.query.DeliveryDate
-                        && v.修正時間 == vue.query.DeliveryTime
+                        && moment(v.配送日).format("YYYY年MM月DD日") == moment(vue.query.DeliveryDate, "YYYYMMDD").format("YYYY年MM月DD日")
+                        && v.修正時間 == vue.query.LastEditTime
                         && v.得意先CD == vue.query.CustomerCd
                         ;
                 })
+            }
+
+            //登録後 TodayOrders更新
+            if (!!vue.TodayOrders.length && (vue.TodayOrders[0].修正時間 < vue.query.LastEditTime)) {
+                vue.getTodayOrder(() => {
+                    vue.CurrentOrder = vue.TodayOrders.find(v => {
+                        return v.部署ＣＤ == vue.query.BushoCd
+                            && moment(v.配送日).format("YYYY年MM月DD日") == moment(vue.query.DeliveryDate, "YYYYMMDD").format("YYYY年MM月DD日")
+                            && v.修正時間 == vue.query.LastEditTime
+                            && v.得意先CD == vue.query.CustomerCd
+                            ;
+                    })
+                });
             }
             return !!vue.TodayOrders.length && _.last(vue.TodayOrders) != vue.CurrentOrder;
         },
         hasNext: function() {
             var vue = this;
-            //TODO西山　CurrentOrder nullの時ある
+            //CurrentOrder nullの時
             if(!!vue.TodayOrders.length && !_.isEmpty(_.omit(vue.query, "userId"))) {
                 vue.CurrentOrder = vue.TodayOrders.find(v => {
                     return v.部署ＣＤ == vue.query.BushoCd
-                        && moment(v.配送日).format("YYYY年MM月DD日") == vue.query.DeliveryDate
-                        && v.修正時間 == vue.query.DeliveryTime
+                        && moment(v.配送日).format("YYYY年MM月DD日") == moment(vue.query.DeliveryDate, "YYYYMMDD").format("YYYY年MM月DD日")
+                        && v.修正時間 == vue.query.LastEditTime
                         && v.得意先CD == vue.query.CustomerCd
                         ;
                 })
+            }
+
+            //登録後 TodayOrders更新
+            if (!!vue.TodayOrders.length && (vue.TodayOrders[0].修正時間 < vue.query.LastEditTime)) {
+                vue.getTodayOrder(() => {
+                    vue.CurrentOrder = vue.TodayOrders.find(v => {
+                        return v.部署ＣＤ == vue.query.BushoCd
+                            && moment(v.配送日).format("YYYY年MM月DD日") == moment(vue.query.DeliveryDate, "YYYYMMDD").format("YYYY年MM月DD日")
+                            && v.修正時間 == vue.query.LastEditTime
+                            && v.得意先CD == vue.query.CustomerCd
+                            ;
+                    })
+                });
             }
             return !!vue.TodayOrders.length && _.first(vue.TodayOrders) != vue.CurrentOrder;
         },
@@ -329,6 +355,7 @@ export default {
                 BushoCd: this.viewModel.BushoCd,
                 CustomerCd: this.viewModel.CustomerCd,
                 DeliveryDate: moment(this.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD"),
+                LastEditTime: moment(this.viewModel.LastEditDate, "YYYY/MM/DD HH:mm:ss").format("HH:mm:ss"),
             };
         }
     },
@@ -722,8 +749,8 @@ export default {
                 vue.getTodayOrder(() => {
                     vue.CurrentOrder = vue.TodayOrders.find(v => {
                         return v.部署ＣＤ == vue.query.BushoCd
-                            && moment(v.配送日).format("YYYY年MM月DD日") == vue.query.DeliveryDate
-                            && v.修正時間 == vue.query.DeliveryTime
+                            && moment(v.配送日).format("YYYY年MM月DD日") == moment(vue.query.DeliveryDate, "YYYYMMDD").format("YYYY年MM月DD日")
+                            && v.修正時間 == vue.query.LastEditTime
                             && v.得意先CD == vue.query.CustomerCd
                             ;
                     })
@@ -1140,7 +1167,6 @@ export default {
                 v.予備ＣＤ１ = 0;
                 v.予備ＣＤ２ = 0;
                 v.修正担当者ＣＤ = vue.getLoginInfo().uid;
-                //TODO
                 v.特記_社内用 = vue.viewModel.BikouForControl;
                 v.特記_配送用 = vue.viewModel.BikouForDelivery;
                 v.特記_通知用 = vue.viewModel.BikouForNotification;
@@ -1193,7 +1219,26 @@ export default {
                             }
 
                             //本日注文履歴 再取得
-                            vue.getTodayOrder();
+                            vue.getTodayOrder(() => {
+                                vue.CurrentOrder = vue.TodayOrders.find(v => {
+                                    return v.部署ＣＤ == vue.TodayOrders[0].部署ＣＤ
+                                        && v.配送日 == vue.TodayOrders[0].配送日
+                                        && v.修正時間 == vue.TodayOrders[0].修正時間
+                                        && v.得意先CD == vue.TodayOrders[0].得意先CD
+                                        ;
+                                })
+
+                                vue.$router.push({
+                                    path: vue.$route.path,
+                                    query: {
+                                        userId: vue.$route.query.userId,
+                                        BushoCd: vue.CurrentOrder.部署ＣＤ,
+                                        DeliveryDate: moment(vue.CurrentOrder.配送日).format("YYYY年MM月DD日"),
+                                        LastEditTime: vue.CurrentOrder.修正時間,
+                                        CustomerCd: vue.CurrentOrder.得意先CD,
+                                    }
+                                });
+                            });
 
                             return false;
                         },
@@ -1383,7 +1428,7 @@ export default {
                     userId: vue.$route.query.userId,
                     BushoCd: vue.CurrentOrder.部署ＣＤ,
                     DeliveryDate: moment(vue.CurrentOrder.配送日).format("YYYY年MM月DD日"),
-                    DeliveryTime: vue.CurrentOrder.修正時間,
+                    LastEditTime: vue.CurrentOrder.修正時間,
                     CustomerCd: vue.CurrentOrder.得意先CD,
                 }
             });
