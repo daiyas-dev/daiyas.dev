@@ -179,12 +179,6 @@
                 <label style="width: auto; max-width: unset;">備考(社内)</label>
             </div>
             <div class="col-md-5 d-block">
-                <!-- <input v-for="(bikou, index) in viewModel.BikouForControl"
-                    v-bind:key=index
-                    :id='"BikouForControl" + (index + 1)'
-                    v-model=viewModel.BikouForControl[index]
-                    class="bikou w-100"
-                /> -->
                 <textarea
                     class="form-control"
                     style="max-height: unset;"
@@ -199,12 +193,6 @@
                 <label style="width: 100%; max-width: unset; text-align: center;">備考(配送)</label>
             </div>
             <div class="col-md-5 d-block">
-                <!-- <input v-for="(bikou, index) in viewModel.BikouForDelivery"
-                    v-bind:key=index
-                    :id='"BikouForDelivery" + (index + 1)'
-                    v-model=viewModel.BikouForDelivery[index]
-                    class="bikou w-100"
-                /> -->
                 <textarea
                     class="form-control"
                     style="max-height: unset;"
@@ -1060,7 +1048,7 @@ export default {
             var ret = !!newVal.CustomerCd;
             return ret;
         },
-        onGroupCustomerChanged: function() {
+        onGroupCustomerChanged: function(element, info) {
             var vue = this;
 
             if (!vue.viewModel.GroupCustomerCd) return;
@@ -1072,13 +1060,11 @@ export default {
                 path: vue.$route.path,
                 query: {
                     userId: vue.$route.query.userId,
-                    BushoCd: vm.BushoCd,
+                    BushoCd: info.info.BushoCd,
                     DeliveryDate: vm.DeliveryDate,
                     CustomerCd: vm.GroupCustomerCd,
                 }
             });
-
-            vue.viewModel.CustomerCd = vm.GroupCustomerCd;
         },
         CustomerAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
