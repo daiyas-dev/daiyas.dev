@@ -1327,6 +1327,7 @@ export default {
                     TantoCd: vue.viewModel.TantoCd,
                     TantoNm: vue.viewModel.TantoNm,
                     CustomerCd: vue.viewModel.CustomerCd,
+                    CustomerNm: vue.viewModel.CustomerNm,
                 },
                 isModal: false,
                 isChild: true,
