@@ -16,7 +16,6 @@
   },
   "dependencies": {
     "child-process": "^1.0.2",
-    "dgram": "^1.0.1",
     "electron-log": "^3.0.9",
     "electron-updater": "^4.2.0",
     "jquery": "^3.4.1",
