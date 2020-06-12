@@ -49,6 +49,7 @@ Route::group(['middleware' => ['api']], function () {
     Route::put('/setplansaledivideddata', 'ApiSetController@setPlanSaleDividedData');
     Route::put('/setmoveinfo', 'ApiSetController@setMoveInfo');
     Route::put('/setresponsibledata', 'ApiSetController@setResponsibleData');
+    Route::put('/setcollectioninputdata', 'ApiSetController@setCollectionInputData');
 
     // 情報削除API
     Route::delete('/deletecourseinfo', 'ApiDeleteController@deleteCourseInfo');
