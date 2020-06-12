@@ -103,9 +103,9 @@ class DataSend
         {
             //WebAPI宛に送信
             //TODO:テスト用URL(NEW社内)
-            $url = "http://192.168.1.210/hellolaravel/public/api/mobiledatarecieve";
+            $url = "http://192.168.1.210/hellolaravel/public/api/mobiledatareceive";
             //TODO:本番URL
-            $url="http://52.197.70.172/api/mobiledatarecieve";
+            $url="http://52.197.70.172/api/mobiledatareceive";
 
             // base64エンコード
             $base64_data = base64_encode(file_get_contents($zip_file_path));

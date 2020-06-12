@@ -7,13 +7,13 @@ use Exception;
 use PDO;
 
 //社内システムから送信されたモバイル・Web受注DB更新SQLを受信し、DBを更新する
-class MobileDataRecieveController extends Controller
+class MobileDataReceiveController extends Controller
 {
-    public function recieve(Request $request)
+    public function receive(Request $request)
     {
         try {
             //作業用のフォルダを作成する
-            $this->tmp_path=public_path()."/recieve";
+            $this->tmp_path=public_path()."/receive";
             if (!file_exists($this->tmp_path)) {
                 mkdir($this->tmp_path);
                 chmod($this->tmp_path, 0777);

@@ -3,17 +3,17 @@
 namespace App\Console\Commands;
 use Exception;
 use Illuminate\Console\Command;
-use App\Libs\DataRecieve;
+use App\Libs\DataReceive;
 
 //モバイル・Web受注から社内DBへ取込
-class MobileDataRecieve extends Command
+class MobileDataReceive extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'batch:MobileDataRecieve';
+    protected $signature = 'batch:MobileDataReceive';
 
     /**
      * The console command description.
@@ -40,8 +40,8 @@ class MobileDataRecieve extends Command
     public function handle()
     {
         try {
-            $dr = new DataRecieve();
-            $dr->Recieve();
+            $dr = new DataReceive();
+            $dr->Receive();
         }
         catch (Exception $exception) {
             echo $exception;

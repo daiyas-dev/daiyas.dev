@@ -54,5 +54,5 @@ Route::group(['middleware' => ['api']], function () {
     Route::delete('/deletecourseinfo', 'ApiDeleteController@deleteCourseInfo');
 
     // 本社モバイルデータ連携API
-    Route::post('/mobiledatarecieve', 'MobileDataRecieveController@recieve');
+    Route::post('/mobiledatareceive', 'MobileDataReceiveController@receive');
 });
