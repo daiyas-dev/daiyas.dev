@@ -85,6 +85,7 @@ export default {
     computed: {
         searchParams: function() {
             return {
+                CustomerCd: this.viewModel.CustomerCd,
                 BushoCd: this.viewModel.BushoCd,
                 CourseCd: this.viewModel.CourseCd,
                 TargetDate: moment(this.viewModel.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD"),
@@ -108,6 +109,7 @@ export default {
                 TantoCd: null,
                 TantoNm: null,
                 CustomerCd: null,
+                CustomerNm: null,
             },
             DAI01031Grid1: null,
             grid1Options: {
@@ -140,11 +142,23 @@ export default {
                         dataType: "integer",
                         key: true,
                         width: 100, minWidth: 100, maxWidth: 100,
+                        render: ui => {
+                            if (ui.rowData.得意先ＣＤ == vue.viewModel.CustomerCd) {
+                                ui.style.push("background:#ADD8E6; color:black;");
+                            }
+                            return ui;
+                        },
                     },
                     {
                         title: "得意先名",
                         dataIndx: "得意先名",
                         dataType: "string",
+                        render: ui => {
+                            if (ui.rowData.得意先名 == vue.viewModel.CustomerNm) {
+                                ui.style.push("background:#ADD8E6; color:black;");
+                            }
+                            return ui;
+                        },
                     },
                     {
                         title: "状態",
@@ -185,9 +199,6 @@ export default {
                 var rowIndx = (grid.pdata.filter(v => v.得意先ＣＤ == vue.viewModel.CustomerCd)[0].ＳＥＱ) - 1;
                 grid.setSelection({ rowIndx: rowIndx });
             }
-
-            $("#DAI01031Grid1 div.pq-grid-row.pq-state-select div.pq-grid-cell").addClass("currentCustomer");
-            $(".currentCustomer").css({"background":"#ADD8E6", "color":"black"});
         },
         onCourseChanged: function(code, entity) {
             var vue = this;

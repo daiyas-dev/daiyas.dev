@@ -55,7 +55,7 @@ export default {
             if (window.ipcRenderer) {
                 window.ipcRenderer.on("CTI_MessageFromMain", (e, arg) => {
                     var msg = new TextDecoder("utf-8").decode(arg);
-                    var ret = msg + " : OK";
+                    var ret = "SAVE_END";   //msg + " : OK";
 
                     console.log("CTI_MessageFromMain", msg);
                     e.sender.send("CTI_MessageFromRender", ret);

@@ -20,3 +20,4 @@ yarn-error.log
 /client/node_modules
 /client/build/*
 /public/client/win/*
+client/log.log
