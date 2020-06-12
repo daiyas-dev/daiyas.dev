@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Libs\DataSendWrapper;
 use App\Models\コースマスタ;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -54,9 +55,15 @@ class DAI04081Controller extends Controller
                 ->where('コースＣＤ', $CourseCd)
                 ->update($newData);
             }
-
             DB::commit();
 
+            //モバイルSvを更新
+            $ds = new DataSendWrapper();
+            if ($isNew) {
+                $ds->Insert('コースマスタ',$newData);
+            }else{
+                $ds->Update('コースマスタ',$newData,true,$BushoCd,null,$CourseCd);
+            }
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;
