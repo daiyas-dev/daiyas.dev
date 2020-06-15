@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Libs\DataSendWrapper;
 use App\Models\得意先マスタ;
 use App\Models\CTelToCust;
 use App\Models\得意先履歴テーブル;
@@ -63,6 +64,14 @@ class DAI04041Controller extends Controller
             }
 
             DB::commit();
+
+            //モバイルSvを更新
+            $ds = new DataSendWrapper();
+            if ($isNew) {
+                $ds->Insert('得意先マスタ',$newData);
+            }else{
+                $ds->Update('得意先マスタ',$newData,true,$newData['部署CD'],null,null);
+            }
 
         } catch (Exception $exception) {
             DB::rollBack();
