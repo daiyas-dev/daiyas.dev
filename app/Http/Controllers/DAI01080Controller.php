@@ -219,6 +219,10 @@ WITH WITH_注文データ AS
         $skipProduct = [];
         $skipPattern = [];
 
+        //モバイルsv更新用
+        $MUpdateList = [];
+        $MInsertList = [];
+
         try {
             DB::beginTransaction();
 
@@ -298,18 +302,16 @@ WITH WITH_注文データ AS
                         ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
                         ->update($rec);
 
-                    //モバイルSvを更新
-                    $ds = new DataSendWrapper();
-                    $ds->Update('日別得意先製造パターン', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
+                    //モバイルsv更新用
+                    array_push($MUpdateList, $rec);
 
                 } else {
                     if (count($r) == 0) {
                         $rec['修正日'] = $date;
                         日別得意先製造パターン::insert($rec);
 
-                        //モバイルSvを更新
-                        $ds = new DataSendWrapper();
-                        $ds->Insert('日別得意先製造パターン', $rec);
+                        //モバイルsv更新用
+                        array_push($MInsertList, $rec);
                     } else {
                         $skipPattern = collect($skipPattern)->push(["target" => $rec, "current" => $r[0]]);
                         continue;
@@ -321,6 +323,17 @@ WITH WITH_注文データ AS
                 DB::rollBack();
             } else {
                 DB::commit();
+
+                //モバイルsv更新
+                foreach ($MUpdateList as $rec) {
+                    $ds = new DataSendWrapper();
+                    $ds->Update('日別得意先製造パターン', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
+                }
+                foreach ($MInsertList as $rec) {
+                    $ds = new DataSendWrapper();
+                    $ds->Insert('日別得意先製造パターン', $rec);
+                }
+
             }
         } catch (Exception $exception) {
             DB::rollBack();
