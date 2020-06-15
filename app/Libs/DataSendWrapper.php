@@ -105,6 +105,19 @@ class DataSendWrapper extends DataSend
                 "窓口メール":"contact_email",
                 "得意先名スマホ用":"smartphone_customer_name"
                 }
+            },
+            "日別得意先製造パターン": {
+                "TableName":"DailyCustomerProductionPattern",
+                "PrimaryKey": ["部署ＣＤ","製造日","コースＣＤ","得意先ＣＤ"],
+                "Field": {
+                    "部署ＣＤ":"department_code",
+                    "製造日":"production_date",
+                    "コースＣＤ":"course_code",
+                    "得意先ＣＤ":"customer_code",
+                    "製造パターン":"production_pattern",
+                    "修正担当者ＣＤ":"updated_responsible_code",
+                    "修正日":"updated_at"
+                }
             }
         }';
 

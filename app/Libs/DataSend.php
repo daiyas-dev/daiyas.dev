@@ -178,6 +178,7 @@ class DataSend
                 ";
             $stmt = $pdo->query($next_id_Sql);
             $send_id = $stmt->fetch()["NEXT_ID"];
+            $send_id = $send_id==null ? 1 : $send_id;
 
             //呼出元を取得
             $arrCallMethod=$this->GetCallMethod();
