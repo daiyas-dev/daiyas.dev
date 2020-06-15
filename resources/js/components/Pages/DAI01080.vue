@@ -66,6 +66,7 @@
             :options=this.grid1Options
             :onBeforeCreateFunc=onBeforeCreateFunc
             :onAfterSearchFunc=this.onAfterSearchFunc
+            :autoToolTipDisabled=true
         />
     </form>
 </template>
@@ -175,8 +176,9 @@ export default {
                 colModel: [
                     {
                         title: "得意先",
-                        dataIndx: "CustomerName", dataType: "string",
+                        dataIndx: "得意先名", dataType: "string",
                         width: 250, maxWidth: 250, minWidth: 250,
+                        tooltip: true,
                         cls: "CustomerNameCell",
                         render: ui => {
                             if (ui.rowData.pq_grandsummary) {
