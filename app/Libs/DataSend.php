@@ -137,14 +137,23 @@ class DataSend
                 return "";
             }
             $arrResult=json_decode($result);
-            if ($arrResult->result==1) {
-                //モバイル送信リストにOKを書き込む
-                $this->SuccessSendList($send_id);
-            }
-            else{
+            if($arrResult==null)
+            {
                 //モバイル送信エラーを書き込む
                 $description="エラー";
-                $this->ErrorSendList($send_id,$description,base64_decode($arrResult->message));
+                $this->ErrorSendList($send_id,$description,$result);
+            }
+            else
+            {
+                if ($arrResult->result==1) {
+                    //モバイル送信リストにOKを書き込む
+                    $this->SuccessSendList($send_id);
+                }
+                else{
+                    //モバイル送信エラーを書き込む
+                    $description="エラー";
+                    $this->ErrorSendList($send_id,$description,base64_decode($arrResult->message));
+                }
             }
         }
         catch (Exception $exception) {
