@@ -382,9 +382,19 @@ export default {
                         //登録用controller method call
                         axios.post("/DAI04031/Save", params)
                             .then(res => {
-                                DAI04030.conditionChanged();
-                                //画面を閉じる
-                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
+                                if(!!res.data.duplicate){
+                                    progressDlg.dialog("close");
+                                    var duplicate = res.data.duplicate;
+                                    $.dialogInfo({
+                                        title: "登録失敗",
+                                        contents: "商品ＣＤ:" + duplicate + "が重複しています。",
+                                    });
+                                    vue.viewModel.商品ＣＤ = "";
+                                }else{
+                                    DAI04030.conditionChanged();
+                                    //画面を閉じる
+                                    $(vue.$el).closest(".ui-dialog-content").dialog("close");
+                                }
                             })
                             .catch(err => {
                                 console.log(err);
@@ -437,6 +447,8 @@ export default {
                                         //ボタン制御
                                         $("[shortcut='F3']").prop("disabled", false);
                                         $(this).dialog("close");
+
+                                        vue.viewModel.IsNew = false;
                                     }
                                 },
                                 {

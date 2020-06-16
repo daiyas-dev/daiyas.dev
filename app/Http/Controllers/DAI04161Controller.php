@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Libs\DataSendWrapper;
 use App\Models\祝日マスタ;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
+use Exception;
 use Illuminate\Support\Carbon;
 
 class DAI04161Controller extends Controller
@@ -20,23 +22,55 @@ class DAI04161Controller extends Controller
         $model = new 祝日マスタ();
         $model->fill($params);
 
+        $TargetDate = $params['対象日付'];
         $data = collect($model)->all();
 
+        $newData = array_merge(['対象日付' => $params['対象日付']], $data);
+        $isNew = $params['IsNew'];
+        $duplicate = "";
+
         // トランザクション開始
-        DB::transaction(function() use ($params, $data) {
-            $TargetDate = $params['対象日付'];
+        try {
+            DB::beginTransaction();
+            if($isNew){
+                //新規
+                try {
+                    DB::table('祝日マスタ')->insert($newData);
+                } catch (Exception $exception) {
+                    $errMs = $exception->getCode();
 
-            DB::table('祝日マスタ')->updateOrInsert(
-                ['対象日付' => $TargetDate],
-                $data
-            );
-        });
+                    //主キー重複
+                    if($errMs == "23000"){
+                        $duplicate = $TargetDate;
+                    } else {
+                        throw $exception;
+                    }
+                }
+            }else{
+                //修正
+                DB::table('祝日マスタ')
+                ->where('対象日付', $TargetDate)
+                ->update($newData);
+            }
+            DB::commit();
 
-        $savedData = array_merge(['対象日付' => $params['対象日付']], $data);
+            // モバイルSvを更新
+            $ds = new DataSendWrapper();
+            if ($isNew) {
+                $ds->Insert('祝日マスタ',$newData);
+            }else{
+                $ds->Update('祝日マスタ',$newData,true,null,null,null);
+            }
+
+        } catch (Exception $exception) {
+            DB::rollBack();
+            throw $exception;
+        }
 
         return response()->json([
             'result' => true,
-            'model' => $savedData,
+            'model' => $newData,
+            'duplicate' => $duplicate,
         ]);
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Libs\DataSendWrapper;
 use App\Models\各種テーブル;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -45,6 +46,11 @@ class DAI04130Controller extends Controller
     {
         $params = $request->all();
         $duplicateList = [];
+
+        //モバイルsv更新用
+        $MUpdateList = [];
+        $MInsertList = [];
+
         try {
             DB::beginTransaction();
 
@@ -63,6 +69,10 @@ class DAI04130Controller extends Controller
                     ->where('各種CD', $rec['各種CD'])
                     ->where('行NO', $rec['行NO'])
                     ->update($data);
+
+                    //モバイルsv更新用
+                    array_push($MUpdateList, $data);
+
 
                 } catch (Exception $exception) {
                     $errMs = $exception->getCode();
@@ -85,6 +95,9 @@ class DAI04130Controller extends Controller
 
                 if ($cnt == 0){
                     各種テーブル::insert($data);
+
+                    //モバイルsv更新用
+                    array_push($MInsertList, $data);
                 }else{
                     //主キー重複
                     $duplicateList = collect($duplicateList) ->push([$data]);
@@ -92,6 +105,16 @@ class DAI04130Controller extends Controller
             }
 
             DB::commit();
+
+            //モバイルsv更新
+            foreach ($MUpdateList as $rec) {
+                $ds = new DataSendWrapper();
+                $ds->Update('各種テーブル', $rec, true, null, null, null);
+            }
+            foreach ($MInsertList as $rec) {
+                $ds = new DataSendWrapper();
+                $ds->Insert('各種テーブル', $rec);
+            }
 
         } catch (Exception $exception) {
             DB::rollBack();

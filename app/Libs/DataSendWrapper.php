@@ -118,6 +118,84 @@ class DataSendWrapper extends DataSend
                     "修正担当者ＣＤ":"updated_responsible_code",
                     "修正日":"updated_at"
                 }
+            },
+            "部署マスタ": {
+                "TableName":"DepartmentMaster",
+                "PrimaryKey": ["部署CD"],
+                "Field": {
+                    "部署グループ":"department_group_code",
+                    "部署CD":"department_code",
+                    "部署名":"department_name",
+                    "部署名カナ":"department_name_kana",
+                    "会社名称":"company_name",
+                    "郵便番号":"zip_code",
+                    "住所":"address",
+                    "電話番号":"phone",
+                    "FAX":"fax",
+                    "モバイル_主要商品ＣＤ1":"mobile_main_product_code_1",
+                    "モバイル_主要商品ＣＤ2":"mobile_main_product_code_2",
+                    "モバイル_主要商品ＣＤ3":"mobile_main_product_code_3",
+                    "モバイル_メッセージ":"mobile_message",
+                    "金融機関CD1":"financial_code_1",
+                    "金融機関支店CD1":"financial_branch_code_1",
+                    "口座種別1":"account_type_1",
+                    "口座番号1":"account_num_1",
+                    "口座名義人1":"account_holder_1",
+                    "金融機関CD2":"financial_code_2",
+                    "金融機関支店CD2":"financial_branch_code_2",
+                    "口座種別2":"account_type_2",
+                    "口座番号2":"account_num_2",
+                    "口座名義人2":"account_holder_2",
+                    "工場ＣＤ":"factory_code",
+                    "修正担当者CD":"updated_responsible_code",
+                    "修正日":"updated_at"
+                }
+            },
+            "祝日マスタ": {
+                "TableName":"HolidayMaster",
+                "PrimaryKey": ["対象日付"],
+                "Field": {
+                    "対象日付":"target_date",
+                    "名称":"name",
+                    "対象部署ＣＤ":"department_code",
+                    "修正担当者ＣＤ":"updated_responsible_code",
+                    "修正日":"updated_at"
+                }
+            },
+            "商品マスタ": {
+                "TableName":"ProductMaster",
+                "PrimaryKey": ["商品ＣＤ"],
+                "Field": {
+                    "部署グループ":"department_group_code",
+                    "商品ＣＤ":"product_code",
+                    "商品名":"product_name",
+                    "商品略称":"product_abbreviation",
+                    "商品区分":"product_type",
+                    "売価単価":"price",
+                    "弁当区分":"lunch_category_type",
+                    "ｸﾞﾙｰﾌﾟ区分":"group_type",
+                    "副食ＣＤ":"sub_food_code",
+                    "主食ＣＤ":"main_food_code",
+                    "表示ＦＬＧ":"display_flag",
+                    "部数単位":"copies_num",
+                    "食事区分":"meal_type",
+                    "修正担当者ＣＤ":"updated_responsible_code",
+                    "修正日":"updated_at"
+                }
+            },
+            "各種テーブル": {
+                "TableName":"VariousData",
+                "PrimaryKey": ["各種CD","行NO"],
+                "Field": {
+                    "各種CD":"various_code",
+                    "行NO":"row_no",
+                    "各種名称":"various_names",
+                    "各種略称":"various_abbreviations",
+                    "サブ各種CD1":"sub_various_code_1",
+                    "サブ各種CD2":"sub_various_code_2",
+                    "修正担当者CD":"updated_responsible_code",
+                    "修正日":"updated_at"
+                }
             }
         }';
 
