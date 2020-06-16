@@ -1,0 +1,15 @@
+{
+    "コースマスタ": {
+        "TableName":"coursemaster",
+        "PrimaryKey": ["部署ＣＤ","コースＣＤ"],
+        "Field": {
+            "部署ＣＤ":"department_code",
+            "コース区分":"course_division",
+            "コースＣＤ":"course_code",
+            "コース名":"course_name",
+            "担当者ＣＤ":"responsible_code",
+            "工場区分":"factory_classification",
+            "修正担当者ＣＤ":"updated_responsible_code"
+        }
+    }
+}
