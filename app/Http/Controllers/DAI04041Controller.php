@@ -102,6 +102,15 @@ class DAI04041Controller extends Controller
 
         });
 
+        $params = $request->all();
+        $model = new 得意先マスタ();
+        $model->fill($params);
+        $data = collect($model)->all();
+        $newData = array_merge(['得意先ＣＤ' => $CustomerCd], $data);
+        //モバイルSvを更新
+        $ds = new DataSendWrapper();
+        $ds->Delete('得意先マスタ',$newData,true,null,null,null);
+
         return response()->json([
             'result' => true,
         ]);

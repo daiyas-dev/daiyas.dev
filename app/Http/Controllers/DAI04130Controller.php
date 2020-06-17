@@ -145,6 +145,15 @@ class DAI04130Controller extends Controller
             ->delete();
         });
 
+        $params = $request->all();
+        $model = new 各種テーブル();
+        $model->fill($params);
+        $data = collect($model)->all();
+        $newData = array_merge(['各種CD' => $params['KakusyuCd'], '行NO' => $params['GyoNo']], $data);
+        //モバイルSvを更新
+        $ds = new DataSendWrapper();
+        $ds->Delete('各種テーブル',$newData,true,null,null,null);
+
         return response()->json([
             "result" => true,
         ]);

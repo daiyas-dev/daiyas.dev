@@ -88,6 +88,15 @@ class DAI04071Controller extends Controller
 
         });
 
+        $params = $request->all();
+        $model = new 部署マスタ();
+        $model->fill($params);
+        $data = collect($model)->all();
+        $newData = array_merge(['部署CD' => $BushoCd], $data);
+        //モバイルSvを更新
+        $ds = new DataSendWrapper();
+        $ds->Delete('部署マスタ',$newData,true,$BushoCd,null,null);
+
         return response()->json([
             'result' => true,
         ]);

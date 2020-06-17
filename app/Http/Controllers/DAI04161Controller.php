@@ -88,6 +88,15 @@ class DAI04161Controller extends Controller
 
         });
 
+        $params = $request->all();
+        $model = new 祝日マスタ();
+        $model->fill($params);
+        $data = collect($model)->all();
+        $newData = array_merge(['対象日付' => $TargetDate], $data);
+        //モバイルSvを更新
+        $ds = new DataSendWrapper();
+        $ds->Delete('祝日マスタ',$newData,true,null,null,null);
+
         return response()->json([
             'result' => true,
         ]);

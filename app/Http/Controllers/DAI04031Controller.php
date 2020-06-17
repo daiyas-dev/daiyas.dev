@@ -88,6 +88,15 @@ class DAI04031Controller extends Controller
 
         });
 
+        $params = $request->all();
+        $model = new 商品マスタ();
+        $model->fill($params);
+        $data = collect($model)->all();
+        $newData = array_merge(['商品ＣＤ' => $ProductCd], $data);
+        //モバイルSvを更新
+        $ds = new DataSendWrapper();
+        $ds->Delete('商品マスタ',$newData,true,null,null,null);
+
         return response()->json([
             'result' => true,
         ]);
