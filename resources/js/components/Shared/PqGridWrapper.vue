@@ -779,7 +779,7 @@ export default {
                                                     .map(v => {
                                                         var ret = v;
                                                         ret.value = v.Cd;
-                                                        ret.text = vCdNm;
+                                                        ret.text = v.CdNm;
                                                         ret.label = ret.value + " : " + ret.text;
                                                         return ret;
                                                     })
@@ -848,7 +848,7 @@ export default {
                                                 .map(v => {
                                                     var ret = v;
                                                     ret.value = v.Cd;
-                                                    ret.text = vCdNm;
+                                                    ret.text = v.CdNm;
                                                     ret.label = ret.value + " : " + ret.text;
                                                     return ret;
                                                 })
@@ -931,12 +931,12 @@ export default {
                                 if (!_.isEmptyEx(key)) {
                                     var list = config.AutoCompleteFunc
                                         ? config.AutoCompleteFunc(key, config.sourceList, vue)
-                                        : source
+                                        : config.sourceList
                                             .filter(v => v.Cd.includes(key))
                                             .map(v => {
                                                 var ret = v;
                                                 ret.value = v.Cd;
-                                                ret.text = vCdNm;
+                                                ret.text = v.CdNm;
                                                 ret.label = ret.value + " : " + ret.text;
                                                 return ret;
                                             })
@@ -985,6 +985,32 @@ export default {
                                 gridCell
                                     .removeClass("ui-state-error")
                                     .tooltip("dispose");
+                            }
+
+                            if (!!ui.column.tooltip) {
+                                var title =  !!ui.column.autocomplete.render
+                                    ? ui.column.autocomplete.render(ui)
+                                    : ui.rowData[ui.dataIndx]
+                                    ;
+                                title = _.isObject(title) && !!title.text ? title.text : ui.rowData[ui.dataIndx];
+                                var html = !!title && title.startsWith("<");
+
+                                if (!!title) {
+                                    $(ui.cell).tooltip({
+                                        container: "body",
+                                        animation: false,
+                                        template: '<div class="tooltip text-overflow" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>',
+                                        placement: "auto",
+                                        trigger: "hover",
+                                        title: title,
+                                        html: html,
+                                    });
+
+                                    console.log("grid tooltip")
+                                    ui.text = title;
+
+                                    return ui;
+                                }
                             }
 
                             return ui;

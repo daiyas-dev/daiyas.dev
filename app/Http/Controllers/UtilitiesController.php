@@ -2128,6 +2128,194 @@ $OrderBy
     }
 
     /**
+     * SearchWebOrderList
+     */
+    public function SearchWebOrderList($request)
+    {
+        $TargetDate = $request->TargetDate;
+        $WhereTargetDate = $TargetDate ? "AND	X.配送日='$TargetDate'" : "";
+
+        $BushoCd = $request->bushoCd ?? $request->BushoCd;
+        $WhereBusho = $BushoCd ? "AND TOK.部署CD=$BushoCd" : "";
+
+        $UnRegisted = $request->UnRegisted;
+        $HavingUnRegisted = $UnRegisted == '1' ? "HAVING SUM(X.確認済) = 0" : "";
+
+        $Start = $request->Start ?? 1;
+        $Chunk = $request->Chunk ?? 1000000;
+        $End = $Start + $Chunk - 1;
+
+        $KeyWords = $request->KeyWords ?? $request->Keywords;
+        $WhereKeyWord = "";
+        if (!!$KeyWords && !!count($KeyWords)) {
+            $Conditions = collect($KeyWords)
+                ->map(function ($KeyWord) {
+                    $Condition = "
+                        (
+                            TOK.得意先名 LIKE '%$KeyWord%' OR
+                            TOK.得意先名カナ LIKE '%$KeyWord%' OR
+                            TOK.得意先名略称 LIKE '%$KeyWord%' OR
+                            TOK.住所１ LIKE '%$KeyWord%' OR
+                            TOK.お届け先住所１ LIKE '%$KeyWord%' OR
+                            TOK.電話番号１ LIKE '$KeyWord%' OR
+                            TOK.備考１ LIKE '$KeyWord%' OR
+                            TOK.備考２ LIKE '$KeyWord%' OR
+                            TOK.備考３ LIKE '$KeyWord%'
+                        )
+                    ";
+
+                    return $Condition;
+                })
+                ->join(' OR ');
+
+            $WhereKeyWord = " AND ($Conditions)";
+        }
+
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+
+        $SearchSql = "
+            SELECT
+                *
+            FROM (
+                SELECT
+                    X.Web受注ID
+                    ,X.配送日
+                    ,X.注文日時
+					,X.部署CD
+					,X.部署名
+					,X.Web得意先ＣＤ
+					,X.Web得意先名
+                    ,STRING_AGG (X.得意先ＣＤ, '/') AS Cd
+                    ,STRING_AGG (X.得意先名, '/') AS CdNm
+					,STRING_AGG(IIF(X.売掛現金区分 = 0, X.得意先ＣＤ, NULL), '/')  AS 得意先ＣＤ_現金
+					,STRING_AGG(IIF(X.売掛現金区分 = 0, X.得意先名, NULL), '/')  AS 得意先名_現金
+					,STRING_AGG(IIF(X.売掛現金区分 = 0, X.電話番号１, NULL), '/')  AS 電話番号_現金
+					,STRING_AGG(IIF(X.売掛現金区分 = 1, X.得意先ＣＤ, NULL), '/')  AS 得意先ＣＤ_掛売
+					,STRING_AGG(IIF(X.売掛現金区分 = 1, X.得意先名, NULL), '/')  AS 得意先名_掛売
+					,STRING_AGG(IIF(X.売掛現金区分 = 1, X.電話番号１, NULL), '/')  AS 電話番号_掛売
+                    ,IIF(SUM(X.確認済) > 0, 1, 0) AS 確認
+            		,ROW_NUMBER() OVER (ORDER BY X.Web受注ID) AS ROWNUM
+                FROM (
+                    SELECT DISTINCT
+                        WEB.Web受注ID
+                        ,WEB.Web得意先ＣＤ
+						,WEBTOK.Web得意先名
+                        ,WEB.配送日
+                        ,WEB.注文日時
+                        ,WEB.得意先ＣＤ
+                        ,TOK.得意先名
+						,TOK.売掛現金区分
+                        ,TOK.部署CD
+                        ,BSH.部署名
+						,TOK.電話番号１
+                        ,IIF(CHU.明細行Ｎｏ IS NULL, 0, 1) AS	確認済
+                    FROM
+                        Web受注データ WEB
+                        INNER JOIN Web受注得意先マスタ WEBTOK
+                            ON  WEBTOK.Web得意先ＣＤ=WEB.Web得意先ＣＤ
+                        INNER JOIN 得意先マスタ TOK
+                            ON  TOK.得意先ＣＤ=WEB.得意先ＣＤ
+                        INNER JOIN 部署マスタ BSH
+                            ON  BSH.部署CD=TOK.部署CD
+                        LEFT OUTER JOIN 注文データ CHU
+                            ON  CHU.配送日=WEB.配送日
+                            AND CHU.得意先ＣＤ=WEB.得意先ＣＤ
+                            AND CHU.注文区分=0
+                    WHERE
+                        0=0
+                    $WhereBusho
+                    $WhereKeyWord
+                ) X
+                WHERE
+                    0=0
+                $WhereTargetDate
+                GROUP BY
+                    X.Web受注ID
+					,X.Web得意先ＣＤ
+					,X.Web得意先名
+                    ,X.配送日
+                    ,X.注文日時
+					,X.部署CD
+					,X.部署名
+                $HavingUnRegisted
+            ) G
+            WHERE
+                ROWNUM BETWEEN $Start AND $End
+            ORDER BY
+                ROWNUM
+        ";
+
+        $DataList = DB::select($SearchSql);
+        // $stmt = $pdo->query($SearchSql);
+        // $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $CountSql = "
+            SELECT
+                COUNT(Web受注ID) AS CNT
+            FROM (
+                SELECT
+                    X.Web受注ID
+                    ,X.配送日
+					,X.部署CD
+					,X.部署名
+                    ,STRING_AGG (X.得意先ＣＤ, '/') AS 得意先ＣＤ
+                    ,STRING_AGG (X.得意先名, '/') AS 得意先名
+                    ,IIF(SUM(X.確認済) > 0, 1, 0) AS 確認
+            		,ROW_NUMBER() OVER (ORDER BY X.Web受注ID) AS ROWNUM
+                FROM (
+                    SELECT DISTINCT
+                        WEB.Web受注ID
+                        ,WEB.配送日
+                        ,WEB.得意先ＣＤ
+                        ,TOK.得意先名
+                        ,TOK.部署CD
+                        ,BSH.部署名
+                        ,IIF(CHU.明細行Ｎｏ IS NULL, 0, 1) AS	確認済
+                    FROM
+                        Web受注データ WEB
+                        INNER JOIN 得意先マスタ TOK
+                            ON  TOK.得意先ＣＤ=WEB.得意先ＣＤ
+                        INNER JOIN 部署マスタ BSH
+                            ON  BSH.部署CD=TOK.部署CD
+                        LEFT OUTER JOIN 注文データ CHU
+                            ON  CHU.配送日=WEB.配送日
+                            AND CHU.得意先ＣＤ=WEB.得意先ＣＤ
+                            AND CHU.注文区分=0
+                    WHERE
+                        0=0
+                    $WhereBusho
+                    $WhereKeyWord
+                ) X
+                WHERE
+                    0=0
+                $WhereTargetDate
+                GROUP BY
+                    X.Web受注ID
+                    ,X.配送日
+					,X.部署CD
+					,X.部署名
+                $HavingUnRegisted
+            ) G
+        ";
+        $stmt = $pdo->query($CountSql);
+        $Count = $stmt->fetch()["CNT"];
+
+        $pdo = null;
+
+        return response()->json([
+            [
+                "End" => $End,
+                "Count" => $Count,
+                "Result" => $DataList,
+            ]
+        ]);
+    }
+
+    /**
      * Push
      */
     public function Push($request)
