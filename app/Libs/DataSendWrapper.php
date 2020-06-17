@@ -162,6 +162,40 @@ class DataSendWrapper extends DataSend
                     "修正日":"updated_at"
                 }
             },
+            "注文データ": {
+                "TableName":"OrderData",
+                "PrimaryKey": ["注文区分","注文日付","部署ＣＤ","得意先ＣＤ","配送日","明細行Ｎｏ"],
+                "Field": {
+                    "注文区分":"order_type",
+                    "注文日付":"order_date",
+                    "注文時間":"order_time",
+                    "部署ＣＤ":"department_code",
+                    "得意先ＣＤ":"customer_code",
+                    "配送日":"delivery_date",
+                    "明細行Ｎｏ":"detail_row_no",
+                    "商品ＣＤ":"product_code",
+                    "商品区分":"product_type",
+                    "入力区分":"input_type",
+                    "現金個数":"cash_num",
+                    "現金金額":"cash_amount",
+                    "掛売個数":"sold_num",
+                    "掛売金額":"sold_amount",
+                    "備考１":"remark_1",
+                    "備考２":"note_2",
+                    "備考３":"remark_3",
+                    "備考４":"remark_4",
+                    "備考５":"remark_5",
+                    "予備金額１":"reserve_amount_1",
+                    "予備金額２":"reserve_amount_2",
+                    "予備ＣＤ１":"spare_code_1",
+                    "予備ＣＤ２":"spare_code_2",
+                    "修正担当者ＣＤ":"updated_responsible_code",
+                    "修正日":"updated_at",
+                    "特記_社内用":"attention_memo",
+                    "特記_配送用":"attention_memo_delivery",
+                    "特記_通知用":"attention_memo_push"
+                }
+            },
             "商品マスタ": {
                 "TableName":"ProductMaster",
                 "PrimaryKey": ["商品ＣＤ"],
