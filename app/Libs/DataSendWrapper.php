@@ -273,7 +273,8 @@ class DataSendWrapper extends DataSend
             $values="";
             foreach($new_data as $key=>$val)
             {
-                $values .= ", $key = '$val'";
+                $q_val = ($val==NULL || $val=='') ? "null" : "'$val'";
+                $values .= ", $key = $q_val";
             }
             $values=substr($values,1);
 
@@ -329,7 +330,8 @@ class DataSendWrapper extends DataSend
             foreach($new_data as $key=>$val)
             {
                 $fields .= ", $key";
-                $values .= ", '$val'";
+                $q_val = ($val==NULL || $val=='') ? "null" : "'$val'";
+                $values .= ", $q_val";
             }
             $fields=substr($fields,1);
             $values=substr($values,1);
