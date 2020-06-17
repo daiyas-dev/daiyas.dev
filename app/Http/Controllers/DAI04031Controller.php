@@ -57,7 +57,7 @@ class DAI04031Controller extends Controller
             // モバイルSvを更新
             $ds = new DataSendWrapper();
             if ($isNew) {
-                $ds->Insert('商品マスタ',$newData);
+                $ds->Insert('商品マスタ',$newData,true,null,null,null);
             }else{
                 $ds->Update('商品マスタ',$newData,true,null,null,null);
             }

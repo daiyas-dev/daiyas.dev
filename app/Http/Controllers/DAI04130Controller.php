@@ -113,7 +113,7 @@ class DAI04130Controller extends Controller
             }
             foreach ($MInsertList as $rec) {
                 $ds = new DataSendWrapper();
-                $ds->Insert('各種テーブル', $rec);
+                $ds->Insert('各種テーブル', $rec, true, null, null, null);
             }
 
         } catch (Exception $exception) {

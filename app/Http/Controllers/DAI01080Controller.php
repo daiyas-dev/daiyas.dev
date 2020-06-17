@@ -331,7 +331,7 @@ WITH WITH_注文データ AS
                 }
                 foreach ($MInsertList as $rec) {
                     $ds = new DataSendWrapper();
-                    $ds->Insert('日別得意先製造パターン', $rec);
+                    $ds->Insert('日別得意先製造パターン', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
                 }
 
             }
