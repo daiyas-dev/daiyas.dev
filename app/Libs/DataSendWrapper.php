@@ -181,7 +181,7 @@ class DataSendWrapper extends DataSend
                     "掛売個数":"sold_num",
                     "掛売金額":"sold_amount",
                     "備考１":"remark_1",
-                    "備考２":"note_2",
+                    "備考２":"remark_2",
                     "備考３":"remark_3",
                     "備考４":"remark_4",
                     "備考５":"remark_5",
