@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Libs\DataSendWrapper;
 use App\Models\商品マスタ;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
+use Exception;
 use Illuminate\Support\Carbon;
 
 class DAI04031Controller extends Controller
@@ -20,23 +22,55 @@ class DAI04031Controller extends Controller
         $model = new 商品マスタ();
         $model->fill($params);
 
+        $ProductCd = $params['商品ＣＤ'];
         $data = collect($model)->all();
+        $newData = array_merge(['商品ＣＤ' => $params['商品ＣＤ']], $data);
+
+        $isNew = $params['IsNew'];
+        $duplicate = "";
 
         // トランザクション開始
-        DB::transaction(function() use ($params, $data) {
-            $ProductCd = $params['商品ＣＤ'];
+        try {
+            DB::beginTransaction();
+            if($isNew){
+                //新規
+                try {
+                    DB::table('商品マスタ')->insert($newData);
+                } catch (Exception $exception) {
+                    $errMs = $exception->getCode();
 
-            DB::table('商品マスタ')->updateOrInsert(
-                ['商品ＣＤ' => $ProductCd],
-                $data
-            );
-        });
+                    //主キー重複
+                    if($errMs == "23000"){
+                        $duplicate = $ProductCd;
+                    } else {
+                        throw $exception;
+                    }
+                }
+            }else{
+                //修正
+                DB::table('商品マスタ')
+                ->where('商品ＣＤ', $ProductCd)
+                ->update($newData);
+            }
+            DB::commit();
 
-        $savedData = array_merge(['商品ＣＤ' => $params['商品ＣＤ']], $data);
+            // モバイルSvを更新
+            $ds = new DataSendWrapper();
+            if ($isNew) {
+                $ds->Insert('商品マスタ',$newData,true,null,null,null);
+            }else{
+                $ds->Update('商品マスタ',$newData,true,null,null,null);
+            }
+
+        } catch (Exception $exception) {
+            DB::rollBack();
+            throw $exception;
+        }
 
         return response()->json([
             'result' => true,
-            'model' => $savedData,
+            'model' => $newData,
+            'duplicate' => $duplicate,
         ]);
     }
 
@@ -53,6 +87,15 @@ class DAI04031Controller extends Controller
             DB::table('商品マスタ')->where('商品ＣＤ', '=', $ProductCd)->delete();
 
         });
+
+        $params = $request->all();
+        $model = new 商品マスタ();
+        $model->fill($params);
+        $data = collect($model)->all();
+        $newData = array_merge(['商品ＣＤ' => $ProductCd], $data);
+        //モバイルSvを更新
+        $ds = new DataSendWrapper();
+        $ds->Delete('商品マスタ',$newData,true,null,null,null);
 
         return response()->json([
             'result' => true,

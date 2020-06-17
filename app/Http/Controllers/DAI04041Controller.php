@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Libs\DataSendWrapper;
 use App\Models\得意先マスタ;
 use App\Models\CTelToCust;
 use App\Models\得意先履歴テーブル;
@@ -64,6 +65,14 @@ class DAI04041Controller extends Controller
 
             DB::commit();
 
+            //モバイルSvを更新
+            $ds = new DataSendWrapper();
+            if ($isNew) {
+                $ds->Insert('得意先マスタ',$newData,true,$newData['部署CD'],null,null);
+            }else{
+                $ds->Update('得意先マスタ',$newData,true,$newData['部署CD'],null,null);
+            }
+
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;
@@ -92,6 +101,15 @@ class DAI04041Controller extends Controller
             DB::table('得意先マスタ')->where('得意先ＣＤ', '=', $CustomerCd)->delete();
 
         });
+
+        $params = $request->all();
+        $model = new 得意先マスタ();
+        $model->fill($params);
+        $data = collect($model)->all();
+        $newData = array_merge(['得意先ＣＤ' => $CustomerCd], $data);
+        //モバイルSvを更新
+        $ds = new DataSendWrapper();
+        $ds->Delete('得意先マスタ',$newData,true,null,null,null);
 
         return response()->json([
             'result' => true,

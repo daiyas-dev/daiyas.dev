@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Libs\DataSendWrapper;
 use App\Models\コースマスタ;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -54,9 +55,15 @@ class DAI04081Controller extends Controller
                 ->where('コースＣＤ', $CourseCd)
                 ->update($newData);
             }
-
             DB::commit();
 
+            //モバイルSvを更新
+            $ds = new DataSendWrapper();
+            if ($isNew) {
+                $ds->Insert('コースマスタ',$newData,true,$BushoCd,null,$CourseCd);
+            }else{
+                $ds->Update('コースマスタ',$newData,true,$BushoCd,null,$CourseCd);
+            }
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;
@@ -85,6 +92,15 @@ class DAI04081Controller extends Controller
             ->delete();
 
         });
+
+        $params = $request->all();
+        $model = new コースマスタ();
+        $model->fill($params);
+        $data = collect($model)->all();
+        $newData = array_merge(['部署ＣＤ' => $BushoCd, 'コースＣＤ' => $CourseCd], $data);
+        //モバイルSvを更新
+        $ds = new DataSendWrapper();
+        $ds->Delete('コースマスタ',$newData,true,$BushoCd,null,$CourseCd);
 
         return response()->json([
             'result' => true,

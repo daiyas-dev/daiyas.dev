@@ -12,6 +12,13 @@ class DataSend
     {
         try
         {
+            //作業用のフォルダを作成する
+            $this->tmp_path=base_path()."\\tmp";
+            if(!file_exists($this->tmp_path))
+            {
+                mkdir($this->tmp_path);
+            }
+
             $where_send_id ="";
             if($send_id != null)
             {
@@ -38,8 +45,7 @@ class DataSend
                 //現在日時を取得(ファイル名に使用)
                 $seq_str = Carbon::now()->format('YmdHis') ."_". sprintf('%06d', $DataItem['送信ＩＤ']);
                 //SQLをファイルに書き込む
-                $tmp_path=base_path() . "\\tmp";
-                $sql_file = $tmp_path . "\\" . $seq_str . ".sql";
+                $sql_file = $this->tmp_path . "\\" . $seq_str . ".sql";
                 if ($file_handle = fopen($sql_file, "w"))
                 {
                     // 書き込み
@@ -49,8 +55,10 @@ class DataSend
                 }
 
                 //ZIP圧縮する
-                $zip_file=$tmp_path . "\\" . $seq_str . ".zip";
+                $zip_file=$this->tmp_path . "\\" . $seq_str . ".zip";
                 $this->Compress($zip_file,array($sql_file));
+
+                //Post実行
                 $this->Post($zip_file,$DataItem['送信ＩＤ']);
 
                 //使用したテンポラリファイルを消す
@@ -94,7 +102,10 @@ class DataSend
         try
         {
             //WebAPI宛に送信
-            $url = "http://localhost:49503/api/Welcome";
+            //TODO:テスト用URL(NEW社内)
+            $url = "http://192.168.1.210/hellolaravel/public/api/mobiledatareceive";
+            //TODO:本番URL
+            $url="http://52.197.70.172/api/mobiledatareceive";
 
             // base64エンコード
             $base64_data = base64_encode(file_get_contents($zip_file_path));
@@ -111,27 +122,38 @@ class DataSend
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // サーバー証明書の検証を行わない
 
-            // セッションを終了
+            //Post実行
             $result = curl_exec($ch);
             $curl_error=curl_error($ch);
+
             // セッションを終了
             curl_close($ch);
-            echo 'RETURN:' . $result;
+            //echo 'RETURN:' . $result;
 
+            //エラーチェック
             if($curl_error!="")
             {
                 $this->ErrorSendList($send_id,"接続エラー",$curl_error);
                 return "";
             }
-
-            if ($result=="\"OK\"") {
-                //モバイル送信リストにOKを書き込む
-                $this->SuccessSendList($send_id);
-            }
-            else{
+            $arrResult=json_decode($result);
+            if($arrResult==null)
+            {
                 //モバイル送信エラーを書き込む
                 $description="エラー";
                 $this->ErrorSendList($send_id,$description,$result);
+            }
+            else
+            {
+                if ($arrResult->result==1) {
+                    //モバイル送信リストにOKを書き込む
+                    $this->SuccessSendList($send_id);
+                }
+                else{
+                    //モバイル送信エラーを書き込む
+                    $description="エラー";
+                    $this->ErrorSendList($send_id,$description,base64_decode($arrResult->message));
+                }
             }
         }
         catch (Exception $exception) {
@@ -165,6 +187,7 @@ class DataSend
                 ";
             $stmt = $pdo->query($next_id_Sql);
             $send_id = $stmt->fetch()["NEXT_ID"];
+            $send_id = $send_id==null ? 1 : $send_id;
 
             //呼出元を取得
             $arrCallMethod=$this->GetCallMethod();

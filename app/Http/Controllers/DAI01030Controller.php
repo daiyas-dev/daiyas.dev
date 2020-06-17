@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Libs\DataSendWrapper;
 use App\Models\注文データ;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -570,6 +571,10 @@ class DAI01030Controller extends Controller
     {
         $skip = [];
 
+        //モバイルsv更新用
+        $MDeleteList = [];
+        $MInsertList = [];
+
         DB::beginTransaction();
 
         try {
@@ -585,6 +590,9 @@ class DAI01030Controller extends Controller
                     ->where('配送日', $rec['配送日'])
                     ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
                     ->delete();
+
+                    //モバイルsv更新用
+                    array_push($MDeleteList, $rec);
             }
 
             $SaveList = $params['SaveList'];
@@ -620,6 +628,9 @@ class DAI01030Controller extends Controller
                         ->where('配送日', $rec['配送日'])
                         ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
                         ->delete();
+
+                    //モバイルsv更新用
+                    array_push($MDeleteList, $rec);
                 } else {
                     $no = 注文データ::query()
                         ->where('注文区分', $rec['注文区分'])
@@ -644,6 +655,10 @@ class DAI01030Controller extends Controller
                     $data['特記_通知用'] = $data['特記_通知用'] ?? '';
 
                     注文データ::insert($data);
+
+                    //モバイルsv更新用
+                    array_push($MInsertList, $data);
+
                 }
             }
 
@@ -651,6 +666,16 @@ class DAI01030Controller extends Controller
                 DB::rollBack();
             } else {
                 DB::commit();
+
+                //モバイルsv更新
+                foreach ($MDeleteList as $rec) {
+                    $ds = new DataSendWrapper();
+                    $ds->Delete('注文データ', $rec, true, $rec['部署ＣＤ'], null, null);
+                }
+                foreach ($MInsertList as $data) {
+                    $ds = new DataSendWrapper();
+                    $ds->Insert('注文データ', $rec, true, $rec['部署ＣＤ'], null, null);
+                }
             }
         } catch (Exception $exception) {
             DB::rollBack();
@@ -670,6 +695,9 @@ class DAI01030Controller extends Controller
     public function Delete($request)
     {
         $skip = [];
+
+        //モバイルsv更新用
+        $MDeleteList = [];
 
         DB::beginTransaction();
 
@@ -705,6 +733,9 @@ class DAI01030Controller extends Controller
                         ->where('配送日', $rec['配送日'])
                         ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
                         ->delete();
+
+                        //モバイルsv更新用
+                    array_push($MDeleteList, $rec);
                 }
             }
 
@@ -712,6 +743,12 @@ class DAI01030Controller extends Controller
                 DB::rollBack();
             } else {
                 DB::commit();
+
+                //モバイルsv更新
+                foreach ($MDeleteList as $rec) {
+                    $ds = new DataSendWrapper();
+                    $ds->Delete('注文データ', $rec, true, $rec['部署ＣＤ'], null, null);
+                }
             }
         } catch (Exception $exception) {
             DB::rollBack();

@@ -4,7 +4,12 @@
             <div class="col-md-2">
                 <span :class="['badge', this.isLogOn == true ? 'badge-success' : 'badge-danger']">{{title}}</span>
             </div>
-            <div class="col-md-8 pr-2 justify-content-end">
+            <div class="col-md-6 pr-2 justify-content-end">
+            </div>
+            <div class="col-md-2 justify-content-start">
+                <button type="button" class="btn btn-primary webOrder" @click="showWebOrderList">
+                    Web受注 <span class="badge badge-light">{{webOrderCount}}</span>
+                </button>
             </div>
             <div class="col-md-2 justify-content-end">
                 <span :class="['ml-1', 'badge', this.isLogOn == true ? 'badge-success' : 'badge-danger']">{{nowDate}}</span>
@@ -19,9 +24,15 @@
     font-size: 15px;
     font-weight: normal;
 }
+button.webOrder {
+    font-size: 15px;
+    line-height: 15px;
+}
 </style>
 
 <script>
+import VueCheck from "@vcs/VueCheck.vue";
+import DatePickerWrapper from "@vcs/DatePickerWrapper.vue";
 
 export default {
     name: "AppHeader",
@@ -31,6 +42,9 @@ export default {
             userId: null,
             userNm: null,
             isLogOn: null,
+            webOrderCount: 0,
+            VueCheck: VueCheck,
+            DatePickerWrapper: DatePickerWrapper,
         }
     },
     components: {
@@ -74,7 +88,117 @@ export default {
         setTitle: function(title) {
             var vue = this;
             vue.title = title;
-        }
+        },
+        showWebOrderList: function() {
+            var vue = this;
+
+            PageDialog.showSelector({
+                dataUrl: "/Utilities/SearchWebOrderList",
+                params: { TargetDate: moment().format("YYYYMMDD"), UnRegisted: "1", Start: 1, Chunk: 100 },
+                title: "Web受注一覧",
+                labelCd: "得意先CD",
+                labelCdNm: "得意先名",
+                isModal: true,
+                showColumns: [
+                    { title: "部署名", dataIndx: "部署名", dataType: "string", align: "center", width: 125, maxWidth: 125, minWidth: 125, colIndx: 0, },
+                    { title: "配送日", dataIndx: "配送日", dataType: "date", align: "center", format: "yy/mm/dd", width: 100, maxWidth: 100, minWidth: 100, },
+                    { title: "注文日時", dataIndx: "注文日時", dataType: "string", align: "center", width: 150, maxWidth: 150, minWidth: 150,
+                      render: ui => {
+                          return moment(ui.rowData.注文日時).format("YYYY/MM/DD HH:mm");
+                      },
+                    },
+                    { title: "確認", dataIndx: "確認", dataType: "string", align: "center", width: 100, maxWidth: 100, minWidth: 100,
+                      render: ui => {
+                          return { text: ui.rowData.確認 == "0" ? "未確認" : "確認済"  };
+                      },
+                    },
+                ],
+                width: 1000,
+                height: 700,
+                reuse: false,
+                showBushoSelector: true,
+                customParams: { TargetDate: moment().format("YYYYMMDD"), UnRegisted: "1" },
+                customElementFunc: (targetVue, container) => {
+                    var dp = new (VueApp.createInstance(vue.DatePickerWrapper))(
+                        {
+                            propsData: {
+                                id: "DatePicker_SearchWebOrderList",
+                                ref: "DatePicker_SearchWebOrderList",
+                                vmodel: targetVue.customElementParams,
+                                bind: "TargetDate",
+                                editable: true,
+                                onChangedFunc: () => targetVue.conditionChanged(),
+                            }
+                        }
+                    );
+                    dp.$mount();
+
+                    var vc = new (VueApp.createInstance(vue.VueCheck))(
+                        {
+                            propsData: {
+                                id: "VueCheck_SearchWebOrderList",
+                                ref: "VueCheck_SearchWebOrderList",
+                                vmodel: targetVue.customElementParams,
+                                bind: "UnRegisted",
+                                checkedCode: "1",
+                                customContainerStyle: "border: none;",
+                                list: [
+                                    {code: '0', name: '全て', label: '未確認のみ表示'},
+                                    {code: '1', name: '表示', label: '未確認のみ表示'},
+                                ],
+                                onChangedFunc: () => targetVue.conditionChanged(),
+                            }
+                        }
+                    );
+                    vc.$mount();
+
+                    container.append(
+                        $("<div>").addClass("col-md-4").addClass("justify-content-start")
+                            .append($("<label>").text("対象日付"))
+                            .append(dp.$el)
+                    )
+                    .append(
+                        $("<div>").addClass("col-md-4").addClass("justify-content-end")
+                            .append(vc.$el)
+                    );
+                },
+                hasClose: true,
+                buttons: [
+                    {
+                        text: "表示",
+                        class: "btn btn-primary",
+                        shortcut: "Enter",
+                        click: function(gridVue, grid) {
+                            var rowIndx = grid.SelectRow().getFirst();
+                            if (rowIndx == undefined) return false;
+
+                            var rowData = grid.getRowData({ rowIndx: rowIndx });
+
+                            vue.show01032(rowData);
+
+                            return false;
+                        },
+                    },
+                ],
+            });
+        },
+        show01032: function(data) {
+            var vue = this;
+
+            var params = _.cloneDeep(data);
+            params.IsChild = true;
+            params.Parent = vue;
+
+            PageDialog.show({
+                pgId: "DAI01032",
+                params: params,
+                isModal: true,
+                isChild: true,
+                reuse: false,
+                width: 1200,
+                height: 750,
+            });
+        },
     }
 }
 </script>

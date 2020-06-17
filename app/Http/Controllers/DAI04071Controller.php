@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Libs\DataSendWrapper;
 use App\Models\部署マスタ;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -21,30 +22,55 @@ class DAI04071Controller extends Controller
         $model = new 部署マスタ();
         $model->fill($params);
 
+        $BushoCd = $params['部署CD'];
         $data = collect($model)->all();
+        $newData = array_merge(['部署CD' => $params['部署CD']], $data);
+
+        $isNew = $params['IsNew'];
+        $duplicate = "";
 
         // トランザクション開始
-        DB::transaction(function() use ($params, $data) {
-            $BushoCd = $params['部署CD'];
+        try {
+            DB::beginTransaction();
+            if($isNew){
+                //新規
+                try {
+                    DB::table('部署マスタ')->insert($newData);
+                } catch (Exception $exception) {
+                    $errMs = $exception->getCode();
 
-            DB::table('部署マスタ')->updateOrInsert(
-                ['部署CD' => $BushoCd],
-                $data
-            );
-
-            if (isset($params['ImageFile'])) {
-                $src = public_path() . '\\images\\BushoStamp\\' . $params['ImageFile'];
-                $dst = public_path() . '\\images\\BushoStamp\\' . $BushoCd . '.png';
-
-                rename($src, $dst);
+                    //主キー重複
+                    if($errMs == "23000"){
+                        $duplicate = $BushoCd;
+                    } else {
+                        throw $exception;
+                    }
+                }
+            }else{
+                //修正
+                DB::table('部署マスタ')
+                ->where('部署CD', $BushoCd)
+                ->update($newData);
             }
-        });
+            DB::commit();
 
-        $savedData = array_merge(['部署CD' => $params['部署CD']], $data);
+            // モバイルSvを更新
+            $ds = new DataSendWrapper();
+            if ($isNew) {
+                $ds->Insert('部署マスタ',$newData,true,$BushoCd,null,null);
+            }else{
+                $ds->Update('部署マスタ',$newData,true,$BushoCd,null,null);
+            }
+
+        } catch (Exception $exception) {
+            DB::rollBack();
+            throw $exception;
+        }
 
         return response()->json([
             'result' => true,
-            'model' => $savedData,
+            'model' => $newData,
+            'duplicate' => $duplicate,
         ]);
     }
 
@@ -61,6 +87,15 @@ class DAI04071Controller extends Controller
             DB::table('部署マスタ')->where('部署CD', '=', $BushoCd)->delete();
 
         });
+
+        $params = $request->all();
+        $model = new 部署マスタ();
+        $model->fill($params);
+        $data = collect($model)->all();
+        $newData = array_merge(['部署CD' => $BushoCd], $data);
+        //モバイルSvを更新
+        $ds = new DataSendWrapper();
+        $ds->Delete('部署マスタ',$newData,true,$BushoCd,null,null);
 
         return response()->json([
             'result' => true,

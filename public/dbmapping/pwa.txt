@@ -1,0 +1,152 @@
+{
+    "コースマスタ": {
+        "TableName":"coursemaster",
+        "PrimaryKey": ["部署ＣＤ","コースＣＤ"],
+        "Field": {
+            "部署ＣＤ":"department_code",
+            "コース区分":"course_division",
+            "コースＣＤ":"course_code",
+            "コース名":"course_name",
+            "担当者ＣＤ":"responsible_code",
+            "工場区分":"factory_classification",
+            "修正担当者ＣＤ":"updated_responsible_code"
+        }
+    },
+    "モバイル_回収入力": {
+        "TableName":"CollectionInputData",
+        "PrimaryKey": ["部署ＣＤ","コースＣＤ","得意先ＣＤ","日付"],
+        "Field": {
+            "部署ＣＤ":"department_code",
+            "コースＣＤ":"course_code",
+            "得意先ＣＤ":"customer_code",
+            "日付":"date",
+            "回収金額":"recovery_amount",
+            "月分":"month",
+            "修正日":"updated_at"
+        }
+    },
+    "モバイル_予測入力": {
+        "TableName":"ExpectedInputData",
+        "PrimaryKey": ["部署ＣＤ","得意先ＣＤ","日付","商品ＣＤ"],
+        "Field": {
+            "部署ＣＤ":"department_code",
+            "得意先ＣＤ":"customer_code",
+            "日付":"date",
+            "行Ｎｏ":"row_no",
+            "商品ＣＤ":"product_code",
+            "見込数":"expected_num",
+            "見込入力":"expected_input",
+            "注文数":"order_num",
+            "注文入力":"order_input",
+            "更新フラグ":"update_flag",
+            "修正日":"updated_at"
+        }
+    },
+    "モバイル_移動入力": {
+        "TableName":"MovementInputData",
+        "PrimaryKey": ["部署ＣＤ","コースＣＤ","相手コースＣＤ","日付","商品ＣＤ"],
+        "Field": {
+            "部署ＣＤ":"department_code",
+            "コースＣＤ":"course_code",
+            "相手コースＣＤ":"opponent_course_code",
+            "日付":"date",
+            "ＳＥＱ":"seq",
+            "商品ＣＤ":"product_code",
+            "個数":"quantity",
+            "確認フラグ":"confirm_flag",
+            "相手確認フラグ":"opponent_confirm_flag",
+            "修正日":"updated_at"
+        }
+    },
+    "モバイル_販売入力": {
+        "TableName":"SaleInputData",
+        "PrimaryKey": ["部署ＣＤ","コースＣＤ","得意先ＣＤ","日付","行Ｎｏ"],
+        "Field": {
+            "部署ＣＤ":"department_code",
+            "コースＣＤ":"course_code",
+            "得意先ＣＤ":"customer_code",
+            "日付":"date",
+            "行Ｎｏ":"row_no",
+            "商品ＣＤ":"product_code",
+            "単価":"price",
+            "見込数":"expected_num",
+            "注文数":"order_num",
+            "実績数":"achievements_num",
+            "金額":"money",
+            "値引":"discount",
+            "現金売掛区分":"cash_type",
+            "注文入力":"order_input",
+            "見込入力":"expected_input",
+            "実績入力":"achievements_input",
+            "メッセージ":"message",
+            "主食ＣＤ":"main_food_code",
+            "副食ＣＤ":"sub_food_code",
+            "修正日":"updated_at"
+        }
+    },
+    "モバイル_販売分配": {
+        "TableName":"SalesDistributionData",
+        "PrimaryKey": ["部署ＣＤ","コースＣＤ","得意先ＣＤ","日付","分配先得意先ＣＤ","行Ｎｏ"],
+        "Field": {
+            "部署ＣＤ":"department_code",
+            "コースＣＤ":"course_code",
+            "得意先ＣＤ":"customer_code",
+            "日付":"date",
+            "分配先得意先ＣＤ":"distributor_customer_code",
+            "行Ｎｏ":"row_no",
+            "商品ＣＤ":"product_code",
+            "単価":"price",
+            "見込数":"expected_num",
+            "注文数":"order_num",
+            "実績数":"achievements_num",
+            "金額":"money",
+            "値引":"discount",
+            "現金売掛区分":"cash_type",
+            "主食ＣＤ":"main_food_code",
+            "副食ＣＤ":"sub_food_code",
+            "修正日":"updated_at"
+        }
+    },
+    "モバイル_持ち出し入力": {
+        "TableName":"TakeOutInputData",
+        "PrimaryKey": ["部署ＣＤ","コースＣＤ","持ち出し日付","商品ＣＤ"],
+        "Field": {
+            "部署ＣＤ":"department_code",
+            "コースＣＤ":"course_code",
+            "持ち出し日付":"take_out_at",
+            "商品ＣＤ":"product_code",
+            "個数":"quantity",
+            "修正日":"updated_at"
+        }
+    },
+    "モバイル_対象商品": {
+        "TableName":"TargetProductData",
+        "PrimaryKey": ["部署ＣＤ","商品ＣＤ"],
+        "Field": {
+            "部署ＣＤ":"department_code",
+            "商品ＣＤ":"product_code",
+            "主要商品FLG":"main_product_flag",
+            "期間限定FLG":"limited_flag",
+            "販売期間開始":"sales_start_at",
+            "販売期間終了":"sales_end_at",
+            "修正日":"updated_at"
+        }
+    },
+    "モバイル_更新予定リスト": {
+        "TableName":"UpdateScheduleData",
+        "PrimaryKey": ["日付","得意先ＣＤ"],
+        "Field": {
+            "日付":"date",
+            "得意先ＣＤ":"customer_code",
+            "更新フラグ":"update_flag",
+            "更新日":"updated_at",
+            "処理区分":"process_type",
+            "モバイルデータ更新_部署ＣＤ":"mobile_update_department_code",
+            "モバイルデータ更新_コースＣＤ":"mobile_update_course_code",
+            "WebService_メソッド名":"web_service_function_name",
+            "WebService_部署ＣＤ":"web_service_department_code",
+            "WebService_コースＣＤ":"web_service_course_code",
+            "WebService_更新区分":"web_service_update_type"
+        }
+    }
+}

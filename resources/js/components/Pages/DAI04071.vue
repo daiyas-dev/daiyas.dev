@@ -751,9 +751,19 @@ export default {
                         //登録用controller method call
                         axios.post("/DAI04071/Save", params)
                             .then(res => {
-                                DAI04070.conditionChanged();
-                                //画面を閉じる
-                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
+                                if(!!res.data.duplicate){
+                                    progressDlg.dialog("close");
+                                    var duplicate = res.data.duplicate;
+                                    $.dialogInfo({
+                                        title: "登録失敗",
+                                        contents: "部署CD:" + duplicate + "が重複しています。",
+                                    });
+                                    vue.viewModel.部署CD = "";
+                                }else{
+                                    DAI04070.conditionChanged();
+                                    //画面を閉じる
+                                    $(vue.$el).closest(".ui-dialog-content").dialog("close");
+                                }
                             })
                             .catch(err => {
                                 console.log(err);
@@ -807,6 +817,8 @@ export default {
                                     click: function(){
                                         vue.viewModel = res.data[0];
                                         $(this).dialog("close");
+
+                                        vue.viewModel.IsNew = false;
                                     }
                                 },
                                 {

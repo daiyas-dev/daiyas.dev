@@ -187,14 +187,25 @@ export default {
                         params.修正担当者ＣＤ = vue.getLoginInfo().uid;
                         params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
                         params.noCache = true;
+                        params.IsNew = vue.viewModel.IsNew;
 
                         $(vue.$el).find(".has-error").removeClass("has-error");
 
                         axios.post("/DAI04161/Save", params)
                         .then(res => {
-                            console.log("4061 save", res);
-                            DAI04160.conditionChanged();
-                            $(vue.$el).closest(".ui-dialog-content").dialog("close");
+                            if(!!res.data.duplicate){
+                                progressDlg.dialog("close");
+                                var duplicate = res.data.duplicate;
+                                $.dialogInfo({
+                                    title: "登録失敗",
+                                    contents: "対象日付:" + duplicate + "が重複しています。",
+                                });
+                                vue.viewModel.得意先ＣＤ = "対象日付";
+                            }else{
+                                console.log("4061 save", res);
+                                DAI04160.conditionChanged();
+                                $(vue.$el).closest(".ui-dialog-content").dialog("close");
+                            }
                         })
                         .catch(err => {
                             console.log(err);

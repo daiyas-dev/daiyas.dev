@@ -465,6 +465,9 @@ export default {
                     予備ＣＤ１: 0,
                     予備ＣＤ２: 0,
                     修正担当者ＣＤ: vue.getLoginInfo().uid,
+                    特記_社内用: r.備考社内,
+                    特記_配送用: r.備考配送,
+                    特記_通知用: r.備考通知,
                 };
 
                 var d = diff(changes.OldList[i], r);

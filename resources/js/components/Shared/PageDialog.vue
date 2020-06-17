@@ -18,7 +18,9 @@
                     :callback=target.callback
                     :selector=target.selector
                     :customElement=target.customElement
+                    :customElementFunc=target.customElementFunc
                     :showBushoSelector=target.showBushoSelector
+                    :customParams=target.customParams
                 ></page-selector>
             </div>
         </template>
@@ -179,7 +181,9 @@ export default {
                 callback: options.callback,
                 selector: options.selector,
                 customElement: options.customElement,
+                customElementFunc: options.customElementFunc,
                 showBushoSelector: options.showBushoSelector,
+                customParams: options.customParams,
             };
             this.targets.push(target);
 

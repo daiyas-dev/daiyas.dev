@@ -889,7 +889,7 @@
                     <div class="col-md-3 d-block">
                         <div class="row">
                             <div class="col-md-12 ">
-                                <label class="ml-2" style="text-align: left;">顧客メモ</label>
+                                <label class="ml-2" style="text-align: left;">備考(社内)</label>
                             </div>
                             <div class="col-md-12">
                                 <textarea class="form-control ml-1 mr-1 p-1 memo" type="text" v-model=viewModel.備考１
@@ -897,7 +897,7 @@
                                 </textarea>
                             </div>
                             <div class="col-md-12" >
-                                <label class="ml-2" style="text-align: left;">発信メモ</label>
+                                <label class="ml-2" style="text-align: left;">備考(配送)</label>
                             </div>
                             <div class="col-md-12">
                                 <textarea class="form-control ml-1 mr-1 p-1 memo" type="text" v-model=viewModel.備考２
@@ -905,7 +905,7 @@
                                 </textarea>
                             </div>
                             <div class="col-md-12" >
-                                <label class="ml-2" style="text-align: left;">配送メモ</label>
+                                <label class="ml-2" style="text-align: left;">備考(通知)</label>
                             </div>
                             <div class="col-md-12">
                                 <textarea class="form-control ml-1 mr-1 p-1 memo" type="text" v-model=viewModel.備考３

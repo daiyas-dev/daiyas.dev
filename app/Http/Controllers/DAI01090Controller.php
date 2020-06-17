@@ -135,6 +135,12 @@ SELECT
 	,chumon.予備ＣＤ２
 	,chumon.修正担当者ＣＤ
 	,chumon.修正日
+	,chumon.特記_社内用
+	,chumon.特記_配送用
+	,chumon.特記_通知用
+    ,IIF(chumon.得意先ＣＤ IS NULL, tokui.備考１, chumon.特記_社内用) AS 備考社内
+    ,IIF(chumon.得意先ＣＤ IS NULL, tokui.備考２, chumon.特記_配送用) AS 備考配送
+    ,IIF(chumon.得意先ＣＤ IS NULL, tokui.備考３, chumon.特記_通知用) AS 備考通知
 FROM
 	対象日付
 	LEFT JOIN 祝日マスタ
@@ -186,6 +192,9 @@ ORDER BY
                 $rec['備考３'] = $rec['備考３'] ?? '';
                 $rec['備考４'] = $rec['備考４'] ?? '';
                 $rec['備考５'] = $rec['備考５'] ?? '';
+                $rec['特記_社内用'] = $rec['特記_社内用'] ?? '';
+                $rec['特記_配送用'] = $rec['特記_配送用'] ?? '';
+                $rec['特記_通知用'] = $rec['特記_通知用'] ?? '';
 
                 if (isset($rec['修正日']) && !!$rec['修正日']) {
                     if (count($r) != 1) {

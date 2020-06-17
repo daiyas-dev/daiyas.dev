@@ -3,13 +3,14 @@
 namespace App\Libs;
 use Exception;
 use PDO;
+use Illuminate\Support\Carbon;
 
 //モバイル・Web受注から社内DBへ取込
-class DataRecieve
+class DataReceive
 {
     public $tmp_path;
 
-    public function Recieve()
+    public function Receive()
     {
         try {
             $this->tmp_path=base_path()."\\tmp";
@@ -30,7 +31,7 @@ class DataRecieve
             }
             else{
                 //解凍できなかった場合
-                $this->ErrorRecieveList("ZIPファイルを展開できません。",null,basename($zip_path),null);
+                $this->ErrorReceiveList("ZIPファイルを展開できません。",null,basename($zip_path),null);
                 return;
             }
 
@@ -50,7 +51,7 @@ class DataRecieve
                     {
                         //SQLを実行してエラーが発生した場合
                         $err_file_name=basename($zip_dir_path).'\\'.basename($sqlfile);
-                        $this->ErrorRecieveList("SQL実行エラー",$error_info[1]." ".$error_info[2],$err_file_name,$sql);
+                        $this->ErrorReceiveList("SQL実行エラー",$error_info[1]." ".$error_info[2],$err_file_name,$sql);
                         $is_error=true;
                         break;
                     }
@@ -88,25 +89,34 @@ class DataRecieve
     {
         try {
             //WebAPIからレスポンスを取得する
-            $url = "http://localhost:49503/api/Hello";
+            $url = "http://192.168.1.210/hellolaravel/public/api/MobileDataSend";
+
+            $last_update_date = Carbon::now()->format('YmdHis');
+            $post_data = array(
+                'LastUpdateDate' => $last_update_date
+            );
 
             // cURLセッションを初期化
             $ch = curl_init();
-
-            // オプションを設定
             curl_setopt($ch, CURLOPT_URL, $url); // 取得するURLを指定
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($post_data));
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // 実行結果を文字列で返す
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // サーバー証明書の検証を行わない
 
             // URLの情報を取得
-            $response =  curl_exec($ch);
+            $result = curl_exec($ch);
             $curl_error=curl_error($ch);
+
             // セッションを終了
             curl_close($ch);
+            echo 'RETURN:' . $result;
 
+            //エラーチェック
             if($curl_error!="")
             {
-                $this->ErrorRecieveList("接続エラー",$curl_error,null,null);
+                $this->ErrorReceiveList("接続エラー",$curl_error,null,null);
                 return "";
             }
 
@@ -114,7 +124,7 @@ class DataRecieve
             $tmp_file = tempnam($this->tmp_path, "zip");
             if ($file_handle = fopen($tmp_file, "w")) {
                 // 書き込み
-                fwrite($file_handle, base64_decode($response));
+                fwrite($file_handle, base64_decode($result));
                 // ファイルを閉じる
                 fclose($file_handle);
             }
@@ -132,7 +142,7 @@ class DataRecieve
      * @param 受信SQL
      * @return void
      */
-    private function ErrorRecieveList($description,$message=null,$file_name=null,$sql=null)
+    private function ErrorReceiveList($description,$message=null,$file_name=null,$sql=null)
     {
         try {
             //モバイル送信リストに登録する
@@ -148,8 +158,8 @@ class DataRecieve
                     FROM モバイル受信エラー
                 ";
             $stmt = $pdo->query($next_id_Sql);
-            $recieve_id = $stmt->fetch()["NEXT_ID"];
-            $recieve_id = $recieve_id==null ? 1 : $recieve_id;
+            $receive_id = $stmt->fetch()["NEXT_ID"];
+            $receive_id = $receive_id==null ? 1 : $receive_id;
 
             //呼出元を取得
             $esc_file_name = $file_name==null ? 'null' : "'$file_name'";
@@ -163,7 +173,7 @@ class DataRecieve
                    ,エラーメッセージ
                    ,SQL
                    )VALUES(
-                     $recieve_id
+                     $receive_id
                     ,GETDATE()
                     ,$esc_file_name
                     ,'$description'
