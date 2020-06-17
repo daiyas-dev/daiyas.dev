@@ -1,6 +1,6 @@
 ﻿<template>
     <form :id="this.uniqueId" class="CommonSelector">
-        <div class="row ml-0 mr-0 mb-2 CustomCotainer" v-if="!!customElement">
+        <div class="row ml-0 mr-0 mb-2 CustomCotainer" v-if="!!showBushoSelector || !!customElement || !!customElementFunc">
             <div class="col-md-4" v-if="!!showBushoSelector">
                 <label style="text-align: center;">部署</label>
                 <VueSelect
@@ -60,7 +60,9 @@ import VueSelect from "@vcs/VueSelect.vue";
 export default {
     name: "CommonSelector",
     data() {
-        return {
+        var vue = this;
+
+        var data = {
             viewModel: {},
             page: null,
             count: null,
@@ -68,7 +70,13 @@ export default {
             countAll: 0,
             current: null,
             scrollParams: {},
+        };
+
+        if (!!vue.customParams) {
+            data.customElementParams = _.cloneDeep(vue.customParams);
         }
+
+        return data;
     },
     props: {
         pgId: String,
@@ -83,7 +91,9 @@ export default {
         callback: Function,
         selector: Function,
         customElement: String,
+        customElementFunc: Function,
         showBushoSelector: Boolean,
+        customParams: Object,
         query: Object,
         vm: Object,
     },
@@ -128,12 +138,14 @@ export default {
                         title: this.labelCd, dataIndx: "Cd",
                         width: 100, minWidth: 100, maxWidth: vue.isCodeOnly ? "100%" : 150,
                         dataType: "string",
+                        align: "center",
                         filter: { crules: [{ condition: "contain" }] },
                     },
                     {
                         title: this.labelCdNm,
                         dataIndx: "CdNm",
                         dataType: "string",
+                        tooltip: true,
                         hidden: vue.isCodeOnly,
                         filter: { crules: [{ condition: "contain" }] },
                     },
@@ -293,10 +305,16 @@ export default {
                 hidden: !!c.hidden,
                 dataIndx: c.dataIndx,
                 dataType: c.dataType || "string",
+                align: c.align || null,
+                format: c.format || null,
                 width: c.width || null,
                 maxWidth: c.maxWidth || null,
                 minWidth: c.minWidth || null,
             };
+
+            if (c.render) {
+                col.render = c.render;
+            }
 
             var prev = pqgrid.options.colModel.filter(c => c.dataIndx == col.dataIndx)[0];
             if (!!prev) {
@@ -325,6 +343,10 @@ export default {
 
         if (!!vue.customElement) {
             $(vue.$el).find(".CustomCotainer").append($(vue.customElement));
+        }
+
+        if (!!vue.customElementFunc) {
+            vue.customElementFunc(vue, $(vue.$el).find(".CustomCotainer"));
         }
 
         this.focused();
@@ -454,6 +476,10 @@ export default {
                 params.Keywords = keywords;
                 if (!!vue.viewModel.BushoCd) {
                     params.BushoCd = vue.viewModel.BushoCd;
+                }
+
+                if (!!vue.customElementParams) {
+                    params = _.extend(params, vue.customElementParams);
                 }
 
                 if (!_.isEqual(params, grid.prevPostData)) {

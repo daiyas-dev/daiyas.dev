@@ -18,7 +18,9 @@
         :callback=this.callback
         :selector=this.selector
         :customElement=this.customElement
+        :customElementFunc=this.customElementFunc
         :showBushoSelector=this.showBushoSelector
+        :customParams=this.customParams
         :uniqueId=this.uniqueId
         :isChild=this.isChild
         :isCodeOnly=this.isCodeOnly
@@ -26,7 +28,8 @@
         :is="this.component"
         :query=this.query
         :params=this.params
-        :vm=this.viewModel></div>
+        :vm=this.viewModel>
+    </div>
 </template>
 
 <style scoped>
@@ -64,6 +67,7 @@ import DAI01010 from "@vcp/DAI01010.vue";
 import DAI01020 from "@vcp/DAI01020.vue";
 import DAI01030 from "@vcp/DAI01030.vue";
 import DAI01031 from "@vcp/DAI01031.vue";
+import DAI01032 from "@vcp/DAI01032.vue";
 import DAI01040 from "@vcp/DAI01040.vue";
 import DAI01060 from "@vcp/DAI01060.vue";
 import DAI01061 from "@vcp/DAI01061.vue";
@@ -205,7 +209,9 @@ export default {
         callback: Function,
         selector: Function,
         customElement: String,
+        customElementFunc: Function,
         showBushoSelector: Boolean,
+        customParams: Object,
         uniqueId: String,
         isSelector: Boolean,
         isChild: Boolean,
@@ -222,6 +228,7 @@ export default {
         DAI01020,
         DAI01030,
         DAI01031,
+        DAI01032,
         DAI01040,
         DAI01060,
         DAI01061,
