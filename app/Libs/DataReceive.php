@@ -3,6 +3,7 @@
 namespace App\Libs;
 use Exception;
 use PDO;
+use Illuminate\Support\Carbon;
 
 //モバイル・Web受注から社内DBへ取込
 class DataReceive
@@ -287,7 +288,8 @@ class DataReceive
                 $pdo->rollback();
             } else {
                 //最終更新日を更新する
-                $sql="UPDATE モバイル受信リスト SET 最終更新日時='$last_update_date' WHERE 受信ＩＤ=$receive_id";
+                $q_last_update_date = $last_update_date===null ? Carbon::now()->format('Y/m/d H:i:s') : $last_update_date;
+                $sql="UPDATE モバイル受信リスト SET 最終更新日時='$q_last_update_date' WHERE 受信ＩＤ=$receive_id";
                 $pdo->exec($sql);
                 $pdo->commit();
             }
