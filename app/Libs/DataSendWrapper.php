@@ -45,7 +45,7 @@ class DataSendWrapper extends DataSend
             $values="";
             foreach($new_data as $key=>$val)
             {
-                $q_val = ($val==NULL || $val=='') ? "null" : "'$val'";
+                $q_val = $val===NULL ? "null" : "'$val'";
                 $values .= ", $key = $q_val";
             }
             $values=substr($values,1);
@@ -81,7 +81,8 @@ class DataSendWrapper extends DataSend
     {
         try {
             $new_data=array();
-            $map = json_decode($this->ConversionMap, true);
+            //マッピング情報を読み込む
+            $map = json_decode(file_get_contents(public_path()."/dbmapping/pwa.txt"),true);
             if (!array_key_exists($table_name, $map)) {
                 throw new Exception("テーブルマッピング情報がありません。");
             }
@@ -102,7 +103,7 @@ class DataSendWrapper extends DataSend
             foreach($new_data as $key=>$val)
             {
                 $fields .= ", $key";
-                $q_val = ($val==NULL || $val=='') ? "null" : "'$val'";
+                $q_val = $val===NULL ? "null" : "'$val'";
                 $values .= ", $q_val";
             }
             $fields=substr($fields,1);
@@ -131,7 +132,8 @@ class DataSendWrapper extends DataSend
     {
         try {
             $new_pk=array();
-            $map = json_decode($this->ConversionMap, true);
+            //マッピング情報を読み込む
+            $map = json_decode(file_get_contents(public_path()."/dbmapping/pwa.txt"),true);
             if (!array_key_exists($table_name, $map)) {
                 throw new Exception("テーブルマッピング情報がありません。");
             }

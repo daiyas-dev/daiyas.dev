@@ -674,7 +674,7 @@ class DAI01030Controller extends Controller
                 }
                 foreach ($MInsertList as $data) {
                     $ds = new DataSendWrapper();
-                    $ds->Insert('注文データ', $rec, true, $rec['部署ＣＤ'], null, null);
+                    $ds->Insert('注文データ', $data, true, $rec['部署ＣＤ'], null, null);
                 }
             }
         } catch (Exception $exception) {
