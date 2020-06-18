@@ -3,7 +3,6 @@
 namespace App\Libs;
 use Exception;
 use PDO;
-use Illuminate\Support\Carbon;
 
 //モバイル・Web受注から社内DBへ取込
 class DataReceive
@@ -48,6 +47,12 @@ class DataReceive
 
                 //モバイル・Web受注サーバからデータを取得する
                 $response = $this->GetResponse($DataItem['受信ＩＤ'],$mv_table_name,$DataItem['最終更新日時']);
+                if($response=="") {
+                    return;
+                }
+                if(!isset($response["file_path"])) {
+                    return;
+                }
                 $zip_path = $response["file_path"];
                 if ($zip_path=="") {
                     return;
@@ -105,7 +110,7 @@ class DataReceive
             //TODO:テスト用URL(NEW社内)
             $url = "http://192.168.1.210/hellolaravel/public/api/mobiledatasend";
             //TODO:本番URL
-            //$url="http://52.197.70.172/api/mobiledatasend";
+            $url="http://52.197.70.172/api/mobiledatasend";
 
             $post_data = array(
                  'TableName'=> $table_name
