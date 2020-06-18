@@ -77,6 +77,7 @@ class MobileDataSendController extends Controller
             // ファイルを閉じる
             fclose($file_handle);
         }
+        chmod($file_name, 0777);
         return array("file_name"=>$file_name,"max_updated_date"=>$max_updated_date);
     }
     /**
@@ -93,6 +94,8 @@ class MobileDataSendController extends Controller
         if($file_path!='')
         {
             $file_data = file_get_contents($file_path);
+            //圧縮ファイルを消す
+            unlink($file_path);
         }
 
         return response()->json([
@@ -117,6 +120,11 @@ class MobileDataSendController extends Controller
                 $zip->addFile($f, basename($f));
             }
             $zip->close();
+            chmod($zip_file_path, 0777);
+            //圧縮元ファイルを消す
+            foreach ($file as $f) {
+                unlink($f);
+            }
         }
         catch (Exception $exception) {
             throw $exception;
