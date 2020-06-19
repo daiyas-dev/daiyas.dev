@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Libs\DataSendWrapper;
 use App\Models\入金データ;
 use App\Models\売上データ明細;
 use App\Models\管理マスタ;
@@ -156,6 +157,7 @@ class DAI01101Controller extends Controller
         //モバイルsv更新用
         $MUpdateList = [];
         $MInsertList = [];
+        $MDeleteList = [];
 
         DB::beginTransaction();
 
@@ -187,6 +189,23 @@ class DAI01101Controller extends Controller
                 AND コースＣＤ = $CourseCd
                 AND 得意先ＣＤ = $CustomerCd
                 AND 分配元数量 = 0
+            ";
+
+            //親得意先　モバイルsv更新用
+            $Msql = "
+                UPDATE SalesDetailsData
+                SET
+                    cash_num = 0,
+                    sold_num = 0,
+                    source_quantity = cash_num + sold_num,
+                    updated_at = '$date',
+                    updated_responsible_code = $EditUser
+                WHERE
+                    date = '$TargetDate'
+                AND department_code = $BushoCd
+                AND course_code = $CourseCd
+                AND customer_code = $CustomerCd
+                AND source_quantity = 0
             ";
 
             DB::update($sql);
@@ -227,6 +246,9 @@ class DAI01101Controller extends Controller
                             ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
                             ->where('受注Ｎｏ', $rec['受注Ｎｏ'])
                             ->delete($rec);
+
+                        //モバイルsv更新用
+                        array_push($MDeleteList, $rec);
                     } else {
                         売上データ明細::query()
                             ->where('日付', $rec['日付'])
@@ -237,6 +259,9 @@ class DAI01101Controller extends Controller
                             ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
                             ->where('受注Ｎｏ', $rec['受注Ｎｏ'])
                             ->update($rec);
+
+                        //モバイルsv更新用
+                        array_push($MUpdateList, $rec);
                     }
                 } else {
                     $gno = 売上データ明細::query()
@@ -259,6 +284,9 @@ class DAI01101Controller extends Controller
                     $rec['請求日付'] = $rec['請求日付'] ?? '';
 
                     売上データ明細::insert($rec);
+
+                    //モバイルsv更新用
+                    array_push($MInsertList, $rec);
                 }
             }
 
@@ -307,17 +335,21 @@ class DAI01101Controller extends Controller
 
             //モバイルSvを更新
             //親得意先
-            //TODO西山修正中
+            //TODO西山修正中　Executeのみ確認済。
             $ds = new DataSendWrapper();
-            $ds->Execute($sql, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
+            $ds->Execute($Msql, true, $BushoCd, null, $CourseCd);
 
-            foreach ($MUpdateList as $rec) {
+            foreach ($MDeleteList as $rec) {
                 $ds = new DataSendWrapper();
-                $ds->Update('売上データ明細', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
+                $ds->Delete('売上データ明細', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
             }
             foreach ($MInsertList as $rec) {
                 $ds = new DataSendWrapper();
                 $ds->Insert('売上データ明細', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
+            }
+            foreach ($MUpdateList as $rec) {
+                $ds = new DataSendWrapper();
+                $ds->Update('売上データ明細', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
             }
     } catch (Exception $exception) {
             DB::rollBack();
