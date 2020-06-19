@@ -174,7 +174,7 @@ export default {
 
                             var rowData = grid.getRowData({ rowIndx: rowIndx });
 
-                            vue.show01032(rowData);
+                            vue.show01032(rowData, grid);
 
                             return false;
                         },
@@ -182,12 +182,13 @@ export default {
                 ],
             });
         },
-        show01032: function(data) {
+        show01032: function(data, grid) {
             var vue = this;
 
             var params = _.cloneDeep(data);
             params.IsChild = true;
             params.Parent = vue;
+            params.Grid = grid;
 
             PageDialog.show({
                 pgId: "DAI01032",

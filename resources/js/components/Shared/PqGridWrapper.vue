@@ -1006,7 +1006,6 @@ export default {
                                         html: html,
                                     });
 
-                                    console.log("grid tooltip")
                                     ui.text = title;
 
                                     return ui;

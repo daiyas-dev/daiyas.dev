@@ -175,6 +175,12 @@ export default {
                                         .find(".ui-dialog-buttonpane .ui-dialog-buttonset button")
                                         .filter((i, v) => $(v).text().includes("選択"));
 
+                    if (selectBtn.length == 0) {
+                        selectBtn = this.widget()
+                                        .closest(".ui-dialog")
+                                        .find(".ui-dialog-buttonpane .ui-dialog-buttonset button.btn-primary");
+                    }
+
                     if (selectBtn.length == 1) {
                         selectBtn[0].click();
                     }

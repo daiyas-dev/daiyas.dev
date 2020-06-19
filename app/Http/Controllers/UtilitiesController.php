@@ -2133,7 +2133,7 @@ $OrderBy
     public function SearchWebOrderList($request)
     {
         $TargetDate = $request->TargetDate;
-        $WhereTargetDate = $TargetDate ? "AND	X.配送日='$TargetDate'" : "";
+        $WhereTargetDate = $TargetDate ? "AND X.配送日='$TargetDate'" : "";
 
         $BushoCd = $request->bushoCd ?? $request->BushoCd;
         $WhereBusho = $BushoCd ? "AND TOK.部署CD=$BushoCd" : "";
@@ -2189,8 +2189,8 @@ $OrderBy
 					,X.部署名
 					,X.Web得意先ＣＤ
 					,X.Web得意先名
-                    ,STRING_AGG (X.得意先ＣＤ, '/') AS Cd
-                    ,STRING_AGG (X.得意先名, '/') AS CdNm
+                    ,STRING_AGG(X.得意先ＣＤ, '/') AS Cd
+                    ,STRING_AGG(X.得意先名, '/') AS CdNm
 					,STRING_AGG(IIF(X.売掛現金区分 = 0, X.得意先ＣＤ, NULL), '/')  AS 得意先ＣＤ_現金
 					,STRING_AGG(IIF(X.売掛現金区分 = 0, X.得意先名, NULL), '/')  AS 得意先名_現金
 					,STRING_AGG(IIF(X.売掛現金区分 = 0, X.電話番号１, NULL), '/')  AS 電話番号_現金
@@ -2206,7 +2206,7 @@ $OrderBy
 						,WEBTOK.Web得意先名
                         ,WEB.配送日
                         ,WEB.注文日時
-                        ,WEB.得意先ＣＤ
+                        ,TOK.得意先ＣＤ
                         ,TOK.得意先名
 						,TOK.売掛現金区分
                         ,TOK.部署CD
@@ -2218,12 +2218,13 @@ $OrderBy
                         INNER JOIN Web受注得意先マスタ WEBTOK
                             ON  WEBTOK.Web得意先ＣＤ=WEB.Web得意先ＣＤ
                         INNER JOIN 得意先マスタ TOK
-                            ON  TOK.得意先ＣＤ=WEB.得意先ＣＤ
+                            ON  TOK.得意先ＣＤ=WEBTOK.得意先ＣＤ
                         INNER JOIN 部署マスタ BSH
                             ON  BSH.部署CD=TOK.部署CD
                         LEFT OUTER JOIN 注文データ CHU
                             ON  CHU.配送日=WEB.配送日
-                            AND CHU.得意先ＣＤ=WEB.得意先ＣＤ
+                            AND CHU.得意先ＣＤ=TOK.得意先ＣＤ
+                            AND CHU.Web受注ID=WEB.Web受注ID
                             AND CHU.注文区分=0
                     WHERE
                         0=0
@@ -2269,21 +2270,28 @@ $OrderBy
                 FROM (
                     SELECT DISTINCT
                         WEB.Web受注ID
+                        ,WEB.Web得意先ＣＤ
+						,WEBTOK.Web得意先名
                         ,WEB.配送日
-                        ,WEB.得意先ＣＤ
+                        ,WEB.注文日時
+                        ,TOK.得意先ＣＤ
                         ,TOK.得意先名
+						,TOK.売掛現金区分
                         ,TOK.部署CD
                         ,BSH.部署名
+						,TOK.電話番号１
                         ,IIF(CHU.明細行Ｎｏ IS NULL, 0, 1) AS	確認済
                     FROM
                         Web受注データ WEB
+                        INNER JOIN Web受注得意先マスタ WEBTOK
+                            ON  WEBTOK.Web得意先ＣＤ=WEB.Web得意先ＣＤ
                         INNER JOIN 得意先マスタ TOK
-                            ON  TOK.得意先ＣＤ=WEB.得意先ＣＤ
+                            ON  TOK.得意先ＣＤ=WEBTOK.得意先ＣＤ
                         INNER JOIN 部署マスタ BSH
                             ON  BSH.部署CD=TOK.部署CD
                         LEFT OUTER JOIN 注文データ CHU
                             ON  CHU.配送日=WEB.配送日
-                            AND CHU.得意先ＣＤ=WEB.得意先ＣＤ
+                            AND CHU.得意先ＣＤ=TOK.得意先ＣＤ
                             AND CHU.注文区分=0
                     WHERE
                         0=0

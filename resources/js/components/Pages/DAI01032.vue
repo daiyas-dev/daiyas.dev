@@ -105,6 +105,8 @@ export default {
                 CustomerCd: vue.params.Web得意先ＣＤ,
                 DeliveryDate: moment(vue.params.配送日).format("YYYYMMDD"),
                 OrderDate: moment(vue.params.注文日時).format("YYYY-MM-DD HH:mm:ss"),
+                EditUser: vue.getLoginInfo().uid,
+                IsRegisted: vue.IsRegisted,
             };
         }
     },
@@ -368,21 +370,21 @@ export default {
                     },
                     {
                         title: "備考",
-                        dataIndx: "備考ID", dataType: "integer",
+                        dataIndx: "備考", dataType: "integer",
                         align: "left",
                         width: 200, maxWidth: 200, minWidth: 200,
-                        editable: ui => !!vue.MemoList.length,
+                        editable: false, //ui => !!vue.MemoList.length,
                         tooltip: true,
-                        autocomplete: {
-                            source: () => vue.getMemoList(),
-                            bind: "備考ID",
-                            AutoCompleteMinLength: 0,
-                            selectSave: true,
-                            render: ui => {
-                                var match = vue.MemoList.find(v => v.Cd == ui.rowData.備考ID);
-                                return { text: !!match ? match.CdNm : null };
-                            },
-                        },
+                        // autocomplete: {
+                        //     source: () => vue.getMemoList(),
+                        //     bind: "備考ID",
+                        //     AutoCompleteMinLength: 0,
+                        //     selectSave: true,
+                        //     render: ui => {
+                        //         var match = vue.MemoList.find(v => v.Cd == ui.rowData.備考ID);
+                        //         return { text: !!match ? match.CdNm : null };
+                        //     },
+                        // },
                     },
                 ],
             },
@@ -431,12 +433,12 @@ export default {
                 },
                 { visible: "true", value: "注文入力<br>確認(掛売)", id: "DAI01032Grid1_showOrder_1", disabled: false, shortcut: "F10",
                     onClick: function () {
-                        vue.showOrder(1);
+                        vue.show01030(1);
                     }
                 },
                 { visible: "true", value: "注文入力<br>確認(現金)", id: "DAI01032Grid1_showOrder_1", disabled: false, shortcut: "F11",
                     onClick: function () {
-                        vue.showOrder(0);
+                        vue.show01030(0);
                     }
                 },
             );
@@ -726,46 +728,23 @@ export default {
                 return;
             }
 
-            var SaveList = _.cloneDeep(grid.getPlainPData().filter(v => !!v.商品ＣＤ));
+            var changes = _.cloneDeep(grid.createSaveParams());
+            var SaveList = changes.AddList.concat(changes.UpdateList).filter(v => !!v.商品ＣＤ);
 
             //注文データの型に整形
             SaveList.forEach((v, i) => {
-                v.注文区分 = 0;
-                v.注文日付 = v.注文日付 || moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYY-MM-DD");
-                v.注文時間 = v.注文時間 || vue.viewModel.DeliveryTime;
-                v.部署ＣＤ = vue.viewModel.BushoCd;
-                v.得意先ＣＤ = vue.viewModel.CustomerCd;
-                v.配送日 = v.配送日 || moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYY-MM-DD");
-                v.入力区分 = 0;
-                v.備考１ = vue.viewModel.ChumonBikou1;
-                v.備考２ = vue.viewModel.ChumonBikou2;
-                v.備考３ = vue.viewModel.ChumonBikou3;
-                v.備考４ = vue.viewModel.ChumonBikou4;
-                v.備考５ = vue.viewModel.ChumonBikou5;
-                v.予備金額１ = v.単価;
-                v.予備金額２ = 0;
-                v.予備ＣＤ１ = 0;
-                v.予備ＣＤ２ = 0;
                 v.修正担当者ＣＤ = vue.getLoginInfo().uid;
-                v.特記_社内用 = vue.viewModel.BikouForControl;
-                v.特記_配送用 = vue.viewModel.BikouForDelivery;
-                v.特記_通知用 = vue.viewModel.BikouForNotification;
 
+                delete v.備考ID;
+                delete v.得意先名;
+                delete v.商品区分;
                 delete v.商品名;
-                delete v.単価;
-                delete v.予定数;
                 delete v.現金;
                 delete v.掛売;
-                delete v.sortIndx;
             });
 
             var DeleteList = grid.getChanges().deleteList
-                .map(v => {
-                    var ret = _.cloneDeep(v.InitialValue);
-                    ret.部署ＣＤ = vue.viewModel.BushoCd;
-
-                    return ret;
-                });
+                .map(v => _.cloneDeep(v.InitialValue));
 
             //保存実行
             grid.saveData(
@@ -778,13 +757,18 @@ export default {
                     optional: this.searchParams,
                     confirm: {
                         isShow: true,
-                        title: "確認 " + vue.viewModel.CustomerNm,
+                        title: vue.IsRegisted == "1" ? "Web受注注文変更" : "Web受注注文取込",
+                        message:
+                            (
+                                vue.IsRegisted == "1"
+                                    ? "Web受注の注文内容を変更します。"
+                                    : "Web受注の注文内容を取り込みます。"
+                            )
+                            + "宜しいですか？",
                     },
                     done: {
                         isShow: false,
                         callback: (gridVue, grid, res)=>{
-                            console.log("res", res);
-
                             if (!!res.edited) {
                                 $.dialogInfo({
                                     title: "登録チェック",
@@ -792,32 +776,16 @@ export default {
                                 });
                                 grid.blinkDiff(res.current);
                             } else {
-                                // grid.setLocalData(res.current);
+                                if (vue.IsRegisted == "0") {
+                                    $.dialogInfo({
+                                        title: "Web受注注文取込完了",
+                                        contents: "Web受注の注文内容を取り込みました。以降の変更は自動で取り込まれます。",
+                                    });
+                                    vue.IsRegisted = "1";
+                                }
+
                                 grid.refreshDataAndView();
-                                vue.viewModel.IsEdit = true;
                             }
-
-                            //本日注文履歴 再取得
-                            vue.getTodayOrder(() => {
-                                vue.CurrentOrder = vue.TodayOrders.find(v => {
-                                    return v.部署ＣＤ == vue.TodayOrders[0].部署ＣＤ
-                                        && v.配送日 == vue.TodayOrders[0].配送日
-                                        && v.修正時間 == vue.TodayOrders[0].修正時間
-                                        && v.得意先CD == vue.TodayOrders[0].得意先CD
-                                        ;
-                                })
-
-                                vue.$router.push({
-                                    path: vue.$route.path,
-                                    query: {
-                                        userId: vue.$route.query.userId,
-                                        BushoCd: vue.CurrentOrder.部署ＣＤ,
-                                        DeliveryDate: moment(vue.CurrentOrder.配送日).format("YYYY年MM月DD日"),
-                                        LastEditTime: vue.CurrentOrder.修正時間,
-                                        CustomerCd: vue.CurrentOrder.得意先CD,
-                                    }
-                                });
-                            });
 
                             return false;
                         },
@@ -829,40 +797,19 @@ export default {
             var vue = this;
             var grid = vue.DAI01032Grid1;
 
-            var DeleteList = _.cloneDeep(grid.getPlainPData().filter(v => !!v.商品ＣＤ));
-
-            //注文データの型に整形
-            DeleteList.forEach((v, i) => {
-                v.注文区分 = 0;
-                v.注文日付 = v.注文日付 || moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYY-MM-DD");
-                v.注文時間 = v.注文時間 || vue.viewModel.DeliveryTime;
-                v.部署ＣＤ = vue.viewModel.BushoCd;
-                v.得意先ＣＤ = vue.viewModel.CustomerCd;
-                v.配送日 = v.配送日 || moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYY-MM-DD");
-                v.明細行Ｎｏ = (i + 1);
-                v.入力区分 = 0;
-                v.修正担当者ＣＤ = vue.getLoginInfo().uid;
-
-                delete v.商品名;
-                delete v.単価;
-                delete v.予定数;
-                delete v.現金;
-                delete v.掛売;
-                delete v.sortIndx;
-            });
-
             //削除実行
             grid.saveData(
                 {
                     uri: "/DAI01032/Delete",
                     params: {
-                        DeleteList: DeleteList,
                     },
                     optional: this.searchParams,
                     confirm: {
                         isShow: true,
-                        title: "注文データ削除確認",
-                        message: "注文データを削除します。宜しいですか？",
+                        title: "Web受注注文削除確認",
+                        message: "Web受注の注文を削除します。"
+                            + (vue.IsRegisted == "1" ? "取込済みの注文も同時に削除します。" : "")
+                            + "宜しいですか？",
                     },
                     done: {
                         isShow: false,
@@ -877,11 +824,7 @@ export default {
                                 grid.blinkDiff(res.edited);
                             } else {
                                 grid.clearData();
-                                vue.viewModel.CustomerCd = null;
-                                vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
-                                vue.viewModel.DeliveryTime = moment().format("HH:mm:ss");
-                                vue.viewModel.IsEdit = false;
-                                vue.viewModel.IsDeliveried = false;
+                                vue.params.Grid.refreshDataAndView();
                                 $(vue.$el).closest(".ui-dialog-content").dialog("close");
                             }
 
@@ -1020,6 +963,28 @@ export default {
                         contents: "商品マスタの検索に失敗しました" + "<br/>" + err.message,
                     });
                 });
+        },
+        show01030: function(IsKake) {
+            var vue = this;
+
+            var params = {
+                BushoCd: vue.params.部署CD,
+                CustomerCd: vue.params["得意先ＣＤ_" + (!!IsKake ? "掛売" : "現金")],
+                CustomerNm: vue.params["得意先名_" + (!!IsKake ? "掛売" : "現金")],
+                DeliveryDate: moment(vue.params.配送日).format("YYYY年MM月DD日"),
+                IsChild: true,
+                Parent: vue,
+            };
+
+            PageDialog.show({
+                pgId: "DAI01030",
+                params: params,
+                isModal: true,
+                isChild: true,
+                reuse: false,
+                width: 1250,
+                height: 775,
+            });
         },
     }
 }
