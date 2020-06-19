@@ -212,6 +212,42 @@
                 "修正日":"updated_at"
             }
         },
+        "売上データ明細": {
+            "TableName":"SalesDetailsData",
+            "PrimaryKey": ["商品ＣＤ","日付","部署ＣＤ","コースＣＤ","行Ｎｏ","得意先ＣＤ","明細行Ｎｏ","受注Ｎｏ"],
+            "Field": {
+                "日付":"date",
+                "部署ＣＤ":"department_code",
+                "コースＣＤ":"course_code",
+                "行Ｎｏ":"row_no",
+                "得意先ＣＤ":"customer_code",
+                "明細行Ｎｏ":"detail_row_no",
+                "受注Ｎｏ":"order_no",
+                "配送担当者ＣＤ":"delivery_responsible_code",
+                "商品ＣＤ":"product_code",
+                "商品区分":"product_type",
+                "現金個数":"cash_num",
+                "現金金額":"cash_amount",
+                "現金値引":"cash_discount",
+                "現金値引事由ＣＤ":"cash_discoun_code",
+                "掛売個数":"sold_num",
+                "掛売金額":"sold_amount",
+                "掛売値引":"sold_discount",
+                "掛売値引事由ＣＤ":"sold_discount_code",
+                "請求日付":"billing_date",
+                "予備金額１":"reserve_amount_1",
+                "予備金額２":"reserve_amount_2",
+                "売掛現金区分":"cash_type",
+                "予備ＣＤ２":"spare_code_2",
+                "主食ＣＤ":"main_food_code",
+                "副食ＣＤ":"sub_food_code",
+                "分配元数量":"source_quantity",
+                "食事区分":"meal_type",
+                "備考":"remark",
+                "修正担当者ＣＤ":"updated_responsible_code",
+                "修正日":"updated_at"
+            }
+        },
         "各種テーブル": {
             "TableName":"VariousData",
             "PrimaryKey": ["各種CD","行NO"],

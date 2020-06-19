@@ -153,6 +153,10 @@ class DAI01101Controller extends Controller
     {
         $skip = [];
 
+        //モバイルsv更新用
+        $MUpdateList = [];
+        $MInsertList = [];
+
         DB::beginTransaction();
 
         try {
@@ -300,7 +304,22 @@ class DAI01101Controller extends Controller
             }
 
             DB::commit();
-        } catch (Exception $exception) {
+
+            //モバイルSvを更新
+            //親得意先
+            //TODO西山修正中
+            $ds = new DataSendWrapper();
+            $ds->Execute($sql, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
+
+            foreach ($MUpdateList as $rec) {
+                $ds = new DataSendWrapper();
+                $ds->Update('売上データ明細', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
+            }
+            foreach ($MInsertList as $rec) {
+                $ds = new DataSendWrapper();
+                $ds->Insert('売上データ明細', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
+            }
+    } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;
         }
