@@ -24,6 +24,8 @@ class DAI01030Controller extends Controller
 
         $sql = "
             SELECT
+                MTT.商品ＣＤ AS Cd,
+                PM.商品名 AS CdNm,
                 MTT.得意先ＣＤ,
                 MTT.商品ＣＤ,
                 PM.商品名,
@@ -50,16 +52,26 @@ class DAI01030Controller extends Controller
                     ON	PM.商品ＣＤ=MTT.商品ＣＤ
         ";
 
-        $Result = collect(DB::select($sql))
-            ->map(function ($product) {
-                $vm = (object) $product;
+        // $Result = collect(DB::select($sql))
+        //     ->map(function ($product) {
+        //         $vm = (object) $product;
 
-                $vm->Cd = $product->商品ＣＤ;
-                $vm->CdNm = $product->商品名;
+        //         $vm->Cd = $product->商品ＣＤ;
+        //         $vm->CdNm = $product->商品名;
 
-                return $vm;
-            })
-            ->values();
+        //         return $vm;
+        //     })
+        //     ->values();
+
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+
+        $stmt = $pdo->query($sql);
+        $Result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = null;
 
         return response()->json($Result);
     }
@@ -119,6 +131,12 @@ class DAI01030Controller extends Controller
         $BushoCd = $vm->BushoCd;
         $CustomerCd = $vm->CustomerCd;
         $DeliveryDate = $vm->DeliveryDate;
+
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
 
         $sql = "
             WITH 得意先単価 AS (
@@ -208,10 +226,12 @@ class DAI01030Controller extends Controller
                 商品ＣＤ
         ";
 
-        $DataList = DB::select($sql);
+        // $DataList = DB::select($sql);
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $HasShown = collect($DataList)->some(function ($item, $key) {
-            return $item->全表示 == 1;
+            return $item["全表示"] == 1;
         });
 
         if (!$HasShown) {
@@ -261,19 +281,23 @@ class DAI01030Controller extends Controller
                     AND 注文データ.部署ＣＤ   = $BushoCd
                     AND 注文データ.得意先ＣＤ = $CustomerCd
                     AND 注文データ.注文区分 = 0
-                    AND CONVERT(NVARCHAR, 注文データ.配送日, 112) >= DATEADD(DAY, -8, '$DeliveryDate')
-                    AND CONVERT(NVARCHAR, 注文データ.配送日, 112) <  '$DeliveryDate'
+                    AND 注文データ.配送日 >= DATEADD(DAY, -8, '$DeliveryDate')
+                    AND 注文データ.配送日 <  '$DeliveryDate'
             ";
 
-            $products = DB::select($sql);
+            // $products = DB::select($sql);
+            $stmt = $pdo->query($sql);
+            $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             collect($DataList)->each(function ($item, $key) use ($products) {
-                if (collect($products)->contains('商品ＣＤ', $item->商品ＣＤ)) {
-                    $item->全表示 = 0;
+                if (collect($products)->contains('商品ＣＤ', $item["商品ＣＤ"])) {
+                    $item["全表示"] = 0;
                 }
             });
 
         }
+
+        $pdo = null;
 
         return $DataList;
     }
@@ -288,32 +312,34 @@ class DAI01030Controller extends Controller
         $DeliveryDate = $request->DeliveryDate;
 
         $sql = "
-            SELECT TK.得意先ＣＤ
-                ,IIF(CD.得意先ＣＤ IS NULL, TK.備考１, CD.特記_社内用) AS 備考社内
-                ,IIF(CD.得意先ＣＤ IS NULL, TK.備考２, CD.特記_配送用) AS 備考配送
-                ,IIF(CD.得意先ＣＤ IS NULL, TK.備考３, CD.特記_通知用) AS 備考通知
-                ,TK.備考１ as TK備考１
-                ,TK.備考２ as TK備考２
-                ,TK.備考３ as TK備考３
-                ,CD.備考１ as CD備考１
-                ,CD.備考２ as CD備考２
-                ,CD.備考３ as CD備考３
-                ,CD.備考４ as CD備考４
-                ,CD.備考５ as CD備考５
-                ,CD.特記_社内用
-                ,CD.特記_配送用
-                ,CD.特記_通知用
-            FROM 得意先マスタ TK
-
-            LEFT OUTER JOIN 注文データ CD
-                ON CD.得意先ＣＤ = TK.得意先ＣＤ
-
-            AND CD.部署ＣＤ = $BushoCd
-            AND CD.配送日 = '$DeliveryDate'
-            WHERE TK.得意先ＣＤ = $CustomerCd
+            SELECT
+				TK.得意先ＣＤ
+                ,ISNULL(CD.特記_社内用, TK.備考１) AS 備考社内
+                ,ISNULL(CD.特記_配送用, TK.備考２) AS 備考配送
+                ,ISNULL(CD.特記_通知用, TK.備考３) AS 備考通知
+            FROM
+				得意先マスタ TK
+				LEFT OUTER JOIN 注文データ CD
+					ON  CD.得意先ＣＤ = TK.得意先ＣＤ
+                    AND CD.部署ＣＤ = $BushoCd
+                    AND CD.配送日 = '$DeliveryDate'
+            WHERE
+                TK.得意先ＣＤ = $CustomerCd
+            ORDER BY
+                CD.注文区分 DESC
+                ,CD.商品ＣＤ
         ";
 
-        $Result = DB::select($sql);
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+
+        // $Result = DB::select($sql);
+        $stmt = $pdo->query($sql);
+        $Result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = null;
 
         return response()->json($Result);
     }
@@ -326,62 +352,89 @@ class DAI01030Controller extends Controller
         $CustomerCd = $request->CustomerCd;
         $DeliveryDate = $request->DeliveryDate;
 
+        // $sql = "
+        //         WITH 得意先単価 AS (
+        //             SELECT
+        //                 MTT.得意先ＣＤ,
+        //                 MTT.商品ＣＤ,
+        //                 PM.商品名,
+        //                 PM.商品区分,
+        //                 MTT.単価
+        //             FROM
+        //                 (
+        //                     SELECT
+        //                         *
+        //                     FROM (
+        //                         SELECT
+        //                             *
+        //                             , RANK() OVER(PARTITION BY 得意先ＣＤ, 商品ＣＤ ORDER BY 適用開始日 DESC) AS RNK
+        //                         FROM
+        //                             得意先単価マスタ新
+        //                         WHERE
+        //                             得意先ＣＤ=$CustomerCd
+        //                         AND 適用開始日 <= '$DeliveryDate'
+        //                     ) TT
+        //                     WHERE
+        //                         RNK = 1
+        //                 ) MTT
+        //                 LEFT OUTER JOIN 商品マスタ PM
+        //                     ON	PM.商品ＣＤ=MTT.商品ＣＤ
+        //         ),
+        //         注文最終修正 AS (
+        //             SELECT
+        //                 MTT.得意先ＣＤ,
+        //                 CD.配送日,
+        //                 CD.修正担当者ＣＤ,
+        //                 TM.担当者名 AS 修正担当者名,
+        //                 CD.修正日,
+        //                 MAX(CD.修正日) OVER () AS 注文最終修正日
+        //             FROM
+        //                 得意先単価 MTT
+        //                 LEFT OUTER JOIN 注文データ CD
+        //                     ON  CD.得意先ＣＤ = MTT.得意先ＣＤ
+        //                     AND CD.商品ＣＤ = MTT.商品ＣＤ
+        //                     AND	CD.部署ＣＤ = $BushoCd
+        //                     AND CD.配送日 = '$DeliveryDate'
+        //                     AND CD.注文区分=0
+        //                 LEFT OUTER JOIN 担当者マスタ TM
+        //                     ON  TM.担当者ＣＤ = CD.修正担当者ＣＤ
+        //         )
+        //         SELECT
+        //             *
+        //         FROM
+        //             注文最終修正
+        //         WHERE
+        //             修正日 = 注文最終修正日
+        // ";
+
         $sql = "
-                WITH 得意先単価 AS (
-                    SELECT
-                        MTT.得意先ＣＤ,
-                        MTT.商品ＣＤ,
-                        PM.商品名,
-                        PM.商品区分,
-                        MTT.単価
-                    FROM
-                        (
-                            SELECT
-                                *
-                            FROM (
-                                SELECT
-                                    *
-                                    , RANK() OVER(PARTITION BY 得意先ＣＤ, 商品ＣＤ ORDER BY 適用開始日 DESC) AS RNK
-                                FROM
-                                    得意先単価マスタ新
-                                WHERE
-                                    得意先ＣＤ=$CustomerCd
-                                AND 適用開始日 <= '$DeliveryDate'
-                            ) TT
-                            WHERE
-                                RNK = 1
-                        ) MTT
-                        LEFT OUTER JOIN 商品マスタ PM
-                            ON	PM.商品ＣＤ=MTT.商品ＣＤ
-                ),
-                注文最終修正 AS (
-                    SELECT
-                        MTT.得意先ＣＤ,
-                        CD.配送日,
-                        CD.修正担当者ＣＤ,
-                        TM.担当者名 AS 修正担当者名,
-                        CD.修正日,
-                        MAX(CD.修正日) OVER () AS 注文最終修正日
-                    FROM
-                        得意先単価 MTT
-                        LEFT OUTER JOIN 注文データ CD
-                            ON  CD.得意先ＣＤ = MTT.得意先ＣＤ
-                            AND CD.商品ＣＤ = MTT.商品ＣＤ
-                            AND	CD.部署ＣＤ = $BushoCd
-                            AND CD.配送日 = '$DeliveryDate'
-                            AND CD.注文区分=0
-                        LEFT OUTER JOIN 担当者マスタ TM
-                            ON  TM.担当者ＣＤ = CD.修正担当者ＣＤ
-                )
-                SELECT
-                    *
-                FROM
-                    注文最終修正
-                WHERE
-                    修正日 = 注文最終修正日
+            SELECT TOP 1
+                CD.修正担当者ＣＤ,
+                TM.担当者名 AS 修正担当者名,
+                CD.修正日
+            FROM
+                注文データ CD
+                LEFT OUTER JOIN 担当者マスタ TM
+                    ON  TM.担当者ＣＤ = CD.修正担当者ＣＤ
+            WHERE
+                CD.得意先ＣＤ = 6073
+            AND	CD.部署ＣＤ = 101
+            AND CD.配送日 = '20200616'
+            AND CD.注文区分=0
+            ORDER BY
+                修正日 DESC
         ";
 
-        $Result = DB::selectOne($sql);
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+
+        // $Result = DB::selectOne($sql);
+        $stmt = $pdo->query($sql);
+        $Result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $pdo = null;
 
         return response()->json($Result);
     }
@@ -409,7 +462,16 @@ class DAI01030Controller extends Controller
                 $WhereCourseCd
         ";
 
-        $Result = DB::select($sql);
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+
+        // $Result = DB::select($sql);
+        $stmt = $pdo->query($sql);
+        $Result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = null;
 
         return response()->json(["IsDeliveried"=>count($Result) > 0]);
     }

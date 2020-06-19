@@ -754,13 +754,17 @@ export default {
                 vue.footerButtons.find(v => v.id == "DAI01030Grid1_showProductMaint").disabled = false;
             }
 
-            //TODO:
-            vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
-            // vue.viewModel.DeliveryDate = moment("20190904").format("YYYY年MM月DD日");
-            vue.viewModel.DeliveryTime = moment().format("HH:mm:ss");
+            if (!vue.params || !vue.params.DeliveryDate) {
+                vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
+                vue.viewModel.DeliveryTime = moment().format("HH:mm:ss");
+            }
 
             //本日注文履歴取得
             vue.getTodayOrder();
+
+            if (!!vue.params && !!vue.params.Parent && vue.params.Parent.$attrs.pgId == "DAI01032") {
+                vue.conditionChanged(true);
+            }
         },
         deactivatedFunc: function(vue) {
             var vue = this;
@@ -829,6 +833,7 @@ export default {
         conditionChanged: function(force) {
             var vue = this;
             var grid = vue.DAI01030Grid1;
+            console.log("01030 conditionChanged")
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.BushoCd || !vue.viewModel.DeliveryDate || !vue.viewModel.CustomerCd) return;
@@ -977,8 +982,10 @@ export default {
                         .reduce((a, c) => a = _.mergeWith(a, c, (o, s) => {
                             if (s == "\r\n") s = "";
                             // return o.includes(s) ? o : (o + "," + s)
-                            return !!s ? (o.includes(s) ? o : (!!o ? (o + "\r\n" + s) : s)) : ""
+                            return !!s ? (o.includes(s) ? o : (!!o ? (o + (o.endsWith("\r\n") ? "" : "\r\n") + s) : s)) : ""
                         }));
+                    _.forIn(bikou, (v, k) => bikou[k] = _(v.split(/\r\n/g)).uniq().join("\r\n"))
+
                     vue.viewModel.BikouForControl = bikou.備考社内;
                     vue.viewModel.BikouForDelivery = bikou.備考配送;
                     vue.viewModel.BikouForNotification = bikou.備考通知;

@@ -8,7 +8,7 @@
             </div>
             <div class="col-md-2 justify-content-start">
                 <button type="button" class="btn btn-primary webOrder" @click="showWebOrderList">
-                    Web受注 <span class="badge badge-light">{{webOrderCount}}</span>
+                    Web受注 <span class="badge badge-light webOrderCount">{{webOrderCount}}</span>
                 </button>
             </div>
             <div class="col-md-2 justify-content-end">
@@ -28,6 +28,20 @@ button.webOrder {
     font-size: 15px;
     line-height: 15px;
 }
+.blinking {
+    animation: blink-animation 1s infinite;
+}
+
+@-webkit-keyframes blink-animation {
+    0%, 49% {
+        background-color: rgb(117,209,63);
+        border: 3px solid #e50000;
+    }
+    50%, 100% {
+        background-color: #e50000;
+        border: 3px solid rgb(117,209,63);
+    }
+}
 </style>
 
 <script>
@@ -45,6 +59,8 @@ export default {
             webOrderCount: 0,
             VueCheck: VueCheck,
             DatePickerWrapper: DatePickerWrapper,
+            fetch: false,
+            interval: null,
         }
     },
     components: {
@@ -78,16 +94,60 @@ export default {
             vue.userId = info.user.uid;
             vue.userNm = info.user.unm;
             vue.isLogOn = info.isLogOn;
+
+            vue.startPolling();
         },
         logOff: function (info) {
             var vue = this;
             vue.userId = "";
             vue.userNm = "";
             vue.isLogOn = false;
+
+            vue.stopPolling();
         },
         setTitle: function(title) {
             var vue = this;
             vue.title = title;
+        },
+        startPolling: function() {
+            var vue = this;
+            vue.fetch = true;
+
+            if (!vue.interval) {
+                vue.interval = setInterval(
+                    () => {
+                        if (!!vue.fetch) {
+                            axios.post("/Utilities/SearchWebOrderList", { UnRegisted: "1" })
+                                .then(res => {
+                                    console.log("SearchWebOrderList ret", res.data.length);
+                                    var count = res.data.length;
+
+                                    if (count != vue.webOrderCount) {
+                                        vue.webOrderCount = count;
+
+                                        var ele = vue.$el.find(".webOrderCount");
+                                        ele.addClass("blinking")
+                                            .delay(3000)
+                                            .queue(next => {
+                                                ele.removeClass("blinking");
+                                                next();
+                                            })
+                                    }
+                                })
+                                .catch(err => {
+                                    console.log("SearchWebOrderList Error", err);
+                                })
+                        } else {
+                            clearInterval(vue.interval);
+                        }
+                    }
+                    ,10000
+                );
+            }
+        },
+        stopPolling: function() {
+            var vue = this;
+            vue.fetch = false;
         },
         showWebOrderList: function() {
             var vue = this;
@@ -107,9 +167,9 @@ export default {
                           return moment(ui.rowData.注文日時).format("YYYY/MM/DD HH:mm");
                       },
                     },
-                    { title: "確認", dataIndx: "確認", dataType: "string", align: "center", width: 100, maxWidth: 100, minWidth: 100,
+                    { title: "取込", dataIndx: "取込", dataType: "string", align: "center", width: 100, maxWidth: 100, minWidth: 100,
                       render: ui => {
-                          return { text: ui.rowData.確認 == "0" ? "未確認" : "確認済"  };
+                          return { text: ui.rowData.確認 == "0" ? "" : "取込済"  };
                       },
                     },
                 ],
@@ -140,11 +200,11 @@ export default {
                                 ref: "VueCheck_SearchWebOrderList",
                                 vmodel: targetVue.customElementParams,
                                 bind: "UnRegisted",
-                                checkedCode: "1",
+                                checkedCode: "0",
                                 customContainerStyle: "border: none;",
                                 list: [
-                                    {code: '0', name: '全て', label: '未確認のみ表示'},
-                                    {code: '1', name: '表示', label: '未確認のみ表示'},
+                                    {code: '0', name: '全て', label: '取込済も表示'},
+                                    {code: '1', name: '表示', label: '取込済も表示'},
                                 ],
                                 onChangedFunc: () => targetVue.conditionChanged(),
                             }

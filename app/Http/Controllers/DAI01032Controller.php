@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Libs\DataSendWrapper;
 use App\Models\Web受注データ;
 use App\Models\Web受注データ利用者別詳細;
 use App\Models\Web受注データ利用者情報;
@@ -250,6 +251,12 @@ class DAI01032Controller extends Controller
     {
         $skip = [];
 
+        //Web受注sv更新用
+        $WODeleteListForInfo = [];
+        $WOInsertListForInfo = [];
+        $WOUpdateListForInfo = [];
+        $WODeleteListForOrder = [];
+
         DB::beginTransaction();
 
         try {
@@ -267,6 +274,8 @@ class DAI01032Controller extends Controller
                     ->delete();
 
                 //TODO: AWS連携 -> Web注文情報データ
+                //Web受注sv更新用
+                array_push($WODeleteListForInfo, $rec);
             }
 
             $SaveList = $params['SaveList'];
@@ -308,6 +317,8 @@ class DAI01032Controller extends Controller
                             ->update($data);
 
                         //TODO: AWS連携 -> Web注文情報データ
+                        //Web受注sv更新用
+                        array_push($WOUpdateListForInfo, $data);
 
                     } else {
                         //個数無しはdelete
@@ -318,6 +329,8 @@ class DAI01032Controller extends Controller
                             ->delete();
 
                         //TODO: AWS連携 -> Web注文情報データ
+                        //Web受注sv更新用
+                        array_push($WODeleteListForInfo, $rec);
                     }
                 } else {
                     if (!!isset($rec['現金個数']) && !!isset($rec['掛売個数'])) {
@@ -359,6 +372,8 @@ class DAI01032Controller extends Controller
                         Web受注データ利用者別詳細::insert($data);
 
                         //TODO: AWS連携 -> Web注文情報データ
+                        //Web受注sv更新用
+                        array_push($WOInsertListForInfo, $data);
                     }
                 }
             }
@@ -394,6 +409,8 @@ class DAI01032Controller extends Controller
                         ->delete();
 
                     //TODO: AWS連携 -> Web注文データ
+                    //Web受注sv更新用
+                    array_push($WODeleteListForOrder, $info);
                 }
             }
 
@@ -426,16 +443,46 @@ class DAI01032Controller extends Controller
             //注文データ更新
             $request->EditDate = $date;
             $request->EditUser = $EditUser;
-            $this->SaveOrderFromWeb($request);
-
-            if ($IsRegisted == 0) {
-                //TODO: 初回取込時はAWSに何かを送信して、確認メールを送る
-            }
+            $OrderToMobile = $this->SaveOrderFromWeb($request);
 
             if (count($skip) > 0) {
                 DB::rollBack();
             } else {
                 DB::commit();
+
+                // //Web受注sv更新
+                // foreach ($WODeleteListForOrder as $rec) {
+                //     $ds = new DataSendWrapper();
+                //     $ds->Delete('Web注文データ', $rec, true, $rec['部署ＣＤ'], null, null);
+                // }
+                // //TODO: Web受注svのWeb注文データのinsert/updateは、社内側のWeb受注データ利用者別詳細を集計したもので行う
+
+                // foreach ($WODeleteListForInfo as $rec) {
+                //     $ds = new DataSendWrapper();
+                //     $ds->Delete('Web注文情報データ', $rec, true, $rec['部署ＣＤ'], null, null);
+                // }
+                // foreach ($WOInsertListForInfo as $data) {
+                //     $ds = new DataSendWrapper();
+                //     $ds->Insert('Web注文情報データ', $data, true, $rec['部署ＣＤ'], null, null);
+                // }
+                // foreach ($WOUpdateListForInfo as $data) {
+                //     $ds = new DataSendWrapper();
+                //     $ds->Update('Web注文情報データ', $data, true, $rec['部署ＣＤ'], null, null);
+                // }
+
+                // if ($IsRegisted == 0) {
+                //     //TODO: 初回取込時はAWSに何かを送信して、確認メールを送る
+                // }
+
+                // //モバイルsv更新
+                // foreach ($OrderToMobile["MDeleteList"] as $rec) {
+                //     $ds = new DataSendWrapper();
+                //     $ds->Delete('注文データ', $rec, true, $rec['部署ＣＤ'], null, null);
+                // }
+                // foreach ($OrderToMobile["MInsertList"] as $data) {
+                //     $ds = new DataSendWrapper();
+                //     $ds->Insert('注文データ', $data, true, $rec['部署ＣＤ'], null, null);
+                // }
             }
         } catch (Exception $exception) {
             DB::rollBack();
@@ -457,6 +504,10 @@ class DAI01032Controller extends Controller
         $DeliveryDate = $request->DeliveryDate;
         $EditDate = $request->EditDate ?? Carbon::now()->format('Y-m-d H:i:s');
         $EditUser = $request->EditUser;
+
+        //モバイルsv更新用
+        $MInsertList = [];
+        $MUpdateList = [];
 
         $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
@@ -502,9 +553,17 @@ class DAI01032Controller extends Controller
                 ,0 AS 予備ＣＤ２
                 ,MAX(修正日) AS 修正日
 				,(
-					STRING_AGG(IIF(備考 IS NOT NULL, 利用者CD + ': ' + 備考, NULL), CHAR(10) + CHAR(13))
-					+ IIF(STRING_AGG(備考, '') IS NULL, NULL , CHAR(10) + CHAR(13))
-					+ STRING_AGG(IIF(届け先名 IS NOT NULL, 利用者CD + ': ' + 届け先名, NULL), CHAR(10) + CHAR(13))
+					STRING_AGG(
+						IIF(
+							((売掛現金区分=0 AND 現金個数 > 0) OR (売掛現金区分=1 AND 掛売個数 > 0))
+							AND
+							(備考 IS NOT NULL OR 届け先名 IS NOT NULL),
+							利用者CD + ':'
+								+ IIF(届け先名 IS NOT NULL, ' ' + 届け先名, '')
+								+ IIF(備考 IS NOT NULL, ' ' + 備考, '')
+						,NULL)
+						,CHAR(13) + CHAR(10)
+					)
 				) AS 特記_Web受注
                 ,特記_社内
                 ,特記_配送
@@ -603,17 +662,17 @@ class DAI01032Controller extends Controller
 
             if (!!$data['特記_Web受注']) {
                 if (count($r) == 0) {
-                    $data['特記_社内用'] = ($data['特記_社内'] != '' ? $data['特記_社内'] . "\n" : '') . $data['特記_Web受注'];
-                    $data['特記_配送用'] = ($data['特記_配送'] != '' ? $data['特記_配送'] . "\n" : '') . $data['特記_Web受注'];
+                    $data['特記_社内用'] = ($data['特記_社内'] != '' ? $data['特記_社内'] . "\r\n" : '') . $data['特記_Web受注'];
+                    $data['特記_配送用'] = ($data['特記_配送'] != '' ? $data['特記_配送'] . "\r\n" : '') . $data['特記_Web受注'];
                     $data['特記_通知用'] = $data['特記_通知'];
                 } else {
                     if (preg_match('/' . $data['特記_Web受注'] . '/s', $r[0]->特記_社内用) == 0) {
-                        $data['特記_社内用'] = (!!$r[0]->特記_社内用 ? $r[0]->特記_社内用 . "\n" : '') . $data['特記_Web受注'];
+                        $data['特記_社内用'] = (!!$r[0]->特記_社内用 ? $r[0]->特記_社内用 . "\r\n" : '') . $data['特記_Web受注'];
                     } else {
                         $data['特記_社内用'] = $r[0]->特記_社内用;
                     }
                     if (preg_match('/' . $data['特記_Web受注'] . '/s', $r[0]->特記_配送用) == 0) {
-                        $data['特記_配送用'] = (!!$r[0]->特記_配送用 ? $r[0]->特記_配送用 . "\n" : '') . $data['特記_Web受注'];
+                        $data['特記_配送用'] = (!!$r[0]->特記_配送用 ? $r[0]->特記_配送用 . "\r\n" : '') . $data['特記_Web受注'];
                     } else {
                         $data['特記_配送用'] = $r[0]->特記_配送用;
                     }
@@ -647,6 +706,10 @@ class DAI01032Controller extends Controller
                     ->where('配送日', $data['配送日'])
                     ->where('明細行Ｎｏ', $data['明細行Ｎｏ'])
                     ->update($data);
+
+                //モバイルsv更新用
+                array_push($MUpdateList, $data);
+
             } else {
                 $no = 注文データ::query()
                     ->where('注文区分', $rec['注文区分'])
@@ -659,8 +722,16 @@ class DAI01032Controller extends Controller
                 $data['明細行Ｎｏ'] = $no;
 
                 注文データ::insert($data);
+
+                //モバイルv更新用
+                array_push($MInsertList, $data);
             }
         }
+
+        return [
+            "MInsertList" => $MInsertList,
+            "MUpdateList" => $MUpdateList,
+        ];
     }
 
     /**

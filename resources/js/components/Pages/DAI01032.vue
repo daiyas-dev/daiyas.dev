@@ -114,7 +114,7 @@ export default {
         IsRegisted: {
             handler: function(newVal) {
                 var vue = this;
-                vue.footerButtons.find(v => v.id == "DAI01032Grid1_Save").value = newVal == "1" ? "更新" : "確認";
+                vue.footerButtons.find(v => v.id == "DAI01032Grid1_Save").value = newVal == "1" ? "変更" : "取込";
             },
         },
     },
@@ -426,7 +426,7 @@ export default {
                         vue.showProductMaint();
                     }
                 },
-                { visible: "true", value: "確認", id: "DAI01032Grid1_Save", disabled: false, shortcut: "F9",
+                { visible: "true", value: "取込", id: "DAI01032Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         vue.saveOrder();
                     }
@@ -464,7 +464,7 @@ export default {
                 // vue.footerButtons.find(v => v.id == "DAI01032Grid1_showProductMaint").disabled = false;
             }
 
-            vue.footerButtons.find(v => v.id == "DAI01032Grid1_Save").value = vue.IsRegisted == "1" ? "更新" : "確認";
+            vue.footerButtons.find(v => v.id == "DAI01032Grid1_Save").value = vue.IsRegisted == "1" ? "変更" : "取込";
 
             vue.conditionChanged(true);
         },
@@ -782,6 +782,10 @@ export default {
                                         contents: "Web受注の注文内容を取り込みました。以降の変更は自動で取り込まれます。",
                                     });
                                     vue.IsRegisted = "1";
+
+                                    if (!!vue.params && !!vue.params.Grid) {
+                                        vue.params.Grid.refreshDataAndView();
+                                    }
                                 }
 
                                 grid.refreshDataAndView();
@@ -824,7 +828,11 @@ export default {
                                 grid.blinkDiff(res.edited);
                             } else {
                                 grid.clearData();
-                                vue.params.Grid.refreshDataAndView();
+
+                                if (!!vue.params && !!vue.params.Grid) {
+                                    vue.params.Grid.refreshDataAndView();
+                                }
+
                                 $(vue.$el).closest(".ui-dialog-content").dialog("close");
                             }
 
