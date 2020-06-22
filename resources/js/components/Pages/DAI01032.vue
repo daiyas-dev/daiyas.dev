@@ -405,11 +405,11 @@ export default {
                     }
                 },
                 {visible: "false"},
-                { visible: "true", value: "伝票削除", id: "DAI01032Grid1_DeleteOrder", disabled: true, shortcut: "F3",
-                    onClick: function () {
-                        vue.deleteOrder();
-                    }
-                },
+                // { visible: "true", value: "伝票削除", id: "DAI01032Grid1_DeleteOrder", disabled: true, shortcut: "F3",
+                //     onClick: function () {
+                //         vue.deleteOrder();
+                //     }
+                // },
                 { visible: "true", value: "行削除", id: "DAI01032Grid1_DeleteRow", disabled: true, shortcut: "F4",
                     onClick: function () {
                         vue.deleteRow();
@@ -426,6 +426,7 @@ export default {
                         vue.showProductMaint();
                     }
                 },
+                {visible: "false"},
                 { visible: "true", value: "取込", id: "DAI01032Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         vue.saveOrder();

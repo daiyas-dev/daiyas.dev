@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Events\PrivateEvent;
 use App\Events\PublicEvent;
 use App\Models\CTelToCust;
+use App\Models\Web受注データ;
+use App\Models\Web受注データ利用者別詳細;
+use App\Models\Web受注データ利用者情報;
 use App\Models\コーステーブル;
 use App\Models\コースマスタ;
 use App\Models\備考マスタ;
@@ -2250,77 +2253,156 @@ $OrderBy
                 ROWNUM
         ";
 
-        $DataList = DB::select($SearchSql);
-        // $stmt = $pdo->query($SearchSql);
-        // $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // $DataList = DB::select($SearchSql);
+        $stmt = $pdo->query($SearchSql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $CountSql = "
-            SELECT
-                COUNT(Web受注ID) AS CNT
-            FROM (
-                SELECT
-                    X.Web受注ID
-                    ,X.配送日
-					,X.部署CD
-					,X.部署名
-                    ,STRING_AGG (X.得意先ＣＤ, '/') AS 得意先ＣＤ
-                    ,STRING_AGG (X.得意先名, '/') AS 得意先名
-                    ,IIF(SUM(X.確認済) > 0, 1, 0) AS 確認
-            		,ROW_NUMBER() OVER (ORDER BY X.Web受注ID) AS ROWNUM
-                FROM (
-                    SELECT DISTINCT
-                        WEB.Web受注ID
-                        ,WEB.Web得意先ＣＤ
-						,WEBTOK.Web得意先名
-                        ,WEB.配送日
-                        ,WEB.注文日時
-                        ,TOK.得意先ＣＤ
-                        ,TOK.得意先名
-						,TOK.売掛現金区分
-                        ,TOK.部署CD
-                        ,BSH.部署名
-						,TOK.電話番号１
-                        ,IIF(CHU.明細行Ｎｏ IS NULL, 0, 1) AS	確認済
-                    FROM
-                        Web受注データ WEB
-                        INNER JOIN Web受注得意先マスタ WEBTOK
-                            ON  WEBTOK.Web得意先ＣＤ=WEB.Web得意先ＣＤ
-                        INNER JOIN 得意先マスタ TOK
-                            ON  TOK.得意先ＣＤ=WEBTOK.得意先ＣＤ
-                        INNER JOIN 部署マスタ BSH
-                            ON  BSH.部署CD=TOK.部署CD
-                        LEFT OUTER JOIN 注文データ CHU
-                            ON  CHU.配送日=WEB.配送日
-                            AND CHU.得意先ＣＤ=TOK.得意先ＣＤ
-                            AND CHU.注文区分=0
-                    WHERE
-                        0=0
-                    $WhereBusho
-                    $WhereKeyWord
-                ) X
-                WHERE
-                    0=0
-                $WhereTargetDate
-                GROUP BY
-                    X.Web受注ID
-                    ,X.配送日
-					,X.部署CD
-					,X.部署名
-                $HavingUnRegisted
-            ) G
-        ";
-        $stmt = $pdo->query($CountSql);
-        $Count = $stmt->fetch()["CNT"];
+        // $CountSql = "
+        //     SELECT
+        //         COUNT(Web受注ID) AS CNT
+        //     FROM (
+        //         SELECT
+        //             X.Web受注ID
+        //             ,X.配送日
+		// 			,X.部署CD
+		// 			,X.部署名
+        //             ,STRING_AGG (X.得意先ＣＤ, '/') AS 得意先ＣＤ
+        //             ,STRING_AGG (X.得意先名, '/') AS 得意先名
+        //             ,IIF(SUM(X.確認済) > 0, 1, 0) AS 確認
+        //     		,ROW_NUMBER() OVER (ORDER BY X.Web受注ID) AS ROWNUM
+        //         FROM (
+        //             SELECT DISTINCT
+        //                 WEB.Web受注ID
+        //                 ,WEB.Web得意先ＣＤ
+		// 				,WEBTOK.Web得意先名
+        //                 ,WEB.配送日
+        //                 ,WEB.注文日時
+        //                 ,TOK.得意先ＣＤ
+        //                 ,TOK.得意先名
+		// 				,TOK.売掛現金区分
+        //                 ,TOK.部署CD
+        //                 ,BSH.部署名
+		// 				,TOK.電話番号１
+        //                 ,IIF(CHU.明細行Ｎｏ IS NULL, 0, 1) AS	確認済
+        //             FROM
+        //                 Web受注データ WEB
+        //                 INNER JOIN Web受注得意先マスタ WEBTOK
+        //                     ON  WEBTOK.Web得意先ＣＤ=WEB.Web得意先ＣＤ
+        //                 INNER JOIN 得意先マスタ TOK
+        //                     ON  TOK.得意先ＣＤ=WEBTOK.得意先ＣＤ
+        //                 INNER JOIN 部署マスタ BSH
+        //                     ON  BSH.部署CD=TOK.部署CD
+        //                 LEFT OUTER JOIN 注文データ CHU
+        //                     ON  CHU.配送日=WEB.配送日
+        //                     AND CHU.得意先ＣＤ=TOK.得意先ＣＤ
+        //                     AND CHU.注文区分=0
+        //             WHERE
+        //                 0=0
+        //             $WhereBusho
+        //             $WhereKeyWord
+        //         ) X
+        //         WHERE
+        //             0=0
+        //         $WhereTargetDate
+        //         GROUP BY
+        //             X.Web受注ID
+        //             ,X.配送日
+		// 			,X.部署CD
+		// 			,X.部署名
+        //         $HavingUnRegisted
+        //     ) G
+        // ";
+        // $stmt = $pdo->query($CountSql);
+        // $Count = $stmt->fetch()["CNT"];
 
         $pdo = null;
 
         return response()->json([
             [
                 "End" => $End,
-                "Count" => $Count,
+                "Count" => count($DataList),
                 "Result" => $DataList,
             ]
         ]);
+    }
+
+    /**
+     * SetWebOrderDummy
+     */
+    public function SetWebOrderDummy() {
+        $DeliveryDate = Carbon::now()->format('Y-m-d');
+        $OrderDate = Carbon::now()->format('Y-m-d H:i:s');
+
+        $Current = Web受注データ::query()
+            ->where('Web得意先ＣＤ', 'Web-01')
+            ->where('配送日', "$DeliveryDate")
+            ->orderByRaw('配送日 DESC')
+            ->get();
+
+        if (count($Current) != 0) {
+            $c = new Carbon($Current[0]->配送日);
+            $d = $c->addDays(1);
+            $DeliveryDate = $d->format('Y-m-d');
+            $OrderDate = $d->format('Y-m-d H:i:s');
+        }
+
+        $WebOrderId = Web受注データ::query()
+            ->max('Web受注ID') + 1;
+
+        $OrderId = Web受注データ利用者情報::query()
+            ->max('注文ID') + 1;
+        $OrderId2 = $OrderId + 1;
+
+        $InfoId = Web受注データ利用者別詳細::query()
+            ->max('注文情報ID') + 1;
+        $InfoId2 = $InfoId + 1;
+
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+
+        $pdo->exec(
+            "
+                INSERT [dbo].[Web受注データ] ([Web受注ID], [Web得意先ＣＤ], [配送日], [注文日時], [修正担当者ＣＤ], [修正日])
+                    VALUES ($WebOrderId, N'Web-01', '$DeliveryDate', '$OrderDate', 9999, GETDATE())
+            "
+        );
+        $pdo->exec(
+            "
+                INSERT [dbo].[Web受注データ利用者情報] ([Web受注ID], [注文ID], [利用者ID], [利用者CD], [備考ID], [修正担当者ＣＤ], [修正日])
+                    VALUES ($WebOrderId, $OrderId, 1, N'Web-01-01', NULL, 9999, GETDATE())
+            "
+        );
+        $pdo->exec(
+            "
+                INSERT [dbo].[Web受注データ利用者情報] ([Web受注ID], [注文ID], [利用者ID], [利用者CD], [備考ID], [修正担当者ＣＤ], [修正日])
+                    VALUES ($WebOrderId, $OrderId2, 2, N'Web-01-02', 1, 9999, GETDATE())
+            "
+        );
+        $pdo->exec(
+            "
+                INSERT [dbo].[Web受注データ利用者別詳細] ([Web受注ID], [注文ID], [注文情報ID], [注文日時], [商品ＣＤ], [単価], [現金個数], [現金金額], [掛売個数], [掛売金額], [届け先ID], [修正担当者ＣＤ], [修正日])
+                    VALUES ($WebOrderId, $OrderId, $InfoId, '$OrderDate', 10, 320, CAST(1 AS Numeric(18, 0)), CAST(320 AS Numeric(18, 0)), CAST(0 AS Numeric(18, 0)), CAST(0 AS Numeric(18, 0)), 2, 1, GETDATE())
+            "
+        );
+        $pdo->exec(
+            "
+                INSERT [dbo].[Web受注データ利用者別詳細] ([Web受注ID], [注文ID], [注文情報ID], [注文日時], [商品ＣＤ], [単価], [現金個数], [現金金額], [掛売個数], [掛売金額], [届け先ID], [修正担当者ＣＤ], [修正日])
+                    VALUES ($WebOrderId, $OrderId2, $InfoId, '$OrderDate', 11, 360, CAST(2 AS Numeric(18, 0)), CAST(720 AS Numeric(18, 0)), CAST(0 AS Numeric(18, 0)), CAST(0 AS Numeric(18, 0)), 1, 9999, GETDATE())
+            "
+        );
+        $pdo->exec(
+            "
+                INSERT [dbo].[Web受注データ利用者別詳細] ([Web受注ID], [注文ID], [注文情報ID], [注文日時], [商品ＣＤ], [単価], [現金個数], [現金金額], [掛売個数], [掛売金額], [届け先ID], [修正担当者ＣＤ], [修正日])
+                    VALUES ($WebOrderId, $OrderId2, $InfoId2, $OrderDate, 10, 320, CAST(1 AS Numeric(18, 0)), CAST(320 AS Numeric(18, 0)), CAST(1 AS Numeric(18, 0)), CAST(320 AS Numeric(18, 0)), 1, 1, GETDATE())
+            "
+        );
+
+        $pdo = null;
+
+        return;
     }
 
     /**

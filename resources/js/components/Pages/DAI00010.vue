@@ -9,12 +9,15 @@
             </div>
         </div>
         <div class="row" style="display: flex; align-items: baseline;">
-            <div class="col-md-12">
+            <div class="col-md-4">
                 <button @click="event => testCTI(event)">非通知</button>
                 <button @click="event => testCTI(event, '0836585044')">1件該当</button>
                 <button @click="event => testCTI(event, '0836313929')">複数該当</button>
                 <button @click="event => testCTI(event, '0120444444')">該当なし</button>
                 <button @click="event => testCTI(event, '0120030561')">非顧客登録済</button>
+            </div>
+            <div class="col-md-4">
+                <button @click="event => addWebOrder(event)">Web受注ダミー追加</button>
             </div>
         </div>
         <div class="row menu-panel">
@@ -585,6 +588,20 @@ export default {
         testCTI: function(event, no) {
             var vue = this;
             vue.$root.$refs.CtiReceiver.checkTelNo(no, moment().format("HH:mm:ss"));
+
+            event.preventDefault();
+            return false;
+        },
+        addWebOrder: function(event, no) {
+            var vue = this;
+
+            axios.post("/Utilities/SetWebOrderDummy", { noCache: true })
+                .then(res => {
+                    console.log("SetWebOrderDummy Complete", res.data);
+                })
+                .catch(err => {
+                    console.log("SetWebOrderDummy Err", err);
+                });
 
             event.preventDefault();
             return false;

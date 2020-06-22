@@ -28,18 +28,27 @@ button.webOrder {
     font-size: 15px;
     line-height: 15px;
 }
-.blinking {
+.webOrderCount {
+    color: black;
+    background-color: white;
+}
+.webOrderCount.exists {
+    color: black;
+    background-color: orange;
+}
+
+.webOrderCount.blinking {
     animation: blink-animation 1s infinite;
 }
 
 @-webkit-keyframes blink-animation {
     0%, 49% {
+        color: black;
         background-color: rgb(117,209,63);
-        border: 3px solid #e50000;
     }
     50%, 100% {
+        color: white;
         background-color: #e50000;
-        border: 3px solid rgb(117,209,63);
     }
 }
 </style>
@@ -59,7 +68,7 @@ export default {
             webOrderCount: 0,
             VueCheck: VueCheck,
             DatePickerWrapper: DatePickerWrapper,
-            fetch: false,
+            fetch: true,
             interval: null,
         }
     },
@@ -87,6 +96,10 @@ export default {
         vue.userId = info.userId;
         vue.userNm = info.userNm;
         vue.isLogOn = info.isLogOn;
+
+        if (vue.isLogOn) {
+            vue.startPolling();
+        }
     },
     methods: {
         logOn: function (info) {
@@ -117,21 +130,25 @@ export default {
                 vue.interval = setInterval(
                     () => {
                         if (!!vue.fetch) {
-                            axios.post("/Utilities/SearchWebOrderList", { UnRegisted: "1" })
+                            axios.post("/Utilities/SearchWebOrderList", { UnRegisted: "1", noCache: true })
                                 .then(res => {
-                                    console.log("SearchWebOrderList ret", res.data.length);
-                                    var count = res.data.length;
+                                    if (!res.data.length) return;
 
-                                    if (count != vue.webOrderCount) {
-                                        vue.webOrderCount = count;
+                                    var count = res.data[0].Count;
+                                    vue.webOrderCount = count;
 
-                                        var ele = vue.$el.find(".webOrderCount");
+                                    var ele = $(vue.$el).find(".webOrderCount");
+
+                                    if (count == 0) {
+                                        ele.removeClass("exists");
+                                    } else {
+                                        ele.addClass("exists");
                                         ele.addClass("blinking")
-                                            .delay(3000)
-                                            .queue(next => {
-                                                ele.removeClass("blinking");
-                                                next();
-                                            })
+                                                .delay(3000)
+                                                .queue(next => {
+                                                    ele.removeClass("blinking");
+                                                    next();
+                                                });
                                     }
                                 })
                                 .catch(err => {
