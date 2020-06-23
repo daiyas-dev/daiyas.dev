@@ -56,6 +56,13 @@ class DataReceive
                 }
                 $zip_path = $response["file_path"];
                 if ($zip_path=="") {
+                    //ファイルが送信されなかったら、更新なしとみなし、現在日時を最終更新日時をとして更新する。
+                    $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+                    $user = 'daiyas';
+                    $password = 'daiyas';
+                    $pdo = new PDO($dsn, $user, $password);
+                    $this->updateLastUpdateDate($pdo,$DataItem['受信ＩＤ']);
+                    $pdo = null;
                     return;
                 }
                 //zipを解凍する
@@ -73,22 +80,51 @@ class DataReceive
                 }
 
                 //解凍したファイルを読み込んでSQLを実行
+                //1つのzipに含まれているファイルは1トランザクションで処理する
+                $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+                $user = 'daiyas';
+                $password = 'daiyas';
+                $pdo = new PDO($dsn, $user, $password);
+                $pdo->beginTransaction();
                 foreach (glob($zip_dir_path.'\\*') as $datafile) {
                     if (is_file($datafile)) {
-                        $this->DataImport($DataItem['受信ＩＤ'],$datafile,$response["last_update_date"]);
+                        if(strpos($datafile,"_dellog") !== false)
+                        {
+                            //削除
+                            $result = $this->DataDelete($pdo,$DataItem['受信ＩＤ'],$datafile);
+                        }
+                        else
+                        {
+                            //Insert or Update
+                            $result = $this->DataImport($pdo,$DataItem['受信ＩＤ'], $datafile);
+                        }
+                        if($result===true)
+                        {
+                            $this->updateLastUpdateDate($pdo,$DataItem['受信ＩＤ'],$response["last_update_date"]);
+                            $is_error=false;
+                        }
+                        else
+                        {
+                            $is_error=true;
+                            $pdo->rollBack();
+                            exit;//ループを終了
+                        }
                     }
                 }
+                if (!$is_error) {
+                    $pdo->commit();
+                }
+                $pdo = null;
 
                 //使用したテンポラリファイルを消す
-                $is_error=false;
                 if (!$is_error) {
                     unlink($zip_path);
                     foreach (glob($zip_dir_path.'\\*') as $sqlfile) {
                         if (is_file($sqlfile)) {
                             unlink($sqlfile);
                         }
-                        rmdir($zip_dir_path);
                     }
+                    rmdir($zip_dir_path);
                 }
             }
         }
@@ -149,14 +185,19 @@ class DataReceive
             }
             else
             {
-                if ($arrResult->result==1) {
-                    //取得したレスポンスをファイルにする
-                    $tmp_file = tempnam($this->tmp_path, "zip");
-                    if ($file_handle = fopen($tmp_file, "w")) {
-                        // 書き込み
-                        fwrite($file_handle, base64_decode($arrResult->FileData));
-                        // ファイルを閉じる
-                        fclose($file_handle);
+                if ($arrResult->result==1)
+                {
+                    $tmp_file="";
+                    if ($arrResult->FileData!=="")
+                    {
+                        //取得したレスポンスをファイルにする
+                        $tmp_file = tempnam($this->tmp_path, "zip");
+                        if ($file_handle = fopen($tmp_file, "w")) {
+                            // 書き込み
+                            fwrite($file_handle, base64_decode($arrResult->FileData));
+                            // ファイルを閉じる
+                            fclose($file_handle);
+                        }
                     }
                     return array("file_path"=>$tmp_file,"last_update_date"=>$arrResult->LastUpdateDate);
                 }
@@ -171,69 +212,33 @@ class DataReceive
         }
     }
     /**
-     * zipファイルを展開し、中のファイルを読み取って、所定のテーブルに格納する
+     * ファイルを読み取って、所定のテーブルに格納する
+     * @param object (参照)トランザクション
      * @param int    受信ID
      * @param string データファイルフルパス
-     * @param string 最終更新日時
-     * @return void
+     * @return bool  処理結果 true=成功 / false=エラー有り
      */
-    private function DataImport($receive_id,$data_file_path,$last_update_date)
+    private function DataImport(&$pdo,$receive_id,$data_file_path)
     {
         try {
+            //テーブル名を取得
             $table_name = basename($data_file_path,".txt");
-            $cnv_table_name="";
             $field_list=null;
-            foreach($this->ConversionMap as $key=>$map)
-            {
-                if(strtolower($map['TableName'])===strtolower($table_name))
-                {
-                    $cnv_table_name=$key;
-                    $field_list=$map;
-                    break;
-                }
-            }
-            if($field_list==null)
-            {
-                throw new Exception("テーブルマッピング情報がありません。");
-            }
 
-            //モバイルDB->社内用マッピングを追加する
-            foreach($field_list['PrimaryKey'] as $val)
-            {
-                $mobile_field_name=$field_list['Field'][$val];
-                $field_list['MVPrimaryKey'][]=$mobile_field_name;
-            }
-            foreach($field_list['Field'] as $key=>$val)
-            {
-                $field_list['MVField'][$val]=$key;
-            }
+            //マッピング情報を取得
+            $field_list=$this->getMapping($table_name);
+            $cnv_table_name=$field_list['TableName'];
 
-            //変換データを取得し、更新
-            $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-            $user = 'daiyas';
-            $password = 'daiyas';
-            $pdo = new PDO($dsn, $user, $password);
-            $pdo->beginTransaction();
-            $is_error=false;
-
+            //1レコードごとにデータを更新
             $table_data = json_decode(file_get_contents($data_file_path),true);
             $new_pk=array();
             $new_data=array();
             foreach($table_data as $record)
             {
                 //列情報を取得
-                foreach($record as $field_name => $field_value)
-                {
-                    if(array_key_exists($field_name,$field_list['MVField']))
-                    {
-                        $new_key=$field_list['MVField'][$field_name];
-                        if(in_array($field_name,$field_list['MVPrimaryKey'],true))
-                        {
-                            $new_pk[$new_key]=$field_value;
-                        }
-                        $new_data[$new_key]=$field_value;
-                    }
-                }
+                $ret = $this->getRowData($record,$field_list);
+                $new_pk=$ret['key'];
+                $new_data=$ret['val'];
 
                 //同一情報が存在するか確認
                 $where="";
@@ -280,26 +285,143 @@ class DataReceive
                 {
                     //SQLを実行してエラーが発生した場合
                     $this->ErrorReceiveList($receive_id,"SQL実行エラー",$error_info[1]." ".$error_info[2] ." ".$sql,$data_file_path);
-                    $is_error=true;
-                    break;
+                    return false;
                 }
             }
-            if ($is_error) {
-                $pdo->rollback();
-            } else {
-                //最終更新日を更新する
-                $q_last_update_date = $last_update_date===null ? Carbon::now()->format('Y/m/d H:i:s') : $last_update_date;
-                $sql="UPDATE モバイル受信リスト SET 最終更新日時='$q_last_update_date' WHERE 受信ＩＤ=$receive_id";
-                $pdo->exec($sql);
-                $pdo->commit();
-            }
-            $pdo = null;
+            return true;
         }
         catch (Exception $exception) {
             throw $exception;
         }
     }
+    /**
+     * ファイルを読み取って、所定のテーブルのレコードを削除する
+     * @param object (参照)トランザクション
+     * @param int    受信ID
+     * @param string データファイルフルパス
+     * @return bool  処理結果 true=成功 / false=エラー有り
+     */
+    private function DataDelete(&$pdo,$receive_id,$data_file_path)
+    {
+        try {
+            //テーブル名を取得
+            $table_name = basename($data_file_path,"_dellog.txt");
+            $field_list=null;
 
+            //マッピング情報を取得
+            $field_list=$this->getMapping($table_name);
+            $cnv_table_name=$field_list['TableName'];
+
+            //1レコードごとにデータを削除
+            $table_data = json_decode(file_get_contents($data_file_path),true);
+            $new_pk=array();
+            $new_data=array();
+            foreach($table_data as $record)
+            {
+                //列情報を取得
+                $ret = $this->getRowData($record,$field_list);
+                $new_pk=$ret['key'];
+
+                //削除実施
+                $where="";
+                foreach($new_pk as $key => $val)
+                {
+                    $where .= " AND $key = '$val'";
+                }
+                $where=substr($where,5);
+                $sql="DELETE FROM $cnv_table_name WHERE $where";
+                $pdo->exec($sql);
+                $error_info=$pdo->errorInfo();
+                if($error_info[0]!="00000" || $error_info[1]!=null || $error_info[2]!=null)
+                {
+                    //SQLを実行してエラーが発生した場合
+                    $this->ErrorReceiveList($receive_id,"SQL実行エラー",$error_info[1]." ".$error_info[2] ." ".$sql,$data_file_path);
+                    return false;
+                }
+            }
+            return true;
+        }
+        catch (Exception $exception) {
+            throw $exception;
+        }
+    }
+    /**
+     * ファイルを読み取って、所定のテーブルのレコードを削除する
+     * @param object (参照)トランザクション
+     * @param int    受信ID
+     * @param string 最終更新日時
+     * @return void
+     */
+    private function updateLastUpdateDate(&$pdo,$receive_id,$last_update_date=null)
+    {
+        //最終更新日を更新する
+        $q_last_update_date = $last_update_date==null ? Carbon::now()->format('Y/m/d H:i:s') : $last_update_date;
+
+        $stmt = $pdo->query("SELECT COUNT(*) AS CNT FROM モバイル受信リスト WHERE 受信ＩＤ=$receive_id AND 最終更新日時<'$q_last_update_date'");
+        $count = $stmt->fetch()["CNT"];
+        if (0<$count)
+        {
+            $sql="UPDATE モバイル受信リスト SET 最終更新日時='$q_last_update_date' WHERE 受信ＩＤ=$receive_id";
+            $pdo->exec($sql);
+        }
+    }
+    /**
+     * 指定のテーブルのマッピング情報を返す
+     * @param string テーブル名
+     * @return array マッピング情報
+     */
+    private function getMapping($table_name)
+    {
+        foreach($this->ConversionMap as $key=>$map)
+        {
+            if(strtolower($map['TableName'])===strtolower($table_name))
+            {
+                $field_list=$map;
+                //テーブル名を保持する(名称の都合でTablenameの値を差し替える)
+                $field_list['MVTableName']=$map['TableName'];
+                $field_list['TableName']=$key;
+                break;
+            }
+        }
+        if($field_list==null)
+        {
+            throw new Exception("テーブルマッピング情報がありません。");
+        }
+
+        //モバイルDB->社内用マッピングを追加する
+        foreach($field_list['PrimaryKey'] as $val)
+        {
+            $mobile_field_name=$field_list['Field'][$val];
+            $field_list['MVPrimaryKey'][]=$mobile_field_name;
+        }
+        foreach($field_list['Field'] as $key=>$val)
+        {
+            $field_list['MVField'][$val]=$key;
+        }
+        return $field_list;
+    }
+    /**
+     * 行データとマッピング情報を受取り、キーと値の配列を戻す
+     * @param array 行データ
+     * @param array マッピング情報
+     * @return array キーと値の配列
+     */
+    private function getRowData($record,$field_list)
+    {
+        foreach($record as $field_name => $field_value)
+        {
+            if(array_key_exists($field_name,$field_list['MVField']))
+            {
+                $new_key=$field_list['MVField'][$field_name];
+                if(in_array($field_name,$field_list['MVPrimaryKey'],true))
+                {
+                    $new_pk[$new_key]=$field_value;
+                }
+                $new_data[$new_key]=$field_value;
+            }
+        }
+        return array("key"=>$new_pk,"val"=>$new_data);
+    }
     /**
      * モバイル受信エラーテーブルに送信フラグを書き込む
      * @param string エラー理由

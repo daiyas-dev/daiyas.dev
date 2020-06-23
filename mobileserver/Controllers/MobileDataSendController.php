@@ -31,21 +31,36 @@ class MobileDataSendController extends Controller
                 $last_update_date=$dt->format('Y/m/d H:i:s');
             }
 
-            $tables[] = $request->input('TableName');
+            $table = $request->input('TableName');
 
             //テーブルデータを取得
             $files=array();
-            foreach($tables as $table)
+            $max_updated_date="";
+            $upd_file = $this->getTableData($table,$last_update_date);
+            if($upd_file!=null && $upd_file!="")
             {
-                $ret = $this->getTableData($table,$last_update_date);
-                $files[] = $ret['file_name'];
-                $max_updated_date = $ret['max_updated_date'];
+                $files[] = $upd_file['file_name'];
+                $max_updated_date = $upd_file['max_updated_date'];
+            }
+            $dellog_file = $this->getDeleteData($table,$last_update_date);
+            if($dellog_file!=null && $dellog_file!="")
+            {
+                $files[] = $dellog_file['file_name'];
+                if($max_updated_date==""||$max_updated_date<$dellog_file['max_updated_date'])
+                {
+                    //$max_updated_dateが入っていないか、dellogの更新日より小さかったら、置き換える
+                    $max_updated_date = $dellog_file['max_updated_date'];
+                }
             }
 
-            //テーブルデータをzip圧縮
-            $dt = new Carbon($max_updated_date);
-            $zip_path = $this->tmp_path."/". $dt->format('YmdHis') .".zip";
-            $this->Compress($zip_path,$files);
+            $zip_path="";
+            if (0<count($files))
+            {
+                //テーブルデータをzip圧縮
+                $dt = new Carbon($max_updated_date);
+                $zip_path = $this->tmp_path."/". $dt->format('YmdHis') .".zip";
+                $this->Compress($zip_path, $files);
+            }
             return $this->getResult(1,null,$zip_path,$max_updated_date);
         }
         catch (Exception $exception)
@@ -53,7 +68,12 @@ class MobileDataSendController extends Controller
             return $this->getResult(0,$exception,null);
         }
     }
-    //指定したテーブルの、更新日付が指定日付以降のレコードをjson形式でファイルに保存する
+    /**
+     * 指定したテーブルの、更新日付が指定日付以降のレコードをjson形式でファイルに保存する
+     * @param string テーブル名
+     * @param string 取得したテーブルの最終更新日時(Y/m/d H:i:s)
+     * @return array 保存したファイル名,最終更新日時
+     */
     private function getTableData($table_name,$last_update_date)
     {
         $where_lud="";
@@ -66,18 +86,103 @@ class MobileDataSendController extends Controller
         $max_updated_date = $max_updated_date->max_updated_at;
 
         $sql="select * from $table_name where 0=0 $where_lud";
-        $tables = DB::select($sql);
+        $table_data = DB::select($sql);
+
+        if($table_data==null||count($table_data)<=0)
+        {
+            return "";
+        }
 
         //jsonをファイルに書き込む
         $file_name = $this->tmp_path . "/" . $table_name . ".txt";
         if ($file_handle = fopen($file_name, "w"))
         {
             // 書き込み
-            fwrite($file_handle, json_encode($tables));
+            fwrite($file_handle, json_encode($table_data));
             // ファイルを閉じる
             fclose($file_handle);
         }
         chmod($file_name, 0777);
+
+        return array("file_name"=>$file_name,"max_updated_date"=>$max_updated_date);
+    }
+    /**
+     * 削除されたレコード情報を取得して戻す
+     * @param string テーブル名
+     * @param string 取得したテーブルの最終更新日時(Y/m/d H:i:s)
+     * @return array 保存したファイル名,最終更新日時
+     */
+    private function getDeleteData($table_name,$last_update_date)
+    {
+        //削除済データを取得
+        $sql="show tables like '" . $table_name . "_dellog'";
+        $delog_tables = DB::selectOne($sql);
+        if($delog_tables==null)
+        {
+            return "";
+        }
+
+        //取得結果の末尾を取得
+        foreach($delog_tables as $delog_table)
+        {
+            //このループ内に処理はありませんが除去しないで下さい。
+        }
+
+        //検索条件(テーブルの主キー)を生成
+        $sql="select column_name
+                from information_schema.columns c
+                where c.table_schema = 'daiyas_app'
+                    and c.table_name   = '$table_name'
+                    and c.column_key   = 'PRI'
+                order by ordinal_position
+            ";
+        $dellog_pks = DB::select($sql);
+        $select_column="";
+        $where_pk="";
+        foreach($dellog_pks as $delog_pk)
+        {
+            $where_pk .= " and org.$delog_pk->COLUMN_NAME=del.$delog_pk->COLUMN_NAME";
+            $select_column .=",".$delog_pk->COLUMN_NAME;
+        }
+        $select_column=substr($select_column,1);
+
+        //検索条件(最終更新日)を生成
+        $where_lud="";
+        if($last_update_date!="")
+        {
+            $where_lud=" and updated_at>'$last_update_date'";
+        }
+        $sql="select max(updated_at) as max_updated_at from $delog_table where 0=0 $where_lud";
+        $max_updated_date = DB::selectOne($sql);
+        $max_updated_date = $max_updated_date->max_updated_at;
+
+        //削除済レコード情報を取得
+        $sql="select $select_column
+                from $delog_table del
+                where 0=0 $where_lud
+                and not exists(
+                    select 1 from $table_name org
+                    where 0=0 $where_pk
+                    )
+            ";
+        $deleted_data = DB::select($sql);
+
+        if($deleted_data==null||count($deleted_data)<=0)
+        {
+            return "";
+        }
+
+        //jsonをファイルに書き込む
+        $file_name = $this->tmp_path . "/" . $table_name . "_dellog.txt";
+        if ($file_handle = fopen($file_name, "w"))
+        {
+            // 書き込み
+            fwrite($file_handle, json_encode($deleted_data));
+            // ファイルを閉じる
+            fclose($file_handle);
+        }
+        chmod($file_name, 0777);
+
         return array("file_name"=>$file_name,"max_updated_date"=>$max_updated_date);
     }
     /**
