@@ -197,7 +197,7 @@ class DAI01030Controller extends Controller
             )
             SELECT
                 得意先ＣＤ,
-                注文日付,
+                MAX(注文日付) AS 注文日付,
                 MAX(配送日) AS 配送日,
                 MAX(IIF(注文区分=0, 注文時間, null)) AS 注文時間,
                 MIN(注文区分) AS 注文区分,
@@ -218,7 +218,6 @@ class DAI01030Controller extends Controller
             GROUP BY
                 得意先ＣＤ,
                 商品ＣＤ,
-                注文日付,
                 単価,
                 商品区分,
                 商品名

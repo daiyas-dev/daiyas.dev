@@ -207,12 +207,17 @@ ORDER BY
     {
         $skip = [];
 
+        //TODO西山確認中
+        //$rec['行Ｎｏ']が正しくない？　常に0が入っている？
+        $params = $request->all();
+        $SaveList = $params['SaveList'];
+
         DB::beginTransaction();
 
         try {
-            $params = $request->all();
+            // $params = $request->all();
 
-            $SaveList = $params['SaveList'];
+            // $SaveList = $params['SaveList'];
 
             $date = Carbon::now()->format('Y-m-d H:i:s');
             foreach ($SaveList as $rec) {
@@ -270,9 +275,21 @@ ORDER BY
             throw $exception;
         }
 
+        // return response()->json([
+        //     'result' => true,
+        //     "edited" => count($skip) > 0 ? $this->GetOrderList($request) : [],
+        // ]);
+        //TODO西山確認中　GetOrderListが無いエラー
+        $vm = (object) array(
+            'BushoCd' => $SaveList[0]['部署ＣＤ'],
+            'TargetDate' => $SaveList[0]['日付'],
+            'CustomerCd' => $SaveList[0]['得意先ＣＤ'],
+            'CourseCd' => $SaveList[0]['コースＣＤ'],
+        );
+
         return response()->json([
             'result' => true,
-            "edited" => count($skip) > 0 ? $this->GetOrderList($request) : [],
+            "edited" => count($skip) > 0 ? $this->GetSalesList($vm) : [],
         ]);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Libs\DataSendWrapper;
+use App\Libs\WebOrderSend;
 use App\Models\Web受注データ;
 use App\Models\Web受注データ利用者別詳細;
 use App\Models\Web受注データ利用者情報;
@@ -308,6 +309,7 @@ class DAI01032Controller extends Controller
                             $data['利用者ID'],
                             $data['利用者CD'],
                             $data['得意先ＣＤ'],
+                            $data['備考'],
                         );
 
                         Web受注データ利用者別詳細::query()
@@ -342,17 +344,41 @@ class DAI01032Controller extends Controller
                         $OrderId = count($Order) == 0 ? null : $Order[0]->注文ID;
 
                         if (!$OrderId) {
-                            //TODO: 注文IDをAWSから発番して貰う
-                            $OrderId = Web受注データ利用者情報::query()
-                                ->where('Web受注ID', $WebOrderId)
-                                ->max('注文ID') + 1;
+                            //注文IDをAWSから発番して貰う
+                            $sender = new WebOrderSend();
+                            $OrderId = $sender->GetOrderId();
+                            // $OrderId = Web受注データ利用者情報::query()
+                            //     ->where('Web受注ID', $WebOrderId)
+                            //     ->max('注文ID') + 1;
+                            //TODO: sql
+                            // "
+                            //     SELECT AUTOINC FROM information_schema.INNODB_TABLESTATS where name = 'daiyas/WebOrderData';
+                            //     ALTER TABLE WebOrderData AUTO_INCREMENT = N + 1;
+                            // ";
+                            $data = [];
+                            $data['Web受注ID'] = $WebOrderId;
+                            $data['注文ID'] = $OrderId;
+                            $data['利用者ID'] = $rec['利用者ID'];
+                            $data['利用者CD'] = $rec['利用者CD'];
+                            $data['修正担当者ＣＤ'] = $rec['修正担当者ＣＤ'];
+                            $data['修正日'] = $date;
+
+                            Web受注データ利用者情報::insert($data);
+
                         }
 
-                        //TODO: 注文情報IDをAWSから発番して貰う
-                        $InfoId = Web受注データ利用者別詳細::query()
-                            ->where('Web受注ID', $WebOrderId)
-                            ->where('注文ID', $OrderId)
-                            ->max('注文情報ID') + 1;
+                        //注文情報IDをAWSから発番して貰う
+                        $sender = new WebOrderSend();
+                        $InfoId = $sender->GetOrderInfoId();
+                        // $InfoId = Web受注データ利用者別詳細::query()
+                        //     ->where('Web受注ID', $WebOrderId)
+                        //     ->where('注文ID', $OrderId)
+                        //     ->max('注文情報ID') + 1;
+                        //TODO: sql
+                        // "
+                        //     SELECT AUTOINC FROM information_schema.INNODB_TABLESTATS where name = 'daiyas/WebOrderInfoData';
+                        //     ALTER TABLE WebOrderInfoData AUTO_INCREMENT = N + 1;
+                        // ";
 
                         $data = $rec;
                         $data['Web受注ID'] = $WebOrderId;
@@ -367,6 +393,7 @@ class DAI01032Controller extends Controller
                             $data['利用者ID'],
                             $data['利用者CD'],
                             $data['得意先ＣＤ'],
+                            $data['備考'],
                         );
 
                         Web受注データ利用者別詳細::insert($data);
@@ -378,6 +405,12 @@ class DAI01032Controller extends Controller
                 }
             }
 
+            //注文データ更新
+            $request->EditDate = $date;
+            $request->EditUser = $EditUser;
+            $OrderToMobile = $this->SaveOrderFromWeb($request);
+
+            //後処理(件数が無くなった場合の削除)
             $InfoCountSQL = "
                 SELECT
                     WEB.Web受注ID
@@ -439,11 +472,6 @@ class DAI01032Controller extends Controller
                         ->delete();
                 }
             }
-
-            //注文データ更新
-            $request->EditDate = $date;
-            $request->EditUser = $EditUser;
-            $OrderToMobile = $this->SaveOrderFromWeb($request);
 
             if (count($skip) > 0) {
                 DB::rollBack();
@@ -508,12 +536,6 @@ class DAI01032Controller extends Controller
         //モバイルsv更新用
         $MInsertList = [];
         $MUpdateList = [];
-
-        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-        $user = 'daiyas';
-        $password = 'daiyas';
-
-        $pdo = new PDO($dsn, $user, $password);
 
         $GetOrderSQL = "
 			WITH WEB AS (
@@ -640,16 +662,13 @@ class DAI01032Controller extends Controller
                 ,商品ＣＤ
         ";
 
-        // $OrderList = DB::select($GetOrderSQL);
-        $stmt = $pdo->query($GetOrderSQL);
-        $OrderList = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        $pdo = null;
+        $OrderList = DB::select($GetOrderSQL);
 
         foreach ($OrderList as $rec) {
+            $rec = (array) $rec;
+
             $r = 注文データ::query()
                 ->where('注文区分', $rec['注文区分'])
-                ->where('注文日付', $rec['注文日付'])
                 ->where('部署ＣＤ', $rec['部署ＣＤ'])
                 ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
                 ->where('配送日', $rec['配送日'])
@@ -700,7 +719,6 @@ class DAI01032Controller extends Controller
 
                 注文データ::query()
                     ->where('注文区分', $data['注文区分'])
-                    ->where('注文日付', $data['注文日付'])
                     ->where('部署ＣＤ', $data['部署ＣＤ'])
                     ->where('得意先ＣＤ', $data['得意先ＣＤ'])
                     ->where('配送日', $data['配送日'])
@@ -713,7 +731,6 @@ class DAI01032Controller extends Controller
             } else {
                 $no = 注文データ::query()
                     ->where('注文区分', $rec['注文区分'])
-                    ->where('注文日付', $rec['注文日付'])
                     ->where('部署ＣＤ', $rec['部署ＣＤ'])
                     ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
                     ->where('配送日', $rec['配送日'])
@@ -723,7 +740,7 @@ class DAI01032Controller extends Controller
 
                 注文データ::insert($data);
 
-                //モバイルv更新用
+                //モバイルsv更新用
                 array_push($MInsertList, $data);
             }
         }
@@ -732,65 +749,5 @@ class DAI01032Controller extends Controller
             "MInsertList" => $MInsertList,
             "MUpdateList" => $MUpdateList,
         ];
-    }
-
-    /**
-     * Delete
-     */
-    public function Delete($request)
-    {
-        $skip = [];
-
-        DB::beginTransaction();
-
-        try {
-            $params = $request->all();
-
-            $DeleteList = $params['DeleteList'];
-
-            foreach ($DeleteList as $rec) {
-                if (isset($rec['修正日']) && !!$rec['修正日']) {
-                    $r = 注文データ::query()
-                        ->where('注文区分', $rec['注文区分'])
-                        ->where('注文日付', $rec['注文日付'])
-                        ->where('部署ＣＤ', $rec['部署ＣＤ'])
-                        ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
-                        ->where('配送日', $rec['配送日'])
-                        ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
-                        ->get();
-
-                    if (count($r) != 1) {
-                        $skip = collect($skip)->push(["target" => $rec, "current" => null]);
-                        continue;
-                    } else if ($rec['修正日'] != $r[0]->修正日) {
-                        $skip = collect($skip)->push(["target" => $rec, "current" => $r[0]]);
-                        continue;
-                    }
-
-                    注文データ::query()
-                        ->where('注文区分', $rec['注文区分'])
-                        ->where('注文日付', $rec['注文日付'])
-                        ->where('部署ＣＤ', $rec['部署ＣＤ'])
-                        ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
-                        ->where('配送日', $rec['配送日'])
-                        ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
-                        ->delete();
-                }
-            }
-
-            if (count($skip) > 0) {
-                DB::rollBack();
-            } else {
-                DB::commit();
-            }
-        } catch (Exception $exception) {
-            DB::rollBack();
-            throw $exception;
-        }
-
-        return response()->json([
-            'result' => true,
-            "edited" => count($skip) > 0 ? $this->GetOrderList($request) : [],
-        ]);
     }
 }
