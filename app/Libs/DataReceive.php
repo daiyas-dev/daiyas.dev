@@ -346,10 +346,10 @@ class DataReceive
         }
     }
     /**
-     * ファイルを読み取って、所定のテーブルのレコードを削除する
+     * モバイル受信リストの最終更新日時を更新する。
      * @param object (参照)トランザクション
      * @param int    受信ID
-     * @param string 最終更新日時
+     * @param string 最終更新日時。nullの場合は現在日付で更新。
      * @return void
      */
     private function updateLastUpdateDate(&$pdo,$receive_id,$last_update_date=null)
