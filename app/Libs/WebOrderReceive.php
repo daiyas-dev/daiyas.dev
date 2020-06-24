@@ -112,7 +112,7 @@ class WebOrderReceive
 					IF(WebOrderInfoData.cash_type = 2, WebOrderInfoData.quantity * WebOrderInfoData.price, 0) AS 現金金額,
 					IF(WebOrderInfoData.cash_type = 1, WebOrderInfoData.quantity, 0) AS 掛売個数,
 					IF(WebOrderInfoData.cash_type = 1, WebOrderInfoData.quantity * WebOrderInfoData.price, 0) AS 掛売金額,
-					WebOrderInfoData.destination_id AS 届け先ID
+					WebOrderInfoData.destination_id AS 届け先ID,
                     WebOrderInfoData.updated_at,
                     IF(WebOrderInfoData.deleted_at IS NULL, 0, 1) AS 削除フラグ
 				FROM WebOrderData
@@ -130,7 +130,11 @@ class WebOrderReceive
             Web受注IDＣＤ及び注文IDが一致するレコードが存在する場合はupdateもしくはdelete、存在しない場合はinsert
 
             5.  社内側注文データの更新
-                    //TODO: 記述中 DAI01032ControllerのSaveOrderFromWebを一つの参考に
+                    ・Web受注IDで対応するWeb受注データが存在しなくなった場合は、該当注文データを削除
+                    ・DAI01032ControllerのSaveOrderFromWebで発行しているselectの結果を基にinsert/update
+                    　現在の注文データでselect結果と対応しないレコードは削除
+                    　※最初エースを1個注文していたけど、エース大盛に変更した場合などを想定
+
 
     */
 
