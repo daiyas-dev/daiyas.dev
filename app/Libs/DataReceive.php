@@ -42,17 +42,17 @@ class DataReceive
             {
                 if (!array_key_exists($DataItem['テーブル名'], $this->ConversionMap)) {
                     $this->ErrorReceiveList($DataItem['受信ＩＤ'],"エラー","テーブルマッピング情報がありません。",null);
-                    return;
+                    continue;
                 }
                 $mv_table_name=$this->ConversionMap[$DataItem['テーブル名']]['TableName'];
 
                 //モバイル・Web受注サーバからデータを取得する
                 $response = $this->GetResponse($DataItem['受信ＩＤ'],$mv_table_name,$DataItem['最終更新日時']);
                 if($response=="") {
-                    return;
+                    continue;
                 }
                 if(!isset($response["file_path"])) {
-                    return;
+                    continue;
                 }
                 $zip_path = $response["file_path"];
                 if ($zip_path=="") {
@@ -63,7 +63,7 @@ class DataReceive
                     $pdo = new PDO($dsn, $user, $password);
                     $this->updateLastUpdateDate($pdo,$DataItem['受信ＩＤ']);
                     $pdo = null;
-                    return;
+                    continue;
                 }
                 //zipを解凍する
                 $zip = new \ZipArchive();
@@ -76,7 +76,7 @@ class DataReceive
                 else{
                     //解凍できなかった場合
                     $this->ErrorReceiveList($DataItem['受信ＩＤ'],"エラー","ZIPファイルを展開できません。",basename($zip_path));
-                    return;
+                    continue;
                 }
 
                 //解凍したファイルを読み込んでSQLを実行
