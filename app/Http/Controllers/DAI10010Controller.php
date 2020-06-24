@@ -275,21 +275,9 @@ ORDER BY
             throw $exception;
         }
 
-        // return response()->json([
-        //     'result' => true,
-        //     "edited" => count($skip) > 0 ? $this->GetOrderList($request) : [],
-        // ]);
-        //TODO西山確認中　GetOrderListが無いエラー
-        $vm = (object) array(
-            'BushoCd' => $SaveList[0]['部署ＣＤ'],
-            'TargetDate' => $SaveList[0]['日付'],
-            'CustomerCd' => $SaveList[0]['得意先ＣＤ'],
-            'CourseCd' => $SaveList[0]['コースＣＤ'],
-        );
-
         return response()->json([
             'result' => true,
-            "edited" => count($skip) > 0 ? $this->GetSalesList($vm) : [],
+            "edited" => count($skip) > 0 ? $this->GetSalesList($request) : [],
         ]);
     }
 }

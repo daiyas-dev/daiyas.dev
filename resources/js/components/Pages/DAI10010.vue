@@ -546,7 +546,7 @@ export default {
                                 params: {
                                     SaveList: SaveList,
                                 },
-                                optional: this.searchParams,
+                                optional: vue.searchParams,
                                 confirm: {
                                     isShow: true,
                                     title: "確認 " + vue.viewModel.CustomerNm,
