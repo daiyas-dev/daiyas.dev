@@ -158,7 +158,7 @@ export default {
                             clearInterval(vue.interval);
                         }
                     }
-                    ,10000
+                    ,60000
                 );
             }
         },
