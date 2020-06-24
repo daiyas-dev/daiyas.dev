@@ -147,7 +147,7 @@ class DataReceive
             //TODO:テスト用URL(NEW社内)
             $url = "http://192.168.1.210/hellolaravel/public/api/mobiledatasend";
             //TODO:本番URL
-            $url="http://52.197.70.172/api/mobiledatasend";
+            //$url="http://52.197.70.172/api/mobiledatasend";
 
             $post_data = array(
                  'TableName'=> $table_name
@@ -356,14 +356,8 @@ class DataReceive
     {
         //最終更新日を更新する
         $q_last_update_date = $last_update_date==null ? Carbon::now()->format('Y/m/d H:i:s') : $last_update_date;
-
-        $stmt = $pdo->query("SELECT COUNT(*) AS CNT FROM モバイル受信リスト WHERE 受信ＩＤ=$receive_id AND 最終更新日時<'$q_last_update_date'");
-        $count = $stmt->fetch()["CNT"];
-        if (0<$count)
-        {
-            $sql="UPDATE モバイル受信リスト SET 最終更新日時='$q_last_update_date' WHERE 受信ＩＤ=$receive_id";
-            $pdo->exec($sql);
-        }
+        $sql="UPDATE モバイル受信リスト SET 最終更新日時='$q_last_update_date' WHERE 受信ＩＤ=$receive_id";
+        $pdo->exec($sql);
     }
     /**
      * 指定のテーブルのマッピング情報を返す
