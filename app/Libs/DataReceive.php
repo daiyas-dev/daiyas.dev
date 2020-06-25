@@ -356,8 +356,14 @@ class DataReceive
     {
         //最終更新日を更新する
         $q_last_update_date = $last_update_date==null ? Carbon::now()->format('Y/m/d H:i:s') : $last_update_date;
-        $sql="UPDATE モバイル受信リスト SET 最終更新日時='$q_last_update_date' WHERE 受信ＩＤ=$receive_id";
-        $pdo->exec($sql);
+
+        $stmt = $pdo->query("SELECT COUNT(*) AS CNT FROM モバイル受信リスト WHERE 受信ＩＤ=$receive_id AND (最終更新日時 IS NULL OR 最終更新日時<'$q_last_update_date')");
+        $count = $stmt->fetch()["CNT"];
+        if (0<$count)
+        {
+            $sql="UPDATE モバイル受信リスト SET 最終更新日時='$q_last_update_date' WHERE 受信ＩＤ=$receive_id";
+            $pdo->exec($sql);
+        }
     }
     /**
      * 指定のテーブルのマッピング情報を返す
