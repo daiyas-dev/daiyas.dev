@@ -3,9 +3,9 @@
 namespace App\Console\Commands;
 use Exception;
 use Illuminate\Console\Command;
-use App\Libs\DataReceive;
+use App\Libs\PWADataReceive;
 
-//モバイル・Web受注から社内DBへ取込
+//AWS(PWA)から社内DBへ取込
 class MobileDataReceive extends Command
 {
     /**
@@ -40,7 +40,7 @@ class MobileDataReceive extends Command
     public function handle()
     {
         try {
-            $dr = new DataReceive();
+            $dr = new PWADataReceive();
             $dr->Receive();
         }
         catch (Exception $exception) {

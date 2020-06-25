@@ -2,7 +2,7 @@
 
 namespace App\Libs;
 use Exception;
-class DataSendWrapper extends DataSend
+class DataSendWrapper extends PWADataSend
 {
     /**
      * 指定のテーブルのUpdateSQLをモバイル送信リストに登録する

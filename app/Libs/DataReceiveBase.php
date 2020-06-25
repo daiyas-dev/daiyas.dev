@@ -5,150 +5,54 @@ use Exception;
 use PDO;
 use Illuminate\Support\Carbon;
 
-//モバイル・Web受注から社内DBへ取込
-class DataReceive
+//モバイル・Web受注から社内DBへ取込(ベースクラス)
+class DataReceiveBase
 {
     public $tmp_path;
     public $ConversionMap;
+    public $target_server_enum=array("PWA"=>1,"WebOrder"=>2);//AWSのターゲットの選択肢
+    public $target_server = null;//AWSのターゲット
 
-    public function Receive()
+    function __construct()
     {
-        try {
-            //マッピング情報を読み込む
-            $this->ConversionMap = json_decode(file_get_contents(public_path()."/dbmapping/pwa.txt"),true);
-
-            //作業用のフォルダを作成する
-            $this->tmp_path=base_path()."\\tmp";
-            if(!file_exists($this->tmp_path))
-            {
-                mkdir($this->tmp_path);
-            }
-
-            $sql ="
-                    SELECT 受信ＩＤ,テーブル名,最終更新日時
-                      FROM モバイル受信リスト
-                     ORDER BY 受信ＩＤ
-                  ";
-            $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-            $user = 'daiyas';
-            $password = 'daiyas';
-            $pdo = new PDO($dsn, $user, $password);
-            $stmt = $pdo->query($sql);
-            $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            $pdo = null;
-
-            //1テーブルごとにリクエストを投げて、処理する
-            foreach ($DataList as $DataItem)
-            {
-                if (!array_key_exists($DataItem['テーブル名'], $this->ConversionMap)) {
-                    $this->ErrorReceiveList($DataItem['受信ＩＤ'],"エラー","テーブルマッピング情報がありません。",null);
-                    continue;
-                }
-                $mv_table_name=$this->ConversionMap[$DataItem['テーブル名']]['TableName'];
-
-                //モバイル・Web受注サーバからデータを取得する
-                $response = $this->GetResponse($DataItem['受信ＩＤ'],$mv_table_name,$DataItem['最終更新日時']);
-                if($response=="") {
-                    continue;
-                }
-                if(!isset($response["file_path"])) {
-                    continue;
-                }
-                $zip_path = $response["file_path"];
-                if ($zip_path=="") {
-                    //ファイルが送信されなかったら、更新なしとみなし、現在日時を最終更新日時をとして更新する。
-                    $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-                    $user = 'daiyas';
-                    $password = 'daiyas';
-                    $pdo = new PDO($dsn, $user, $password);
-                    $this->updateLastUpdateDate($pdo,$DataItem['受信ＩＤ']);
-                    $pdo = null;
-                    continue;
-                }
-                //zipを解凍する
-                $zip = new \ZipArchive();
-                if ($zip->open($zip_path) === true) {
-                    $zip_dir_path = $this->tmp_path."\\".basename($zip_path,".tmp");
-                    mkdir($zip_dir_path);
-                    $zip->extractTo($zip_dir_path);
-                    $zip->close();
-                }
-                else{
-                    //解凍できなかった場合
-                    $this->ErrorReceiveList($DataItem['受信ＩＤ'],"エラー","ZIPファイルを展開できません。",basename($zip_path));
-                    continue;
-                }
-
-                //解凍したファイルを読み込んでSQLを実行
-                //1つのzipに含まれているファイルは1トランザクションで処理する
-                $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-                $user = 'daiyas';
-                $password = 'daiyas';
-                $pdo = new PDO($dsn, $user, $password);
-                $pdo->beginTransaction();
-                foreach (glob($zip_dir_path.'\\*') as $datafile) {
-                    if (is_file($datafile)) {
-                        if(strpos($datafile,"_dellog") !== false)
-                        {
-                            //削除
-                            $result = $this->DataDelete($pdo,$DataItem['受信ＩＤ'],$datafile);
-                        }
-                        else
-                        {
-                            //Insert or Update
-                            $result = $this->DataImport($pdo,$DataItem['受信ＩＤ'], $datafile);
-                        }
-                        if($result===true)
-                        {
-                            $this->updateLastUpdateDate($pdo,$DataItem['受信ＩＤ'],$response["last_update_date"]);
-                            $is_error=false;
-                        }
-                        else
-                        {
-                            $is_error=true;
-                            $pdo->rollBack();
-                            exit;//ループを終了
-                        }
-                    }
-                }
-                if (!$is_error) {
-                    $pdo->commit();
-                }
-                $pdo = null;
-
-                //使用したテンポラリファイルを消す
-                if (!$is_error) {
-                    unlink($zip_path);
-                    foreach (glob($zip_dir_path.'\\*') as $sqlfile) {
-                        if (is_file($sqlfile)) {
-                            unlink($sqlfile);
-                        }
-                    }
-                    rmdir($zip_dir_path);
-                }
-            }
-        }
-        catch (Exception $exception) {
-            $err_receive_id = isset($DataItem['受信ＩＤ']) ? $DataItem['受信ＩＤ'] : 0;
-            $this->ErrorReceiveList($err_receive_id,"エラー",$exception->getMessage(),null);
+        //作業用のフォルダを作成する
+        $this->tmp_path=base_path()."\\tmp";
+        if(!file_exists($this->tmp_path))
+        {
+            mkdir($this->tmp_path);
         }
     }
     /**
+     * マッピング情報を読み込む
+     */
+    public function ReadMap()
+    {
+        $this->ConversionMap = array();
+        switch($this->target_server)
+        {
+            case $this->target_server_enum["PWA"]:
+            {
+                $this->ConversionMap = json_decode(file_get_contents(public_path()."/dbmapping/pwa.txt"),true);
+                break;
+            }
+            case $this->target_server_enum["WebOrder"]:
+            {
+                break;
+            }
+        }
+
+    }
+    /**
      * 指定のURLからzipファイルを取得する
+     * @param  string   URL
      * @param  int      受信ID
      * @param  string   モバイルDBのテーブル名
      * @param  datetime 最終更新日時。nullの場合は全件取得
      * @return array    file_path=取得したzipファイルのフルパス,last_update_date=最終更新日時
      */
-    private function GetResponse($receive_id,$table_name,$last_update_date)
+    public function GetResponse($url,$receive_id,$table_name,$last_update_date)
     {
         try {
-            //WebAPIからレスポンスを取得する
-            //TODO:テスト用URL(NEW社内)
-            $url = "http://192.168.1.210/hellolaravel/public/api/mobiledatasend";
-            //TODO:本番URL
-            $url="http://52.197.70.172/api/mobiledatasend";
-
             $post_data = array(
                  'TableName'=> $table_name
                 ,'LastUpdateDate' => $last_update_date
@@ -180,7 +84,7 @@ class DataReceive
             $arrResult=json_decode($result);
             if($arrResult==null)
             {
-                $this->ErrorReceiveList($receive_id,"接続エラー",$curl_error,null);
+                $this->ErrorReceiveList($receive_id,"接続エラー",$result,null);
                 return "";
             }
             else
@@ -218,7 +122,7 @@ class DataReceive
      * @param string データファイルフルパス
      * @return bool  処理結果 true=成功 / false=エラー有り
      */
-    private function DataImport(&$pdo,$receive_id,$data_file_path)
+    public function DataImport(&$pdo,$receive_id,$data_file_path)
     {
         try {
             //テーブル名を取得
@@ -301,7 +205,7 @@ class DataReceive
      * @param string データファイルフルパス
      * @return bool  処理結果 true=成功 / false=エラー有り
      */
-    private function DataDelete(&$pdo,$receive_id,$data_file_path)
+    public function DataDelete(&$pdo,$receive_id,$data_file_path)
     {
         try {
             //テーブル名を取得
@@ -315,7 +219,6 @@ class DataReceive
             //1レコードごとにデータを削除
             $table_data = json_decode(file_get_contents($data_file_path),true);
             $new_pk=array();
-            $new_data=array();
             foreach($table_data as $record)
             {
                 //列情報を取得
@@ -343,26 +246,6 @@ class DataReceive
         }
         catch (Exception $exception) {
             throw $exception;
-        }
-    }
-    /**
-     * モバイル受信リストの最終更新日時を更新する。
-     * @param object (参照)トランザクション
-     * @param int    受信ID
-     * @param string 最終更新日時。nullの場合は現在日付で更新。
-     * @return void
-     */
-    private function updateLastUpdateDate(&$pdo,$receive_id,$last_update_date=null)
-    {
-        //最終更新日を更新する
-        $q_last_update_date = $last_update_date==null ? Carbon::now()->format('Y/m/d H:i:s') : $last_update_date;
-
-        $stmt = $pdo->query("SELECT COUNT(*) AS CNT FROM モバイル受信リスト WHERE 受信ＩＤ=$receive_id AND (最終更新日時 IS NULL OR 最終更新日時<'$q_last_update_date')");
-        $count = $stmt->fetch()["CNT"];
-        if (0<$count)
-        {
-            $sql="UPDATE モバイル受信リスト SET 最終更新日時='$q_last_update_date' WHERE 受信ＩＤ=$receive_id";
-            $pdo->exec($sql);
         }
     }
     /**
@@ -423,15 +306,67 @@ class DataReceive
         return array("key"=>$new_pk,"val"=>$new_data);
     }
     /**
-     * モバイル受信エラーテーブルに送信フラグを書き込む
+     * 受信リストの最終更新日時を更新する。
+     * @param object (参照)トランザクション
+     * @param int    受信ID
+     * @param string 最終更新日時。nullの場合は現在日付で更新。
+     * @return void
+     */
+    public function updateLastUpdateDate(&$pdo,$receive_id,$last_update_date=null)
+    {
+        //対象テーブルを選択
+        $table_name="";
+        switch($this->target_server)
+        {
+            case $this->target_server_enum["PWA"]:
+            {
+                $table_name="モバイル受信リスト";
+                break;
+            }
+            case $this->target_server_enum["WebOrder"]:
+            {
+                $table_name="Web受注受信リスト";
+                break;
+            }
+        }
+
+        //最終更新日を更新する
+        $q_last_update_date = $last_update_date==null ? Carbon::now()->format('Y/m/d H:i:s') : $last_update_date;
+
+        $stmt = $pdo->query("SELECT COUNT(*) AS CNT FROM $table_name WHERE 受信ＩＤ=$receive_id AND (最終更新日時 IS NULL OR 最終更新日時<'$q_last_update_date')");
+        $count = $stmt->fetch()["CNT"];
+        if (0<$count)
+        {
+            $sql="UPDATE $table_name SET 最終更新日時='$q_last_update_date' WHERE 受信ＩＤ=$receive_id";
+            $pdo->exec($sql);
+        }
+    }
+    /**
+     * 受信エラーテーブルに送信フラグを書き込む
      * @param string エラー理由
      * @param string エラーメッセージ(エラー発生時に取得したメッセージをそのまま保存する)
      * @return void
      */
-    private function ErrorReceiveList($receive_id,$description,$message=null,$file_name=null)
+    public function ErrorReceiveList($receive_id,$description,$message=null,$file_name=null)
     {
         try {
-            //モバイル送信リストに登録する
+            //対象テーブルを選択
+            $table_name="";
+            switch($this->target_server)
+            {
+                case $this->target_server_enum["PWA"]:
+                {
+                    $table_name="モバイル受信エラー";
+                    break;
+                }
+                case $this->target_server_enum["WebOrder"]:
+                {
+                    $table_name="Web受注受信エラー";
+                    break;
+                }
+            }
+
+            //送信エラーに登録する
             $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
             $user = 'daiyas';
             $password = 'daiyas';
@@ -442,7 +377,7 @@ class DataReceive
             $next_seq_Sql = "
                     SELECT
                     MAX(試行回数)+1 AS NEXT_SEQ
-                    FROM モバイル受信エラー
+                    FROM $table_name
                     WHERE 受信ＩＤ = $receive_id
                 ";
             $stmt = $pdo->query($next_seq_Sql);
@@ -451,10 +386,10 @@ class DataReceive
             }
             $seq_no = $seq_no==null ? 1 : $seq_no;
 
-            //呼出元を取得
+            //テーブルに書き込む値を取得
             $esc_file_name = $file_name==null ? 'null' : "'$file_name'";
             $esc_message = $message==null ? 'null' : "'" . str_replace("'","''",$message) . "'";
-            $mr_sql="INSERT INTO モバイル受信エラー(
+            $mr_sql="INSERT INTO $table_name(
                     受信ＩＤ
                    ,試行回数
                    ,エラー発生日時
