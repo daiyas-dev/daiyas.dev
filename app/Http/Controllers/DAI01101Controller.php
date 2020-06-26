@@ -335,7 +335,6 @@ class DAI01101Controller extends Controller
 
             //モバイルSvを更新
             //親得意先
-            //TODO西山修正中　Executeのみ確認済。
             $ds = new DataSendWrapper();
             $ds->Execute($Msql, true, $BushoCd, null, $CourseCd);
 
