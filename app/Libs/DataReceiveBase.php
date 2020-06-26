@@ -37,6 +37,7 @@ class DataReceiveBase
             }
             case $this->target_server_enum["WebOrder"]:
             {
+                $this->ConversionMap = json_decode(file_get_contents(public_path()."/dbmapping/weborder.txt"),true);
                 break;
             }
         }
@@ -46,18 +47,12 @@ class DataReceiveBase
      * 指定のURLからzipファイルを取得する
      * @param  string   URL
      * @param  int      受信ID
-     * @param  string   モバイルDBのテーブル名
-     * @param  datetime 最終更新日時。nullの場合は全件取得
+     * @param  array    postするデータの連想配列
      * @return array    file_path=取得したzipファイルのフルパス,last_update_date=最終更新日時
      */
-    public function GetResponse($url,$receive_id,$table_name,$last_update_date)
+    public function GetResponse($url,$receive_id,$post_data)
     {
         try {
-            $post_data = array(
-                 'TableName'=> $table_name
-                ,'LastUpdateDate' => $last_update_date
-            );
-
             // cURLセッションを初期化
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $url); // 取得するURLを指定
@@ -253,7 +248,7 @@ class DataReceiveBase
      * @param string テーブル名
      * @return array マッピング情報
      */
-    private function getMapping($table_name)
+    public function getMapping($table_name)
     {
         foreach($this->ConversionMap as $key=>$map)
         {
@@ -289,7 +284,7 @@ class DataReceiveBase
      * @param array マッピング情報
      * @return array キーと値の配列
      */
-    private function getRowData($record,$field_list)
+    public function getRowData($record,$field_list)
     {
         foreach($record as $field_name => $field_value)
         {

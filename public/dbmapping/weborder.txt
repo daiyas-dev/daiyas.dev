@@ -1,0 +1,14 @@
+{
+    "Web受注得意先利用者マスタ": {
+        "TableName":"WebUserMaster",
+        "PrimaryKey": ["Web得意先ＣＤ","利用者ID"],
+        "Field": {
+            "Web得意先ＣＤ":"web_customer_code",
+            "利用者ID":"user_id",
+            "利用者CD":"user_code",
+            "得意先ＣＤ":"dummy",
+            "修正担当者ＣＤ":"dummy",
+            "修正日":"updated_at"
+        }
+    }
+}

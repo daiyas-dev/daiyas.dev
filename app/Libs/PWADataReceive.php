@@ -9,6 +9,7 @@ class PWADataReceive extends DataReceiveBase
 {
     function __construct()
     {
+        parent::__construct();
         $this->target_server=$this->target_server_enum["PWA"];
         $this->ReadMap();
     }
@@ -42,7 +43,7 @@ class PWADataReceive extends DataReceiveBase
                 $mv_table_name=$this->ConversionMap[$DataItem['テーブル名']]['TableName'];
 
                 //モバイル・Web受注サーバからデータを取得する
-                $response = $this->GetResponse($url,$DataItem['受信ＩＤ'],$mv_table_name,$DataItem['最終更新日時']);
+                $response = $this->GetResponse_MobileTable($url,$DataItem['受信ＩＤ'],$mv_table_name,$DataItem['最終更新日時']);
                 if($response=="") {
                     continue;
                 }
@@ -126,6 +127,27 @@ class PWADataReceive extends DataReceiveBase
         catch (Exception $exception) {
             $err_receive_id = isset($DataItem['受信ＩＤ']) ? $DataItem['受信ＩＤ'] : 0;
             $this->ErrorReceiveList($err_receive_id,"エラー",$exception->getMessage(),null);
+        }
+    }
+    /**
+     * 指定のURLからzipファイルを取得する
+     * @param  string   URL
+     * @param  int      受信ID
+     * @param  string   モバイルDBのテーブル名
+     * @param  datetime 最終更新日時。nullの場合は全件取得
+     * @return array    file_path=取得したzipファイルのフルパス,last_update_date=最終更新日時
+     */
+    private function GetResponse_MobileTable($url,$receive_id,$table_name,$last_update_date)
+    {
+        try {
+            $post_data = array(
+                 'TableName'=> $table_name
+                ,'LastUpdateDate' => $last_update_date
+            );
+            return $this->GetResponse($url,$receive_id,$post_data);
+        }
+        catch (Exception $exception) {
+            throw $exception;
         }
     }
 }
