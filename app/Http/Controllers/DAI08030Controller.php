@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Libs\DataSendWrapper;
 use App\Models\仕出しエリアデータ;
 use App\Models\仕出し注文明細データ;
 use App\Models\売上データ明細;
@@ -232,6 +233,10 @@ class DAI08030Controller extends Controller
 
         $pdo = new PDO($dsn, $user, $password);
 
+        //モバイルsv更新用
+        $Msql = "";
+        $MInsertList = [];
+
         DB::beginTransaction();
 
         try {
@@ -302,16 +307,37 @@ class DAI08030Controller extends Controller
                     ->where('受注Ｎｏ', $OrderNo)
                     ->delete();
 
+                //モバイルsv更新用
+                $Msql = "
+                    DELETE FROM SalesDetailsData
+                    WHERE department_code = '$BushoCd'
+                    AND date = '$DeliveryDate'
+                    AND order_no = '$OrderNo'
+                ";
+
                 foreach ($MeisaiList as $meisai) {
                     $meisai['修正日'] = $rec['修正日'];
                     $meisai['修正担当者ＣＤ'] = $rec['修正担当者ＣＤ'];
 
                     売上データ明細::insert($meisai);
+
+                    //モバイルsv更新用
+                    array_push($MInsertList, $meisai);
                 }
             }
 
             $pdo = null;
             DB::commit();
+
+            //モバイルsv更新
+            $ds = new DataSendWrapper();
+            $ds->Execute($Msql, true, null, null, null);
+
+            foreach ($MInsertList as $meisai) {
+                $ds = new DataSendWrapper();
+                $ds->Insert('売上データ明細', $meisai, true, $meisai['部署ＣＤ'], null, $meisai['コースＣＤ']);
+            }
+
         } catch (Exception $exception) {
             $pdo = null;
             DB::rollBack();

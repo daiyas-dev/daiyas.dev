@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Libs\DataSendWrapper;
 use App\Models\売上データ明細;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -234,6 +235,11 @@ class DAI07010Controller extends Controller
 
         FacadesDB::beginTransaction();
 
+        //モバイルsv更新用
+        $MUpdateList = [];
+        $MDeleteList = [];
+        $MInsertList = [];
+
         try {
             $params = $request->all();
 
@@ -275,6 +281,10 @@ class DAI07010Controller extends Controller
                             ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
                             ->where('受注Ｎｏ', $rec['受注Ｎｏ'])
                             ->delete($rec);
+
+                            //モバイルsv更新用
+                            array_push($MDeleteList, $rec);
+
                     } else {
                         売上データ明細::query()
                             ->where('日付', $rec['日付'])
@@ -285,7 +295,11 @@ class DAI07010Controller extends Controller
                             ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
                             ->where('受注Ｎｏ', $rec['受注Ｎｏ'])
                             ->update($rec);
-                    }
+
+                            //モバイルsv更新用
+                            array_push($MUpdateList, $rec);
+
+                        }
                 } else {
                     $gno = 売上データ明細::query()
                         ->where('日付', $rec['日付'])
@@ -307,10 +321,27 @@ class DAI07010Controller extends Controller
                     $rec['請求日付'] = $rec['請求日付'] ?? '';
 
                     売上データ明細::insert($rec);
+
+                    //モバイルsv更新用
+                    array_push($MInsertList, $rec);
                 }
             }
 
             FacadesDB::commit();
+
+            //モバイルsv更新
+            foreach ($MDeleteList as $rec) {
+                $ds = new DataSendWrapper();
+                $ds->Delete('売上データ明細', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
+            }
+            foreach ($MUpdateList as $rec) {
+                $ds = new DataSendWrapper();
+                $ds->Update('売上データ明細', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
+            }
+            foreach ($MInsertList as $rec) {
+                $ds = new DataSendWrapper();
+                $ds->Insert('売上データ明細', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
+            }
 
         } catch (Exception $exception) {
             FacadesDB::rollBack();

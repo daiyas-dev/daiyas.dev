@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Libs\DataSendWrapper;
 use App\Models\CTelToCust;
 use App\Models\仕出し注文データ;
 use App\Models\仕出し注文明細データ;
@@ -597,10 +598,23 @@ class DAI08010Controller extends Controller
                 ->where('受注Ｎｏ', $request->OrderNo)
                 ->delete();
 
+            //モバイルsv更新用
+            $Msql = "
+                DELETE FROM SalesDetailsData
+                WHERE department_code = '$request->BushoCd'
+                AND date = '$request->DeliveryDate'
+                AND order_no = '$request->OrderNo'
+            ";
+
             if (count($skip) > 0) {
                 DB::rollBack();
             } else {
                 DB::commit();
+
+                //モバイルsv更新
+                $ds = new DataSendWrapper();
+                $ds->Execute($Msql, true, null, null, null);
+
             }
         } catch (Exception $exception) {
             DB::rollBack();
