@@ -24,7 +24,7 @@ class WebOrderDataReceive extends DataReceiveBase
 
         try {
             $sql ="
-                    SELECT 受信ＩＤ,タスク名,最終更新日時
+                    SELECT 受信ＩＤ,データ名,最終更新日時
                       FROM Web受注受信リスト
                      ORDER BY 受信ＩＤ
                   ";
