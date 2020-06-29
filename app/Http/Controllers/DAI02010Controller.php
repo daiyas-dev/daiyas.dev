@@ -16,6 +16,8 @@ use PDO;
 use Symfony\Component\Console\Helper\TableRows;
 class DAI02010Controller extends Controller
 {
+    public $UriageMeisaiData;
+
     /**
      *  LastSimeDateSearch
      */
@@ -73,6 +75,7 @@ class DAI02010Controller extends Controller
      */
     public function Save($request)
     {
+        $this->UriageMeisaiData=array();
         DB::beginTransaction();
 
         try {
@@ -84,6 +87,14 @@ class DAI02010Controller extends Controller
 
             DB::commit();
 
+            //モバイルSvを更新
+            $ds = new DataSendWrapper();
+            if (!!$this->UriageMeisaiData)
+            {
+                foreach ($this->UriageMeisaiData as $rec) {
+                    $ds->Update('売上データ明細', $rec, true, $rec['部署ＣＤ'], $rec['得意先ＣＤ'], $rec['コースＣＤ']);
+                }
+            }
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;
@@ -97,6 +108,7 @@ class DAI02010Controller extends Controller
      */
     public function Release($request)
     {
+        $this->UriageMeisaiData=array();
         DB::beginTransaction();
 
         try {
@@ -106,6 +118,14 @@ class DAI02010Controller extends Controller
 
             DB::commit();
 
+            //モバイルSvを更新
+            $ds = new DataSendWrapper();
+            if (!!$this->UriageMeisaiData)
+            {
+                foreach ($this->UriageMeisaiData as $rec) {
+                    $ds->Update('売上データ明細', $rec, true, $rec['部署ＣＤ'], $rec['得意先ＣＤ'], $rec['コースＣＤ']);
+                }
+            }
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;
@@ -930,33 +950,21 @@ class DAI02010Controller extends Controller
 
         $pdo = new PDO($dsn, $user, $password);
         $stmt = $pdo->query($sql);
-        //$DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        //モバイルSv更新用データを取得
+        $sql2 = "
+                    SELECT * FROM 売上データ明細
+                    WHERE
+                        日付 <= '$TargetDateMax'
+                    AND 部署ＣＤ = $BushoCd
+                    AND 得意先ＣＤ IN($CustomerList)
+                    AND 請求日付 = ''
+                ";
+        $stmt = $pdo->query($sql2);
+        if (!!$stmt) {
+            $this->UriageMeisaiData = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
         $pdo = null;
-        //DB::update($sql);
-
-        // // //TODO commit後にする方法は？
-        // //モバイルSvを更新用
-        // $MUpdateList = [];
-        // $sql2 = "
-        // SELECT * FROM 売上データ明細
-        // SET 請求日付 = ''
-        // WHERE
-        //     日付 <= '$TargetDateMax'
-        // AND 部署ＣＤ = $BushoCd
-        // AND 得意先ＣＤ IN($CustomerList)
-        // AND 請求日付 = '$TargetDateMax'
-        // ";
-
-        // $MUpdateList = DB::select($sql2);
-
-        //TODO MUpdateListの中身がstdClassなのでエラーになりそう
-        // //モバイルSvを更新
-        // foreach ($MUpdateList as $rec) {
-        //     $rec['請求日付'] = '';
-
-        //     $ds = new DataSendWrapper();
-        //     $ds->Update('売上データ明細', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
-        // }
     }
 
     /**
@@ -1126,52 +1134,40 @@ class DAI02010Controller extends Controller
         AND U1.請求日付 = ''
         AND (U1.売掛現金区分 = 1)
         ";
-
         $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
 
         $pdo = new PDO($dsn, $user, $password);
         $stmt = $pdo->query($sql);
-        //$DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        //モバイルSv更新用データを取得
+        $sql2 = "
+                    SELECT U1.*
+                    FROM 売上データ明細 U1
+                    LEFT JOIN 得意先マスタ T1 ON T1.得意先ＣＤ = U1.得意先ＣＤ
+                    WHERE
+                        U1.日付 >=
+                        (
+                        SELECT
+                            DATEADD(DAY, 1, MAX(B1.請求日付))
+                        FROM
+                            請求データ B1
+                        WHERE
+                            B1.請求先ＣＤ = T1.請求先ＣＤ
+                        AND B1.請求日付 < '$TargetDateMax'
+                        )
+                    AND U1.日付 <= '$TargetDateMax'
+                    AND U1.部署ＣＤ = $BushoCd
+                    AND U1.得意先ＣＤ IN ($CustomerList)
+                    AND U1.請求日付 = '$TargetDateMax'
+                    AND (U1.売掛現金区分 = 1)
+                ";
+        $stmt = $pdo->query($sql2);
+        if (!!$stmt) {
+            $this->UriageMeisaiData = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
         $pdo = null;
-        // DB::update($sql);
-
-        // //TODO Commit後にするには？
-        // //モバイルSv更新用
-        // $MUpdateList = [];
-        // $sql2 = "
-        // SELECT U1.*
-        // FROM 売上データ明細 U1
-        // LEFT JOIN 得意先マスタ T1 ON T1.得意先ＣＤ = U1.得意先ＣＤ
-        // WHERE
-        //     U1.日付 >=
-        //     (
-        //     SELECT
-        //         DATEADD(DAY, 1, MAX(B1.請求日付))
-        //     FROM
-        //         請求データ B1
-        //     WHERE
-        //         B1.請求先ＣＤ = T1.請求先ＣＤ
-        //     AND B1.請求日付 < '$TargetDateMax'
-        //     )
-        // AND U1.日付 <= '$TargetDateMax'
-        // AND U1.部署ＣＤ = $BushoCd
-        // AND U1.得意先ＣＤ IN ($CustomerList)
-        // AND U1.請求日付 = ''
-        // AND (U1.売掛現金区分 = 1)
-        // ";
-
-        // $MUpdateList = DB::select($sql2);
-
-        //TODO MUpdateListの中身がstdClassなのでエラーになりそう
-        // //モバイルSvを更新
-        // foreach ($MUpdateList as $rec) {
-        //     $rec['請求日付'] = $TargetDateMax;
-
-        //     $ds = new DataSendWrapper();
-        //     $ds->Update('売上データ明細', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
-        // }
     }
 
     /**
