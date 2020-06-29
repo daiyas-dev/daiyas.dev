@@ -3,9 +3,9 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Libs\DataSend;
+use App\Libs\PWADataSend;
 
-//社内DBからモバイル・Web受注へ送信(クラステスト用)
+//社内DBからモバイルへ送信(クラステスト用)
 class TestBatch4 extends Command
 {
     /**
@@ -39,7 +39,7 @@ class TestBatch4 extends Command
      */
     public function handle()
     {
-        $ds = new DataSend();
+        $ds = new PWADataSend();
         $ds->Send();
     }
 }

@@ -106,6 +106,7 @@ class PWADataSend
             $url = "http://192.168.1.210/hellolaravel/public/api/mobiledatareceive";
             //TODO:本番URL
             //$url="http://52.197.70.172/api/mobiledatareceive";
+            $url="https://daiyas-mobile.tk/api/mobiledatareceive";
 
             // base64エンコード
             $base64_data = base64_encode(file_get_contents($zip_file_path));
