@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Libs\DataSendWrapper;
 use App\Models\売上データ明細;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -207,17 +208,16 @@ ORDER BY
     {
         $skip = [];
 
-        //TODO西山確認中
-        //$rec['行Ｎｏ']が正しくない？　常に0が入っている？
         $params = $request->all();
         $SaveList = $params['SaveList'];
+
+        //モバイルsv更新用
+        $MUpdateList = [];
+        $MInsertList = [];
 
         DB::beginTransaction();
 
         try {
-            // $params = $request->all();
-
-            // $SaveList = $params['SaveList'];
 
             $date = Carbon::now()->format('Y-m-d H:i:s');
             foreach ($SaveList as $rec) {
@@ -252,7 +252,11 @@ ORDER BY
                         ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
                         ->where('受注Ｎｏ', $rec['受注Ｎｏ'])
                         ->update($rec);
-                } else {
+
+                        //モバイルsv更新用
+                        array_push($MUpdateList, $rec);
+
+                    } else {
                     $no = 売上データ明細::query()
                         ->where('日付', $rec['日付'])
                         ->where('部署ＣＤ', $rec['部署ＣＤ'])
@@ -266,10 +270,24 @@ ORDER BY
                     $rec['請求日付'] = $rec['請求日付'] ?? '';
 
                     売上データ明細::insert($rec);
+
+                    //モバイルsv更新用
+                    array_push($MInsertList, $rec);
                 }
             }
 
             DB::commit();
+
+            //モバイルsv更新
+            foreach ($MUpdateList as $rec) {
+                $ds = new DataSendWrapper();
+                $ds->Update('売上データ明細', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
+            }
+            foreach ($MInsertList as $rec) {
+                $ds = new DataSendWrapper();
+                $ds->Insert('売上データ明細', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
+            }
+
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;
