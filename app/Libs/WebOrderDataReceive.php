@@ -20,7 +20,7 @@ class WebOrderDataReceive extends DataReceiveBase
         //TODO:テスト用URL(NEW社内)
         $url = "http://192.168.1.211/hellolaravel/public/api/weborderdatasend";
         //TODO:本番URL
-        $url="http://18.178.211.62/api/weborderdatasend";
+        //$url="http://18.178.211.62/api/weborderdatasend";
 
         try {
             $sql ="
@@ -48,6 +48,7 @@ class WebOrderDataReceive extends DataReceiveBase
                     }
                     case $this->receive_data_enum['WebOrderData']:
                     {
+                        $this->getWebOrder($url,$DataItem['受信ＩＤ'],$DataItem['最終更新日時']);
                         break;
                     }
                 }
@@ -60,6 +61,7 @@ class WebOrderDataReceive extends DataReceiveBase
     }
     /**
      * Web得意先利用者マスタを取り込む
+        1.  AWS: Web利用者マスタ[WebUserMaster] -> 社内: Web受注得意先利用者マスタ
      */
     private function getWebUserMaster($url,$receive_id,$last_update_date)
     {
@@ -203,6 +205,281 @@ class WebOrderDataReceive extends DataReceiveBase
                 }
             }
             rmdir($zip_dir_path);
+        }
+    }
+    /**
+     * Web受注データを取り込む
+     */
+    public function getWebOrder($url,$receive_id,$last_update_date)
+    {
+        //モバイル・Web受注サーバからデータを取得する
+        $response = $this->GetResponse_WebOrderData($url,$receive_id,$this->receive_data_enum['WebOrderData'],$last_update_date);
+        if($response=="") {
+            return;
+        }
+        if(!isset($response["file_path"])) {
+            return;
+        }
+        $zip_path = $response["file_path"];
+        if ($zip_path=="") {
+            //ファイルが送信されなかったら、更新なしとみなし、現在日時を最終更新日時として更新する。
+            $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+            $user = 'daiyas';
+            $password = 'daiyas';
+            $pdo = new PDO($dsn, $user, $password);
+            $this->updateLastUpdateDate($pdo,$receive_id);
+            $pdo = null;
+            return;
+        }
+        //zipを解凍する
+        $zip = new \ZipArchive();
+        if ($zip->open($zip_path) === true) {
+            $zip_dir_path = $this->tmp_path."\\".basename($zip_path,".tmp");
+            mkdir($zip_dir_path);
+            $zip->extractTo($zip_dir_path);
+            $zip->close();
+        }
+        else{
+            //解凍できなかった場合
+            $this->ErrorReceiveList($receive_id,"エラー","ZIPファイルを展開できません。",basename($zip_path));
+            return;
+        }
+
+        //解凍したファイルを読み込んでSQLを実行
+        //1つのzipに含まれているファイルは1トランザクションで処理する
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+        $pdo = new PDO($dsn, $user, $password);
+        $pdo->beginTransaction();
+        try {
+            $datafile=$zip_dir_path.'\\WebOrderData.txt';
+            if (file_exists($datafile)) {
+                $this->SaveWebOrder($pdo,$datafile);
+            }
+            $datafile=$zip_dir_path.'\\WebOrderUserData.txt';
+            if (file_exists($datafile)) {
+                $this->SaveWebOrderUser($pdo,$datafile);
+            }
+            $datafile=$zip_dir_path.'\\WebOrderInfoData.txt';
+            if (file_exists($datafile)) {
+                $this->SaveWebOrderInfo($pdo,$datafile);
+            }
+            $this->updateLastUpdateDate($pdo,$receive_id,$response["last_update_date"]);
+            $pdo->commit();
+            $pdo = null;
+
+            //使用したテンポラリファイルを消す
+            unlink($zip_path);
+            foreach (glob($zip_dir_path.'\\*') as $sqlfile) {
+                if (is_file($sqlfile)) {
+                    unlink($sqlfile);
+                }
+            }
+            rmdir($zip_dir_path);
+        }
+        catch (Exception $exception) {
+            $pdo->rollBack();
+            throw $exception;
+        }
+    }
+    /**
+     * Web受注データを更新する
+        2.  AWS: WebOrderData -> 社内: Web受注データ
+            社内側Web受注データの更新については、Web得意先ＣＤ及び配送日が一致するレコードが存在する場合はupdateもしくはdelete
+            存在しない場合は、Web受注IDを最大 + 1で払い出してinsert
+     * @param  object   pdo
+     * @param  string   読み込むファイル
+     */
+    private function SaveWebOrder(&$pdo,$datafile)
+    {
+        //1レコードごとにデータを更新
+        $table_data = json_decode(file_get_contents($datafile), true);
+        foreach ($table_data as $record) {
+            //Web受注データの存在確認
+            $where="Web得意先ＣＤ='{$record['Web得意先ＣＤ']}' and 配送日='{$record['配送日']}'";
+            $sql="select count(*)as CNT from Web受注データ where $where";
+            $stmt = $pdo->query($sql);
+            $count = $stmt->fetch()["CNT"];
+            if (0<$count) {
+                if ($record['削除フラグ']=="1") {
+                    //delete
+                    $sql="delete from Web受注データ where $where";
+                    $pdo->query($sql);
+                } else {
+                    //update
+                    $sql="update Web受注データ set 注文日時='{$record['注文日時']}',修正担当者ＣＤ=9999,修正日=getdate() where $where";
+                    $pdo->query($sql);
+                }
+            } else {
+                //insert
+                $sql="select max(Web受注ID)+1 as NewID from Web受注データ";
+                $stmt = $pdo->query($sql);
+                $NewID = $stmt->fetch()["NewID"];
+                $sql="insert into Web受注データ(
+                            Web受注ID
+                        ,Web得意先ＣＤ
+                        ,配送日
+                        ,注文日時
+                        ,修正担当者ＣＤ
+                        ,修正日
+                    )values(
+                            $NewID
+                        ,'{$record['Web得意先ＣＤ']}'
+                        ,'{$record['配送日']}'
+                        ,'{$record['注文日時']}'
+                        ,9999
+                        ,getdate()
+                    )
+                ";
+                $pdo->query($sql);
+                $error_info=$pdo->errorInfo();
+                if($error_info[0]!="00000" || $error_info[1]!=null || $error_info[2]!=null)
+                {
+                    //SQLを実行してエラーが発生した場合
+                    throw new exception($error_info[1]." ".$error_info[2]);
+                }
+            }
+        }
+    }
+    /**
+     * Web受注データ利用者情報を更新する
+        3.  AWS: WebOrderData -> 社内: Web受注データ利用者情報
+            社内側Web受注データ利用者情報の更新については、まずWeb得意先ＣＤ及び配送日でWeb受注データからWeb受注IDを取得し
+            Web受注IDＣＤ及び注文IDが一致するレコードが存在する場合はupdateもしくはdelete、存在しない場合はinsert
+     * @param  object   pdo
+     * @param  string   読み込むファイル
+     */
+    private function SaveWebOrderUser(&$pdo,$datafile)
+    {
+        //1レコードごとにデータを更新
+        $table_data = json_decode(file_get_contents($datafile), true);
+        foreach ($table_data as $record) {
+            //Web受注IDを取得
+            $sql="select J1.Web受注ID from Web受注データ J1 where J1.Web得意先ＣＤ='{$record['Web得意先ＣＤ']}' and J1.配送日='{$record['配送日']}'";
+            $stmt = $pdo->query($sql);
+            $WebOrderID = $stmt->fetch()["Web受注ID"];
+
+            //Web受注データ利用者情報の存在確認
+            $where="Web受注ID=$WebOrderID and 注文ID={$record['注文ID']} and 利用者ID={$record['利用者ID']}";
+            $sql="select count(*)as CNT from Web受注データ利用者情報 where $where";
+            $stmt = $pdo->query($sql);
+            $count = $stmt->fetch()["CNT"];
+            if (0<$count) {
+                if ($record['削除フラグ']=="1") {
+                    //delete
+                    $sql="delete from Web受注データ利用者情報 where $where";
+                    $pdo->query($sql);
+                } else {
+                    //update
+                    $sql="update Web受注データ利用者情報 set 利用者CD='{$record['利用者CD']}',修正担当者ＣＤ=9999,修正日=getdate() where $where";
+                    $pdo->query($sql);
+                }
+            } else {
+                //insert
+                $sql="insert into Web受注データ利用者情報(
+                            Web受注ID
+                        ,注文ID
+                        ,利用者ID
+                        ,利用者CD
+                        ,備考ID
+                        ,修正担当者ＣＤ
+                        ,修正日
+                    )values(
+                        $WebOrderID
+                        ,{$record['注文ID']}
+                        ,{$record['利用者ID']}
+                        ,'{$record['利用者CD']}'
+                        ,null
+                        ,9999
+                        ,getdate()
+                    )
+                ";
+                $pdo->query($sql);
+                $error_info=$pdo->errorInfo();
+                if($error_info[0]!="00000" || $error_info[1]!=null || $error_info[2]!=null)
+                {
+                    //SQLを実行してエラーが発生した場合
+                    throw new exception($error_info[1]." ".$error_info[2]);
+                }
+            }
+        }
+    }
+    /**
+     * Web受注データ利用者別詳細を更新する
+        4.  AWS: WebOrderData + WebOrderInfoData -> 社内: Web受注データ利用者別詳細
+            AWSでのWeb得意先の利用者毎の注文の商品レベルの詳細と対応
+            社内側Web受注データ利用者情報の更新については、まずWeb得意先ＣＤ及び配送日でWeb受注データからWeb受注IDを取得し
+            Web受注IDＣＤ及び注文IDが一致するレコードが存在する場合はupdateもしくはdelete、存在しない場合はinsert
+     * @param  object   pdo
+     * @param  string   読み込むファイル
+     */
+    private function SaveWebOrderInfo(&$pdo,$datafile)
+    {
+        //1レコードごとにデータを更新
+        $table_data = json_decode(file_get_contents($datafile), true);
+        foreach ($table_data as $record) {
+            //Web受注IDを取得
+            $sql="select J1.Web受注ID from Web受注データ J1 where J1.Web得意先ＣＤ='{$record['Web得意先ＣＤ']}' and J1.配送日='{$record['配送日']}'";
+            $stmt = $pdo->query($sql);
+            $WebOrderID = $stmt->fetch()["Web受注ID"];
+
+            //Web受注データ利用者別詳細の存在確認
+            $where="Web受注ID=$WebOrderID and 注文ID={$record['注文ID']} and 注文情報ID={$record['注文情報ID']}";
+            $sql="select count(*)as CNT from Web受注データ利用者別詳細 where $where";
+            $stmt = $pdo->query($sql);
+            $count = $stmt->fetch()["CNT"];
+            if (0<$count) {
+                if ($record['削除フラグ']=="1") {
+                    //delete
+                    $sql="delete from Web受注データ利用者別詳細 where $where";
+                    $pdo->query($sql);
+                } else {
+                    //update
+                    $sql="update Web受注データ利用者別詳細 set 注文日時='{$record['注文日時']}',修正担当者ＣＤ=9999,修正日=getdate() where $where";
+                    $pdo->query($sql);
+                }
+            } else {
+                //insert
+                $destination_id=($record['届け先ID']===null || $record['届け先ID']==='') ? "null" : $record['届け先ID'];
+                $sql="insert into Web受注データ利用者別詳細(
+                        Web受注ID
+                        ,注文ID
+                        ,注文情報ID
+                        ,注文日時
+                        ,商品ＣＤ
+                        ,単価
+                        ,現金個数
+                        ,現金金額
+                        ,掛売個数
+                        ,掛売金額
+                        ,届け先ID
+                        ,修正担当者ＣＤ
+                        ,修正日
+                        )values(
+                        $WebOrderID
+                        , {$record['注文ID']}
+                        , {$record['注文情報ID']}
+                        ,'{$record['注文日時']}'
+                        , {$record['商品ＣＤ']}
+                        , {$record['単価']}
+                        , {$record['現金個数']}
+                        , {$record['現金金額']}
+                        , {$record['掛売個数']}
+                        , {$record['掛売金額']}
+                        , $destination_id
+                        , 9999
+                        , getdate()
+                    )
+                ";
+                $pdo->query($sql);
+                $error_info=$pdo->errorInfo();
+                if($error_info[0]!="00000" || $error_info[1]!=null || $error_info[2]!=null)
+                {
+                    //SQLを実行してエラーが発生した場合
+                    throw new exception($error_info[1]." ".$error_info[2]);
+                }
+            }
         }
     }
     /**
