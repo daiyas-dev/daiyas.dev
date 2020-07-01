@@ -587,17 +587,23 @@ export default {
             if (!grid) return;
 
             var params;
-
-            var params;
             if (rowData) {
                 params = _.cloneDeep(rowData);
             } else {
                 var selection = grid.SelectRow().getSelection();
 
                 var rows = grid.SelectRow().getSelection();
-                if (rows.length != 1) return;
+                if (rows.length > 0) {
+                    if (rows.length != 1) return;
+                    params = _.cloneDeep(rows[0].rowData);
+                } else {
+                    //検索結果0件の時　新規登録条件 = 得意先指定
+                    if (!vue.viewModel.CustomerCd) return;
 
-                params = _.cloneDeep(rows[0].rowData);
+                    params = {};
+                    params.得意先ＣＤ = vue.viewModel.CustomerCd;
+                    params.得意先名 = vue.viewModel.CustomerNm;
+                }
             }
 
             if (!params.得意先 && !params.得意先ＣＤ) return;
