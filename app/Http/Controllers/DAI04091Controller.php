@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Libs\DataSendWrapper;
 use App\Models\コーステーブル;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -155,6 +156,7 @@ class DAI04091Controller extends Controller
             }
 
             DB::commit();
+            $this->SendPWA($BushoCd,$CourseCd);
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;
@@ -202,8 +204,8 @@ class DAI04091Controller extends Controller
                 $WhereMngCd
             ";
             DB::delete($DelSql);
-
             DB::commit();
+            $this->SendPWA($BushoCd,$CourseCd);
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;
@@ -214,5 +216,10 @@ class DAI04091Controller extends Controller
             "MngCd" => $MngCd,
         ]);
     }
+    private function SendPWA($busho_cd,$course_cd)
+    {
+        $ds = new DataSendWrapper();
+        $ds->UpdateCourseTable($busho_cd,$course_cd);
+}
 
 }

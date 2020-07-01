@@ -2,6 +2,7 @@
 
 namespace App\Libs;
 use Exception;
+use PDO;
 class DataSendWrapper extends PWADataSend
 {
     /**
@@ -172,6 +173,101 @@ class DataSendWrapper extends PWADataSend
             throw $exception;
         }
     }
+    /**
+     * コーステーブルを更新する
+     * 部署ＣＤとコースＣＤ単位でDelete/Insertする
+     * @param 部署CD
+     * @param コースCD
+     */
+    public function UpdateCourseTable($busho_cd,$course_cd)
+    {
+        try {
+            $sql="delete from CourseData where department_code = $busho_cd and course_code = $course_cd";
+            parent::StoreSendList($sql,true,$busho_cd,null,$course_cd);
+
+            $sql="
+                    select
+                        CK.部署ＣＤ AS department_code
+                    ,CK.コースＣＤ AS course_code
+                    ,CT.ＳＥＱ AS seq
+                    ,case CK.一時フラグ when 'TRUE' then 1 else 0 end as basic_course_flag
+                    ,CK.適用開始日 AS application_start_date
+                    ,CK.適用終了日 AS application_end_date
+                    ,CT.得意先ＣＤ AS customer_code
+                    ,CT.修正担当者ＣＤ AS updated_responsible_code
+                    ,GETDATE() AS updated_at
+                from
+                        コーステーブル管理 CK
+                    ,コーステーブル CT
+                where CK.部署ＣＤ=$busho_cd
+                    and CK.コースＣＤ=$course_cd
+                    and CK.部署ＣＤ=CT.部署ＣＤ
+                    and CK.コースＣＤ=CT.コースＣＤ
+                    and CK.管理ＣＤ=0
+                union
+                select
+                        CK.部署ＣＤ
+                    ,CK.コースＣＤ
+                    ,CT.ＳＥＱ
+                    ,case CK.一時フラグ when 'TRUE' then 1 else 0 end
+                    ,CK.適用開始日
+                    ,CK.適用終了日
+                    ,CT.得意先ＣＤ
+                    ,CT.修正担当者ＣＤ AS updated_responsible_code
+                    ,GETDATE() AS updated_at
+                from
+                        コーステーブル管理 CK
+                    ,コーステーブル一時 CT
+                where CK.部署ＣＤ=$busho_cd
+                    and CK.コースＣＤ=$course_cd
+                    and CK.部署ＣＤ=CT.部署ＣＤ
+                    and CK.コースＣＤ=CT.コースＣＤ
+                    and CK.管理ＣＤ<>0
+                order by
+                        CK.部署ＣＤ
+                    ,CK.コースＣＤ
+                    ,case CK.一時フラグ when 'TRUE' then 1 else 0 end
+                    ,CT.ＳＥＱ
+                    ,CK.適用開始日
+                    ,CT.修正担当者ＣＤ
+                    ,GETDATE()
+                ";
+            $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+            $user = 'daiyas';
+            $password = 'daiyas';
+            $pdo = new PDO($dsn, $user, $password);
+            $stmt = $pdo->query($sql);
+            $CourseDataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $pdo = null;
+
+            foreach($CourseDataList as $CourseData)
+            {
+                $fields="";
+                $values="";
+                foreach($CourseData as $key=>$val)
+                {
+                    $fields.=",$key";
+                    if($key=="basic_course_flag")
+                    {
+                        $values.= ",".$val;
+                    }
+                    else
+                    {
+                        $values.= ",";
+                        $values.= $val===null ? "null" : "'$val'";
+                    }
+                }
+                $fields=substr($fields,1);
+                $values=substr($values,1);
+                $sql_insert="insert CourseData($fields)values($values)";
+                parent::StoreSendList($sql_insert,false,$busho_cd,$CourseData['customer_code'],$course_cd);
+            }
+        }
+        catch (Exception $exception) {
+            throw $exception;
+        }
+    }
+
     /**
      * 指定したSQLをモバイル送信リストに登録する
      * @param SQL
