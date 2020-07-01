@@ -1181,6 +1181,24 @@ export default {
                     return ret;
                 });
 
+            var params = _.cloneDeep(vue.searchParams);
+            params.noCache = true;
+            params.Message = {
+                "department_code": vue.viewModel.BushoCd,
+                "course_code": vue.viewModel.CourseCd,
+                "notify_data": {
+                    "title": "注文変更: " + vue.viewModel.CustomerNm,
+                    "body": vue.viewModel.BikouForNotification,
+                },
+                "custom_data": {
+                    "message": "注文変更: " + vue.viewModel.CustomerNm
+                        + (!!vue.viewModel.BikouForNotification ? ("\n" + vue.viewModel.BikouForNotification) : "")
+                        + (!!vue.viewModel.BikouForDelivery ? ("\n" + vue.viewModel.BikouForDelivery) : "")
+                    ,
+                    "values": "",
+                },
+            };
+
             //保存実行
             grid.saveData(
                 {
@@ -1189,7 +1207,7 @@ export default {
                         SaveList: SaveList,
                         DeleteList: DeleteList,
                     },
-                    optional: this.searchParams,
+                    optional: params,
                     confirm: {
                         isShow: true,
                         title: "確認 " + vue.viewModel.CustomerNm,

@@ -26,7 +26,7 @@ class PWADataSend
             }
 
             $sql ="
-                    SELECT 送信ＩＤ,SQL
+                    SELECT 送信ＩＤ,SQL, 通知メッセージ
                       FROM モバイル送信リスト
                      WHERE 送信済フラグ<>1
                            $where_send_id
@@ -59,7 +59,7 @@ class PWADataSend
                 $this->Compress($zip_file,array($sql_file));
 
                 //Post実行
-                $this->Post($zip_file,$DataItem['送信ＩＤ']);
+                $this->Post($zip_file,$DataItem['送信ＩＤ'],$DataItem['通知メッセージ']);
 
                 //使用したテンポラリファイルを消す
                 unlink($zip_file);
@@ -95,9 +95,10 @@ class PWADataSend
      * 指定のURLにzipファイルをpostする
      * @param zipファイルフルパス
      * @param 送信ID
+     * @param 通知メッセージ
      * @return void
      */
-    private function Post($zip_file_path,$send_id)
+    private function Post($zip_file_path,$send_id,$notify_message)
     {
         try
         {
@@ -111,7 +112,8 @@ class PWADataSend
             // base64エンコード
             $base64_data = base64_encode(file_get_contents($zip_file_path));
             $post_data = array(
-                'FileData' => $base64_data
+                'FileData' => $base64_data,
+                'Notification' => $notify_message,
             );
 
             // cURLセッションを初期化
@@ -169,9 +171,10 @@ class PWADataSend
      * @param 部署CD
      * @param 得意先CD
      * @param コースCD
+     * @param 通知メッセージ
      * @return void
      */
-    public function StoreSendList($sql,$Immediate = null,$busho_cd = null,$customer_cd=null,$course_cd=null)
+    public function StoreSendList($sql,$Immediate = null,$busho_cd = null,$customer_cd=null,$course_cd=null, $notify_message = null)
     {
         try {
             //モバイル送信リストに登録する
@@ -199,6 +202,7 @@ class PWADataSend
             $q_customer_cd= $customer_cd == null ? 'null' : $customer_cd;
             $q_course_cd  = $course_cd   == null ? 'null' : $course_cd;
             $esc_sql=str_replace("'","''",$sql);
+            $q_notify_message  = $notify_message == null ? '' : json_encode($notify_message);
             $ms_sql="INSERT INTO モバイル送信リスト(
                     送信ＩＤ
                    ,部署ＣＤ
@@ -208,6 +212,7 @@ class PWADataSend
                    ,メソッド名
                    ,作成日時
                    ,SQL
+                   ,通知メッセージ
                    ,送信済フラグ
                    ,送信済日時
                    )VALUES(
@@ -219,6 +224,7 @@ class PWADataSend
                     ,'$method_name'
                     ,GETDATE()
                     ,'$esc_sql'
+                    ,'$q_notify_message'
                     ,0
                     ,null
                    )

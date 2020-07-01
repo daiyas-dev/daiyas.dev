@@ -639,6 +639,12 @@ class DAI01030Controller extends Controller
         DB::beginTransaction();
 
         try {
+            $BushoCd = $request->BushoCd ?? $request->bushoCd;
+            $DeliveryDate = $request->DeliveryDate;
+            $CourseCd = $request->CourseCd;
+            $CustomerCd = $request->CustomerCd;
+            $CustomerNm = $request->CustomerNm;
+
             $params = $request->all();
 
             $DeleteList = $params['DeleteList'];
@@ -736,6 +742,12 @@ class DAI01030Controller extends Controller
                 foreach ($MInsertList as $data) {
                     $ds = new DataSendWrapper();
                     $ds->Insert('注文データ', $data, true, $rec['部署ＣＤ'], null, null);
+                }
+
+                if ($DeliveryDate == Carbon::now()->format('Ymd')) {
+                    //当日注文の場合、通知
+                    $Message = $request->Message;
+                    $ds->Execute(null, true, $BushoCd, $CustomerCd, $CourseCd, $Message);
                 }
             }
         } catch (Exception $exception) {

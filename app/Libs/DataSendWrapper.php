@@ -13,9 +13,10 @@ class DataSendWrapper extends PWADataSend
      * @param 部署CD
      * @param 得意先CD
      * @param コースCD
+     * @param 通知メッセージ
      * @return void
      */
-    public function Update($table_name,$table_data,$Immediate = null,$busho_cd = null,$customer_cd=null,$course_cd=null)
+    public function Update($table_name,$table_data,$Immediate = null,$busho_cd = null,$customer_cd=null,$course_cd=null, $notify_message=null)
     {
         try {
             $new_pk=array();
@@ -61,7 +62,7 @@ class DataSendWrapper extends PWADataSend
             $sql="update $new_table_name set $values where $where";
 
             //送信リストに登録
-            parent::StoreSendList($sql,$Immediate,$busho_cd,$customer_cd,$course_cd);
+            parent::StoreSendList($sql,$Immediate,$busho_cd,$customer_cd,$course_cd, $notify_message);
         }
         catch (Exception $exception) {
             throw $exception;
@@ -76,9 +77,10 @@ class DataSendWrapper extends PWADataSend
      * @param 部署CD
      * @param 得意先CD
      * @param コースCD
+     * @param 通知メッセージ
      * @return void
      */
-    public function Insert($table_name,$table_data,$Immediate = null,$busho_cd = null,$customer_cd=null,$course_cd=null)
+    public function Insert($table_name,$table_data,$Immediate = null,$busho_cd = null,$customer_cd=null,$course_cd=null, $notify_message = null)
     {
         try {
             $new_data=array();
@@ -112,7 +114,7 @@ class DataSendWrapper extends PWADataSend
             $sql="insert into $new_table_name ( $fields )values( $values )";
 
             //送信リストに登録
-            parent::StoreSendList($sql,$Immediate,$busho_cd,$customer_cd,$course_cd);
+            parent::StoreSendList($sql,$Immediate,$busho_cd,$customer_cd,$course_cd, $notify_message);
         }
         catch (Exception $exception) {
             throw $exception;
@@ -127,9 +129,10 @@ class DataSendWrapper extends PWADataSend
      * @param 部署CD
      * @param 得意先CD
      * @param コースCD
+     * @param 通知メッセージ
      * @return void
      */
-    public function Delete($table_name,$table_data,$Immediate = null,$busho_cd = null,$customer_cd=null,$course_cd=null)
+    public function Delete($table_name,$table_data,$Immediate = null,$busho_cd = null,$customer_cd=null,$course_cd=null, $notify_message = null)
     {
         try {
             $new_pk=array();
@@ -167,7 +170,7 @@ class DataSendWrapper extends PWADataSend
             $sql="delete from $new_table_name where $where";
 
             //送信リストに登録
-            parent::StoreSendList($sql,$Immediate,$busho_cd,$customer_cd,$course_cd);
+            parent::StoreSendList($sql,$Immediate,$busho_cd,$customer_cd,$course_cd, $notify_message);
         }
         catch (Exception $exception) {
             throw $exception;
@@ -178,8 +181,9 @@ class DataSendWrapper extends PWADataSend
      * 部署ＣＤとコースＣＤ単位でDelete/Insertする
      * @param 部署CD
      * @param コースCD
+     * @param 通知メッセージ
      */
-    public function UpdateCourseTable($busho_cd,$course_cd)
+    public function UpdateCourseTable($busho_cd,$course_cd, $notify_message = null)
     {
         try {
             $sql="delete from CourseData where department_code = $busho_cd and course_code = $course_cd";
@@ -262,6 +266,7 @@ class DataSendWrapper extends PWADataSend
                 $sql_insert="insert CourseData($fields)values($values)";
                 parent::StoreSendList($sql_insert,false,$busho_cd,$CourseData['customer_code'],$course_cd);
             }
+            parent::StoreSendList(null, false, $busho_cd, null, $course_cd, $notify_message);
         }
         catch (Exception $exception) {
             throw $exception;
@@ -275,12 +280,13 @@ class DataSendWrapper extends PWADataSend
      * @param 部署CD
      * @param 得意先CD
      * @param コースCD
+     * @param 通知メッセージ
      * @return void
      */
-    public function Execute($sql,$Immediate = null,$busho_cd = null,$customer_cd=null,$course_cd=null)
+    public function Execute($sql,$Immediate = null,$busho_cd = null,$customer_cd=null,$course_cd=null, $notify_message = null)
     {
         try {
-            parent::StoreSendList($sql,$Immediate,$busho_cd,$customer_cd,$course_cd);
+            parent::StoreSendList($sql,$Immediate,$busho_cd,$customer_cd,$course_cd, $notify_message);
         }
         catch (Exception $exception) {
             throw $exception;
