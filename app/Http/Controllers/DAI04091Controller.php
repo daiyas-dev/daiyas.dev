@@ -205,7 +205,9 @@ class DAI04091Controller extends Controller
             ";
             DB::delete($DelSql);
             DB::commit();
-            $this->SendPWA($BushoCd,$CourseCd);
+
+            $Message = $Condition['Message'];
+            $this->SendPWA($BushoCd,$CourseCd, $Message);
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;
@@ -216,10 +218,10 @@ class DAI04091Controller extends Controller
             "MngCd" => $MngCd,
         ]);
     }
-    private function SendPWA($busho_cd,$course_cd)
+    private function SendPWA($busho_cd,$course_cd, $notify_message = null)
     {
         $ds = new DataSendWrapper();
-        $ds->UpdateCourseTable($busho_cd,$course_cd);
+        $ds->UpdateCourseTable($busho_cd,$course_cd, $notify_message);
 }
 
 }
