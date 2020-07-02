@@ -1403,12 +1403,24 @@ export default {
                 return;
             }
 
+            var Message = {
+                "department_code": model.BushoCd,
+                "course_code": model.CourseCd,
+                "custom_data": {
+                    "message": "",
+                    "values": {
+                        "updateCourseData": true,
+                    },
+                },
+            };
+
             grid.saveData(
                 {
                     uri: "/DAI04091/Save",
                     params: {
                         Condition: params,
                         SaveList: SaveList,
+                        Message: Message,
                     },
                     confirm: {
                         isShow: !isBoth,
