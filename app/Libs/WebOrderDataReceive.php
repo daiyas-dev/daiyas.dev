@@ -18,9 +18,9 @@ class WebOrderDataReceive extends DataReceiveBase
     public function Receive()
     {
         //TODO:テスト用URL(NEW社内)
-        $url = "http://192.168.1.211/hellolaravel/public/api/weborderdatasend";
+        //$url = "http://192.168.1.211/hellolaravel/public/api/weborderdatasend";
         //TODO:本番URL
-        //$url="http://18.178.211.62/api/weborderdatasend";
+        $url="http://18.178.211.62/api/weborderdatasend";
 
         try {
             $sql ="
@@ -157,7 +157,7 @@ class WebOrderDataReceive extends DataReceiveBase
                             //UPDATE
                             //TODO西山修正中
                             $sql="UPDATE $cnv_table_name set 利用者CD='{$record['利用者CD']}',修正担当者ＣＤ='{$record['修正担当者ＣＤ']}',修正日='{$record['修正日']}' WHERE $where";
-                            $pdo->query($sql);
+                            $pdo->exec($sql);
                         }
                         else
                         {
