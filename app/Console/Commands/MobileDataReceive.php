@@ -9,7 +9,7 @@ use App\Libs\PWADataReceive;
 class MobileDataReceive extends Command
 {
     protected $signature = 'batch:MobileDataReceive';
-    protected $description = 'Command description';
+    protected $description = 'AWS(PWA)から社内DBへ更新データを取込';
     public function __construct()
     {
         parent::__construct();

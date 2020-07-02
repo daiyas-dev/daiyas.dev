@@ -18,7 +18,6 @@ class PWADataReceive extends DataReceiveBase
         //TODO:テスト用URL(NEW社内)
         $url = "http://192.168.1.210/hellolaravel/public/api/mobiledatasend";
         //TODO:本番URL
-        //$url="http://52.197.70.172/api/mobiledatasend";
         $url="https://daiyas-mobile.tk/api/mobiledatasend";
         try {
             $sql ="
@@ -53,7 +52,7 @@ class PWADataReceive extends DataReceiveBase
                 }
                 $zip_path = $response["file_path"];
                 if ($zip_path=="") {
-                    //ファイルが送信されなかったら、更新なしとみなし、現在日時を最終更新日時をとして更新する。
+                    //ファイルが送信されなかったら、更新なしとみなし、現在日時を最終更新日時として更新する。
                     $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
                     $user = 'daiyas';
                     $password = 'daiyas';

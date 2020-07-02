@@ -13,7 +13,7 @@ class MobileDataSend extends Command
      * 引数：(省略可)送信ID
      */
     protected $signature = 'batch:MobileDataSend {SendID?*}';
-    protected $description = '社内DBからモバイルへ更新データを送信';
+    protected $description = '社内DBからAWS(PWA)へ更新データを送信';
     public function __construct()
     {
         parent::__construct();

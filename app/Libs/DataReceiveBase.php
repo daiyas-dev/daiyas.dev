@@ -63,11 +63,14 @@ class DataReceiveBase
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // サーバー証明書の検証を行わない
 
             //Post実行
+            $ttl = ini_get('max_execution_time');
+            set_time_limit(0);
             $result = curl_exec($ch);
             $curl_error=curl_error($ch);
 
             // セッションを終了
             curl_close($ch);
+            set_time_limit($ttl);
             //echo 'RETURN:' . $result;
 
             //エラーチェック
@@ -122,6 +125,7 @@ class DataReceiveBase
         try {
             //テーブル名を取得
             $table_name = basename($data_file_path,".txt");
+            $table_name = substr($table_name,0,-4);
             $field_list=null;
 
             //マッピング情報を取得
@@ -205,6 +209,7 @@ class DataReceiveBase
         try {
             //テーブル名を取得
             $table_name = basename($data_file_path,"_dellog.txt");
+            $table_name = substr($table_name,0,-4);
             $field_list=null;
 
             //マッピング情報を取得

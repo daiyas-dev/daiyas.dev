@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Exception;
+use PDO;
 use DB;
 
 //社内システムから受け取った、前回更新日時以降に更新されたデータを、
@@ -39,13 +40,16 @@ class MobileDataSendController extends Controller
             $upd_file = $this->getTableData($table,$last_update_date);
             if($upd_file!=null && $upd_file!="")
             {
-                $files[] = $upd_file['file_name'];
+                $files=$upd_file['file_names'];
                 $max_updated_date = $upd_file['max_updated_date'];
             }
             $dellog_file = $this->getDeleteData($table,$last_update_date);
             if($dellog_file!=null && $dellog_file!="")
             {
-                $files[] = $dellog_file['file_name'];
+                foreach($dellog_file['file_names'] as $val)
+                {
+                    $files[]=$val;
+                }
                 if($max_updated_date==""||$max_updated_date<$dellog_file['max_updated_date'])
                 {
                     //$max_updated_dateが入っていないか、dellogの更新日より小さかったら、置き換える
@@ -76,35 +80,64 @@ class MobileDataSendController extends Controller
      */
     private function getTableData($table_name,$last_update_date)
     {
+        $dsn = 'mysql:host=127.0.0.1;dbname=daiyas_app';
+        $user = 'root';
+        $password = 'WcV5bu%s4p';
+        $pdo = new PDO($dsn, $user, $password);
+        $pdo->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, false);
+
         $where_lud="";
         if($last_update_date!="")
         {
             $where_lud=" and updated_at>'$last_update_date'";
         }
         $sql="select max(updated_at) as max_updated_at from $table_name where 0=0 $where_lud";
-        $max_updated_date = DB::selectOne($sql);
-        $max_updated_date = $max_updated_date->max_updated_at;
+        $stmt = $pdo->query($sql);
+        $updated_at = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $max_updated_date = $updated_at[0]["max_updated_at"];
 
         $sql="select * from $table_name where 0=0 $where_lud";
-        $table_data = DB::select($sql);
+        $uresult = $pdo->query($sql);
+        if ($uresult) {
+            //jsonをファイルに書き込む(10000件ごとに分割)
+            $files=[];
+            $file_no=1;
+            $row_no=1;
+            $file_name = $this->tmp_path . "/" . $table_name . "_". sprintf('%03d', $file_no) .".txt";
+            $file_handle = fopen($file_name, "w");
+            fwrite($file_handle, "[");
+            while ($row = $uresult->fetch(PDO::FETCH_ASSOC)) {
+                // 書き込み
+                $delimiter = ($row_no==1)?"":",";
+                fwrite($file_handle, $delimiter.json_encode($row));
+                $row_no++;
 
-        if($table_data==null||count($table_data)<=0)
+                if(10000<=$row_no)
+                {
+                    // ファイルを閉じる
+                    fwrite($file_handle, "]");
+                    fclose($file_handle);
+                    chmod($file_name, 0777);
+                    $files[]=$file_name;
+                    $row_no=0;
+                    $file_no++;
+
+                    // 次のファイルを開く
+                    $file_name = $this->tmp_path . "/" . $table_name . "_". sprintf('%03d', $file_no) .".txt";
+                    $file_handle = fopen($file_name, "w");
+                }
+            }
+            // ファイルを閉じる
+            fwrite($file_handle, "]");
+            fclose($file_handle);
+            chmod($file_name, 0777);
+            $files[]=$file_name;
+        }
+        else
         {
             return "";
         }
-
-        //jsonをファイルに書き込む
-        $file_name = $this->tmp_path . "/" . $table_name . ".txt";
-        if ($file_handle = fopen($file_name, "w"))
-        {
-            // 書き込み
-            fwrite($file_handle, json_encode($table_data));
-            // ファイルを閉じる
-            fclose($file_handle);
-        }
-        chmod($file_name, 0777);
-
-        return array("file_name"=>$file_name,"max_updated_date"=>$max_updated_date);
+        return array("file_names"=>$files,"max_updated_date"=>$max_updated_date);
     }
     /**
      * 削除されたレコード情報を取得して戻す
@@ -121,7 +154,6 @@ class MobileDataSendController extends Controller
         {
             return "";
         }
-
         //取得結果の末尾を取得
         foreach($delog_tables as $delog_table)
         {
@@ -171,19 +203,25 @@ class MobileDataSendController extends Controller
         {
             return "";
         }
-
-        //jsonをファイルに書き込む
-        $file_name = $this->tmp_path . "/" . $table_name . "_dellog.txt";
-        if ($file_handle = fopen($file_name, "w"))
+        //jsonをファイルに書き込む(10000件ごとに分割)
+        $chunk_table_Data = array_chunk ( $deleted_data , 10000 ,true );
+        $i=1;
+        $files=[];
+        foreach ($chunk_table_Data as $chunk_val)
         {
-            // 書き込み
-            fwrite($file_handle, json_encode($deleted_data));
-            // ファイルを閉じる
-            fclose($file_handle);
+            $file_name = $this->tmp_path . "/" . $table_name . "_". sprintf('%03d', $i) . "_dellog.txt";
+            if ($file_handle = fopen($file_name, "w"))
+            {
+                // 書き込み
+                fwrite($file_handle, json_encode($chunk_val));
+                // ファイルを閉じる
+                fclose($file_handle);
+            }
+            chmod($file_name, 0777);
+            $files[]=$file_name;
+            $i++;
         }
-        chmod($file_name, 0777);
-
-        return array("file_name"=>$file_name,"max_updated_date"=>$max_updated_date);
+        return array("file_names"=>$files,"max_updated_date"=>$max_updated_date);
     }
     /**
      * 応答を返す
@@ -218,7 +256,9 @@ class MobileDataSendController extends Controller
      */
     private function Compress($zip_file_path,$file)
     {
+        $ttl = ini_get('max_execution_time');
         try {
+            set_time_limit(0);
             $zip = new \ZipArchive();
             $zip->open($zip_file_path, \ZipArchive::CREATE);
             foreach ($file as $f) {
@@ -233,6 +273,10 @@ class MobileDataSendController extends Controller
         }
         catch (Exception $exception) {
             throw $exception;
+        }
+        finally
+        {
+            set_time_limit($ttl);
         }
     }
 }
