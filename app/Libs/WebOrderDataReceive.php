@@ -155,6 +155,9 @@ class WebOrderDataReceive extends DataReceiveBase
                         if (0<$count)
                         {
                             //UPDATE
+                            //TODO西山修正中
+                            $sql="UPDATE $cnv_table_name set 利用者CD='{$record['利用者CD']}',修正担当者ＣＤ='{$record['修正担当者ＣＤ']}',修正日='{$record['修正日']}' WHERE $where";
+                            $pdo->query($sql);
                         }
                         else
                         {
