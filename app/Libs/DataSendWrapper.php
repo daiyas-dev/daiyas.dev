@@ -244,6 +244,7 @@ class DataSendWrapper extends PWADataSend
             $CourseDataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
             $pdo = null;
 
+            $send_ids=[];
             foreach($CourseDataList as $CourseData)
             {
                 $fields="";
@@ -264,9 +265,13 @@ class DataSendWrapper extends PWADataSend
                 $fields=substr($fields,1);
                 $values=substr($values,1);
                 $sql_insert="insert CourseData($fields)values($values)";
-                parent::StoreSendList($sql_insert,false,$busho_cd,$CourseData['customer_code'],$course_cd);
+                $send_ids[]=parent::StoreSendList($sql_insert,false,$busho_cd,$CourseData['customer_code'],$course_cd);
             }
-            parent::StoreSendList(null, false, $busho_cd, null, $course_cd, $notify_message);
+            if (count($send_ids))
+            {
+                $this->SendAsync($send_ids);
+            }
+            parent::StoreSendList(null, true, $busho_cd, null, $course_cd, $notify_message);
         }
         catch (Exception $exception) {
             throw $exception;
@@ -291,5 +296,20 @@ class DataSendWrapper extends PWADataSend
         catch (Exception $exception) {
             throw $exception;
         }
+    }
+
+    /**
+     * モバイルサーバへのデータ送信を別プロセスで実行する
+     *
+     * @param array 送信ID
+     * @return void
+     */
+    public function SendAsync($SendID)
+    {
+        $artisan = base_path(). DIRECTORY_SEPARATOR. "artisan";
+        $ParamSendID = join(" ", $SendID);
+        $command = "php {$artisan} batch:MobileDataSend $ParamSendID";
+        $fp = popen('start "" /min ' . $command, 'r');
+        pclose($fp);
     }
 }

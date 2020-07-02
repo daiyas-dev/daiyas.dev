@@ -106,7 +106,6 @@ class PWADataSend
             //TODO:テスト用URL(NEW社内)
             $url = "http://192.168.1.210/hellolaravel/public/api/mobiledatareceive";
             //TODO:本番URL
-            //$url="http://52.197.70.172/api/mobiledatareceive";
             $url="https://daiyas-mobile.tk/api/mobiledatareceive";
 
             // base64エンコード
@@ -172,7 +171,7 @@ class PWADataSend
      * @param 得意先CD
      * @param コースCD
      * @param 通知メッセージ
-     * @return void
+     * @return 送信ID
      */
     public function StoreSendList($sql,$Immediate = null,$busho_cd = null,$customer_cd=null,$course_cd=null, $notify_message = null)
     {
@@ -238,6 +237,7 @@ class PWADataSend
                 //直ちに実行する
                 $this->send($send_id);
             }
+            return $send_id;
         }
         catch (Exception $exception) {
             throw $exception;
