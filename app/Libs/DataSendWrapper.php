@@ -186,9 +186,7 @@ class DataSendWrapper extends PWADataSend
     public function UpdateCourseTable($busho_cd,$course_cd, $notify_message = null)
     {
         try {
-            $sql="delete from CourseData where department_code = $busho_cd and course_code = $course_cd";
-            parent::StoreSendList($sql,true,$busho_cd,null,$course_cd);
-
+            $send_sql="delete from CourseData where department_code = $busho_cd and course_code = $course_cd;";
             $sql="
                     select
                         CK.部署ＣＤ AS department_code
@@ -244,7 +242,6 @@ class DataSendWrapper extends PWADataSend
             $CourseDataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
             $pdo = null;
 
-            $send_ids=[];
             foreach($CourseDataList as $CourseData)
             {
                 $fields="";
@@ -264,14 +261,10 @@ class DataSendWrapper extends PWADataSend
                 }
                 $fields=substr($fields,1);
                 $values=substr($values,1);
-                $sql_insert="insert CourseData($fields)values($values)";
-                $send_ids[]=parent::StoreSendList($sql_insert,false,$busho_cd,$CourseData['customer_code'],$course_cd);
+                $send_sql.="insert into CourseData($fields)values($values);";
             }
-            if (count($send_ids))
-            {
-                $this->SendAsync($send_ids);
-            }
-            parent::StoreSendList(null, true, $busho_cd, null, $course_cd, $notify_message);
+            $send_id=parent::StoreSendList($send_sql,false,$busho_cd,null,$course_cd, $notify_message);
+            $this->SendAsync(array($send_id));
         }
         catch (Exception $exception) {
             throw $exception;
