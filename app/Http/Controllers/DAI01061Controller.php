@@ -2,15 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\コーステーブル;
+use App\Libs\DataSendWrapper;
 use App\Models\モバイル移動入力;
-use App\Models\各種テーブル;
-use App\Models\商品マスタ;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 use DB;
-use Illuminate\Support\Facades\DB as IlluminateDB;
 
 class DAI01061Controller extends Controller
 {
@@ -158,15 +153,15 @@ WHERE
      */
     public function Save($request)
     {
+        $BushoCd = $request->BushoCd;
+        $TargetDate = $request->TargetDate;
+        $CourseCd = $request->CourseCd;
+
         $skip = [];
 
         // トランザクション開始
         $skip = DB::transaction(function () use ($request, $skip) {
             $params = $request->all();
-
-            $BushoCd = $request->BushoCd;
-            $TargetDate = $request->TargetDate;
-            $CourseCd = $request->CourseCd;
 
             $AddList = $params['AddList'];
             $UpdateList = $params['UpdateList'];
@@ -262,6 +257,10 @@ WHERE
 
             return $skip;
         });
+
+        //モバイルsv更新
+        $ds = new DataSendWrapper();
+        $ds->UpdateMovementInputData($BushoCd, $CourseCd,$TargetDate);
 
         $send = null;
         $receive = null;

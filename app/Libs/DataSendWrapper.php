@@ -438,6 +438,52 @@ class DataSendWrapper extends PWADataSend
         }
     }
     /**
+     * モバイル_移動入力テーブルを更新する
+     * 部署ＣＤ、コースＣＤ、日付単位でDelete/Insertする
+     * @param 部署ＣＤ
+     * @param コースＣＤ
+     * @param 日付
+     * @param 通知メッセージ
+     */
+    public function UpdateMovementInputData($busho_cd,$course_cd,$date, $notify_message = null)
+    {
+        try {
+            $map = $this->GetMapping("モバイル_移動入力");
+
+            //送信用SQLを生成
+            $send_sql="delete from MovementInputData
+                        where department_code = $busho_cd
+                          and (course_code=$course_cd or opponent_course_code=$course_cd)
+                          and date = '$date'
+                    ;";
+            $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+            $user = 'daiyas';
+            $password = 'daiyas';
+            $pdo = new PDO($dsn, $user, $password);
+
+            //テーブルのデータを取得
+            $sql="select * from モバイル_移動入力
+                    where 部署ＣＤ = $busho_cd
+                    and (コースＣＤ=$course_cd or 相手コースＣＤ=$course_cd)
+                    and 日付 = '$date'
+                ;";
+            $stmt = $pdo->query($sql);
+            $MoveDataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $pdo = null;
+
+            //送信用SQLを生成
+            foreach($MoveDataList as $PriceData)
+            {
+                $send_sql .= $this->CreateInsertSQL("モバイル_移動入力",$map,$PriceData).";";
+            }
+
+            parent::StoreSendList($send_sql,true,$busho_cd,null,$course_cd, $notify_message);
+        }
+        catch (Exception $exception) {
+            throw $exception;
+        }
+    }
+    /**
      * 指定したテーブルに複数行をinsertする。事前にdelete文の発行可能
      * @param テーブル名
      * @param テーブルデータ配列
