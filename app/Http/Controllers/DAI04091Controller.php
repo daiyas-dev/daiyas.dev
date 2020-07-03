@@ -156,7 +156,8 @@ class DAI04091Controller extends Controller
             }
 
             DB::commit();
-            $this->SendPWA($BushoCd,$CourseCd);
+            $Message = $params['Message'];
+            $this->SendPWA($BushoCd,$CourseCd, $Message);
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;
@@ -206,7 +207,7 @@ class DAI04091Controller extends Controller
             DB::delete($DelSql);
             DB::commit();
 
-            $Message = $Condition['Message'];
+            $Message = $params['Message'];
             $this->SendPWA($BushoCd,$CourseCd, $Message);
         } catch (Exception $exception) {
             DB::rollBack();

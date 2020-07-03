@@ -255,6 +255,18 @@ export default {
                         var params = {BushoCd: vue.viewModel.部署ＣＤ, CourseCd: cd};
                         params.noCache = true;
 
+                        var Message = {
+                            "department_code": model.BushoCd,
+                            "course_code": model.CourseCd,
+                            "custom_data": {
+                                "message": "",
+                                "values": {
+                                    "updateMaster": true,
+                                },
+                            },
+                        };
+                        params.Message = Message;
+
                         $.dialogConfirm({
                             title: "マスタ削除確認",
                             contents: "マスタを削除します。",
@@ -331,6 +343,19 @@ export default {
                         params.工場区分 = params.工場区分 || 0;
                         params.修正担当者ＣＤ = vue.getLoginInfo().uid;
                         params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
+
+                        var Message = {
+                            "department_code": model.BushoCd,
+                            "course_code": model.CourseCd,
+                            "custom_data": {
+                                "message": "",
+                                "values": {
+                                    "updateMaster": true,
+                                },
+                            },
+                        };
+                        params.Message = Message;
+                        params.noCache = true;
 
                         $(vue.$el).find(".has-error").removeClass("has-error");
 

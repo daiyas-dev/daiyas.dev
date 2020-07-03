@@ -107,6 +107,7 @@ class DAI04130Controller extends Controller
             DB::commit();
 
             //モバイルsv更新
+            $Message = $params['Message'];
             foreach ($MUpdateList as $rec) {
                 $ds = new DataSendWrapper();
                 $ds->Update('各種テーブル', $rec, true, null, null, null);
@@ -115,6 +116,7 @@ class DAI04130Controller extends Controller
                 $ds = new DataSendWrapper();
                 $ds->Insert('各種テーブル', $rec, true, null, null, null);
             }
+            //TODO: 全更新完了後に通知されるよう対応
 
         } catch (Exception $exception) {
             DB::rollBack();
@@ -151,8 +153,9 @@ class DAI04130Controller extends Controller
         $data = collect($model)->all();
         $newData = array_merge(['各種CD' => $params['KakusyuCd'], '行NO' => $params['GyoNo']], $data);
         //モバイルSvを更新
+        $Message = $params['Message'];
         $ds = new DataSendWrapper();
-        $ds->Delete('各種テーブル',$newData,true,null,null,null);
+        $ds->Delete('各種テーブル',$newData,true,null,null,null, $Message);
 
         return response()->json([
             "result" => true,

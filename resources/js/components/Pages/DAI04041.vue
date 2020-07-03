@@ -1312,6 +1312,18 @@ export default {
                         var params = {CustomerCd: cd};
                         params.noCache = true;
 
+                        var Message = {
+                            "department_code": model.BushoCd,
+                            "course_code": model.CourseCd,
+                            "custom_data": {
+                                "message": "",
+                                "values": {
+                                    "updateMaster": true,
+                                },
+                            },
+                        };
+                        params.Message = Message;
+
                         $.dialogConfirm({
                             title: "マスタ削除確認",
                             contents: "マスタを削除します。",
@@ -2061,6 +2073,7 @@ export default {
             }
 
             var params = _.cloneDeep(vue.viewModel);
+            params.noCache = true;
 
             //金融機関CD: nullの0置換
             params.金融機関CD = params.金融機関CD || 0;
@@ -2106,6 +2119,18 @@ export default {
 
             //新規か修正か
             params.IsNew = params.IsNew || vue.params.IsNew;
+
+            var Message = {
+                "department_code": model.BushoCd,
+                "course_code": model.CourseCd,
+                "custom_data": {
+                    "message": "",
+                    "values": {
+                        "updateMaster": true,
+                    },
+                },
+            };
+            params.Message = Message;
 
             $(vue.$el).find(".has-error").removeClass("has-error");
 

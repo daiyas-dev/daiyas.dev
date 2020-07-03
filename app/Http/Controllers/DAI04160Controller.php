@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Libs\DataSendWrapper;
 use App\Models\祝日マスタ;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -54,6 +55,11 @@ class DAI04160Controller extends Controller
 
             祝日マスタ::insert($rec);
         }
+        //TODO: 未連携、一括更新のパターン
+        $params = $request->all();
+        $Message = $params['Message'];
+        $ds = new DataSendWrapper();
+        //$ds->Insert('祝日マスタ', $newData, true, null, null, null, $Message);
 
         return response()->json([
             "result" => true,

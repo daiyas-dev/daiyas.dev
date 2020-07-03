@@ -1409,7 +1409,7 @@ export default {
                 "custom_data": {
                     "message": "",
                     "values": {
-                        "updateCourseData": true,
+                        "updateMaster": true,
                     },
                 },
             };
@@ -1511,11 +1511,23 @@ export default {
 
             params.EditUserCd = vue.getLoginInfo().uid;
 
+            var Message = {
+                "department_code": model.BushoCd,
+                "course_code": model.CourseCd,
+                "custom_data": {
+                    "message": "",
+                    "values": {
+                        "updateMaster": true,
+                    },
+                },
+            };
+
             grid.saveData(
                 {
                     uri: "/DAI04091/Delete",
                     params: {
                         Condition: params,
+                        Message: Message,
                     },
                     confirm: {
                         isShow: true,
