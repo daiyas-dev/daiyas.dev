@@ -228,7 +228,7 @@ class DataSendWrapper extends PWADataSend
                 order by
                         CK.部署ＣＤ
                     ,CK.コースＣＤ
-                    ,case CK.一時フラグ when 'TRUE' then 1 else 0 end
+                    ,case CK.一時フラグ when 'TRUE' then 0 else 1 end
                     ,CT.ＳＥＱ
                     ,CK.適用開始日
                     ,CT.修正担当者ＣＤ
