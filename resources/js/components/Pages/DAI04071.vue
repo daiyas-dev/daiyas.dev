@@ -661,6 +661,18 @@ export default {
                         var params = {BushoCd: cd};
                         params.noCache = true;
 
+                        var Message = {
+                            "department_code": model.BushoCd,
+                            "course_code": model.CourseCd,
+                            "custom_data": {
+                                "message": "",
+                                "values": {
+                                    "updateMaster": true,
+                                },
+                            },
+                        };
+                        params.Message = Message;
+
                         $.dialogConfirm({
                             title: "マスタ削除確認",
                             contents: "マスタを削除します。",
@@ -719,6 +731,7 @@ export default {
                         }
 
                         var params = _.cloneDeep(vue.viewModel);
+                        params.noCache = true;
 
                         params.部署グループ = params.部署グループ || 0;
                         params.モバイル_主要商品ＣＤ1 = params.モバイル_主要商品ＣＤ1 || 0;
@@ -740,6 +753,18 @@ export default {
 
                         params.修正担当者CD = params.userId;
                         params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
+
+                        var Message = {
+                            "department_code": model.BushoCd,
+                            "course_code": model.CourseCd,
+                            "custom_data": {
+                                "message": "",
+                                "values": {
+                                    "updateMaster": true,
+                                },
+                            },
+                        };
+                        params.Message = Message;
 
                         //ロゴ/印鑑
                         if (!!vue.IsExistImage && vue.ImageFile != vue.viewModel.部署CD + ".png") {
