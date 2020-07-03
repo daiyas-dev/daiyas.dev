@@ -25,7 +25,7 @@ class MobileDataReceiveController extends Controller
             $filedata = $request->input('FileData');
 			//Log::info('MobileDataReceiveController FileData');
 			//Log::info(print_r($filedata, true));
-			
+
             if($filedata != null && $filedata !== "")
             {
 	            $tmp_file = tempnam($this->tmp_path, "zip");
@@ -62,7 +62,7 @@ class MobileDataReceiveController extends Controller
 	                if(is_file($sqlfile)){
 		                chmod($sqlfile, 0777);
 	                    $sql = file_get_contents($sqlfile);
-	                    
+
 	                    if (!!$sql) {
 							Log::info("execute sql:" . $sql);
 		                    $pdo->exec($sql);
@@ -96,23 +96,23 @@ class MobileDataReceiveController extends Controller
 	                }
 	            }
 	        }
-	        
+
 			//Log::info('MobileDataReceiveController Notification');
 			//Log::info(print_r($request->Notification, true));
 	        if (isset($request->Notification)) {
 				Log::info('Call FCM Push');
 				$params = json_decode($request->Notification);
 				Log::info(print_r($params, true));
-				
+
 		    	$fcm = new FCM();
 		    	$fcm->push(
-		    		$params->department_code, 
-		    		$params->course_code, 
-		    		$params->notify_data, 
-		    		$params->custom_data
+                    property_exists($params, "department_code") ? $params->department_code : null,
+                    property_exists($params, "course_code") ? $params->course_code : null,
+                    property_exists($params, "notify_data") ? (array) $params->notify_data : null,
+                    property_exists($params, "custom_data") ? (array) $params->custom_data : null,
 		    	);
 	        }
-	        
+
             return $this->getResult(1);
         }
         catch (Exception $exception)
