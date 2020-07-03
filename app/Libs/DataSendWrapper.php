@@ -3,6 +3,7 @@
 namespace App\Libs;
 use Exception;
 use PDO;
+use DB;
 class DataSendWrapper extends PWADataSend
 {
     /**
@@ -43,11 +44,13 @@ class DataSendWrapper extends PWADataSend
             }
 
             //SQLの作成
+            $bit_fields = $this->GetBitField($table_name,$map);
             $new_table_name=$map["TableName"];
             $values="";
             foreach($new_data as $key=>$val)
             {
-                $q_val = $val===NULL ? "null" : "'$val'";
+                //値がNULLなら文字列NULL、そうでない場合で、元の型がbitならシングルクォートなしの値、それ以外はシングルクォート付きの値で戻す
+                $q_val = $val===NULL ? "null" : (in_array($key,$bit_fields,true) ? "$val":"'$val'");
                 $values .= ", $key = $q_val";
             }
             $values=substr($values,1);
@@ -100,13 +103,15 @@ class DataSendWrapper extends PWADataSend
             }
 
             //SQLの作成
+            $bit_fields = $this->GetBitField($table_name,$map);
             $new_table_name=$map["TableName"];
             $fields="";
             $values="";
             foreach($new_data as $key=>$val)
             {
                 $fields .= ", $key";
-                $q_val = $val===NULL ? "null" : "'$val'";
+                //値がNULLなら文字列NULL、そうでない場合で、元の型がbitならシングルクォートなしの値、それ以外はシングルクォート付きの値で戻す
+                $q_val = $val===NULL ? "null" : (in_array($key,$bit_fields,true) ? "$val":"'$val'");
                 $values .= ", $q_val";
             }
             $fields=substr($fields,1);
@@ -122,8 +127,11 @@ class DataSendWrapper extends PWADataSend
     }
     /**
      * マッピングと1レコード分のデータを渡してInsertSQLを戻す
+     * @param テーブル名
+     * @param マッピングデータ(1テーブル分)
+     * @param レコードデータ
     */
-    private function CreateInsertSQL($map,$record_data)
+    private function CreateInsertSQL($table_name,$map,$record_data)
     {
         foreach($record_data as $key=>$val)
         {
@@ -135,13 +143,15 @@ class DataSendWrapper extends PWADataSend
         }
 
         //SQLの作成
+        $bit_fields = $this->GetBitField($table_name,$map);
         $new_table_name=$map["TableName"];
         $fields="";
         $values="";
         foreach($new_data as $key=>$val)
         {
             $fields .= ", $key";
-            $q_val = $val===NULL ? "null" : "'$val'";
+            //値がNULLなら文字列NULL、そうでない場合で、元の型がbitならシングルクォートなしの値、それ以外はシングルクォート付きの値で戻す
+            $q_val = $val===NULL ? "null" : (in_array($key,$bit_fields,true) ? "$val":"'$val'");
             $values .= ", $q_val";
         }
         $fields=substr($fields,1);
@@ -150,6 +160,7 @@ class DataSendWrapper extends PWADataSend
     }
     /**
      * 指定のテーブルのマッピング情報を取得する
+     * @param テーブル名
     */
     private function GetMapping($table_name)
     {
@@ -160,7 +171,31 @@ class DataSendWrapper extends PWADataSend
         }
         return $map[$table_name];
     }
-
+    /**
+     * 指定のテーブルのbit型列の一覧を取得する
+     * @param テーブル名
+     * @param マッピングデータ(1テーブル分)
+    */
+    private function GetBitField($table_name,$map)
+    {
+        $sql="SELECT name
+                FROM   sys.columns
+                WHERE  object_id = (SELECT object_id
+                                    FROM   sys.tables
+                                    WHERE  name = '$table_name'
+                                    )
+                and system_type_id=104 ";
+        $field_list=DB::select($sql);
+        $fields=[];
+        foreach ($field_list as $field)
+        {
+            if (array_key_exists($field->name, $map['Field']))
+            {
+                $fields[]=$map['Field'][$field->name];
+            }
+        }
+        return $fields;
+    }
     /**
      * 指定のテーブルのDeleteSQLをモバイル送信リストに登録する
      * @param テーブル名
@@ -342,7 +377,7 @@ class DataSendWrapper extends PWADataSend
             //送信用SQLを生成
             foreach($PriceDataList as $PriceData)
             {
-                $send_sql .= $this->CreateInsertSQL($map,$PriceData).";";
+                $send_sql .= $this->CreateInsertSQL("得意先単価マスタ新",$map,$PriceData).";";
             }
 
             parent::StoreSendList($send_sql,true,$busho_cd,$customer_cd,null, $notify_message);
@@ -383,7 +418,7 @@ class DataSendWrapper extends PWADataSend
             //送信用SQLを生成
             foreach($table_data as $recode_data)
             {
-                $send_sql .= $this->CreateInsertSQL($map,$recode_data).";";
+                $send_sql .= $this->CreateInsertSQL($table_name,$map,$recode_data).";";
             }
 
             //送信リストに登録
