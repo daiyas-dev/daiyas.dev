@@ -107,16 +107,10 @@ class DAI04130Controller extends Controller
             DB::commit();
 
             //モバイルsv更新
-            $Message = $params['Message'];
-            foreach ($MUpdateList as $rec) {
-                $ds = new DataSendWrapper();
-                $ds->Update('各種テーブル', $rec, true, null, null, null);
-            }
-            foreach ($MInsertList as $rec) {
-                $ds = new DataSendWrapper();
-                $ds->Insert('各種テーブル', $rec, true, null, null, null);
-            }
             //TODO: 全更新完了後に通知されるよう対応
+            $Message = $params['Message'];
+            $ds = new DataSendWrapper();
+            $ds->UpdateVariousData($Message);
 
         } catch (Exception $exception) {
             DB::rollBack();

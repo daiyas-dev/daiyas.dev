@@ -402,6 +402,42 @@ class DataSendWrapper extends PWADataSend
         $this->InsertMultiRow('祝日マスタ', $table_data, true, null, null, null, $del_sql,$Message);
     }
     /**
+     * 各種テーブルを更新する
+     * 全件Delete/Insertする
+     * @param 通知メッセージ
+     */
+    public function UpdateVariousData($notify_message = null)
+    {
+        try {
+            $map = $this->GetMapping("各種テーブル");
+
+            //送信用SQLを生成
+            $send_sql="delete from VariousData;";
+
+            $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+            $user = 'daiyas';
+            $password = 'daiyas';
+            $pdo = new PDO($dsn, $user, $password);
+
+            //テーブルのデータを取得
+            $sql="select * from 各種テーブル";
+            $stmt = $pdo->query($sql);
+            $VariousDataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $pdo = null;
+
+            //送信用SQLを生成
+            foreach($VariousDataList as $VariousData)
+            {
+                $send_sql .= $this->CreateInsertSQL("各種テーブル",$map,$VariousData).";";
+            }
+
+            parent::StoreSendList($send_sql,true,null,null,null, $notify_message);
+        }
+        catch (Exception $exception) {
+            throw $exception;
+        }
+    }
+    /**
      * 指定したテーブルに複数行をinsertする。事前にdelete文の発行可能
      * @param テーブル名
      * @param テーブルデータ配列
