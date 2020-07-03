@@ -192,7 +192,7 @@ class DataSendWrapper extends PWADataSend
                         CK.部署ＣＤ AS department_code
                     ,CK.コースＣＤ AS course_code
                     ,CT.ＳＥＱ AS seq
-                    ,case CK.一時フラグ when 'TRUE' then 1 else 0 end as basic_course_flag
+                    ,case CK.一時フラグ when 'TRUE' then 0 else 1 end as basic_course_flag
                     ,CK.適用開始日 AS application_start_date
                     ,CK.適用終了日 AS application_end_date
                     ,CT.得意先ＣＤ AS customer_code
