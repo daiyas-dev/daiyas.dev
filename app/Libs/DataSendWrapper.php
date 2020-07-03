@@ -120,6 +120,46 @@ class DataSendWrapper extends PWADataSend
             throw $exception;
         }
     }
+    /**
+     * マッピングと1レコード分のデータを渡してInsertSQLを戻す
+    */
+    private function CreateInsertSQL($map,$record_data)
+    {
+        foreach($record_data as $key=>$val)
+        {
+            if(array_key_exists($key,$map["Field"]))
+            {
+                $new_key=$map["Field"][$key];
+                $new_data[$new_key]=$val;
+            }
+        }
+
+        //SQLの作成
+        $new_table_name=$map["TableName"];
+        $fields="";
+        $values="";
+        foreach($new_data as $key=>$val)
+        {
+            $fields .= ", $key";
+            $q_val = $val===NULL ? "null" : "'$val'";
+            $values .= ", $q_val";
+        }
+        $fields=substr($fields,1);
+        $values=substr($values,1);
+        return "insert into $new_table_name ( $fields )values( $values )";
+    }
+    /**
+     * 指定のテーブルのマッピング情報を取得する
+    */
+    private function GetMapping($table_name)
+    {
+        //マッピング情報を読み込む
+        $map = json_decode(file_get_contents(public_path()."/dbmapping/pwa.txt"),true);
+        if (!array_key_exists($table_name, $map)) {
+            throw new Exception("テーブルマッピング情報がありません。");
+        }
+        return $map[$table_name];
+    }
 
     /**
      * 指定のテーブルのDeleteSQLをモバイル送信リストに登録する
@@ -187,8 +227,8 @@ class DataSendWrapper extends PWADataSend
     {
         try {
             $send_sql="delete from CourseData where department_code = $busho_cd and course_code = $course_cd;";
-            $sql="
-                    select
+            $sql="select *
+                     得意先単価マスタ新
                         CK.部署ＣＤ AS department_code
                     ,CK.コースＣＤ AS course_code
                     ,CT.ＳＥＱ AS seq
@@ -270,7 +310,47 @@ class DataSendWrapper extends PWADataSend
             throw $exception;
         }
     }
+    /**
+     * 得意先単価マスタ新テーブルを更新する
+     * 得意先ＣＤ単位でDelete/Insertする
+     * @param 得意先CD
+     * @param 通知メッセージ
+     */
+    public function UpdateCustomerPricemasterNew($customer_cd, $notify_message = null)
+    {
+        try {
+            $map = $this->GetMapping("得意先単価マスタ新");
 
+            //送信用SQLを生成
+            $send_sql="delete from CustomerPriceMasterNew where customer_code = $customer_cd;";
+
+            $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+            $user = 'daiyas';
+            $password = 'daiyas';
+            $pdo = new PDO($dsn, $user, $password);
+            //得意先の所属する部署を取得
+            $sql="select 部署CD from 得意先マスタ where 得意先ＣＤ=$customer_cd;";
+            $stmt = $pdo->query($sql);
+            $busho_cd = $stmt->fetch()["部署CD"];
+
+            //テーブルのデータを取得
+            $sql="select * from 得意先単価マスタ新 where 得意先ＣＤ=$customer_cd";
+            $stmt = $pdo->query($sql);
+            $PriceDataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $pdo = null;
+
+            //送信用SQLを生成
+            foreach($PriceDataList as $PriceData)
+            {
+                $send_sql .= $this->CreateInsertSQL($map,$PriceData).";";
+            }
+
+            parent::StoreSendList($send_sql,true,$busho_cd,$customer_cd,null, $notify_message);
+        }
+        catch (Exception $exception) {
+            throw $exception;
+        }
+    }
     /**
      * 指定したSQLをモバイル送信リストに登録する
      * @param SQL

@@ -106,18 +106,8 @@ class DAI04051Controller extends Controller
             DB::commit();
 
             //モバイルsv更新
-            foreach ($DeleteList as $rec) {
-                $ds = new DataSendWrapper();
-                $ds->Delete('得意先単価マスタ新', $rec, true, null, $rec['得意先ＣＤ'], null);
-            }
-            foreach ($AddList as $data) {
-                $ds = new DataSendWrapper();
-                $ds->Insert('得意先単価マスタ新', $data, true, null, $data['得意先ＣＤ'], null);
-            }
-            foreach ($UpdateList as $data) {
-                $ds = new DataSendWrapper();
-                $ds->Update('得意先単価マスタ新', $data, true, null, $data['得意先ＣＤ'], null);
-            }
+            $ds = new DataSendWrapper();
+            $ds->UpdateCustomerPricemasterNew($CustomerCd);
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;
