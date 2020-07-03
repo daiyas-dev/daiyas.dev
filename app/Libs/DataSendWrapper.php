@@ -211,7 +211,7 @@ class DataSendWrapper extends PWADataSend
                         CK.部署ＣＤ
                     ,CK.コースＣＤ
                     ,CT.ＳＥＱ
-                    ,case CK.一時フラグ when 'TRUE' then 1 else 0 end
+                    ,case CK.一時フラグ when 'TRUE' then 0 else 1 end
                     ,CK.適用開始日
                     ,CK.適用終了日
                     ,CT.得意先ＣＤ
