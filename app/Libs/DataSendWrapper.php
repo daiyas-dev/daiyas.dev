@@ -352,6 +352,21 @@ class DataSendWrapper extends PWADataSend
         }
     }
     /**
+     * 祝日マスタを連携する
+     * @param array 祝日データ
+     * @param 通知メッセージ
+     */
+    public function UpdateHolidayMaster($table_data,$Message)
+    {
+        $target_date="";
+        foreach ($table_data as $rec) {
+            $target_date.=",'{$rec['対象日付']}'";
+        }
+        $target_date=substr($target_date,1);
+        $del_sql="delete from HolidayMaster where target_date in($target_date)";
+        $this->InsertMultiRow('祝日マスタ', $table_data, true, null, null, null, $del_sql,$Message);
+    }
+    /**
      * 指定したテーブルに複数行をinsertする。事前にdelete文の発行可能
      * @param テーブル名
      * @param テーブルデータ配列
