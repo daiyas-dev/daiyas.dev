@@ -219,12 +219,6 @@ WITH WITH_注文データ AS
         $skipProduct = [];
         $skipPattern = [];
 
-        //モバイルsv更新用
-        $MYUpdateList = [];
-        $MYInsertList = [];
-        $MUpdateList = [];
-        $MInsertList = [];
-
         try {
             DB::beginTransaction();
 
@@ -256,9 +250,6 @@ WITH WITH_注文データ AS
                         ->where('商品ＣＤ', $rec['商品ＣＤ'])
                         ->where('行Ｎｏ', $rec['行Ｎｏ'])
                         ->update($rec);
-
-                    //モバイルsv更新用
-                    array_push($MYUpdateList, $rec);
                 } else {
                     $no = null;
                     if (count($r) == 0) {
@@ -273,9 +264,6 @@ WITH WITH_注文データ AS
                         $rec['修正日'] = $date;
 
                         モバイル予測入力::insert($rec);
-
-                        //モバイルsv更新用
-                        array_push($MYInsertList, $rec);
                     } else {
                         $skipProduct = collect($skipProduct)->push(["target" => $rec, "current" => $r[0]]);
                         continue;
@@ -309,17 +297,10 @@ WITH WITH_注文データ AS
                         ->where('コースＣＤ', $rec['コースＣＤ'])
                         ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
                         ->update($rec);
-
-                    //モバイルsv更新用
-                    array_push($MUpdateList, $rec);
-
                 } else {
                     if (count($r) == 0) {
                         $rec['修正日'] = $date;
                         日別得意先製造パターン::insert($rec);
-
-                        //モバイルsv更新用
-                        array_push($MInsertList, $rec);
                     } else {
                         $skipPattern = collect($skipPattern)->push(["target" => $rec, "current" => $r[0]]);
                         continue;
@@ -333,23 +314,8 @@ WITH WITH_注文データ AS
                 DB::commit();
 
                 //モバイルsv更新
-                foreach ($MUpdateList as $rec) {
-                    $ds = new DataSendWrapper();
-                    $ds->Update('日別得意先製造パターン', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
-                }
-                foreach ($MInsertList as $rec) {
-                    $ds = new DataSendWrapper();
-                    $ds->Insert('日別得意先製造パターン', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
-                }
-                foreach ($MYUpdateList as $rec) {
-                    $ds = new DataSendWrapper();
-                    $ds->Update('モバイル_予測入力', $rec, true, $rec['部署ＣＤ'],$rec['得意先ＣＤ'], null);
-                }
-                foreach ($MYInsertList as $rec) {
-                    $ds = new DataSendWrapper();
-                    $ds->Insert('モバイル_予測入力', $rec, true, $rec['部署ＣＤ'],$rec['得意先ＣＤ'], null);
-                }
-
+                $ds = new DataSendWrapper();
+                $ds->UpdateExpectedInputData($params['BushoCd'],$params['CourseCd'],$params['DeliveryDate']);
             }
         } catch (Exception $exception) {
             DB::rollBack();

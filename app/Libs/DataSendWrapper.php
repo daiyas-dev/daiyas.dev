@@ -75,7 +75,7 @@ class DataSendWrapper extends PWADataSend
     /**
      * 指定のテーブルのInsertSQLをモバイル送信リストに登録する
      * @param テーブル名
-     * @param テーブルの値
+     * @param レコードの値
      * @param すぐに実行するか。null以外ならすぐに実行
      * @param 部署CD
      * @param 得意先CD
@@ -127,17 +127,36 @@ class DataSendWrapper extends PWADataSend
     }
     /**
      * 指定したテーブルに複数行をinsertする。事前にdelete文の発行可能
+     * レコードデータ配列とレコードデータ取得用SQLを両方指定したらレコードデータ配列が優先
      * @param テーブル名
-     * @param テーブルデータ配列
+     * @param レコードデータ配列
+     * @param レコードデータ取得用SQL
+     * @param すぐに実行するか。null以外ならすぐに実行
+     * @param 部署CD
+     * @param 得意先CD
+     * @param コースCD
+     * @param 事前のDeleteSQL
      * @param 通知メッセージ
      */
-    public function InsertMultiRow($table_name,$table_data,$Immediate = null,$busho_cd = null,$customer_cd=null,$course_cd=null,$before_delete_sql=null, $notify_message=null)
+    private function InsertMultiRow($table_name,$table_data=null,$table_sql=null,$Immediate = null,$busho_cd = null,$customer_cd=null,$course_cd=null,$before_delete_sql=null, $notify_message=null)
     {
         try {
             $map = $this->GetMapping($table_name);
 
             //送信用SQLを生成(事前に削除がある場合)
             $send_sql = $before_delete_sql!=null ? $before_delete_sql.";" : "";
+
+            if($table_data==null)
+            {
+                //テーブルのデータを取得
+                $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+                $user = 'daiyas';
+                $password = 'daiyas';
+                $pdo = new PDO($dsn, $user, $password);
+                $stmt = $pdo->query($table_sql);
+                $table_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $pdo = null;
+            }
 
             //送信用SQLを生成
             foreach($table_data as $recode_data)
@@ -426,7 +445,7 @@ class DataSendWrapper extends PWADataSend
         }
         $target_date=substr($target_date,1);
         $del_sql="delete from HolidayMaster where target_date in($target_date)";
-        $this->InsertMultiRow('祝日マスタ', $table_data, true, null, null, null, $del_sql,$Message);
+        $this->InsertMultiRow('祝日マスタ', $table_data,null, true, null, null, null, $del_sql,$Message);
     }
     /**
      * 各種テーブルを更新する
@@ -436,29 +455,10 @@ class DataSendWrapper extends PWADataSend
     public function UpdateVariousData($notify_message = null)
     {
         try {
-            $map = $this->GetMapping("各種テーブル");
-
-            //送信用SQLを生成
-            $send_sql="delete from VariousData;";
-
-            $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-            $user = 'daiyas';
-            $password = 'daiyas';
-            $pdo = new PDO($dsn, $user, $password);
-
-            //テーブルのデータを取得
-            $sql="select * from 各種テーブル";
-            $stmt = $pdo->query($sql);
-            $VariousDataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            $pdo = null;
-
-            //送信用SQLを生成
-            foreach($VariousDataList as $VariousData)
-            {
-                $send_sql .= $this->CreateInsertSQL("各種テーブル",$map,$VariousData).";";
-            }
-
-            parent::StoreSendList($send_sql,true,null,null,null, $notify_message);
+            $table_name="各種テーブル";
+            $del_sql="delete from VariousData";
+            $table_sql="select * from $table_name";
+            $this->InsertMultiRow($table_name, null, $table_sql, true, null, null, null, $del_sql,$notify_message);
         }
         catch (Exception $exception) {
             throw $exception;
@@ -475,36 +475,16 @@ class DataSendWrapper extends PWADataSend
     public function UpdateMovementInputData($busho_cd,$course_cd,$date, $notify_message = null)
     {
         try {
-            $map = $this->GetMapping("モバイル_移動入力");
-
-            //送信用SQLを生成
-            $send_sql="delete from MovementInputData
+            $table_name="モバイル_移動入力";
+            $del_sql="delete from MovementInputData
                         where department_code = $busho_cd
                           and (course_code=$course_cd or opponent_course_code=$course_cd)
-                          and date = '$date'
-                    ;";
-            $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-            $user = 'daiyas';
-            $password = 'daiyas';
-            $pdo = new PDO($dsn, $user, $password);
-
-            //テーブルのデータを取得
-            $sql="select * from モバイル_移動入力
+                          and date = '$date'";
+            $table_sql="select * from $table_name
                     where 部署ＣＤ = $busho_cd
                     and (コースＣＤ=$course_cd or 相手コースＣＤ=$course_cd)
-                    and 日付 = '$date'
-                ;";
-            $stmt = $pdo->query($sql);
-            $MoveDataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            $pdo = null;
-
-            //送信用SQLを生成
-            foreach($MoveDataList as $PriceData)
-            {
-                $send_sql .= $this->CreateInsertSQL("モバイル_移動入力",$map,$PriceData).";";
-            }
-
-            parent::StoreSendList($send_sql,true,$busho_cd,null,$course_cd, $notify_message);
+                    and 日付 = '$date'";
+            $this->InsertMultiRow($table_name, null, $table_sql, true, $busho_cd, null, $course_cd, $del_sql,$notify_message);
         }
         catch (Exception $exception) {
             throw $exception;
@@ -520,34 +500,85 @@ class DataSendWrapper extends PWADataSend
     public function UpdateTakeOutInputData($busho_cd, $date, $notify_message = null)
     {
         try {
-            $map = $this->GetMapping("モバイル_持ち出し入力");
+            $table_name="モバイル_持ち出し入力";
+            $del_sql="delete from TakeOutInputData
+                    where department_code = $busho_cd
+                      and take_out_at = '$date'
+                ";
+            $table_sql="select * from $table_name
+                where 部署ＣＤ = $busho_cd
+                and 持ち出し日付 = '$date'
+            ";
+            $this->InsertMultiRow($table_name, null, $table_sql, true, $busho_cd, null, null, $del_sql,$notify_message);
+        }
+        catch (Exception $exception) {
+            throw $exception;
+        }
+    }
+    /**
+     * 日別得意先製造パターンとモバイル_予測入力テーブルを更新する
+     * モバイル_予測入力は、部署ＣＤ、日付単位でDelete/Insertする
+     * 日別得意先製造パターンは、部署ＣＤ、コースＣＤ、日付単位でDelete/Insertする
+     * @param 部署ＣＤ
+     * @param コースＣＤ
+     * @param 日付
+     * @param 通知メッセージ
+     */
+    public function UpdateExpectedInputData($busho_cd,$course_cd,$date, $notify_message = null)
+    {
+        try {
+            //モバイル_予測入力データの更新
+            $table_name="モバイル_予測入力";
 
-            //送信用SQLを生成
-            $send_sql="delete from TakeOutInputData
-                        where department_code = $busho_cd
-                          and take_out_at = '$date'
-                    ;";
+            //テーブルのデータを取得
+            $table_sql="select * from $table_name
+                    where 部署ＣＤ = $busho_cd
+                    and 日付 = '$date'";
+
             $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
             $user = 'daiyas';
             $password = 'daiyas';
             $pdo = new PDO($dsn, $user, $password);
-
-            //テーブルのデータを取得
-            $sql="select * from モバイル_持ち出し入力
-                    where 部署ＣＤ = $busho_cd
-                    and 持ち出し日付 = '$date'
-                ;";
-            $stmt = $pdo->query($sql);
-            $TakeOutDataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stmt = $pdo->query($table_sql);
+            $table_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
             $pdo = null;
 
             //送信用SQLを生成
-            foreach($TakeOutDataList as $PriceData)
+            $map = $this->GetMapping($table_name);
+            $send_sql = "delete from {$map['TableName']} where department_code = $busho_cd and date = '$date';";
+            foreach($table_data as $recode_data)
             {
-                $send_sql .= $this->CreateInsertSQL("モバイル_持ち出し入力",$map,$PriceData).";";
+                $send_sql .= $this->CreateInsertSQL($table_name,$map,$recode_data).";";
             }
 
-            parent::StoreSendList($send_sql,true,$busho_cd,null,null, $notify_message);
+            //日別得意先製造パターンデータの更新
+            $table_name="日別得意先製造パターン";
+
+            //テーブルのデータを取得
+            $table_sql="select * from $table_name
+                        where 部署ＣＤ = $busho_cd
+                        and 製造日 = '$date'
+                        and コースＣＤ=$course_cd
+                        ";
+
+            $pdo = new PDO($dsn, $user, $password);
+            $stmt = $pdo->query($table_sql);
+            $table_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $pdo = null;
+
+            //送信用SQLを生成
+            $map = $this->GetMapping($table_name);
+            $send_sql .= "delete from {$map['TableName']}
+                          where department_code = $busho_cd
+                            and production_date = '$date'
+                            and course_code= $course_cd
+                        ;";
+            foreach($table_data as $recode_data)
+            {
+                $send_sql .= $this->CreateInsertSQL($table_name,$map,$recode_data).";";
+            }
+            //送信リストに登録
+            parent::StoreSendList($send_sql,true,$busho_cd,null,$course_cd, $notify_message);
         }
         catch (Exception $exception) {
             throw $exception;
