@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Libs\DataSendWrapper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
@@ -153,6 +154,12 @@ ELSE
                 DB::statement($sql);
             });
         });
+
+        //モバイルsv更新
+        $busho_cd=$params['conditions']['BushoCd'];
+        $date=preg_replace('/年|月|日/','',$params['conditions']['DeliveryDate']);;
+        $ds = new DataSendWrapper();
+        $ds->UpdateTakeOutInputData($busho_cd, $date);
 
         return response()->json([
             'result' => true,
