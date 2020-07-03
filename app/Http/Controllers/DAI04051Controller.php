@@ -119,6 +119,8 @@ class DAI04051Controller extends Controller
                 $ds = new DataSendWrapper();
                 $ds->Update('得意先単価マスタ新', $data, true, null, $data['得意先ＣＤ'], null);
             }
+            //TODO: 全更新完了後に通知されるよう対応
+
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;

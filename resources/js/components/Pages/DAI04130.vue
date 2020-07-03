@@ -390,6 +390,17 @@ export default {
             //保存実行
             var params = {SaveList: SaveList};
             params.noCache = true;
+            var Message = {
+                "department_code": model.BushoCd,
+                "course_code": model.CourseCd,
+                "custom_data": {
+                    "message": "",
+                    "values": {
+                        "updateMaster": true,
+                    },
+                },
+            };
+            params.Message = Message;
 
             axios.post("/DAI04130/Save", params)
                 .then(res => {
@@ -464,6 +475,17 @@ export default {
 
             var params = { KakusyuCd: KakusyuCd, GyoNo: GyoNo };
             params.noCache = true;
+            var Message = {
+                "department_code": model.BushoCd,
+                "course_code": model.CourseCd,
+                "custom_data": {
+                    "message": "",
+                    "values": {
+                        "updateMaster": true,
+                    },
+                },
+            };
+            params.Message = Message;
 
             $.dialogConfirm({
                 title: "マスタ削除確認",

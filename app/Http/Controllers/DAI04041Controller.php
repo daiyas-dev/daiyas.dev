@@ -66,11 +66,12 @@ class DAI04041Controller extends Controller
             DB::commit();
 
             //モバイルSvを更新
+            $Message = $params['Message'];
             $ds = new DataSendWrapper();
             if ($isNew) {
-                $ds->Insert('得意先マスタ',$newData,true,$newData['部署CD'],null,null);
+                $ds->Insert('得意先マスタ',$newData,true,$newData['部署CD'],null,null, $Message);
             }else{
-                $ds->Update('得意先マスタ',$newData,true,$newData['部署CD'],null,null);
+                $ds->Update('得意先マスタ',$newData,true,$newData['部署CD'],null,null, $Message);
             }
 
         } catch (Exception $exception) {
@@ -108,8 +109,9 @@ class DAI04041Controller extends Controller
         $data = collect($model)->all();
         $newData = array_merge(['得意先ＣＤ' => $CustomerCd], $data);
         //モバイルSvを更新
+        $Message = $params['Message'];
         $ds = new DataSendWrapper();
-        $ds->Delete('得意先マスタ',$newData,true,null,null,null);
+        $ds->Delete('得意先マスタ',$newData,true,null,null,null, $Message);
 
         return response()->json([
             'result' => true,
