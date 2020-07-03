@@ -352,6 +352,33 @@ class DataSendWrapper extends PWADataSend
         }
     }
     /**
+     * 指定したテーブルに複数行をinsertする。事前にdelete文の発行可能
+     * @param テーブル名
+     * @param テーブルデータ配列
+     * @param 通知メッセージ
+     */
+    public function InsertMultiRow($table_name,$table_data,$Immediate = null,$busho_cd = null,$customer_cd=null,$course_cd=null,$before_delete_sql=null, $notify_message=null)
+    {
+        try {
+            $map = $this->GetMapping($table_name);
+
+            //送信用SQLを生成(事前に削除がある場合)
+            $send_sql = $before_delete_sql!=null ? $before_delete_sql.";" : "";
+
+            //送信用SQLを生成
+            foreach($table_data as $recode_data)
+            {
+                $send_sql .= $this->CreateInsertSQL($map,$recode_data).";";
+            }
+
+            //送信リストに登録
+            parent::StoreSendList($send_sql,$Immediate,$busho_cd,$customer_cd,$course_cd, $notify_message);
+        }
+        catch (Exception $exception) {
+            throw $exception;
+        }
+    }
+    /**
      * 指定したSQLをモバイル送信リストに登録する
      * @param SQL
      * @param すぐに実行するか。null以外ならすぐに実行

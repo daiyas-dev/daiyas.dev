@@ -58,8 +58,14 @@ class DAI04160Controller extends Controller
         //TODO: 未連携、一括更新のパターン
         $params = $request->all();
         $Message = $params['Message'];
+        $target_date="";
+        foreach ($list as $rec) {
+            $target_date.=",'{$rec['対象日付']}'";
+        }
+        $target_date=substr($target_date,1);
+        $del_sql="delete from HolidayMaster where target_date in($target_date)";
         $ds = new DataSendWrapper();
-        //$ds->Insert('祝日マスタ', $newData, true, null, null, null, $Message);
+        $ds->InsertMultiRow('祝日マスタ', $list->toArray(), true, null, null, null, $del_sql,$Message);
 
         return response()->json([
             "result" => true,
