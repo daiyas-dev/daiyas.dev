@@ -176,6 +176,7 @@ class DataSendWrapper extends PWADataSend
      * @param テーブル名
      * @param マッピングデータ(1テーブル分)
      * @param レコードデータ
+     * @return InsertSQL文字列
     */
     private function CreateInsertSQL($table_name,$map,$record_data)
     {
@@ -207,6 +208,7 @@ class DataSendWrapper extends PWADataSend
     /**
      * 指定のテーブルのマッピング情報を取得する
      * @param テーブル名
+     * @return マッピング情報配列
     */
     private function GetMapping($table_name)
     {
@@ -218,9 +220,10 @@ class DataSendWrapper extends PWADataSend
         return $map[$table_name];
     }
     /**
-     * 指定のテーブルのbit型列の一覧を取得する
+     * 指定のテーブルのbit型列の一覧を取得し、PWA側の列名の配列で戻す
      * @param テーブル名
      * @param マッピングデータ(1テーブル分)
+     * @return 取得結果
     */
     private function GetBitField($table_name,$map)
     {
@@ -308,9 +311,8 @@ class DataSendWrapper extends PWADataSend
     {
         try {
             $send_sql="delete from CourseData where department_code = $busho_cd and course_code = $course_cd;";
-            $sql="select *
-                     得意先単価マスタ新
-                        CK.部署ＣＤ AS department_code
+            $sql="select
+                     CK.部署ＣＤ AS department_code
                     ,CK.コースＣＤ AS course_code
                     ,CT.ＳＥＱ AS seq
                     ,case CK.一時フラグ when 'TRUE' then 0 else 1 end as basic_course_flag
@@ -320,7 +322,7 @@ class DataSendWrapper extends PWADataSend
                     ,CT.修正担当者ＣＤ AS updated_responsible_code
                     ,GETDATE() AS updated_at
                 from
-                        コーステーブル管理 CK
+                     コーステーブル管理 CK
                     ,コーステーブル CT
                 where CK.部署ＣＤ=$busho_cd
                     and CK.コースＣＤ=$course_cd
@@ -329,7 +331,7 @@ class DataSendWrapper extends PWADataSend
                     and CK.管理ＣＤ=0
                 union
                 select
-                        CK.部署ＣＤ
+                     CK.部署ＣＤ
                     ,CK.コースＣＤ
                     ,CT.ＳＥＱ
                     ,case CK.一時フラグ when 'TRUE' then 0 else 1 end
@@ -339,7 +341,7 @@ class DataSendWrapper extends PWADataSend
                     ,CT.修正担当者ＣＤ AS updated_responsible_code
                     ,GETDATE() AS updated_at
                 from
-                        コーステーブル管理 CK
+                     コーステーブル管理 CK
                     ,コーステーブル一時 CT
                 where CK.部署ＣＤ=$busho_cd
                     and CK.コースＣＤ=$course_cd
@@ -347,7 +349,7 @@ class DataSendWrapper extends PWADataSend
                     and CK.コースＣＤ=CT.コースＣＤ
                     and CK.管理ＣＤ<>0
                 order by
-                        CK.部署ＣＤ
+                     CK.部署ＣＤ
                     ,CK.コースＣＤ
                     ,case CK.一時フラグ when 'TRUE' then 0 else 1 end
                     ,CT.ＳＥＱ
@@ -384,8 +386,7 @@ class DataSendWrapper extends PWADataSend
                 $values=substr($values,1);
                 $send_sql.="insert into CourseData($fields)values($values);";
             }
-            $send_id=parent::StoreSendList($send_sql,false,$busho_cd,null,$course_cd, $notify_message);
-            $this->SendAsync(array($send_id));
+            parent::StoreSendList($send_sql,true,$busho_cd,null,$course_cd, $notify_message);
         }
         catch (Exception $exception) {
             throw $exception;
@@ -400,33 +401,14 @@ class DataSendWrapper extends PWADataSend
     public function UpdateCustomerPricemasterNew($customer_cd, $notify_message = null)
     {
         try {
-            $map = $this->GetMapping("得意先単価マスタ新");
-
-            //送信用SQLを生成
-            $send_sql="delete from CustomerPriceMasterNew where customer_code = $customer_cd;";
-
-            $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-            $user = 'daiyas';
-            $password = 'daiyas';
-            $pdo = new PDO($dsn, $user, $password);
             //得意先の所属する部署を取得
             $sql="select 部署CD from 得意先マスタ where 得意先ＣＤ=$customer_cd;";
-            $stmt = $pdo->query($sql);
-            $busho_cd = $stmt->fetch()["部署CD"];
+            $busho_cd = DB::selectOne($sql)->部署CD;
 
-            //テーブルのデータを取得
-            $sql="select * from 得意先単価マスタ新 where 得意先ＣＤ=$customer_cd";
-            $stmt = $pdo->query($sql);
-            $PriceDataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            $pdo = null;
-
-            //送信用SQLを生成
-            foreach($PriceDataList as $PriceData)
-            {
-                $send_sql .= $this->CreateInsertSQL("得意先単価マスタ新",$map,$PriceData).";";
-            }
-
-            parent::StoreSendList($send_sql,true,$busho_cd,$customer_cd,null, $notify_message);
+            $table_name="得意先単価マスタ新";
+            $del_sql="delete from CustomerPriceMasterNew where customer_code = $customer_cd";
+            $table_sql="select * from $table_name where 得意先ＣＤ=$customer_cd";
+            $this->InsertMultiRow($table_name, null, $table_sql, true, $busho_cd, $customer_cd, null, $del_sql,$notify_message);
         }
         catch (Exception $exception) {
             throw $exception;
