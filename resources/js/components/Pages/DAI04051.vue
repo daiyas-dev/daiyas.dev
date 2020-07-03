@@ -441,6 +441,18 @@ export default {
             var params = {SaveList: SaveList, CustomerCd: vue.viewModel.CustomerCd};
             params.noCache = true;
 
+            var Message = {
+                "department_code": model.BushoCd,
+                "course_code": model.CourseCd,
+                "custom_data": {
+                    "message": "",
+                    "values": {
+                        "updateMaster": true,
+                    },
+                },
+            };
+            params.Message = Message;
+
             //登録中ダイアログ
             var progressDlg = $.dialogProgress({
                 contents: "<i class='fa fa-spinner fa-spin' style='font-size: 24px; margin-right: 5px;'></i> 登録中…",
@@ -492,6 +504,18 @@ export default {
 
             var params = _.cloneDeep(row.InitialValue);
             params.noCache = true;
+
+            var Message = {
+                "department_code": model.BushoCd,
+                "course_code": model.CourseCd,
+                "custom_data": {
+                    "message": "",
+                    "values": {
+                        "updateMaster": true,
+                    },
+                },
+            };
+            params.Message = Message;
 
             $.dialogConfirm({
                 title: "削除確認",

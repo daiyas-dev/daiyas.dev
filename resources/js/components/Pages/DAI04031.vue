@@ -298,6 +298,18 @@ export default {
                         var params = {ProductCd: cd};
                         params.noCache = true;
 
+                        var Message = {
+                            "department_code": model.BushoCd,
+                            "course_code": model.CourseCd,
+                            "custom_data": {
+                                "message": "",
+                                "values": {
+                                    "updateMaster": true,
+                                },
+                            },
+                        };
+                        params.Message = Message;
+
                         $.dialogConfirm({
                             title: "マスタ削除確認",
                             contents: "マスタを削除します。",
@@ -378,6 +390,18 @@ export default {
                         params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
 
                         $(vue.$el).find(".has-error").removeClass("has-error");
+
+                        var Message = {
+                            "department_code": model.BushoCd,
+                            "course_code": model.CourseCd,
+                            "custom_data": {
+                                "message": "",
+                                "values": {
+                                    "updateMaster": true,
+                                },
+                            },
+                        };
+                        params.Message = Message;
 
                         //登録用controller method call
                         axios.post("/DAI04031/Save", params)

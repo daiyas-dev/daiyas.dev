@@ -106,6 +106,7 @@ class DAI04051Controller extends Controller
             DB::commit();
 
             //モバイルsv更新
+            $Message = $params['Message'];
             foreach ($DeleteList as $rec) {
                 $ds = new DataSendWrapper();
                 $ds->Delete('得意先単価マスタ新', $rec, true, null, $rec['得意先ＣＤ'], null);
