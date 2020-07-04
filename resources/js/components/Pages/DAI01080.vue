@@ -274,7 +274,19 @@ export default {
                             });
                         });
 
-                        console.log("01080 save", productUpdateList, patternUpdateList);
+                        var params = _.cloneDeep(vue.searchParams);
+                        params.noCache = true;
+                        var Message = {
+                            "department_code": params.BushoCd,
+                            "course_code": params.CourseCd,
+                            "custom_data": {
+                                "message": "",
+                                "values": {
+                                    "updateData": true,
+                                },
+                            },
+                        };
+                        params.Message = Message;
 
                         //保存実行
                         grid.saveData(
@@ -284,7 +296,7 @@ export default {
                                     ProductList: productUpdateList,
                                     PatternList: patternUpdateList,
                                 },
-                                optional: vue.searchParams,
+                                optional: params,
                                 confirm: {
                                     isShow: true,
                                 },

@@ -299,8 +299,8 @@ export default {
                         params.noCache = true;
 
                         var Message = {
-                            "department_code": model.BushoCd,
-                            "course_code": model.CourseCd,
+                            "department_code": null,
+                            "course_code": null,
                             "custom_data": {
                                 "message": "",
                                 "values": {
@@ -392,8 +392,8 @@ export default {
                         $(vue.$el).find(".has-error").removeClass("has-error");
 
                         var Message = {
-                            "department_code": model.BushoCd,
-                            "course_code": model.CourseCd,
+                            "department_code": null,
+                            "course_code": null,
                             "custom_data": {
                                 "message": "",
                                 "values": {

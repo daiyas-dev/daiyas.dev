@@ -471,8 +471,19 @@ export default {
             }
 
             //保存実行
-            var params = {SaveList: SaveList, CustomerCd: vue.viewModel.CustomerCd};
+            var params = {SaveList: SaveList, BushoCd: vue.viewModel.BushoCd};
             params.noCache = true;
+            var Message = {
+                "department_code": vue.viewModel.BushoCd,
+                "course_code": null,
+                "custom_data": {
+                    "message": "",
+                    "values": {
+                        "updateMaster": true,
+                    },
+                },
+            };
+            params.Message = Message;
 
             //登録中ダイアログ
             var progressDlg = $.dialogProgress({

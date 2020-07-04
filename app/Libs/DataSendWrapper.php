@@ -567,6 +567,27 @@ class DataSendWrapper extends PWADataSend
         }
     }
     /**
+     * モバイル_対象商品テーブルを更新する
+     * 部署ＣＤ単位でDelete/Insertする
+     * @param 部署ＣＤ
+     * @param 通知メッセージ
+     */
+    public function UpdateTargetProductData($busho_cd, $notify_message = null)
+    {
+        try {
+            $table_name = "モバイル_対象商品";
+            $del_sql = "delete from TargetProductData
+                    where department_code = $busho_cd
+                ";
+            $table_sql = "select * from $table_name
+                where 部署ＣＤ = $busho_cd
+            ";
+            $this->InsertMultiRow($table_name, null, $table_sql, true, $busho_cd, null, null, $del_sql, $notify_message);
+        } catch (Exception $exception) {
+            throw $exception;
+        }
+    }
+    /**
      * 指定したSQLをモバイル送信リストに登録する
      * @param SQL
      * @param すぐに実行するか。null以外ならすぐに実行

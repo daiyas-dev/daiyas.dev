@@ -391,8 +391,8 @@ export default {
             var params = {SaveList: SaveList};
             params.noCache = true;
             var Message = {
-                "department_code": model.BushoCd,
-                "course_code": model.CourseCd,
+                "department_code": null,
+                "course_code": null,
                 "custom_data": {
                     "message": "",
                     "values": {
@@ -476,8 +476,8 @@ export default {
             var params = { KakusyuCd: KakusyuCd, GyoNo: GyoNo };
             params.noCache = true;
             var Message = {
-                "department_code": model.BushoCd,
-                "course_code": model.CourseCd,
+                "department_code": null,
+                "course_code": null,
                 "custom_data": {
                     "message": "",
                     "values": {

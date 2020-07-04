@@ -109,7 +109,6 @@ class DAI04051Controller extends Controller
             $Message = $params['Message'];
             $ds = new DataSendWrapper();
             $ds->UpdateCustomerPricemasterNew($CustomerCd,$Message);
-            //TODO: 全更新完了後に通知されるよう対応
 
         } catch (Exception $exception) {
             DB::rollBack();
@@ -141,8 +140,9 @@ class DAI04051Controller extends Controller
 
             DB::commit();
             //モバイルsv更新
+            $Message = $params['Message'];
             $ds = new DataSendWrapper();
-            $ds->Delete('得意先単価マスタ新', $params, true, null, $params['得意先ＣＤ'], null);
+            $ds->Delete('得意先単価マスタ新', $params, true, null, $params['得意先ＣＤ'], null, $Message);
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;

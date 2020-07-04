@@ -129,8 +129,8 @@ export default {
                         var params = _.cloneDeep(vue.searchParams);
                         params.noCache = true;
                         var Message = {
-                            "department_code": model.BushoCd,
-                            "course_code": model.CourseCd,
+                            "department_code": null,
+                            "course_code": null,
                             "custom_data": {
                                 "message": "",
                                 "values": {
@@ -200,8 +200,8 @@ export default {
                         params.noCache = true;
                         params.IsNew = vue.viewModel.IsNew;
                         var Message = {
-                            "department_code": model.BushoCd,
-                            "course_code": model.CourseCd,
+                            "department_code": null,
+                            "course_code": null,
                             "custom_data": {
                                 "message": "",
                                 "values": {

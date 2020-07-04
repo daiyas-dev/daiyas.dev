@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Libs\DataSendWrapper;
 use App\Models\モバイル対象商品;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -91,6 +92,8 @@ class DAI04120Controller extends Controller
 
         DB::beginTransaction();
         try {
+            $BushoCd = $request->BushoCd;
+
             $saveList = $params['SaveList'];
 
             $AddList = $saveList['AddList'];
@@ -135,6 +138,12 @@ class DAI04120Controller extends Controller
             }
 
             DB::commit();
+
+            //モバイルsv更新
+            $Message = $params['Message'];
+            $ds = new DataSendWrapper();
+            $ds->UpdateTargetProductData($BushoCd, $Message);
+
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;
@@ -160,6 +169,11 @@ class DAI04120Controller extends Controller
                 ->delete();
 
             DB::commit();
+
+            //モバイルSvを更新
+            $Message = $params['Message'];
+            $ds = new DataSendWrapper();
+            $ds->Delete('モバイル_対象商品', $params, true, $params['部署ＣＤ'], null, null, $Message);
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;

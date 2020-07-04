@@ -414,4 +414,84 @@ class DataReceiveBase
             throw $exception;
         }
     }
+
+    /**
+     * 連携対象更新後続処理
+     * @param object (参照)トランザクション
+     * @param int    受信ID
+     * @param string データファイルフルパス
+     * @return bool  処理結果 true=成功 / false=エラー有り
+     */
+    public function ExecAfter(&$pdo, $receive_id, $data_file_path)
+    {
+        try {
+            //テーブル名を取得
+            $table_name = basename($data_file_path, ".txt");
+            $table_name = substr($table_name, 0, -4);
+            $field_list = null;
+
+            //マッピング情報を取得
+            $field_list = $this->getMapping($table_name);
+            $cnv_table_name = $field_list['TableName'];
+
+            //1レコードごとにデータを更新
+            $table_data = json_decode(file_get_contents($data_file_path), true);
+            $new_pk = array();
+            $new_data = array();
+
+            //TODO
+            return true;
+
+            foreach ($table_data as $record) {
+                //列情報を取得
+                $ret = $this->getRowData($record, $field_list);
+                $new_pk = $ret['key'];
+                $new_data = $ret['val'];
+
+                //同一情報が存在するか確認
+                $where = "";
+                foreach ($new_pk as $key => $val) {
+                    $where .= " AND $key = '$val'";
+                }
+                $where = substr($where, 5);
+                $stmt = $pdo->query("SELECT COUNT(*) AS CNT FROM $cnv_table_name WHERE $where");
+                $count = $stmt->fetch()["CNT"];
+
+                //更新実施
+                if (0 < $count) {
+                    //UPDATE
+                    $values = "";
+                    foreach ($new_data as $key => $val) {
+                        $q_val = ($val === NULL || $val === '') ? "null" : "'$val'";
+                        $values .= ", $key = $q_val";
+                    }
+                    $values = substr($values, 1);
+                    $sql = "UPDATE $cnv_table_name SET $values WHERE $where";
+                    $pdo->exec($sql);
+                } else {
+                    //INSERT
+                    $fields = "";
+                    $values = "";
+                    foreach ($new_data as $key => $val) {
+                        $fields .= ", $key";
+                        $q_val = ($val === NULL || $val === '') ? "null" : "'$val'";
+                        $values .= ", $q_val";
+                    }
+                    $fields = substr($fields, 1);
+                    $values = substr($values, 1);
+                    $sql = "insert into $cnv_table_name ( $fields )values( $values )";
+                    $pdo->exec($sql);
+                }
+                $error_info = $pdo->errorInfo();
+                if ($error_info[0] != "00000" || $error_info[1] != null || $error_info[2] != null) {
+                    //SQLを実行してエラーが発生した場合
+                    $this->ErrorReceiveList($receive_id, "SQL実行エラー", $error_info[1] . " " . $error_info[2] . " " . $sql, $data_file_path);
+                    return false;
+                }
+            }
+            return true;
+        } catch (Exception $exception) {
+            throw $exception;
+        }
+    }
 }

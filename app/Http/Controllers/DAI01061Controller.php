@@ -158,10 +158,10 @@ WHERE
         $CourseCd = $request->CourseCd;
 
         $skip = [];
+        $params = $request->all();
 
         // トランザクション開始
-        $skip = DB::transaction(function () use ($request, $skip) {
-            $params = $request->all();
+        $skip = DB::transaction(function () use ($request, $skip, $params) {
 
             $AddList = $params['AddList'];
             $UpdateList = $params['UpdateList'];
@@ -259,8 +259,9 @@ WHERE
         });
 
         //モバイルsv更新
+        $Message = $params['Message'];
         $ds = new DataSendWrapper();
-        $ds->UpdateMovementInputData($BushoCd, $CourseCd,$TargetDate);
+        $ds->UpdateMovementInputData($BushoCd, $CourseCd,$TargetDate, $Message);
 
         $send = null;
         $receive = null;

@@ -194,13 +194,27 @@ export default {
                                     "修正日": v.rowData[v.dataIndx + "_修正日"],
                                 };
                             });
-                        var conditions = $.extend(true, {}, vue.viewModel);
+
+                        var params = {};
+                        params.noCache = true;
+                        params.conditions = $.extend(true, {}, vue.viewModel);
+                        var Message = {
+                            "department_code": vue.viewModel.BushoCd,
+                            "course_code": _.uniq(targets.map(v => v.コースＣＤ)),
+                            "custom_data": {
+                                "message": "",
+                                "values": {
+                                    "updateData": true,
+                                },
+                            },
+                        };
+                        params.Message = Message;
 
                         vue.DAI01020Grid1.saveData(
                             {
                                 uri: "/DAI01020/Save",
                                 params: { targets: targets },
-                                optional: { conditions: conditions },
+                                optional: params,
                                 confirm: {
                                     isShow: false,
                                 },

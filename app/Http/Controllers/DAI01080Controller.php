@@ -314,8 +314,9 @@ WITH WITH_注文データ AS
                 DB::commit();
 
                 //モバイルsv更新
+                $Message = $params['Message'];
                 $ds = new DataSendWrapper();
-                $ds->UpdateExpectedInputData($params['BushoCd'],$params['CourseCd'],$params['DeliveryDate']);
+                $ds->UpdateExpectedInputData($params['BushoCd'],$params['CourseCd'],$params['DeliveryDate'], $Message);
             }
         } catch (Exception $exception) {
             DB::rollBack();

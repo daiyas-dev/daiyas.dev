@@ -334,12 +334,32 @@ export default {
                                     click: function(){
                                         $(this).dialog("close");
 
+                                        var params ={
+                                            BushoCd: vue.params.BushoCd,
+                                            TargetDate: vue.params.TargetDate,
+                                            CourseKbn: vue.params.CourseKbn,
+                                            CourseCd: vue.params.CourseCd
+                                        };
+
+                                        params.noCache = true;
+                                        var Message = {
+                                            "department_code": params.BushoCd,
+                                            "course_code": params.CourseCd,
+                                            "custom_data": {
+                                                "message": "",
+                                                "values": {
+                                                    "updateData": true,
+                                                },
+                                            },
+                                        };
+                                        params.Message = Message;
+
                                         //保存実行
                                         gridS.saveData(
                                             {
                                                 uri: "/DAI01061/Save",
                                                 params: pp,
-                                                optional: { BushoCd: vue.params.BushoCd, TargetDate: vue.params.TargetDate, CourseKbn: vue.params.CourseKbn, CourseCd: vue.params.CourseCd },
+                                                optional: params,
                                                 confirm: {
                                                     isShow: false,
                                                 },

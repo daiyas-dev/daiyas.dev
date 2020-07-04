@@ -442,8 +442,8 @@ export default {
             params.noCache = true;
 
             var Message = {
-                "department_code": model.BushoCd,
-                "course_code": model.CourseCd,
+                "department_code": vue.viewModel.部署ＣＤ,
+                "course_code": null,
                 "custom_data": {
                     "message": "",
                     "values": {
@@ -506,8 +506,8 @@ export default {
             params.noCache = true;
 
             var Message = {
-                "department_code": model.BushoCd,
-                "course_code": model.CourseCd,
+                "department_code": vue.viewModel.部署ＣＤ,
+                "course_code": null,
                 "custom_data": {
                     "message": "",
                     "values": {

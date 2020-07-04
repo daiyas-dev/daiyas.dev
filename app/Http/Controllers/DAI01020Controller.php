@@ -158,8 +158,9 @@ ELSE
         //モバイルsv更新
         $busho_cd=$params['conditions']['BushoCd'];
         $date=preg_replace('/年|月|日/','',$params['conditions']['DeliveryDate']);;
+        $Message = $params['Message'];
         $ds = new DataSendWrapper();
-        $ds->UpdateTakeOutInputData($busho_cd, $date);
+        $ds->UpdateTakeOutInputData($busho_cd, $date, $Message);
 
         return response()->json([
             'result' => true,

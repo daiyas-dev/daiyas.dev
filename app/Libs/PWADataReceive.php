@@ -97,6 +97,17 @@ class PWADataReceive extends DataReceiveBase
                         if($result===true)
                         {
                             $this->updateLastUpdateDate($pdo,$DataItem['受信ＩＤ'],$response["last_update_date"]);
+
+                            //後続処理
+                            $resultAfter = $this->ExecAfter($pdo, $DataItem['受信ＩＤ'], $datafile);
+
+                            if (!$resultAfter)
+                            {
+                                $is_error = true;
+                                $pdo->rollBack();
+                                exit;//ループを終了
+                            }
+
                             $is_error=false;
                         }
                         else
