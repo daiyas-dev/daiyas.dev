@@ -21,3 +21,4 @@ yarn-error.log
 /client/build/*
 /public/client/win/*
 client/log.log
+/tmp

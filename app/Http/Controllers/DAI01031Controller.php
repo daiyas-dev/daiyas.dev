@@ -58,7 +58,10 @@ class DAI01031Controller extends Controller
                 得意先マスタ.得意先名,
                 得意先マスタ.売掛現金区分,
                 IIF(
-                    SUM(IIF(モバイル_販売入力.実績入力=1, 1, 0)) OVER(PARTITION BY $Table.コースＣＤ, $Table.得意先ＣＤ, モバイル_販売入力.日付) > 0,
+                    SUM(IIF(モバイル_販売入力.実績入力=1, 1, 0)) OVER(PARTITION BY $Table.コースＣＤ, $Table.得意先ＣＤ, モバイル_販売入力.日付) > 0
+                    AND
+                    モバイル_更新予定リスト.得意先ＣＤ IS NOT NULL
+                    ,
                     '済',
                     ''
                 ) AS 状態,
@@ -74,6 +77,10 @@ class DAI01031Controller extends Controller
                         モバイル_販売入力.得意先ＣＤ = $Table.得意先ＣＤ AND
                         モバイル_販売入力.実績入力 = 1 AND
                         モバイル_販売入力.日付 = '$TargetDate'
+                LEFT OUTER JOIN [モバイル_更新予定リスト]
+                    ON	モバイル_更新予定リスト.得意先ＣＤ = $Table.得意先ＣＤ AND
+                        モバイル_更新予定リスト.日付 = '$TargetDate' AND
+                        モバイル_更新予定リスト.更新フラグ = 1
             WHERE
             $Table.コースＣＤ = $CourseCd AND
             $Table.部署CD = $BushoCd AND

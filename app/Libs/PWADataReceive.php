@@ -82,6 +82,9 @@ class PWADataReceive extends DataReceiveBase
                 $password = 'daiyas';
                 $pdo = new PDO($dsn, $user, $password);
                 $pdo->beginTransaction();
+
+                $result_list = [];
+
                 foreach (glob($zip_dir_path.'\\*') as $datafile) {
                     if (is_file($datafile)) {
                         if(strpos($datafile,"_dellog") !== false)
@@ -94,21 +97,12 @@ class PWADataReceive extends DataReceiveBase
                             //Insert or Update
                             $result = $this->DataImport($pdo,$DataItem['受信ＩＤ'], $datafile);
                         }
-                        if($result===true)
+                        if($result->result===true)
                         {
                             $this->updateLastUpdateDate($pdo,$DataItem['受信ＩＤ'],$response["last_update_date"]);
 
-                            //後続処理
-                            $resultAfter = $this->ExecAfter($pdo, $DataItem['受信ＩＤ'], $datafile);
-
-                            if (!$resultAfter)
-                            {
-                                $is_error = true;
-                                $pdo->rollBack();
-                                exit;//ループを終了
-                            }
-
                             $is_error=false;
+                            array_push($result_list, $result);
                         }
                         else
                         {
@@ -119,7 +113,9 @@ class PWADataReceive extends DataReceiveBase
                     }
                 }
                 if (!$is_error) {
-                    $pdo->commit();
+                    if (!!$this->ExecAfter($pdo, $result_list)) {
+                        $pdo->commit();
+                    }
                 }
                 $pdo = null;
 
