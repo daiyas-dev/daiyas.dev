@@ -1273,7 +1273,6 @@ export default {
                 new Promise((resolve, reject ) => resolve()).then(() => vue.conditionChangedOthers(true)),
             ])
             .then(() => {
-                //TODO: message?
             })
             .catch(err => {
                 console.log(vue.id + " conditionChangedBoth", err);

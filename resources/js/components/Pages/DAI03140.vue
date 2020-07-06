@@ -453,9 +453,7 @@ export default {
         },
         mountedFunc: function(vue) {
             //配送日付の初期値 -> 当日
-            //TODO:
-            // vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
-            vue.viewModel.TargetDate = moment("20190801").format("YYYY年MM月DD日");
+            vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
         },
         setPrintOptions: function(grid) {
             var vue = this;
@@ -823,9 +821,8 @@ export default {
                 style: "@media print { @page { size: A4 landscape; } }",
                 printable: printable,
             };
-            //TODO: 印刷改ページの確認
             printJS(printOptions);
-            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()
         },
     }

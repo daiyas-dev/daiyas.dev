@@ -1336,8 +1336,7 @@ export default {
             );
         },
         mountedFunc: function(vue) {
-            // vue.viewModel.TargetDate = moment();
-            vue.viewModel.TargetDate = moment("2019/09/04");    //TODO: debug
+            vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
@@ -1830,9 +1829,6 @@ export default {
             var grid = vue.DAI01110GridIdou;
             if (!grid) return;
 
-            //TODO:
-            var params;
-
             if (!rowData) {
                 var selection = grid.SelectRow().getSelection();
 
@@ -2146,7 +2142,7 @@ export default {
             };
 
             printJS(printOptions);
-            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()
         },
         getGridHtml: function(grid, styles) {

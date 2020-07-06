@@ -469,10 +469,8 @@ export default {
             );
         },
         mountedFunc: function(vue) {
-            //TODO
             if (!vue.viewModel.TargetDate) {
-                // vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
-                vue.viewModel.TargetDate = moment("20190902").format("YYYY年MM月DD日");
+                vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
             }
         },
         activatedFunc: function(vue) {

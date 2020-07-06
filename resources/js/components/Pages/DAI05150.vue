@@ -425,7 +425,7 @@ export default {
                 },
                 { visible: "true", value: "CSV", id: "DAI05150_Download", disabled: false, shortcut: "F7",
                     onClick: function () {
-                        //TODO: ダウンロード
+                        vue.DAI05150Grid1.vue.exportData("csv", false, true);
                     }
                 },
                 {visible: "false"},
@@ -443,9 +443,7 @@ export default {
             );
         },
         mountedFunc: function(vue) {
-            //TODO
-            // vue.viewModel.DateStart = moment().startOf("month").format("YYYY年MM月DD日");
-            vue.viewModel.DateStart = moment("20180901").format("YYYY年MM月DD日");
+            vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
             vue.viewModel.DateEnd = moment().endOf("month").format("YYYY年MM月DD日");
 
             //watcher
@@ -862,7 +860,7 @@ export default {
             };
 
             printJS(printOptions);
-            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()
         },
     }

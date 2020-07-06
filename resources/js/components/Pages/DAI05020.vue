@@ -267,9 +267,7 @@ export default {
         },
         mountedFunc: function(vue) {
             //配送日付の初期値 -> 当日
-            //TODO:
-            // vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
-            vue.viewModel.TargetDate = moment("20190801").format("YYYY年MM月DD日");
+            vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
@@ -373,7 +371,6 @@ export default {
             //登録データの作成
             var SaveList=[];
             _.forEach(grid.pdata,r=>{
-                window.resr=_.cloneDeep(r);//TODO:
                 var SaveItem={};
                 SaveItem.請求先ＣＤ=r.請求先ＣＤ;
                 //SaveItem.前月残高=r.前月残高;
@@ -383,7 +380,6 @@ export default {
                 //SaveItem.今月残高=r.今月残高;
                 SaveItem.今回請求額=r.今回請求額===undefined?0:r.今回請求額;
                 SaveList.push(SaveItem);
-                window.ressvi=_.cloneDeep(SaveItem);//TODO:
             });
 
             //登録実行

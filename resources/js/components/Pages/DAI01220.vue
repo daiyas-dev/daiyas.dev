@@ -279,13 +279,8 @@ export default {
             );
         },
         mountedFunc: function(vue) {
-            //配送日付の初期値 -> 当日
-            //TODO:
-            // vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
-            // vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
-            vue.viewModel.DateStart = moment("20190507").format("YYYY年MM月DD日");
-            vue.viewModel.DateEnd = moment("20190508").format("YYYY年MM月DD日");
-            //vue.viewModel.CourseCd=101;
+            vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
+            vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
         },
         setPrintOptions: function(grid) {
             var vue = this;
@@ -855,7 +850,7 @@ export default {
                 printable: printable,
             };
             printJS(printOptions);
-            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()
         },
     }

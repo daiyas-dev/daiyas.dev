@@ -289,11 +289,6 @@ export default {
             vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
             vue.viewModel.DateStart = moment().startOf('month').format("YYYY年MM月DD日");
             vue.viewModel.DateEnd = moment().endOf('month').format("YYYY年MM月DD日");
-
-            //TODO:検索条件を指定
-            vue.viewModel.TargetDate = moment("20191212").format("YYYY年MM月DD日");
-            vue.viewModel.DateStart = moment("20200501").format("YYYY年MM月DD日");
-            vue.viewModel.DateEnd = moment("20200531").format("YYYY年MM月DD日");
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
@@ -347,7 +342,6 @@ export default {
 
             var data;
             if (!!fileData) {
-                console.log("5070 showDetail by file")//TODO:
                 data = {
                     ファイル名:vue.UpdateFileName,
                     ファイル日時:moment(vue.UpdateFileLastModifiedDate).format("YYYY年MM月DD日 HH時mm分ss秒"),

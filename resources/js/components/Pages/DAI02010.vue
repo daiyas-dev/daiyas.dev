@@ -685,19 +685,12 @@ export default {
             );
         },
         mountedFunc: function(vue) {
-            //TODO:
-            vue.viewModel.SimeKbn = "2";
-            vue.viewModel.SimeDate = "20";
-            vue.viewModel.TargetDate = moment('20190320').format("YYYY年MM月DD日");
-            vue.viewModel.TargetDateMax = moment(20190320).format("YYYY年MM月DD日");
-
+            vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
+            vue.viewModel.TargetDateMax = moment().format("YYYY年MM月DD日");
             // vue.viewModel.SimeKbn = "2";
-            // vue.viewModel.SimeDate = "15";
-            // vue.viewModel.TargetDate = moment('20190915').format("YYYY年MM月DD日");
-            // vue.viewModel.TargetDateMax = moment(20190915).format("YYYY年MM月DD日");
-
-            // vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
-            // vue.viewModel.TargetDateMax = moment().format("YYYY年MM月DD日");
+            // vue.viewModel.SimeDate = "20";
+            // vue.viewModel.TargetDate = moment('20190320').format("YYYY年MM月DD日");
+            // vue.viewModel.TargetDateMax = moment(20190320).format("YYYY年MM月DD日");
 
             //watcher
             vue.$watch(
@@ -1392,7 +1385,7 @@ export default {
             };
 
             printJS(printOptions);
-            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()
         },
         showUnshared: function() {

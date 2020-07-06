@@ -399,11 +399,8 @@ export default {
         },
         mountedFunc: function(vue) {
             //日付の初期値 -> 当日
-            //TODO:
-            // vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
-            // vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
-            vue.viewModel.DateStart = moment("20190101").format("YYYY年MM月DD日");
-            vue.viewModel.DateEnd = moment("20190531").format("YYYY年MM月DD日");
+            vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
+            vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
@@ -438,7 +435,6 @@ export default {
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.BushoCd || !vue.viewModel.DateStart) return;
             var params = $.extend(true, {}, vue.viewModel);
-            window.resa=_.cloneDeep(params);//TODO
             grid.searchData(params, false, null, callback);
         },
         onAfterSearchFunc: function (grieVue, grid, res) {

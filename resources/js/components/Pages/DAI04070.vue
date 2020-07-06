@@ -143,7 +143,7 @@ export default {
                 {visible: "false"},
                 { visible: "true", value: "CSV", id: "DAI04070_Download", disabled: false, shortcut: "F7",
                     onClick: function () {
-                        //TODO: ダウンロード
+                        vue.DAI04070Grid1.vue.exportData("csv", false, true);
                     }
                 },
                 { visible: "true", value: "詳細", id: "DAI04070Grid1_Detail", disabled: true, shortcut: "F8",

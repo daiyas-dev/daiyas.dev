@@ -1450,7 +1450,7 @@ export default {
                 };
 
                 printJS(printOptions);
-                //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+                //印刷用HTMLの確認はデバッグコンソールで以下を実行
                 //$("#printJS").contents().find("html").html()
             })
             .catch(err => {

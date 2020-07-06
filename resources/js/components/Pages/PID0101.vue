@@ -249,7 +249,6 @@ export default {
         onBeforeCreateGridFunc: function(gridOptions, callback) {
             var vue = this;
 
-            //TODO: dummy
             vue.UnitList = [
                 { Cd: 1, CdNm: "m3"},
                 { Cd: 2, CdNm: "kg"},

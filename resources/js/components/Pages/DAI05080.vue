@@ -231,8 +231,6 @@ export default {
             );
         },
         mountedFunc: function(vue) {
-            //日付の初期値 -> 当日
-            //TODO:
         },
         setPrintOptions: function(grid) {
             var vue = this;
@@ -316,7 +314,6 @@ export default {
             vue.conditionChanged();
         },
         refreshCols: function() {
-            console.log("refreshCols");//TODO:
             var vue = this;
             var newCols = grid.options.colModel.filter(v => !!v.fixed);
             var i=1;
@@ -679,7 +676,6 @@ export default {
                     layout = layout + `<div style="clear:left"></div><hr noshade/>` + layout;//1ページに同じ内容を2つ表示する。
                 return { contents: layout };
             });
-            window.res_tg = _.cloneDeep(target);//TODO:
 
             var printable = $("<html>")
                 .append($("<head>").append($("<style>").text(globalStyles)))
@@ -704,7 +700,7 @@ export default {
                 printable: printable,
             };
             printJS(printOptions);
-            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()
         },
     }

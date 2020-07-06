@@ -196,7 +196,7 @@ export default {
                     },
                     {
                         title: "数量",
-                        dataIndx: "数量", dataType: "integer", format: "#,###",　
+                        dataIndx: "数量", dataType: "integer", format: "#,###",
                         width: 90, minWidth: 90, maxWidth: 90,
                         summary: {
                             type: "TotalInt",
@@ -204,7 +204,7 @@ export default {
                     },
                     {
                         title: "金額",
-                        dataIndx: "金額", dataType: "integer", format: "#,###",　
+                        dataIndx: "金額", dataType: "integer", format: "#,###",
                         width: 90, minWidth: 90, maxWidth: 90,
                         summary: {
                             type: "TotalInt",
@@ -212,7 +212,7 @@ export default {
                     },
                     {
                         title: "平均",
-                        dataIndx: "平均", dataType: "integer", format: "#,###",　
+                        dataIndx: "平均", dataType: "integer", format: "#,###",
                         width: 90, minWidth: 90, maxWidth: 90,
                     },
                     {
@@ -255,11 +255,8 @@ export default {
         },
         mountedFunc: function(vue) {
             //日付の初期値 -> 当日
-            //TODO:
-            // vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
-            // vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
-            vue.viewModel.DateStart = moment("20190401").format("YYYY年MM月DD日");
-            vue.viewModel.DateEnd = moment("20190430").format("YYYY年MM月DD日");
+            vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
+            vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
@@ -570,7 +567,7 @@ export default {
             };
 
             printJS(printOptions);
-            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()
         },
     }

@@ -267,7 +267,7 @@ export default {
                 {visible: "false"},
                 { visible: "true", value: "CSV", id: "DAI04180_Csv", disabled: false, shortcut: "F8",
                     onClick: function () {
-                        //TODO: CSV
+                        vue.DAI04180Grid1.vue.exportData("csv", false, true);
                     }
                 },
                 { visible: "true", value: "登録", id: "DAI04180Grid1_Save", disabled: false, shortcut: "F9",

@@ -358,7 +358,6 @@ export default {
             //登録データの作成
             var SaveList=[];
             _.forEach(grid.pdata,r=>{
-                window.resr=_.cloneDeep(r);//TODO:
                 var SaveItem={};
                 SaveItem.請求先ＣＤ=r.請求先ＣＤ;
                 //SaveItem.前月残高=r.前月残高;
@@ -368,7 +367,6 @@ export default {
                 //SaveItem.今月残高=r.今月残高;
                 SaveItem.今月残高=r.今月残高===undefined?0:r.今月残高;
                 SaveList.push(SaveItem);
-                window.ressvi=_.cloneDeep(SaveItem);//TODO:
             });
 
             //登録実行

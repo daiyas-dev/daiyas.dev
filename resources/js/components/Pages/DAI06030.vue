@@ -270,7 +270,6 @@ export default {
         },
         onAdjustmentIDChanged: function(code, entities) {
             var vue = this;
-            console.log("onAdjustmentIDChanged");//TODO:
             var AdjustmentDate=moment(vue.viewModel.AdjustmentDate,"YYYY年MM月DD日").format("YYYY/MM/DD");
 
             axios.post("/DAI06030/SearchAdjustmentInfo", {
@@ -279,9 +278,7 @@ export default {
                     , AdjustmentDate:AdjustmentDate
                 })
                 .then(response => {
-                    window.resai=_.cloneDeep(response);//TODO:
                     var TicketZansu = _.cloneDeep(response.data[0].TicketZansu[0]);
-                    window.restz=_.cloneDeep(TicketZansu);//TODO:
                     if(vue.viewModel.AdjustmentID == 0)
                     {
                         //調整IDが新規作成の場合
@@ -298,8 +295,6 @@ export default {
                     {
                         var TicketAdjustment = _.cloneDeep(response.data[0].TicketAdjustment[0]);
                         var TicketAdjustmentSummary = _.cloneDeep(response.data[0].TicketAdjustmentSummary[0]);
-                        window.resta=_.cloneDeep(TicketAdjustment);//TODO:
-                        window.restb=_.cloneDeep(TicketAdjustmentSummary);//TODO:
 
                         vue.viewModel.TicketZanSystem=TicketZansu.チケット残数*1 + TicketAdjustmentSummary.累積チケット減数*1;
                         vue.viewModel.TicketZanJitsu=vue.viewModel.TicketZanSystem-TicketAdjustment.チケット減数*1;

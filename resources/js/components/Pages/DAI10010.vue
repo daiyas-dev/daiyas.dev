@@ -590,10 +590,8 @@ export default {
         },
         mountedFunc: function(vue) {
             //日付の初期値 -> 当日
-            //TODO
             if (!vue.viewModel.TargetDate) {
-                // vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
-                vue.viewModel.TargetDate = moment("20190904").format("YYYY年MM月DD日");
+                vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
             }
 
             //watcher

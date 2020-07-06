@@ -324,19 +324,12 @@ export default {
                         vue.print();
                     }
                 },
-                { visible: "true", value: "CSV", id: "DAI03090Grid1_Download", disabled: true, shortcut: "F7",
-                    onClick: function () {
-                        //TODO: ダウンロード
-                    }
-                },
                 {visible: "false"},
             );
 
         },
         mountedFunc: function(vue) {
-            //TODO
-            // vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
-            vue.viewModel.TargetDate = moment("20191212").format("YYYY年MM月DD日");
+            vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
         },
         addFileCallback: function(event) {
             var vue = this;
@@ -693,7 +686,7 @@ export default {
             };
 
             printJS(printOptions);
-            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()
         },
     }

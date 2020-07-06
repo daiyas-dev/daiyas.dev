@@ -360,7 +360,7 @@ export default {
                 },
                 { visible: "true", value: "CSV", id: "DAI04050_Download", disabled: false, shortcut: "F7",
                     onClick: function () {
-                        //TODO: ダウンロード
+                        vue.DAI04050Grid1.vue.exportData("csv", false, true);
                     }
                 },
                 {visible: "false"},
@@ -840,7 +840,7 @@ export default {
                 printable: printable,
             };
             printJS(printOptions);
-            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()
         },
     }

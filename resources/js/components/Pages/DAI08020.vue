@@ -341,9 +341,7 @@ export default {
         },
         mountedFunc: function(vue) {
             if (!vue.params) {
-                //TODO
-                // vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
-                vue.viewModel.DeliveryDate = moment("20190520").format("YYYY年MM月DD日");
+                vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
             } else {
                 vue.viewModel.BushoCd = vue.params.BushoCd;
                 vue.viewModel.CustomerCd = vue.params.CustomerCd;
@@ -489,13 +487,11 @@ export default {
             //登録データの作成
             var SaveList=[];
             _.forEach(grid.pdata,r=>{
-                window.resr=_.cloneDeep(r);//TODO:
                 var SaveItem={};
                 SaveItem.key部署ＣＤ=r.key部署ＣＤ;
                 SaveItem.key受注Ｎｏ=r.key受注Ｎｏ;
                 SaveItem.key配達日付=r.key配達日付;
                 SaveList.push(SaveItem);
-                window.ressvi=_.cloneDeep(SaveItem);//TODO:
             });
 
             //登録実行
@@ -980,7 +976,7 @@ export default {
             };
 
             printJS(printOptions);
-            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()
         },
     }

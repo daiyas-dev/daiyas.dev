@@ -572,11 +572,8 @@ export default {
             );
         },
         mountedFunc: function(vue) {
-            //TODO
-            // vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
-            // vue.viewModel.TargetDateMax = moment().format("YYYY年MM月DD日");
-            vue.viewModel.TargetDate = moment("20190831").format("YYYY年MM月DD日");
-            vue.viewModel.TargetDateMax = moment("20190831").format("YYYY年MM月DD日");
+            vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
+            vue.viewModel.TargetDateMax = moment().format("YYYY年MM月DD日");
 
             //watcher
             vue.$watch(
@@ -1251,7 +1248,7 @@ export default {
             };
 
             printJS(printOptions);
-            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()
         },
     }

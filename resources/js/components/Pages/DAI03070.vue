@@ -329,10 +329,7 @@ export default {
         },
         mountedFunc: function(vue) {
             //日付の初期値 -> 当日
-            //TODO:
-            console.log("mounted");//TODO:
-            vue.viewModel.TargetDate = moment("20190507").format("YYYY年MM月");
-            //vue.viewModel.CourseCd=101;
+            vue.viewModel.TargetDate = moment().format("YYYY年MM月");
         },
         setPrintOptions: function(grid) {
             var vue = this;
@@ -416,7 +413,6 @@ export default {
             vue.conditionChanged();
         },
         refreshCols: function() {
-            console.log("refreshCols");//TODO:
             var vue = this;
             if(!vue.viewModel.TargetDate)
             {
@@ -730,7 +726,6 @@ export default {
                 }
             `;
             var headerFunc = (header, idx, length) => {
-                window.resp=_.cloneDeep(header);//TODO
                 var BushoCd = "";
                 var BushoNm = "";
                 var CourseCd="";
@@ -889,7 +884,7 @@ export default {
                 printable: printable,
             };
             printJS(printOptions);
-            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()
         },
     }

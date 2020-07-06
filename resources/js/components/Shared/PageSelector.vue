@@ -327,7 +327,6 @@ export default {
         DAI10011,
         //共通画面用Selector
         CommonSelector,
-        //TODO: dummy || sample
         PID0001,
         PID0002,
         PID0101,

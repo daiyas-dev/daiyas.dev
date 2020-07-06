@@ -242,7 +242,6 @@ export default {
 
                         //チェックボックス
                         params.郵便フラグ = !!params.郵便フラグ ? params.郵便フラグ : 0;
-                        //TODO:無効フラグはDBに追加予定カラム
                         params.無効フラグ = !!params.無効フラグ ? params.無効フラグ : 0;
 
                         $(vue.$el).find(".has-error").removeClass("has-error");

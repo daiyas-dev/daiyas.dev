@@ -332,12 +332,7 @@ export default {
         },
         mountedFunc: function(vue) {
             //配送日付の初期値 -> 当日
-            // vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
-            //TODO:
-            vue.viewModel.TargetDate = moment("20190904").format("YYYY年MM月DD日");
-
-            //TODO
-            vue.viewModel.BushoCd = 501;
+            vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
         },
         onBushoChanged: function(code, entity, entities) {
             var vue = this;
@@ -386,8 +381,6 @@ export default {
                 return;
             }
 
-            //TODO
-            vue.searchParams.BushoCd = "501";
             grid.searchData(vue.searchParams, false, null);
         },
         filterChanged: function() {
@@ -624,8 +617,6 @@ export default {
 
             grid.Group().option({ "on": true, "dataIndx": ["コースＣＤ"]});
 
-            //TODO:行高可変のため改ページ設定未完、ページ数未確認。列：得意先、備考、住所　→長いもの途切れる。(現行も途切れている)
-            //TODO:印刷確認未完
             var headerFunc = (header, idx, length) => {
 
                 var CourseCd="";
@@ -890,7 +881,7 @@ export default {
             };
 
             printJS(printOptions);
-            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()
         },
     }

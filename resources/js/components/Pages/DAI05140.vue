@@ -268,7 +268,6 @@
             </div>
             <div class="col-md-3">
                 <label>処理費用</label>
-                <!-- TODO: カンマ区切り整数 -->
                 <currency-input class="form-control text-right p-1" style="width: 100px;" type="text" v-model=viewModel.クレーム処理費用 v-maxBytes="100" />
             </div>
         </div>
@@ -1109,7 +1108,7 @@ export default {
             };
 
             printJS(printOptions);
-            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()
         },
     }

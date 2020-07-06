@@ -285,7 +285,6 @@ export default {
                         //登録データの作成
                         var SaveList=[];
                         _.forEach(grid.pdata,r=>{
-                            window.resr=_.cloneDeep(r);//TODO:
                             var SaveItem={};
                             SaveItem.部署ＣＤ=r.部署ＣＤ;
                             SaveItem.請求先ＣＤ=r.請求先ＣＤ;
@@ -331,10 +330,7 @@ export default {
             );
         },
         mountedFunc: function(vue) {
-            //配送日付の初期値 -> 当日
-            //TODO:
-            // vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
-            vue.viewModel.TargetDate = moment("20190801").format("YYYY年MM月DD日");
+            vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
@@ -408,13 +404,11 @@ export default {
         },
         onAfterSearchFunc: function (vue, grid, res) {
             var vue = this;
-            //window.resdt=_.cloneDeep(res);//TODO:
             vue.footerButtons.find(v => v.id == "DAI03010Grid1_Update").disabled = !res.length;
             vue.showLastUpdateDate();
             return res;
         },
         CustomerAutoCompleteFunc: function(input, dataList, comp) {
-            console.log("CustomerAutoCompleteFunc");//TODO:
             var vue = this;
             if (!dataList.length) return [];
 

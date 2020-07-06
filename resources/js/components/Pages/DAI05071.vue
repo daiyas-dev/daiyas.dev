@@ -409,7 +409,6 @@ export default {
             axios.post("/DAI05071/GetBushoInfo", { BushoCd: vue.viewModel.BushoCd,timestamp:tc})
                 .then(response => {
                     var res = _.cloneDeep(response.data);
-                    window.resr=_.cloneDeep(res);//TODO:
                     vue.viewModel.Kouza=res[0].銀行名 + " " + res[0].支店名 + " " + res[0].口座番号 + " " + res[0].種別;
                     if(!vue.params.FileData){
                         vue.viewModel.TargetDate=moment(vue.viewModel.TargetDate).format("YYYY年MM月DD日")
@@ -448,10 +447,6 @@ export default {
         conditionChanged: function(force) {
             var vue = this;
             var grid = vue.DAI05071Grid1;
-            console.log("5071 conditionChanged")
-
-            console.log('dialog show')//TODO:
-            window.resp=_.cloneDeep(vue.params);//TODO:
 
             if (!vue.DAI05071Grid1 || !vue.getLoginInfo().isLogOn) return;
             //if (!vue.viewModel.BushoCd || !vue.viewModel.CustomerCd || !vue.viewModel.DateStart || !vue.viewModel.DateEnd) return;
@@ -513,7 +508,6 @@ export default {
         },
         save:function()
         {
-            console.log("save");//TODO:
             var vue=this;
             var grid = vue.DAI05071Grid1;
             if(vue.viewModel.BushoCd==null)

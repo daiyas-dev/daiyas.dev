@@ -281,8 +281,7 @@ export default {
             );
         },
         mountedFunc: function(vue) {
-            // vue.viewModel.TargetDate = moment();
-            vue.viewModel.TargetDate = moment("2019/09/04");    //TODO: debug
+            vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
 
             var grid = vue.DAI01060Grid1;
 
@@ -295,7 +294,7 @@ export default {
             );
 
             if (!!vue.CheckInterVal) clearInterval(vue.CheckInterVal);
-            //TODO:
+            //TODO: 定期ポーリングの頻度調整
             // vue.CheckInterVal = setInterval(vue.updateCheck, 10000);
 
             vue.$root.$on("DAI01060_updateCheck", vue.updateCheck);

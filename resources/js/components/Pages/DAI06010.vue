@@ -448,11 +448,6 @@ export default {
             //日付の初期値 -> 当日
             vue.viewModel.DateStart = moment().startOf('month').format("YYYY年MM月DD日");
             vue.viewModel.DateEnd = moment().endOf('month').format("YYYY年MM月DD日");
-
-            //TODO:開発用に条件を書き込む
-            //vue.viewModel.CustomerCd="8";
-            vue.viewModel.DateStart = moment("2009/03/31");
-            vue.viewModel.DateEnd = moment("2010/04/30");
         },
         onChanged: function(code, entities) {
             var vue = this;
@@ -587,7 +582,6 @@ export default {
                 SaveItem.CustomerCd=r.得意先ＣＤ;
                 SaveItem.Dispose=(r.F廃棄=="YES");
                 SaveList.push(SaveItem);
-                window.ressvi=_.cloneDeep(SaveItem);//TODO:
             });
 
             //登録実行

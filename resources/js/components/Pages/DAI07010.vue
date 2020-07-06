@@ -449,29 +449,6 @@ export default {
                         grid.updateRow({ rowList: rowList });
                     }
                 },
-                // { visible: "true", value: "ダウンロード", id: "DAI07010_Download", disabled: false, shortcut: "F7",
-                //     onClick: function () {
-                //         //TODO: ダウンロード
-                //     }
-                // },
-                // { visible: "true", value: "アップロード", id: "DAI07010_Upload", disabled: false, shortcut: "F8",
-                //     onClick: function () {
-                //         //アップロード
-                //         var ele = $("<input>")
-                //             .prop("type", "file")
-                //             .prop("accept", ".csv, text/plain")
-                //             .on("change", (event) => {
-                //                     $.uploadFile(
-                //                         event.target.files[0],
-                //                         "/DAI07010/Upload",
-                //                         (res) => vue.uploadCallback(res.data),
-                //                     );
-                //                 }
-                //             );
-
-                //         ele[0].click();
-                //     }
-                // },
                 {visible: "false"},
                 { visible: "true", value: "登録", id: "DAI07010Grid1_Save", disabled: false, shortcut: "F9, Ctrl + S",
                     onClick: function () {
@@ -483,9 +460,7 @@ export default {
         mountedFunc: function(vue) {
             vue.viewModel.Kind = "week";
 
-            //TODO
-            // vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
-            vue.viewModel.TargetDate = moment("20190916").format("YYYY年MM月DD日");
+            vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
 
             vue.beforeSearchCallback(vue.DAI07010Grid1, () => vue.DAI07010Grid1.refresh());
 
@@ -1054,14 +1029,12 @@ export default {
                 && prev.BushoCd == res.BushoCd
                 && prev.CourseCd == res.CourseCd
                 && prev.CustomerCd == res.CustomerCd
-                //&& prev.TargetDate = "";  //TODO: excel format
             ) {
                 grid.refreshDataAndView();
             } else {
                 vue.conditionTrigger = false;
 
                 vue.viewModel.BushoCd = res.BushoCd;
-                //vue.viewModel.TargetDate = "";  //TODO: excel format
                 vue.viewModel.CourseCd = res.CourseCd;
                 vue.viewModel.CustomerCd = res.CustomerCd;
 

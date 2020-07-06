@@ -529,8 +529,7 @@ export default {
             );
         },
         mountedFunc: function(vue) {
-            // vue.viewModel.TargetDate = moment();
-            vue.viewModel.TargetDate = moment("2019/09/04");    //TODO: debug
+            vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
 
             vue.refreshCols();
         },
@@ -638,8 +637,6 @@ export default {
 
             //ソート変更
             grid.sort( { sorter: sorter });
-
-            //TODO: グルーピング変更
         },
         onCourseChanged: function(code, entity, comp) {
             var vue = this;

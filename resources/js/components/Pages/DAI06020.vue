@@ -403,7 +403,6 @@ export default {
         },
         save:function()
         {
-            console.log("save");//TODO:
             var vue=this;
             var grid = vue.DAI06020Grid1;
             if(vue.viewModel.BushoCd==null)
@@ -699,7 +698,7 @@ export default {
                 printable: printable,
             };
             printJS(printOptions);
-            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").conten
         },
     }

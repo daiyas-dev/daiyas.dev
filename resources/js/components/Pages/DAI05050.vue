@@ -175,9 +175,6 @@ export default {
             );
         },
         mountedFunc: function(vue) {
-            //日付の初期値 -> 当日
-            //TODO:
-            //vue.viewModel.CourseCd=101;
             var vue = this;
             //条件変更ハンドラ
             vue.conditionChanged();

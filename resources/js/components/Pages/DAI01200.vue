@@ -437,12 +437,8 @@ export default {
             );
         },
         mountedFunc: function(vue) {
-            //配送日付の初期値 -> 当日
-            //TODO:
-            // vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
-            // vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
-            vue.viewModel.DateStart = moment("2018/07/06");    //TODO: debug
-            vue.viewModel.DateEnd = moment("2018/07/10");    //TODO: debug
+            vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
+            vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
@@ -507,16 +503,10 @@ export default {
                     return ret;
                 })
 
-            window.resa=_.cloneDeep(res[0].SyouhinKubunData);//TODO:
-            window.resb=_.cloneDeep(vue.UriageMeisaiData);//TODO:
-            window.resc=_.cloneDeep(UriageSumData);//TODO:
-            window.resd=_.cloneDeep(vue.NyukinData);//TODO:
-
             var CourseMeisaiData=[];
             res[0].CourseMeisaiData.map((v, i) => {
                 //日付・コース単位の売上明細データを取得
                 var UriageMeisaiData  = vue.UriageMeisaiData.filter(fv=>(fv.日付==v.日付) && (fv.コースＣＤ==v.コースＣＤ));
-                window.rese=_.cloneDeep(UriageMeisaiData);//TODO:
 
                 //集計用変数
                 var bonus=0;
@@ -1106,7 +1096,6 @@ export default {
                 }
             `;
             var headerFunc = (header, idx, length) => {
-                console.log(header);//TODO:
                 return `
                     <div class="title">
                         <h3><div class="report-title-area">売上集計表<div></h3>
@@ -1285,7 +1274,7 @@ export default {
                 printable: printable,
             };
             printJS(printOptions);
-            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()
         },
     }

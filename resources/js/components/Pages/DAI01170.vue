@@ -289,34 +289,22 @@ export default {
                         vue.conditionChanged();
                     }
                 },
-                // { visible: "true", value: "印刷", id: "DAI01020Grid1_Printout", disabled: false, shortcut: "F6",
-                //     onClick: function () {
-                //         vue.DAI01170Grid1.print(vue.setPrintOptions);
-                //         //TODO: 印刷の追加
-
-                //     }
-                // },
                 { visible: "true", value: "印刷", id: "DAI01170Grid1_Print", disabled: false, shortcut: "F6",
                     onClick: function () {
                         vue.print();
                     }
                 },
-                { visible: "true", value: "CSV出力", id: "DAI01020Grid1_Csvout", disabled: false, shortcut: "F7",
+                { visible: "true", value: "CSV", id: "DAI01170Grid1_CSV", disabled: false, shortcut: "F7",
                     onClick: function () {
-                        vue.DAI01170Grid1.print(vue.setPrintOptions);
-                        //TODO: ＣＳＶ出力追加
-
+                        vue.DAI01170Grid1.vue.exportData("csv", false, true);
                     }
                 }
             );
         },
         mountedFunc: function(vue) {
             //配送日付の初期値 -> 当日
-            // vue.viewModel.DateStart = moment();
-            // vue.viewModel.DateEnd = moment();
-            //TODO:確認用削除予定
-            vue.viewModel.DateStart = moment("20190801");
-            vue.viewModel.DateEnd = moment("20190904");
+            vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
+            vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
         },
         setPrintOptions: function(grid) {
             var vue = this;
@@ -767,7 +755,7 @@ export default {
             };
 
             printJS(printOptions);
-            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()
         },
     }

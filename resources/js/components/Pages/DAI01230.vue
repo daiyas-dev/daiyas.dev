@@ -246,10 +246,7 @@ export default {
             );
         },
         mountedFunc: function(vue) {
-            //配送日付の初期値 -> 当日
-            // vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
-            //TODO: テスト用初期日付
-            vue.viewModel.DeliveryDate = moment("20190904").format("YYYY年MM月DD日");
+            vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
@@ -596,7 +593,7 @@ export default {
             };
 
             printJS(printOptions);
-            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()
         },
     }

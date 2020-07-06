@@ -258,7 +258,7 @@ export default {
                 },
                 { visible: "true", value: "ダウンロード", id: "DAI04090_Download", disabled: false, shortcut: "F7",
                     onClick: function () {
-                        //TODO: ダウンロード
+                        vue.DAI04090Grid1.vue.exportData("csv", false, true);
                     }
                 },
                 {visible: "false"},

@@ -304,8 +304,6 @@ export default {
         },
         mountedFunc: function(vue) {
             //日付の初期値 -> 当日
-            //TODO:
-            console.log("mounted");//TODO:
             vue.viewModel.TargetDate = moment().format("YYYY年MM月");
         },
         onBushoChanged: function(code, entities) {
@@ -396,7 +394,6 @@ export default {
             if (!vue.viewModel.TargetDate) return;
 
             var params=this.ParamGet();
-            window.resp=_.cloneDeep(params);//TODO
             grid.searchData(params, false, null, callback);
         },
         onAfterSearchFunc: function (vue, grid, res) {
@@ -469,7 +466,6 @@ export default {
             var params=this.ParamGet();
 
             //登録実行
-            console.log("FileDownload");//TODO:
             var tc = new Date().getTime();//axios実行時のキャッシュを無効にするため、現在のタイムスタンプを渡す
             axios({
                     url: '/DAI03080/FileDownload',
@@ -488,7 +484,6 @@ export default {
                         Simebi3:params.Simebi3,
                     }
                 }).then((response) => {
-                    window.resa=_.cloneDeep(response);//TODO
                     const bloburl = URL.createObjectURL(new Blob([response.data],{type: 'text/csv'}));
                     const link = document.createElement('a');
                     link.href = bloburl;

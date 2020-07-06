@@ -312,7 +312,7 @@ export default {
         onBeforeCreateFunc: function(gridOptions, callback) {
             var vue = this;
 
-            //TODO: PqGrid表示前に必要な情報の取得(商品リスト + その他)
+            //PqGrid表示前に必要な情報の取得(商品リスト + その他)
             axios.all(
                 [
                     //商品リストの取得
@@ -480,7 +480,7 @@ export default {
                                 acc.Payment = acc.Payment || v.支払方法;
                                 acc["OrderQuantity" + v.商品ＣＤ] = v.個数 * 1;
                                 acc["OrderPrice" + v.商品ＣＤ] = v.金額 * 1;
-                                acc["RecordQuantity" + v.商品ＣＤ] = v.個数 * 1;    //TODO: 実績個数はどこから？
+                                acc["RecordQuantity" + v.商品ＣＤ] = v.個数 * 1;
 
                                 return acc;
                             },

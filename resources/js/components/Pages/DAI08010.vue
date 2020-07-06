@@ -964,16 +964,11 @@ export default {
         },
         mountedFunc: function(vue) {
             if (!vue.params || !!vue.params.IsNew) {
-                //TODO:
                 vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
-                // vue.viewModel.DeliveryDate = moment("20190906").format("YYYY年MM月DD日");
                 vue.viewModel.DeliveryTime = moment().format("HH時mm分");
 
                 vue.viewModel.OrderDate = vue.viewModel.DeliveryDate;
                 vue.viewModel.OrderTime = vue.viewModel.DeliveryTime;
-
-                //TODO:
-                vue.viewModel.BushoCd = "985";
             } else {
                 vue.viewModel.BushoCd = vue.params.部署ＣＤ;
                 vue.viewModel.DeliveryDate = moment(vue.params.配達日付).format("YYYY年MM月DD日");

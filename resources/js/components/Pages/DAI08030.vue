@@ -533,10 +533,7 @@ export default {
             );
         },
         mountedFunc: function(vue) {
-            //TODO
-            // vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
-            // vue.viewModel.DeliveryDate = moment("20190906").format("YYYY年MM月DD日");
-            vue.viewModel.DeliveryDate = moment("20200512").format("YYYY年MM月DD日");
+            vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
 
             //watcher
             vue.$watch(

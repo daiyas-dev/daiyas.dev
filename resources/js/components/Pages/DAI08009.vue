@@ -365,14 +365,14 @@ export default {
                         vue.conditionChanged(true);
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI08009_Print", disabled: false, shortcut: "F6",
-                    onClick: function () {
-                        vue.print();
-                    }
-                },
+                // { visible: "true", value: "印刷", id: "DAI08009_Print", disabled: false, shortcut: "F6",
+                //     onClick: function () {
+                //         vue.print();
+                //     }
+                // },
                 { visible: "true", value: "CSV", id: "DAI08009_Download", disabled: false, shortcut: "F7",
                     onClick: function () {
-                        //TODO: ダウンロード
+                        vue.DAI08009Grid1.vue.exportData("csv", false, true);
                     }
                 },
                 {visible: "false"},
@@ -391,9 +391,7 @@ export default {
         },
         mountedFunc: function(vue) {
             if (!vue.params) {
-                //TODO
-                // vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
-                vue.viewModel.DateStart = moment("20190901").format("YYYY年MM月DD日");
+                vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
                 vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
             } else {
                 vue.viewModel.BushoCd = vue.params.BushoCd;
@@ -597,7 +595,6 @@ export default {
             });
         },
         print: function () {
-            //TODO
         },
     }
 }

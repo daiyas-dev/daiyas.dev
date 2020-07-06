@@ -580,9 +580,7 @@ export default {
         },
         mountedFunc: function(vue) {
             if (!vue.params) {
-                //TODO
-                // vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
-                vue.viewModel.DeliveryDate = moment("20190906").format("YYYY年MM月DD日");
+                vue.viewModel.DeliveryDate = moment().format("YYYY年MM月DD日");
             } else {
                 vue.viewModel.BushoCd = vue.params.BushoCd;
                 vue.viewModel.AreaCd = vue.params.AreaCd;
@@ -959,7 +957,7 @@ export default {
                 printable: printable,
             };
             printJS(printOptions);
-            //TODO: 印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()
         },
     }

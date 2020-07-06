@@ -262,7 +262,6 @@ export default {
                         params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
 
                         //チェックボックス
-                        //TODO:無効フラグはDBに追加予定カラム
                         params.無効フラグ = !!params.無効フラグ ? params.無効フラグ : 0;
 
                         $(vue.$el).find(".has-error").removeClass("has-error");
