@@ -2,6 +2,7 @@
 
 namespace App\Libs;
 use Exception;
+use Illuminate\Support\Facades\DB;
 use PDO;
 
 //AVS(PWA)から社内DBへ取込
@@ -77,10 +78,11 @@ class PWADataReceive extends DataReceiveBase
 
                 //解凍したファイルを読み込んでSQLを実行
                 //1つのzipに含まれているファイルは1トランザクションで処理する
-                $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-                $user = 'daiyas';
-                $password = 'daiyas';
-                $pdo = new PDO($dsn, $user, $password);
+                // $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+                // $user = 'daiyas';
+                // $password = 'daiyas';
+                // $pdo = new PDO($dsn, $user, $password);
+                $pdo = DB::connection('sqlsrv_batch')->getPdo();
                 $pdo->beginTransaction();
 
                 $result_list = [];
@@ -117,7 +119,7 @@ class PWADataReceive extends DataReceiveBase
                         $pdo->commit();
                     }
                 }
-                $pdo = null;
+                //$pdo = null;
 
                 //使用したテンポラリファイルを消す
                 if (!$is_error) {
