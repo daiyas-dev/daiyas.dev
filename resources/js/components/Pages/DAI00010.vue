@@ -8,7 +8,7 @@
                 <label style="width: unset;">※本社CTI連携機能をお使いの方は左記クライアントをインストールして、システムをご利用ください</label>
             </div>
         </div>
-        <div class="row" style="display: flex; align-items: baseline;">
+        <!-- <div class="row" style="display: flex; align-items: baseline;">
             <div class="col-md-4">
                 <button @click="event => testCTI(event)">非通知</button>
                 <button @click="event => testCTI(event, '0836585044')">1件該当</button>
@@ -19,7 +19,7 @@
             <div class="col-md-4">
                 <button @click="event => addWebOrder(event)">Web受注ダミー追加</button>
             </div>
-        </div>
+        </div> -->
         <div class="row menu-panel">
             <div class="col-md-2 d-flex align-items-stretch justify-content-center" style="border: groove;">
                 <div class="btn-group-vertical d-flex" role="group">
@@ -103,6 +103,9 @@
 }
 .tab-container .nav-tabs {
     display: none;
+}
+button .nav-link {
+    color: black;
 }
 .nav-item.nav-link {
     width: calc(100% / 9 - 0px);
