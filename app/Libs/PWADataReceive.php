@@ -115,8 +115,11 @@ class PWADataReceive extends DataReceiveBase
                     }
                 }
                 if (!$is_error) {
-                    if (!!$this->ExecAfter($pdo, $result_list)) {
+                    try {
+                        $this->ExecAfter($pdo, $result_list);
                         $pdo->commit();
+                    } catch (Exception $exception) {
+                        $pdo->rollBack();
                     }
                 }
                 //$pdo = null;

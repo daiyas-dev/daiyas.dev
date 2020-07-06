@@ -2,14 +2,8 @@
 
 namespace App\Libs;
 
-use App\Models\モバイル予測入力;
-use App\Models\モバイル販売入力;
 use App\Models\入金データ;
-use App\Models\商品マスタ;
-use App\Models\得意先マスタ;
-use App\Models\得意先単価マスタ新;
 use App\Models\注文データ;
-use App\Models\管理マスタ;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use PDO;
@@ -220,10 +214,19 @@ class DataReceiveBase
             $field_list=$this->getMapping($table_name);
             $cnv_table_name=$field_list['TableName'];
 
+            $result_info = (object) [];
+            $result_info->table_name = $cnv_table_name;
+            $result_info->records = [];
+
             //1レコードごとにデータを削除
             $table_data = json_decode(file_get_contents($data_file_path), true);
             $new_pk=array();
             foreach ($table_data as $record) {
+
+                $rec_info = (object) [];
+                $rec_info->key = $new_pk;
+                $rec_info->kind = 'delete';
+
                 //列情報を取得
                 $ret = $this->getRowData($record, $field_list);
                 $new_pk=$ret['key'];
@@ -240,10 +243,12 @@ class DataReceiveBase
                 if ($error_info[0]!="00000" || $error_info[1]!=null || $error_info[2]!=null) {
                     //SQLを実行してエラーが発生した場合
                     $this->ErrorReceiveList($receive_id, "SQL実行エラー", $error_info[1]." ".$error_info[2] ." ".$sql, $data_file_path);
-                    return false;
+                    $result_info->result = false;
+                    return $result_info;
                 }
             }
-            return true;
+            $result_info->result = true;
+            return $result_info;
         } catch (Exception $exception) {
             throw $exception;
         }
@@ -407,12 +412,13 @@ class DataReceiveBase
      * 連携対象更新後続処理
      * @param object (参照)トランザクション
      * @param array 更新結果リスト
-     * @return bool  処理結果 true=成功 / false=エラー有り
+     * @return void
      */
     public function ExecAfter(&$pdo, $result_list)
     {
         //連携後更新
         foreach ($result_list as $result_info) {
+            //echo print_r($result_info, true) . "\n";
             $table_name = $result_info->table_name;
             $records = $result_info->records;
 
@@ -490,18 +496,18 @@ class DataReceiveBase
                         $data = $rec_info->data;
                         $kind = $rec_info->kind;
 
-                        $MobileSales = モバイル販売入力::query()
+                        $MobileSales = DB::connection('sqlsrv_batch')->table("モバイル_販売入力")
                             ->where('部署ＣＤ', $data['部署ＣＤ'])
                             ->where('得意先ＣＤ', $data['得意先ＣＤ'])
                             ->where('日付', $data['日付'])
                             ->first();
 
-                        $Customer = 得意先マスタ::query()
+                        $Customer = DB::connection('sqlsrv_batch')->table("得意先マスタ")
                             ->where('部署ＣＤ', $data['部署ＣＤ'])
                             ->where('得意先ＣＤ', $data['得意先ＣＤ'])
                             ->first();
 
-                        $Product = 商品マスタ::query()
+                        $Product = DB::connection('sqlsrv_batch')->table("商品マスタ")
                             ->where('商品ＣＤ', $data['商品ＣＤ'])
                             ->first();
 
@@ -675,621 +681,282 @@ class DataReceiveBase
                             DB::connection('sqlsrv_batch')->table("注文データ")->insert(collect($chumon)->all());
                             //echo "\t insert 注文:" . $data['部署ＣＤ'] . "/" . $data['得意先ＣＤ'] . "/" . $data['商品ＣＤ'] . "\n";
                         }
-                    }
 
-                    DB::connection('sqlsrv_batch')->table("モバイル_予測入力")
-                        ->where('部署ＣＤ', $data['部署ＣＤ'])
-                        ->where('得意先ＣＤ', $data['得意先ＣＤ'])
-                        ->where('日付', $data['日付'])
-                        ->where('商品ＣＤ', $data['商品ＣＤ'])
-                        ->update(["更新フラグ" => 1]);
+                        DB::connection('sqlsrv_batch')->table("モバイル_予測入力")
+                            ->where('部署ＣＤ', $data['部署ＣＤ'])
+                            ->where('得意先ＣＤ', $data['得意先ＣＤ'])
+                            ->where('日付', $data['日付'])
+                            ->where('商品ＣＤ', $data['商品ＣＤ'])
+                            ->update(["更新フラグ" => 1]);
+                    }
 
                     break;
 
                 case 'モバイル_更新予定リスト':
-                //     foreach ($records as $rec_info) {
-                //         $pk = $rec_info->key;
-                //         $data = $rec_info->data;
-                //         $kind = $rec_info->kind;
+                    foreach ($records as $rec_info) {
+                        $pk = $rec_info->key;
+                        $data = $rec_info->data;
+                        $kind = $rec_info->kind;
 
-                //         $data['日付'];
-                //         $data['得意先ＣＤ'];
-                //         $data['更新フラグ'];
-                //         $data['更新日'];
-                //         $data['処理区分'];
-                //         $data['モバイルデータ更新_部署ＣＤ'];
-                //         $data['モバイルデータ更新_コースＣＤ'];
-                //         $data['WebService_メソッド名'];
-                //         $data['WebService_部署ＣＤ'];
-                //         $data['WebService_コースＣＤ'];
-                //         $data['WebService_更新区分'];
+                        $data['日付'];
+                        $data['得意先ＣＤ'];
+                        $data['更新フラグ'];
+                        $data['更新日'];
+                        $data['処理区分'];
+                        $data['モバイルデータ更新_部署ＣＤ'];
+                        $data['モバイルデータ更新_コースＣＤ'];
+                        $data['WebService_メソッド名'];
+                        $data['WebService_部署ＣＤ'];
+                        $data['WebService_コースＣＤ'];
+                        $data['WebService_更新区分'];
 
+                        $Customer = DB::connection('sqlsrv_batch')->table("得意先マスタ")
+                            ->where('部署ＣＤ', $data['WebService_部署ＣＤ'])
+                            ->where('得意先ＣＤ', $data['得意先ＣＤ'])
+                            ->first();
 
+                        //昼食以外の売上データ明細
+                        $UriageNeq2List = DB::connection('sqlsrv_batch')->table("売上データ明細")
+                            ->where('部署ＣＤ', $data['WebService_部署ＣＤ'])
+                            ->where('得意先ＣＤ', $data['得意先ＣＤ'])
+                            ->where('日付', $data['日付'])
+                            ->where('食事区分', '!=', '2')
+                            ->get();
 
-        //モバイル更新予定リストの取得, 現行は引数にコースを取ることが出来る
-        // string cmdText3 = !forceApply
-        //     ? (
-        //         iCourse != 0
-        //         ?
-        //             "
-        //                 SET LOCK_TIMEOUT 3000;
-        //                 SELECT [モバイル_更新予定リスト].*
-        //                 FROM
-        //                     モバイル_更新予定リスト" + "
-        //                     LEFT OUTER JOIN コーステーブル
-        //                         ON" + " [モバイル_更新予定リスト].得意先ＣＤ = [コーステーブル].得意先ＣＤ" + "
-        //                     WHERE
-        //                         日付 = '" + string.Format("{0:yyyy/MM/dd}", (object) DateTime.Now) + "'" + "
-        //                         AND [コーステーブル].[コースＣＤ] = " + iCourse.ToString() + "
-        //                         AND [コーステーブル].[部署ＣＤ] = " + this._BushoCD + "
-        //                     ORDER BY [コーステーブル].ＳＥＱ"
-        //             :
-        //             "
-        //                 SET LOCK_TIMEOUT 3000;
-        //                 SELECT
-        //                     モバイル_更新予定リスト.*
-        //                 FROM
-        //                     モバイル_更新予定リスト,
-        //                     得意先マスタ " + "
-        //                 WHERE
-        //                     日付 = '" + string.Format("{0:yyyy/MM/dd}", (object) DateTime.Now) + "'" + "
-        //                     AND 更新フラグ=0" + "
-        //                     AND モバイル_更新予定リスト.得意先ＣＤ = 得意先マスタ.得意先ＣＤ" + "
-        //                     AND 得意先マスタ.部署ＣＤ = " + this._BushoCD
-        //         )
-        //     :
-        //         "
-        //             SET LOCK_TIMEOUT 3000;
-        //             SELECT *
-        //             FROM コーステーブル" + "
-        //             WHERE コースＣＤ = " + (object) iCourse + "
-        //             AND 部署ＣＤ = " + this._BushoCD
-        //         ";
+                        //昼食の売上データ明細
+                        $UriageEq2List = DB::connection('sqlsrv_batch')->table("売上データ明細")
+                            ->where('部署ＣＤ', $data['WebService_部署ＣＤ'])
+                            ->where('得意先ＣＤ', $data['得意先ＣＤ'])
+                            ->where('日付', $data['日付'])
+                            ->where('食事区分', '2')
+                            ->get();
 
-        // SqlDataAdapter adapter3 = new SqlDataAdapter()
-        // {
-        //     SelectCommand = new SqlCommand(cmdText3, this.oConn.Connection)
-        // };
-        // adapter3.SelectCommand.Transaction = sqlTransaction;
-        // adapter3.SelectCommand.CommandTimeout = 20;
-        // SqlCommandBuilder sqlCommandBuilder3 = new SqlCommandBuilder(adapter3);
-        // DataSet (コース毎)モバイル更新予定リスト = new DataSet();
-        // adapter3.Fill((コース毎)モバイル更新予定リスト, "モバイル_更新予定リスト");
+                        //モバイル販売入力
+                        $MobileSalesList = DB::connection('sqlsrv_batch')->table("モバイル_販売入力")
+                            ->where('部署ＣＤ', $data['WebService_部署ＣＤ'])
+                            ->where('得意先ＣＤ', $data['得意先ＣＤ'])
+                            ->where('日付', $data['日付'])
+                            ->where('実績入力', 1)
+                            ->where(function ($q) {
+                                $q->orWhere('実績数', '!=', 0)
+                                    ->orWhere('金額', '!=', 0);
+                            })
+                            ->get();
 
-        // foreach (DataRow row1 in (InternalDataCollectionBase) (コース毎)モバイル更新予定リスト.Tables[0].Rows)
-        // {
-        //     //売上データ明細を日付/部署CD/得意先CDでlockして取得
-        //     //   string cmdText1 = "
-        //     //     SET LOCK_TIMEOUT 3000;
-        //     //     SELECT *
-        //     //     FROM 売上データ明細 " + "
-        //     //     WHERE 日付 = '" + string.Format("{0:yyyy/MM/dd}", (object) DateTime.Now) + "'" + "
-        //     //     AND 得意先ＣＤ=" + row1["得意先ＣＤ"].ToString() + "
-        //     //     AND 部署ＣＤ=" + this._BushoCD;
+                        foreach ($MobileSalesList as $MobileSales) {
+                            //コーステーブル最小SEQ
+                            $CSeq = 1;
+                            $CourseMng = DB::connection('sqlsrv_batch')->table("コーステーブル管理")
+                                ->where('部署ＣＤ', $MobileSales->部署ＣＤ)
+                                ->where('コースＣＤ', $MobileSales->コースＣＤ)
+                                ->where(function ($q) use($MobileSales) {
+                                    $q->orWhere('適用開始日', '<=', $MobileSales->日付)
+                                        ->orWhere('適用終了日', '>=', $MobileSales->日付);
+                                })
+                                ->first();
 
-        //     //   SqlDataAdapter adapter1 = new SqlDataAdapter()
-        //     //   {
-        //     //     SelectCommand = new SqlCommand(cmdText1, this.oConn.Connection)
-        //     //   };
-        //     //   adapter1.SelectCommand.Transaction = sqlTransaction;
-        //     //   adapter1.SelectCommand.CommandTimeout = 20;
-        //     //   SqlCommandBuilder sqlCommandBuilder1 = new SqlCommandBuilder(adapter1);
-        //     //   DataSet 売上データ明細dataset = new DataSet();
-        //     //   adapter1.Fill(売上データ明細dataset, "売上データ明細");
+                            if (!!$CourseMng) {
+                                $CourseTable = $CourseMng->一時フラグ == 0 ? "コーステーブル" : "コーステーブル一時";
 
-        //     //売上データ明細datasetクローンに食事区分 != 2(昼食以外) のレコードを入れている？
-        //     //   DataSet dataSet2 = new DataSet();
-        //     //   DataSet 売上データ明細datasetクローン = 売上データ明細dataset.Clone();
-        //     //   foreach (DataRow row2 in (InternalDataCollectionBase) 売上データ明細dataset.Tables[0].Rows)
-        //     //   {
-        //     //     if (row2["食事区分"].ToString() != "2")
-        //     //     {
-        //     //       DataRow row3 = 売上データ明細datasetクローン.Tables[0].NewRow();
-        //     //       row3.ItemArray = row2.ItemArray;
-        //     //       売上データ明細datasetクローン.Tables[0].Rows.Add(row3);
-        //     //     }
-        //     //   }
+                                $CSeq = DB::connection('sqlsrv_batch')->table($CourseTable)
+                                    ->where('部署ＣＤ', $MobileSales->部署ＣＤ)
+                                    ->where('コースＣＤ', $MobileSales->コースＣＤ)
+                                    ->when(
+                                        $CourseMng->一時フラグ == 1,
+                                        function ($q) use ($CourseMng) {
+                                            return $q->where('管理ＣＤ', $CourseMng->管理ＣＤ);
+                                        }
+                                    )
+                                    ->min('ＳＥＱ');
+                            }
 
-        //     //検索した売上データ明細を削除
-        //     // foreach (DataRow row2 in (InternalDataCollectionBase) 売上データ明細dataset.Tables[0].Rows)
-        //     //     row2.Delete();
+                            $UriageList = DB::connection('sqlsrv_batch')->table("売上データ明細")
+                                ->where('部署ＣＤ', $MobileSales->部署ＣＤ)
+                                ->where('コースＣＤ', $MobileSales->コースＣＤ)
+                                ->where('得意先ＣＤ', $MobileSales->得意先ＣＤ)
+                                ->where('日付', $MobileSales->日付)
+                                ->where('商品ＣＤ', $MobileSales->商品ＣＤ)
+                                ->where('主食ＣＤ', $MobileSales->主食ＣＤ)
+                                ->where('副食ＣＤ', $MobileSales->副食ＣＤ)
+                                ->where('明細行Ｎｏ', $MobileSales->行Ｎｏ)
+                                ->get();
 
-        //     //モバイル更新予定リストの得意先から、分配有無を取得
-        //     // bool 分配有無フラグ = false;
-        //     // string format =
-        //     //     "
-        //     //         SET LOCK_TIMEOUT 3000;
-        //     //         SELECT
-        //     //         'x'
-        //     //         FROM
-        //     //         得意先マスタ T1
-        //     //         WHERE
-        //     //         T1.受注得意先ＣＤ = {0}
-        //     //         AND T1.受注得意先ＣＤ != T1.得意先ＣＤ";
-        //     //     "
-        //     // SqlDataAdapter adapter2 = new SqlDataAdapter()
-        //     // {
-        //     //     SelectCommand = new SqlCommand(string.Format(format, (object) row1["得意先ＣＤ"].ToString()), this.oConn.Connection)
-        //     // };
-        //     // adapter2.SelectCommand.Transaction = sqlTransaction;
-        //     // adapter2.SelectCommand.CommandTimeout = 20;
-        //     // SqlCommandBuilder sqlCommandBuilder2 = new SqlCommandBuilder(adapter2);
-        //     // DataSet dataSet5 = new DataSet();
-        //     // adapter2.Fill(dataSet5, "分配有無");
+                            $rec = [];
+                            $rec["現金個数"] = $MobileSales->現金売掛区分 == 0 ? $MobileSales->実績数 : 0;
+                            $rec["現金金額"] = $MobileSales->現金売掛区分 == 0 ? $MobileSales->金額 : 0;
+                            $rec["現金値引"] = $MobileSales->現金売掛区分 == 0 ? $MobileSales->値引 : 0;
+                            $rec["掛売個数"] = $MobileSales->現金売掛区分 == 1 ? $MobileSales->実績数 : 0;
+                            $rec["掛売金額"] = $MobileSales->現金売掛区分 == 1 ? $MobileSales->金額 : 0;
+                            $rec["掛売値引"] = $MobileSales->現金売掛区分 == 1 ? $MobileSales->値引 : 0;
+                            $rec["売掛現金区分"] = $MobileSales->現金売掛区分;
+                            $rec["現金値引事由ＣＤ"] = 0;
+                            $rec["掛売値引事由ＣＤ"] = 0;
+                            $rec["分配元数量"] = 0;
+                            $rec["予備金額１"] = $MobileSales->単価;
+                            $rec["食事区分"] = 2;
+                            $rec["分配元数量"] = 0;
+                            $rec['修正担当者ＣＤ'] = 9999;
+                            $rec['修正日'] = Carbon::now()->format('Y/m/d H:i:s');
 
-        //     // if (dataSet5.Tables.Count > 0 && dataSet5.Tables[0].Rows.Count > 0)
-        //     //     分配有無フラグ = true;
+                            if (count($UriageList) > 0) {
+                                DB::connection('sqlsrv_batch')->table("売上データ明細")
+                                    ->where('部署ＣＤ', $MobileSales->部署ＣＤ)
+                                    ->where('コースＣＤ', $MobileSales->コースＣＤ)
+                                    ->where('得意先ＣＤ', $MobileSales->得意先ＣＤ)
+                                    ->where('日付', $MobileSales->日付)
+                                    ->where('商品ＣＤ', $MobileSales->商品ＣＤ)
+                                    ->where('主食ＣＤ', $MobileSales->主食ＣＤ)
+                                    ->where('副食ＣＤ', $MobileSales->副食ＣＤ)
+                                    ->where('明細行Ｎｏ', $MobileSales->行Ｎｏ)
+                                    ->update($rec);
+                            } else {
+                                $rec["日付"] = $MobileSales->日付;
+                                $rec["部署ＣＤ"] = $MobileSales->部署ＣＤ;
+                                $rec["コースＣＤ"] = $MobileSales->コースＣＤ;
+                                $rec["行Ｎｏ"] = $CSeq;
+                                $rec["得意先ＣＤ"] = $MobileSales->得意先ＣＤ;
+                                $rec["明細行Ｎｏ"] = $MobileSales->行Ｎｏ;
+                                $rec["商品ＣＤ"] = $MobileSales->商品ＣＤ;
+                                $rec["主食ＣＤ"] = $MobileSales->主食ＣＤ;
+                                $rec["副食ＣＤ"] = $MobileSales->副食ＣＤ;
 
-        //     //更新予定リストの得意先から、モバイル販売入力を取得
-        //     // string cmdText2 = "
-        //     //     SET LOCK_TIMEOUT 3000;
-        //     //     SELECT * FROM モバイル_販売入力" + "
-        //     //     WHERE 日付 = '" + string.Format("{0:yyyy/MM/dd}", (object) DateTime.Now) + "'" + "
-        //     //     AND 得意先ＣＤ=" + row1["得意先ＣＤ"].ToString() + "
-        //     //     AND 実績入力 = 1" + " AND (実績数 != 0 OR 金額 != 0) " + "
-        //     //     AND 部署ＣＤ=" + this._BushoCD + " ORDER BY コースＣＤ,得意先ＣＤ";
+                                $Product = DB::connection('sqlsrv_batch')->table("商品マスタ")
+                                    ->where('商品ＣＤ', $MobileSales->商品ＣＤ)
+                                    ->first();
 
-        //     // SqlDataAdapter adapter4 = new SqlDataAdapter()
-        //     // {
-        //     //     SelectCommand = new SqlCommand(cmdText2, this.oConn.Connection)
-        //     // };
-        //     // adapter4.SelectCommand.Transaction = sqlTransaction;
-        //     // adapter4.SelectCommand.CommandTimeout = 20;
-        //     // SqlCommandBuilder sqlCommandBuilder4 = new SqlCommandBuilder(adapter4);
-        //     // DataSet モバイル販売入力dataset = new DataSet();
-        //     // adapter4.Fill(モバイル販売入力dataset, "モバイル_販売入力");
+                                $rec["商品区分"] = $Product->商品区分;
 
-        //     foreach (DataRow row2 in (InternalDataCollectionBase) モバイル販売入力dataset.Tables[0].Rows)
-        //     {
-        //         //モバイル販売入力の得意先CDとコースCDから、コーステーブルより最小のSEQを取得
-        //         // int courseSeq = this.getCourseSEQ(row2["コースＣＤ"].ToString(), row2["得意先ＣＤ"].ToString(), sqlTransaction);
+                                $rec["請求日付"] = '';
+                                $rec["予備金額２"] = 0;
+                                $rec["予備ＣＤ２"] = 0;
+                                $rec["備考"] = $MobileSales->メッセージ;
+                                $rec["食事区分"] = 2;
 
-        //         //SEQとモバイル販売入力の値から、売上データ明細を取得
-        //         // string filterExpression = "
-        //         //     部署ＣＤ=" + row2["部署ＣＤ"].ToString() + "
-        //         //     AND コースＣＤ=" + row2["コースＣＤ"].ToString() + "
-        //         //     AND 得意先ＣＤ=" + row2["得意先ＣＤ"].ToString() + "
-        //         //     AND 行Ｎｏ=" + courseSeq.ToString() + "
-        //         //     AND 商品ＣＤ=" + row2["商品ＣＤ"].ToString() + "
-        //         //     AND 主食ＣＤ=" + row2["主食ＣＤ"].ToString() + "
-        //         //     AND 副食ＣＤ=" + row2["副食ＣＤ"].ToString() + "
-        //         //     AND 明細行Ｎｏ=" + row2["行Ｎｏ"].ToString();
+                                DB::connection('sqlsrv_batch')->table("売上データ明細")->insert($rec);
+                            }
 
-        //         // DataRow[] dataRowArray = 売上データ明細dataset.Tables[0].Select(filterExpression);
+                            //分配得意先
+                            $DistCustomerList = DB::connection('sqlsrv_batch')->table("得意先マスタ")
+                                ->where('受注得意先ＣＤ', $MobileSales->得意先ＣＤ)
+                                ->whereColumn('得意先ＣＤ', '!=', '受注得意先ＣＤ')
+                                ->select('得意先ＣＤ')
+                                ->get();
 
+                            if (count($DistCustomerList) > 0) {
+                                //モバイル販売分配
+                                $MobileDistList = DB::connection('sqlsrv_batch')->table("モバイル_販売分配")
+                                    ->where('部署ＣＤ', $MobileSales->部署ＣＤ)
+                                    ->where('コースＣＤ', $MobileSales->コースＣＤ)
+                                    ->where('得意先ＣＤ', $MobileSales->得意先ＣＤ)
+                                    ->where('日付', $MobileSales->日付)
+                                    ->get();
 
-        //         if (dataRowArray.Length > 0)
-        //         {
+                                //分配先の売上データ明細を削除
+                                $customer_code_list = [];
+                                foreach ($DistCustomerList as $DistCustomer) {
+                                    array_push($customer_code_list, $DistCustomer->得意先ＣＤ);
+                                }
 
-        //             //取得出来た場合(複数件取れる？)
+                                DB::connection('sqlsrv_batch')->table("売上データ明細")
+                                    ->where('部署ＣＤ', $MobileSales->部署ＣＤ)
+                                    ->where('日付', $MobileSales->日付)
+                                    ->whereIn('得意先ＣＤ', $customer_code_list)
+                                    ->delete();
 
-        //             foreach (DataRow dataRow in dataRowArray)
-        //             {
-        //                 // dataRow.BeginEdit();
+                                //分配先更新
+                                foreach ($MobileDistList as $MobileDist) {
+                                    $dist = [];
 
-        //                 //商品ＣＤで検索しているのに、同じＣＤを入れる？
-        //                 // dataRow["商品ＣＤ"] = row2["商品ＣＤ"];
-        //                 // dataRow["商品区分"] = (object) this.getSyohinKbn(row2["商品ＣＤ"].ToString(), sqlTransaction);
+                                    $dist["日付"] = $MobileDist->日付;
+                                    $dist["部署ＣＤ"] = $MobileDist->部署ＣＤ;
+                                    $dist["コースＣＤ"] = $MobileDist->コースＣＤ;
+                                    $dist["行Ｎｏ"] = $MobileDist->行Ｎｏ;
+                                    $dist["得意先ＣＤ"] = $MobileDist->分配先得意先ＣＤ;
+                                    $dist["明細行Ｎｏ"] = $MobileDist->行Ｎｏ;
+                                    $dist["商品ＣＤ"] = $MobileDist->商品ＣＤ;
+                                    $dist["主食ＣＤ"] = $MobileDist->主食ＣＤ;
+                                    $dist["副食ＣＤ"] = $MobileDist->副食ＣＤ;
 
-        //                 //現金売掛を判別して設定
-        //                 // if (row2["現金売掛区分"].ToString().Equals("0"))
-        //                 // {
-        //                 //     dataRow["現金個数"] = row2["実績数"];
-        //                 //     dataRow["現金金額"] = row2["金額"];
-        //                 //     dataRow["現金値引"] = row2["値引"];
-        //                 //     dataRow["現金値引事由ＣＤ"] = (object) 0;
-        //                 //     dataRow["掛売個数"] = (object) 0;
-        //                 //     dataRow["掛売金額"] = (object) 0;
-        //                 //     dataRow["掛売値引"] = (object) 0;
-        //                 //     dataRow["掛売値引事由ＣＤ"] = (object) 0;
-        //                 //     dataRow["売掛現金区分"] = row2["現金売掛区分"];
-        //                 //     dataRow["分配元数量"] = (object) 0;
-        //                 // }
-        //                 // else
-        //                 // {
-        //                 //     dataRow["現金個数"] = (object) 0;
-        //                 //     dataRow["現金金額"] = (object) 0;
-        //                 //     dataRow["現金値引"] = (object) 0;
-        //                 //     dataRow["現金値引事由ＣＤ"] = (object) 0;
-        //                 //     dataRow["掛売個数"] = row2["実績数"];
-        //                 //     dataRow["掛売金額"] = row2["金額"];
-        //                 //     dataRow["掛売値引"] = row2["値引"];
-        //                 //     dataRow["掛売値引事由ＣＤ"] = (object) 0;
-        //                 //     dataRow["売掛現金区分"] = row2["現金売掛区分"];
-        //                 //     dataRow["分配元数量"] = (object) 0;
-        //                 // }
+                                    $Product = DB::connection('sqlsrv_batch')->table("商品マスタ")
+                                        ->where('商品ＣＤ', $MobileDist->商品ＣＤ)
+                                        ->first();
 
-        //                 // dataRow["予備金額１"] = row2["単価"];
-        //                 // dataRow["修正担当者ＣＤ"] = (object) 9999;
-        //                 // dataRow["食事区分"] = (object) 2;
-        //                 // dataRow["修正日"] = (object) DateTime.Now;
-        //                 // dataRow.EndEdit();
-        //             }
-        //         }
-        //         else
-        //         {
+                                    $dist["商品区分"] = $Product->商品区分;
 
-        //             //取得出来ない場合、モバイル販売入力の値でinsert
+                                    $dist["現金個数"] = $MobileDist->現金売掛区分 == 0 ? $MobileDist->実績数 : 0;
+                                    $dist["現金金額"] = $MobileDist->現金売掛区分 == 0 ? $MobileDist->金額 : 0;
+                                    $dist["現金値引"] = $MobileDist->現金売掛区分 == 0 ? $MobileDist->値引 : 0;
+                                    $dist["掛売個数"] = $MobileDist->現金売掛区分 == 1 ? $MobileDist->実績数 : 0;
+                                    $dist["掛売金額"] = $MobileDist->現金売掛区分 == 1 ? $MobileDist->金額 : 0;
+                                    $dist["掛売値引"] = $MobileDist->現金売掛区分 == 1 ? $MobileDist->値引 : 0;
+                                    $dist["売掛現金区分"] = $MobileDist->現金売掛区分;
+                                    $dist["現金値引事由ＣＤ"] = 0;
+                                    $dist["掛売値引事由ＣＤ"] = 0;
+                                    $dist["分配元数量"] = 0;
+                                    $dist["予備金額１"] = $MobileDist->単価;
 
-        //             // DataRow row3 = 売上データ明細dataset.Tables[0].NewRow();
-        //             // row3["日付"] = (object) string.Format("{0:yyyy/MM/dd}", (object) DateTime.Now);
-        //             // row3["部署ＣＤ"] = row2["部署ＣＤ"];
-        //             // row3["コースＣＤ"] = row2["コースＣＤ"];
-        //             // row3["行Ｎｏ"] = (object) courseSeq;
-        //             // row3["得意先ＣＤ"] = row2["得意先ＣＤ"];
-        //             // row3["明細行Ｎｏ"] = row2["行Ｎｏ"];
-        //             // row3["商品ＣＤ"] = row2["商品ＣＤ"];
-        //             // row3["主食ＣＤ"] = row2["主食ＣＤ"];
-        //             // row3["副食ＣＤ"] = row2["副食ＣＤ"];
-        //             // row3["商品区分"] = (object) this.getSyohinKbn(row2["商品ＣＤ"].ToString(), sqlTransaction);
+                                    $dist["請求日付"] = '';
+                                    $dist["予備金額２"] = 0;
+                                    $dist["予備ＣＤ２"] = 0;
+                                    $dist["備考"] = '';
+                                    $dist["食事区分"] = 2;
 
-        //             // if (row2["現金売掛区分"].ToString().Equals("0"))
-        //             // {
-        //             //     row3["現金個数"] = row2["実績数"];
-        //             //     row3["現金金額"] = row2["金額"];
-        //             //     row3["現金値引"] = row2["値引"];
-        //             //     row3["現金値引事由ＣＤ"] = (object) 0;
-        //             //     row3["掛売個数"] = (object) 0;
-        //             //     row3["掛売金額"] = (object) 0;
-        //             //     row3["掛売値引"] = (object) 0;
-        //             //     row3["掛売値引事由ＣＤ"] = (object) 0;
-        //             //     row3["売掛現金区分"] = row2["現金売掛区分"];
-        //             // }
-        //             // else
-        //             // {
-        //             //     row3["現金個数"] = (object) 0;
-        //             //     row3["現金金額"] = (object) 0;
-        //             //     row3["現金値引"] = (object) 0;
-        //             //     row3["現金値引事由ＣＤ"] = (object) 0;
-        //             //     row3["掛売個数"] = row2["実績数"];
-        //             //     row3["掛売金額"] = row2["金額"];
-        //             //     row3["掛売値引"] = row2["値引"];
-        //             //     row3["掛売値引事由ＣＤ"] = (object) 0;
-        //             //     row3["売掛現金区分"] = row2["現金売掛区分"];
-        //             // }
-        //             // row3["請求日付"] = (object) "";
-        //             // row3["予備金額１"] = row2["単価"];
-        //             // row3["予備金額２"] = (object) 0;
-        //             // row3["予備ＣＤ２"] = (object) 0;
-        //             // row3["分配元数量"] = (object) 0;
-        //             // row3["修正担当者ＣＤ"] = (object) 9999;
-        //             // row3["食事区分"] = (object) 2;
-        //             // row3["修正日"] = (object) DateTime.Now;
-        //             // 売上データ明細dataset.Tables[0].Rows.Add(row3);
-        //         }
-        //     }
+                                    $dist['修正担当者ＣＤ'] = 9999;
+                                    $dist['修正日'] = Carbon::now()->format('Y/m/d H:i:s');
 
-        //     //モバイル更新予定の得意先CDから、分配先の売上データ明細を取得
-        //     // string str = string.Format("{0:yyyy/MM/dd}", (object) DateTime.Now);
-        //     // int num1 = this.toInt((object) row1["得意先ＣＤ"].ToString());
-        //     // string cmdText4 = "
-        //     //     SET LOCK_TIMEOUT 3000;
-        //     //     SELECT *
-        //     //     FROM
-        //     //     --売上データ明細 WITH(UPDLOCK)
-        //     //     売上データ明細
-        //     //     WHERE
-        //     //     日付 = 'DateTime.Now'
-        //     //     AND 得意先ＣＤ != row1["得意先ＣＤ"]
-        //     //     AND 得意先ＣＤ IN (
-        //     //         SELECT
-        //     //         DMY.得意先ＣＤ
-        //     //         FROM
-        //     //         得意先マスタ DMY
-        //     //         WHERE
-        //     //         DMY.受注得意先ＣＤ = row1["得意先ＣＤ"]
-        //     // "
-        //     // SqlDataAdapter adapter5 = new SqlDataAdapter()
-        //     // {
-        //     //     SelectCommand = new SqlCommand(cmdText4, this.oConn.Connection)
-        //     // };
-        //     // adapter5.SelectCommand.Transaction = sqlTransaction;
-        //     // adapter5.SelectCommand.CommandTimeout = 20;
-        //     // SqlCommandBuilder sqlCommandBuilder5 = new SqlCommandBuilder(adapter5);
-        //     // DataSet 分配先売上データ明細dataset = new DataSet();
-        //     // adapter5.Fill(分配先売上データ明細dataset, "売上データ明細");
+                                    DB::connection('sqlsrv_batch')->table("売上データ明細")->insert($dist);
 
-        //     //一旦、分配売上先の売上データ明細を削除
-        //     // foreach (DataRow row2 in (InternalDataCollectionBase) 分配先売上データ明細dataset.Tables[0].Rows)
-        //     //     row2.Delete();
+                                    $Parent = DB::connection('sqlsrv_batch')->table("売上データ明細")
+                                        ->where('部署ＣＤ', $MobileSales->部署ＣＤ)
+                                        ->where('コースＣＤ', $MobileSales->コースＣＤ)
+                                        ->where('得意先ＣＤ', $MobileSales->得意先ＣＤ)
+                                        ->where('日付', $MobileSales->日付)
+                                        ->where('商品ＣＤ', $MobileSales->商品ＣＤ)
+                                        ->where('主食ＣＤ', $MobileSales->主食ＣＤ)
+                                        ->where('副食ＣＤ', $MobileSales->副食ＣＤ)
+                                        ->where('明細行Ｎｏ', $MobileSales->行Ｎｏ)
+                                        ->get();
 
-        //     //モバイル更新予定の得意先CDから、モバイル販売分配を検索
-        //     //   string cmdText5 = "
-        //     //         SET LOCK_TIMEOUT 3000;
-        //     //         SELECT
-        //     //             部署ＣＤ
-        //     //             ,コースＣＤ
-        //     //             ,得意先ＣＤ
-        //     //             ,日付
-        //     //             ,分配先得意先ＣＤ
-        //     //             ,行Ｎｏ
-        //     //             ,商品ＣＤ
-        //     //             ,単価
-        //     //             ,見込数
-        //     //             ,注文数
-        //     //             ,実績数
-        //     //             ,金額
-        //     //             ,値引
-        //     //             ,現金売掛区分
-        //     //             ,主食ＣＤ
-        //     //             ,副食ＣＤ
-        //     //             ,修正日
-        //     //         FROM
-        //     //             モバイル_販売分配
-        //     //         WHERE
-        //     //             日付 = 'DateTime.now'
-        //     //             AND 得意先ＣＤ=row1["得意先ＣＤ"]
-        //     //             AND 金額 != 0"
-        //     //   ";
-        //     //   SqlDataAdapter adapter6 = new SqlDataAdapter()
-        //     //   {
-        //     //     SelectCommand = new SqlCommand(cmdText5, this.oConn.Connection)
-        //     //   };
-        //     //   adapter6.SelectCommand.Transaction = sqlTransaction;
-        //     //   adapter6.SelectCommand.CommandTimeout = 20;
-        //     //   SqlCommandBuilder sqlCommandBuilder6 = new SqlCommandBuilder(adapter6);
-        //     //   DataSet モバイル販売分配dataset = new DataSet();
-        //     //   adapter6.Fill(モバイル販売分配dataset, "モバイル_販売入力");　テーブル名が販売入力になっているが、販売分配
+                                    //分配元更新
+                                    $Parent = DB::connection('sqlsrv_batch')->table("売上データ明細")
+                                        ->where('部署ＣＤ', $MobileDist->部署ＣＤ)
+                                        ->where('コースＣＤ', $MobileDist->コースＣＤ)
+                                        ->where('得意先ＣＤ', $MobileDist->得意先ＣＤ)
+                                        ->where('日付', $MobileDist->日付)
+                                        ->where('商品ＣＤ', $MobileDist->商品ＣＤ)
+                                        ->where('主食ＣＤ', $MobileDist->主食ＣＤ)
+                                        ->where('副食ＣＤ', $MobileDist->副食ＣＤ)
+                                        ->where('明細行Ｎｏ', $MobileDist->行Ｎｏ)
+                                        ->first();
 
+                                    if (!!$Parent) {
+                                        $pdata = [];
+                                        if ($MobileDist->現金売掛区分 == 0) {
+                                            $pdata['現金個数'] = $Parent->現金個数 - $MobileDist->実績数;
+                                        } else {
+                                            $pdata['掛売個数'] = $Parent->掛売個数 - $MobileDist->実績数;
+                                        }
+                                        $pdata['分配元数量'] = $Parent->分配元数量 + $MobileDist->実績数;
+                                        $pdata['修正担当者ＣＤ'] = 9999;
+                                        $pdata['修正日'] = Carbon::now()->format('Y/m/d H:i:s');
 
-        //     foreach (DataRow row2 in (InternalDataCollectionBase) モバイル販売分配dataset.Tables[0].Rows)
-        //     {
-        //         //モバイル販売分配の値から、分配先の売上データ明細を検索
-        //         // string filterExpression1 = "
-        //         //     部署ＣＤ=" + row2["部署ＣＤ"].ToString() + "
-        //         //     AND コースＣＤ=" + row2["コースＣＤ"].ToString() + "
-        //         //     AND 得意先ＣＤ=" + row2["分配先得意先ＣＤ"].ToString() + "
-        //         //     AND 商品ＣＤ=" + row2["商品ＣＤ"].ToString() + "
-        //         //     AND 主食ＣＤ=" + row2["主食ＣＤ"].ToString() + "
-        //         //     AND 副食ＣＤ=" + row2["副食ＣＤ"].ToString() + "
-        //         //     AND 明細行Ｎｏ=" + row2["行Ｎｏ"].ToString();
-
-        //         // DataRow[] dataRowArray1 = 分配先売上データ明細dataset.Tables[0].Select(filterExpression1);
-
-        //         if (dataRowArray1.Length > 0)
-        //         {
-        //             //存在していればupdate、だけど上で一旦削除してなかったっけ？恐らく分配先が変わることを考慮して
-        //             // foreach (DataRow dataRow in dataRowArray1)
-        //             // {
-        //             //     dataRow.BeginEdit();
-        //             //     dataRow["商品ＣＤ"] = row2["商品ＣＤ"];
-        //             //     dataRow["商品区分"] = (object) this.getSyohinKbn(row2["商品ＣＤ"].ToString(), sqlTransaction);
-        //             //     if (row2["現金売掛区分"].ToString().Equals("0"))
-        //             //     {
-        //             //     dataRow["現金個数"] = row2["実績数"];
-        //             //     dataRow["現金金額"] = row2["金額"];
-        //             //     dataRow["現金値引"] = row2["値引"];
-        //             //     dataRow["現金値引事由ＣＤ"] = (object) 0;
-        //             //     dataRow["掛売個数"] = (object) 0;
-        //             //     dataRow["掛売金額"] = (object) 0;
-        //             //     dataRow["掛売値引"] = (object) 0;
-        //             //     dataRow["掛売値引事由ＣＤ"] = (object) 0;
-        //             //     dataRow["売掛現金区分"] = row2["現金売掛区分"];
-        //             //     }
-        //             //     else
-        //             //     {
-        //             //     dataRow["現金個数"] = (object) 0;
-        //             //     dataRow["現金金額"] = (object) 0;
-        //             //     dataRow["現金値引"] = (object) 0;
-        //             //     dataRow["現金値引事由ＣＤ"] = (object) 0;
-        //             //     dataRow["掛売個数"] = row2["実績数"];
-        //             //     dataRow["掛売金額"] = row2["金額"];
-        //             //     dataRow["掛売値引"] = row2["値引"];
-        //             //     dataRow["掛売値引事由ＣＤ"] = (object) 0;
-        //             //     dataRow["売掛現金区分"] = row2["現金売掛区分"];
-        //             //     }
-        //             //     dataRow["予備金額１"] = row2["単価"];
-        //             //     dataRow["修正担当者ＣＤ"] = (object) 9999;
-        //             //     dataRow["修正日"] = (object) DateTime.Now;
-        //             //     dataRow.EndEdit();
-        //             // }
-        //         }
-        //         else
-        //         {
-        //             //無ければinsert
-        //             DataRow row3 = 分配先売上データ明細dataset.Tables[0].NewRow();
-        //             row3["日付"] = (object) string.Format("{0:yyyy/MM/dd}", (object) DateTime.Now);
-        //             row3["部署ＣＤ"] = row2["部署ＣＤ"];
-        //             row3["コースＣＤ"] = row2["コースＣＤ"];
-        //             row3["行Ｎｏ"] = row2["行Ｎｏ"];
-        //             row3["得意先ＣＤ"] = (object) row2["分配先得意先ＣＤ"].ToString();
-        //             row3["明細行Ｎｏ"] = row2["行Ｎｏ"];
-        //             row3["商品ＣＤ"] = row2["商品ＣＤ"];
-        //             row3["主食ＣＤ"] = row2["主食ＣＤ"];
-        //             row3["副食ＣＤ"] = row2["副食ＣＤ"];
-        //             row3["商品区分"] = (object) this.getSyohinKbn(row2["商品ＣＤ"].ToString(), sqlTransaction);
-        //             if (row2["現金売掛区分"].ToString().Equals("0"))
-        //             {
-        //                 row3["現金個数"] = row2["実績数"];
-        //                 row3["現金金額"] = row2["金額"];
-        //                 row3["現金値引"] = row2["値引"];
-        //                 row3["現金値引事由ＣＤ"] = (object) 0;
-        //                 row3["掛売個数"] = (object) 0;
-        //                 row3["掛売金額"] = (object) 0;
-        //                 row3["掛売値引"] = (object) 0;
-        //                 row3["掛売値引事由ＣＤ"] = (object) 0;
-        //                 row3["売掛現金区分"] = row2["現金売掛区分"];
-        //             }
-        //             else
-        //             {
-        //                 row3["現金個数"] = (object) 0;
-        //                 row3["現金金額"] = (object) 0;
-        //                 row3["現金値引"] = (object) 0;
-        //                 row3["現金値引事由ＣＤ"] = (object) 0;
-        //                 row3["掛売個数"] = row2["実績数"];
-        //                 row3["掛売金額"] = row2["金額"];
-        //                 row3["掛売値引"] = row2["値引"];
-        //                 row3["掛売値引事由ＣＤ"] = (object) 0;
-        //                 row3["売掛現金区分"] = row2["現金売掛区分"];
-        //             }
-        //             row3["請求日付"] = (object) "";
-        //             row3["予備金額１"] = row2["単価"];
-        //             row3["予備金額２"] = (object) 0;
-        //             row3["予備ＣＤ２"] = (object) 0;
-        //             row3["分配元数量"] = (object) 0;
-        //             row3["修正担当者ＣＤ"] = (object) 9999;
-        //             row3["食事区分"] = (object) 2;
-        //             row3["修正日"] = (object) DateTime.Now;
-        //             分配先売上データ明細dataset.Tables[0].Rows.Add(row3);
-        //         }
-
-        //         //モバイル販売分配の得意先CDとコースCDから、コーステーブルより最小のSEQを取得
-        //         int courseSeq = this.getCourseSEQ(row2["コースＣＤ"].ToString(), row2["得意先ＣＤ"].ToString(), sqlTransaction);
-
-        //         //売上データ明細を検索、要は親得意先
-        //         // string filterExpression2 = "
-        //         //     部署ＣＤ=" + row2["部署ＣＤ"].ToString() + "
-        //         //     AND コースＣＤ=" + row2["コースＣＤ"].ToString() + "
-        //         //     AND 得意先ＣＤ=" + row2["得意先ＣＤ"].ToString() + "
-        //         //     AND 行Ｎｏ=" + courseSeq.ToString() + "
-        //         //     AND 商品ＣＤ=" + row2["商品ＣＤ"].ToString() + "
-        //         //     AND 主食ＣＤ=" + row2["主食ＣＤ"].ToString() + "
-        //         //     AND 副食ＣＤ=" + row2["副食ＣＤ"].ToString();
-        //         // DataRow[] dataRowArray2 = 売上データ明細dataset.Tables[0].Select(filterExpression2);
-
-        //         //分配処理　分配元数量 = 現金/掛売個数, 現金/掛売個数 = 0 のはずが実績数を足しているので、一度分配したものはおかしくなる
-        //         // if (dataRowArray2.Length > 0)
-        //         // {
-        //         //     foreach (DataRow dataRow in dataRowArray2)
-        //         //     {
-        //         //         dataRow.BeginEdit();
-        //         //         dataRow["商品ＣＤ"] = row2["商品ＣＤ"];
-        //         //         dataRow["商品区分"] = (object) this.getSyohinKbn(row2["商品ＣＤ"].ToString(), sqlTransaction);
-        //         //         if (row2["現金売掛区分"].ToString().Equals("0"))
-        //         //             dataRow["現金個数"] = (object) (this.toDecimal(dataRow["現金個数"]) - this.toDecimal(row2["実績数"]));
-        //         //         else
-        //         //             dataRow["掛売個数"] = (object) (this.toDecimal(dataRow["掛売個数"]) - this.toDecimal(row2["実績数"]));
-        //         //         dataRow["分配元数量"] = (object) (this.toDecimal(dataRow["分配元数量"]) + this.toDecimal(row2["実績数"]));
-        //         //         dataRow["修正担当者ＣＤ"] = (object) 9999;
-        //         //         dataRow["修正日"] = (object) DateTime.Now;
-        //         //         dataRow.EndEdit();
-        //         //     }
-        //         // }
-        //     }
-
-        //     adapter5.Update(分配先売上データ明細dataset, "売上データ明細");
-
-        //     //ログ
-        //     // this.LOG(1, "得意先CD:" + row1["得意先ＣＤ"].ToString() + " dsUriの中身（昼食以外マージ前） ◇◇◇◇◇◇◇◇ Start ");
-        //     // if (売上データ明細dataset.Tables[0].Rows.Count > 0)
-        //     // {
-        //     //     foreach (DataRow row2 in (InternalDataCollectionBase) 売上データ明細dataset.Tables[0].Rows)
-        //     //     {
-        //     //         try
-        //     //         {
-        //     //             this.LOG(2, "" + "日付:" + row2["日付"].ToString() + " " + "部署ＣＤ:" + row2["部署ＣＤ"].ToString() + " " + "コースＣＤ:" + row2["コースＣＤ"].ToString() + " " + "行Ｎｏ:" + row2["行Ｎｏ"].ToString() + " " + "得意先ＣＤ:" + row2["得意先ＣＤ"].ToString() + " " + "明細行Ｎｏ:" + row2["明細行Ｎｏ"].ToString() + " " + "受注Ｎｏ:" + row2["受注Ｎｏ"].ToString() + " " + "配送担当者ＣＤ:" + row2["配送担当者ＣＤ"].ToString() + " " + "商品ＣＤ:" + row2["商品ＣＤ"].ToString() + " " + "商品区分:" + row2["商品区分"].ToString() + " " + "現金個数:" + row2["現金個数"].ToString() + " " + "現金金額:" + row2["現金金額"].ToString() + " " + "現金値引:" + row2["現金値引"].ToString() + " " + "現金値引事由ＣＤ:" + row2["現金値引事由ＣＤ"].ToString() + " " + "掛売個数:" + row2["掛売個数"].ToString() + " " + "掛売金額:" + row2["掛売金額"].ToString() + " " + "掛売値引:" + row2["掛売値引"].ToString() + " " + "掛売値引事由ＣＤ:" + row2["掛売値引事由ＣＤ"].ToString() + " " + "請求日付:" + row2["請求日付"].ToString() + " " + "予備金額１:" + row2["予備金額１"].ToString() + " " + "予備金額２:" + row2["予備金額２"].ToString() + " " + "売掛現金区分:" + row2["売掛現金区分"].ToString() + " " + "予備ＣＤ２:" + row2["予備ＣＤ２"].ToString() + " " + "主食ＣＤ:" + row2["主食ＣＤ"].ToString() + " " + "副食ＣＤ:" + row2["副食ＣＤ"].ToString() + " " + "分配元数量:" + row2["分配元数量"].ToString() + " " + "食事区分:" + row2["食事区分"].ToString() + " " + "修正担当者ＣＤ:" + row2["修正担当者ＣＤ"].ToString() + " " + "修正日:" + row2["修正日"].ToString() + " ");
-        //     //         }
-        //     //         catch
-        //     //         {
-        //     //         }
-        //     //     }
-        //     // }
-        //     // this.LOG(3, "得意先CD:" + row1["得意先ＣＤ"].ToString() + " dsUriの中身（昼食以外マージ前） ◇◇◇◇◇◇◇◇ End ");
-
-        //     //明細行Noの振り直し
-        //     // int num2 = this.toInt((object) 売上データ明細dataset.Tables[0].Compute(" MAX(明細行Ｎｏ) + 1 ", (string) null).ToString());
-        //     // foreach (DataRow row2 in (InternalDataCollectionBase) 売上データ明細datasetクローン.Tables[0].Rows)
-        //     // {
-        //     //     row2["明細行Ｎｏ"] = (object) num2;
-        //     //     ++num2;
-        //     // }
-
-        //     // if (売上データ明細datasetクローン.Tables[0].Rows.Count > 0)
-        //     //     売上データ明細dataset.Merge(売上データ明細datasetクローン);
-
-        //     //ログ
-        //     // string strコースCD = "";
-        //     // this.LOG(4, "得意先CD:" + row1["得意先ＣＤ"].ToString() + " dAdapter3.Update(dsUri, \"売上データ明細\");  ------------------ Start");
-        //     // this.LOG(5, "得意先CD:" + row1["得意先ＣＤ"].ToString() + " dsUriの中身（昼食以外マージ後） ★★★★★★★★ Start ");
-        //     // if (売上データ明細dataset.Tables[0].Rows.Count > 0)
-        //     // {
-        //     //     foreach (DataRow row2 in (InternalDataCollectionBase) 売上データ明細dataset.Tables[0].Rows)
-        //     //     {
-        //     //         try
-        //     //         {
-        //     //             strコースCD = row2["コースＣＤ"].ToString();
-        //     //             this.LOG(6, "" + "日付:" + row2["日付"].ToString() + " " + "部署ＣＤ:" + row2["部署ＣＤ"].ToString() + " " + "コースＣＤ:" + row2["コースＣＤ"].ToString() + " " + "行Ｎｏ:" + row2["行Ｎｏ"].ToString() + " " + "得意先ＣＤ:" + row2["得意先ＣＤ"].ToString() + " " + "明細行Ｎｏ:" + row2["明細行Ｎｏ"].ToString() + " " + "受注Ｎｏ:" + row2["受注Ｎｏ"].ToString() + " " + "配送担当者ＣＤ:" + row2["配送担当者ＣＤ"].ToString() + " " + "商品ＣＤ:" + row2["商品ＣＤ"].ToString() + " " + "商品区分:" + row2["商品区分"].ToString() + " " + "現金個数:" + row2["現金個数"].ToString() + " " + "現金金額:" + row2["現金金額"].ToString() + " " + "現金値引:" + row2["現金値引"].ToString() + " " + "現金値引事由ＣＤ:" + row2["現金値引事由ＣＤ"].ToString() + " " + "掛売個数:" + row2["掛売個数"].ToString() + " " + "掛売金額:" + row2["掛売金額"].ToString() + " " + "掛売値引:" + row2["掛売値引"].ToString() + " " + "掛売値引事由ＣＤ:" + row2["掛売値引事由ＣＤ"].ToString() + " " + "請求日付:" + row2["請求日付"].ToString() + " " + "予備金額１:" + row2["予備金額１"].ToString() + " " + "予備金額２:" + row2["予備金額２"].ToString() + " " + "売掛現金区分:" + row2["売掛現金区分"].ToString() + " " + "予備ＣＤ２:" + row2["予備ＣＤ２"].ToString() + " " + "主食ＣＤ:" + row2["主食ＣＤ"].ToString() + " " + "副食ＣＤ:" + row2["副食ＣＤ"].ToString() + " " + "分配元数量:" + row2["分配元数量"].ToString() + " " + "食事区分:" + row2["食事区分"].ToString() + " " + "修正担当者ＣＤ:" + row2["修正担当者ＣＤ"].ToString() + " " + "修正日:" + row2["修正日"].ToString() + " ");
-        //     //         }
-        //     //         catch
-        //     //         {
-        //     //         }
-        //     //     }
-        //     // }
-        //     // this.LOG(5, "得意先CD:" + row1["得意先ＣＤ"].ToString() + " dsUriの中身（昼食以外マージ後） ★★★★★★★★ End ");
-
-        //     //売上データ明細の更新反映
-        //     adapter1.Update(売上データ明細dataset, "売上データ明細");
-
-        //     //ログ
-        //     this.LOG(8, "得意先CD:" + row1["得意先ＣＤ"].ToString() + " dAdapter3.Update(dsUri, \"売上データ明細\");  ------------------ End");
-        //     if (!forceApply)
-        //     {
-        //         this.LOG(4, "得意先CD:" + row1["得意先ＣＤ"].ToString() + " dAdapter.Fill(dsYotei, \"モバイル_更新予定リスト\");  ------------------ Start");
-
-
-        //         // this.UpdateYoteiList(this.oConn.Connection, sqlTransaction, row1["得意先ＣＤ"].ToString(), strコースCD);
-        //         //処理済のモバイル更新予定リストの内容を更新
-        //         {
-        //             string cmdText = "
-        //                 SET LOCK_TIMEOUT 3000;
-        //                 SELECT *
-        //                 FROM モバイル_更新予定リスト" + "
-        //                 WHERE 得意先ＣＤ=" + sTokCD + "
-        //                 AND 日付 = '" + string.Format("{0:yyyy/MM/dd}", (object) DateTime.Now) + "'";
-
-        //             SqlDataAdapter adapter = new SqlDataAdapter()
-        //             {
-        //                 SelectCommand = new SqlCommand(cmdText, sqlConn)
-        //             };
-        //             adapter.SelectCommand.Transaction = tx;
-        //             adapter.SelectCommand.CommandTimeout = 20;
-        //             SqlCommandBuilder sqlCommandBuilder = new SqlCommandBuilder(adapter);
-        //             DataSet dataSet = new DataSet();
-        //             adapter.Fill(dataSet, "モバイル_更新予定リスト");
-
-        //             this.LOG(5, "dsYoteiの中身（変更前） ●●●●●●●● ここから ");
-        //             if (dataSet.Tables[0].Rows.Count > 0)
-        //             {
-        //             foreach (DataRow row in (InternalDataCollectionBase) dataSet.Tables[0].Rows)
-        //                 this.LOG(6, "" + "更新フラグ:" + row["更新フラグ"].ToString() + " " + "更新日:" + row["更新日"].ToString() + " " + "sTokCD:" + sTokCD + " " + "処理区分:" + row["更新日"].ToString() + " " + "モバイルデータ更新_部署ＣＤ:" + row["モバイルデータ更新_部署ＣＤ"].ToString() + " " + "モバイルデータ更新_コースＣＤ:" + row["モバイルデータ更新_コースＣＤ"].ToString() + " " + "WebService_メソッド名:" + row["WebService_メソッド名"].ToString() + " " + "WebService_部署ＣＤ:" + row["WebService_部署ＣＤ"].ToString() + " " + "WebService_コースＣＤ:" + row["WebService_コースＣＤ"].ToString() + " " + "WebService_更新区分:" + row["WebService_更新区分"].ToString() + " ");
-        //             }
-        //             this.LOG(5, "dsYoteiの中身（変更前） ●●●●●●●● ここまで ");
-        //             if (dataSet.Tables[0].Rows.Count > 0)
-        //             {
-        //                 dataSet.Tables[0].Rows[0].BeginEdit();
-        //                 dataSet.Tables[0].Rows[0]["更新フラグ"] = (object) true;
-        //                 dataSet.Tables[0].Rows[0]["更新日"] = (object) DateTime.Now;
-        //                 dataSet.Tables[0].Rows[0]["処理区分"] = (object) "モバイルデータ更新";
-        //                 dataSet.Tables[0].Rows[0]["モバイルデータ更新_部署ＣＤ"] = (object) this._BushoCD;
-        //                 dataSet.Tables[0].Rows[0]["モバイルデータ更新_コースＣＤ"] = strコースCD == "" ? (object) "0" : (object) strコースCD;
-        //                 dataSet.Tables[0].Rows[0]["WebService_メソッド名"] = (object) "";
-        //                 dataSet.Tables[0].Rows[0]["WebService_部署ＣＤ"] = (object) "0";
-        //                 dataSet.Tables[0].Rows[0]["WebService_コースＣＤ"] = (object) "0";
-        //                 dataSet.Tables[0].Rows[0]["WebService_更新区分"] = (object) "";
-        //                 dataSet.Tables[0].Rows[0].EndEdit();
-        //             }
-        //             adapter.Update(dataSet, "モバイル_更新予定リスト");
-
-        //             this.LOG(5, "dsYoteiの中身（更新後） ◎◎◎◎◎◎◎◎ ここから ");
-        //             if (dataSet.Tables[0].Rows.Count > 0)
-        //             {
-        //             foreach (DataRow row in (InternalDataCollectionBase) dataSet.Tables[0].Rows)
-        //                 this.LOG(6, "" + "更新フラグ:" + row["更新フラグ"].ToString() + " " + "更新日:" + row["更新日"].ToString() + " " + "sTokCD:" + sTokCD + " " + "処理区分:" + row["更新日"].ToString() + " " + "モバイルデータ更新_部署ＣＤ:" + row["モバイルデータ更新_部署ＣＤ"].ToString() + " " + "モバイルデータ更新_コースＣＤ:" + row["モバイルデータ更新_コースＣＤ"].ToString() + " " + "WebService_メソッド名:" + row["WebService_メソッド名"].ToString() + " " + "WebService_部署ＣＤ:" + row["WebService_部署ＣＤ"].ToString() + " " + "WebService_コースＣＤ:" + row["WebService_コースＣＤ"].ToString() + " " + "WebService_更新区分:" + row["WebService_更新区分"].ToString() + " ");
-        //             }
-        //             this.LOG(5, "dsYoteiの中身（更新後） ◎◎◎◎◎◎◎◎ ここまで ");
-        //         }
-
-        //         this.LOG(4, "得意先CD:" + row1["得意先ＣＤ"].ToString() + " dAdapter.Fill(dsYotei, \"モバイル_更新予定リスト\");  ------------------ End");
-        //     }
-        // }
-        // } catch (Exception $exception) {
-        //     throw $exception;
-        // }
-
+                                        DB::connection('sqlsrv_batch')->table("売上データ明細")
+                                            ->where('部署ＣＤ', $MobileDist->部署ＣＤ)
+                                            ->where('コースＣＤ', $MobileDist->コースＣＤ)
+                                            ->where('得意先ＣＤ', $MobileDist->得意先ＣＤ)
+                                            ->where('日付', $MobileDist->日付)
+                                            ->where('商品ＣＤ', $MobileDist->商品ＣＤ)
+                                            ->where('主食ＣＤ', $MobileDist->主食ＣＤ)
+                                            ->where('副食ＣＤ', $MobileDist->副食ＣＤ)
+                                            ->where('明細行Ｎｏ', $MobileDist->行Ｎｏ)
+                                            ->update($pdata);
+                                    }
+                                }
+                            }
+                        }
+                    }
                     break;
             }
         }
-
-        return true;
     }
 }
