@@ -1,5 +1,9 @@
 ﻿<template>
-    <form id="this.$options.name" class="droppable" data-url="/DAI07010/Upload" data-upload-callback="uploadCallback">
+    <form id="this.$options.name">
+    <!--
+        ファイルアップロード機能解放準備
+        <form id="this.$options.name" class="droppable" data-url="/DAI07010/Upload" data-upload-callback="uploadCallback">
+    -->
         <div class="row">
             <div class="col-md-1">
                 <label>部署</label>
@@ -527,13 +531,13 @@ export default {
                 vue.beforeSearchCallback(grid, () => grid.refresh());
             }
         },
-        CourseAutoCompleteFunc: function(input, dataList) {
+        CourseAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
 
             if (!dataList.length) return [];
 
-            var comp = vue.$refs.PopupSelect_Course;
-            if (input == comp.selectValue && comp.isUnique) return dataList;
+            // var comp = vue.$refs.PopupSelect_Course;
+            // if (input == comp.selectValue && comp.isUnique) return dataList;
 
             var keywords = !!input ? editKeywords((input + "").split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v)) : [];
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
