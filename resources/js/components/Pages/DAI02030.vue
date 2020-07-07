@@ -1375,6 +1375,7 @@ export default {
                         }
                         table.DAI02030Grid1 tr th,
                         table.DAI02030Grid1 tr td {
+                            height: 20px !important;
                             border-style: solid;
                             border-left-width: 1px;
                             border-top-width: 0px;
