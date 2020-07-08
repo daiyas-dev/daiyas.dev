@@ -6,6 +6,7 @@
             </div>
             <div class="col-md-2">
                 <VueSelectBusho
+                    ref="VueSelectBusho"
                     :onChangedFunc=onBushoChanged
                 />
             </div>
