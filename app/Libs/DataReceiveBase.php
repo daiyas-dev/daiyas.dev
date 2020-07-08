@@ -669,7 +669,7 @@ class DataReceiveBase
                             $chumon['特記_通知用'] = $Customer->備考３;
 
                             $no = DB::connection('sqlsrv_batch')->table("注文データ")
-                                ->where('注文区分', 0)
+                                ->where('注文区分', 1)
                                 ->where('注文日付', $data['日付'])
                                 ->where('部署ＣＤ', $data['部署ＣＤ'])
                                 ->where('得意先ＣＤ', $data['得意先ＣＤ'])

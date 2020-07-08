@@ -120,6 +120,9 @@ class PWADataReceive extends DataReceiveBase
                         $pdo->commit();
                     } catch (Exception $exception) {
                         $pdo->rollBack();
+                        $err_receive_id = isset($DataItem['受信ＩＤ']) ? $DataItem['受信ＩＤ'] : 0;
+                        echo $err_receive_id . ":" . $exception->getMessage() . "\n";
+                        $this->ErrorReceiveList($err_receive_id, "エラー", $exception->getMessage(), null);
                     }
                 }
                 //$pdo = null;
