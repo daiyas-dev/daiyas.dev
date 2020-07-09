@@ -397,7 +397,7 @@ class DataReceiveBase
             $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
             $user = 'daiyas';
             $password = 'daiyas';
-            $pdo = new PDO($dsn, $user, $password);
+            $pdo_err = new PDO($dsn, $user, $password);
 
             //試行回数を取得
             $seq_no=null;
@@ -407,7 +407,7 @@ class DataReceiveBase
                     FROM $table_name
                     WHERE 受信ＩＤ = $receive_id
                 ";
-            $stmt = $pdo->query($next_seq_Sql);
+            $stmt = $pdo_err->query($next_seq_Sql);
             if (!!$stmt) {
                 $seq_no = $stmt->fetch()["NEXT_SEQ"];
             }
@@ -432,10 +432,10 @@ class DataReceiveBase
                     ,$esc_message
                    )
                 ";
-            $pdo->beginTransaction();
-            $pdo->exec($mr_sql);
-            $pdo->commit();
-            $pdo = null;
+            $pdo_err->beginTransaction();
+            $pdo_err->exec($mr_sql);
+            $pdo_err->commit();
+            $pdo_err = null;
         } catch (Exception $exception) {
             throw $exception;
         }
