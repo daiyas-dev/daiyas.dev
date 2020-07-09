@@ -463,7 +463,6 @@ class WebOrderDataReceive extends DataReceiveBase
         $MInsertList = [];
         $MUpdateList = [];
 
-        //TODO:特記Web受注は除去。必要な場合はDAI01032ControllerのSaveOrderFromWebから移植すること
         $GetOrderSQL = "
 			WITH WEB AS (
 				SELECT DISTINCT
@@ -501,9 +500,22 @@ class WebOrderDataReceive extends DataReceiveBase
                 ,0 AS 予備ＣＤ１
                 ,0 AS 予備ＣＤ２
                 ,MAX(修正日) AS 修正日
-                ,特記_社内用
-                ,特記_配送用
-                ,特記_通知用
+				,(
+					STRING_AGG(
+						IIF(
+							((売掛現金区分=0 AND 現金個数 > 0) OR (売掛現金区分=1 AND 掛売個数 > 0))
+							AND
+							(備考 IS NOT NULL OR 届け先名 IS NOT NULL),
+							利用者CD + ':'
+								+ IIF(届け先名 IS NOT NULL, ' ' + 届け先名, '')
+								+ IIF(備考 IS NOT NULL, ' ' + 備考, '')
+						,NULL)
+						,CHAR(13) + CHAR(10)
+					)
+				) AS 特記_Web受注
+                ,特記_社内
+                ,特記_配送
+                ,特記_通知
                 ,Web受注ID
             FROM
 			(
@@ -514,9 +526,9 @@ class WebOrderDataReceive extends DataReceiveBase
 					,TOK.得意先名
 					,TOK.部署CD
                     ,TOK.売掛現金区分
-                    ,TOK.備考１ AS 特記_社内用
-                    ,TOK.備考２ AS 特記_配送用
-                    ,TOK.備考３ AS 特記_通知用
+                    ,TOK.備考１ AS 特記_社内
+                    ,TOK.備考２ AS 特記_配送
+                    ,TOK.備考３ AS 特記_通知
 					,WEB.配送日
 					,MAX(DETAILS.注文日時) OVER(PARTITION BY WEB.Web受注ID, TOK.得意先名) AS 注文日時
 					,DETAILS.商品ＣＤ
@@ -568,9 +580,9 @@ class WebOrderDataReceive extends DataReceiveBase
                 ,商品ＣＤ
 				,商品区分
                 ,単価
-                ,特記_社内用
-                ,特記_配送用
-                ,特記_通知用
+                ,特記_社内
+                ,特記_配送
+                ,特記_通知
             ORDER BY
                 得意先ＣＤ
                 ,商品ＣＤ
@@ -588,39 +600,62 @@ class WebOrderDataReceive extends DataReceiveBase
                 ->where('配送日', $rec['配送日'])
                 ->where('商品ＣＤ', $rec['商品ＣＤ'])
                 ->get();
-
-                $data = $rec;
-                $data['修正担当者ＣＤ'] = $EditUser;
-                $data['修正日'] = $EditDate;
-
-            if (count($r) == 1) {
-                //受注データがすでに存在するとき
-                $data['明細行Ｎｏ'] = $r[0]->明細行Ｎｏ;
-
-                注文データ::query()
-                    ->where('注文区分', $data['注文区分'])
-                    ->where('部署ＣＤ', $data['部署ＣＤ'])
-                    ->where('得意先ＣＤ', $data['得意先ＣＤ'])
-                    ->where('配送日', $data['配送日'])
-                    ->where('明細行Ｎｏ', $data['明細行Ｎｏ'])
-                    ->update($data);
-                    //モバイルsv更新用
-                    array_push($MUpdateList, $data);
-            }else{
-                //受注データが存在しないとき(追加)
-                $no = 注文データ::query()
-                    ->where('注文区分', $rec['注文区分'])
-                    ->where('部署ＣＤ', $rec['部署ＣＤ'])
-                    ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
-                    ->where('配送日', $rec['配送日'])
-                    ->max('明細行Ｎｏ') + 1;
-
-                $data['明細行Ｎｏ'] = $no;
-
-                注文データ::insert($data);
-                //モバイルsv更新用
-                array_push($MInsertList, $data);
+            //注文データにWeb受注IDが存在しなかったら処理しない
+            if (count($r) == 0) {
+                continue;
             }
+
+            //受注データがすでに存在するとき
+            $data = $rec;
+            $data['修正担当者ＣＤ'] = $EditUser;
+            $data['修正日'] = $EditDate;
+
+            if (!!$data['特記_Web受注']) {
+                if (count($r) == 0) {
+                    $data['特記_社内用'] = ($data['特記_社内'] != '' ? $data['特記_社内'] . "\r\n" : '') . $data['特記_Web受注'];
+                    $data['特記_配送用'] = ($data['特記_配送'] != '' ? $data['特記_配送'] . "\r\n" : '') . $data['特記_Web受注'];
+                    $data['特記_通知用'] = $data['特記_通知'];
+                } else {
+                    if (preg_match('/' . $data['特記_Web受注'] . '/s', $r[0]->特記_社内用) == 0) {
+                        $data['特記_社内用'] = (!!$r[0]->特記_社内用 ? $r[0]->特記_社内用 . "\r\n" : '') . $data['特記_Web受注'];
+                    } else {
+                        $data['特記_社内用'] = $r[0]->特記_社内用;
+                    }
+                    if (preg_match('/' . $data['特記_Web受注'] . '/s', $r[0]->特記_配送用) == 0) {
+                        $data['特記_配送用'] = (!!$r[0]->特記_配送用 ? $r[0]->特記_配送用 . "\r\n" : '') . $data['特記_Web受注'];
+                    } else {
+                        $data['特記_配送用'] = $r[0]->特記_配送用;
+                    }
+                    $data['特記_通知用'] = $r[0]->特記_通知用;
+                }
+            }
+
+          //補正
+          $data['備考１'] = $data['備考１'] ?? '';
+          $data['備考２'] = $data['備考２'] ?? '';
+          $data['備考３'] = $data['備考３'] ?? '';
+          $data['備考４'] = $data['備考４'] ?? '';
+          $data['備考５'] = $data['備考５'] ?? '';
+          $data['特記_社内用'] = $data['特記_社内用'] ?? '';
+          $data['特記_配送用'] = $data['特記_配送用'] ?? '';
+          $data['特記_通知用'] = $data['特記_通知用'] ?? '';
+
+          unset($data['特記_Web受注']);
+          unset($data['特記_社内']);
+          unset($data['特記_配送']);
+          unset($data['特記_通知']);
+
+          $data['明細行Ｎｏ'] = $r[0]->明細行Ｎｏ;
+
+        注文データ::query()
+            ->where('注文区分', $data['注文区分'])
+            ->where('部署ＣＤ', $data['部署ＣＤ'])
+            ->where('得意先ＣＤ', $data['得意先ＣＤ'])
+            ->where('配送日', $data['配送日'])
+            ->where('明細行Ｎｏ', $data['明細行Ｎｏ'])
+            ->update($data);
+            //モバイルsv更新用
+            array_push($MUpdateList, $data);
         }
         return [
             "MInsertList" => $MInsertList,
