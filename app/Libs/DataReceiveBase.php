@@ -337,6 +337,39 @@ class DataReceiveBase
         }
     }
     /**
+     * 受信リストの最終更新日時を更新する。(DB::使用)
+     * @param object (参照)トランザクション
+     * @param int    受信ID
+     * @param string 最終更新日時。nullの場合は現在日付で更新。
+     * @return void
+     */
+    public function updateLastUpdateDateByDB($receive_id, $last_update_date=null)
+    {
+        //対象テーブルを選択
+        $table_name="";
+        switch ($this->target_server) {
+            case $this->target_server_enum["PWA"]:
+            {
+                $table_name="モバイル受信リスト";
+                break;
+            }
+            case $this->target_server_enum["WebOrder"]:
+            {
+                $table_name="Web受注受信リスト";
+                break;
+            }
+        }
+
+        //最終更新日を更新する
+        $q_last_update_date = $last_update_date==null ? Carbon::now()->format('Y/m/d H:i:s') : $last_update_date;
+
+        $count = DB::selectOne("SELECT COUNT(*) AS CNT FROM $table_name WHERE 受信ＩＤ=$receive_id AND (最終更新日時 IS NULL OR 最終更新日時<'$q_last_update_date')");
+        if (0<$count->CNT) {
+            $sql="UPDATE $table_name SET 最終更新日時='$q_last_update_date' WHERE 受信ＩＤ=$receive_id";
+            DB::update($sql);
+        }
+    }
+    /**
      * 受信エラーテーブルに送信フラグを書き込む
      * @param string エラー理由
      * @param string エラーメッセージ(エラー発生時に取得したメッセージをそのまま保存する)
