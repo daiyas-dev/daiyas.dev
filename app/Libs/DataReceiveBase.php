@@ -159,7 +159,7 @@ class DataReceiveBase
                     //UPDATE
                     $values="";
                     foreach ($new_data as $key=>$val) {
-                        $q_val = ($val===null || $val==='') ? "null" : "'$val'";
+                        $q_val = ($val===null) ? "null" : "'$val'";
                         $values .= ", $key = $q_val";
                     }
                     $values=substr($values, 1);
@@ -171,7 +171,7 @@ class DataReceiveBase
                     $values="";
                     foreach ($new_data as $key=>$val) {
                         $fields .= ", $key";
-                        $q_val = ($val===null || $val==='') ? "null" : "'$val'";
+                        $q_val = ($val===null) ? "null" : "'$val'";
                         $values .= ", $q_val";
                     }
                     $fields=substr($fields, 1);
