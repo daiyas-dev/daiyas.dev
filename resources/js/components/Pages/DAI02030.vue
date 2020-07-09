@@ -1032,7 +1032,7 @@ export default {
                 #k-box {
                     float: left;
                     width: 90%;
-                    padding-bottom: 8px;
+                    padding-bottom: 3px;
                 }
                 #l-box {
                     float: right;
@@ -1375,7 +1375,7 @@ export default {
                         }
                         table.DAI02030Grid1 tr th,
                         table.DAI02030Grid1 tr td {
-                            height: 20px !important;
+                            height: 18px !important;
                             border-style: solid;
                             border-left-width: 1px;
                             border-top-width: 0px;
@@ -1412,6 +1412,25 @@ export default {
                         }
                         table.DAI02030Grid1 tbody tr td:nth-child(n+2){
                             text-align: right;
+                        }
+                        body > div > div:nth-child(odd) > div > div.header {
+                            margin-top: 30px;
+                            padding-top: 30px;
+                            border-style: dashed;
+                            border-left-width: 0px;
+                            border-top-width: 1px;
+                            border-right-width: 0px;
+                            border-bottom-width: 0px;
+                        }
+                        div.header-tokuisaki {
+                            padding-top: 3px !important;
+                            padding-bottom: 3px !important;
+                            margin-top: 3px !important;
+                            margin-bottom: 3px !important;
+                        }
+                        div.header-seikyu-no,
+                        div.header-seikyu-date {
+                            text-align: center;
                         }
                     `;
                     var styleSeikyuMeisaiElse =`
@@ -1557,11 +1576,12 @@ export default {
                                             </div>
                                             <div style="margin-bottom: 8px;">
                                                 株式会社<span/>ダイヤス食品
+                                                <br>${vue.viewModel.BushoCd == 501 ? "デイリーボーノ事業所" : ""}
                                             </div>
                                         </div>
                                         <div id="c-box">
-                                            <div>
-                                                <span style="white-space: pre;">${moment(r.請求日付).format("  YY  年  MM  月  DD  日")}</span>
+                                            <div class="header-seikyu-date">
+                                                <span style="white-space: pre;">${vue.viewModel.BushoCd == 501 ? moment(r.請求日付).format("YYYY/MM/DD") : moment(r.請求日付).format("  YY  年  MM  月  DD  日")}</span>
                                             </div>
                                             <div class="header-seikyu-no">
                                                 <span/>請求番号
@@ -1603,7 +1623,7 @@ export default {
                                             </div>
                                         </div>
                                         <div id="g-box">
-                                            <div style="margin-bottom: 8px;">
+                                            <div style="margin-bottom: 3px;">
                                                 毎度ありがとうございます。
                                             </div>
                                             <div>
