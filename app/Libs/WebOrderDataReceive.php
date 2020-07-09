@@ -122,7 +122,7 @@ class WebOrderDataReceive extends DataReceiveBase
                         $where .= " AND $key = '$val'";
                     }
                     $where=substr($where,5);
-                    $count = DB::selectOne("SELECT COUNT(*) AS CNT FROM $cnv_table_name WHERE $where");
+                    $count = DB::selectOne("SELECT COUNT(*) AS CNT FROM $cnv_table_name WHERE $where")->CNT;
                     if($record['削除フラグ']==1)
                     {
                         if (0<$count)
@@ -463,6 +463,7 @@ class WebOrderDataReceive extends DataReceiveBase
         $MInsertList = [];
         $MUpdateList = [];
 
+        //TODO:特記Web受注は除去。必要な場合はDAI01032ControllerのSaveOrderFromWebから移植すること
         $GetOrderSQL = "
 			WITH WEB AS (
 				SELECT DISTINCT
@@ -500,22 +501,9 @@ class WebOrderDataReceive extends DataReceiveBase
                 ,0 AS 予備ＣＤ１
                 ,0 AS 予備ＣＤ２
                 ,MAX(修正日) AS 修正日
-				,(
-					STRING_AGG(
-						IIF(
-							((売掛現金区分=0 AND 現金個数 > 0) OR (売掛現金区分=1 AND 掛売個数 > 0))
-							AND
-							(備考 IS NOT NULL OR 届け先名 IS NOT NULL),
-							利用者CD + ':'
-								+ IIF(届け先名 IS NOT NULL, ' ' + 届け先名, '')
-								+ IIF(備考 IS NOT NULL, ' ' + 備考, '')
-						,NULL)
-						,CHAR(13) + CHAR(10)
-					)
-				) AS 特記_Web受注
-                ,特記_社内
-                ,特記_配送
-                ,特記_通知
+                ,特記_社内用
+                ,特記_配送用
+                ,特記_通知用
                 ,Web受注ID
             FROM
 			(
@@ -526,9 +514,9 @@ class WebOrderDataReceive extends DataReceiveBase
 					,TOK.得意先名
 					,TOK.部署CD
                     ,TOK.売掛現金区分
-                    ,TOK.備考１ AS 特記_社内
-                    ,TOK.備考２ AS 特記_配送
-                    ,TOK.備考３ AS 特記_通知
+                    ,TOK.備考１ AS 特記_社内用
+                    ,TOK.備考２ AS 特記_配送用
+                    ,TOK.備考３ AS 特記_通知用
 					,WEB.配送日
 					,MAX(DETAILS.注文日時) OVER(PARTITION BY WEB.Web受注ID, TOK.得意先名) AS 注文日時
 					,DETAILS.商品ＣＤ
@@ -580,9 +568,9 @@ class WebOrderDataReceive extends DataReceiveBase
                 ,商品ＣＤ
 				,商品区分
                 ,単価
-                ,特記_社内
-                ,特記_配送
-                ,特記_通知
+                ,特記_社内用
+                ,特記_配送用
+                ,特記_通知用
             ORDER BY
                 得意先ＣＤ
                 ,商品ＣＤ
