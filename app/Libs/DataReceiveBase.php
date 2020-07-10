@@ -600,7 +600,7 @@ class DataReceiveBase
                             ->where('得意先ＣＤ', $data['得意先ＣＤ'])
                             ->where('配送日', $data['日付'])
                             ->where('商品ＣＤ', $data['商品ＣＤ'])
-                            ->where('注文区分', 0)
+                            ->where('注文区分', 1)
                             ->get();
 
                         if (count($Orders) > 0) {
@@ -609,11 +609,11 @@ class DataReceiveBase
                                 ->where('得意先ＣＤ', $data['得意先ＣＤ'])
                                 ->where('配送日', $data['日付'])
                                 ->where('商品ＣＤ', $data['商品ＣＤ'])
-                                ->where('注文区分', 0)
+                                ->where('注文区分', 1)
                                 ->update(collect($mikomi)->all());
                             //echo "\t update 見込:" . $data['部署ＣＤ'] . "/" . $data['得意先ＣＤ'] . "/" . $data['商品ＣＤ'] . "\n";
                         } else {
-                            $mikomi["注文区分"] = 0;
+                            $mikomi["注文区分"] = 1;
                             $mikomi["注文日付"] = $data['日付'];
                             $mikomi["注文時間"] = $orderTime;
                             $mikomi["部署ＣＤ"] = $data['部署ＣＤ'];
@@ -635,7 +635,7 @@ class DataReceiveBase
                             $mikomi['特記_通知用'] = $Customer->備考３;
 
                             $no = DB::connection('sqlsrv_batch')->table("注文データ")
-                                ->where('注文区分', 0)
+                                ->where('注文区分', 1)
                                 ->where('注文日付', $data['日付'])
                                 ->where('部署ＣＤ', $data['部署ＣＤ'])
                                 ->where('得意先ＣＤ', $data['得意先ＣＤ'])
@@ -667,7 +667,7 @@ class DataReceiveBase
                             ->where('得意先ＣＤ', $data['得意先ＣＤ'])
                             ->where('配送日', $data['日付'])
                             ->where('商品ＣＤ', $data['商品ＣＤ'])
-                            ->where('注文区分', 1)
+                            ->where('注文区分', 0)
                             ->get();
 
                         if (count($Orders) > 0) {
@@ -676,11 +676,11 @@ class DataReceiveBase
                                 ->where('得意先ＣＤ', $data['得意先ＣＤ'])
                                 ->where('配送日', $data['日付'])
                                 ->where('商品ＣＤ', $data['商品ＣＤ'])
-                                ->where('注文区分', 1)
+                                ->where('注文区分', 0)
                                 ->update(collect($chumon)->all());
                             //echo "\t update 注文:" . $data['部署ＣＤ'] . "/" . $data['得意先ＣＤ'] . "/" . $data['商品ＣＤ'] . "\n";
                         } else {
-                            $chumon["注文区分"] = 1;
+                            $chumon["注文区分"] = 0;
                             $chumon["注文日付"] = $data['日付'];
                             $chumon["注文時間"] = $orderTime;
                             $chumon["部署ＣＤ"] = $data['部署ＣＤ'];
@@ -702,7 +702,7 @@ class DataReceiveBase
                             $chumon['特記_通知用'] = $Customer->備考３;
 
                             $no = DB::connection('sqlsrv_batch')->table("注文データ")
-                                ->where('注文区分', 1)
+                                ->where('注文区分', 0)
                                 ->where('注文日付', $data['日付'])
                                 ->where('部署ＣＤ', $data['部署ＣＤ'])
                                 ->where('得意先ＣＤ', $data['得意先ＣＤ'])
