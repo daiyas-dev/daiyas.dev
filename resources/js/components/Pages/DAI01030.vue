@@ -1229,9 +1229,7 @@ export default {
                                 vue.viewModel.IsEdit = true;
                             }
 
-                            //TODO:一旦コメント化 2020/07/10 勝間田
                             //本日注文履歴 再取得
-                            /*
                             vue.getTodayOrder(() => {
                                 vue.CurrentOrder = vue.TodayOrders.find(v => {
                                     return v.部署ＣＤ == vue.TodayOrders[0].部署ＣＤ
@@ -1252,7 +1250,6 @@ export default {
                                     }
                                 });
                             });
-                            */
                             return false;
                         },
                     },
