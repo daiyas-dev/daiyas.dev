@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Events\PublicEvent;
 use Exception;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class AccountController extends Controller
 {
@@ -143,5 +144,19 @@ class AccountController extends Controller
             ->get();
 
         return response()->json($MenuList);
+    }
+
+    public function Encrypt($request)
+    {
+        $ps = explode(',', $request->passwords);
+
+        $ret = "";
+        foreach ($ps as $p) {
+            $enc = Hash::make($p);
+
+            $ret = $ret . $p . " : " . $enc . "<br>";
+        }
+
+        return $ret;
     }
 }
