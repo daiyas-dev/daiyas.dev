@@ -1250,7 +1250,6 @@ export default {
                                     }
                                 });
                             });
-
                             return false;
                         },
                     },

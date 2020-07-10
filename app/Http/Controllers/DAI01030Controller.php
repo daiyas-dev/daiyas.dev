@@ -416,9 +416,9 @@ class DAI01030Controller extends Controller
                 LEFT OUTER JOIN 担当者マスタ TM
                     ON  TM.担当者ＣＤ = CD.修正担当者ＣＤ
             WHERE
-                CD.得意先ＣＤ = 6073
-            AND	CD.部署ＣＤ = 101
-            AND CD.配送日 = '20200616'
+                CD.得意先ＣＤ = $CustomerCd
+            AND	CD.部署ＣＤ = $BushoCd
+            AND CD.配送日 = '$DeliveryDate'
             AND CD.注文区分=0
             ORDER BY
                 修正日 DESC
@@ -735,20 +735,13 @@ class DAI01030Controller extends Controller
                 DB::commit();
 
                 //モバイルsv更新
-                foreach ($MDeleteList as $rec) {
-                    $ds = new DataSendWrapper();
-                    $ds->Delete('注文データ', $rec, true, $rec['部署ＣＤ'], null, null);
-                }
-                foreach ($MInsertList as $data) {
-                    $ds = new DataSendWrapper();
-                    $ds->Insert('注文データ', $data, true, $rec['部署ＣＤ'], null, null);
-                }
-
+                $ds = new DataSendWrapper();
+                $Message = null;
                 if ($DeliveryDate == Carbon::now()->format('Ymd')) {
                     //当日注文の場合、通知
                     $Message = $request->Message;
-                    $ds->Execute(null, true, $BushoCd, $CustomerCd, $CourseCd, $Message);
                 }
+                $ds->UpdateOrderData($MDeleteList,$MInsertList,$BushoCd, $CustomerCd, $CourseCd, $Message);
             }
         } catch (Exception $exception) {
             DB::rollBack();
