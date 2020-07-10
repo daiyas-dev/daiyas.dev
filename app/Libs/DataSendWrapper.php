@@ -190,6 +190,7 @@ class DataSendWrapper extends PWADataSend
         }
 
         //SQLの作成
+        $bit_fields=[];
         $bit_fields = $this->GetBitField($table_name,$map);
         $new_table_name=$map["TableName"];
         $fields="";
@@ -204,6 +205,41 @@ class DataSendWrapper extends PWADataSend
         $fields=substr($fields,1);
         $values=substr($values,1);
         return "insert into $new_table_name ( $fields )values( $values )";
+    }
+    /**
+     * マッピングと1レコード分のデータを渡してInsertSQLを戻す
+     * @param マッピングデータ(1テーブル分)
+     * @param レコードデータ
+     * @return DeleteSQL文字列
+    */
+    private function CreateDeleteSQL($map,$record_data)
+    {
+        foreach($record_data as $key=>$val)
+        {
+            if(array_key_exists($key,$map["Field"]))
+            {
+                $new_key=$map["Field"][$key];
+                if(in_array($key,$map["PrimaryKey"],true))
+                {
+                    $new_pk[$new_key]=$val;
+                }
+            }
+        }
+        if(count($new_pk)===0)
+        {
+            throw new Exception("主キーが指定されていません。");
+        }
+
+        //SQLの作成
+        $new_table_name=$map["TableName"];
+        $where="";
+        foreach($new_pk as $key=>$val)
+        {
+            $where .= " AND $key = '$val'";
+        }
+        $where=substr($where,5);
+
+        return "delete from $new_table_name where $where";
     }
     /**
      * 指定のテーブルのマッピング情報を取得する
@@ -265,33 +301,7 @@ class DataSendWrapper extends PWADataSend
             if (!array_key_exists($table_name, $map)) {
                 throw new Exception("テーブルマッピング情報がありません。");
             }
-            $map = $map[$table_name];
-            foreach($table_data as $key=>$val)
-            {
-                if(array_key_exists($key,$map["Field"]))
-                {
-                    $new_key=$map["Field"][$key];
-                    if(in_array($key,$map["PrimaryKey"],true))
-                    {
-                        $new_pk[$new_key]=$val;
-                    }
-                }
-            }
-            if(count($new_pk)===0)
-            {
-                throw new Exception("主キーが指定されていません。");
-            }
-
-            //SQLの作成
-            $new_table_name=$map["TableName"];
-            $where="";
-            foreach($new_pk as $key=>$val)
-            {
-                $where .= " AND $key = '$val'";
-            }
-            $where=substr($where,5);
-
-            $sql="delete from $new_table_name where $where";
+            $sql = $this->CreateDeleteSQL($map[$table_name],$table_data);
 
             //送信リストに登録
             parent::StoreSendList($sql,$Immediate,$busho_cd,$customer_cd,$course_cd, $notify_message);
@@ -583,6 +593,29 @@ class DataSendWrapper extends PWADataSend
                 where 部署ＣＤ = $busho_cd
             ";
             $this->InsertMultiRow($table_name, null, $table_sql, true, $busho_cd, null, null, $del_sql, $notify_message);
+        } catch (Exception $exception) {
+            throw $exception;
+        }
+    }
+    /**
+     * 受注テーブルを更新する
+     * @param 削除対象データリスト
+     * @param 作成対象データリスト
+     */
+    public function UpdateOrderData($MDeleteList,$MInsertList,$busho_cd,$customer_cd,$course_cd, $notify_message = null)
+    {
+        try {
+            $table_name = "注文データ";
+            $map = $this->GetMapping($table_name);
+            $delete_sql="";
+            foreach ($MDeleteList as $rec) {
+                $delete_sql .= ";".$this->CreateDeleteSQL($map,$rec);
+            }
+            if (0<strlen($delete_sql)) {
+                $delete_sql=substr($delete_sql, 1);
+            }
+            $this->InsertMultiRow($table_name,$MInsertList,null,true,$busho_cd,$customer_cd,$course_cd,$delete_sql);
+            $this->Execute(null, true, $busho_cd, $customer_cd, $course_cd ,$notify_message);
         } catch (Exception $exception) {
             throw $exception;
         }
