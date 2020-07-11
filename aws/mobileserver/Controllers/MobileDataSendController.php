@@ -119,12 +119,13 @@ class MobileDataSendController extends Controller
                     fclose($file_handle);
                     chmod($file_name, 0777);
                     $files[]=$file_name;
-                    $row_no=0;
+                    $row_no=1;
                     $file_no++;
 
                     // 次のファイルを開く
                     $file_name = $this->tmp_path . "/" . $table_name . "_". sprintf('%03d', $file_no) .".txt";
                     $file_handle = fopen($file_name, "w");
+		            fwrite($file_handle, "[");
                 }
             }
             // ファイルを閉じる
