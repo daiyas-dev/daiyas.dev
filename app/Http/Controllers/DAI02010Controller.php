@@ -91,9 +91,7 @@ class DAI02010Controller extends Controller
             $ds = new DataSendWrapper();
             if (!!$this->UriageMeisaiData)
             {
-                foreach ($this->UriageMeisaiData as $rec) {
-                    $ds->Update('売上データ明細', $rec, true, $rec['部署ＣＤ'], $rec['得意先ＣＤ'], $rec['コースＣＤ']);
-                }
+                $ds->UpdateUriageMeisaiData($this->UriageMeisaiData);
             }
         } catch (Exception $exception) {
             DB::rollBack();

@@ -727,7 +727,6 @@ export default {
                     vue.footerButtons.find(v => v.id == "DAI01030Grid1_DeleteRow").disabled = !isSelection;
                 }
             );
-
             vue.viewModel.IsShowAll = false;
 
             console.log("check params", vue.params)
@@ -794,6 +793,7 @@ export default {
                     vue.viewModel.TantoNm = "";
                 }
             }
+            vue.$refs.PopupSelect_Customer.focus();
         },
         CustomerChanged: function(info, isValid) {
             var vue = this;
@@ -1260,7 +1260,6 @@ export default {
                                             ;
                                 });
                             });
-
                             return false;
                         },
                     },
@@ -1453,8 +1452,6 @@ export default {
                 }
             });
             */
-           console.log('遷移');//TODO:
-           console.log(vue.viewModel);//TODO:
            vue.viewModel.BushoCd= vue.CurrentOrder.部署ＣＤ;
            vue.viewModel.DeliveryDate= moment(vue.CurrentOrder.配送日).format("YYYY年MM月DD日");
            vue.viewModel.LastEditTime= vue.CurrentOrder.修正時間;
