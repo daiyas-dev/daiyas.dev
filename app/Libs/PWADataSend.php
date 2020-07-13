@@ -42,8 +42,10 @@ class PWADataSend
             $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
             $pdo = null;
 
+            $post_count=0;
             foreach($DataList as $DataItem)
             {
+                $post_count++;
                 //現在日時を取得(ファイル名に使用)
                 $seq_str = Carbon::now()->format('YmdHis') ."_". sprintf('%06d', $DataItem['送信ＩＤ']);
                 //SQLをファイルに書き込む
@@ -66,6 +68,13 @@ class PWADataSend
                 //使用したテンポラリファイルを消す
                 unlink($zip_file);
                 unlink($sql_file);
+
+                //AWSに短時間に60件以上のリクエストを投げるとエラー(429 Too Many Requests)を返すので、40post毎にちょっと待つ
+                if(40<=$post_count)
+                {
+                    sleep(5);
+                    $post_count=0;
+                }
             }
         }
         catch (Exception $exception)
