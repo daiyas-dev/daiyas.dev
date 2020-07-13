@@ -107,6 +107,8 @@ ORDER BY
         $TargetDate = $vm->TargetDate;
         $CustomerCd = $vm->CustomerCd;
         $CourseCd = $vm->CourseCd;
+        //TODO西山確認中
+        // $CourseCd = isset($CourseCd) ? $CourseCd : "0";
         $WhereCourseCd = isset($CourseCd) ? " AND 売上データ明細.コースＣＤ = $CourseCd " : "";
 
         $sql = "
