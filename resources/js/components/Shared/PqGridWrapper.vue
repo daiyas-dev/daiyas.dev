@@ -925,6 +925,8 @@ export default {
 
                             ui.rowData.pq_inputErrors = ui.rowData.pq_inputErrors || {};
 
+                            config.sourceList = _.isFunction(config.source) ? config.source(ui, grid) : config.sourceList;
+
                             if (!!config.sourceList && !!config.sourceList.length) {
                                 var key = ui.rowData[ui.dataIndx];
 
