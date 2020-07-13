@@ -741,7 +741,7 @@ class DAI01030Controller extends Controller
                     //当日注文の場合、通知
                     $Message = $request->Message;
                 }
-                $ds->UpdateOrderData($MDeleteList,$MInsertList,$BushoCd, $CustomerCd, $CourseCd, $Message);
+                $ds->UpdateOrderData($BushoCd, $DeliveryDate, $CustomerCd, $CourseCd, $Message);
             }
         } catch (Exception $exception) {
             DB::rollBack();

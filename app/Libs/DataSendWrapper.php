@@ -602,9 +602,10 @@ class DataSendWrapper extends PWADataSend
      * @param 削除対象データリスト
      * @param 作成対象データリスト
      */
-    public function UpdateOrderData($MDeleteList,$MInsertList,$busho_cd,$customer_cd,$course_cd, $notify_message = null)
+    public function UpdateOrderData($busho_cd,$DeliveryDate,$customer_cd,$course_cd, $notify_message = null)
     {
         try {
+            /*
             $table_name = "注文データ";
             $map = $this->GetMapping($table_name);
             $delete_sql="";
@@ -615,6 +616,22 @@ class DataSendWrapper extends PWADataSend
                 $delete_sql=substr($delete_sql, 1);
             }
             $this->InsertMultiRow($table_name,$MInsertList,null,true,$busho_cd,$customer_cd,$course_cd,$delete_sql);
+            $this->Execute(null, true, $busho_cd, $customer_cd, $course_cd ,$notify_message);
+            */
+            $table_name = "注文データ";
+            $del_sql = "delete from OrderData
+                    where order_date='$DeliveryDate'
+                    and department_code = $busho_cd
+                    and customer_code = $customer_cd
+                    and delivery_date='$DeliveryDate'
+                ";
+            $table_sql = "select * from $table_name
+                        where 注文日付='$DeliveryDate'
+                        and 部署ＣＤ = $busho_cd
+                        and 得意先ＣＤ = $customer_cd
+                        and 配送日='$DeliveryDate'
+                ";
+            $this->InsertMultiRow($table_name, null, $table_sql, true, $busho_cd, $customer_cd, $course_cd, $del_sql);
             $this->Execute(null, true, $busho_cd, $customer_cd, $course_cd ,$notify_message);
         } catch (Exception $exception) {
             throw $exception;

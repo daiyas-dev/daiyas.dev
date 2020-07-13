@@ -1230,6 +1230,7 @@ export default {
                             }
 
                             //本日注文履歴 再取得
+                            /*
                             vue.getTodayOrder(() => {
                                 vue.CurrentOrder = vue.TodayOrders.find(v => {
                                     return v.部署ＣＤ == vue.TodayOrders[0].部署ＣＤ
@@ -1238,7 +1239,6 @@ export default {
                                         && v.得意先CD == vue.TodayOrders[0].得意先CD
                                         ;
                                 })
-
                                 vue.$router.push({
                                     path: vue.$route.path,
                                     query: {
@@ -1250,6 +1250,17 @@ export default {
                                     }
                                 });
                             });
+                            */
+                            vue.getTodayOrder(() => {
+                                vue.CurrentOrder = vue.TodayOrders.find(v => {
+                                        return v.部署ＣＤ == vue.TodayOrders[0].部署ＣＤ
+                                            && v.配送日 == vue.TodayOrders[0].配送日
+                                            && v.修正時間 == vue.TodayOrders[0].修正時間
+                                            && v.得意先CD == vue.TodayOrders[0].得意先CD
+                                            ;
+                                });
+                            });
+
                             return false;
                         },
                     },
@@ -1396,7 +1407,6 @@ export default {
             axios.post("/DAI01030/GetTodayOrder", param)
                 .then(res => {
                     vue.TodayOrders = res.data;
-
                     if (callback) callback();
                 })
                 .catch(err => {
@@ -1411,7 +1421,6 @@ export default {
                 vue.loadOrder(0);
                 return;
             }
-
             var idx = _.indexOf(vue.TodayOrders, vue.CurrentOrder) + 1;
             idx = idx > _.findLastIndex(vue.TodayOrders) ? _.findLastIndex(vue.TodayOrders) : idx;
             vue.loadOrder(idx);
@@ -1432,7 +1441,7 @@ export default {
             var vue = this;
 
             vue.CurrentOrder = vue.TodayOrders[idx];
-
+            /*
             vue.$router.push({
                 path: vue.$route.path,
                 query: {
@@ -1443,6 +1452,14 @@ export default {
                     CustomerCd: vue.CurrentOrder.得意先CD,
                 }
             });
+            */
+           console.log('遷移');//TODO:
+           console.log(vue.viewModel);//TODO:
+           vue.viewModel.BushoCd= vue.CurrentOrder.部署ＣＤ;
+           vue.viewModel.DeliveryDate= moment(vue.CurrentOrder.配送日).format("YYYY年MM月DD日");
+           vue.viewModel.LastEditTime= vue.CurrentOrder.修正時間;
+           vue.viewModel.CustomerCd=vue.CurrentOrder.得意先CD;
+           vue.conditionChanged(true);
         },
         showCustomerMaint: function() {
             var vue = this;
