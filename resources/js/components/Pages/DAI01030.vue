@@ -413,6 +413,7 @@ export default {
             },
             TodayOrders: [],
             CurrentOrder: null,
+            isSave:false,
             DAI01030Grid1: null,
             grid1Options: {
                 selectionModel: { type: "cell", mode: "block", row: true },
@@ -929,6 +930,11 @@ export default {
                     : _(grid.columns).pickBy((v, k) => k.endsWith("個数") && !v.hidden).values().value()[0].leftPos;
                 grid.setSelection({ rowIndx: 0, colIndx: colIndx });
             }
+            if(vue.isSave)
+            {
+                vue.isSave=false;
+                vue.$refs.PopupSelect_Customer.focus();
+            }
         },
         onAfterSearchFunc: function (gridVue, grid, res) {
             var vue = this;
@@ -1139,7 +1145,6 @@ export default {
                 return;
             }
 
-            //TODO:日付判定を入れる
             var hasToday = moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD")==moment().format("YYYYMMDD");
             if(hasToday){
                 vue.saveOrderExec(vue,grid,true);
@@ -1171,6 +1176,7 @@ export default {
             }
         },
         saveOrderExec: function(vue,grid,isConfirm) {
+            vue.isSave=true;
             var SaveList = _.cloneDeep(grid.getPlainPData().filter(v => !!v.商品ＣＤ));
 
             //注文データの型に整形
