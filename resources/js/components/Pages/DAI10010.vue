@@ -636,20 +636,17 @@ export default {
         CourseAfterSearchFunc: function(comp) {
             var vue = this;
 
-            //TODO西山確認中
-            // if (!!vue.params.IsBunpai) {
-            //     comp.selectValue = vue.viewModel.CourseCd = vue.params.CourseCd;
-            //     comp.selectName = vue.viewModel.CourseNm = vue.params.CourseNm;
-            // } else if (!!vue.params.IsSeikyu) {
-            //     comp.selectValue = vue.viewModel.CourseCd = vue.params.CourseCd;
-            //     comp.selectName = vue.viewModel.CourseNm = vue.params.CourseNm;
-            // } else if (!!vue.params.IsSeikyuOutput) {
-            //     comp.selectValue = vue.viewModel.CourseCd = vue.params.CourseCd;
-            //     comp.selectName = vue.viewModel.CourseNm = vue.params.CourseNm;
-            // } else {
+            if (!!vue.params && !!vue.params.IsBunpai) {
+                comp.selectValue = vue.viewModel.CourseCd = vue.params.CourseCd;
+                comp.selectName = vue.viewModel.CourseNm = vue.params.CourseNm;
+            } else if (!!vue.params && !!vue.params.IsSeikyu) {
+                comp.selectValue = vue.viewModel.CourseCd = vue.params.CourseCd;
+                comp.selectName = vue.viewModel.CourseNm = vue.params.CourseNm;
+            } else if (!!vue.params && !!vue.params.IsSeikyuOutput) {
+                comp.selectValue = vue.viewModel.CourseCd = vue.params.CourseCd;
+                comp.selectName = vue.viewModel.CourseNm = vue.params.CourseNm;
+            } else {
                 var match = comp.dataList.filter(v => v.得意先ＣＤ == vue.viewModel.CustomerCd);
-                // if (match.length == 1 && vue.viewModel.CourseCd != "0" && vue.viewModel.CourseCd != "") {
-                //TODO西山確認中
                 if (match.length == 1) {
                     comp.selectValue = vue.viewModel.CourseCd = match[0].Cd;
                     comp.selectName = vue.viewModel.CourseNm = match[0].CdNm;
@@ -662,7 +659,7 @@ export default {
                     comp.selectValue = vue.viewModel.CourseCd = "";
                     comp.selectName = vue.viewModel.CourseNm = "コース無し";
                 }
-            // }
+            }
 
             return false;
         },
@@ -689,10 +686,9 @@ export default {
 
                 var params = _.cloneDeep(vue.searchParams);
 
-                //TODO西山確認中
-                // if (!!vue.params.IsBunpai) {
-                //     params.CustomerCd = vue.params.ParentCustomerCd;
-                // }
+                if (!!vue.params && !!vue.params.IsBunpai) {
+                    params.CustomerCd = vue.params.ParentCustomerCd;
+                }
 
                 //商品リスト検索
                 axios.post("/DAI10010/GetProductList", params)
