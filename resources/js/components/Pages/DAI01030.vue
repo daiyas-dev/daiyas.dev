@@ -1176,7 +1176,6 @@ export default {
             }
         },
         saveOrderExec: function(vue,grid,isConfirm) {
-            vue.isSave=true;
             var SaveList = _.cloneDeep(grid.getPlainPData().filter(v => !!v.商品ＣＤ));
 
             //注文データの型に整形
@@ -1302,6 +1301,7 @@ export default {
                                             ;
                                 });
                             });
+                            vue.isSave=true;
                             return false;
                         },
                     },
