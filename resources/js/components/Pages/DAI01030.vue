@@ -1139,6 +1139,38 @@ export default {
                 return;
             }
 
+            //TODO:日付判定を入れる
+            var hasToday = moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD")==moment().format("YYYYMMDD");
+            if(hasToday){
+                vue.saveOrderExec(vue,grid,true);
+            }
+            else
+            {
+                $.dialogConfirm({
+                    title: "配送日確認",
+                    contents: "配送日が本日ではないですが、宜しいですか？",
+                    buttons:[
+                        {
+                            text: "はい",
+                            class: "btn btn-primary",
+                            click: function(){
+                                $(this).dialog("close");
+                                vue.saveOrderExec(vue,grid,false);
+                            }
+                        },
+                        {
+                            text: "いいえ",
+                            class: "btn btn-danger",
+                            click: function(){
+                                $(this).dialog("close");
+                                return;
+                            }
+                        },
+                    ],
+                });
+            }
+        },
+        saveOrderExec: function(vue,grid,isConfirm) {
             var SaveList = _.cloneDeep(grid.getPlainPData().filter(v => !!v.商品ＣＤ));
 
             //注文データの型に整形
@@ -1200,6 +1232,13 @@ export default {
             };
 
             //保存実行
+            var confirm=isConfirm ? {
+                        isShow: true,
+                        title: "確認 " + vue.viewModel.CustomerNm,
+                    }:{
+                        isShow: false,
+                    }
+
             grid.saveData(
                 {
                     uri: "/DAI01030/Save",
@@ -1208,10 +1247,7 @@ export default {
                         DeleteList: DeleteList,
                     },
                     optional: params,
-                    confirm: {
-                        isShow: true,
-                        title: "確認 " + vue.viewModel.CustomerNm,
-                    },
+                    confirm: confirm,
                     done: {
                         isShow: false,
                         callback: (gridVue, grid, res)=>{
