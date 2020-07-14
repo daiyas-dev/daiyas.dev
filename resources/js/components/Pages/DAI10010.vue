@@ -648,7 +648,9 @@ export default {
             //     comp.selectName = vue.viewModel.CourseNm = vue.params.CourseNm;
             // } else {
                 var match = comp.dataList.filter(v => v.得意先ＣＤ == vue.viewModel.CustomerCd);
-                if (match.length == 1 && vue.viewModel.CourseCd != "0" && vue.viewModel.CourseCd != "") {
+                // if (match.length == 1 && vue.viewModel.CourseCd != "0" && vue.viewModel.CourseCd != "") {
+                //TODO西山確認中
+                if (match.length == 1) {
                     comp.selectValue = vue.viewModel.CourseCd = match[0].Cd;
                     comp.selectName = vue.viewModel.CourseNm = match[0].CdNm;
                     comp.selectRow = match;
