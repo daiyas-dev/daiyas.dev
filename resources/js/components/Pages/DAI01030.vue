@@ -786,7 +786,7 @@ export default {
                 vue.CustomerChanged(entity, comp.isValid);
             }
         },
-        onCustomerSearchFunc:  function() {
+        onCustomerSearchFunc:  function(comp) {
             var vue = this;
             if (!!$(vue.$el).find("#CustomerSelect")[0].value) {
                 if (!$(DAI01030.$el).find("#CustomerSelect").nextAll('input:first')[0].value) {
@@ -794,7 +794,9 @@ export default {
                     vue.viewModel.TantoNm = "";
                 }
             }
-            vue.$refs.PopupSelect_Customer.focus();
+            if (!vue.params) {
+                comp.focus(true);
+            }
         },
         CustomerChanged: function(info, isValid) {
             var vue = this;

@@ -508,6 +508,7 @@ export default {
                         callback: (gridVue, grid, res)=>{
                             if (res.edited.length == 0) {
                                 grid.commit();
+                                vue.conditionChanged();
                                 return false;
                             }
 

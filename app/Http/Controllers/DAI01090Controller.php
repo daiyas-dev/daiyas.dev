@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Libs\DataSendWrapper;
 use App\Models\モバイル予測入力;
 use App\Models\日別得意先製造パターン;
 use App\Models\注文データ;
@@ -252,6 +253,9 @@ ORDER BY
             }
 
             DB::commit();
+            //モバイルsv更新
+            $ds = new DataSendWrapper();
+            $ds->MultiUpdateOrderData($params['BushoCd'], $params['CustomerCd'], $params['DateStart'], $params['DateEnd']);
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;
