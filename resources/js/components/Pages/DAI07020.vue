@@ -585,27 +585,6 @@ export default {
                     white-space: nowrap;
                     overflow: hidden;
                 }
-                table.row-table:nth-child(even) {
-                	break-before: page;
-                }
-                table.row-table > tbody > tr > td {
-                    border-style: dotted;
-                    border-left-width: 0px;
-                    border-top-width: 0px;
-                    border-right-width: 0px;
-                    border-bottom-width: 0px;
-                    padding-bottom: 20px;
-                }
-                table.row-table:nth-child(even) > tbody > tr > td {
-                    border-bottom-width: 1px;
-                }
-                table.row-table > tbody > tr > td:first-child {
-                    border-right-width: 1px;
-                }
-                table.row-table > tbody > tr > td > div {
-                    padding-left: 15px;
-                    padding-right: 15px;
-                }
                 div.title {
                     display: block;
                     text-align: center;
@@ -613,6 +592,10 @@ export default {
                 div.title > h3, div.title > h5 {
                     margin-top: 10px;
                     margin-bottom: 10px;
+                }
+                div {
+                    font-family: "MS UI Gothic";
+
                 }
             `;
 
@@ -636,10 +619,10 @@ export default {
                 return `
                     <div class="header">
                         <div style="float: left; width: 26%;">
-                            <div style="height: 46px;"></div>
+                            <div style="height: 39px;"></div>
                             <div style="clear: left;" class="header-box">
 	                            <div style="float: left; width: 17%;">日付</div>
-	                            <div style="float: left; width: 79%;">${moment(vue.viewModel.TargetDate, "YYYYMMDD").format("YY年MM月DD日")}</div>
+	                            <div style="float: left; width: 79%;">${moment(vue.viewModel.TargetDate, "YYYYMMDD").format("YYYY年MM月DD日")}</div>
                             </div>
                             <div style="clear: left;" class="header-box">
 	                            <div style="float: left; width: 17%;">コース</div>
@@ -656,32 +639,22 @@ export default {
                             </div>
                         </div>
                         <div style="float: left; width: 27%">
-                            <div>
+                            <div style="margin-bottom: 3px;">
                                 ${vue.viewModel.BushoNm}
                             </div>
-                            <div style="font-size: 9pt !important;">
+                            <div style="margin-bottom: 3px;">
                                 ${vue.BushoInfo.会社名称}
                             </div>
-                            <div>
-                                <div style="float: left; width: 25px;">
-                                    Tel
-                                </div>
-                                <div>
-                                    <span></span>${vue.BushoInfo.電話番号}
-                                </div>
+                            <div style="margin-bottom: 3px;">
+                                    Tel<span></span>${vue.BushoInfo.電話番号}
                             </div>
-                            <div>
-                                <div style="float: left; width: 25px;">
-                                    Fax
-                                </div>
-                                <div>
-                                   <span></span>${vue.BushoInfo.FAX}
-                                </div>
+                            <div style="margin-bottom: 3px;">
+                                    Fax<span></span>${vue.BushoInfo.FAX}
                             </div>
                         </div>
                         <div style="float: left; width: 27%;"  class="header-box">
                             <div style="float: left; width: 19%;">作成日</div>
-                            <div style="float: left; width: 37%;">${moment().format("YYYY年MM月DD日")}</div>
+                            <div style="float: left; width: 37%;">${moment().format("YYYY/MM/DD")}</div>
                             <div style="float: left; width: 18.9%;">PAGE</div>
                             <div style="float: left; width: 19%;">${idx + 1}/${length}</div>
                         </div>
@@ -713,14 +686,14 @@ export default {
                                     div.header-box > div:last-child {
                                         border-right-width: 1px;
                                     }
-                                     table.DAI07020Grid1 thead tr:nth-child(1) th {
+                                    table.DAI07020Grid1 thead tr:nth-child(1) th {
                                         border-style: solid;
                                         border-left-width: 0px;
                                         border-top-width: 1px;
                                         border-right-width: 0px;
                                         border-bottom-width: 0px;
                                     }
-                                     table.DAI07020Grid1 thead tr:nth-child(1) th:nth-child(1) {
+                                    table.DAI07020Grid1 thead tr:nth-child(1) th:nth-child(1) {
                                         border-left-width: 1px;
                                     }
                                     table.DAI07020Grid1 thead tr:nth-child(2) th {
@@ -730,7 +703,7 @@ export default {
                                         border-right-width: 1px;
                                         border-bottom-width: 0px;
                                     }
-                                      table.DAI07020Grid1 thead tr th:nth-child(10),
+                                    table.DAI07020Grid1 thead tr th:nth-child(10),
                                     table.DAI07020Grid1 tr th:last-child {
                                         border-right-width: 1px;
                                     }
@@ -827,15 +800,15 @@ export default {
                                         clear: left;
                                     }
                                     .header div:not(.title) {
-                                        font-size: 11px;
+                                        font-size: 10pt;
                                     }
                                     table.DAI07020Grid1 tbody div{
-                                        padding-top: 1.1px;
-                                        padding-bottom: 1.1px;
+                                        padding-top: 2px;
+                                        padding-bottom: 3px;
                                     }
                                     table.DAI07020Grid1 th{
-                                        padding-top: 3px;
-                                        padding-bottom: 3px;
+                                        padding-top: 2px;
+                                        padding-bottom: 2px;
                                         vertical-align: top;
                                     }
                                     table.DAI07020Grid1 th:nth-child(2){
@@ -843,22 +816,44 @@ export default {
                                     }
                                     table.DAI07020Grid1 th:nth-child(3){
                                         vertical-align: bottom;
-                                        padding-bottom: 8px;
+                                        padding-bottom: 3px;
                                     }
-                                    table.DAI07020Grid1 td:nth-child(10){
-                                        vertical-align: top;
-                                        padding-top: 0px;
+                                    table.DAI07020Grid1 th:nth-child(4),
+                                    table.DAI07020Grid1 th:nth-child(5),
+                                    table.DAI07020Grid1 th:nth-child(6),
+                                    table.DAI07020Grid1 th:nth-child(7),
+                                    table.DAI07020Grid1 th:nth-child(8),
+                                    table.DAI07020Grid1 th:nth-child(9){
+                                        vertical-align: bottom;
+                                        padding-bottom: 3px;
+                                    }
+                                    table.DAI07020Grid1 td:nth-child(3),
+                                    table.DAI07020Grid1 td:nth-child(4),
+                                    table.DAI07020Grid1 td:nth-child(5),
+                                    table.DAI07020Grid1 td:nth-child(6),
+                                    table.DAI07020Grid1 td:nth-child(7),
+                                    table.DAI07020Grid1 td:nth-child(8),
+                                    table.DAI07020Grid1 td:nth-child(9){
+                                        padding-top: 5px;
                                     }
                                     table.DAI07020Grid1 tr td:nth-child(1){
                                         height: 50px !important;
                                     }
                                     table.DAI07020Grid1 td:nth-child(10) > div,
-                                    table.DAI07020Grid1 td:nth-child(10) > div > div:nth-child(1){
+                                    table.DAI07020Grid1 td:nth-child(10) > div > div > div,
+                                    table.DAI07020Grid1 td:nth-child(10) > div > div:nth-child(1) {
                                         padding-top: 0px;
                                     }
-                                    table.DAI07020Grid1 td:nth-child(10) {
-                                        padding-left: 0px;
-                                        padding-right: 0px;
+                                    table.DAI07020Grid1 td:nth-child(10) > div > div > div:nth-child(4) {
+                                        padding-top: 2.5px;
+                                    }
+                                    div[style="break-before: page;"],
+                                    div[style="break-before: auto;"],
+                                    div[style="page-break-before: always;"] {
+                                        margin-top: 20px !important;
+                                        margin-bottom: 20px !important;
+                                        margin-right: 20px !important;
+                                        margin-left: 20px !important;
                                     }
                                 `,
                                 headerFunc,
