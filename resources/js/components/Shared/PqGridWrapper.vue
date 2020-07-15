@@ -2768,7 +2768,7 @@ export default {
                                         }
                                     }
 
-                                    var page = $("<div>").css("break-before", "page")
+                                    var page = $("<div>").css("break-before", "page").addClass("page_div")
                                         .append(!!header ? (_.isFunction(header) ? header(headers[i], i, chunks.length, groupPage, groupLength) : header) : "")
                                         .append(
                                             $("<table>").addClass(grid.vue.id)
