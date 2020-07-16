@@ -56,7 +56,7 @@
                     v-model="viewModel.支店名"
                     maxlength=50
                     v-maxBytes=50
-                    v-setKana="res => viewModel.支店名カナ = res.toString()"
+                    v-setKana="res => {viewModel.支店名カナ = res.toString(); $forceUpdate();}"
                 >
             </div>
         </div>

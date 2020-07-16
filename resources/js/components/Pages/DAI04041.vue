@@ -10,6 +10,7 @@
                     id="CustomerCd"
                     ref="CustomerCd"
                     v-model=viewModel.得意先ＣＤ
+                    autocomplete="off"
                     :readonly=!viewModel.IsNew
                     :tabindex="viewModel.IsNew ? 0 : -1"
                     @change="onCustomerCdChanged"
@@ -63,10 +64,11 @@
                             <label class="">得意先名</label>
                             <input type="text" class="form-control"
                                 id="CustomerNm"
+                                autocomplete="off"
                                 v-model="viewModel.得意先名"
                                 maxlength=60
                                 v-maxBytes=60
-                                v-setKana="res => viewModel.得意先名カナ = res.toString()"
+                                v-setKana="res => {viewModel.得意先名カナ = res.toString(); $forceUpdate();}"
                             >
                         </div>
                     </div>
@@ -74,6 +76,7 @@
                         <div class="col-md-6">
                             <label class="">得意先名カナ</label>
                             <input type="text" class="form-control" style="font-size: 15px !important;"
+                                autocomplete="off"
                                 v-model="viewModel.得意先名カナ"
                                 maxlength=30
                                 v-maxBytes=30
@@ -82,6 +85,7 @@
                         <div class="col-md-6">
                             <label class="">得意先名略称</label>
                             <input type="text" class="form-control" style="font-size: 15px !important;"
+                                autocomplete="off"
                                 v-model="viewModel.得意先名略称"
                                 maxlength=20
                                 v-maxBytes=30
@@ -92,6 +96,7 @@
                         <div class="col-md-6">
                             <label class="" style="width:360px !important">スマフォ表示用得意先名称</label>
                             <input type="text" class="form-control"
+                                autocomplete="off"
                                 v-model="viewModel.得意先名スマホ用"
                                 maxlength=15
                                 v-maxBytes=30
@@ -1080,6 +1085,12 @@ export default {
 
                 vue.viewModel.得意先名略称 = str.slice(0,20);
                 vue.viewModel.得意先名スマホ用 = str.slice(0,20);
+                // if (!!str) {
+                //     vue.viewModel.得意先名スマホ用 = vue.viewModel.得意先名スマホ用 || "";
+                //     window.getKana(str, res => {
+                //         vue.viewModel.得意先名カナ = res;
+                //     });
+                // }
             },
         },
         "viewModel.休日設定": {
@@ -1250,6 +1261,7 @@ export default {
         if (!!vue.params || !!vue.query) {
             data.viewModel = $.extend(true, {}, _.omit(vue.params, ["Parent"]), _.omit(vue.query, ["Parent"]));
         }
+
         //入力制御のため
         data.viewModel.支払方法１ = "";
         data.viewModel.集金区分 = "";
