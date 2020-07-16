@@ -619,14 +619,14 @@ export default {
                 return `
                     <div class="header">
                         <div style="float: left; width: 26%;">
-                            <div style="height: 39px;"></div>
+                            <div style="height: 43px;"></div>
                             <div style="clear: left;" class="header-box">
-	                            <div style="float: left; width: 17%;">日付</div>
+	                            <div style="float: left; width: 17%; text-align: center;">日付</div>
 	                            <div style="float: left; width: 79%;">${moment(vue.viewModel.TargetDate, "YYYYMMDD").format("YYYY年MM月DD日")}</div>
                             </div>
                             <div style="clear: left;" class="header-box">
-	                            <div style="float: left; width: 17%;">コース</div>
-	                            <div style="float: left; width: 17%;">${CourseCd}</div>
+	                            <div style="float: left; width: 17%; text-align: center;">コース</div>
+	                            <div style="float: left; width: 17%; text-align: center;">${CourseCd}</div>
 	                            <div style="float: left; width: 60.6%;">${CourseNm}</div>
                             </div>
                         </div>
@@ -653,10 +653,10 @@ export default {
                             </div>
                         </div>
                         <div style="float: left; width: 27%;"  class="header-box">
-                            <div style="float: left; width: 19%;">作成日</div>
-                            <div style="float: left; width: 37%;">${moment().format("YYYY/MM/DD")}</div>
-                            <div style="float: left; width: 18.9%;">PAGE</div>
-                            <div style="float: left; width: 19%;">${idx + 1}/${length}</div>
+                            <div style="float: left; width: 19%; text-align: center;">作成日</div>
+                            <div style="float: left; width: 37%; text-align: center;">${moment().format("YYYY/MM/DD")}</div>
+                            <div style="float: left; width: 18.9%; text-align: center;">PAGE</div>
+                            <div style="float: left; width: 19%; text-align: center;">${idx + 1}/${length}</div>
                         </div>
                     </div>
                 `;
@@ -681,7 +681,7 @@ export default {
                                         border-bottom-width: 0px;
                                         padding-left: 3px;
                                         padding-top: 3px;
-                                        height: 20px;
+                                        height: 17px;
                                     }
                                     div.header-box > div:last-child {
                                         border-right-width: 1px;
@@ -846,6 +846,10 @@ export default {
                                     }
                                     table.DAI07020Grid1 td:nth-child(10) > div > div > div:nth-child(4) {
                                         padding-top: 2.5px;
+                                    }
+                                    table.DAI07020Grid1 td:nth-child(10) {
+                                        vertical-align: baseline;
+                                        padding: 0px;
                                     }
                                     div[style="break-before: page;"],
                                     div[style="break-before: auto;"],
