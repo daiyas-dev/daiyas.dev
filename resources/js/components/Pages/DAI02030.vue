@@ -1153,7 +1153,7 @@ export default {
                 var group = _.groupBy(res.data, v => v.請求先ＣＤ);
 
                 var meisaiGen;
-                if (vue.viewModel.BushoCd == 501) {
+                if (vue.viewModel.BushoCd == 501 && vue.viewModel.SimeKbn == 1) {
                     meisaiGen = (r, pdata) => {
                         // var days = _.range(0, moment(r.請求日範囲終了).diff(moment(r.請求日範囲開始), "days") + 1)
                         //     .map(v => moment(r.請求日範囲開始).add(v, "days").format("D日(dd)"));
@@ -1414,7 +1414,6 @@ export default {
                             text-align: right;
                         }
                         body > div > div:nth-child(odd) > div > div.header {
-                            margin-top: 30px;
                             padding-top: 30px;
                             border-style: dashed;
                             border-left-width: 0px;
@@ -1431,6 +1430,20 @@ export default {
                         div.header-seikyu-no,
                         div.header-seikyu-date {
                             text-align: center;
+                        }
+                        div .page_div {
+                            margin-bottom: 30px;
+                        }
+                        div .header-info {
+                            color: transparent;
+                        }
+                        div[style="break-before: page;"],
+                        div[style="break-before: auto;"],
+                        div[style="page-break-before: always;"] {
+                            margin-top: 20px !important;
+                            margin-bottomn: 20px !important;
+                            margin-right: 30px !important;
+                            margin-left: 30px !important;
                         }
                     `;
                     var styleSeikyuMeisaiElse =`
@@ -1530,7 +1543,7 @@ export default {
                         }
                     `;
 
-                    var styleSeikyuMeisai = vue.viewModel.BushoCd == 501 ? styleSeikyuMeisai501 : styleSeikyuMeisaiElse;
+                    var styleSeikyuMeisai = vue.viewModel.BushoCd == 501 && vue.viewModel.SimeKbn == 1 ? styleSeikyuMeisai501 : styleSeikyuMeisaiElse;
 
 
                     var maxPage = _.sum(target.map(t => _.chunk(t, 25).length));
@@ -1541,13 +1554,17 @@ export default {
                                 <div class="header">
                                     <div>
                                         <div id="k-box">
-                                            ｺｰﾄﾞNo.${r.請求先ＣＤ}
-                                            <span/>-${r.コースＣＤ != 0 ? r.コースＣＤ : ""}
-                                            <span/>(
-                                            <span/>${r.締日１}
-                                            <span>- ${r.支払サイト}</span>
-                                            <span>- ${r.支払日}</span>
-                                            )
+                                            <div style="float: left">
+                                                ｺｰﾄﾞNo.${r.請求先ＣＤ}
+                                                <span/>-${r.コースＣＤ != 0 ? r.コースＣＤ : ""}
+                                            </div>
+                                            <div class="header-info">
+                                                <span/>(
+                                                <span/>${r.締日１}
+                                                <span>- ${r.支払サイト}</span>
+                                                <span>- ${r.支払日}</span>
+                                                )
+                                            </div>
                                         </div>
                                         <div id="l-box">
                                             ${tIdx + idx + 1}
@@ -1698,7 +1715,7 @@ export default {
                             25,
                             true,
                             vue.viewModel.BushoCd == 501, //false,
-                            vue.viewModel.BushoCd == 501 ? null :
+                            vue.viewModel.BushoCd == 501 && vue.viewModel.SimeKbn == 1 ? null :
                             tIdx == 0 && target.length > 1
                                 ? [
                                     "商品名",
@@ -1717,7 +1734,7 @@ export default {
                                     "入金金額",
                                     "備考",
                                 ],
-                            vue.viewModel.BushoCd == 501 ? null :
+                            vue.viewModel.BushoCd == 501 && vue.viewModel.SimeKbn == 1 ? null :
                             tIdx == 0 && target.length > 1
                                 ? [
                                     "商品名称",
@@ -1758,7 +1775,7 @@ export default {
 
                 var printOptions = {
                     type: "raw-html",
-                    style: vue.viewModel.BushoCd == 501 ? "@media print { @page { size: A4; margin: 15px 20px; } }" : "@media print { @page { size: A4; } }",
+                    style: "@media print { @page { size: A4; } }",
                     printable: printable,
                 };
 

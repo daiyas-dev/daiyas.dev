@@ -511,15 +511,18 @@ export default {
                 }
                 table.header-table thead th {
                     font-size: 11pt;
-                    height: 22px;
+                    height: 20px;
                     text-align: center;
                 }
                 table.header-table tbody th {
-                    height: 20.5x;
+                    height: 18x;
                 }
                 td.customer-nm {
                     font-size: 14pt;
                     letter-spacing: 0.1em;
+                    width: 60%;
+                    white-space: normal;
+                    height: 40px;
                 }
                 div.title {
                     font-size: 20pt;
@@ -527,11 +530,9 @@ export default {
                 td.customer-cd-A{
                     font-size: 20pt;
                     text-align: center;
-                    padding-left: 170px;
                 }
                 td.customer-cd{
                     text-align: center;
-                    padding-left: 150px;
                 }
                 div.kaisya-info{
                     margin-left: 100px;
@@ -581,10 +582,16 @@ export default {
                 }
                 hr {
                     border: none;
-                    margin: 22px;
+                    margin: 30px;
                 }
                 div.insatubi {
                     font-size: 8pt;
+                }
+                div[style="break-before: page;"],
+                div[style="break-before: auto;"],
+                div[style="page-break-before: always;"] {
+                    margin-top: 20px !important;
+                    margin-bottom: 20px !important;
                 }
             `;
 
@@ -626,7 +633,7 @@ export default {
                                             <table style="width:100%;">
                                                 <tr>
                                                     <td class="customer-nm">
-                                                        <span>${r.得意先名}</span><span>様</span>
+                                                        ${r.得意先名}</span><span>様
                                                     </td>
                                                     <td class="customer-cd-A">
                                                         A${r.得意先ＣＤ}A
@@ -637,7 +644,7 @@ export default {
                                                         <div class="fax-tel"><span>Fax.</span><span>${r.ＦＡＸ１ ? r.ＦＡＸ１ : ""}</span></div>
                                                         <div class="fax-tel"><span>Tel.</span><span>${r.電話番号１ ? r.電話番号１ : ""}</span></div>
                                                         <div class="hizuke"><span/><span/><span/><span>月<span/></span><span/><span/>日分</div>
-                                                        <div style="height: 8px;"></div>
+                                                        <div style="height: 3px;"></div>
                                                     </td>
                                                     <td class="customer-cd">
                                                         <span>顧客コード<span/><span/></span><span/><span/><span>${r.得意先ＣＤ}</span>
@@ -645,7 +652,7 @@ export default {
                                                 </tr>
                                             </table>
                                         </div>
-                                        <table class="header-table" style="border-width: 0px; margin-bottom: 8px;">
+                                        <table class="header-table" style="border-width: 0px; margin-bottom: 5px;">
                                             <thead>
                                                 <tr>
                                                     <th>弁当名</th>
@@ -696,7 +703,7 @@ export default {
                 ;
             var printOptions = {
                 type: "raw-html",
-                style: "@media print { @page { size: A4 portrait; } }",
+                style: "@media print { @page { size: A4 portrait; margin-top: 30px !important;} }",
                 printable: printable,
             };
             printJS(printOptions);

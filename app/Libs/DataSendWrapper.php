@@ -4,6 +4,7 @@ namespace App\Libs;
 use Exception;
 use PDO;
 use DB;
+use Illuminate\Support\Carbon;
 class DataSendWrapper extends PWADataSend
 {
     /**
@@ -623,6 +624,37 @@ class DataSendWrapper extends PWADataSend
                 ";
             $this->InsertMultiRow($table_name, null, $table_sql, false, $busho_cd, $customer_cd, $course_cd, $del_sql);
             $this->Execute(null, false, $busho_cd, $customer_cd, $course_cd ,$notify_message);
+        } catch (Exception $exception) {
+            throw $exception;
+        }
+    }
+    /**
+     * 受注テーブルを一括更新する
+     * @param 部署ＣＤ
+     * @param 得意先ＣＤ
+     * @param 配送期間の開始日
+     * @param 配送期間の終了日
+     */
+    public function MultiUpdateOrderData($busho_cd,$customer_cd,$date_start,$date_end)
+    {
+        try {
+            $cbs = new carbon($date_start);
+            $q_date_start=$cbs->format("Y/m/d");
+            $cbe = new carbon($date_end);
+            $q_date_end=$cbe->format("Y/m/d");
+
+            $table_name = "注文データ";
+            $del_sql = "delete from OrderData
+                    where delivery_date>='$q_date_start' and delivery_date<='$q_date_end'
+                    and department_code = $busho_cd
+                    and customer_code = $customer_cd
+                ";
+            $table_sql = "select * from $table_name
+                        where 部署ＣＤ = $busho_cd
+                        and 得意先ＣＤ = $customer_cd
+                        and 配送日>='$q_date_start' and 配送日<='$q_date_end';
+                ";
+            $this->InsertMultiRow($table_name, null, $table_sql, false, $busho_cd, $customer_cd, null, $del_sql);
         } catch (Exception $exception) {
             throw $exception;
         }

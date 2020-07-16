@@ -667,7 +667,7 @@ export default {
             var vue = this;
 
             //条件変更ハンドラ
-            vue.conditionChanged();
+            //vue.conditionChanged();
         },
         CustomerAfterSearchFunc: function(comp) {
             var vue = this;

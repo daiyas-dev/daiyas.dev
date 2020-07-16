@@ -620,7 +620,7 @@ export default {
                 }
                 div.customer-nm  {
                     letter-spacing: 0.1em;
-                    margin-top: 50px;
+                    margin-top: 25px;
                     margin-bottom: 25px;
                 }
                 div.title {
@@ -645,6 +645,11 @@ export default {
                     width: 12%;
                     text-align: right;
                     padding-right: 5px;
+                }
+                table.header-table tr:nth-child(8) th:nth-child(2),
+                table.header-table tr:nth-child(9) th:nth-child(1),
+                table.header-table tr:nth-child(10) th:nth-child(1) {
+                    text-align: center;
                 }
                 table.header-table tr:nth-child(2) th:last-child > div {
                     white-space: pre-wrap;
@@ -763,7 +768,7 @@ export default {
                             ${layout_product_body}
                             <tr>
                                 ${layout_bikou1}
-                                <th>小計</th><th>${pq.formatNumber(h.小計, "#,##0")}</th>
+                                <th>小 計</th><th>${pq.formatNumber(h.小計, "#,##0")}</th>
                                 <th rowspan="3">
                                     <div style="text-align: left;">${h.注文日付}</div>
                                     <div>受付店：${h.会社名称}</div>
@@ -783,7 +788,7 @@ export default {
                             ${layout_product_body}
                             <tr>
                                 ${layout_bikou2}
-                                <th>小計</th><th>${h.小計}</th>
+                                <th>小 計</th><th>${h.小計}</th>
                                 <th rowspan="3">
                                     <div style="text-align: left;">${h.注文日付}</div>
                                     <div>受付店：${h.会社名称}</div>
@@ -811,6 +816,9 @@ export default {
                             </div>
                         </div>
                         <div style="width: 65%; float: left;">
+                            <div style="margin-left: 285px; margin-top: 5px;">
+                                (軽減税率対象)
+                            </div>
                             <div class="customer-nm">
                                 <span/><span>${h.得意先名}</span><span>様</span>
                             </div>

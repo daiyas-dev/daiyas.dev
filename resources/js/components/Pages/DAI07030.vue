@@ -429,7 +429,6 @@ export default {
                     border-top-width: 0px;
                     border-right-width: 0px;
                     border-bottom-width: 0px;
-                    padding-bottom: 20px;
                 }
                 table.row-table:nth-child(even) > tbody > tr > td {
                     border-bottom-width: 1px;
@@ -446,9 +445,15 @@ export default {
                     display: block;
                     text-align: center;
                 }
-                div.title > h3, div.title > h5 {
-                    margin-top: 10px;
-                    margin-bottom: 10px;
+                div.title > h2, div.title > h3 {
+                    margin-top: 8px;
+                    margin-bottom: 8px;
+                }
+                div[style="break-before: page;"],
+                div[style="break-before: auto;"],
+                div[style="page-break-before: always;"] {
+                    margin-top: 28px !important;
+                    margin-bottomn: 28px !important;
                 }
             `;
 
@@ -474,8 +479,8 @@ export default {
                                     var headerFunc = (header, idx, length, chunk, chunks) => {
                                         return `
                                             <div class="title">
-                                                <h3>* * 持ち出し数一覧表 * *</h3>
-                                                <h5>${moment(vue.searchParams.TargetDate).format("YYYY年MM月DD日 ddd曜日")}</h4>
+                                                <h2>* * 持ち出し数一覧表 * *</h2>
+                                                <h3>${moment(vue.searchParams.TargetDate).format("YYYY年MM月DD日 ddd曜日")}</h3>
                                             </div>
                                             <table class="header-table" style="border-width: 0px">
                                                 <thead>
@@ -511,7 +516,7 @@ export default {
                                         printRows,
                                         `
                                             table.DAI07030Grid1 tr td {
-                                                font-size: 12pt;
+                                                font-size: 13pt;
                                                 height: 24px;
                                                 border-style: solid;
                                                 border-left-width: 1px;
@@ -527,6 +532,7 @@ export default {
                                             table.DAI07030Grid1 tr td:nth-child(even) {
                                                 text-align: right;
                                                 padding-right: 5px;
+                                                font-size: 15pt;
                                             }
                                             table.DAI07030Grid1 tr:last-child td {
                                                 border-bottom-width: 1px;
