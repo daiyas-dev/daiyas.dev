@@ -12,7 +12,7 @@ class PWADataSend
     {
         try
         {
-            echo "PWAにデータを送信\n";
+            //echo "PWAにデータを送信\n";
 
             //作業用のフォルダを作成する
             $this->tmp_path=base_path()."\\tmp";

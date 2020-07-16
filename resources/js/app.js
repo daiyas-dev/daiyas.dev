@@ -71,12 +71,10 @@ Vue.directive("maxBytes", {
                             a.bytes = binding.value;
                         }
 
-                        console.log("maxByte reduce", c, a);
                         return a;
                     },
                     { str: "", bytes: 0}
                 );
-            console.log("maxByte ret", ret);
             el.value = ret.str;
         };
     }

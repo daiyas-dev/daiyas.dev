@@ -66,7 +66,7 @@
                                 v-model="viewModel.得意先名"
                                 maxlength=60
                                 v-maxBytes=60
-                                v-setKana.disabled="res => viewModel.得意先名カナ = res.toString()"
+                                v-setKana="res => viewModel.得意先名カナ = res.toString()"
                             >
                         </div>
                     </div>
@@ -1075,14 +1075,11 @@ export default {
             deep: true,
             sync: true,
             handler: function(newVal) {
-                console.log("viewModel.得意先名", newVal);
                 var vue = this;
-                if(!vue.viewModel.得意先名略称 && !!newVal){
-                    vue.viewModel.得意先名略称 = newVal;
-                    if(vue.viewModel.得意先名略称.length > 20){
-                        vue.viewModel.得意先名略称 = vue.viewModel.得意先名略称.slice(0,20);
-                    }
-                }
+                var str = newVal || "";
+
+                vue.viewModel.得意先名略称 = str.slice(0,20);
+                vue.viewModel.得意先名スマホ用 = str.slice(0,20);
             },
         },
         "viewModel.休日設定": {
@@ -2121,8 +2118,8 @@ export default {
             params.IsNew = params.IsNew || vue.params.IsNew;
 
             var Message = {
-                "department_code": model.BushoCd,
-                "course_code": model.CourseCd,
+                "department_code": params.部署CD,
+                "course_code": null,
                 "custom_data": {
                     "message": "",
                     "values": {
@@ -2169,7 +2166,7 @@ export default {
                         }
 
                         //画面を閉じる
-                        $(vue.$el).closest(".ui-dialog-content").dialog("close");
+                        //$(vue.$el).closest(".ui-dialog-content").dialog("close");
                     }
                 })
                 .catch(err => {

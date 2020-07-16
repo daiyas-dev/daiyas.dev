@@ -398,6 +398,9 @@ export default {
 
             if (!!grid && vue.getLoginInfo().isLogOn) {
                 var params = {BushoCd: vue.viewModel.BushoCd};
+                if (!!vue.viewModel.CustomerCd) {
+                    params.CustomerCd = vue.viewModel.CustomerCd;
+                }
                 grid.searchData(params, false);
             }
         },
