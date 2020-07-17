@@ -126,6 +126,11 @@
 label{
     width: 80px;
 }
+#DAI01070Grid1 .pq-grid-header-table .pq-td-div,
+#DAI01070Grid1 .pq-title-span {
+    line-height: 0.7;
+    vertical-align: -webkit-baseline-middle;;
+}
 </style>
 
 <script>
@@ -172,8 +177,8 @@ export default {
                 fillHandle: "",
                 numberCell: { show: true, title: "No.", resizable: false, width: 35, },
                 autoRow: false,
-                rowHtHead: 50,
-                rowHt: 35,
+                rowHtHead: 40,
+                rowHt: 17,
                 freezeCols: 6,
                 editable: false,
                 columnTemplate: {

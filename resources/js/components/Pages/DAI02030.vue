@@ -911,6 +911,7 @@ export default {
                 TargetDate: moment(data.請求日付).format("YYYY年MM月DD日"),
                 DateStart: moment(data.請求日範囲開始).format("YYYY年MM月DD日"),
                 DateEnd: moment(data.請求日範囲終了).format("YYYY年MM月DD日"),
+                SimeKbn: vue.viewModel.SimeKbn,
                 SimeDate: data.締日１,
                 CourseCd: data.コースＣＤ,
                 CourseNm: data.コース名,
@@ -1598,7 +1599,8 @@ export default {
                                         </div>
                                         <div id="c-box">
                                             <div class="header-seikyu-date">
-                                                <span style="white-space: pre;">${vue.viewModel.BushoCd == 501 ? moment(r.請求日付).format("YYYY/MM/DD") : moment(r.請求日付).format("  YY  年  MM  月  DD  日")}</span>
+                                                <span style="white-space: pre;">${vue.viewModel.BushoCd == 501 && vue.viewModel.SimeKbn == 1 ?
+                                                    moment(r.請求日付).format("YYYY/MM/DD") : moment(r.請求日付).format("  YY  年  MM  月  DD  日")}</span>
                                             </div>
                                             <div class="header-seikyu-no">
                                                 <span/>請求番号
@@ -1660,11 +1662,11 @@ export default {
                                                     <span/><span/>${vue.BushoInfo.口座番号1}
                                                 </div>
                                                 <div>
-                                                    ${vue.BushoInfo.金融機関2名称}
+                                                    ${!!vue.BushoInfo.金融機関2名称 ? vue.BushoInfo.金融機関2名称 : ""}
                                                 </div>
                                                 <div>
-                                                    ${vue.BushoInfo.口座種別2名称}
-                                                    <span/><span/>${vue.BushoInfo.口座番号2}
+                                                    ${!!vue.BushoInfo.口座種別2名称 ? vue.BushoInfo.口座種別2名称 : ""}
+                                                    <span/><span/>${!!vue.BushoInfo.口座番号2 ? vue.BushoInfo.口座番号2 : ""}
                                                 </div>
                                             </div>
                                             <div id="j-box">
@@ -1675,10 +1677,10 @@ export default {
                                                     ${vue.BushoInfo.口座名義人1}
                                                 </div>
                                                 <div>
-                                                    <span/>${vue.BushoInfo.金融機関支店2名称}
+                                                    <span/>${!!vue.BushoInfo.金融機関支店2名称 ? vue.BushoInfo.金融機関支店2名称 : ""}
                                                 </div>
                                                 <div>
-                                                    ${vue.BushoInfo.口座名義人1}
+                                                    ${!!vue.BushoInfo.口座名義人2 ? vue.BushoInfo.口座名義人2 : ""}
                                             </div>
                                         </div>
                                     </div>
