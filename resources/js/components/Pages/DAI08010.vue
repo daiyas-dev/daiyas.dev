@@ -815,8 +815,9 @@ export default {
                         autocomplete: {
                             source: () => vue.getProductList(),
                             bind: "商品ＣＤ",
-                            buddies: { "商品名": "CdNm", "単価": "売価単価", "商品種類": "商品種類", },
+                            buddies: { "商品名": "CdNm", "商品単価": "売価単価", "商品種類": "商品種類", },
                             onSelect: rowData => {
+                                rowData["単価"] = rowData["商品単価"]
                                 rowData["金額"] = rowData["単価"] * rowData["数量"];
                             },
                             AutoCompleteFunc: vue.ProductAutoCompleteFuncInGrid,
@@ -867,6 +868,11 @@ export default {
                             }
                             return ui;
                         },
+                    },
+                    {
+                        title: "商品単価",
+                        dataIndx: "商品単価", dataType: "integer", format: "#,##0",
+                        hidden: true,
                     },
                     {
                         title: "金額",
