@@ -26,7 +26,7 @@
                     id="TantoName"
                     maxlength=60
                     v-maxBytes=60
-                    v-setKana="res => viewModel.担当者名カナ = res.toString()"
+                    v-setKana="res => {viewModel.担当者名カナ = res.toString(); $forceUpdate();}"
                 >
             </div>
         </div>
