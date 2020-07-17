@@ -112,6 +112,7 @@
             :SearchOnActivate=false
             :options=this.grid1Options
             :onAfterSearchFunc=this.onAfterSearchFunc
+            :autoToolTipDisabled=true
         />
     </form>
 </template>
@@ -266,6 +267,7 @@ export default {
                         dataIndx: "コース名", dataType: "string",
                         width: 200, minWidth: 200, maxWidth: 200,
                         fixed: true,
+                        tooltip:true,
                     },
                 ],
             },
