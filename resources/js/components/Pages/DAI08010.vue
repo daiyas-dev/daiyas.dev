@@ -1622,6 +1622,7 @@ export default {
                     v.修正担当者ＣＤ = vue.getLoginInfo().uid;
 
                     delete v.sortIndx;
+                    delete v.商品単価;
                 });
 
                 var DeleteList = grid.getChanges().deleteList
