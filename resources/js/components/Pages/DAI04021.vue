@@ -381,12 +381,25 @@ export default {
                         }
 
                         var params = _.cloneDeep(vue.viewModel);
+                        params.noCache = true;
 
                         params.修正担当者ＣＤ = vue.getLoginInfo().uid;
                         params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
 
                         //チェックボックス
                         params.オペレータ = params.オペレータ || 0;
+
+                        var Message = {
+                            "department_code": params.所属部署ＣＤ,
+                            "course_code": null,
+                            "custom_data": {
+                                "message": "",
+                                "values": {
+                                    "updateMaster": true,
+                                },
+                            },
+                        };
+                        params.Message = Message;
 
                         $(vue.$el).find(".has-error").removeClass("has-error");
 

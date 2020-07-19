@@ -1,4 +1,26 @@
 {
+    "担当者マスタ": {
+        "TableName":"ResponsibleMaster",
+        "PrimaryKey": ["担当者ＣＤ"],
+        "Field": {
+            "担当者ＣＤ":"responsible_code",
+            "担当者名":"responsible_name",
+            "担当者名カナ":"responsible_kana",
+            "郵便番号":"zip",
+            "住所":"address",
+            "電話番号":"tel",
+            "ＦＡＸ":"fax",
+            "所属部署ＣＤ":"belongs_department_code",
+            "オペレータ":"operator",
+            "ユーザーＩＤ":"user_id",
+            "パスワード":"password",
+            "権限区分":"role_type",
+            "営業業務区分":"sales_operations_type",
+            "修正担当者ＣＤ":"updated_responsible_code",
+            "修正日":"updated_at",
+            "在職区分":"available"
+        }
+    },
     "コースマスタ": {
         "TableName":"CourseMaster",
         "PrimaryKey": ["部署ＣＤ","コースＣＤ"],
