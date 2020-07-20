@@ -1110,9 +1110,9 @@ export default {
                 })
                 .map(v => {
                     var ret = v;
-                    ret.label = v.得意先CD + " : " + "【" + v.部署名 + "】" + v.得意先名;
+                    ret.label = v.得意先CD + " : " + "【" + v.部署名 + "】" + v.得意先名略称;
                     ret.value = v.得意先CD;
-                    ret.text = v.得意先名;
+                    ret.text = v.得意先名略称;
                     return ret;
                 })
                 ;
