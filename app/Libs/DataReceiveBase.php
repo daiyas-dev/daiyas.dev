@@ -966,7 +966,6 @@ class DataReceiveBase
                                         ->where('商品ＣＤ', $MobileSales->商品ＣＤ)
                                         ->where('主食ＣＤ', $MobileSales->主食ＣＤ)
                                         ->where('副食ＣＤ', $MobileSales->副食ＣＤ)
-                                        ->where('明細行Ｎｏ', $MobileSales->行Ｎｏ)
                                         ->get();
 
                                     //分配元更新
@@ -978,7 +977,6 @@ class DataReceiveBase
                                         ->where('商品ＣＤ', $MobileDist->商品ＣＤ)
                                         ->where('主食ＣＤ', $MobileDist->主食ＣＤ)
                                         ->where('副食ＣＤ', $MobileDist->副食ＣＤ)
-                                        ->where('明細行Ｎｏ', $MobileDist->行Ｎｏ)
                                         ->first();
 
                                     if (!!$Parent) {
@@ -1000,7 +998,6 @@ class DataReceiveBase
                                             ->where('商品ＣＤ', $MobileDist->商品ＣＤ)
                                             ->where('主食ＣＤ', $MobileDist->主食ＣＤ)
                                             ->where('副食ＣＤ', $MobileDist->副食ＣＤ)
-                                            ->where('明細行Ｎｏ', $MobileDist->行Ｎｏ)
                                             ->update($pdata);
                                     }
                                 }
