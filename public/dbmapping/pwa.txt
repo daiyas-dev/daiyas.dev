@@ -221,7 +221,7 @@
             "予備ＣＤ２":"spare_code_2",
             "修正担当者ＣＤ":"updated_responsible_code",
             "修正日":"updated_at",
-            "Web受注ID":"web_order_id"
+            "Web受注ID":"web_order_id",
             "特記_社内用":"attention_memo",
             "特記_配送用":"attention_memo_delivery",
             "特記_通知用":"attention_memo_push"
