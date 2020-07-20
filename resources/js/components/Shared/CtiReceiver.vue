@@ -49,7 +49,9 @@ export default {
                 // vue.isCalling = true;
                 // vue.callInfo = "通話中:" + no;
 
-                vue.checkTelNo(no, moment().format("HH:mm:ss"));
+                if (!!no || /^([\d-]+|非通知)$/.test(no)) {
+                    vue.checkTelNo(no, moment().format("HH:mm:ss"));
+                }
             });
 
             if (window.ipcRenderer) {

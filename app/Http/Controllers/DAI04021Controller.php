@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Libs\DataSendWrapper;
 use App\Models\担当者マスタ;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -22,17 +23,37 @@ class DAI04021Controller extends Controller
 
         $data = collect($model)->all();
 
-        // トランザクション開始
-        DB::transaction(function() use ($params, $data) {
-            $TantoCd = $params['担当者ＣＤ'];
+        $isNew = $params['IsNew'];
+        $TantoCd = $params['担当者ＣＤ'];
+
+        $savedData = [];
+
+        try {
+            DB::beginTransaction();
+
 
             DB::table('担当者マスタ')->updateOrInsert(
                 ['担当者ＣＤ' => $TantoCd],
                 $data
             );
-        });
 
-        $savedData = array_merge(['担当者ＣＤ' => $params['担当者ＣＤ']], $data);
+            DB::commit();
+
+            $savedData = array_merge(['担当者ＣＤ' => $params['担当者ＣＤ']], $data);
+
+            // モバイルSvを更新
+            $Message = $params['Message'];
+            $ds = new DataSendWrapper();
+            if ($isNew) {
+                $ds->Insert('担当者マスタ', $savedData, true, null, null, null, $Message);
+            } else {
+                $ds->Update('担当者マスタ', $savedData, true, null, null, null, $Message);
+            }
+
+        } catch (Exception $exception) {
+            DB::rollBack();
+            throw $exception;
+        }
 
         return response()->json([
             'result' => true,

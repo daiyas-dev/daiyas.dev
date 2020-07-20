@@ -5,7 +5,7 @@
                 <label>部署</label>
             </div>
             <div class="col-md-4">
-                <VueSelect v-if="params.IsCTI"
+                <VueSelect v-if="params.IsCTI || (!!params.targets && params.targets.length > 0 && !!params.targets[0].部署ＣＤ)"
                     id="Busho"
                     ref="VueSelectBusho"
                     :vmodel=viewModel
@@ -28,7 +28,7 @@
                 <label class="text-left">部署</label>
             </div>
             <div class="col-md-4">
-                <VueSelect v-if="params.IsCTI"
+                <VueSelect v-if="params.IsCTI || (!!params.targets && params.targets.length > 1 && !!params.targets[1].部署ＣＤ)"
                     id="Busho"
                     ref="VueSelectBushoOthers"
                     :vmodel=others
@@ -1281,7 +1281,6 @@ export default {
         },
         GetCustomerListForSelect: function(ui) {
             var vue = this;
-            console.log("CustomerList", ui)
             return vue.CustomerList;
         },
         saveCourse: function(isBoth) {

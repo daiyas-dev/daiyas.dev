@@ -472,7 +472,6 @@ export default {
             var vue = this;
             var excepts = grid.pdata.filter(v => v.相手コースＣＤ == ui.rowData.相手コースＣＤ).map(v => v.商品ＣＤ).filter(v => v != ui.cellData);
             var list = vue.params.ProductList.filter(v => !excepts.includes(v.商品ＣＤ) || v.商品ＣＤ == ui.rowData.商品ＣＤ);
-            console.log(ui.cellData + ":" + JSON.stringify(list));
             return list;
         },
         ProductAutoCompleteFuncInGrid: function(input, dataList, comp) {
