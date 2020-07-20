@@ -1108,7 +1108,7 @@ export default {
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 
-            var wholeColumns = ["得意先名", "得意先名略称", "得意先名カナ", "備考１", "備考２", "備考３"];
+            var wholeColumns = ["得意先名", "CdNm", "得意先名カナ", "備考１", "備考２", "備考３"];
 
             if ((input == comp.selectValue && comp.isUnique)) {
                 keyAND = keyOR = [];
@@ -1127,9 +1127,9 @@ export default {
                 })
                 .map(v => {
                     var ret = v;
-                    ret.label = v.得意先CD + " : " + "【" + v.部署名 + "】" + v.得意先名略称;
+                    ret.label = v.得意先CD + " : " + "【" + v.部署名 + "】" + v.CdNm;
                     ret.value = v.得意先CD;
-                    ret.text = v.得意先名略称;
+                    ret.text = v.CdNm;
                     return ret;
                 })
                 ;
