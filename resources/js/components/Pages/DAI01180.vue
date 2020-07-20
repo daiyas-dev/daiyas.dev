@@ -249,11 +249,14 @@ export default {
                                 //小計行
                                 var pid = ui.rowData.parentId;
                                 if (ui.rowData.pq_level == 0) {
-                                    ui.cls.push("pq-align-right");
+                                    if (!!ui.cls) { ui.cls.push("pq-align-right"); }
+                                    // ui.cls.push("pq-align-right");
                                 } else {
-                                    ui.cls.push("pq-align-center");
+                                    if (!!ui.cls) { ui.cls.push("pq-align-center"); }
+                                    // ui.cls.push("pq-align-center");
                                     pid = pid.split("_")[ui.rowData.pq_level];
                                 }
+
                                 ui.rowData["得意先名"] = pid;
                                 return { text: pid };
                             }
