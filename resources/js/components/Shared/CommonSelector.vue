@@ -316,6 +316,7 @@ export default {
                 width: c.width || null,
                 maxWidth: c.maxWidth || null,
                 minWidth: c.minWidth || null,
+                tooltip: c.tooltip || null,
             };
 
             if (c.render) {

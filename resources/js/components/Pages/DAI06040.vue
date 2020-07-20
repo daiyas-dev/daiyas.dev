@@ -242,7 +242,7 @@ export default {
                 sortModel: {
                     on: true,
                     cancel: false,
-                    type: "remote",
+                    type: "local",
                 },
                 groupModel: {
                     on: true,
@@ -301,6 +301,10 @@ export default {
                                     return { text: "" };
                             }
                         },
+                    },
+                    {
+                        dataIndx: "ROWNUMBER", dataType: "integer",
+                        hidden:true,
                     },
                     {
                         title: "日付",

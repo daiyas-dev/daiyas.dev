@@ -461,7 +461,7 @@ class DAI06040Controller extends Controller
 
         SELECT
             1 AS 処理区分,
-            ROW_NUMBER() OVER (ORDER BY T.コースＣＤ, T.ＳＥＱ, T.得意先ＣＤ) AS ROWNUMBER,
+            ROW_NUMBER() OVER (ORDER BY T.コースＣＤ, T.ＳＥＱ, T.得意先ＣＤ, T.日付) AS ROWNUMBER,
             T.*
         FROM 抽出データ5 T
         UNION

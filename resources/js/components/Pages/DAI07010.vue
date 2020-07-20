@@ -115,11 +115,13 @@
                     labelCd="得意先CD"
                     labelCdNm="得意先名"
                     :showColumns='[
-                        { title: "カナ", dataIndx: "得意先名カナ", dataType: "string", width: 150, maxWidth: 150, minWidth: 150 },
-                        { title: "電話番号", dataIndx: "電話番号１", dataType: "integer", width: 100, maxWidth: 100, minWidth: 100 },
-                        { title: "住所", dataIndx: "住所", dataType: "string", width: 200, maxWidth: 200, minWidth: 200 }
+                        { title: "カナ", dataIndx: "得意先名カナ", dataType: "string", width: 150, maxWidth: 150, minWidth: 150, tooltip: true, },
+                        { title: "電話番号", dataIndx: "電話番号１", dataType: "string", width: 105, maxWidth: 105, minWidth: 105, tooltip: true,},
+                        { title: "住所", dataIndx: "住所１", dataType: "string", width: 150, maxWidth: 150, minWidth: 150, tooltip: true, },
+                        { title: "コース", dataIndx: "コースＣＤ", dataType: "string", width: 75, maxWidth: 75, minWidth: 75 },
+                        { title: "コース名", dataIndx: "コース名", dataType: "string", width: 150, maxWidth: 150, minWidth: 150, tooltip: true, },
                     ]'
-                    :popupWidth=1000
+                    :popupWidth=1100
                     :popupHeight=600
                     :isShowName=true
                     :isModal=true
@@ -566,13 +568,13 @@ export default {
 
             return list;
         },
-        CustomerAutoCompleteFunc: function(input, dataList) {
+        CustomerAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
 
             if (!dataList.length) return [];
 
-            var comp = vue.$refs.PopupSelect_Customer;
-            if (input == comp.selectValue && comp.isUnique) return dataList;
+            // var comp = vue.$refs.PopupSelect_Customer;
+            // if (input == comp.selectValue && comp.isUnique) return dataList;
 
             var keywords = !!input ? editKeywords((input + "").split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v)) : [];
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
