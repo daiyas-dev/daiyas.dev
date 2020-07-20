@@ -986,13 +986,22 @@ export default {
             axios.post("/DAI01030/GetBikou", params)
                 .then(res => {
                     var bikou;
-                    bikou = res.data
-                        .reduce((a, c) => a = _.mergeWith(a, c, (o, s) => {
-                            if (s == "\r\n") s = "";
-                            // return o.includes(s) ? o : (o + "," + s)
-                            return !!s ? (o.includes(s) ? o : (!!o ? (o + (o.endsWith("\r\n") ? "" : "\r\n") + s) : s)) : ""
-                        }));
-                    _.forIn(bikou, (v, k) => bikou[k] = _(v.split(/\r\n/g)).uniq().join("\r\n"))
+                    if(res.data.filter(v => v.注文区分 == 0).length > 0) {
+                        bikou = res.data.filter(v => v.注文区分 == 0)
+                            .reduce((a, c) => a = _.mergeWith(a, c, (o, s) => {
+                                if (s == "\r\n") s = "";
+                                return !!s ? (o.includes(s) ? o : (!!o ? (o + (o.endsWith("\r\n") ? "" : "\r\n") + s) : s)) : ""
+                            }));
+                        _.forIn(bikou, (v, k) => bikou[k] = _(v.split(/\r\n/g)).uniq().join("\r\n"))
+                    } else {
+                        bikou = res.data
+                            .reduce((a, c) => a = _.mergeWith(a, c, (o, s) => {
+                                if (s == "\r\n") s = "";
+                                // return o.includes(s) ? o : (o + "," + s)
+                                return !!s ? (o.includes(s) ? o : (!!o ? (o + (o.endsWith("\r\n") ? "" : "\r\n") + s) : s)) : ""
+                            }));
+                        _.forIn(bikou, (v, k) => bikou[k] = _(v.split(/\r\n/g)).uniq().join("\r\n"))
+                    }
 
                     vue.viewModel.BikouForControl = bikou.備考社内;
                     vue.viewModel.BikouForDelivery = bikou.備考配送;

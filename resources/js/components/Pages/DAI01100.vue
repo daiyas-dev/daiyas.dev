@@ -589,7 +589,6 @@ export default {
 
                         var changes = _.cloneDeep(grid2.getChanges());
 
-                        //TODO 西山確認中　行Noの準備が必要
                         var SaveList = _(changes.updateList)
                             .groupBy(r => r.得意先ＣＤ)
                             .values()
