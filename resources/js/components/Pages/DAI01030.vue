@@ -1045,10 +1045,17 @@ export default {
                     colIndx: _(grid.columns).pickBy((v, k) => k.endsWith("個数") && !v.hidden).values().value()[0].leftPos,
                 });
             } else if (ui.dataIndx.includes("個数")) {
-                grid.setSelection({
-                    rowIndx: ui.rowIndx + 1,
-                    colIndx: grid.columns["商品ＣＤ"].leftPos,
-                });
+                if (!!grid.getCellData({rowIndx: ui.rowIndx + 1, dataIndx: "商品ＣＤ"})) {
+                    grid.setSelection({
+                        rowIndx: ui.rowIndx + 1,
+                        colIndx: _(grid.columns).pickBy((v, k) => k.endsWith("個数") && !v.hidden).values().value()[0].leftPos,
+                    });
+                } else {
+                    grid.setSelection({
+                        rowIndx: ui.rowIndx + 1,
+                        colIndx: grid.columns["商品ＣＤ"].leftPos,
+                    });
+                }
             } else {
                 return true;
             }
