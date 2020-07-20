@@ -873,7 +873,6 @@ export default {
 
             if (!dataList || !dataList.length) return [];
 
-            console.log("1030 input", input);
             var keywords = !!input ? editKeywords((input + "").split(/[, 、　]/).map(v => _.trim(v)).filter(v => !!v)) : [];
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
@@ -1043,10 +1042,12 @@ export default {
                 vue.viewModel.DeliveryDate = moment(postData.DeliveryDate, "YYYYMMDD").format("YYYY年MM月DD日");
             }
         },
-        setMoveNextCell: function(grid, ui, reverse) {
+        setMoveNextCell: function(grid, ui, reverse, key) {
             if (grid.getEditCell().$editor) {
                 grid.saveEditCell();
             }
+
+            var row_diff = key == 38 ? (ui.rowIndx == 0 ? 0 : -1) : 1;
 
             if (ui.dataIndx == "商品ＣＤ") {
                 grid.setSelection({
@@ -1054,10 +1055,17 @@ export default {
                     colIndx: _(grid.columns).pickBy((v, k) => k.endsWith("個数") && !v.hidden).values().value()[0].leftPos,
                 });
             } else if (ui.dataIndx.includes("個数")) {
-                grid.setSelection({
-                    rowIndx: ui.rowIndx + 1,
-                    colIndx: grid.columns["商品ＣＤ"].leftPos,
-                });
+                if (!!grid.getCellData({rowIndx: ui.rowIndx + row_diff, dataIndx: "商品ＣＤ"})) {
+                    grid.setSelection({
+                        rowIndx: ui.rowIndx + row_diff,
+                        colIndx: _(grid.columns).pickBy((v, k) => k.endsWith("個数") && !v.hidden).values().value()[0].leftPos,
+                    });
+                } else {
+                    grid.setSelection({
+                        rowIndx: ui.rowIndx + row_diff,
+                        colIndx: grid.columns["商品ＣＤ"].leftPos,
+                    });
+                }
             } else {
                 return true;
             }

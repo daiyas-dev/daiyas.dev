@@ -5,7 +5,12 @@
                 <label>得意先ＣＤ</label>
             </div>
             <div class="col-md-1">
-                <input type="text" class="form-control" v-model="viewModel.CustomerCd" @input="onCustomerCdChanged" @keydown.enter="() => showDetailByCd()">
+                <input type="text" class="form-control"
+                    v-model="viewModel.CustomerCd"
+                    @input="onCustomerCdChanged"
+                    @keydown.enter="() => showDetailByCd()"
+                    @keydown.f8="() => showDetailByCd()"
+                >
             </div>
             <div class="col-md-1">
                 <label>部署</label>
@@ -300,7 +305,7 @@ export default {
         createdFunc: function(vue) {
             vue.footerButtons.push(
                 {visible: "false"},
-                { visible: "true", value: "検索", id: "DAI04040_Search", disabled: false, shortcut: "F4",
+                { visible: "true", value: "検索", id: "DAI04040_Search", disabled: false, shortcut: "F8",
                     onClick: function () {
                         vue.conditionChanged(true);
                     }
@@ -320,7 +325,7 @@ export default {
                         vue.DAI04040Grid1.vue.exportData("csv", false, true);
                     }
                 },
-                { visible: "true", value: "詳細", id: "DAI04040Grid1_Detail", disabled: true, shortcut: "F8",
+                { visible: "true", value: "詳細", id: "DAI04040Grid1_Detail", disabled: true, shortcut: "F4",
                     onClick: function () {
                         vue.showDetail();
                     }

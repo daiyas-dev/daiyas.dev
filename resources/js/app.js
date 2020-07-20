@@ -36,8 +36,11 @@ var editKeywords = keywords => {
             return _.uniq(
                 [
                     v,
-                    Moji(v).convert('ZE', 'HE').convert('ZK', 'HK').toString(),
-                    Moji(v).convert('HE', 'ZE').convert('HK', 'ZK').toString(),
+                    Moji(v).convert("HG", "KK").toString(), // -> カタカナ
+                    Moji(v).convert("KK", "HG").toString(), // -> ひらがな
+                    Moji(v).convert("HG", "KK").convert("ZK", "HK").toString(), // -> 半角カナ
+                    Moji(v).convert('ZE', 'HE').toString(), // -> 英数半角
+                    Moji(v).convert('HE', 'ZE').toString(), // -> 英数全角
                 ]
             );
         })

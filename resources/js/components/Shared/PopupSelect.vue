@@ -1035,6 +1035,11 @@ export default {
                 input.focus();
             })
             .keydown(function(ev) {
+                if (ev.key == "F8") {
+                    vue.showList();
+                    return false;
+                }
+
                 switch (ev.which) {
                     case 13:
                         input.autocomplete("close");

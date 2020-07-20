@@ -1569,8 +1569,10 @@ export default {
                     switch(event.which) {
                         case 9:
                         case 13:
+                        case 38:
+                        case 40:
                             //moveNextCell or add new row
-                            return vue.moveNextCell(grid, ui, event.shiftKey);
+                            return vue.moveNextCell(grid, ui, event.shiftKey, event.which);
                     }
                 }
 
@@ -3257,7 +3259,7 @@ export default {
             //rowData更新
             grid.updateRow({ rowIndx: ui.rowIndx, newRow: ui.column.binder, history: onHistory != false });
         },
-        moveNextCell: function(grid, ui, reverse) {
+        moveNextCell: function(grid, ui, reverse, key) {
             var vue = this;
             var editor = grid.getEditCell().$editor;
             var gridCell = grid.getCell({ rowIndx: ui.rowIndx, colIndx: ui.colIndx });
@@ -3267,7 +3269,7 @@ export default {
                 var next;
 
                 if (vue.setMoveNextCell) {
-                    var ret = vue.setMoveNextCell(grid, ui, reverse);
+                    var ret = vue.setMoveNextCell(grid, ui, reverse, key);
                     if (!ret) return ret;
                 }
 
