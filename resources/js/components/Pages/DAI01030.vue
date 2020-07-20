@@ -985,13 +985,22 @@ export default {
             axios.post("/DAI01030/GetBikou", params)
                 .then(res => {
                     var bikou;
-                    bikou = res.data
-                        .reduce((a, c) => a = _.mergeWith(a, c, (o, s) => {
-                            if (s == "\r\n") s = "";
-                            // return o.includes(s) ? o : (o + "," + s)
-                            return !!s ? (o.includes(s) ? o : (!!o ? (o + (o.endsWith("\r\n") ? "" : "\r\n") + s) : s)) : ""
-                        }));
-                    _.forIn(bikou, (v, k) => bikou[k] = _(v.split(/\r\n/g)).uniq().join("\r\n"))
+                    if(res.data.filter(v => v.注文区分 == 0).length > 0) {
+                        bikou = res.data.filter(v => v.注文区分 == 0)
+                            .reduce((a, c) => a = _.mergeWith(a, c, (o, s) => {
+                                if (s == "\r\n") s = "";
+                                return !!s ? (o.includes(s) ? o : (!!o ? (o + (o.endsWith("\r\n") ? "" : "\r\n") + s) : s)) : ""
+                            }));
+                        _.forIn(bikou, (v, k) => bikou[k] = _(v.split(/\r\n/g)).uniq().join("\r\n"))
+                    } else {
+                        bikou = res.data
+                            .reduce((a, c) => a = _.mergeWith(a, c, (o, s) => {
+                                if (s == "\r\n") s = "";
+                                // return o.includes(s) ? o : (o + "," + s)
+                                return !!s ? (o.includes(s) ? o : (!!o ? (o + (o.endsWith("\r\n") ? "" : "\r\n") + s) : s)) : ""
+                            }));
+                        _.forIn(bikou, (v, k) => bikou[k] = _(v.split(/\r\n/g)).uniq().join("\r\n"))
+                    }
 
                     vue.viewModel.BikouForControl = bikou.備考社内;
                     vue.viewModel.BikouForDelivery = bikou.備考配送;
@@ -1099,7 +1108,7 @@ export default {
             var keyAND = keywords.filter(k => k.match(/^[\+＋]/)).map(k => k.replace(/^[\+＋]/, ""));
             var keyOR = keywords.filter(k => !k.match(/^[\+＋]/));
 
-            var wholeColumns = ["得意先名", "得意先名略称", "得意先名カナ", "備考１", "備考２", "備考３"];
+            var wholeColumns = ["得意先名", "CdNm", "得意先名カナ", "備考１", "備考２", "備考３"];
 
             if ((input == comp.selectValue && comp.isUnique)) {
                 keyAND = keyOR = [];
@@ -1118,9 +1127,9 @@ export default {
                 })
                 .map(v => {
                     var ret = v;
-                    ret.label = v.得意先CD + " : " + "【" + v.部署名 + "】" + v.得意先名略称;
+                    ret.label = v.得意先CD + " : " + "【" + v.部署名 + "】" + v.CdNm;
                     ret.value = v.得意先CD;
-                    ret.text = v.得意先名略称;
+                    ret.text = v.CdNm;
                     return ret;
                 })
                 ;
