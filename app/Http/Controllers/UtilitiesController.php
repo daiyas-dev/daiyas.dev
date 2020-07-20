@@ -1412,11 +1412,14 @@ $WhereCourseKbn
                 $vm->得意先名カナ = $course->得意先->得意先名カナ;
                 $vm->得意先名略称 = $course->得意先->得意先名略称;
                 $vm->電話番号１ = $course->得意先->電話番号１;
+                $vm->住所１ = $course->得意先->住所１;
                 $vm->備考１ = $course->得意先->備考１;
                 $vm->備考２ = $course->得意先->備考２;
                 $vm->備考３ = $course->得意先->備考３;
+                $vm->コース名 = $course->コース->コース名;
 
                 unset($vm->得意先);
+                unset($vm->コース);
 
                 return $vm;
             })
