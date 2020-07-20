@@ -23,7 +23,6 @@
             :readonly="this.editable == false"
             autocomplete="off"
             @input=onInput
-            @keypress=onKeypress
             :disabled=isDisabled
         >
         <button type="button"
