@@ -377,6 +377,7 @@ export default {
                                                             gridR.blinkDiff(res.receive);
                                                         } else {
                                                             vue.$root.$emit("DAI01060_updateCheck");
+                                                            DAI01060.conditionChanged(null, true);
                                                             $(vue.$el).closest(".ui-dialog-content").dialog("close");
                                                         }
 
