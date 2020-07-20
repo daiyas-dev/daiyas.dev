@@ -726,6 +726,7 @@ class DataReceiveBase
                     break;
 
                 case 'モバイル_更新予定リスト':
+                    $arrDetailSeq=[];
                     foreach ($records as $rec_info) {
                         $pk = $rec_info->key;
                         $data = $rec_info->data;
@@ -811,7 +812,6 @@ class DataReceiveBase
                                 ->where('商品ＣＤ', $MobileSales->商品ＣＤ)
                                 ->where('主食ＣＤ', $MobileSales->主食ＣＤ)
                                 ->where('副食ＣＤ', $MobileSales->副食ＣＤ)
-                                ->where('明細行Ｎｏ', $MobileSales->行Ｎｏ)
                                 ->get();
 
                             $rec = [];
@@ -840,15 +840,34 @@ class DataReceiveBase
                                     ->where('商品ＣＤ', $MobileSales->商品ＣＤ)
                                     ->where('主食ＣＤ', $MobileSales->主食ＣＤ)
                                     ->where('副食ＣＤ', $MobileSales->副食ＣＤ)
-                                    ->where('明細行Ｎｏ', $MobileSales->行Ｎｏ)
                                     ->update($rec);
                             } else {
+                                //日付・得意先毎に振り出した明細行Noを控える。(レコードロック対策)
+                                $detail_seq=-1;
+                                if (array_key_exists($MobileSales->日付, $arrDetailSeq)) {
+                                    if (array_key_exists($MobileSales->得意先ＣＤ, $arrDetailSeq[$MobileSales->日付])) {
+                                        $detail_seq=$arrDetailSeq[$MobileSales->日付][$MobileSales->得意先ＣＤ]+1;
+                                    }
+                                }
+                                if ($detail_seq===-1) {
+                                    $sql_next_detail_row_no="select isnull(max(明細行Ｎｏ),0)+1 as next_detail_row_no
+                                                           from 売上データ明細
+                                                          where 日付 = '$MobileSales->日付'
+                                                            and 部署ＣＤ=$MobileSales->部署ＣＤ
+                                                            and コースＣＤ=$MobileSales->コースＣＤ
+                                                            and 行Ｎｏ=$CSeq
+                                                            and 得意先ＣＤ=$MobileSales->得意先ＣＤ
+                                                        ";
+                                    $detail_seq = DB::selectOne($sql_next_detail_row_no)->next_detail_row_no;
+                                }
+                                $arrDetailSeq[$MobileSales->日付][$MobileSales->得意先ＣＤ]=$detail_seq;
+
                                 $rec["日付"] = $MobileSales->日付;
                                 $rec["部署ＣＤ"] = $MobileSales->部署ＣＤ;
                                 $rec["コースＣＤ"] = $MobileSales->コースＣＤ;
                                 $rec["行Ｎｏ"] = $CSeq;
                                 $rec["得意先ＣＤ"] = $MobileSales->得意先ＣＤ;
-                                $rec["明細行Ｎｏ"] = $MobileSales->行Ｎｏ;
+                                $rec["明細行Ｎｏ"] = $detail_seq;
                                 $rec["商品ＣＤ"] = $MobileSales->商品ＣＤ;
                                 $rec["主食ＣＤ"] = $MobileSales->主食ＣＤ;
                                 $rec["副食ＣＤ"] = $MobileSales->副食ＣＤ;
@@ -947,7 +966,6 @@ class DataReceiveBase
                                         ->where('商品ＣＤ', $MobileSales->商品ＣＤ)
                                         ->where('主食ＣＤ', $MobileSales->主食ＣＤ)
                                         ->where('副食ＣＤ', $MobileSales->副食ＣＤ)
-                                        ->where('明細行Ｎｏ', $MobileSales->行Ｎｏ)
                                         ->get();
 
                                     //分配元更新
@@ -959,7 +977,6 @@ class DataReceiveBase
                                         ->where('商品ＣＤ', $MobileDist->商品ＣＤ)
                                         ->where('主食ＣＤ', $MobileDist->主食ＣＤ)
                                         ->where('副食ＣＤ', $MobileDist->副食ＣＤ)
-                                        ->where('明細行Ｎｏ', $MobileDist->行Ｎｏ)
                                         ->first();
 
                                     if (!!$Parent) {
@@ -981,7 +998,6 @@ class DataReceiveBase
                                             ->where('商品ＣＤ', $MobileDist->商品ＣＤ)
                                             ->where('主食ＣＤ', $MobileDist->主食ＣＤ)
                                             ->where('副食ＣＤ', $MobileDist->副食ＣＤ)
-                                            ->where('明細行Ｎｏ', $MobileDist->行Ｎｏ)
                                             ->update($pdata);
                                     }
                                 }
