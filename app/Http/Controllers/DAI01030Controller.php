@@ -316,6 +316,7 @@ class DAI01030Controller extends Controller
                 ,ISNULL(CD.特記_社内用, TK.備考１) AS 備考社内
                 ,ISNULL(CD.特記_配送用, TK.備考２) AS 備考配送
                 ,ISNULL(CD.特記_通知用, TK.備考３) AS 備考通知
+				,CD.注文区分
             FROM
 				得意先マスタ TK
 				LEFT OUTER JOIN 注文データ CD
@@ -581,12 +582,12 @@ class DAI01030Controller extends Controller
             SELECT
                 ソート,
                 得意先CD AS Cd,
-                得意先名 AS CdNm,
+                得意先名,
                 部署CD,
                 部署名,
                 得意先CD,
                 得意先名,
-                得意先名略称,
+                得意先名略称 AS CdNm,
                 得意先名カナ,
                 売掛現金区分,
                 電話番号１,
