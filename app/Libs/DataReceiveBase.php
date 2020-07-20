@@ -858,7 +858,7 @@ class DataReceiveBase
                                                             and 行Ｎｏ=$CSeq
                                                             and 得意先ＣＤ=$MobileSales->得意先ＣＤ
                                                         ";
-                                    $detail_seq = DB::selectOne($sql_next_detail_row_no)->next_detail_row_no;
+                                    $detail_seq = DB::connection('sqlsrv_batch')->selectOne($sql_next_detail_row_no)->next_detail_row_no;
                                 }
                                 $arrDetailSeq[$MobileSales->日付][$MobileSales->得意先ＣＤ]=$detail_seq;
 
