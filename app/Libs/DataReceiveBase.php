@@ -877,13 +877,11 @@ class DataReceiveBase
                                     ->first();
 
                                 $rec["商品区分"] = $Product->商品区分;
-
                                 $rec["請求日付"] = '';
                                 $rec["予備金額２"] = 0;
                                 $rec["予備ＣＤ２"] = 0;
                                 $rec["備考"] = $MobileSales->メッセージ;
                                 $rec["食事区分"] = 2;
-
                                 DB::connection('sqlsrv_batch')->table("売上データ明細")->insert($rec);
                             }
 
@@ -909,6 +907,16 @@ class DataReceiveBase
                                     array_push($customer_code_list, $DistCustomer->得意先ＣＤ);
                                 }
 
+                                //分配先得意先の売上データ明細も削除
+                                $date = new Carbon($MobileSales->日付);
+                                $sql="select distinct 分配先得意先ＣＤ from モバイル_販売分配
+                                       where 得意先ＣＤ=$MobileSales->得意先ＣＤ
+                                         and 日付='{$date->format('Y/m/d')}'";
+                                $divide_customer_list = DB::connection('sqlsrv_batch')->select($sql);
+                                foreach ($divide_customer_list as $DistCustomer) {
+                                    array_push($customer_code_list, $DistCustomer->分配先得意先ＣＤ);
+                                }
+
                                 DB::connection('sqlsrv_batch')->table("売上データ明細")
                                     ->where('部署ＣＤ', $MobileSales->部署ＣＤ)
                                     ->where('日付', $MobileSales->日付)
@@ -928,7 +936,6 @@ class DataReceiveBase
                                     $dist["商品ＣＤ"] = $MobileDist->商品ＣＤ;
                                     $dist["主食ＣＤ"] = $MobileDist->主食ＣＤ;
                                     $dist["副食ＣＤ"] = $MobileDist->副食ＣＤ;
-
                                     $Product = DB::connection('sqlsrv_batch')->table("商品マスタ")
                                         ->where('商品ＣＤ', $MobileDist->商品ＣＤ)
                                         ->first();
