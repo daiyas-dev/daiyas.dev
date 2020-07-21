@@ -595,8 +595,7 @@ export default {
                     }
                 },
                 { visible: "false" } ,
-                { visible: "false" } ,
-                { visible: "true", value: "実行", id: "DAI02010Grid1_ExecuteAll", disabled: true, shortcut: "F5",
+                { visible: "true", value: "一括実行", id: "DAI02010Grid1_ExecuteAll", disabled: true, shortcut: "F5",
                     onClick: function () {
                         var grid = vue.DAI02010Grid1;
 
@@ -618,8 +617,30 @@ export default {
                         );
                     }
                 },
+                { visible: "true", value: "一括解除", id: "DAI02010Grid1_ReleaseAll", disabled: true, shortcut: "F6",
+                    onClick: function () {
+                        var grid = vue.DAI02010Grid1;
+
+                        //保存実行
+                        grid.saveData(
+                            {
+                                uri: "/DAI02010/Release",
+                                params: {
+                                    CustomerList: DAI02010Grid1.pdata.map(v => v.請求先ＣＤ),
+                                },
+                                optional: vue.searchParams,
+                                confirm: {
+                                    isShow: false,
+                                },
+                                done: {
+                                    isShow: false,
+                                },
+                            }
+                        );
+                    }
+                },
                 { visible: "false" } ,
-                { visible: "true", value: "個別実行", id: "DAI02010Grid1_ExecuteSingle", disabled: true, shortcut: "F6",
+                { visible: "true", value: "個別実行", id: "DAI02010Grid1_ExecuteSingle", disabled: true, shortcut: "F7",
                     onClick: function () {
                         var grid = vue.DAI02010Grid1;
                         var selection = grid.SelectRow().getSelection();
@@ -647,7 +668,7 @@ export default {
                         );
                     }
                 },
-                { visible: "true", value: "個別解除", id: "DAI02010Grid1_ReleaseSingle", disabled: true, shortcut: "F7",
+                { visible: "true", value: "個別解除", id: "DAI02010Grid1_ReleaseSingle", disabled: true, shortcut: "F8",
                     onClick: function () {
                         var grid = vue.DAI02010Grid1;
                         var selection = grid.SelectRow().getSelection();
@@ -675,7 +696,6 @@ export default {
                         );
                     }
                 },
-                { visible: "false" } ,
                 { visible: "false" } ,
                 { visible: "true", value: "未分配一覧", id: "DAI02010Grid1_ShowUnshared", disabled: true, shortcut: "F10",
                     onClick: function () {
@@ -970,6 +990,8 @@ export default {
 
             vue.footerButtons.find(v => v.id == "DAI02010Grid1_ExecuteAll").disabled =
                 !res.length || res.some(v => v.未分配 == 1);
+            vue.footerButtons.find(v => v.id == "DAI02010Grid1_ReleaseAll").disabled =
+                !res.length || !res.some(r => r.締処理済 == 1);
 
             return res;
         },
