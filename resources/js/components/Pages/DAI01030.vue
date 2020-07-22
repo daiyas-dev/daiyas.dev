@@ -1335,6 +1335,8 @@ export default {
                                 });
                             });
                             vue.isSave=true;
+                            $(vue.$el).find("#CustomerSelect").focus().select();
+
                             return false;
                         },
                     },
