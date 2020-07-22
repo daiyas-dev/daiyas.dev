@@ -109,6 +109,7 @@
             :onBeforeCreateFunc=onBeforeCreateFunc
             :onCompleteFunc=onCompleteFunc
             :onAfterSearchFunc=this.onAfterSearchFunc
+            :checkChangedFunc=changeChangedFunc
             :autoToolTipDisabled=true
             :autoEmptyRow=true
             :autoEmptyRowCount=1
@@ -181,7 +182,6 @@ export default {
                 TargetDate: moment(this.viewModel.TargetDate, "YYYY年MM月DD日").isValid() ? moment(this.viewModel.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD") : null,
                 CourseCd: this.viewModel.CourseCd || 0,
                 CustomerCd: this.viewModel.CustomerCd,
-                TantoCd: this.viewModel.TantoCd,
             };
         },
     },
@@ -506,7 +506,7 @@ export default {
                             v.行Ｎｏ = !!vue.params ? (vue.params.CustomerIndex || 0): 0;
                             v.得意先ＣＤ = vue.searchParams.CustomerCd;
                             v.受注Ｎｏ = _.max(grid.pdata.map(v => v.受注Ｎｏ)) || 0;
-                            v.配送担当者ＣＤ = vue.searchParams.TantoCd || 999;
+                            v.配送担当者ＣＤ = vue.model.TantoCd || 999;
                             v.現金個数 = (v.売上売掛現金区分 == 0 ? v.個数 : v.現金個数) || 0;
                             v.現金金額 = (v.売上売掛現金区分 == 0 ? v.金額 : v.現金金額) || 0;
                             v.現金値引 = (v.売上売掛現金区分 == 0 ? v.値引 : v.現金値引) || 0;
@@ -715,8 +715,10 @@ export default {
             if (!vue.viewModel.BushoCd || !vue.viewModel.TargetDate || !vue.viewModel.CustomerCd || vue.ProductList.length == 0) return;
             if (!vue.viewModel.CourseCd && vue.viewModel.CourseNm != "コース無し") return;
 
-            if (!force && (!!grid.options.dataModel && _.isEqual(grid.options.dataModel.prevPostData, vue.searchParams))) return;
+            if (!force && (_.isEqual(grid.prevPostData, vue.searchParams))) return;
+            if (!force && (_.isEqual(vue.prevPostData, vue.searchParams))) return;
 
+            vue.prevPostData = _.cloneDeep(vue.searchParams);
             vue.DAI10010Grid1.searchData(vue.searchParams);
         },
         CourseAutoCompleteFunc: function(input, dataList, comp) {
@@ -903,6 +905,12 @@ export default {
             vue.footerButtons.find(v => v.id == "DAI10010_Save").disabled = vue.isLocked;
 
             return data;
+        },
+        changeChangedFunc: function(grid) {
+            var vue = this;
+
+            var changes = !!grid.getChanges().updateList.length;
+            return changes;
         },
         autoEmptyRowFunc: function(grid) {
             var vue = this;
