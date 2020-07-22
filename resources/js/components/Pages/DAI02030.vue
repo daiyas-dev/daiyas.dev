@@ -1089,7 +1089,7 @@ export default {
                     height: 18px;
                 }
                 table.header-table tbody th {
-                    height: 24px;
+                    height: 22px;
                 }
                 table.header-table tr:first-child th {
                     border-style: solid;
@@ -1441,8 +1441,8 @@ export default {
                         div[style="break-before: page;"],
                         div[style="break-before: auto;"],
                         div[style="page-break-before: always;"] {
-                            margin-top: 20px !important;
-                            margin-bottomn: 20px !important;
+                            margin-top: 25px !important;
+                            margin-bottom: 25px !important;
                             margin-right: 30px !important;
                             margin-left: 30px !important;
                         }
@@ -1501,8 +1501,11 @@ export default {
                         table.DAI02030Grid1 tr td:last-child {
                             border-right-width: 1px;
                         }
+                        table.DAI02030Grid1 thead tr th{
+                            height: 18px;
+                        }
                         table.DAI02030Grid1 tbody tr {
-                            height: 25px;
+                            height: 27.5px;
                         }
                         th:first-child:nth-last-child(8),
                         th:first-child:nth-last-child(8) ~ th:nth-child(2) {
@@ -1541,6 +1544,14 @@ export default {
                         }
                         tr.tsums-grandsummary td:nth-child(2){
                             border-left-width: 0;
+                        }
+                        div[style="break-before: page;"],
+                        div[style="break-before: auto;"],
+                        div[style="page-break-before: always;"] {
+                            margin-top: 20px !important;
+                            margin-bottom: 20px !important;
+                            margin-right: 30px !important;
+                            margin-left: 30px !important;
                         }
                     `;
 
@@ -1684,7 +1695,7 @@ export default {
                                             </div>
                                         </div>
                                     </div>
-                                <table class="header-table" style="border-width: 0px; margin-bottom: 20px;">
+                                <table class="header-table" style="border-width: 0px; margin-bottom: 14px;">
                                     <thead>
                                         <tr>
                                             <th>前回請求額</th>
