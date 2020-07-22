@@ -547,7 +547,7 @@ export default {
                     text-align: center;
                 }
                 td {
-                    height: 21px;
+                    height: 18px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
@@ -558,21 +558,34 @@ export default {
                     <div class="title">
                         <h3>* * ビジネスダイレクトフォーマット * *</h3>
                     </div>
-                    <div class="header-table" style="border-width: 0px">
-                        <tr>
-                            <th style="width: 5.0%;">処理年月</th>
-                            <th style="width: 8.5%; text-align: center;">${moment(vue.viewModel.TargetDate, "YYYY年MM月").format("YYYY年MM月")}</th>
-                            <th style="width: 3.0%;">銀行引き落とし日</th>
-                            <th style="width: 8.5%; text-align: center;">${moment(vue.viewModel.DateEnd, "YYYY年MM月DD日").format("YYYY/MM/DD")}</th>
-                        </tr>
+                    <div class="header">
+                        <th>部署：</th>
+                        <th>${DAI03080.viewModel.BushoArray.map(v => (v.code + ":" + v.name))}</th>
+                    </div>
+                    <div class="header">
+                        <th>出力区分：</th>
+                        <th>${vue.viewModel.BankFormat == 0 ? '0:山口銀行' : '1:東京三菱UFJ'}</th>
+                    </div>
+                    <div class="header">
+                        <th>処理年月：</th>
+                        <th>${moment(vue.viewModel.TargetDate, "YYYY年MM月").format("YYYY年MM月")}</th>
+                    </div>
+                    <div class="header">
+                        <th>銀行引落日：</th>
+                        <th>${moment(vue.viewModel.WithdrawalDate, "YYYY年MM月DD日").format("YYYY年MM月DD日")}</th>
+                        <th>${vue.viewModel.IsKouzaYose == 0 ? "口座寄せを行わない" : "口座寄せを行う"}</th>
+                    </div>
+                    <div class="header">
+                        <th>締日 (月末:99) ：</th>
+                        <th>${!!vue.viewModel.Simebi1 ? vue.viewModel.Simebi1 : ""}
+                            <span/>${!!vue.viewModel.Simebi2 ? vue.viewModel.Simebi2 : ""}
+                            <span/>${!!vue.viewModel.Simebi3 ? vue.viewModel.Simebi3 : ""}
+                        </th>
                     </div>
                     <table class="header-table" style="border-width: 0px">
                         <thead>
                             <tr>
-                                <th style="width: 6.5%; text-align: left;">部署</th>
-                                <th style="width: 5.0%; text-align: left;">${vue.viewModel.BushoCd}</th>
-                                <th style="width: 16.5%; text-align: left;">${vue.viewModel.BushoNm}</th>
-                                <th style="width: 46.0%;"></th>
+                                <th style="width: 74.0%;"></th>
                                 <th style="width: 6.0%;">作成日</th>
                                 <th style="width: 10.0%;">${moment().format("YYYY年MM月DD日")}</th>
                                 <th style="width: 5.0%;">PAGE</th>
@@ -654,19 +667,28 @@ export default {
                                         border-right-width: 0px;
                                         border-bottom-width: 0px;
                                     }
-                                    table.header-table th:nth-child(4) {
+                                    table.header-table th:nth-child(1) {
                                         border-style: solid;
-                                        border-left-width: 1px;
+                                        border-left-width: 0px;
                                         border-top-width: 0px;
                                         border-right-width: 0px;
                                         border-bottom-width: 0px;
                                     }
-                                    table.header-table th:nth-child(8) {
+                                    table.header-table th:nth-child(5) {
                                         border-style: solid;
                                         border-left-width: 1px;
                                         border-top-width: 1px;
                                         border-right-width: 1px;
                                         border-bottom-width: 0px;
+                                    }
+                                    div.header {
+                                        font-family: "MS UI Gothic";
+                                        font-size: 11pt;
+                                        font-weight: normal;
+                                        margin: 0px;
+                                        padding-left: 3px;
+                                        padding-right: 3px;
+                                        height: 18px;
                                     }
                                 `,
                                 headerFunc,
