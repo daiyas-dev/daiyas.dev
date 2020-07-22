@@ -299,7 +299,12 @@ export default {
                     onClick: function () {
                         vue.FileDownload();
                     }
-                }
+                },
+                { visible: "true", value: "印刷", id: "DAI03080Grid1_Print", disabled: false, shortcut: "F7",
+                    onClick: function () {
+                        vue.print();
+                    }
+                },
             );
         },
         mountedFunc: function(vue) {
@@ -491,6 +496,196 @@ export default {
                     link.click();
                     URL.revokeObjectURL(bloburl);
                 });
+        },
+        print: function() {
+            var vue = this;
+
+            //印刷用HTML全体適用CSS
+            var globalStyles = `
+                body {
+                    -webkit-print-color-adjust: exact;
+                }
+                div.title {
+                    width: 100%;
+                    display: flex;
+                    justify-content: center;
+                }
+                div.title > h3 {
+                    margin-top: 0px;
+                    margin-bottom: 0px;
+                }
+                div.header-table {
+                    font-family: "MS UI Gothic";
+                    font-size: 11pt;
+                    font-weight: normal;
+                    margin: 0px;
+                    padding-left: 3px;
+                    padding-right: 3px;
+                    height: 22px;
+                }
+                div.header-table span {
+                    margin-right: 25px;
+                }
+                table {
+                    table-layout: fixed;
+                    margin-left: 0px;
+                    margin-right: 0px;
+                    width: 100%;
+                    border-spacing: unset;
+                    border: solid 0px black;
+                }
+                th, td {
+                    font-family: "MS UI Gothic";
+                    font-size: 9pt;
+                    font-weight: normal;
+                    margin: 0px;
+                    padding-left: 3px;
+                    padding-right: 3px;
+                }
+                th {
+                    height: 21px;
+                    text-align: center;
+                }
+                td {
+                    height: 21px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                }
+            `;
+
+            var headerFunc = (chunk, idx, length) => {
+                return `
+                    <div class="title">
+                        <h3>* * ビジネスダイレクトフォーマット * *</h3>
+                    </div>
+                    <div class="header-table" style="border-width: 0px">
+                        <tr>
+                            <th style="width: 5.0%;">処理年月</th>
+                            <th style="width: 8.5%; text-align: center;">${moment(vue.viewModel.TargetDate, "YYYY年MM月").format("YYYY年MM月")}</th>
+                            <th style="width: 3.0%;">銀行引き落とし日</th>
+                            <th style="width: 8.5%; text-align: center;">${moment(vue.viewModel.DateEnd, "YYYY年MM月DD日").format("YYYY/MM/DD")}</th>
+                        </tr>
+                    </div>
+                    <table class="header-table" style="border-width: 0px">
+                        <thead>
+                            <tr>
+                                <th style="width: 6.5%; text-align: left;">部署</th>
+                                <th style="width: 5.0%; text-align: left;">${vue.viewModel.BushoCd}</th>
+                                <th style="width: 16.5%; text-align: left;">${vue.viewModel.BushoNm}</th>
+                                <th style="width: 46.0%;"></th>
+                                <th style="width: 6.0%;">作成日</th>
+                                <th style="width: 10.0%;">${moment().format("YYYY年MM月DD日")}</th>
+                                <th style="width: 5.0%;">PAGE</th>
+                                <th style="width: 5.0%; text-align: right;">${idx + 1}/${length}</th>
+                            </tr>
+                        </thead>
+                    </table>
+                `;
+            };
+
+            var printable = $("<html>")
+                .append($("<head>").append($("<style>").text(globalStyles)))
+                .append(
+                    $("<body>")
+                        .append(
+                            vue.DAI03080Grid1.generateHtml(
+                                `
+                                    table.DAI03080Grid1 tr:nth-child(1) th {
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 1px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 1px;
+                                    }
+                                    table.DAI03080Grid1 tr.grand-summary td {
+                                        border-style: solid;
+                                        border-left-width: 0px;
+                                        border-top-width: 1px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 1px;
+                                    }
+                                    table.DAI03080Grid1 tr th:nth-child(1) {
+                                        width: 6.0%;
+                                    }
+                                    table.DAI03080Grid1 tr th:nth-child(2),
+                                    table.DAI03080Grid1 tr th:nth-child(10) {
+                                        width: 22.0%;
+                                    }
+                                    table.DAI03080Grid1 tr th:nth-child(3),
+                                    table.DAI03080Grid1 tr th:nth-child(6) {
+                                        width: 7.5%;
+                                    }
+                                    table.DAI03080Grid1 tr th:nth-child(5),
+                                    table.DAI03080Grid1 tr th:nth-child(7) {
+                                        width: 9.0%;
+                                    }
+                                    table.DAI03080Grid1 tr th:nth-child(4),
+                                    table.DAI03080Grid1 tr th:nth-child(6) {
+                                        width: 4.5%;
+                                    }
+                                    table.DAI03080Grid1 tr th:nth-child(8) {
+                                        width: 3.5%;
+                                    }
+                                    table.DAI03080Grid1 tr th:last-child {
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 1px;
+                                        border-right-width: 1px;
+                                        border-bottom-width: 1px;
+                                    }
+                                    table.DAI03080Grid1 tr td {
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 0px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 1px;
+                                    }
+                                    table.DAI03080Grid1 tr td:last-child {
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 0px;
+                                        border-right-width: 1px;
+                                        border-bottom-width: 1px;
+                                    }
+                                    table.header-table th {
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 1px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 0px;
+                                    }
+                                    table.header-table th:nth-child(4) {
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 0px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 0px;
+                                    }
+                                    table.header-table th:nth-child(8) {
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 1px;
+                                        border-right-width: 1px;
+                                        border-bottom-width: 0px;
+                                    }
+                                `,
+                                headerFunc,
+                                25,
+                            )
+                        )
+                )
+                .prop("outerHTML")
+                ;
+
+            var printOptions = {
+                type: "raw-html",
+                style: "@media print { @page { size: A4 landscape; } }",
+                printable: printable,
+            };
+
+            printJS(printOptions);
+            //印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //$("#printJS").contents().find("html").html()
         },
     }
 }
