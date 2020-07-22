@@ -376,6 +376,7 @@ export default {
         var data = $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "注文入力",
             noViewModel: true,
+            IsFirstFocus: false,
             viewModel: {
                 CustomerInfo: null,
                 BushoCd: null,
@@ -674,11 +675,11 @@ export default {
                         vue.deleteOrder();
                     }
                 },
-                { visible: "true", value: "行削除", id: "DAI01030Grid1_DeleteRow", disabled: true, shortcut: "F4",
-                    onClick: function () {
-                        vue.deleteRow();
-                    }
-                },
+                // { visible: "true", value: "行削除", id: "DAI01030Grid1_DeleteRow", disabled: true, shortcut: "F4",
+                //     onClick: function () {
+                //         vue.deleteRow();
+                //     }
+                // },
                 {visible: "false"},
                 { visible: "true", value: "コース表示", id: "DAI01030Grid1_ShowCourse", disabled: false, shortcut: "F6",
                     onClick: function () {
@@ -711,19 +712,20 @@ export default {
         },
         mountedFunc: function(vue) {
             //watcher
-            vue.$watch(
-                "$refs.DAI01030Grid1.selectionRowCount",
-                cnt => {
-                    vue.footerButtons.find(v => v.id == "DAI01030Grid1_DeleteRow").disabled = cnt == 0 || cnt > 1;
-                }
-            );
-            vue.$watch(
-                "$refs.DAI01030Grid1.isSelection",
-                isSelection => {
-                    vue.footerButtons.find(v => v.id == "DAI01030Grid1_DeleteRow").disabled = !isSelection;
-                }
-            );
+            // vue.$watch(
+            //     "$refs.DAI01030Grid1.selectionRowCount",
+            //     cnt => {
+            //         vue.footerButtons.find(v => v.id == "DAI01030Grid1_DeleteRow").disabled = cnt == 0 || cnt > 1;
+            //     }
+            // );
+            // vue.$watch(
+            //     "$refs.DAI01030Grid1.isSelection",
+            //     isSelection => {
+            //         vue.footerButtons.find(v => v.id == "DAI01030Grid1_DeleteRow").disabled = !isSelection;
+            //     }
+            // );
             vue.viewModel.IsShowAll = false;
+            $(vue.$el).find("#CustomerSelect").focus();
 
             console.log("check params", vue.params)
             //queryがある場合は初期値設定しない
@@ -761,6 +763,11 @@ export default {
                 vue.conditionChanged(true);
             }
         },
+        activatedFunc: function(vue) {
+            var vue = this;
+            console.log("activated 01030");
+            $(vue.$el).find("#CustomerSelect").focus();
+        },
         deactivatedFunc: function(vue) {
             var vue = this;
             vue.$root.$emit("DAI01030_Deactivated");
@@ -789,7 +796,7 @@ export default {
         onCustomerSearchFunc:  function(comp) {
             var vue = this;
             if (!!$(vue.$el).find("#CustomerSelect")[0].value) {
-                if (!$(DAI01030.$el).find("#CustomerSelect").nextAll('input:first')[0].value) {
+                if (!$(vue.$el).find("#CustomerSelect").nextAll('input:first')[0].value) {
                     vue.viewModel.CourseNm = "コーステーブル未登録です";
                     vue.viewModel.TantoNm = "";
                 }
@@ -806,8 +813,6 @@ export default {
                 vue.viewModel.BushoCd = info["部署CD"];
             }
 
-            vue.viewModel.CustomerCd = info.Cd;
-            vue.viewModel.CustomerNm = info.CdNm;
             vue.viewModel.TelNo = info["電話番号１"];
             vue.viewModel.PaymentCd = info["売掛現金区分"];
             vue.viewModel.PaymentNm = ["現金", "掛売"][vue.viewModel.PaymentCd] || (isValid ? "チケット" : "");
@@ -833,7 +838,10 @@ export default {
             //vue.setGroupCustomer(vue.viewModel.CustomerCd);
 
             //条件変更ハンドラ
-            //vue.conditionChanged();
+            if (vue.viewModel.CustomerCd != info.Cd || vue.DAI01030Grid1.prevPostData.CustomerCd != info.Cd) {
+                vue.viewModel.CustomerCd = info.Cd;
+                vue.conditionChanged();
+            }
         },
         conditionChanged: function(force) {
             var vue = this;

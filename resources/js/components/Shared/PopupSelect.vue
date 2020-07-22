@@ -699,8 +699,10 @@ export default {
                                     vue.selectName = name;
                                     vue.selectValue = value;
 
-                                    if (!_.find(vue.dataList, rowData)) {
-                                        vue.dataList.push(rowData);
+                                    if (!!vue.isShowAutoComplete) {
+                                        if (!_.find(vue.dataList, rowData)) {
+                                            vue.dataList.push(rowData);
+                                        }
                                     }
 
                                     //画面項目に設定
@@ -712,6 +714,10 @@ export default {
                                         if (!!vue.buddies) {
                                             _.forIn(vue.buddies, (v, k) => vue.vmodel[k] = rowData[v]);
                                         }
+                                    }
+
+                                    if (!!vue.onChangeFunc) {
+                                        vue.onChangeFunc(value, rowData, vue);
                                     }
 
                                     if (!!vue.onAfterChangedFunc) {
