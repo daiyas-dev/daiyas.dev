@@ -60,7 +60,6 @@
                     :buddies='{ CustomerNm: "CdNm", CourseNm: "コース名", TantoCd: "担当者ＣＤ", TantoNm: "担当者名" }'
                     dataUrl="/DAI01030/GetCustomerAndCourseList"
                     :params="{ targetDate: FormattedDeliveryDate, KeyWord: viewModel.CustomerCd, bushoCd: getLoginInfo().bushoCd }"
-                    :isPreload=true
                     title="得意先一覧"
                     labelCd="得意先CD"
                     labelCdNm="得意先名"
@@ -71,18 +70,18 @@
                     ]'
                     :popupWidth=1000
                     :popupHeight=600
+                    :onInputFunc=onCustomerInput
+                    :onChangeFunc=onCustomerChanged
                     :isShowName=true
+                    :isShowAutoComplete=false
+                    :isPreload=false
                     :isModal=true
                     :editable=true
-                    :reuse=true
                     :existsCheck=true
                     :inputWidth=150
                     :nameWidth=400
+                    :reuse=true
                     :ParamsChangedCheckFunc=CustomerParamsChangedCheckFunc
-                    :onAfterChangedFunc=onCustomerChanged
-                    :isShowAutoComplete=true
-                    :AutoCompleteFunc=CustomerAutoCompleteFunc
-                    :onAfterSearchFunc=onCustomerSearchFunc
                 />
                 <label class="label-blue text-center">TEL</label>
                 <input class="form-control p-0 text-center label-blue" style="width: 120px;" type="text" :value=viewModel.TelNo readonly tabindex="-1">
@@ -168,10 +167,6 @@
             :onSelectChangeFunc=onSelectChangeFunc
             :setMoveNextCell=setMoveNextCell
             :autoToolTipDisabled=true
-            :autoEmptyRow=true
-            :autoEmptyRowCount=1
-            :autoEmptyRowFunc=autoEmptyRowFunc
-            :autoEmptyRowCheckFunc=autoEmptyRowCheckFunc
             classes="mt-1 mb-1 mr-3 ml-3"
         />
         <div class="row">
@@ -519,21 +514,21 @@ export default {
                         title: "コード",
                         dataIndx: "商品ＣＤ", dataType: "integer",
                         width: 120, maxWidth: 120, minWidth: 120,
-                        editable: true,
+                        editable: false,
                         key: true,
-                        autocomplete: {
-                            source: () => vue.getProductList(),
-                            bind: "商品ＣＤ",
-                            buddies: { "商品名": "CdNm", "単価": "単価", "商品区分": "商品区分", },
-                            onSelect: rowData => {
-                                console.log("onSelect", rowData);
-                                rowData["現金金額"] = rowData["単価"] * rowData["現金個数"];
-                                rowData["掛売金額"] = rowData["単価"] * rowData["掛売個数"];
-                            },
-                            AutoCompleteFunc: vue.ProductAutoCompleteFuncInGrid,
-                            AutoCompleteMinLength: 0,
-                            selectSave: true,
-                        },
+                        // autocomplete: {
+                        //     source: () => vue.getProductList(),
+                        //     bind: "商品ＣＤ",
+                        //     buddies: { "商品名": "CdNm", "単価": "単価", "商品区分": "商品区分", },
+                        //     onSelect: rowData => {
+                        //         console.log("onSelect", rowData);
+                        //         rowData["現金金額"] = rowData["単価"] * rowData["現金個数"];
+                        //         rowData["掛売金額"] = rowData["単価"] * rowData["掛売個数"];
+                        //     },
+                        //     AutoCompleteFunc: vue.ProductAutoCompleteFuncInGrid,
+                        //     AutoCompleteMinLength: 0,
+                        //     selectSave: true,
+                        // },
                     },
                     {
                         title: "商品名",
@@ -779,6 +774,11 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
+        onCustomerInput: function(code, comp) {
+            var vue = this;
+            vue.viewModel.CustomerCd = code;
+            vue.conditionChanged();
+        },
         onCustomerChanged: function(code, entity, comp) {
             var vue = this;
 
@@ -806,6 +806,8 @@ export default {
                 vue.viewModel.BushoCd = info["部署CD"];
             }
 
+            vue.viewModel.CustomerCd = info.Cd;
+            vue.viewModel.CustomerNm = info.CdNm;
             vue.viewModel.TelNo = info["電話番号１"];
             vue.viewModel.PaymentCd = info["売掛現金区分"];
             vue.viewModel.PaymentNm = ["現金", "掛売"][vue.viewModel.PaymentCd] || (isValid ? "チケット" : "");
@@ -831,7 +833,7 @@ export default {
             //vue.setGroupCustomer(vue.viewModel.CustomerCd);
 
             //条件変更ハンドラ
-            vue.conditionChanged();
+            //vue.conditionChanged();
         },
         conditionChanged: function(force) {
             var vue = this;
@@ -843,26 +845,27 @@ export default {
 
             if (!force && _.isEqual(grid.options.dataModel.postData, vue.searchParams)) return;
 
-            grid.showLoading();
-
             var params = _.cloneDeep(vue.searchParams);
             params.noCache = true;
 
-            //商品リスト検索
-            axios.post("/DAI01030/GetProductList", params)
-                .then(res => {
-                    grid.hideLoading();
-                    vue.ProductList = res.data;
-                    vue.DAI01030Grid1.searchData(vue.searchParams);
-                })
-                .catch(err => {
-                    grid.hideLoading();
-                    console.log("/DAI01030/GetProductList Error", err)
-                    $.dialogErr({
-                        title: "商品マスタ検索失敗",
-                        contents: "商品マスタの検索に失敗しました" + "<br/>" + err.message,
-                    });
-                });
+            vue.DAI01030Grid1.searchData(params);
+
+            // //商品リスト検索
+            // grid.showLoading();
+            // axios.post("/DAI01030/GetProductList", params)
+            //     .then(res => {
+            //         grid.hideLoading();
+            //         vue.ProductList = res.data;
+            //         vue.DAI01030Grid1.searchData(vue.searchParams);
+            //     })
+            //     .catch(err => {
+            //         grid.hideLoading();
+            //         console.log("/DAI01030/GetProductList Error", err)
+            //         $.dialogErr({
+            //             title: "商品マスタ検索失敗",
+            //             contents: "商品マスタの検索に失敗しました" + "<br/>" + err.message,
+            //         });
+            //     });
         },
         getProductList: function() {
             var vue = this;
@@ -999,7 +1002,7 @@ export default {
                                 // return o.includes(s) ? o : (o + "," + s)
                                 return !!s ? (o.includes(s) ? o : (!!o ? (o + (o.endsWith("\r\n") ? "" : "\r\n") + s) : s)) : ""
                             }));
-                        _.forIn(bikou, (v, k) => bikou[k] = _(v.split(/\r\n/g)).uniq().join("\r\n"))
+                        _.forIn(bikou, (v, k) => bikou[k] = _(!!v ? v.split(/\r\n/g) : []).uniq().join("\r\n"))
                     }
 
                     vue.viewModel.BikouForControl = bikou.備考社内;
@@ -1242,10 +1245,6 @@ export default {
             params.Message = {
                 "department_code": vue.viewModel.BushoCd,
                 "course_code": vue.viewModel.CourseCd,
-                "notify_data": {
-                    "title": "注文変更: " + vue.viewModel.CustomerNm,
-                    "body": vue.viewModel.BikouForNotification,
-                },
                 "custom_data": {
                     "message": "注文変更: " + vue.viewModel.CustomerNm
                         + (!!vue.viewModel.BikouForNotification ? ("\n" + vue.viewModel.BikouForNotification) : "")
@@ -1254,6 +1253,13 @@ export default {
                     "values": "",
                 },
             };
+
+            if (!!vue.viewModel.BikouForNotification) {
+                params.Message.notify_data = {
+                    "title": "注文変更: " + vue.viewModel.CustomerNm,
+                    "body": vue.viewModel.BikouForNotification,
+                };
+            }
 
             //保存実行
             var confirm=isConfirm ? {

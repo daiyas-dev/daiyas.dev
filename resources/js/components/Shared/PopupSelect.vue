@@ -238,6 +238,7 @@ export default {
         isCodeOnly: Boolean,
         showColumns: Array,
         onChangeFunc: Function,
+        onInputFunc: Function,
         onAfterChangedFunc: Function,
         onNameChangedFunc: Function,
         index: Number,
@@ -341,6 +342,8 @@ export default {
                     if (vue.isShowAutoComplete) {
                         var list = vue.getAutoCompleteList(newVal.KeyWord);
                         if (!!list && list.length != 0) return;
+                    } else {
+                        return;
                     }
 
                     if (!!vue.noResearch) return;
@@ -440,6 +443,13 @@ export default {
         onInput: _.debounce(function(event) {
             var vue = this;
             console.log("onInput", event);
+            if (!!vue.onInputFunc) {
+                setTimeout(
+                    () => vue.onInputFunc(event.target.value, vue),
+                    0
+                );
+            }
+
             if (!event.isComposing) {
                 vue.setSelectValue(event.target.value, true);
             }
@@ -577,8 +587,8 @@ export default {
                     }
 
                     if (vue.onAfterSearchFunc) {
-                        var ret = vue.onAfterSearchFunc(vue);
-                        if (ret == false) return;
+                        var rs = vue.onAfterSearchFunc(vue);
+                        if (rs == false) return;
                     }
 
                     //callback実行

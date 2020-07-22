@@ -132,11 +132,11 @@ class DAI01030Controller extends Controller
         $CustomerCd = $vm->CustomerCd;
         $DeliveryDate = $vm->DeliveryDate;
 
-        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-        $user = 'daiyas';
-        $password = 'daiyas';
+        if (!isset($CustomerCd) || !is_numeric($CustomerCd) || !ctype_digit($CustomerCd)) {
+            return [];
+        }
 
-        $pdo = new PDO($dsn, $user, $password);
+        $pdo = DB::connection()->getPdo();
 
         $sql = "
             WITH 得意先単価 AS (
@@ -310,6 +310,10 @@ class DAI01030Controller extends Controller
         $CustomerCd = $request->CustomerCd;
         $DeliveryDate = $request->DeliveryDate;
 
+        if (!isset($CustomerCd) || !is_numeric($CustomerCd) || !ctype_digit($CustomerCd)) {
+            return [];
+        }
+
         $sql = "
             SELECT
 				TK.得意先ＣＤ
@@ -330,13 +334,8 @@ class DAI01030Controller extends Controller
                 ,CD.商品ＣＤ
         ";
 
-        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-        $user = 'daiyas';
-        $password = 'daiyas';
+        $pdo = DB::connection('sqlsrv_batch')->getPdo();
 
-        $pdo = new PDO($dsn, $user, $password);
-
-        // $Result = DB::select($sql);
         $stmt = $pdo->query($sql);
         $Result = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $pdo = null;
@@ -482,12 +481,12 @@ class DAI01030Controller extends Controller
     public function GetCustomerAndCourseList($request, $KeywordOnly = false)
     {
         $BushoCd = $request->BushoCd ?? $request->bushoCd;
+        $CustomerCd = $request->CustomerCd ?? $request->customerCd;
         $TargetDate = $request->targetDate;
         $IsOyaOnly = $request->isOyaOnly ?? true;
         $Keyword = $request->keyword;
 
         $WhereOyaOnly = $IsOyaOnly ? " AND (M1.受注得意先ＣＤ = 0 OR M1.受注得意先ＣＤ = M1.得意先ＣＤ)" : "";
-
 
         $WhereCourseKbn = $TargetDate
             ? "AND MC.コース区分 =
@@ -520,100 +519,167 @@ class DAI01030Controller extends Controller
             }
         }
 
-        $sql = "
-            WITH 部署ソート AS (
+        $sql = "";
+        if (isset($CustomerCd) && (!!is_numeric($CustomerCd) || !!ctype_digit($CustomerCd))) {
+            $WhereCustomer = $CustomerCd ? " AND M1.得意先CD = $CustomerCd" : "";
+            $sql = "
+                WITH 得意先_コース一覧 AS
+                (
+                    SELECT
+                        M1.部署CD,
+                        MB.部署名,
+                        M1.得意先CD,
+                        M1.得意先名,
+                        M1.得意先名略称,
+                        M1.得意先名カナ,
+                        M1.売掛現金区分,
+                        M1.電話番号１,
+                        M1.備考１,
+                        M1.備考２,
+                        M1.備考３,
+                        MC.担当者ＣＤ,
+                        MT.担当者名,
+                        MC.コース区分,
+                        MC.コースCD,
+                        MC.コース名,
+                        RANK() OVER(PARTITION BY M1.部署CD, M1.得意先CD ORDER BY MC.コース区分) AS RNK
+                    FROM
+                        得意先マスタ M1
+                        LEFT OUTER JOIN 部署マスタ MB
+                            ON MB.部署CD = M1.部署CD
+                        LEFT OUTER JOIN コーステーブル TC
+                            ON M1.部署CD = TC.部署CD AND M1.得意先CD = TC.得意先CD
+                        LEFT OUTER JOIN コースマスタ MC
+                            ON TC.部署CD = MC.部署CD AND TC.コースCD = MC.コースCD
+                        LEFT OUTER JOIN 担当者マスタ MT
+                            ON MT.担当者ＣＤ = MC.担当者ＣＤ
+                    WHERE
+                        0=0
+                        $WhereOyaOnly
+                        $WhereCustomer
+                        $WhereCourseKbn
+                )
                 SELECT
-                    *
-                    ,IIF(
-                        部署CD=$BushoCd,
-                        0,
-                        CASE 部署CD
-                            WHEN 101 THEN 1
-                            WHEN 201 THEN 2
-                            WHEN 301 THEN 3
-                            WHEN 401 THEN 4
-                            WHEN 901 THEN 5
-                            WHEN 701 THEN 6
-                            WHEN 601 THEN 7
-                            WHEN 0 THEN 9999
-                            ELSE 部署CD
-                        END
-                    ) AS ソート
+                    0,
+                    得意先CD AS Cd,
+                    得意先名,
+                    部署CD,
+                    部署名,
+                    得意先CD,
+                    得意先名,
+                    得意先名略称 AS CdNm,
+                    得意先名カナ,
+                    売掛現金区分,
+                    電話番号１,
+                    備考１,
+                    備考２,
+                    備考３,
+                    担当者ＣＤ,
+                    担当者名,
+                    コース区分,
+                    コースCD,
+                    コース名
                 FROM
-                    部署マスタ
-            ),
-            得意先_コース一覧 AS
-            (
-                SELECT
-                    MB.ソート,
-                    M1.部署CD,
-                    MB.部署名,
-                    M1.得意先CD,
-                    M1.得意先名,
-                    M1.得意先名略称,
-                    M1.得意先名カナ,
-                    M1.売掛現金区分,
-                    M1.電話番号１,
-                    M1.備考１,
-                    M1.備考２,
-                    M1.備考３,
-                    MC.担当者ＣＤ,
-                    MT.担当者名,
-                    MC.コース区分,
-                    MC.コースCD,
-                    MC.コース名,
-                    RANK() OVER(PARTITION BY M1.部署CD, M1.得意先CD ORDER BY MC.コース区分) AS RNK
-                FROM
-                    得意先マスタ M1
-                    LEFT OUTER JOIN 部署ソート MB
-                        ON MB.部署CD = M1.部署CD
-                    LEFT OUTER JOIN コーステーブル TC
-                        ON M1.部署CD = TC.部署CD AND M1.得意先CD = TC.得意先CD
-                    LEFT OUTER JOIN コースマスタ MC
-                        ON TC.部署CD = MC.部署CD AND TC.コースCD = MC.コースCD
-                    LEFT OUTER JOIN 担当者マスタ MT
-                        ON MT.担当者ＣＤ = MC.担当者ＣＤ
+                    得意先_コース一覧
                 WHERE
-                    0=0
-                    $WhereOyaOnly
-                    $WhereCourseKbn
-                    $WhereKeyword
-            )
-            SELECT
-                ソート,
-                得意先CD AS Cd,
-                得意先名,
-                部署CD,
-                部署名,
-                得意先CD,
-                得意先名,
-                得意先名略称 AS CdNm,
-                得意先名カナ,
-                売掛現金区分,
-                電話番号１,
-                備考１,
-                備考２,
-                備考３,
-                担当者ＣＤ,
-                担当者名,
-                コース区分,
-                コースCD,
-                コース名
-            FROM
-                得意先_コース一覧
-            WHERE
-                RNK = 1
-            ORDER BY
-                ISNULL(ソート, 9999),
-                得意先ＣＤ
-        ";
+                    RNK = 1
+            ";
+        } else {
+            $sql = "
+                WITH 部署ソート AS (
+                    SELECT
+                        *
+                        ,IIF(
+                            部署CD=$BushoCd,
+                            0,
+                            CASE 部署CD
+                                WHEN 101 THEN 1
+                                WHEN 201 THEN 2
+                                WHEN 301 THEN 3
+                                WHEN 401 THEN 4
+                                WHEN 901 THEN 5
+                                WHEN 701 THEN 6
+                                WHEN 601 THEN 7
+                                WHEN 0 THEN 9999
+                                ELSE 部署CD
+                            END
+                        ) AS ソート
+                    FROM
+                        部署マスタ
+                ),
+                得意先_コース一覧 AS
+                (
+                    SELECT
+                        MB.ソート,
+                        M1.部署CD,
+                        MB.部署名,
+                        M1.得意先CD,
+                        M1.得意先名,
+                        M1.得意先名略称,
+                        M1.得意先名カナ,
+                        M1.売掛現金区分,
+                        M1.電話番号１,
+                        M1.備考１,
+                        M1.備考２,
+                        M1.備考３,
+                        MC.担当者ＣＤ,
+                        MT.担当者名,
+                        MC.コース区分,
+                        MC.コースCD,
+                        MC.コース名,
+                        RANK() OVER(PARTITION BY M1.部署CD, M1.得意先CD ORDER BY MC.コース区分) AS RNK
+                    FROM
+                        得意先マスタ M1
+                        LEFT OUTER JOIN 部署ソート MB
+                            ON MB.部署CD = M1.部署CD
+                        LEFT OUTER JOIN コーステーブル TC
+                            ON M1.部署CD = TC.部署CD AND M1.得意先CD = TC.得意先CD
+                        LEFT OUTER JOIN コースマスタ MC
+                            ON TC.部署CD = MC.部署CD AND TC.コースCD = MC.コースCD
+                        LEFT OUTER JOIN 担当者マスタ MT
+                            ON MT.担当者ＣＤ = MC.担当者ＣＤ
+                    WHERE
+                        0=0
+                        $WhereOyaOnly
+                        $WhereCourseKbn
+                        $WhereKeyword
+                )
+                SELECT
+                    ソート,
+                    得意先CD AS Cd,
+                    得意先名,
+                    部署CD,
+                    部署名,
+                    得意先CD,
+                    得意先名,
+                    得意先名略称 AS CdNm,
+                    得意先名カナ,
+                    売掛現金区分,
+                    電話番号１,
+                    備考１,
+                    備考２,
+                    備考３,
+                    担当者ＣＤ,
+                    担当者名,
+                    コース区分,
+                    コースCD,
+                    コース名
+                FROM
+                    得意先_コース一覧
+                WHERE
+                    RNK = 1
+                ORDER BY
+                    ISNULL(ソート, 9999),
+                    得意先ＣＤ
+            ";
+        }
 
-        //TODO: 高速化対応
-        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-        $user = 'daiyas';
-        $password = 'daiyas';
+        // $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        // $user = 'daiyas';
+        // $password = 'daiyas';
 
-        $pdo = new PDO($dsn, $user, $password);
+        // $pdo = new PDO($dsn, $user, $password);
+        $pdo = DB::connection()->getPdo();
         $stmt = $pdo->query($sql);
         $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
