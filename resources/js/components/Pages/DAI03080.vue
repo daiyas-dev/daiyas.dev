@@ -94,7 +94,7 @@
                 <label>締日１</label>
             </div>
             <div class="col-md-3">
-                <input class="form-control p-0 text-center label-blue" style="width: 80px;" type="text" :value=viewModel.Simebi1 @input="onSimebi1Changed">
+                <input class="form-control p-0 text-center label-blue" style="width: 80px;" type="number" :value=viewModel.Simebi1 @input="onSimebi1Changed">
                 <label style="width: 100px;">（月末：99）</label>
             </div>
         </div>
@@ -103,7 +103,7 @@
                 <label>締日２</label>
             </div>
             <div class="col-md-1">
-                <input class="form-control p-0 text-center label-blue" style="width: 80px;" type="text" :value=viewModel.Simebi2 @input="onSimebi2Changed">
+                <input class="form-control p-0 text-center label-blue" style="width: 80px;" type="number" :value=viewModel.Simebi2 @input="onSimebi2Changed">
             </div>
         </div>
         <div class="row">
@@ -111,7 +111,7 @@
                 <label>締日３</label>
             </div>
             <div class="col-md-1">
-                <input class="form-control p-0 text-center label-blue" style="width: 80px;" type="text" :value=viewModel.Simebi3 @input="onSimebi3Changed">
+                <input class="form-control p-0 text-center label-blue" style="width: 80px;" type="number" :value=viewModel.Simebi3 @input="onSimebi3Changed">
             </div>
         </div>
         <PqGridWrapper
@@ -148,6 +148,11 @@
 }
 label{
     width: 80px;
+}
+#DAI03080Grid1 input[type="number"]::-webkit-outer-spin-button,
+#DAI03080Grid1 input[type="number"]::-webkit-inner-spin-button {
+    position: relative;
+    right: -10px;
 }
 </style>
 
@@ -300,7 +305,7 @@ export default {
                         vue.FileDownload();
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI03080Grid1_Print", disabled: false, shortcut: "F7",
+                { visible: "true", value: "印刷", id: "DAI03080Grid1_Print", disabled: true, shortcut: "F7",
                     onClick: function () {
                         vue.print();
                     }
@@ -372,30 +377,29 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        onSimebi1Changed: _.debounce(function(event) {
+        onSimebi1Changed: function(event) {
             var vue = this;
             vue.viewModel.Simebi1=event.target.value*1;
             //条件変更ハンドラ
-            vue.conditionChanged();
-        }, 300),
-        onSimebi2Changed: _.debounce(function(event) {
+            //vue.conditionChanged();
+        },
+        onSimebi2Changed: function(event) {
             var vue = this;
             vue.viewModel.Simebi2=event.target.value*1;
             //条件変更ハンドラ
-            vue.conditionChanged();
-        }, 300),
-        onSimebi3Changed: _.debounce(function(event) {
+            //vue.conditionChanged();
+        },
+        onSimebi3Changed: function(event) {
             var vue = this;
             vue.viewModel.Simebi3=event.target.value*1;
             //条件変更ハンドラ
-            vue.conditionChanged();
-        }, 300),
+            //vue.conditionChanged();
+        },
         conditionChanged: function(callback) {
             var vue = this;
             var grid = vue.DAI03080Grid1;
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
-            if (!vue.viewModel.BushoArray || vue.viewModel.BushoArray.length==0) return;
             if (!vue.viewModel.TargetDate) return;
 
             var params=this.ParamGet();
@@ -404,6 +408,7 @@ export default {
         onAfterSearchFunc: function (vue, grid, res) {
             var vue = this;
             vue.footerButtons.find(v => v.id == "DAI03080Grid1_Download").disabled = !res.length;
+            vue.footerButtons.find(v => v.id == "DAI03080Grid1_Print").disabled = !res.length;
             return res;
         },
         ParamGet: function(){
@@ -465,7 +470,6 @@ export default {
         },
         FileDownload: function() {
             var vue=this;
-            if (!vue.viewModel.BushoArray || vue.viewModel.BushoArray.length==0) return;
 
             var BankName =vue.viewModel.BankFormat=="0" ? "山口銀行" : "三菱東京ＵＦＪ";//銀行名が「三菱東京ＵＦＪ」になっているが、良いか。現在は「三菱ＵＦＪ銀行」
             var params=this.ParamGet();
