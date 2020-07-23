@@ -499,8 +499,8 @@ export default {
             );
         },
         mountedFunc: function(vue) {
-            vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
-            vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
+            vue.viewModel.DateStart = moment().startOf("month").format("YYYY年MM月DD日");
+            vue.viewModel.DateEnd = moment().endOf("month").format("YYYY年MM月DD日");
 
             //watcher
             vue.$watch(

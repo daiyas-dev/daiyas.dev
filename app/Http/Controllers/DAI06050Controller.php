@@ -49,8 +49,6 @@ class DAI06050Controller extends Controller
                             FROM コーステーブル
                             WHERE
                                 部署CD = $BushoCd
-                            AND コースCD BETWEEN 0 AND 9999
-                            AND 得意先CD BETWEEN 0 AND 9999999
                             )
                 ) TOK
         LEFT OUTER JOIN
@@ -262,7 +260,7 @@ class DAI06050Controller extends Controller
             売掛現金区分,
             現金入金額,
             残高,
-            MAX(得意先残) OVER (PARTITION BY ＳＥＱ ORDER BY ＳＥＱ ASC) AS 得意先残,
+            MAX(得意先残) OVER (PARTITION BY コースＣＤ, ＳＥＱ ORDER BY ＳＥＱ ASC) AS 得意先残,
             累計残
         FROM
             抽出データ2
