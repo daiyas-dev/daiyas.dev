@@ -1090,6 +1090,171 @@ $WhereCourseKbn
     }
 
     /**
+     * GetCustomerAbbListForSelect
+     */
+    public function GetCustomerAbbListForSelect($request)
+    {
+        $BushoCd = $request->bushoCd ?? $request->BushoCd;
+        $KeyWord = $request->KeyWord;
+        $TelNo = !!$KeyWord ? str_replace('-', '', $KeyWord) : '';
+        $BushoArray = $request->BushoArray;
+        $WhereBushoList = "";
+        if ($BushoArray != null && is_array($BushoArray) && 0 < count($BushoArray)) {
+            $BushoList = implode(',', $BushoArray);
+            $WhereBushoList = " AND TM.部署ＣＤ IN ($BushoList)";
+        }
+
+        $WhereBusho = $BushoCd ? " AND TM.部署ＣＤ=$BushoCd" : "";
+        $WhereKeyWord = $KeyWord
+            ? " AND (
+                    TM.得意先名 LIKE '%$KeyWord%' OR
+                    TM.備考１ LIKE '$KeyWord%' OR
+                    TM.備考２ LIKE '$KeyWord%' OR
+                    TM.備考３ LIKE '$KeyWord%' OR
+                    TM.電話番号１ LIKE '$KeyWord%' OR
+                    TM.電話番号１ LIKE '$TelNo%'
+                )"
+            : "";
+
+        $CourseCd = $request->CourseCd;
+        $SelectCourseCd = !!$BushoCd && !!$CourseCd ? ", $CourseCd AS コースＣＤ" : "";
+        $WhereBushoCourse = $WhereBusho ? " AND 部署ＣＤ=$BushoCd" : "";
+        $WhereBushoListCourse = $WhereBushoList ? " AND 部署ＣＤ IN ($BushoList)" : "";
+        $WhereCourseCd = !!$CourseCd && (!!$WhereBushoCourse || $WhereBushoListCourse)
+            ? " AND TM.得意先ＣＤ IN (
+                    SELECT 得意先ＣＤ
+                    FROM コーステーブル
+                    WHERE
+                        コースＣＤ=$CourseCd
+                    $WhereBushoCourse
+                    $WhereBushoListCourse
+                )"
+            : "";
+
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+
+        if (is_numeric($KeyWord) && ctype_digit($KeyWord)) {
+            $WhereCustomer = " AND TM.得意先ＣＤ=$KeyWord";
+
+            //得意先ＣＤでの検索
+            $ByCustomerSql = "
+                SELECT
+                    TM.得意先ＣＤ AS Cd,
+                    TM.得意先名,
+                    TM.部署CD,
+                    TM.得意先名カナ,
+                    TM.得意先名略称 AS CdNm,
+                    TM.住所１,
+                    TM.電話番号１,
+                    TM.ＦＡＸ１,
+                    TM.備考１,
+                    TM.備考２,
+                    TM.備考３,
+                    TM.売掛現金区分,
+                    TM.締日１,
+                    BM.部署名
+                FROM 得意先マスタ TM
+                LEFT JOIN 部署マスタ BM
+                    ON TM.部署CD = BM.部署CD
+                WHERE 0=0
+                $WhereBusho
+                $WhereBushoList
+                $WhereCustomer
+            ";
+
+            $stmt = $pdo->query($ByCustomerSql);
+            $Result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            if (count($Result) == 1) {
+                $pdo = null;
+                return response()->json($Result);
+            }
+        }
+
+        $CountSql = "
+            SELECT
+                COUNT(TM.得意先ＣＤ) AS CNT
+            FROM 得意先マスタ TM
+            WHERE 0=0
+            $WhereBusho
+            $WhereBushoList
+            $WhereKeyWord
+            $WhereCourseCd
+        ";
+
+        $stmt = $pdo->query($CountSql);
+        $Result = $stmt->fetch();
+        // $Result = DB::select($CountSql);
+
+        $Count = $Result["CNT"];
+        $CountMax = $request->CountMax ?? 100;
+        $SelectTop = !!$request->NoLimit ? "" : ($Count > $CountMax ? "TOP $CountMax" : "");
+
+        $UserBushoCd = $request->UserBushoCd ?? Auth::user()->部署->部署CD ?? 99999;
+
+        $sql = "
+            WITH 部署ソート AS (
+                SELECT
+                    *
+                    ,IIF(
+                        部署CD=$UserBushoCd,
+                        0,
+                        CASE 部署CD
+                            WHEN 101 THEN 1
+                            WHEN 201 THEN 2
+                            WHEN 301 THEN 3
+                            WHEN 401 THEN 4
+                            WHEN 901 THEN 5
+                            WHEN 701 THEN 6
+                            WHEN 601 THEN 7
+                            WHEN 0 THEN 9999
+                            ELSE 部署CD
+                        END
+                    ) AS ソート
+                FROM
+                    部署マスタ
+            )
+            SELECT $SelectTop
+                TM.得意先ＣＤ AS Cd,
+                TM.得意先名,
+                TM.部署CD,
+                TM.得意先名カナ,
+                TM.得意先名略称 AS CdNm,
+                TM.住所１,
+                TM.電話番号１,
+                TM.ＦＡＸ１,
+                TM.備考１,
+                TM.備考２,
+                TM.備考３,
+                TM.売掛現金区分,
+                TM.締日１,
+                BM.部署名
+                $SelectCourseCd
+            FROM 得意先マスタ TM
+            LEFT OUTER JOIN 部署ソート BM
+                ON TM.部署CD = BM.部署CD
+            WHERE 0=0
+            $WhereBusho
+            $WhereBushoList
+            $WhereKeyWord
+            $WhereCourseCd
+            ORDER BY
+                ISNULL(BM.ソート, 9999),
+                TM.得意先ＣＤ
+        ";
+
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = null;
+
+        return response()->json(['Data' => $DataList, 'CountConstraint' => !!$SelectTop ? $CountMax : null, 'ActualCounts' => $Count ]);
+    }
+
+    /**
      * GetProductListForSelect
      */
     public function GetProductListForSelect($request)

@@ -13,7 +13,7 @@
                     :vmodel=viewModel
                     bind="CustomerCd"
                     :buddies='{ CustomerNm: "CdNm", Address: "住所１", Tel: "電話番号１", Fax: "ＦＡＸ１", Sime: "締日１" }'
-                    dataUrl="/Utilities/GetCustomerListForSelect"
+                    dataUrl="/Utilities/GetCustomerAbbListForSelect"
                     :params="{ KeyWord: null, UserBushoCd: getLoginInfo().bushoCd }"
                     :isPreload=true
                     title="得意先一覧"

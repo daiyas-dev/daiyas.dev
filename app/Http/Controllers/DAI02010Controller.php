@@ -226,6 +226,7 @@ class DAI02010Controller extends Controller
         SELECT DISTINCT
             ST.*
             ,TM.得意先名
+            ,TM.得意先名略称
             ,TM.受注得意先ＣＤ
             ,TM.支払サイト
             ,TM.支払日

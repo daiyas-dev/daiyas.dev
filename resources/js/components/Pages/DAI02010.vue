@@ -201,7 +201,7 @@
                     :vmodel=viewModel
                     bind="CustomerCd"
                     buddy="CustomerNm"
-                    dataUrl="/Utilities/GetCustomerListForSelect"
+                    dataUrl="/Utilities/GetCustomerAbbListForSelect"
                     :params="{ BushoCd: !!viewModel.CourseCd ? viewModel.BushoCd : null, CourseCd: viewModel.CourseCd, KeyWord: null, UserBushoCd: getLoginInfo().bushoCd }"
                     :isPreload=true
                     title="得意先一覧"
@@ -420,6 +420,17 @@ export default {
                         dataType: "string",
                         width: 200, minWidth: 200,
                         tooltip: true,
+                        hidden: true,
+                        hiddenOnExport: false,
+                    },
+                    {
+                        title: "得意先名略称",
+                        dataIndx: "得意先名略称",
+                        dataType: "string",
+                        width: 200, minWidth: 200,
+                        tooltip: true,
+                        hidden: false,
+                        hiddenOnExport: true,
                     },
                     {
                         title: "コード",

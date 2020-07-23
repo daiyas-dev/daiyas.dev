@@ -104,6 +104,7 @@ class DAI02020Controller extends Controller
                 ,SEIKYU.請求日範囲開始
                 ,SEIKYU.請求日範囲終了
                 ,TOK.得意先名
+                ,TOK.得意先名略称
 				,TOK.締日１
 				,TOK.締日２
                 ,ISNULL(COUM.担当者ＣＤ,0) AS 担当者ＣＤ

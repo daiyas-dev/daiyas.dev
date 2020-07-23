@@ -111,6 +111,7 @@ class DAI02030Controller extends Controller
                 ,SEIKYU.請求日範囲開始
                 ,SEIKYU.請求日範囲終了
                 ,TOK.得意先名
+                ,TOK.得意先名略称
 				,TOK.締日１
 				,TOK.締日２
 				,TOK.郵便番号
