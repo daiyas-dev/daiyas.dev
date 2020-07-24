@@ -8,7 +8,7 @@ builder.build(
     {
         config: {
             "releaseInfo": {
-                "releaseNotes": "1.0.0"
+                "releaseNotes": package.version
             },
             "win": {
                 "target": {

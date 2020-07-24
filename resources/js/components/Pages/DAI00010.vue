@@ -8,7 +8,7 @@
                 <label style="width: unset;">※本社CTI連携機能をお使いの方は左記クライアントをインストールして、システムをご利用ください</label>
             </div>
         </div>
-        <div class="row" style="display: flex; align-items: baseline;">
+        <!-- <div class="row" style="display: flex; align-items: baseline;">
             <div class="col-md-4">
                 <button @click="event => testCTI(event)">非通知</button>
                 <button @click="event => testCTI(event, '0836585044')">1件該当</button>
@@ -19,7 +19,7 @@
             <div class="col-md-4">
                 <button @click="event => addWebOrder(event)">Web受注ダミー追加</button>
             </div>
-        </div>
+        </div> -->
         <div class="row menu-panel">
             <div class="col-md-2 d-flex align-items-stretch justify-content-center" style="border: groove;">
                 <div class="btn-group-vertical d-flex" role="group">
@@ -553,6 +553,7 @@ export default {
         },
         mountedFunc: function(vue) {
             vue.setMenus();
+            vue.setMenus();
         },
         activatedFunc: function(vue) {
             vue.setMenus();
@@ -563,12 +564,6 @@ export default {
         },
         setMenus: function() {
             var vue = this;
-
-            //Windowタイトル
-            window.document.title = vue.ScreenTitle;
-
-            //AppHeaderタイトル
-            vue.$root.$emit("setTitle", vue.ScreenTitle);
 
             //TopMenu読込待ち
             new Promise((resolve, reject) => {
@@ -582,6 +577,8 @@ export default {
                 }, 300);
             })
             .then(menus => {
+                vue.$root.$emit("setCurrentPage", vue.ScreenTitle);
+
                 vue.menus = menus;
                 if (!!menus.length && !vue.selected) {
                     vue.selected = menus[0].functionId;

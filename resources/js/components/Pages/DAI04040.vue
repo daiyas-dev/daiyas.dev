@@ -445,14 +445,11 @@ export default {
                 rules.push({ dataIndx: "コースＣＤ", condition: vue.viewModel.WithCourse[0] == "0" ? "notempty" : "empty" });
             }
             if (!!vue.viewModel.KeyWord) {
-                var keywords = vue.viewModel.KeyWord.split(/[, 、　]/)
-                    .map(v => _.trim(v))
-                    .map(k => k.replace(/^[\+＋]/, ""))
-                    .filter(v => !!v);
+                var keywords = editKeywords((vue.viewModel.KeyWord || "").split(/[, 、]/g));
 
                 var rulesKeyWord = keywords.map(k => { return { condition: "contain", value: k }; });
 
-                rules.push({ dataIndx: "KeyWord", mode: vue.viewModel.FilterMode, condition: "equal", crules: rulesKeyWord });
+                rules.push({ dataIndx: "KeyWord", mode: "OR", crules: rulesKeyWord });
             }
 
             grid.filter({ oper: "replace", mode: "AND", rules: rules });

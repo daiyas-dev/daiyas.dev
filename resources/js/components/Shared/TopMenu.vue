@@ -3,7 +3,7 @@
         <nav class="navbar navbar-expand navbar-dark bg-dark w-100 pt-0 pb-0">
             <div id="system-name" class="navbar-brand p-0">
                 <label class="sysname badge-primary m-0 pl-0 pr-1" style="cursor: pointer;" @click="goHome">
-                    <img src="/images/daiyas256.png" alt="ロゴ" style="width: 30px; height: 30px; margin-right: 10px;">メニュー
+                    <img src="/images/daiyas256.png" alt="ロゴ" style="width: 30px; height: 30px; margin-right: 10px;">{{"Ver." + version}}
                 </label>
             </div>
             <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#Navber" aria-controls="Navber" aria-expanded="false" aria-label="ナビゲーションの切替">
@@ -85,10 +85,13 @@
 </style>
 
 <script>
+import { version } from "../../../../package.json";
+
 export default {
     name: "top-menu",
     data() {
         return {
+            version: version,
             systemName: null,
             menus: null,
             userId: null,
@@ -98,9 +101,17 @@ export default {
             messages: [],
             isAddMessage: false,
             haveSubmenuIcon: "&nbsp<i class='fa fa-caret-down fa-lg'></i>",
+            clientVer: null,
         }
     },
     computed: {
+    },
+    watch: {
+        clientVer: {
+            handler: newVal => {
+
+            },
+        }
     },
     created: function () {
         this.$root.$on("logOn", this.logOn);
@@ -110,6 +121,28 @@ export default {
         this.$root.$on("setCurrentPage", this.setCurrentPage);
     },
     mounted: function () {
+        var vue = this;
+
+        if (window.ipcRenderer) {
+            setTimeout(
+                async () => {
+                    vue.clientVer = await ipcRenderer.invoke("command", "version");
+                    console.log("client ver.", vue.clientVer);
+                },
+                0
+            );
+            // window.ipcRenderer.on("GetVersion", (e, arg) => {
+            //     var msg = new TextDecoder("utf-8").decode(arg);
+            //     var ret = "SAVE_END";   //msg + " : OK";
+
+            //     e.sender.send("command", "return version");
+
+            //     setTimeout(
+            //         () => vue.$root.$emit("OnCall", msg),
+            //         10
+            //     );
+            // });
+        }
     },
     beforeUpdated: function () {
     },
@@ -248,6 +281,18 @@ export default {
         resize: function() {
         },
         setCurrentPage: function (ScreenTitle) {
+            //Windowタイトル
+            if (ScreenTitle) {
+                var title = "";
+
+                if (!!window.ipcRenderer) {
+                    title = "ダイヤスクライアント" + (!!this.clientVer ? (" v." + this.clientVer) : "") + " [" + ScreenTitle + "]";
+                } else {
+                    title = ScreenTitle + " v." + this.version;
+                }
+
+                window.document.title = title;
+            }
 
             //classを除外
             $(".currentPage").removeClass("currentPage");
@@ -269,12 +314,6 @@ export default {
             //再設定
             link.addClass("currentPage");
             link.closest(".dropdown").addClass("currentPage");
-
-            //Windowタイトル
-            if (ScreenTitle) {
-                // window.document.title = this.systemName + "-" + ScreenTitle;
-                window.document.title = ScreenTitle;
-            }
         },
         goHome: function() {
             this.$root.$router.push("/");
