@@ -1,6 +1,6 @@
 {
   "name": "daiyas_client",
-  "version": "0.7.2424",
+  "version": "0.7.25",
   "description": "DaiyasClient For CTI",
   "main": "main.js",
   "scripts": {
