@@ -4,6 +4,7 @@
             <div :id="target.wrapperId" v-bind:key="target.uniqueId" class="body-content">
                 <page-selector v-if="target.pgId"
                     :pgId=target.pgId
+                    :vm=target.vm
                     :uniqueId=target.uniqueId
                     :dataUrl=target.dataUrl
                     :params=target.params
@@ -19,7 +20,10 @@
                     :selector=target.selector
                     :customElement=target.customElement
                     :customElementFunc=target.customElementFunc
+                    :customHeaderObjects=target.customHeaderObjects
+                    :customHeaderObjectsFunc=target.customHeaderObjectsFunc
                     :showBushoSelector=target.showBushoSelector
+                    :selectBushoDefault=target.selectBushoDefault
                     :customParams=target.customParams
                 ></page-selector>
             </div>
@@ -165,6 +169,7 @@ export default {
             //表示対象オブジェクト
             var target = {
                 pgId: null,
+                vm: options.vm,
                 dataUrl: options.dataUrl,
                 params: options.params,
                 title: options.title,
@@ -182,7 +187,10 @@ export default {
                 selector: options.selector,
                 customElement: options.customElement,
                 customElementFunc: options.customElementFunc,
+                customHeaderObjects: options.customHeaderObjects,
+                customHeaderObjectsFunc: options.customHeaderObjectsFunc,
                 showBushoSelector: options.showBushoSelector,
+                selectBushoDefault: options.selectBushoDefault,
                 customParams: options.customParams,
             };
             this.targets.push(target);

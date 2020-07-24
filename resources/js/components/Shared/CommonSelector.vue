@@ -3,7 +3,15 @@
         <div class="row ml-0 mr-0 mb-2 CustomCotainer" v-if="!!showBushoSelector || !!customElement || !!customElementFunc">
             <div class="col-md-4" v-if="!!showBushoSelector">
                 <label style="text-align: center;">部署</label>
+                <VueSelectBusho
+                    v-if="!!selectBushoDefault"
+                    ref="VueSelectBusho"
+                    :withCode=true
+                    :hasNull=true
+                    :onChangedFunc=onBushoCdChanged
+                />
                 <VueSelect
+                    v-else
                     id="Busho"
                     :vmodel=viewModel
                     bind="BushoCd"
@@ -18,7 +26,7 @@
             :id=this.gridId
             :ref=this.gridId
             :dataUrl=this.dataUrl
-            :query=this.query
+            :query=this.searchParams
             classes="ml-0 mr-0"
             :SearchOnCreate=true
             :SearchOnActivate=true
@@ -56,6 +64,7 @@
 /** 以下、VueComponent設定 **/
 import PqGridWrapper from "@vcs/PqGridWrapper.vue";
 import VueSelect from "@vcs/VueSelect.vue";
+import VueSelectBusho from "@vcs/VueSelectBusho.vue";
 
 export default {
     name: "CommonSelector",
@@ -92,7 +101,10 @@ export default {
         selector: Function,
         customElement: String,
         customElementFunc: Function,
+        customHeaderObjects: Array,
+        customHeaderObjectsFunc: Function,
         showBushoSelector: Boolean,
+        selectBushoDefault: Boolean,
         customParams: Object,
         query: Object,
         vm: Object,
@@ -100,6 +112,7 @@ export default {
     components: {
         "PqGridWrapper": PqGridWrapper,
         "VueSelect": VueSelect,
+        "VueSelectBusho": VueSelectBusho,
     },
     watch: {
         count: {
@@ -155,7 +168,7 @@ export default {
 					    {
                             name: "SearchStrings",
 						    type: "textbox",
-                            attr: 'name="SearchStrings" tabIndex=-1 searchIndex=0 prevString="" autocomplete="off" style="width: calc(100% - 110px) !important;"',
+                            attr: 'name="SearchStrings" searchIndex=0 prevString="" autocomplete="off" style="width: 250px !important;"',
                             cls: "SearchStrings",
                             label: "<i class='fa fa-search ml-1'></i>" + "キーワード ",
 					    },
@@ -224,6 +237,10 @@ export default {
                     }
                 },
             };
+        },
+        searchParams: function() {
+            var vue = this;
+            return $.extend(true, vue.query, vue.vm);
         },
     },
     created: function () {  //createdは一回きり
@@ -300,8 +317,27 @@ export default {
 
         //toolbarの置き換え
         var pqgrid = grid.pqGrid("getInstance").grid;
-        pqgrid.options.toolbar = this.grid1Options.toolbar;
+        var toolbar = _.cloneDeep(vue.grid1Options.toolbar);
+
+        if (!!vue.customHeaderObjects) {
+            toolbar.items.splice(1, 0, ...vue.customHeaderObjects);
+        }
+
+        if (!!vue.customHeaderObjectsFunc) {
+            toolbar.items.splice(1, 0, ...vue.customHeaderObjectsFunc(pqgrid));
+        }
+
+        pqgrid.options.toolbar = toolbar;
         pqgrid.refreshToolbar();
+
+        pqgrid.toolbar().find("input").each((i, e) => {
+            $(e).on("keydown", event => {
+                if (event.which == 13) {
+                    vue.conditionChanged(true);
+                    return false;
+                }
+            });
+        });
 
         //コード及び名称以外の取得情報のカラム追加
         vue.showColumns.forEach(c => {
@@ -374,10 +410,12 @@ export default {
     },
     methods: {
         focused: function() {
-            console.log(this.$options.pgId + " Focused:");
+            var vue = this;
+            var grid = $(vue.$el).find(".pq-grid").pqGrid("getInstance").grid;
 
             //リサイズ
-            this.resize();
+            vue.resize();
+            grid.toolbar().find("input.SearchStrings").focus();
         },
         resize: function(size) {
         },
@@ -424,36 +462,16 @@ export default {
             var target = $(vue.$el).find("[name=SearchStrings]")[0];
             target.value = vue.keyword || "";
 
-            $(target).on("input", _.debounce(
-                ev => {
-                    console.log("SearchStrings input");
-                    vue.keyword = ev.target.value;
+            // $(target).on("input", _.debounce(
+            //     ev => {
+            //         console.log("SearchStrings input");
+            //         vue.keyword = ev.target.value;
 
-                    if (!grid) return;
+            //         if (!grid) return;
 
-                    vue.conditionChanged();
-
-                    // var keywords = editKeywords(vue.keyword.split(/[, 、]/g));
-
-                    // if (!!vue.query.Chunk) {
-                    //     console.log("search chunk")
-                    //     var params = _.cloneDeep(_.omit(vue.query, ["Parent"]));
-
-                    //     params.Start = 1;
-                    //     params.Keywords = keywords;
-
-                    //     if (!_.isEqual(params, grid.prevPostData)) {
-                    //         grid.searchData(params);
-                    //     }
-                    // } else {
-                    //     var rules = keywords.map(k => {
-                    //         return { condition: "contain", value: k };
-                    //     });
-
-                    //     grid.filter({ oper: "replace", mode: "AND", rules: [{ dataIndx: "keyword", mode: "OR", crules: rules }] });
-                    // }
-                }, 1000
-            ));
+            //         vue.conditionChanged();
+            //     }, 1000
+            // ));
 
             if (!target.value && !!vue.selector) {
                 vue.selector(grid);
@@ -467,20 +485,36 @@ export default {
 
             vue.conditionChanged();
         },
-        conditionChanged: function() {
+        conditionChanged: function(force) {
             var vue = this;
             var grid = $(vue.$el).find(".pq-grid").pqGrid("getInstance").grid;
 
             if (!grid) return;
 
+            vue.keyword = grid.toolbar().find("input.SearchStrings").val();
             var keywords = editKeywords((vue.keyword || "").split(/[, 、]/g));
+
+            var customParams = grid.toolbar().find("input:not(.SearchStrings)")
+                .filter((i, e) => !!$(e).val())
+                .map((i, e) => {
+                    return {
+                        [$(e).attr("name")]: $(e).val()
+                    };
+                })
+                .get();
 
             if (!!vue.query.Chunk) {
                 console.log("search chunk")
                 var params = _.cloneDeep(_.omit(vue.query, ["Parent"]));
 
                 params.Start = 1;
+                params.Keyword = vue.keyword;
                 params.Keywords = keywords;
+
+                customParams.forEach(p => {
+                    params = $.extend(true, params, p);
+                });
+
                 if (!!vue.viewModel.BushoCd) {
                     params.BushoCd = vue.viewModel.BushoCd;
                 }
@@ -489,7 +523,7 @@ export default {
                     params = _.extend(params, vue.customElementParams);
                 }
 
-                if (!_.isEqual(params, grid.prevPostData)) {
+                if (!!force || !_.isEqual(params, grid.prevPostData)) {
                     grid.searchData(params);
                 }
             } else {
@@ -542,8 +576,13 @@ export default {
             var vue = this;
             grid = grid || vue.page[vue.gridId];
 
+            if(grid.pdata.length == 1) {
+                grid.SelectRow().add({rowIndx: 0});
+                grid.SelectRow().setFirst(0);
+                return;
+            }
+
             str = str || target.value;
-            target.focus();
 
             if (str != target.prevString) {
                 target.prevString = str;
@@ -586,7 +625,6 @@ export default {
                     }
                 }
             }
-            target.focus();
 
             return !!hit;
         },
