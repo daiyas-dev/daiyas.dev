@@ -1171,7 +1171,7 @@ export default {
 
             var printOptions = {
                 type: "raw-html",
-                style: "@media print { @page { size: A4; margin: 0px 50px;} }",
+                style: "@media print { @page { size: A4; } }",
                 printable: printable,
             };
 
