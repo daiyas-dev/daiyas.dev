@@ -30,7 +30,7 @@ function createWindow() {
     log.transports.file.file = appDir + '\\log.log';
 
     mainWindow = new BrowserWindow({
-        title: "ダイヤスクライアント",
+        title: "ダイヤスクライアント" + " Ver." + version,
         icon: __dirname + "/daiyas48.ico",
         width: 1250,
         height: 850,
@@ -43,9 +43,9 @@ function createWindow() {
     });
 
     //AutoUpdater
-    autoUpdater = appUpdater(log);
+    autoUpdater = appUpdater(mainWindow, log);
     mainWindow.webContents.send("log", "autoUpdater", autoUpdater);
-    var updateInterval = setInterval(() => autoUpdater.checkForUpdatesAndNotify(), 10000);
+    var updateInterval = setInterval(() => autoUpdater.checkForUpdatesAndNotify(), 1000 * 60 * 1);
 
     mainWindow.setMenu(null);
     mainWindow.webContents.openDevTools();    //TODO: to debug
@@ -57,7 +57,8 @@ function createWindow() {
     mainWindow.webContents.on("did-finish-load", () => {
         //CTIService起動
         require("child_process").exec('tasklist /FI "IMAGENAME eq CTIService.exe"', (error, stdout, stderr) => {
-            if (!stdout.includes("CTIService")) {
+            log.debug("tasklist", stdout, stdout.includes("CtiService"), stdout.includes("CTIService"));
+            if (!stdout.includes("CTIService") && !stdout.includes("CtiService")) {
                 var ctiDir = app.getAppPath().replace("\\app.asar", "") + "\\cti";
                 var ctiExe = ctiDir + "\\CTIService.exe";
                 showLogs("cti service path", ctiExe);
@@ -91,7 +92,6 @@ function createWindow() {
         resizable: false,
         maximizable: false,
         minimizable: false,
-        closable: false,
         webPreferences: {
             nodeIntegration: true,
         }
@@ -134,7 +134,7 @@ app.on("activate", function () {
 });
 
 //ipcMain handlers
-ipcMain.on("command", (e, command) => {
+ipcMain.handle("command", (e, command) => {
     try {
         var ret = eval(command);
         showLogs("command success", command, ret);
@@ -142,6 +142,7 @@ ipcMain.on("command", (e, command) => {
         showLogs("command error", command, err);
     }
     var ret = eval(command);
+    return ret;
 });
 ipcMain.on("CTI_MessageFromRender", (e, arg) => {
     showLogs("CTI_MessageFromRender", arg);
@@ -198,6 +199,7 @@ ipcMain.on("Print_Req", (event, content, options) => {
         width: Math.round(w),
         height: Math.round(h),
     });
+    printWindow.closable = false;
     printWindow.show();
 
     printWindow.webContents.send("Print_Set", content);
@@ -213,6 +215,7 @@ ipcMain.on("Print_Ready", (event) => {
 
             }
             printWindow.hide();
+            printWindow.closable = true;
         }
     )
 });

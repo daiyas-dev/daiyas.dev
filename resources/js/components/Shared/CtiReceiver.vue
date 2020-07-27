@@ -49,7 +49,7 @@ export default {
                 // vue.isCalling = true;
                 // vue.callInfo = "通話中:" + no;
 
-                if (!!no || /^([\d-]+|非通知)$/.test(no)) {
+                if (!!no && /^([\d-]+|非通知)$/.test(no)) {
                     vue.checkTelNo(no, moment().format("HH:mm:ss"));
                 }
             });

@@ -19,7 +19,10 @@
         :selector=this.selector
         :customElement=this.customElement
         :customElementFunc=this.customElementFunc
+        :customHeaderObjects=this.customHeaderObjects
+        :customHeaderObjectsFunc=this.customHeaderObjectsFunc
         :showBushoSelector=this.showBushoSelector
+        :selectBushoDefault=this.selectBushoDefault
         :customParams=this.customParams
         :uniqueId=this.uniqueId
         :isChild=this.isChild
@@ -202,6 +205,7 @@ export default {
     },
     props: {
         pgId: String,
+        vm: Object,
         dataUrl: String,
         title: String,
         labelCd: String,
@@ -210,7 +214,10 @@ export default {
         selector: Function,
         customElement: String,
         customElementFunc: Function,
+        customHeaderObjects: Array,
+        customHeaderObjectsFunc: Function,
         showBushoSelector: Boolean,
+        selectBushoDefault: Boolean,
         customParams: Object,
         uniqueId: String,
         isSelector: Boolean,
@@ -374,6 +381,7 @@ export default {
                 });
         } else {
             vue.component = component;
+            vue.viewModel = vue.vm;
             vue.loading = false;
         }
     },

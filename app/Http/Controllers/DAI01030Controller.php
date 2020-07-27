@@ -192,7 +192,6 @@ class DAI01030Controller extends Controller
                     LEFT OUTER JOIN 注文データ CD
                         ON  CD.得意先ＣＤ = MTT.得意先ＣＤ
                         AND CD.商品ＣＤ = MTT.商品ＣＤ
-                        AND	CD.部署ＣＤ = $BushoCd
                         AND CD.配送日 = '$DeliveryDate'
             )
             SELECT
@@ -211,7 +210,7 @@ class DAI01030Controller extends Controller
                 SUM(IIF(注文区分=0, 現金金額, 0)) AS 現金金額,
                 SUM(IIF(注文区分=0, 掛売個数, 0)) AS 掛売個数,
                 SUM(IIF(注文区分=0, 掛売金額, 0)) AS 掛売金額,
-                SUM(IIF(注文区分 IS NULL, 1, 0)) AS 全表示,
+                MAX(IIF(注文区分 IS NULL OR (現金個数 = 0 AND 掛売個数 = 0), 1, 0)) AS 全表示,
                 MAX(IIF(注文区分=0, 修正日, null)) AS 修正日
             FROM
                 注文一覧
@@ -277,11 +276,11 @@ class DAI01030Controller extends Controller
                     AND
                         注文データ.得意先ＣＤ = 得意先単価.得意先ＣＤ
                 WHERE 注文区分 = 0
-                    AND 注文データ.部署ＣＤ   = $BushoCd
                     AND 注文データ.得意先ＣＤ = $CustomerCd
                     AND 注文データ.注文区分 = 0
                     AND 注文データ.配送日 >= DATEADD(DAY, -8, '$DeliveryDate')
                     AND 注文データ.配送日 <  '$DeliveryDate'
+                    AND (注文データ.現金個数 > 0 OR 注文データ.掛売個数 > 0)
             ";
 
             // $products = DB::select($sql);
@@ -325,7 +324,6 @@ class DAI01030Controller extends Controller
 				得意先マスタ TK
 				LEFT OUTER JOIN 注文データ CD
 					ON  CD.得意先ＣＤ = TK.得意先ＣＤ
-                    AND CD.部署ＣＤ = $BushoCd
                     AND CD.配送日 = '$DeliveryDate'
             WHERE
                 TK.得意先ＣＤ = $CustomerCd
@@ -334,7 +332,7 @@ class DAI01030Controller extends Controller
                 ,CD.商品ＣＤ
         ";
 
-        $pdo = DB::connection('sqlsrv_batch')->getPdo();
+        $pdo = DB::connection()->getPdo();
 
         $stmt = $pdo->query($sql);
         $Result = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -351,61 +349,6 @@ class DAI01030Controller extends Controller
         $CustomerCd = $request->CustomerCd;
         $DeliveryDate = $request->DeliveryDate;
 
-        // $sql = "
-        //         WITH 得意先単価 AS (
-        //             SELECT
-        //                 MTT.得意先ＣＤ,
-        //                 MTT.商品ＣＤ,
-        //                 PM.商品名,
-        //                 PM.商品区分,
-        //                 MTT.単価
-        //             FROM
-        //                 (
-        //                     SELECT
-        //                         *
-        //                     FROM (
-        //                         SELECT
-        //                             *
-        //                             , RANK() OVER(PARTITION BY 得意先ＣＤ, 商品ＣＤ ORDER BY 適用開始日 DESC) AS RNK
-        //                         FROM
-        //                             得意先単価マスタ新
-        //                         WHERE
-        //                             得意先ＣＤ=$CustomerCd
-        //                         AND 適用開始日 <= '$DeliveryDate'
-        //                     ) TT
-        //                     WHERE
-        //                         RNK = 1
-        //                 ) MTT
-        //                 LEFT OUTER JOIN 商品マスタ PM
-        //                     ON	PM.商品ＣＤ=MTT.商品ＣＤ
-        //         ),
-        //         注文最終修正 AS (
-        //             SELECT
-        //                 MTT.得意先ＣＤ,
-        //                 CD.配送日,
-        //                 CD.修正担当者ＣＤ,
-        //                 TM.担当者名 AS 修正担当者名,
-        //                 CD.修正日,
-        //                 MAX(CD.修正日) OVER () AS 注文最終修正日
-        //             FROM
-        //                 得意先単価 MTT
-        //                 LEFT OUTER JOIN 注文データ CD
-        //                     ON  CD.得意先ＣＤ = MTT.得意先ＣＤ
-        //                     AND CD.商品ＣＤ = MTT.商品ＣＤ
-        //                     AND	CD.部署ＣＤ = $BushoCd
-        //                     AND CD.配送日 = '$DeliveryDate'
-        //                     AND CD.注文区分=0
-        //                 LEFT OUTER JOIN 担当者マスタ TM
-        //                     ON  TM.担当者ＣＤ = CD.修正担当者ＣＤ
-        //         )
-        //         SELECT
-        //             *
-        //         FROM
-        //             注文最終修正
-        //         WHERE
-        //             修正日 = 注文最終修正日
-        // ";
-
         $sql = "
             SELECT TOP 1
                 CD.修正担当者ＣＤ,
@@ -417,20 +360,12 @@ class DAI01030Controller extends Controller
                     ON  TM.担当者ＣＤ = CD.修正担当者ＣＤ
             WHERE
                 CD.得意先ＣＤ = $CustomerCd
-            AND	CD.部署ＣＤ = $BushoCd
             AND CD.配送日 = '$DeliveryDate'
-            AND CD.注文区分=0
             ORDER BY
                 修正日 DESC
         ";
 
-        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-        $user = 'daiyas';
-        $password = 'daiyas';
-
-        $pdo = new PDO($dsn, $user, $password);
-
-        // $Result = DB::selectOne($sql);
+        $pdo = DB::connection()->getPdo();
         $stmt = $pdo->query($sql);
         $Result = $stmt->fetch(PDO::FETCH_ASSOC);
         $pdo = null;
@@ -461,18 +396,286 @@ class DAI01030Controller extends Controller
                 $WhereCourseCd
         ";
 
-        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-        $user = 'daiyas';
-        $password = 'daiyas';
-
-        $pdo = new PDO($dsn, $user, $password);
-
-        // $Result = DB::select($sql);
+        $pdo = DB::connection()->getPdo();
         $stmt = $pdo->query($sql);
         $Result = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $pdo = null;
 
         return response()->json(["IsDeliveried"=>count($Result) > 0]);
+    }
+
+    /**
+     * GetCustomerInfo
+     */
+    public function GetCustomerInfo($request)
+    {
+        $CustomerCd = $request->CustomerCd ?? $request->customerCd;
+        $DeliveryDate = $request->DeliveryDate;
+
+        if (!isset($CustomerCd)) return;
+
+        $sql = "
+            SELECT
+                M1.部署ＣＤ,
+                MB.部署名,
+                M1.得意先ＣＤ,
+                M1.得意先名,
+                M1.得意先名略称,
+                M1.得意先名カナ,
+                M1.売掛現金区分,
+                M1.電話番号１,
+                M1.備考１,
+                M1.備考２,
+                M1.備考３,
+                MC.コースＣＤ,
+                MC.コース名,
+                MC.コース区分,
+                MC.管理ＣＤ,
+                MC.一時フラグ,
+                MC.担当者ＣＤ,
+                MT.担当者名
+            FROM
+                得意先マスタ M1
+                LEFT OUTER JOIN 部署マスタ MB
+                    ON MB.部署ＣＤ = M1.部署ＣＤ
+                LEFT OUTER JOIN 祝日マスタ MH
+                    ON  MH.対象日付 = '$DeliveryDate'
+                    AND (対象部署ＣＤ IS NULL OR 対象部署ＣＤ LIKE '%' + STR(MB.部署ＣＤ) + '%')
+                LEFT OUTER JOIN (
+                    SELECT
+                        CT.部署ＣＤ
+                        ,CT.コースＣＤ
+                        ,CT.管理ＣＤ
+                        ,CTC.一時フラグ
+                        ,CM.コース名
+                        ,CM.コース区分
+                        ,CM.担当者ＣＤ
+                        ,CT.得意先ＣＤ
+                    FROM
+                        (
+                            SELECT
+                                部署ＣＤ, コースＣＤ, 0 AS 管理ＣＤ, ＳＥＱ, 得意先ＣＤ, 修正担当者ＣＤ, 修正日
+                            FROM
+                                コーステーブル
+                            UNION ALL
+                            SELECT
+                                部署ＣＤ, コースＣＤ, 管理ＣＤ, ＳＥＱ, 得意先ＣＤ, 修正担当者ＣＤ, 修正日
+                            FROM
+                                コーステーブル一時
+                        ) CT
+                            INNER JOIN (
+                                SELECT
+                                    *
+                                FROM (
+                                    SELECT
+                                        部署ＣＤ
+                                        ,コースＣＤ
+                                        ,管理ＣＤ
+                                        ,一時フラグ
+                                        ,RANK() OVER(PARTITION BY 部署ＣＤ, コースＣＤ ORDER BY 一時フラグ DESC) AS RNK
+                                    FROM
+                                        コーステーブル管理
+                                    WHERE
+                                        適用開始日 <= '$DeliveryDate' AND 適用終了日 >= '$DeliveryDate'
+                                ) X
+                                WHERE
+                                    RNK = 1
+                            ) CTC
+                                ON  CTC.部署ＣＤ=CT.部署ＣＤ
+                                AND CTC.コースＣＤ=CT.コースＣＤ
+                                AND CTC.管理ＣＤ=CT.管理ＣＤ
+                        LEFT JOIN コースマスタ CM
+                            ON  CM.部署ＣＤ = CTC.部署ＣＤ
+                            AND CM.コースＣＤ = CTC.コースＣＤ
+                ) MC
+                    ON  MC.部署ＣＤ = M1.部署CD
+                    AND MC.得意先ＣＤ = M1.得意先ＣＤ
+                    AND MC.コース区分 = IIF(MH.対象日付 IS NOT NULL, 4, CASE DATEPART(WEEKDAY, '$DeliveryDate') WHEN 1 THEN 3 WHEN 7 THEN 2 ELSE 1 END)
+                LEFT OUTER JOIN 担当者マスタ MT
+                    ON MT.担当者ＣＤ = MC.担当者ＣＤ
+            WHERE
+                M1.得意先CD = $CustomerCd
+            AND (M1.受注得意先ＣＤ = 0 OR M1.受注得意先ＣＤ = M1.得意先ＣＤ)
+        ";
+
+        $pdo = DB::connection()->getPdo();
+        $stmt = $pdo->query($sql);
+        $Result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        $pdo = null;
+
+        return response()->json($Result);
+    }
+
+    /**
+     * GetCustomerInfoList
+     */
+    public function GetCustomerInfoList($request)
+    {
+        $Start = $request->Start;
+        $Chunk = $request->Chunk;
+        $End = $Start + $Chunk - 1;
+
+        $DeliveryDate = $request->DeliveryDate;
+
+        $BushoCd = $request->BushoCd;
+        $WhereBusho = $BushoCd ? "AND M1.部署ＣＤ=$BushoCd" : "";
+
+        $Keywords = $request->Keywords;
+        $WhereKeyWord = "";
+        if (!!$Keywords && !!count($Keywords)) {
+            $Conditions = collect($Keywords)
+                ->map(function ($Keyword) {
+                    $Condition = "
+                        (
+                            M1.得意先名カナ LIKE '%$Keyword%'
+                        )
+                    ";
+
+                    return $Condition;
+                })
+                ->join(' OR ');
+
+            $WhereKeyWord = "AND ($Conditions)";
+        }
+
+        $Keyword = $request->Keyword;
+        if (isset($Keyword) && (!!is_numeric($Keyword) || !!ctype_digit($Keyword))) {
+            $WhereKeyWord = "AND M1.得意先ＣＤ=$Keyword";
+        }
+
+        $SearchTel = preg_replace('/-/', '', $request->SearchTel);
+        $WhereTelNo = $SearchTel ? "AND REPLACE(M1.電話番号１, '-', '') = '$SearchTel'" : "";
+
+        $BaseSql = "
+                SELECT
+                    M1.得意先ＣＤ AS Cd,
+                    M1.得意先名略称 AS CdNm,
+                    M1.部署ＣＤ,
+                    MB.部署名,
+                    M1.得意先ＣＤ,
+                    M1.得意先名,
+                    M1.得意先名略称,
+                    M1.得意先名カナ,
+                    M1.売掛現金区分,
+                    M1.電話番号１,
+                    M1.備考１,
+                    M1.備考２,
+                    M1.備考３,
+                    MC.コースＣＤ,
+                    MC.コース名,
+                    MC.コース区分,
+                    MC.管理ＣＤ,
+                    MC.一時フラグ,
+                    MC.担当者ＣＤ,
+                    MT.担当者名
+					,ROW_NUMBER() OVER (ORDER BY M1.得意先ＣＤ) AS ROWNUM
+                FROM
+                    得意先マスタ M1
+                    LEFT OUTER JOIN 部署マスタ MB
+                        ON MB.部署ＣＤ = M1.部署ＣＤ
+                    LEFT OUTER JOIN 祝日マスタ MH
+                        ON  MH.対象日付 = '$DeliveryDate'
+                        AND (対象部署ＣＤ IS NULL OR 対象部署ＣＤ LIKE '%' + STR(MB.部署ＣＤ) + '%')
+                    LEFT OUTER JOIN (
+						SELECT
+							*
+						FROM (
+                            SELECT
+                                CT.部署ＣＤ
+                                ,CT.コースＣＤ
+                                ,CT.管理ＣＤ
+                                ,CTC.一時フラグ
+                                ,CM.コース名
+                                ,CM.コース区分
+                                ,CM.担当者ＣＤ
+                                ,CT.得意先ＣＤ
+								,RANK() OVER(PARTITION BY CT.部署ＣＤ, CT.得意先ＣＤ ORDER BY CM.コース区分) AS RNK
+                            FROM
+                                (
+                                    SELECT
+                                        部署ＣＤ, コースＣＤ, 0 AS 管理ＣＤ, ＳＥＱ, 得意先ＣＤ, 修正担当者ＣＤ, 修正日
+                                    FROM
+                                        コーステーブル
+                                    UNION ALL
+                                    SELECT
+                                        部署ＣＤ, コースＣＤ, 管理ＣＤ, ＳＥＱ, 得意先ＣＤ, 修正担当者ＣＤ, 修正日
+                                    FROM
+                                        コーステーブル一時
+                                ) CT
+                                    INNER JOIN (
+                                        SELECT
+                                            *
+                                        FROM (
+                                            SELECT
+                                                部署ＣＤ
+                                                ,コースＣＤ
+                                                ,管理ＣＤ
+                                                ,一時フラグ
+                                                ,RANK() OVER(PARTITION BY 部署ＣＤ, コースＣＤ ORDER BY 一時フラグ DESC) AS RNK
+                                            FROM
+                                                コーステーブル管理
+                                        ) X
+                                        WHERE
+                                            RNK = 1
+                                    ) CTC
+                                        ON  CTC.部署ＣＤ=CT.部署ＣＤ
+                                        AND CTC.コースＣＤ=CT.コースＣＤ
+                                        AND CTC.管理ＣＤ=CT.管理ＣＤ
+                                LEFT JOIN コースマスタ CM
+                                    ON  CM.部署ＣＤ = CTC.部署ＣＤ
+                                    AND CM.コースＣＤ = CTC.コースＣＤ
+							) CC
+						WHERE
+							RNK = 1
+                    ) MC
+                        ON  MC.部署ＣＤ = M1.部署CD
+                        AND MC.得意先ＣＤ = M1.得意先ＣＤ
+                    LEFT OUTER JOIN 担当者マスタ MT
+                        ON MT.担当者ＣＤ = MC.担当者ＣＤ
+                WHERE
+                    (M1.受注得意先ＣＤ = 0 OR M1.受注得意先ＣＤ = M1.得意先ＣＤ)
+                $WhereBusho
+                $WhereTelNo
+                $WhereKeyWord
+        ";
+
+        $SearchSql = "
+            SELECT
+                *
+            FROM (
+                $BaseSql
+            ) AS T
+            WHERE
+                ROWNUM BETWEEN $Start AND $End
+            ORDER BY
+                ROWNUM
+        ";
+
+        $CountSql = "
+            SELECT
+                COUNT(T.得意先ＣＤ) AS CNT
+            FROM (
+                $BaseSql
+            ) AS T
+        ";
+
+        $pdo = DB::connection()->getPdo();
+        $stmt = $pdo->query($SearchSql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $stmt = $pdo->query($CountSql);
+        $Count = $stmt->fetch()["CNT"];
+
+        $pdo = null;
+
+        return response()->json([
+            [
+                "End" => $End,
+                "Count" => $Count,
+                "Result" => $DataList,
+            ]
+        ]);
     }
 
     /**

@@ -12,7 +12,7 @@
             <div class="col-md-4">
                 <button @click="event => testCTI(event)">非通知</button>
                 <button @click="event => testCTI(event, '0836585044')">1件該当</button>
-                <button @click="event => testCTI(event, '0836313929')">複数該当</button>
+                <button @click="event => testCTI(event, '0836832362')">複数該当</button>
                 <button @click="event => testCTI(event, '0120444444')">該当なし</button>
                 <button @click="event => testCTI(event, '0120030561')">非顧客登録済</button>
             </div>
@@ -553,6 +553,7 @@ export default {
         },
         mountedFunc: function(vue) {
             vue.setMenus();
+            vue.setMenus();
         },
         activatedFunc: function(vue) {
             vue.setMenus();
@@ -563,12 +564,6 @@ export default {
         },
         setMenus: function() {
             var vue = this;
-
-            //Windowタイトル
-            window.document.title = vue.ScreenTitle;
-
-            //AppHeaderタイトル
-            vue.$root.$emit("setTitle", vue.ScreenTitle);
 
             //TopMenu読込待ち
             new Promise((resolve, reject) => {
@@ -582,6 +577,8 @@ export default {
                 }, 300);
             })
             .then(menus => {
+                vue.$root.$emit("setCurrentPage", vue.ScreenTitle);
+
                 vue.menus = menus;
                 if (!!menus.length && !vue.selected) {
                     vue.selected = menus[0].functionId;

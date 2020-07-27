@@ -116,10 +116,10 @@
                     labelCdNm="得意先名"
                     :showColumns='[
                         { title: "カナ", dataIndx: "得意先名カナ", dataType: "string", width: 150, maxWidth: 150, minWidth: 150, tooltip: true, },
-                        { title: "電話番号", dataIndx: "電話番号１", dataType: "string", width: 105, maxWidth: 105, minWidth: 105, tooltip: true,},
-                        { title: "住所", dataIndx: "住所１", dataType: "string", width: 150, maxWidth: 150, minWidth: 150, tooltip: true, },
-                        { title: "コース", dataIndx: "コースＣＤ", dataType: "string", width: 75, maxWidth: 75, minWidth: 75 },
-                        { title: "コース名", dataIndx: "コース名", dataType: "string", width: 150, maxWidth: 150, minWidth: 150, tooltip: true, },
+                        { title: "電話番号", dataIndx: "電話番号１", dataType: "string", width: 115, maxWidth: 115, minWidth: 115, tooltip: true,},
+                        { title: "住所", dataIndx: "住所１", dataType: "string", width: 200, maxWidth: 200, minWidth: 200, tooltip: true, },
+                        { title: "コース", dataIndx: "コースＣＤ", dataType: "string", width: 70, maxWidth: 70, minWidth: 70 },
+                        { title: "コース名", dataIndx: "コース名", dataType: "string", width: 175, maxWidth: 175, minWidth: 175, tooltip: true, },
                     ]'
                     :popupWidth=1100
                     :popupHeight=600
