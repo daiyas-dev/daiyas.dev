@@ -895,7 +895,7 @@ export default {
                     border-top-width: 0px;
                     border-right-width: 0px;
                     border-bottom-width: 1px;
-                    padding-top: 3px;
+                    padding-top: 10px;
                     padding-bottom: 3px;
                     margin-top: 3px;
                     margin-bottom: 3px;
@@ -1046,6 +1046,14 @@ export default {
                 }
                 div.tel-no {
                     margin-bottom: 10px;
+                }
+                div[style="break-before: page;"],
+                div[style="break-before: auto;"],
+                div[style="page-break-before: always;"] {
+                    margin-top: 0px !important;
+                    margin-bottom: 0px !important;
+                    margin-right: 50px !important;
+                    margin-left: 50px !important;
                 }
               `;
 
