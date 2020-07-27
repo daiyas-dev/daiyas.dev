@@ -68,7 +68,7 @@
                                 v-model="viewModel.得意先名"
                                 maxlength=60
                                 v-maxBytes=60
-                                v-setKana="res => {viewModel.得意先名カナ = res.toString(); $forceUpdate();}"
+                                v-setKana="res => {viewModel.得意先名カナ = (viewModel.得意先名カナ || '') + res.toString(); $forceUpdate();}"
                             >
                         </div>
                     </div>

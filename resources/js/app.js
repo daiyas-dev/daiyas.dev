@@ -87,24 +87,29 @@ Vue.directive("maxBytes", {
 Vue.directive("setKana", {
     inserted(el, binding) {
         el.addEventListener(
-            "input",    //"compositionend",
+            //"input",
+            "compositionend",
             _.debounce(event => {
-                console.log("setKana directive", el.value);
+                var target = event.data;    //el.value;
 
-                if (el.value == "") return;
-                if (el.value == el.getAttribute("toKana")) return;
+                console.log("setKana directive", target);
 
-                el.setAttribute("toKana", el.value);
+                if (target == "") return;
+                if (target == el.getAttribute("toKana")) return;
+
+                el.setAttribute("toKana", target);
+
                 var callback = binding.value;
 
                 if (!!binding.modifiers.disabled) return;
-                console.log("call getKana api", el.value);
-                window.getKana(el.value, res => {
+
+                console.log("call getKana api", target);
+                window.getKana(target, res => {
                     console.log("getKana api ret", res, binding);
                     var ret = binding.modifiers.full ? res : window.Moji(res).convert("ZK", "HK");
                     callback(ret);
                 });
-            }, 300)
+            }, 100)
         )
     }
 });
