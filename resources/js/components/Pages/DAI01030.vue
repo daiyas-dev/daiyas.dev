@@ -965,6 +965,23 @@ export default {
             params.noCache = true;
 
             vue.DAI01030Grid1.searchData(params);
+        },
+        toggleGridView: function() {
+            var vue = this;
+            vue.viewModel.IsShowAll = !vue.viewModel.IsShowAll;
+        },
+        onCompleteFunc: function(grid, ui) {
+            var vue = this;
+
+            if (grid.pdata.length > 0) {
+                var data = grid.pdata[0];
+                var colIndx = !data["商品ＣＤ"] ? grid.columns["商品ＣＤ"].leftPos
+                    : _(grid.columns).pickBy((v, k) => k.endsWith("個数") && !v.hidden).values().value()[0].leftPos;
+                grid.setSelection({ rowIndx: 0, colIndx: colIndx });
+            }
+
+            var params = _.cloneDeep(vue.searchParams);
+            params.noCache = true;
 
             //最終修正日/担当者
             vue.viewModel.LastEditor = "";
@@ -995,43 +1012,20 @@ export default {
                 .then(res => {
                     var bikou;
                     if(res.data.filter(v => v.注文区分 == 0).length > 0) {
-                        bikou = res.data.filter(v => v.注文区分 == 0)
-                            .reduce((a, c) => a = _.mergeWith(a, c, (o, s) => {
-                                if (s == "\r\n") s = "";
-                                return !!s ? (o.includes(s) ? o : (!!o ? (o + (o.endsWith("\r\n") ? "" : "\r\n") + s) : s)) : ""
-                            }));
-                        _.forIn(bikou, (v, k) => bikou[k] = _(v.split(/\r\n/g)).uniq().join("\r\n"))
+                        bikou = res.data.filter(v => v.注文区分 == 0);
                     } else {
-                        bikou = res.data
-                            .reduce((a, c) => a = _.mergeWith(a, c, (o, s) => {
-                                if (s == "\r\n") s = "";
-                                return !!s ? (o.includes(s) ? o : (!!o ? (o + (o.endsWith("\r\n") ? "" : "\r\n") + s) : s)) : ""
-                            }));
-                        _.forIn(bikou, (v, k) => bikou[k] = _(!!v ? v.split(/\r\n/g) : []).uniq().join("\r\n"))
+                        bikou = res.data;
                     }
 
-                    vue.viewModel.BikouForControl = bikou.備考社内;
-                    vue.viewModel.BikouForDelivery = bikou.備考配送;
-                    vue.viewModel.BikouForNotification = bikou.備考通知;
+                    vue.viewModel.BikouForControl = _.max(bikou.map(v =>v .備考社内));
+                    vue.viewModel.BikouForDelivery = _.max(bikou.map(v =>v .備考配送));
+                    vue.viewModel.BikouForNotification = _.max(bikou.map(v =>v .備考通知));
                 })
                 .catch(err => {
                     console.log("/DAI01030/GetBikou Error", err);
                 })
                 ;
-        },
-        toggleGridView: function() {
-            var vue = this;
-            vue.viewModel.IsShowAll = !vue.viewModel.IsShowAll;
-        },
-        onCompleteFunc: function(grid, ui) {
-            var vue = this;
 
-            if (grid.pdata.length > 0) {
-                var data = grid.pdata[0];
-                var colIndx = !data["商品ＣＤ"] ? grid.columns["商品ＣＤ"].leftPos
-                    : _(grid.columns).pickBy((v, k) => k.endsWith("個数") && !v.hidden).values().value()[0].leftPos;
-                grid.setSelection({ rowIndx: 0, colIndx: colIndx });
-            }
             if(vue.isSave)
             {
                 vue.isSave=false;
