@@ -626,6 +626,9 @@ export default {
 
             vue.viewModel.TargetDateMax = vue.viewModel.TargetDate;
 
+            //フィルタ変更ハンドラ
+            vue.filterChanged();
+
             //条件変更ハンドラ
             vue.conditionChanged();
         },
