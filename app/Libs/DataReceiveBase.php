@@ -543,6 +543,10 @@ class DataReceiveBase
                         $Product = DB::connection('sqlsrv_batch')->table("商品マスタ")
                             ->where('商品ＣＤ', $data['商品ＣＤ'])
                             ->first();
+                        if($Product===null)
+                        {
+                            continue;
+                        }
 
                         $CustomerPrice = DB::select(
                             "
@@ -702,12 +706,12 @@ class DataReceiveBase
                             $chumon['特記_通知用'] = $Customer->備考３;
 
                             $no = DB::connection('sqlsrv_batch')->table("注文データ")
-                                ->where('注文区分', 0)
-                                ->where('注文日付', $data['日付'])
-                                ->where('部署ＣＤ', $data['部署ＣＤ'])
-                                ->where('得意先ＣＤ', $data['得意先ＣＤ'])
-                                ->where('配送日', $data['日付'])
-                                ->max('明細行Ｎｏ') + 1;
+                            ->where('注文区分', 0)
+                            ->where('注文日付', $data['日付'])
+                            ->where('部署ＣＤ', $data['部署ＣＤ'])
+                            ->where('得意先ＣＤ', $data['得意先ＣＤ'])
+                            ->where('配送日', $data['日付'])
+                            ->max('明細行Ｎｏ') + 1;
 
                             $chumon["明細行Ｎｏ"] = $no;
 
