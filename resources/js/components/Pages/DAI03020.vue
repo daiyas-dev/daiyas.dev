@@ -777,11 +777,11 @@ export default {
                     padding-right: 3px;
                 }
                 th {
-                    height: 12px;
+                    height: 14px;
                     text-align: center;
                 }
                 td {
-                    height: 12px;
+                    height: 14px;
                     white-space: nowrap;
                     overflow: hidden;
                 }

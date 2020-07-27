@@ -540,6 +540,19 @@ export default {
                 table.DAI03120Grid1 tr td:nth-child(2) {
                     padding-left: 10px;
                 }
+                table.DAI03120Grid1 tr:last-child:not(.grand-summary):not(.group-summary) td {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                }
+                div[style="break-before: page;"],
+                div[style="break-before: auto;"],
+                div[style="page-break-before: always;"] {
+                    margin-top: 30px !important;
+                    margin-bottom: 30px !important;
+                }
             `;
 
             var printable = $("<html>")
@@ -550,7 +563,7 @@ export default {
                             vue.DAI03120Grid1.generateHtml(
                                 styleCustomers,
                                 headerFunc,
-                                36,
+                                42,
                                 false,
                                 true,
                                 true,

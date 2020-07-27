@@ -699,6 +699,12 @@ export default {
                                         border-right-width: 1px;
                                         border-bottom-width: 0px;
                                     }
+                                    div[style="break-before: page;"],
+                                    div[style="break-before: auto;"],
+                                    div[style="page-break-before: always;"] {
+                                        margin-top: 40px !important;
+                                        margin-bottom: 40px !important;
+                                    }
                                 `,
                                 headerFunc,
                                 25,

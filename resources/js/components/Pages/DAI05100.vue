@@ -792,17 +792,19 @@ export default {
                                 <th style="width: 10.5%;"></th>
                                 <th class="blank-cell" style="width: 5.8%;"></th>
                                 <th class="blank-cell" style="width: 3%;"></th>
+                                <th class="blank-cell" style="width: 7%;"></th>
+                                <th class="blank-cell" style="width: 8.8%;"></th>
                                 <th class="blank-cell" style="width: 8%;"></th>
-                                <th class="blank-cell" style="width: 7.8%;"></th>
-                                <th class="blank-cell" style="width: 10%;"></th>
-                                <th class="blank-cell" style="width: 12%;"></th>
+                                <th class="blank-cell" style="width: 11%;"></th>
                                 <th class="blank-cell" style="width: 5.6%;"></th>
-                                <th class="blank-cell" style="width: 20%;"></th>
-                                <th class="blank-cell" style="width: 5%;"></th>
+                                <th class="blank-cell" style="width: 10%;"></th>
+                                <th class="blank-cell" style="width: 9%;"></th>
+                                <th class="blank-cell" style="width: 8%;"></th>
                             </tr>
                             <tr>
                                 <th style="width: 12%;">${vue.viewModel.BushoOption != 0 ?
                                     (bushoNm == null ? "部署なし" : bushoNm ): ""}</th>
+                                <th class="blank-cell"></th>
                                 <th class="blank-cell"></th>
                                 <th class="blank-cell"></th>
                                 <th class="blank-cell"></th>
@@ -821,7 +823,7 @@ export default {
                                 <th colspan="2">${vue.viewModel.DateEnd}</th>
                                 <th class="blank-cell"></th>
                                 <th class="blank-cell"></th>
-                                <th colspan="2" style="font-weight: bold;">[営業売上金額－担当者]</th>
+                                <th colspan="3" style="font-weight: bold;">[営業売上金額－担当者]</th>
                                 <th style="text-align: right;">${idx + 1} / ${length}</th>
                             </tr>
                             <tr>
@@ -831,7 +833,7 @@ export default {
                                 <th class="blank-cell"></th>
                                 <th colspan="2">獲得営業担当者：</th>
                                 <th colspan="2">${eigyoNmKey2}</th>
-                                <th colspan="2" style="text-align: right;">作成日:${moment().format("YYYY/MM/DD/ HH:MM")}</th>
+                                <th colspan="3" style="text-align: right;">作成日:${moment().format("YYYY/MM/DD/ HH:MM")}</th>
                             </tr>
                         </thead>
                     </table>
@@ -897,6 +899,12 @@ export default {
                 table.DAI05100Grid1 tr td:nth-child(1) {
                     padding-right: 8px;;
                 }
+                div[style="break-before: page;"],
+                div[style="break-before: auto;"],
+                div[style="page-break-before: always;"] {
+                    margin-right: 15px !important;
+                    margin-left: 15px !important;
+                }
             `;
 
             var contents = grid.generateHtml(
@@ -918,7 +926,7 @@ export default {
 
             var printOptions = {
                 type: "raw-html",
-                style: "@media print { @page { size: A4 portrait; margin-left: 15px; margin-right: 15px; } }",
+                style: "@media print { @page { size: A4 portrait; } }",
                 printable: printable,
             };
 

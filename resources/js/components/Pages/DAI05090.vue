@@ -910,7 +910,7 @@ export default {
                     text-align: center;
                 }
                 td {
-                    height: 15px;
+                    height: 16px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
@@ -1051,6 +1051,12 @@ export default {
                 table.DAI05090Grid1 tr.grand-summary td {
                     color: transparent;
                 }
+                div[style="break-before: page;"],
+                div[style="break-before: auto;"],
+                div[style="page-break-before: always;"] {
+                    margin-right: 10px !important;
+                    margin-left: 10px !important;
+                }
             `;
 
             var printable = $("<html>")
@@ -1073,7 +1079,7 @@ export default {
 
             var printOptions = {
                 type: "raw-html",
-                style: "@media print { @page { size: A4 landscape; margin-left: 10px; margin-right: 10px; } }",
+                style: "@media print { @page { size: A4 landscape; } }",
                 printable: printable,
             };
 
