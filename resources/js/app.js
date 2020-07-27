@@ -88,16 +88,26 @@ Vue.directive("setKana", {
     inserted(el, binding) {
         el.addEventListener(
             //"input",
-            "compositionend",
+            //"compositionend",
+            "compositionupdate",
             _.debounce(event => {
                 var target = event.data;    //el.value;
+
+                if (Moji(target).filter("HG").toString().length == target.length) {
+                    console.log("setKana directive", target);
+                    el.setAttribute("toKana", target);
+                }
+            }, 100)
+        );
+        el.addEventListener(
+            "compositionend",
+            event => {
+                var target = el.getAttribute("toKana");
+                el.setAttribute("toKana", "");
 
                 console.log("setKana directive", target);
 
                 if (target == "") return;
-                if (target == el.getAttribute("toKana")) return;
-
-                el.setAttribute("toKana", target);
 
                 var callback = binding.value;
 
@@ -109,8 +119,8 @@ Vue.directive("setKana", {
                     var ret = binding.modifiers.full ? res : window.Moji(res).convert("ZK", "HK");
                     callback(ret);
                 });
-            }, 100)
-        )
+            }
+        );
     }
 });
 
