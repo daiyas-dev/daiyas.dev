@@ -567,8 +567,7 @@ export default {
             );
         },
         mountedFunc: function(vue) {
-            // vue.viewModel.TargetDate = moment();
-            vue.viewModel.TargetDate = moment("2019/09/04");    //TODO: debug
+            vue.viewModel.TargetDate = moment().startOf("month").format("YYYY年MM月");
 
             vue.refreshCols();
             vue.filterChanged();
