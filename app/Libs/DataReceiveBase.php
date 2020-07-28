@@ -734,7 +734,6 @@ class DataReceiveBase
                     foreach ($records as $rec_info) {
                         $pk = $rec_info->key;
                         $data = $rec_info->data;
-                        $kind = $rec_info->kind;
 
                         $data['日付'];
                         $data['得意先ＣＤ'];
@@ -753,32 +752,11 @@ class DataReceiveBase
                             ->where('得意先ＣＤ', $data['得意先ＣＤ'])
                             ->first();
 
-                        //昼食以外の売上データ明細
-                        $UriageNeq2List = DB::connection('sqlsrv_batch')->table("売上データ明細")
-                            ->where('部署ＣＤ', $data['WebService_部署ＣＤ'])
-                            ->where('得意先ＣＤ', $data['得意先ＣＤ'])
-                            ->where('日付', $data['日付'])
-                            ->where('食事区分', '!=', '2')
-                            ->get();
-
-                        //昼食の売上データ明細
-                        $UriageEq2List = DB::connection('sqlsrv_batch')->table("売上データ明細")
-                            ->where('部署ＣＤ', $data['WebService_部署ＣＤ'])
-                            ->where('得意先ＣＤ', $data['得意先ＣＤ'])
-                            ->where('日付', $data['日付'])
-                            ->where('食事区分', '2')
-                            ->get();
-
                         //モバイル販売入力
                         $MobileSalesList = DB::connection('sqlsrv_batch')->table("モバイル_販売入力")
                             ->where('部署ＣＤ', $data['WebService_部署ＣＤ'])
                             ->where('得意先ＣＤ', $data['得意先ＣＤ'])
                             ->where('日付', $data['日付'])
-                            ->where('実績入力', 1)
-                            ->where(function ($q) {
-                                $q->orWhere('実績数', '!=', 0)
-                                    ->orWhere('金額', '!=', 0);
-                            })
                             ->get();
 
                         foreach ($MobileSalesList as $MobileSales) {
@@ -819,12 +797,24 @@ class DataReceiveBase
                                 ->get();
 
                             $rec = [];
-                            $rec["現金個数"] = $MobileSales->現金売掛区分 == 0 ? $MobileSales->実績数 : 0;
-                            $rec["現金金額"] = $MobileSales->現金売掛区分 == 0 ? $MobileSales->金額 : 0;
-                            $rec["現金値引"] = $MobileSales->現金売掛区分 == 0 ? $MobileSales->値引 : 0;
-                            $rec["掛売個数"] = $MobileSales->現金売掛区分 == 1 ? $MobileSales->実績数 : 0;
-                            $rec["掛売金額"] = $MobileSales->現金売掛区分 == 1 ? $MobileSales->金額 : 0;
-                            $rec["掛売値引"] = $MobileSales->現金売掛区分 == 1 ? $MobileSales->値引 : 0;
+                            if($MobileSales->実績入力 == 0)
+                            {
+                                $rec["現金個数"] = 0;
+                                $rec["現金金額"] = 0;
+                                $rec["現金値引"] = 0;
+                                $rec["掛売個数"] = 0;
+                                $rec["掛売金額"] = 0;
+                                $rec["掛売値引"] = 0;
+                            }
+                            else
+                            {
+                                $rec["現金個数"] = $MobileSales->現金売掛区分 == 0 ? $MobileSales->実績数 : 0;
+                                $rec["現金金額"] = $MobileSales->現金売掛区分 == 0 ? $MobileSales->金額 : 0;
+                                $rec["現金値引"] = $MobileSales->現金売掛区分 == 0 ? $MobileSales->値引 : 0;
+                                $rec["掛売個数"] = $MobileSales->現金売掛区分 == 1 ? $MobileSales->実績数 : 0;
+                                $rec["掛売金額"] = $MobileSales->現金売掛区分 == 1 ? $MobileSales->金額 : 0;
+                                $rec["掛売値引"] = $MobileSales->現金売掛区分 == 1 ? $MobileSales->値引 : 0;
+                            }
                             $rec["売掛現金区分"] = $MobileSales->現金売掛区分;
                             $rec["現金値引事由ＣＤ"] = 0;
                             $rec["掛売値引事由ＣＤ"] = 0;
