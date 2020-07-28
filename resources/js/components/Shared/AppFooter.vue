@@ -49,7 +49,7 @@ nav {
 
 button {
     height: 50px;
-    width: calc((100vw - 30px - 6px) / 8); /*1行あたりのボタン数は@media使うか*/
+    width: calc((100vw / var(--ratio) - 30px - 6px) / 8); /*1行あたりのボタン数は@media使うか*/
     min-width: 50px;
     max-width: 100px;
     float: left;

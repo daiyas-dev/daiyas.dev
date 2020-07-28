@@ -175,7 +175,7 @@
 </style>
 <style>
 .ui-autocomplete {
-    max-height: 30vh;
+    max-height: calc(30vh / var(--ratio));
     overflow-y: scroll;
     overflow-x: hidden;
     padding-right: 0px;

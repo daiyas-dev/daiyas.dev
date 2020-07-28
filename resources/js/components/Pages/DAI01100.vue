@@ -148,7 +148,7 @@ label{
 </style>
 <style scoped>
 .Grid1Container {
-    width: calc(100vw - 260px);
+    width: calc(100vw / var(--ratio) - 260px);
     max-width: unset;
 }
 .Grid2Container {

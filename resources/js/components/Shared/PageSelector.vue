@@ -38,8 +38,8 @@
 <style scoped>
     .PreLoad {
         display: table-cell;
-        height: 80vh;
-        width: 100vw;
+        height: calc(80vh / var(--ratio));
+        width: calc(100vw / var(--ratio));
         text-align: center;
         vertical-align: middle;
     }

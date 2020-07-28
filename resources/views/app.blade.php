@@ -12,7 +12,7 @@
     </script>
 </head>
 <body class="daiyas" id="daiyas-body">
-    <div id="vue-app" class="vh-100">
+    <div id="vue-app" class="vue-app">
         <!-- menu -->
         <top-menu ref="TopMenu"></top-menu>
         <!-- header -->

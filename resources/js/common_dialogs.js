@@ -18,7 +18,7 @@ var dialogCustom = function(options) {
         iconClass: null,
         reuse: false,
         show: { effect: "clip", duration: 300},
-        hide: { effect: "clip", duration: 200},
+        hide: { effect: "clip", duration: 200 },
         create: function () {
             var op = $(this).dialog("option");
 
@@ -94,6 +94,34 @@ var dialogCustom = function(options) {
 
         //stacktraceを含むため、consoleに出力
         console.log(options.errObj.errors || options.errObj.trace);
+    }
+
+    //画面サイズ対応
+    var ratio = document.body.style.getPropertyValue("--ratio") * 1;
+
+    if (ratio != 1) {
+        // var dw = window.innerWidth * (1 - ratio);
+        // var dh = window.innerHeight * (1 - ratio);
+
+        // dw = (window.innerWidth / ratio - opt.width) / 2;
+        // dh = (window.innerHeight / ratio - opt.height) / 2;
+
+        // dw = opt.width / 2;
+        // dh = opt.height / 2;
+
+        // opt.position = {
+        //     at: "left+" + dw + " " + "top+" + dh,
+        //     my: "left top",
+        // };
+        // console.log("dialog position", opt.position);
+
+        // if (!!opt.width) {
+        //     opt.width = opt.width * ratio;
+        // }
+
+        // if (!!opt.height) {
+        //     opt.height = opt.height * ratio;
+        // }
     }
 
     //call jQuery dialog

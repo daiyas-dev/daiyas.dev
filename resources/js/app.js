@@ -208,6 +208,18 @@ router.beforeEach((to, from, next) => {
     }
 });
 
+//画面サイズ対応
+var baseH = 800
+if (window.innerHeight < baseH) {
+    var ratio = window.innerHeight / baseH;
+    console.log("ratio", ratio);
+    $("body").css("zoom", ratio * 100 + "%");
+    $("body").height(800);
+    document.body.style.setProperty("--ratio", ratio);
+} else {
+    document.body.style.setProperty("--ratio", 1);
+}
+
 //HTML5 tag ignore
 Vue.config.ignoredElements = [
     "menu",

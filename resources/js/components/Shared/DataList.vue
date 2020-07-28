@@ -258,7 +258,7 @@
                 })
                     .focus(function() {
                         $(this).autocomplete("search", $(this).val());
-                        $(this).autocomplete("widget").css("max-height", vue.listHeight || "30vh");
+                        $(this).autocomplete("widget").css("max-height", vue.listHeight || "calc(30vh / var(--ratio))");
                     })
                     .keydown(function(event) {
                         if (event.keyCode == 38 || event.keyCode == 40) { //↑↓キー

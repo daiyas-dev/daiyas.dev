@@ -92,14 +92,14 @@
 
 <style scoped>
 .menu-panel {
-    height: calc(100vh - 200px);
+    height: calc(100vh / var(--ratio) - 200px);
 }
 .side-btn {
     width: 150px !important;
 }
 .tab-container {
     width: 100%;
-    height: calc(100vh - 200px);
+    height: calc(100vh / var(--ratio) - 200px);
 }
 .tab-container .nav-tabs {
     display: none;

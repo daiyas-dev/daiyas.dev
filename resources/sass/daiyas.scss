@@ -3,6 +3,16 @@
  */
 @import '~bootstrap/scss/bootstrap';
 
+/* 画面サイズ対応 */
+.vue-app {
+    height: calc(100vh / var(--ratio));
+}
+.modal-backdrop {
+  width: calc(100vw / var(--ratio));
+  height: calc(100vh / var(--ratio));
+  background-color: #000;
+}
+
 /** bootstrap及びjQueryUIのfontをoverride **/
 body {
     font-family: "Yu Gothic", YuGothic;
@@ -141,8 +151,8 @@ body {
 
 .container.body-content > #exception {
     display: table-cell;
-    height: 80vh;
-    width: 100vw;
+    height: calc(80vh / var(--ratio));
+    width: calc(100vw / var(--ratio));
     text-align: center;
     vertical-align: middle;
     padding-top: 20px;
@@ -151,8 +161,8 @@ body {
 }
 
 .container.body-content > #exception > #stacktrace {
-    width: 90vw;
-    height: 75vh;
+    width: calc(90vw / var(--ratio));
+    height: calc(75vh / var(--ratio));
     padding: 20px;
     border: solid 1px gray;
     background: wheat;
