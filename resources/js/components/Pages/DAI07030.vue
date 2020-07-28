@@ -452,8 +452,8 @@ export default {
                 div[style="break-before: page;"],
                 div[style="break-before: auto;"],
                 div[style="page-break-before: always;"] {
-                    margin-top: 28px !important;
-                    margin-bottomn: 28px !important;
+                    margin-top: 30px !important;
+                    margin-bottom: 42px !important;
                 }
             `;
 

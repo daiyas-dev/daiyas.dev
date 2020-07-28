@@ -963,7 +963,7 @@ export default {
             var headerFunc = (chunk, idx, length) => {
                 return `
                     <div class="title">
-                        <h3>* * * 売上明細表 * * *</h3>
+                        <h3> * * 売上明細表 * * </h3>
                     </div>
                     <table class="header-table" style="border-width: 0px">
                         <thead>
@@ -1006,7 +1006,7 @@ export default {
                                     }
 
                                     table.DAI01120Grid1 tr th:nth-child(2) {
-                                        width: 4.2%;
+                                        width: 2.5%;
                                     }
 
                                     table.DAI01120Grid1 tr th:nth-child(3) {
@@ -1014,7 +1014,7 @@ export default {
                                     }
 
                                     table.DAI01120Grid1 tr th:nth-child(4) {
-                                        width: 5.5%;
+                                        width: 4.0%;
                                     }
 
                                     table.DAI01120Grid1 tr th:nth-child(5) {
@@ -1030,11 +1030,11 @@ export default {
                                     }
 
                                     table.DAI01120Grid1 tr th:nth-child(8) {
-                                        width: 4.2%;
+                                        width: 5.3%;
                                     }
 
                                     table.DAI01120Grid1 tr th:nth-child(9) {
-                                        width: 4.2%;
+                                        width: 5.3%;
                                     }
 
                                     table.DAI01120Grid1 tr th:nth-child(10) {
@@ -1050,11 +1050,11 @@ export default {
                                     }
 
                                     table.DAI01120Grid1 tr th:nth-child(13) {
-                                        width: 8.5%;
+                                        width: 8.4%;
                                     }
 
                                     table.DAI01120Grid1 tr th:nth-child(14) {
-                                        width: 4.2%;
+                                        width: 5.3%;
                                     }
                                 `,
                                 headerFunc,
