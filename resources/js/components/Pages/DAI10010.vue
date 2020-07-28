@@ -717,7 +717,24 @@ export default {
                     params.CustomerCd = vue.params.ParentCustomerCd;
                 }
 
-                vue.conditionChanged();
+                if (!vue.ProductList.length) {
+                    //商品リスト検索
+                    axios.post("/DAI10010/GetProductList", params)
+                        .then(res => {
+                            vue.ProductList = res.data;
+                            //条件変更ハンドラ
+                            vue.conditionChanged();
+                        })
+                        .catch(err => {
+                            console.log("/DAI10010/GetProductList Error", err)
+                            $.dialogErr({
+                                title: "商品マスタ検索失敗",
+                                contents: "商品マスタの検索に失敗しました" + "<br/>" + err.message,
+                            });
+                        });
+                } else {
+                    vue.conditionChanged();
+                }
             }
         },
         conditionChanged: function(force) {
@@ -739,6 +756,8 @@ export default {
             var grid = vue.DAI10010Grid1;
 
             var p = _.cloneDeep(params || vue.searchParams);
+
+            if (!p.CustomerCd) return;
 
             if (!!vue.params && !!vue.params.IsBunpai) {
                 p.ParentCustomerCd = vue.params.ParentCustomerCd;

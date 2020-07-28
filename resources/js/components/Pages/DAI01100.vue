@@ -1065,7 +1065,7 @@ export default {
                     data = _.cloneDeep(rows[0].rowData);
                 }
 
-                var params = {
+                params = {
                     Parent: vue,
                     ParentGrid: grid,
                     BushoCd: vue.viewModel.BushoCd,
@@ -1078,6 +1078,17 @@ export default {
                     CustomerIndex: data.CustomerIndex,
                     PaymentCd: data.得意先支払方法 == 5 ? 2 : data.得意先売掛現金区分,
                     PaymentNm: data.得意先支払方法 == 5 ? data.得意先支払方法名称 : data.得意先売掛現金区分名称,
+                };
+            } else {
+                params = {
+                    Parent: vue,
+                    ParentGrid: grid,
+                    BushoCd: vue.viewModel.BushoCd,
+                    BushoNm: vue.viewModel.BushoNm,
+                    TargetDate: vue.viewModel.DeliveryDate,
+                    CourseKbn: vue.viewModel.CourseKbn,
+                    CourseCd: vue.viewModel.CourseCd,
+                    CourseNm: vue.viewModel.CourseNm,
                 };
             }
 

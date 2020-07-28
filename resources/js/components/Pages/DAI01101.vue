@@ -94,7 +94,7 @@ export default {
                 fillHandle: "all",
                 numberCell: { show: true, title: "No.", resizable: false, },
                 autoRow: false,
-                rowHtHead: 25,
+                rowHtHead: 40,
                 rowHt: 30,
                 editable: true,
                 columnTemplate: {
