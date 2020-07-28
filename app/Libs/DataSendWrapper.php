@@ -122,8 +122,9 @@ class DataSendWrapper extends PWADataSend
      * @param コースCD
      * @param 事前のDeleteSQL
      * @param 通知メッセージ
+     * @param 更新後に実行したいSQL
      */
-    private function InsertMultiRow($table_name,$table_data=null,$table_sql=null,$Immediate = null,$busho_cd = null,$customer_cd=null,$course_cd=null,$before_delete_sql=null, $notify_message=null)
+    private function InsertMultiRow($table_name,$table_data=null,$table_sql=null,$Immediate = null,$busho_cd = null,$customer_cd=null,$course_cd=null,$before_delete_sql=null, $notify_message=null, $after_sql=null)
     {
         try {
             $map = $this->GetMapping($table_name);
@@ -147,6 +148,11 @@ class DataSendWrapper extends PWADataSend
             foreach($table_data as $recode_data)
             {
                 $send_sql .= $this->CreateInsertSQL($table_name,$map,$recode_data).";";
+            }
+
+            if($after_sql != null)
+            {
+                $send_sql .= $after_sql;
             }
 
             //送信リストに登録
@@ -609,20 +615,52 @@ class DataSendWrapper extends PWADataSend
     public function UpdateOrderData($busho_cd,$DeliveryDate,$customer_cd,$course_cd, $notify_message = null)
     {
         try {
+            $q_date = new Carbon($DeliveryDate);
+            $q_date = $q_date->format('Y/m/d');
             $table_name = "注文データ";
             $del_sql = "delete from OrderData
-                    where order_date='$DeliveryDate'
+                    where order_date='$q_date'
                     and department_code = $busho_cd
                     and customer_code = $customer_cd
-                    and delivery_date='$DeliveryDate'
+                    and delivery_date='$q_date'
                 ";
             $table_sql = "select * from $table_name
-                        where 注文日付='$DeliveryDate'
+                        where 注文日付='$q_date'
                         and 部署ＣＤ = $busho_cd
                         and 得意先ＣＤ = $customer_cd
-                        and 配送日='$DeliveryDate'
+                        and 配送日='$q_date'
                 ";
-            $this->InsertMultiRow($table_name, null, $table_sql, false, $busho_cd, $customer_cd, $course_cd, $del_sql);
+            $order_num_sql="select 商品ＣＤ,(sum(isnull(現金個数,0)) + sum(isnull(掛売個数,0)))as 注文個数 from 注文データ
+                            where 注文区分=0
+                            and 注文日付='$q_date'
+                            and 部署ＣＤ = $busho_cd
+                            and 得意先ＣＤ = $customer_cd
+                            and 配送日='$q_date'
+                            group by 商品ＣＤ
+                ";
+            $order_list=DB::select($order_num_sql);
+            $after_sql = "";
+            foreach ($order_list as $order_data)
+            {
+                $after_sql .= "update SaleInputData set
+                             updated_at=now()
+                            ,achievements_input=0
+                            ,order_num={$order_data->注文個数}
+                            ,order_input=1
+                            where department_code=$busho_cd
+                            and customer_code=$customer_cd
+                            and product_code={$order_data->商品ＣＤ}
+                            and date='$q_date';";
+                $after_sql .= "update ExpectedInputData set
+                            updated_at=now()
+                           ,order_num={$order_data->注文個数}
+                           ,order_input=1
+                           where department_code=$busho_cd
+                           and customer_code=$customer_cd
+                           and product_code={$order_data->商品ＣＤ}
+                           and date='$q_date';";
+           }
+            $this->InsertMultiRow($table_name, null, $table_sql, false, $busho_cd, $customer_cd, $course_cd, $del_sql,null,$after_sql);
             $this->Execute(null, false, $busho_cd, $customer_cd, $course_cd ,$notify_message);
         } catch (Exception $exception) {
             throw $exception;
@@ -654,7 +692,36 @@ class DataSendWrapper extends PWADataSend
                         and 得意先ＣＤ = $customer_cd
                         and 配送日>='$q_date_start' and 配送日<='$q_date_end';
                 ";
-            $this->InsertMultiRow($table_name, null, $table_sql, false, $busho_cd, $customer_cd, null, $del_sql);
+            $order_num_sql="select 商品ＣＤ,配送日,(sum(isnull(現金個数,0)) + sum(isnull(掛売個数,0)))as 注文個数 from 注文データ
+                        where 注文区分=0
+                        and 部署ＣＤ = $busho_cd
+                        and 得意先ＣＤ = $customer_cd
+                        and 配送日>='$q_date_start' and 配送日<='$q_date_end'
+                        group by 商品ＣＤ,配送日
+                        ;";
+            $order_list=DB::select($order_num_sql);
+            $after_sql="";
+            foreach ($order_list as $order_data)
+            {
+                $after_sql .= "update SaleInputData set
+                             updated_at=now()
+                            ,achievements_input=0
+                            ,order_num={$order_data->注文個数}
+                            ,order_input=1
+                            where department_code=$busho_cd
+                            and customer_code=$customer_cd
+                            and product_code={$order_data->商品ＣＤ}
+                            and date={$order_data->配送日};";
+                $after_sql .= "update ExpectedInputData set
+                             updated_at=now()
+                            ,order_num={$order_data->注文個数}
+                            ,order_input=1
+                            where department_code=$busho_cd
+                            and customer_code=$customer_cd
+                            and product_code={$order_data->商品ＣＤ}
+                            and date={$order_data->配送日};";
+            }
+            $this->InsertMultiRow($table_name, null, $table_sql, false, $busho_cd, $customer_cd, null, $del_sql,null,$after_sql);
         } catch (Exception $exception) {
             throw $exception;
         }
