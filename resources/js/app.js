@@ -122,6 +122,10 @@ Vue.directive("setKana", {
 
                         var result = !!resData && resData.startsWith(resTarget) ? resData : resTarget;
 
+                        if (data == "㈱") {
+                            result = "ｶﾌﾞ";
+                        }
+
                         result = binding.modifiers.full ? result : window.Moji(result).convert("ZK", "HK");
                         callback(result);
                     });
