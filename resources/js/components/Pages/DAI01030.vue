@@ -91,8 +91,9 @@
         <div class="row">
             <div class="col-md-1">
             </div>
-            <div class="col-md-6">
-                <input class="form-control label-blue" style="width: 350px;" type="text" :value=viewModel.CourseNm readonly tabindex="-1">
+            <div class="col-md-7">
+                <input class="form-control label-blue" style="width: 100px;" type="text" :value=viewModel.CourseCd readonly tabindex="-1">
+                <input class="form-control ml-1 label-blue" style="width: 350px;" type="text" :value=viewModel.CourseNm readonly tabindex="-1">
                 <input class="form-control ml-1 label-blue" style="width: 200px;" type="text" :value=viewModel.TantoNm readonly tabindex="-1">
             </div>
             <!-- <div class="col-md-1">
