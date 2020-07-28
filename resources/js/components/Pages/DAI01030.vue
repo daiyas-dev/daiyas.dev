@@ -705,12 +705,12 @@ export default {
                     }
                 },
                 {visible: "false"},
-                { visible: "true", value: "コース表示", id: "DAI01030Grid1_ShowCourse", disabled: false, shortcut: "F6",
+                { visible: "true", value: "コース表示", id: "DAI01030Grid1_ShowCourse", disabled: true, shortcut: "F6",
                     onClick: function () {
                         vue.showCourse();
                     }
                 },
-                { visible: "true", value: "残高表示", id: "DAI01030Grid1_ShowBalance", disabled: false, shortcut: "F10",
+                { visible: "true", value: "残高表示", id: "DAI01030Grid1_ShowBalance", disabled: true, shortcut: "F10",
                     onClick: function () {
                         vue.showBalance();
                     }
@@ -725,7 +725,7 @@ export default {
                         vue.showProductMaint();
                     }
                 },
-                { visible: "true", value: "登録", id: "DAI01030Grid1_Save", disabled: false, shortcut: "F9",
+                { visible: "true", value: "登録", id: "DAI01030Grid1_Save", disabled: true, shortcut: "F9",
                     onClick: function () {
                         vue.saveOrder();
                     }
@@ -763,8 +763,11 @@ export default {
             }
 
             if (!!vue.params && vue.params.CustomerCd) {
+                vue.footerButtons.find(v => v.id == "DAI01030Grid1_ShowCourse").disabled = false;
+                vue.footerButtons.find(v => v.id == "DAI01030Grid1_ShowBalance").disabled = false;
                 vue.footerButtons.find(v => v.id == "DAI01030Grid1_showCustomerMaint").disabled = false;
                 vue.footerButtons.find(v => v.id == "DAI01030Grid1_showProductMaint").disabled = false;
+                vue.footerButtons.find(v => v.id == "DAI01030Grid1_Save").disabled = false;
             }
 
             if (!vue.params || !vue.params.DeliveryDate) {
@@ -846,13 +849,19 @@ export default {
 
                 grid.refresh();
 
+                vue.footerButtons.find(v => v.id == "DAI01030Grid1_ShowCourse").disabled = false;
+                vue.footerButtons.find(v => v.id == "DAI01030Grid1_ShowBalance").disabled = false;
                 vue.footerButtons.find(v => v.id == "DAI01030Grid1_showCustomerMaint").disabled = false;
                 vue.footerButtons.find(v => v.id == "DAI01030Grid1_showProductMaint").disabled = false;
+                vue.footerButtons.find(v => v.id == "DAI01030Grid1_Save").disabled = false;
             })
             .catch(err => {
                 vue.clearCustomerValue(true);
+                vue.footerButtons.find(v => v.id == "DAI01030Grid1_ShowCourse").disabled = true;
+                vue.footerButtons.find(v => v.id == "DAI01030Grid1_ShowBalance").disabled = true;
                 vue.footerButtons.find(v => v.id == "DAI01030Grid1_showCustomerMaint").disabled = true;
                 vue.footerButtons.find(v => v.id == "DAI01030Grid1_showProductMaint").disabled = true;
+                vue.footerButtons.find(v => v.id == "DAI01030Grid1_Save").disabled = true;
                 $(vue.$el).find("#CustomerSelect").addClass("has-error");
             });
 
