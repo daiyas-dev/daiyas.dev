@@ -511,9 +511,6 @@ export default {
                                     }
                                     .grid-contents .title h3 {
                                         text-align: center;
-                                        border: solid 1px black;
-                                        border-radius: 4px;
-                                        background-color: grey;
                                         margin: 0px;
                                         padding-left: 30px;
                                         padding-right: 30px;

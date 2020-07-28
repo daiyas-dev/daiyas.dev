@@ -597,7 +597,7 @@ export default {
             var headerFunc = (header, idx, length) => {
                 return `
                     <div class="title">
-                        <h3>* * * コース別入金一覧表 * * *</h3>
+                        <h3> * * コース別入金一覧表 * * </h3>
                     </div>
                     <table class="header-table" style="border-width: 0px">
                         <thead>
