@@ -990,6 +990,7 @@ $WhereCourseKbn
                     TM.備考２,
                     TM.備考３,
                     TM.売掛現金区分,
+                    TM.支払方法１,
                     TM.締日１,
                     BM.部署名
                 FROM 得意先マスタ TM
@@ -1066,6 +1067,7 @@ $WhereCourseKbn
                 TM.備考２,
                 TM.備考３,
                 TM.売掛現金区分,
+                TM.支払方法１,
                 TM.締日１,
                 BM.部署名
                 $SelectCourseCd

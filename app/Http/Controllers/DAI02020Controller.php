@@ -107,6 +107,8 @@ class DAI02020Controller extends Controller
                 ,TOK.得意先名略称
 				,TOK.締日１
 				,TOK.締日２
+                ,TOK.売掛現金区分 AS 得意先売掛現金区分
+                ,TOK.支払方法１ AS 得意先支払方法
                 ,ISNULL(COUM.担当者ＣＤ,0) AS 担当者ＣＤ
                 ,ISNULL(KAKU_SHIHA.各種名称,'') AS 支払方法
                 ,SEIKYU.回収予定日 AS 集金日

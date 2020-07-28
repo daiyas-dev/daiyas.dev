@@ -503,18 +503,18 @@ export default {
                             v.日付 = moment(vue.searchParams.TargetDate).format("YYYY-MM-DD");
                             v.部署ＣＤ = vue.searchParams.BushoCd;
                             v.コースＣＤ = vue.searchParams.CourseCd || 0;
-                            v.行Ｎｏ = !!vue.params ? (vue.params.CustomerIndex || 0): 0;
+                            v.行Ｎｏ = v.行Ｎｏ || (!!vue.params ? (vue.params.CustomerIndex || 0): 0);
                             v.得意先ＣＤ = vue.searchParams.CustomerCd;
                             v.受注Ｎｏ = _.max(grid.pdata.map(v => v.受注Ｎｏ)) || 0;
-                            v.配送担当者ＣＤ = vue.model.TantoCd || 999;
+                            v.配送担当者ＣＤ = vue.viewModel.TantoCd || 999;
                             v.現金個数 = (v.売上売掛現金区分 == 0 ? v.個数 : v.現金個数) || 0;
                             v.現金金額 = (v.売上売掛現金区分 == 0 ? v.金額 : v.現金金額) || 0;
                             v.現金値引 = (v.売上売掛現金区分 == 0 ? v.値引 : v.現金値引) || 0;
                             v.現金値引事由ＣＤ = (v.売上売掛現金区分 == 0 ? v.値引事由 : v.現金値引事由ＣＤ) || 0;
-                            v.掛売個数 = (v.売上売掛現金区分 == 1 ? v.個数 : v.掛売個数) || 0;
-                            v.掛売金額 = (v.売上売掛現金区分 == 1 ? v.金額 : v.掛売金額) || 0;
-                            v.掛売値引 = (v.売上売掛現金区分 == 1 ? v.値引 : v.掛売値引) || 0;
-                            v.掛売値引事由ＣＤ = (v.売上売掛現金区分 == 1 ? v.値引事由 : v.掛売値引事由ＣＤ) || 0;
+                            v.掛売個数 = (v.売上売掛現金区分 != 0 ? v.個数 : v.掛売個数) || 0;
+                            v.掛売金額 = (v.売上売掛現金区分 != 0 ? v.金額 : v.掛売金額) || 0;
+                            v.掛売値引 = (v.売上売掛現金区分 != 0 ? v.値引 : v.掛売値引) || 0;
+                            v.掛売値引事由ＣＤ = (v.売上売掛現金区分 != 0 ? v.値引事由 : v.掛売値引事由ＣＤ) || 0;
                             v.請求日付 = !!v.請求日付 ? moment(v.請求日付).format("YYYYMMDD") : "";
                             v.予備金額１ = v.単価;
                             v.予備金額２ = 0;
@@ -565,6 +565,10 @@ export default {
                                         } else {
                                             if (!!vue.params) {
                                                 grid.commit();
+                                                if (!!vue.params && !!vue.params.ParentGrid) {
+                                                    vue.params.ParentGrid.refreshDataAndView();
+                                                }
+
                                                 $(vue.$el).closest(".ui-dialog-content").dialog("close");
                                             } else {
                                                 grid.clearData();
@@ -602,6 +606,25 @@ export default {
                     vue.footerButtons.find(v => v.id == "DAI10010Grid1_MainSubKbn").disabled = cnt == 0 || cnt > 1;
                 }
             );
+
+            if (!!vue.params || !!vue.query) {
+                //PqGrid読込待ち
+                var grid = vue.DAI10010Grid1;
+                new Promise((resolve, reject) => {
+                    var timer = setInterval(function () {
+                        grid = vue.DAI10010Grid1;
+                        if (!!grid && vue.getLoginInfo().isLogOn) {
+                            clearInterval(timer);
+                            return resolve(grid);
+                        }
+                    }, 500);
+                })
+                .then(grid => {
+                    console.log("10010 early search")
+                    vue.prevPostData = _.cloneDeep(vue.searchParams);
+                    vue.searchData(vue.searchParams);
+                });
+            }
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
@@ -683,6 +706,10 @@ export default {
                 vue.viewModel.BushoCd = entity["部署CD"];
                 vue.viewModel.PaymentCd = entity["売掛現金区分"];
                 vue.viewModel.PaymentNm = ["現金", "掛売"][vue.viewModel.PaymentCd];
+                if (entity["支払方法１"] == 5) {
+                    vue.viewModel.PaymentCd = 2;
+                    vue.viewModel.PaymentNm = "チケット";
+                }
 
                 var params = _.cloneDeep(vue.searchParams);
 
@@ -690,26 +717,13 @@ export default {
                     params.CustomerCd = vue.params.ParentCustomerCd;
                 }
 
-                //商品リスト検索
-                axios.post("/DAI10010/GetProductList", params)
-                    .then(res => {
-                        vue.ProductList = res.data;
-                        //条件変更ハンドラ
-                        vue.conditionChanged();
-                    })
-                    .catch(err => {
-                        console.log("/DAI10010/GetProductList Error", err)
-                        $.dialogErr({
-                            title: "商品マスタ検索失敗",
-                            contents: "商品マスタの検索に失敗しました" + "<br/>" + err.message,
-                        });
-                    });
+                vue.conditionChanged();
             }
         },
         conditionChanged: function(force) {
             var vue = this;
             var grid = vue.DAI10010Grid1;
-            console.log("conditionChanged", vue.viewModel);
+            console.log("10010 conditionChanged", vue.viewModel);
 
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.BushoCd || !vue.viewModel.TargetDate || !vue.viewModel.CustomerCd || vue.ProductList.length == 0) return;
@@ -718,8 +732,46 @@ export default {
             if (!force && (_.isEqual(grid.prevPostData, vue.searchParams))) return;
             if (!force && (_.isEqual(vue.prevPostData, vue.searchParams))) return;
 
-            vue.prevPostData = _.cloneDeep(vue.searchParams);
-            vue.DAI10010Grid1.searchData(vue.searchParams);
+            vue.searchData(vue.searchParams);
+        },
+        searchData: function(params) {
+            var vue = this;
+            var grid = vue.DAI10010Grid1;
+
+            var p = _.cloneDeep(params || vue.searchParams);
+
+            if (!!vue.params && !!vue.params.IsBunpai) {
+                p.ParentCustomerCd = vue.params.ParentCustomerCd;
+            }
+
+            vue.prevPostData = _.cloneDeep(p);
+            p.noCache = true;
+
+            grid.showLoading();
+            axios.post("/DAI10010/Search", p)
+            .then(res => {
+                vue.ProductList = res.data.ProductList;
+
+                var SalesList = res.data.SalesList;
+
+                var data = SalesList.filter(v => !!v.商品ＣＤ);
+                data.forEach(v => {
+                    v.個数 = (v.売掛現金区分 == 0 ? v.現金個数 : v.掛売個数 ) * 1;
+                    v.単価 = vue.ProductList.find(p => p.商品ＣＤ == v.商品ＣＤ).売価単価 * 1;
+                    v.値引 = (v.売掛現金区分 == 0 ? v.現金値引 : v.掛売値引 ) * 1;
+                    v.値引事由 = (v.売掛現金区分 == 0 ? v.現金値引事由ＣＤ : v.掛売値引事由ＣＤ ) * 1;
+                });
+
+                grid.setLocalData(data);
+
+                vue.isLocked = SalesList.length == 0 ? false : moment(SalesList[0].請求日付).isAfter(vue.searchParams.TargetDate);
+
+                vue.footerButtons.find(v => v.id == "DAI10010_Save").disabled = vue.isLocked;
+            })
+            .finally(() => {
+                grid.hideLoading();
+            })
+            ;
         },
         CourseAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
@@ -892,7 +944,9 @@ export default {
         onAfterSearchFunc: function (grieVue, grid, res) {
             var vue = this;
 
-            var data = res.filter(v => !!v.商品ＣＤ);
+            vue.ProductList = res.ProductList;
+
+            var data = res.SalesList.filter(v => !!v.商品ＣＤ);
             data.forEach(v => {
                 v.個数 = (v.売掛現金区分 == 0 ? v.現金個数 : v.掛売個数 ) * 1;
                 v.単価 = vue.ProductList.find(p => p.商品ＣＤ == v.商品ＣＤ).売価単価 * 1;

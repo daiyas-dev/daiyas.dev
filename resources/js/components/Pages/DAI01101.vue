@@ -567,6 +567,9 @@ export default {
             params.IsBunpai = true;
             params.ParentCustomerCd = vue.params.CustomerCd;
             params.CustomerCd = data.得意先ＣＤ;
+            params.Parent = vue;
+            params.ParentGrid = grid;
+
             delete params.CustomerIndex;
 
             PageDialog.show({

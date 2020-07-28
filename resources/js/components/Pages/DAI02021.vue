@@ -500,7 +500,7 @@ export default {
                         }
                     })
                 );
-                gridSummary.options.dataModel.data = [res[0].SeikyuData];
+                gridSummary.options.dataModel.data = !!res[0].SeikyuData ? [res[0].SeikyuData] : [];
                 gridSummary.refreshDataAndView();
             }
 

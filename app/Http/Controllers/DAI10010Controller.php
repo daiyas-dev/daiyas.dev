@@ -20,34 +20,41 @@ class DAI10010Controller extends Controller
     public function GetProductList($request)
     {
         $CustomerCd = $request->CustomerCd;
+        $TargetDate = $request->TargetDate;
 
         $sql = "
-SELECT
-	PM.商品ＣＤ,
-	PM.商品名,
-	PM.商品区分,
-	PM.主食ＣＤ,
-	PM.副食ＣＤ,
-	IIF(MTT.商品ＣＤ IS NOT NULL, MTT.単価, PM.売価単価) AS 売価単価
-FROM
-	商品マスタ PM
-	LEFT JOIN 得意先単価マスタ MTT
-		ON	PM.商品ＣＤ=MTT.商品ＣＤ
-		AND MTT.得意先ＣＤ=$CustomerCd
-WHERE
-     表示ＦＬＧ=0
+            SELECT
+                MTT.商品ＣＤ AS Cd,
+                PM.商品名 AS CdNm,
+                MTT.得意先ＣＤ,
+                MTT.商品ＣＤ,
+                PM.商品名,
+                PM.商品区分,
+                PM.主食ＣＤ,
+                PM.副食ＣＤ,
+                MTT.単価 AS 売価単価
+            FROM
+                (
+                    SELECT
+                        *
+                    FROM (
+                        SELECT
+                            *
+                            , RANK() OVER(PARTITION BY 得意先ＣＤ, 商品ＣＤ ORDER BY 適用開始日 DESC) AS RNK
+                        FROM
+                            得意先単価マスタ新
+                        WHERE
+                            得意先ＣＤ=$CustomerCd
+                        AND 適用開始日 <= '$TargetDate'
+                    ) TT
+                    WHERE
+                        RNK = 1
+                ) MTT
+                LEFT OUTER JOIN 商品マスタ PM
+                    ON	PM.商品ＣＤ=MTT.商品ＣＤ
         ";
 
-        $Result = collect(DB::select($sql))
-            ->map(function ($product) {
-                $vm = (object) $product;
-
-                $vm->Cd = $product->商品ＣＤ;
-                $vm->CdNm = $product->商品名;
-
-                return $vm;
-            })
-            ->values();
+        $Result = DB::select($sql);
 
         return response()->json($Result);
     }
@@ -95,7 +102,18 @@ ORDER BY
      */
     public function Search($vm)
     {
-        return response()->json($this->GetSalesList($vm));
+        $pvm = clone $vm;
+
+        if (isset($vm->ParentCustomerCd)) {
+            $pvm->CustomerCd = $vm->ParentCustomerCd;
+        }
+
+        return response()->json(
+            [
+                "SalesList" => $this->GetSalesList($vm),
+                "ProductList" => $this->GetProductList($pvm)->original,
+            ]
+        );
     }
 
     /**

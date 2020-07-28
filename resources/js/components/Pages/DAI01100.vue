@@ -932,6 +932,8 @@ export default {
                                 acc.分配先件数 = v.分配先件数 * 1;
                                 acc.得意先売掛現金区分 = v.得意先売掛現金区分;
                                 acc.得意先売掛現金区分名称 = v.得意先売掛現金区分名称;
+                                acc.得意先支払方法 = v.得意先支払方法;
+                                acc.得意先支払方法名称 = v.得意先支払方法名称;
                                 acc.入金額 = v.入金額 ;
                                 acc.備考 = (acc.備考 || "") + ((v.売掛現金区分 == 0 ? v.備考 : v.備考テキスト) || "");
                                 acc.入金日付 = v.入金日付 ;
@@ -1064,6 +1066,8 @@ export default {
                 }
 
                 var params = {
+                    Parent: vue,
+                    ParentGrid: grid,
                     BushoCd: vue.viewModel.BushoCd,
                     BushoNm: vue.viewModel.BushoNm,
                     TargetDate: vue.viewModel.DeliveryDate,
@@ -1072,6 +1076,8 @@ export default {
                     CourseNm: vue.viewModel.CourseNm,
                     CustomerCd: data.得意先ＣＤ,
                     CustomerIndex: data.CustomerIndex,
+                    PaymentCd: data.得意先支払方法 == 5 ? 2 : data.得意先売掛現金区分,
+                    PaymentNm: data.得意先支払方法 == 5 ? data.得意先支払方法名称 : data.得意先売掛現金区分名称,
                 };
             }
 

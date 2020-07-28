@@ -882,6 +882,7 @@ export default {
         },
         showDetail: function(rowData) {
             var vue = this;
+            var grid = vue.DAI01120Grid1;
 
             var data;
             if (!!rowData) {
@@ -896,6 +897,8 @@ export default {
             }
 
             var params = {
+                Parent: vue,
+                ParentGrid: grid,
                 BushoCd: vue.viewModel.BushoCd,
                 BushoNm: vue.viewModel.BushoNm,
                 TargetDate: data.日付,
@@ -904,6 +907,8 @@ export default {
                 CourseNm: data.コース名,
                 CustomerCd: data.得意先ＣＤ,
                 CustomerIndex: data.行Ｎｏ,
+                PaymentCd: data.得意先支払方法 == 5 ? 2 : data.得意先売掛現金区分,
+                PaymentNm: data.得意先支払方法 == 5 ? data.得意先支払方法名称 : data.得意先売掛現金区分名称,
             };
 
             PageDialog.show({

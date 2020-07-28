@@ -946,6 +946,8 @@ export default {
             var data = _.cloneDeep(rows[0].rowData);
 
             var params = {
+                Parent: vue,
+                ParentGrid: grid,
                 BushoCd: vue.viewModel.BushoCd,
                 BushoNm: vue.viewModel.BushoNm,
                 TargetDate: moment().format("YYYY年MM月DD日"),
@@ -953,6 +955,7 @@ export default {
                 CourseCd: data.コースＣＤ,
                 CourseNm: data.コース名,
                 CustomerCd: data.請求先ＣＤ,
+                PaymentCd: data.得意先支払方法 == 5 ? 2 : data.得意先売掛現金区分,
                 onSaveFunc: () => {
                     var grid = vue.DAI02020Grid1;
                     grid.refreshDataAndView();
