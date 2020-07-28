@@ -361,7 +361,11 @@ export default {
                                 ui.rowData[ui.dataIndx] = 0;
                                 ui.text = 0;
                             }
-                            return ui;
+                            if (!!ui.Export) {
+                                return ui.cellData;
+                            } else {
+                                return ui;
+                            }
                         },
                         summary: {
                             type: "TotalInt",
@@ -440,9 +444,11 @@ export default {
                                 acc["主食副食名"] = v[targetNm];
                                 acc["持出数_" + v.部署ＣＤ] = (acc["持出数_" + v.部署ＣＤ] || 0)
                                      + (v.CHU注文数 == 0 ? v.見込数 * 1 : v.CHU注文数 * 1);
+                                acc["商品区分"] = v.商品区分;
+                                acc["最小商品区分"] = !acc["最小商品区分"] ? (v.商品区分 * 1)
+                                    : (acc["最小商品区分"] > v.商品区分 ? v.商品区分 : acc["最小商品区分"]);
                                 acc["最小商品ＣＤ"] = !acc["最小商品ＣＤ"] ? (v.商品ＣＤ * 1)
                                     : (acc["最小商品ＣＤ"] > v.商品ＣＤ ? v.商品ＣＤ : acc["最小商品ＣＤ"]);
-                                acc["商品区分"] = v.商品区分;
 
                                 return acc;
                             },
@@ -457,7 +463,7 @@ export default {
                 return vals.some(val => val != 0);
             });
 
-            groupings = _(groupings).sortBy(["商品区分", vue.viewModel.BentoKbn == "1" ? "最小商品ＣＤ" : targetCd]).value();
+            groupings = _(groupings).sortBy(["最小商品区分", vue.viewModel.BentoKbn == "1" ? "最小商品ＣＤ" : targetCd]).value();
 
             return groupings;
         },
