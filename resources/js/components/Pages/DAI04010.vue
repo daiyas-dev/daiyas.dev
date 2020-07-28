@@ -9,7 +9,7 @@
                     v-model="viewModel.会社名"
                     maxlength=24
                     v-maxBytes=24
-                    v-setKana="res => {viewModel.会社名カナ = res.toString(); $forceUpdate();}"
+                    v-setKana="res => {viewModel.会社名カナ = (viewModel.会社名カナ || '') + res.toString(); $forceUpdate();}"
             >
             </div>
         </div>

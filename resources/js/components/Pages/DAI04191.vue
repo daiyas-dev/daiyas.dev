@@ -27,7 +27,7 @@
                     id="BankNm"
                     maxlength=50
                     v-maxBytes=50
-                    v-setKana="res => {viewModel.銀行名カナ = res.toString(); $forceUpdate();}"
+                    v-setKana="res => {viewModel.銀行名カナ = (viewModel.銀行名カナ || '') + res.toString(); $forceUpdate();}"
                 >
             </div>
         </div>
