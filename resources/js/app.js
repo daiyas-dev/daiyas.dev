@@ -103,6 +103,7 @@ Vue.directive("setKana", {
             "compositionend",
             event => {
                 var target = el.getAttribute("toKana");
+                var data = event.data;
                 el.setAttribute("toKana", "");
 
                 console.log("setKana directive", target);
@@ -113,11 +114,17 @@ Vue.directive("setKana", {
 
                 if (!!binding.modifiers.disabled) return;
 
-                console.log("call getKana api", target);
-                window.getKana(target, res => {
-                    console.log("getKana api ret", res, binding);
-                    var ret = binding.modifiers.full ? res : window.Moji(res).convert("ZK", "HK");
-                    callback(ret);
+                window.getKana(data, resData => {
+                    console.log("getKana api ret", data, resData, binding);
+
+                    window.getKana(target, resTarget => {
+                        console.log("getKana api ret", target, resTarget, binding);
+
+                        var result = !!resData && resData.startsWith(resTarget) ? resData : resTarget;
+
+                        result = binding.modifiers.full ? result : window.Moji(result).convert("ZK", "HK");
+                        callback(result);
+                    });
                 });
             }
         );

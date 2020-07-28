@@ -740,7 +740,7 @@ export default {
         },
         mountedFunc: function(vue) {
             vue.viewModel.IsShowAll = false;
-            $(vue.$el).find("#CustomerSelect .target-input").focus();
+            $(vue.$el).find(".CustomerSelect .target-input").focus();
 
             console.log("check params", vue.params)
             //queryがある場合は初期値設定しない
@@ -780,7 +780,7 @@ export default {
         },
         activatedFunc: function(vue) {
             var vue = this;
-            $(vue.$el).find("#CustomerSelect .target-input").focus();
+            $(vue.$el).find(".CustomerSelect .target-input").focus();
         },
         deactivatedFunc: function(vue) {
             var vue = this;
@@ -1029,7 +1029,7 @@ export default {
             if(vue.isSave)
             {
                 vue.isSave=false;
-                $(vue.$el).find("#CustomerSelect .target-input").focus();
+                $(vue.$el).find(".CustomerSelect .target-input").focus();
             }
         },
         onAfterSearchFunc: function (gridVue, grid, res) {
@@ -1291,7 +1291,7 @@ export default {
                                 });
                             });
                             vue.isSave=true;
-                            $(vue.$el).find("#CustomerSelect .target-input").focus().select();
+                            $(vue.$el).find(".CustomerSelect .target-input").focus().select();
 
                             return false;
                         },
