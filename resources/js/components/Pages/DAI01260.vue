@@ -499,7 +499,7 @@ export default {
                                 <th style="width: 15%;">${courseNm}</th>
                                 <th style="width: 26%;"></th>
                                 <th style="width: 10%;">作成日</th>
-                                <th style="width: 15%;">${moment().format("YYYY年MM月DD日")}</th>
+                                <th style="width: 15%;">${moment().format("YYYY年MM月DD日 HH:mm")}</th>
                                 <th style="width: 8%;">PAGE</th>
                                 <th style="width: 6%; text-align: right;">${idx + 1}/${length}</th>
                             </tr>
