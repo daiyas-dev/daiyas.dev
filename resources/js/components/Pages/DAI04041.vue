@@ -1406,6 +1406,21 @@ export default {
                 $("[shortcut='F6']").prop("disabled", false);
             }
         },
+        updatedFunc: function(vue) {
+            var vue = this;
+
+            var inputs = $(vue.$el).find(":input:enabled:not([tabindex=-1]):not(button):not(textarea)");
+            inputs.on("keypress", event => {
+                if (event.which == 13) {
+                    var idx = inputs.index($(event.target));
+                    if (inputs.length == idx + 1) return;
+                    inputs[idx + 1].focus();
+                    return false;
+                }
+
+                return true;
+            });
+        },
         onCustomerCdChanged: function(code, entities) {
             var vue = this;
 
