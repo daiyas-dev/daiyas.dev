@@ -589,7 +589,7 @@ export default {
                     text-align: center;
                 }
                 td {
-                    height: 18px;
+                    height: 17px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
@@ -618,14 +618,14 @@ export default {
                     <table class="header-table" style="border-width: 0px">
                         <thead>
                             <tr>
-                                <th style="width:  5.5%;">部署</th>
-                                <th style="width:  5.5%;">${vue.viewModel.BushoCd}</th>
-                                <th style="width: 17%;">${vue.viewModel.BushoNm}</th>
-                                <th style="width:  56%;" class="blank-cell"></th>
-                                <th style="width:  5.5%;">作成日</th>
-                                <th style="width: 11%;">${moment().format("YYYY年MM月DD日")}</th>
-                                <th style="width:  5.5%;">PAGE</th>
-                                <th style="width: 6%;">${idx + 1}/${length}</th>
+                                <th style="width:  6%;">部署</th>
+                                <th style="width:  6%;">${vue.viewModel.BushoCd}</th>
+                                <th style="width: 15%;">${vue.viewModel.BushoNm}</th>
+                                <th style="width: 26%;" class="blank-cell"></th>
+                                <th style="width:  6%;">作成日</th>
+                                <th style="width: 15%;">${moment().format("YYYY年MM月DD日")}</th>
+                                <th style="width:  6%;">PAGE</th>
+                                <th style="width:  6%;">${idx + 1}/${length}</th>
                             </tr>
                         </thead>
                     </table>
@@ -665,19 +665,19 @@ export default {
                                         border-right-width: 1px;
                                     }
                                     table.DAI04120Grid1 tr th:nth-child(1) {
-                                        width: 5.0%;
+                                        width: 7.0%;
                                     }
                                     table.DAI04120Grid1 tr th:nth-child(2) {
-                                        width: 20.0%;
+                                        width: 22.0%;
                                     }
                                     table.DAI04120Grid1 tr th:nth-child(3) {
-                                        width: 7.0%;
+                                        width: 9.0%;
                                     }
                                     table.DAI04120Grid1 tr th:nth-child(4) {
-                                        width: 7.0%;
+                                        width: 9.0%;
                                     }
                                     table.DAI04120Grid1 tr th:nth-child(5) {
-                                        width: 12.0%;
+                                        width: 15.0%;
                                     }
                                     table.DAI04120Grid1 th:nth-child(6) {
                                         text-align: left;
@@ -689,7 +689,7 @@ export default {
                                     }
                                 `,
                                 headerFunc,
-                                29,
+                                46,
                             )
                         )
                 )
@@ -698,7 +698,7 @@ export default {
 
             var printOptions = {
                 type: "raw-html",
-                style: "@media print { @page { size: A4 landscape; } }",
+                style: "@media print { @page { size: A4; } }",
                 printable: printable,
             };
 

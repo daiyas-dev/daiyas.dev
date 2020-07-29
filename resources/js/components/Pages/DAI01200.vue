@@ -121,6 +121,13 @@ export default {
         }
     },
     watch: {
+        "DAI01200Grid1.pdata": {
+            deep: true,
+            handler: function(newVal) {
+                var vue = this;
+                vue.footerButtons.find(v => v.id == "DAI01200Grid1_Printout").disabled = !newVal.length;
+            },
+        },
     },
     data() {
         var vue = this;

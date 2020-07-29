@@ -141,6 +141,15 @@ export default {
     },
     computed: {
     },
+    watch: {
+        "DAI01220Grid1.pdata": {
+            deep: true,
+            handler: function(newVal) {
+                var vue = this;
+                vue.footerButtons.find(v => v.id == "DAI01220Grid1_Printout").disabled = !newVal.length;
+            },
+        },
+    },
     data() {
         return $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "日次処理 > 得意先別実績表",

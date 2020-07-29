@@ -142,6 +142,15 @@ export default {
     },
     computed: {
     },
+    watch: {
+        "DAI01160Grid1.pdata": {
+            deep: true,
+            handler: function(newVal) {
+                var vue = this;
+                vue.footerButtons.find(v => v.id == "DAI01160Grid1_Print").disabled = !newVal.length;
+            },
+        },
+    },
     data() {
         var data = $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "日次処理 > 配送集計表",

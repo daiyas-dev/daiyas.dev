@@ -125,6 +125,15 @@ export default {
     },
     computed: {
     },
+    watch: {
+        "DAI01180Grid1.pdata": {
+            deep: true,
+            handler: function(newVal) {
+                var vue = this;
+                vue.footerButtons.find(v => v.id == "DAI01180Grid1_Print").disabled = !newVal.length;
+            },
+        },
+    },
     data() {
         var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {

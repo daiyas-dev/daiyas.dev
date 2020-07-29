@@ -353,7 +353,7 @@ export default {
                         vue.conditionChanged(true);
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI04050Grid1_Printout", disabled: false, shortcut: "F6",
+                { visible: "true", value: "印刷", id: "DAI04050Grid1_Printout", disabled: true, shortcut: "F6",
                     onClick: function () {
                         vue.print();
                     }
@@ -463,6 +463,8 @@ export default {
         },
         onAfterSearchFunc: function (vue, grid, res) {
             var vue = this;
+
+            vue.footerButtons.find(v => v.id == "DAI04050Grid1_Printout").disabled = !res.length;
 
             res.forEach(r => {
                 r.部署 = r.部署ＣＤ + ":" + r.部署名;
@@ -683,7 +685,7 @@ export default {
                     text-align: center;
                 }
                 td {
-                    height: 18px;
+                    height: 17px;
                     white-space: nowrap;
                     overflow: hidden;
                 }
@@ -722,13 +724,13 @@ export default {
                     <table class="header-table">
                         <thead>
                             <tr>
-                                <th style="width:  5.5%;">部署</th>
-                                <th style="width:  5.5%;">${BushoCd}</th>
-                                <th style="width: 17%;">${BushoNm}</th>
-                                <th style="width:  56%;" class="blank-cell"></th>
-                                <th style="width:  5.5%;">作成日</th>
-                                <th style="width: 11%; text-align: right;">${moment().format("YYYY年MM月DD日")}</th>
-                                <th style="width:  5.5%;">PAGE</th>
+                                <th style="width:  6%;">部署</th>
+                                <th style="width:  6%;">${BushoCd}</th>
+                                <th style="width: 15%;">${BushoNm}</th>
+                                <th style="width: 26%;" class="blank-cell"></th>
+                                <th style="width:  6%;">作成日</th>
+                                <th style="width: 15%; text-align: right;">${moment().format("YYYY年MM月DD日")}</th>
+                                <th style="width:  6%;">PAGE</th>
                                 <th style="width:  6%; text-align: right;">${chunk}/${chunks}</th>
                             </tr>
                         </thead>
@@ -772,7 +774,7 @@ export default {
                     color: transparent;
                 }
                 table.DAI04050Grid1 th:nth-child(2) {
-                    width: 15%;
+                    width: 20%;
                     text-align: left;
                     padding-left: 25px;
                 }
@@ -781,10 +783,10 @@ export default {
                 }
                 table.DAI04050Grid1 th:nth-child(3),
                 table.DAI04050Grid1 th:nth-child(5) {
-                    width: 6%;
+                    width: 7%;
                 }
                 table.DAI04050Grid1 th:nth-child(4) {
-                    width: 10%;
+                    width: 12%;
                 }
                 table.DAI04050Grid1 th:nth-child(6) {
                     text-align: left;
@@ -811,7 +813,7 @@ export default {
                             vue.DAI04050Grid1.generateHtml(
                                 styleCustomers,
                                 headerFunc,
-                                29,
+                                46,
                                 false,
                                 false,
                                 true,
@@ -822,7 +824,7 @@ export default {
                 ;
             var printOptions = {
                 type: "raw-html",
-                style: "@media print { @page { size: A4 landscape; } }",
+                style: "@media print { @page { size: A4; } }",
                 printable: printable,
             };
             printJS(printOptions);

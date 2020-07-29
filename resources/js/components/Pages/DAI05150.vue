@@ -177,6 +177,13 @@ export default {
         },
     },
     watch: {
+        "DAI05150Grid1.pdata": {
+            deep: true,
+            handler: function(newVal) {
+                var vue = this;
+                vue.footerButtons.find(v => v.id == "DAI05150_Print").disabled = !newVal.length;
+            },
+        },
     },
     data() {
         var vue = this;
@@ -418,7 +425,7 @@ export default {
                         vue.conditionChanged();
                     }
                 },
-                { visible: "true", value: "印刷", id: "DAI05150_Print", disabled: false, shortcut: "F6",
+                { visible: "true", value: "印刷", id: "DAI05150_Print", disabled: true, shortcut: "F6",
                     onClick: function () {
                         vue.print();
                     }
