@@ -176,6 +176,15 @@ export default {
             return vue.viewModel.BushoArray.map(v => v.code);
         },
     },
+    watch: {
+        "DAI03070Grid1.pdata": {
+            deep: true,
+            handler: function(newVal) {
+                var vue = this;
+                vue.footerButtons.find(v => v.id == "DAI03070Grid1_Printout").disabled = !newVal.length;
+            },
+        },
+    },
     data() {
         return $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "月次処理 > 得意先別売上推移表",

@@ -187,6 +187,13 @@ export default {
                 vue.footerButtons.find(v => v.id == "DAI06040Grid1_Search").disabled = disabled;
             },
         },
+        "DAI06040Grid1.pdata": {
+            deep: true,
+            handler: function(newVal) {
+                var vue = this;
+                vue.footerButtons.find(v => v.id == "DAI06040Grid1_Print").disabled = !newVal.length;
+            },
+        },
     },
     data() {
         var vue = this;

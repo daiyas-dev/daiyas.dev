@@ -135,6 +135,15 @@ export default {
     },
     computed: {
     },
+    watch: {
+        "DAI05010Grid1.pdata": {
+            deep: true,
+            handler: function(newVal) {
+                var vue = this;
+                vue.footerButtons.find(v => v.id == "DAI05010Grid1_Printout").disabled = !newVal.length;
+            },
+        },
+    },
     data() {
         return $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "随時処理 > 得意先別単価表",

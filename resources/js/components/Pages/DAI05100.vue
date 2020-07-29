@@ -212,6 +212,15 @@ export default {
     },
     computed: {
     },
+    watch: {
+        "DAI05100Grid1.pdata": {
+            deep: true,
+            handler: function(newVal) {
+                var vue = this;
+                vue.footerButtons.find(v => v.id == "DAI05100Grid1_Print").disabled = !newVal.length;
+            },
+        },
+    },
     data() {
         var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {
@@ -488,10 +497,10 @@ export default {
         },
         mountedFunc: function(vue) {
             //日付の初期値 -> 当日moment(vue.viewModel.TargetDate, "YYYYMM01").endOf('month')
-            vue.viewModel.DateStart = moment("20190801").format("YYYY年MM月01日");
-            vue.viewModel.DateEnd = moment("20190801").endOf('month').format("YYYY年MM月DD日");
-            vue.viewModel.SaveDateStart = moment("20190801").format("YYYY年MM月01日");
-            vue.viewModel.SaveDateEnd = moment("20190801").endOf('month').format("YYYY年MM月DD日");
+            vue.viewModel.DateStart = moment().format("YYYY年MM月01日");
+            vue.viewModel.DateEnd = moment().endOf('month').format("YYYY年MM月DD日");
+            vue.viewModel.SaveDateStart = moment().format("YYYY年MM月01日");
+            vue.viewModel.SaveDateEnd = moment().endOf('month').format("YYYY年MM月DD日");
 
             vue.refreshCols();
 

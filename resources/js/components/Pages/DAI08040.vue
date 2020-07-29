@@ -209,6 +209,13 @@ export default {
         },
     },
     watch: {
+        "DAI08040Grid1.pdata": {
+            deep: true,
+            handler: function(newVal) {
+                var vue = this;
+                vue.footerButtons.find(v => v.id == "DAI08040Grid1_Print").disabled = !newVal.length;
+            },
+        },
     },
     data() {
         var vue = this;

@@ -104,6 +104,15 @@ export default {
             return vue.viewModel.ProductArray.map(v => v.code);
         },
     },
+    watch: {
+        "DAI03120Grid1.pdata": {
+            deep: true,
+            handler: function(newVal) {
+                var vue = this;
+                vue.footerButtons.find(v => v.id == "DAI03120Grid1_Print").disabled = !newVal.length;
+            },
+        },
+    },
     data() {
         var vue = this;
         var data = $.extend(true, {}, PageBaseMixin.data(), {

@@ -194,6 +194,15 @@ export default {
             return vue.viewModel.BushoArray.map(v => v.code);
         },
     },
+    watch: {
+        "DAI03020Grid1.pdata": {
+            deep: true,
+            handler: function(newVal) {
+                var vue = this;
+                vue.footerButtons.find(v => v.id == "DAI03020Grid1_Print").disabled = !newVal.length;
+            },
+        },
+    },
     data() {
         var vue = this;
         return $.extend(true, {}, PageBaseMixin.data(), {
