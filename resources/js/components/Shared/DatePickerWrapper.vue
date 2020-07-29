@@ -26,6 +26,7 @@
             :class='[hideButton ? "d-none" : ""]'
             :id="_id + '_calendar_btn'" @click="showCalendar"
             :disabled=!editable
+            tabindex="-1"
         >
             <i class="fas fa-lg" :class='!!format && (format.includes("HH") || format.includes("mm")) ? "fa-clock" : "fa-calendar-check"'></i>
         </button>
@@ -98,9 +99,24 @@ export default {
             return this.id + "_" + this._uid;
         },
         _config: function() {
+            var comp = this;
             var cfg = $.extend(true, {}, this.default, this.config);
             cfg.format = this.format || cfg.format;
             cfg.dayViewHeaderFormat = this.dayViewHeaderFormat || cfg.dayViewHeaderFormat;
+            cfg.keyBinds = {
+                enter: function () {
+                    var target = $(comp.$el).find(".target-input");
+                    if (!!target) {
+                        target.trigger($.Event("keypress", {
+                            keyCode: 13,
+                            which: 13,
+                            isOnce: true,
+                        }));
+                    }
+
+                    return true;
+                },
+            };
 
             return cfg;
         },
@@ -134,6 +150,8 @@ export default {
         calendarHidden: function(event) {
             if (this.onCalendarHiddenFunc) {
                 this.onCalendarHiddenFunc(event);
+            } else {
+                return true;
             }
         },
         dateChanged: function(event) {
