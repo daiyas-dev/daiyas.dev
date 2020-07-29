@@ -895,6 +895,20 @@ class DataReceiveBase
                                     ->where('日付', $MobileSales->日付)
                                     ->get();
 
+                                $sql="select m1.得意先ＣＤ
+                                    from 得意先マスタ m1
+                                        ,得意先マスタ m2
+                                    where m1.得意先ＣＤ<>m1.受注得意先ＣＤ
+                                    and m1.受注得意先ＣＤ=m2.得意先ＣＤ
+                                    and m1.売掛現金区分<>m2.売掛現金区分
+                                    ";
+                                $DataList = DB::connection('sqlsrv_batch')->select($sql);
+                                $urigen_customer_code=[];
+                                foreach($DataList as $DataItem)
+                                {
+                                    $urigen_customer_code[]=$DataItem->得意先ＣＤ;
+                                }
+
                                 //分配先の売上データ明細を削除
                                 $customer_code_list = [];
                                 foreach ($DistCustomerList as $DistCustomer) {
@@ -919,6 +933,10 @@ class DataReceiveBase
 
                                 //分配先更新
                                 foreach ($MobileDistList as $MobileDist) {
+                                    if(in_array($MobileDist->分配先得意先ＣＤ,$urigen_customer_code,true) && $MobileDist->実績数==0){
+                                        continue;
+                                    }
+
                                     $dist = [];
 
                                     $dist["日付"] = $MobileDist->日付;
