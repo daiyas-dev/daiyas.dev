@@ -705,24 +705,15 @@ export default {
             var headerFunc = (header, idx, length, chunk, chunks) => {
                 var BushoCd = "";
                 var BushoNm = "";
-                var CourseCd="";
-                var CourseNm="";
-                var TantoCd="";
-                var TantoNm="";
+
                 if(header.pq_level==0)
                 {
-                    BushoCd = header.部署.split(" ")[0];
-                    BushoNm = header.部署.split(" ")[1];
-                    CourseCd= header.children[0].コース.split(" ")[0];
-                    CourseNm= header.children[0].コース.split(" ")[1];
+                    BushoCd = header.部署.split(":")[0];
+                    BushoNm = header.部署.split(":")[1];
                 }else{
-                    BushoCd = header.parentId.split(" ")[0];
-                    BushoNm = header.parentId.split(" ")[1];
-                    CourseCd= header.コース.split(" ")[0];
-                    CourseNm= header.コース.split(" ")[1];
+                    BushoCd = header.parentId.split(":")[0];
+                    BushoNm = header.parentId.split(":")[1];
                 }
-                TantoCd = vue.DAI04050Grid1.pdata.find(v => v.部署ＣＤ==BushoCd && v.コースＣＤ==CourseCd).担当者ＣＤ;
-                TantoNm = vue.DAI04050Grid1.pdata.find(v => v.部署ＣＤ==BushoCd && v.コースＣＤ==CourseCd).担当者名;
                 return `
                     <div class="title">
                         <h3><div class="report-title-area">＊＊＊　得意先単価表　＊＊＊
@@ -732,29 +723,13 @@ export default {
                         <thead>
                             <tr>
                                 <th style="width:  5.5%;">部署</th>
-                                <th style="width:  5.5%; text-align: right;">${BushoCd}</th>
+                                <th style="width:  5.5%;">${BushoCd}</th>
                                 <th style="width: 17%;">${BushoNm}</th>
-                                <th style="width:  5.5%;" class="blank-cell"></th>
-                                <th style="width:  5.5%;" class="blank-cell"></th>
-                                <th style="width: 17%;" class="blank-cell"></th>
-                                <th style="width: 28%;" class="blank-cell"></th>
-                                <th style="width:  5.5%;" class="blank-cell"></th>
-                                <th style="width: 11%;" class="blank-cell"></th>
-                                <th style="width:  5.5%;" class="blank-cell"></th>
-                                <th style="width:  6%;" class="blank-cell"></th>
-                         </tr>
-                            <tr>
-                                <th>コース</th>
-                                <th style="text-align: right;">${CourseCd}</th>
-                                <th>${CourseNm}</th>
-                                <th>担当者</th>
-                                <th style="text-align: right;">${TantoCd}</th>
-                                <th>${TantoNm}</th>
-                                <th class="blank-cell"></th>
-                                <th>作成日</th>
-                                <th style="text-align: right;">${moment().format("YYYY年MM月DD日")}</th>
-                                <th>PAGE</th>
-                                <th style="text-align: right;">${chunk}/${chunks}</th>
+                                <th style="width:  56%;" class="blank-cell"></th>
+                                <th style="width:  5.5%;">作成日</th>
+                                <th style="width: 11%; text-align: right;">${moment().format("YYYY年MM月DD日")}</th>
+                                <th style="width:  5.5%;">PAGE</th>
+                                <th style="width:  6%; text-align: right;">${chunk}/${chunks}</th>
                             </tr>
                         </thead>
                     </table>
@@ -767,7 +742,8 @@ export default {
                     border-left-width: 1px;
                     border-top-width: 1px;
                     border-right-width: 0px;
-                    border-bottom-width: 0x;
+                    border-bottom-width: 0px;
+                    text-align: center;
                 }
                 table.DAI04050Grid1 th,
                 table.DAI04050Grid1 td {
@@ -780,11 +756,10 @@ export default {
                     border-left-width: 1px;
                     border-top-width: 1px;
                     border-right-width: 0px;
-                    border-bottom-width: 0x;
+                    border-bottom-width: 0px;
                 }
                 table.header-table tr:nth-child(1) th:nth-child(3),
-                table.header-table tr:nth-child(2) th:nth-child(6),
-                table.header-table tr:nth-child(2) th:last-child,
+                table.header-table tr:nth-child(1) th:last-child,
                 table.DAI04050Grid1 th:last-child,
                 table.DAI04050Grid1 td:last-child {
                     border-right-width: 1px;
@@ -801,12 +776,23 @@ export default {
                     text-align: left;
                     padding-left: 25px;
                 }
-                table.DAI04050Grid1 th:nth-child(4),
-                table.DAI04050Grid1 th:nth-child(6),
-                table.DAI04050Grid1 th:nth-child(8),
-                table.DAI04050Grid1 th:nth-child(10),
-                table.DAI04050Grid1 th:nth-child(12) {
-                    width: 3.5%;
+                table.DAI04050Grid1 td:nth-child(2) {
+                    padding-left: 5px;
+                }
+                table.DAI04050Grid1 th:nth-child(3),
+                table.DAI04050Grid1 th:nth-child(5) {
+                    width: 6%;
+                }
+                table.DAI04050Grid1 th:nth-child(4) {
+                    width: 10%;
+                }
+                table.DAI04050Grid1 th:nth-child(6) {
+                    text-align: left;
+                    padding-left: 25px;
+                }
+                table.DAI04050Grid1 td:nth-child(6) {
+                    text-align: left;
+                    padding-left: 18px;
                 }
                 table.DAI04050Grid1 th {
                     white-space: nowrap;

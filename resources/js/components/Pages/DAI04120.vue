@@ -551,6 +551,161 @@ export default {
             });
 
         },
+        print: function() {
+            var vue = this;
+
+            //印刷用HTML全体適用CSS
+            var globalStyles = `
+                body {
+                    -webkit-print-color-adjust: exact;
+                }
+                div.title {
+                    width: 100%;
+                    display: flex;
+                    justify-content: center;
+                }
+                div.title > h3 {
+                    margin-top: 0px;
+                    margin-bottom: 0px;
+                }
+                table {
+                    table-layout: fixed;
+                    margin-left: 0px;
+                    margin-right: 0px;
+                    width: 100%;
+                    border-spacing: unset;
+                    border: solid 0px black;
+                }
+                th, td {
+                    font-family: "MS UI Gothic";
+                    font-size: 9pt;
+                    font-weight: normal;
+                    margin: 0px;
+                    padding-left: 3px;
+                    padding-right: 3px;
+                }
+                th {
+                    height: 17px;
+                    text-align: center;
+                }
+                td {
+                    height: 18px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                }
+                table.header-table th {
+                    text-align: left;
+                    border: solid 0px black;
+                }
+                table.header-table th.blank-cell {
+                    border:none;
+                }
+                div.report-title-area {
+                    width:400px;
+                    height:35px;
+                    text-align: center;
+                    display:table-cell;
+                    vertical-align: middle;
+                }
+            `;
+
+            var headerFunc = (chunk, idx, length) => {
+                return `
+                    <div class="title">
+                        <h3><div class="report-title-area">＊＊＊　モバイル対象商品一覧表　＊＊＊
+                    <div></h3>
+                    </div>
+                    <table class="header-table" style="border-width: 0px">
+                        <thead>
+                            <tr>
+                                <th style="width:  5.5%;">部署</th>
+                                <th style="width:  5.5%;">${vue.viewModel.BushoCd}</th>
+                                <th style="width: 17%;">${vue.viewModel.BushoNm}</th>
+                                <th style="width:  56%;" class="blank-cell"></th>
+                                <th style="width:  5.5%;">作成日</th>
+                                <th style="width: 11%;">${moment().format("YYYY年MM月DD日")}</th>
+                                <th style="width:  5.5%;">PAGE</th>
+                                <th style="width: 6%;">${idx + 1}/${length}</th>
+                            </tr>
+                        </thead>
+                    </table>
+                `;
+            };
+
+            var printable = $("<html>")
+                .append($("<head>").append($("<style>").text(globalStyles)))
+                .append(
+                    $("<body>")
+                        .append(
+                            vue.DAI04120Grid1.generateHtml(
+                                `
+                                    table.header-table th {
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 1px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 0px;
+                                        text-align: center;
+                                    }
+                                    table.DAI04120Grid1 th,
+                                    table.DAI04120Grid1 td {
+                                        border-style: solid;
+                                        border-left-width: 1px;
+                                        border-top-width: 1px;
+                                        border-right-width: 0px;
+                                        border-bottom-width: 0px;
+                                    }
+                                    table.DAI04120Grid1 tr:last-child td {
+                                        border-bottom-width: 1px;
+                                    }
+                                    table.header-table tr:nth-child(1) th:nth-child(3),
+                                    table.header-table tr:nth-child(1) th:last-child,
+                                    table.DAI04120Grid1 th:last-child,
+                                    table.DAI04120Grid1 td:last-child {
+                                        border-right-width: 1px;
+                                    }
+                                    table.DAI04120Grid1 tr th:nth-child(1) {
+                                        width: 5.0%;
+                                    }
+                                    table.DAI04120Grid1 tr th:nth-child(2) {
+                                        width: 20.0%;
+                                    }
+                                    table.DAI04120Grid1 tr th:nth-child(3) {
+                                        width: 7.0%;
+                                    }
+                                    table.DAI04120Grid1 tr th:nth-child(4) {
+                                        width: 7.0%;
+                                    }
+                                    table.DAI04120Grid1 tr th:nth-child(5) {
+                                        width: 12.0%;
+                                    }
+                                    table.DAI04120Grid1 th:nth-child(6) {
+                                        text-align: left;
+                                        padding-left: 25px;
+                                    }
+                                    table.DAI04120Grid1 td:nth-child(6) {
+                                        text-align: left;
+                                        padding-left: 18px;
+                                    }
+                                `,
+                                headerFunc,
+                                29,
+                            )
+                        )
+                )
+                .prop("outerHTML")
+                ;
+
+            var printOptions = {
+                type: "raw-html",
+                style: "@media print { @page { size: A4 landscape; } }",
+                printable: printable,
+            };
+
+            printJS(printOptions);
+            //印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //$("#printJS").contents().find("html").html()
+        },
     }
 }
 </script>

@@ -653,12 +653,13 @@ export default {
             var vue = this;
             var grid = vue.DAI05150Grid1;
 
-            if (!!vue.viewModel.BushoCd && !vue.BushoInfo) {
-                var entity = vue.$refs.VueSelectBusho.$refs.BushoCd.entities.find(v => v.code == vue.viewModel.BushoCd);
+            //TOOD:VueSelectBusho用
+            // if (!!vue.viewModel.BushoCd && !vue.BushoInfo) {
+            //     var entity = vue.$refs.VueSelectBusho.$refs.BushoCd.entities.find(v => v.code == vue.viewModel.BushoCd);
 
-                if (!entity) return
-                vue.BushoInfo = entity.info;
-            }
+            //     if (!entity) return
+            //     vue.BushoInfo = entity.info;
+            // }
 
             //印刷用HTML全体適用CSS
             var globalStyles = `
