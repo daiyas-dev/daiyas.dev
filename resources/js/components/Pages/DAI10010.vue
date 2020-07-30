@@ -116,6 +116,7 @@
             :autoEmptyRowFunc=autoEmptyRowFunc
             :autoEmptyRowCheckFunc=autoEmptyRowCheckFunc
             :setCustomTitle=setCustomGridTitle
+            :onEnterMove=true
             classes="mt-2 mb-1 mr-0 ml-0"
         />
     </form>
@@ -263,7 +264,6 @@ export default {
                 editModel: {
                     clicksToEdit: 2,
                     keyUpDown: false,
-                    saveKey: $.ui.keyCode.ENTER,
                     onSave: "nextFocus",
                     onTab: "nextFocus",
                 },

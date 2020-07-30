@@ -106,6 +106,7 @@ export default {
         maxRowSelectCount: Number,
         autoToolTipDisabled:Boolean,
         setCustomTitle: Function,
+        onEnterMove: Boolean,
     },
     computed: {
         isDialog: function() {
@@ -1495,6 +1496,10 @@ export default {
                 switch(event.which) {
                     case 13:   //"enter"
                     case 32:   //"space"
+                        if (event.which == 13 && !!grid.vue.onEnterMove) {
+                            return vue.moveNextCell(grid, ui, event.shiftKey);
+                        }
+
                         if (cell.has(":checkbox").length) {
                             cell.find(":checkbox")[0].click();
                         } else if (ui.column.editable) {
@@ -3328,7 +3333,9 @@ export default {
                                 },
                             };
                             grid.updateRow(row);
+                            grid.quitEditMode();
                             console.log("editor next cell", ui.rowIndx, row);
+
                             return false;
                         }
                     }
