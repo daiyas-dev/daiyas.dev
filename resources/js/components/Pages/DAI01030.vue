@@ -993,6 +993,8 @@ export default {
             var params = _.cloneDeep(vue.searchParams);
             params.noCache = true;
 
+            if (!params.CustomerCd) return;
+
             //最終修正日/担当者
             vue.viewModel.LastEditor = "";
             vue.viewModel.LastEditDate = "";
