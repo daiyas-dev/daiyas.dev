@@ -52,13 +52,18 @@ class PWADataReceive extends DataReceiveBase
                     continue;
                 }
                 $zip_path = $response["file_path"];
+                $last_update_date = $response["last_update_date"];
+                if($last_update_date==null || $last_update_date=="")
+                {
+                    $last_update_date= date("Y/m/d H:i:s");
+                }
                 if ($zip_path=="") {
                     //ファイルが送信されなかったら、更新なしとみなし、現在日時を最終更新日時として更新する。
                     $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
                     $user = 'daiyas';
                     $password = 'daiyas';
                     $pdo = new PDO($dsn, $user, $password);
-                    $this->updateLastUpdateDate($pdo,$DataItem['受信ＩＤ']);
+                    $this->updateLastUpdateDate($pdo,$DataItem['受信ＩＤ'],$last_update_date);
                     $pdo = null;
                     continue;
                 }
@@ -101,7 +106,7 @@ class PWADataReceive extends DataReceiveBase
                         }
                         if($result->result===true)
                         {
-                            $this->updateLastUpdateDate($pdo,$DataItem['受信ＩＤ'],$response["last_update_date"]);
+                            $this->updateLastUpdateDate($pdo,$DataItem['受信ＩＤ'],$last_update_date);
 
                             $is_error=false;
                             array_push($result_list, $result);

@@ -156,15 +156,23 @@ class DataReceiveBase
 
                 //更新実施
                 if (0<$count) {
-                    //UPDATE
-                    $values="";
-                    foreach ($new_data as $key=>$val) {
-                        $q_val = ($val===null) ? "null" : "'$val'";
-                        $values .= ", $key = $q_val";
+                    //更新日付の確認
+                    $updatedat_field_name=  $cnv_table_name=="モバイル_更新予定リスト" ? "更新日" : "修正日";
+                    $stmt = $pdo->query("SELECT $updatedat_field_name AS UPDATED_AT FROM $cnv_table_name WHERE $where");
+                    $now_last_update_date = new Carbon($stmt->fetch()["UPDATED_AT"]);
+                    $new_last_update_date = new Carbon($new_data[$updatedat_field_name]);
+
+                    if ($now_last_update_date->format('Y-m-d H:i:s')<$new_last_update_date->format('Y-m-d H:i:s')) {
+                        //UPDATE
+                        $values="";
+                        foreach ($new_data as $key=>$val) {
+                            $q_val = ($val===null) ? "null" : "'$val'";
+                            $values .= ", $key = $q_val";
+                        }
+                        $values=substr($values, 1);
+                        $sql="UPDATE $cnv_table_name SET $values WHERE $where";
+                        $pdo->exec($sql);
                     }
-                    $values=substr($values, 1);
-                    $sql="UPDATE $cnv_table_name SET $values WHERE $where";
-                    $pdo->exec($sql);
                 } else {
                     //INSERT
                     $fields="";
@@ -977,6 +985,7 @@ class DataReceiveBase
 
                                     DB::connection('sqlsrv_batch')->table("売上データ明細")->insert($dist);
 
+                                    /*
                                     $Parent = DB::connection('sqlsrv_batch')->table("売上データ明細")
                                         ->where('部署ＣＤ', $MobileSales->部署ＣＤ)
                                         ->where('コースＣＤ', $MobileSales->コースＣＤ)
@@ -986,6 +995,7 @@ class DataReceiveBase
                                         ->where('主食ＣＤ', $MobileSales->主食ＣＤ)
                                         ->where('副食ＣＤ', $MobileSales->副食ＣＤ)
                                         ->get();
+                                    */
 
                                     //分配元更新
                                     $Parent = DB::connection('sqlsrv_batch')->table("売上データ明細")
@@ -996,6 +1006,10 @@ class DataReceiveBase
                                         ->where('商品ＣＤ', $MobileDist->商品ＣＤ)
                                         ->where('主食ＣＤ', $MobileDist->主食ＣＤ)
                                         ->where('副食ＣＤ', $MobileDist->副食ＣＤ)
+                                        ->where(function ($q) {
+                                            $q->orWhere('掛売個数', '>', 0)
+                                                ->orWhere('現金個数', '>', 0);
+                                        })
                                         ->first();
 
                                     if (!!$Parent) {
