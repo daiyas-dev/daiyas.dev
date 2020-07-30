@@ -205,6 +205,7 @@ export default {
                 CustomerNm: null,
                 PaymentCd: null,
                 PaymentNm: null,
+                EatCd: null,
             },
             isLocked: null,
             DAI10010Grid1: null,
@@ -991,7 +992,7 @@ export default {
             return {
                 "値引事由": 0,
                 "売上売掛現金区分": (vue.viewModel.PaymentCd || 0) * 1,
-                "食事区分": 0,
+                "食事区分": (vue.viewModel.EatCd || 2) * 1,
             };
         },
         autoEmptyRowCheckFunc: function(rowData) {
