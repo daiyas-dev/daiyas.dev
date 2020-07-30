@@ -474,6 +474,7 @@ export default {
             var globalStyles = `
                 body {
                     -webkit-print-color-adjust: exact;
+                    margin: 0px !important;
                 }
                 table {
                     table-layout: fixed;
@@ -485,7 +486,7 @@ export default {
                 }
                 th, td {
                     font-family: "MS UI Gothic";
-                    font-size: 8pt;
+                    font-size: 9pt;
                     font-weight: normal;
                     margin: 0px;
                     padding-left: 3px;
@@ -495,14 +496,23 @@ export default {
                 td.ticket-outer{
                     width:calc(100vw/3);
                     height:calc(100vh/9);
-                    padding:0px 10px 0px 10px;
+                    padding:5px 10px 5px 10px;
                 }
                 div.ticket-content{
                     display:inline-block;
                     vertical-align:top;
+                    line-height: 1.5;
                 }
                 .pagebreak {
                 break-before: page;
+                }
+                div[style="break-before: page;"],
+                div[style="break-before: auto;"],
+                div[style="page-break-before: always;"] {
+                    margin-top: 0px !important;
+                    margin-bottom: 0px !important;
+                    margin-right: 0px !important;
+                    margin-left: 0px !important;
                 }
             `;
 

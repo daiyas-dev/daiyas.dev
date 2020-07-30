@@ -807,7 +807,7 @@ export default {
             var vue = this;
 
             //顧客情報検索
-            $(vue.$el).find("#CustomerSelect").removeClass("has-error");
+            $(vue.$el).find(".CustomerSelect").removeClass("has-error");
             var params = _.cloneDeep(vue.searchParams);
             params.noCache = true;
             axios.post("/DAI01030/GetCustomerInfo", params)
@@ -862,7 +862,7 @@ export default {
                 vue.footerButtons.find(v => v.id == "DAI01030Grid1_showCustomerMaint").disabled = true;
                 vue.footerButtons.find(v => v.id == "DAI01030Grid1_showProductMaint").disabled = true;
                 vue.footerButtons.find(v => v.id == "DAI01030Grid1_Save").disabled = true;
-                $(vue.$el).find("#CustomerSelect").addClass("has-error");
+                $(vue.$el).find(".CustomerSelect").addClass("has-error");
             });
 
             if (!!vue.viewModel.CustomerCd && noSearch != true) {
