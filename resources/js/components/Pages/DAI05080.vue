@@ -352,7 +352,7 @@ export default {
         onCustomerChanged: function(code, entity) {
             var vue = this;
 
-            if (!!entity && !vue.BushoCdArray.includes(entity.部署CD)) {
+            if (!!entity && !!entity.部署CD && !vue.BushoCdArray.includes(entity.部署CD)) {
                 var info = vue.$refs.VueMultiSelect_Busho.entities.find(v => v.code == entity.部署CD);
                 vue.viewModel.BushoArray.push(info);
                 vue.conditionChanged();
