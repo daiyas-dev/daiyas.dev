@@ -110,7 +110,7 @@ class DAI01130Controller extends Controller
                 入金日付 DESC
         ";
 
-        $Result = DB::selectOne($sql);
+        $Result = DB::select($sql);
         return $Result;
     }
 

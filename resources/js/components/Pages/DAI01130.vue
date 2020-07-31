@@ -501,6 +501,9 @@ export default {
                 console.log("onDenpyoNoChanged", entity);
                 vue.viewModel.TargetDate = moment(entity.入金日付).format("YYYY年MM月DD日");
             }
+
+            //条件変更ハンドラ
+            vue.conditionChanged(true);
         },
         onTargetDateChanged: function() {
             var vue = this;
@@ -574,14 +577,12 @@ export default {
                 return v;
             });
             var match = vue.DenpyoNoList.find(v => moment(v.入金日付).format("YYYY年MM月DD日") == vue.viewModel.TargetDate);
-            if (!!match) {
+            if (!!match && !vue.viewModel.DenpyoNo) {
                 vue.viewModel.DenpyoNo = match.伝票Ｎｏ;
-            } else {
-                vue.viewModel.DenpyoNo = null;
             }
 
             //入金データ
-            var NyukinData = data.NyukinData;
+            var NyukinData = data.NyukinData.filter(v => !!vue.viewModel.DenpyoNo ? v.伝票Ｎｏ == vue.viewModel.DenpyoNo : true)[0];
 
             if (!!NyukinData) {
                 vue.CurrentNyukinData = NyukinData;
