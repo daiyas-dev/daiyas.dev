@@ -96,7 +96,7 @@
             <div class="col-md-1">
                 <label class="text-center">摘要</label>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-3">
                 <!-- <PopupSelect
                     id="TekiyoSelect"
                     ref="PopupSelect_Tekiyo"
@@ -133,42 +133,24 @@
                     :isShowAutoComplete=true
                     :AutoCompleteFunc=TekiyoAutoCompleteFunc
                 /> -->
-                <VueDataList
-                    id="TekiyoSelect"
-                    ref="VueDataList_Tekiyo"
-                    :vmodel=viewModel
-                    bind="Tekiyo"
-                    :list='[
-                        "",
-                        "１月分入金",
-                        "２月分入金",
-                        "３月分入金",
-                        "４月分入金",
-                        "５月分入金",
-                        "６月分入金",
-                        "７月分入金",
-                        "８月分入金",
-                        "９月分入金",
-                        "１０月分入金",
-                        "１１月分入金",
-                        "１２月分入金",
-                        "翌日分",
-                        "翌週分",
-                        "翌月分"
-                    ]'
-                    :isPreload=true
-                    :isShowName=false
-                    :isModal=true
-                    :editable=true
-                    :reuse=true
-                    :existsCheck=false
-                    :noResearch=true
-                    :hideSearchButton=true
-                    :hideClearButton=true
-                    :inputWidth=200
-                    :isShowAutoComplete=true
-                    :AutoCompleteFunc=TekiyoAutoCompleteFunc
-                />
+                <input type="text" list="tekiyo_list" class="form-control" v-model="viewModel.Tekiyo">
+                <datalist id="tekiyo_list">
+                    <option value="１月分入金" />
+                    <option value="２月分入金" />
+                    <option value="３月分入金" />
+                    <option value="４月分入金" />
+                    <option value="５月分入金" />
+                    <option value="６月分入金" />
+                    <option value="７月分入金" />
+                    <option value="８月分入金" />
+                    <option value="９月分入金" />
+                    <option value="１０月分入金" />
+                    <option value="１１月分入金" />
+                    <option value="１２月分入金" />
+                    <option value="翌日分" />
+                    <option value="翌週分" />
+                    <option value="翌月分" />
+                </datalist>
             </div>
         </div>
         <div class="row mt-0 mb-0 pt-2 pl-2 pr-2 pb-2 border-left border-right border-dark" :style='!!IsChild ? "" : "width: 850px;"'>
@@ -605,11 +587,6 @@ export default {
                 vue.CurrentNyukinData = NyukinData;
 
                 //摘要/備考
-                //TODO西山確認中 追加したものを表示したい
-                if (!!NyukinData.摘要) {
-                    DAI01130.$refs.VueDataList_Tekiyo.entities.shift();
-                    DAI01130.$refs.VueDataList_Tekiyo.entities.unshift(NyukinData.摘要);
-                }
                 vue.viewModel.Tekiyo = NyukinData.摘要;
                 vue.viewModel.Biko = NyukinData.備考;
 
@@ -621,7 +598,6 @@ export default {
                     vue.DAI01130GridNyukin.blinkDiff(NyukinList, true);
                 } else {
                     vue.DAI01130GridNyukin.rollback();
-                    //TODO西山確認中
                     vue.DAI01130GridNyukin.pdata.forEach(v => v.kind == "手形" ? v.value = NyukinData["値引"] : v.value = NyukinData[v.kind]);
                     vue.DAI01130GridNyukin.refreshDataAndView();
                     vue.DAI01130GridNyukin.commit();
@@ -724,7 +700,7 @@ export default {
                 "その他": grid.pdata.find(r => r.kind == "チケット入金").value * 1,
                 "相殺": grid.pdata.find(r => r.kind == "振込料").value * 1,
                 "値引": grid.pdata.find(r => r.kind == "手形").value * 1,
-                "摘要": DAI01130.$refs.VueDataList_Tekiyo.bindValue,
+                "摘要": vue.viewModel.Tekiyo,
                 "備考": vue.viewModel.Biko,
                 "請求日付": !!vue.CurrentNyukinData ? vue.CurrentNyukinData.請求日付 : "",
                 "予備金額１": 0,
