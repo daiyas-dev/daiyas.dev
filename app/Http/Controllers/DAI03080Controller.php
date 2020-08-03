@@ -110,6 +110,7 @@ class DAI03080Controller extends Controller
 
                 SELECT
                     SEIKYU.請求先ＣＤ
+                    ,SEIKYU.部署ＣＤ
                     ,SEIKYU.今回請求額 - ISNULL(入金額, 0) AS 今回請求額
                     ,TOK.金融機関CD AS 引落銀行番号
                     ,KINYU.銀行名カナ AS 引落銀行名

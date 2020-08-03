@@ -221,23 +221,28 @@ export default {
                     on: true,
                     header: false,
                     grandSummary: true,
+                    indent: 20,
+                    dataIndx: ["部署ＣＤ"],
+                    showSummary: [true],
+                    collapsed: [false],
+                    summaryInTitleRow: "collapsed",
                 },
                 summaryData: [
                 ],
                 formulas: [
                 ],
                 colModel: [
-                    // {
-                    //     title: "GroupKey",
-                    //     dataIndx: "GroupKey", dataType: "string",
-                    //     hidden: true,
-                    //     fixed: true,
-                    // },
                     {
                         title: "No.",
                         dataIndx: "No", dataType: "string",
                         hidden: true,
                         hiddenOnExport: false,
+                    },
+                    {
+                        title: "部署ＣＤ",
+                        dataIndx: "部署ＣＤ", dataType: "string",
+                        hidden: true,
+                        fixed: true,
                     },
                     {
                         title: "請求先ＣＤ",
@@ -254,7 +259,13 @@ export default {
                             if (!!ui.rowData.pq_grandsummary) {
                                 //合計行
                                 ui.rowData["得意先名"] = "合計";
-                                return { text: "合計" };
+                                return { text: "合　計" };
+                            }
+                            if (!!ui.rowData.pq_gsummary) {
+                                //小計行
+                                //TODO西山
+                                ui.rowData["得意先名"] = "小計";
+                                return { text: "小　計" };
                             }
                             return ui;
                         },
@@ -437,7 +448,7 @@ export default {
             vue.footerButtons.find(v => v.id == "DAI03080Grid1_Print").disabled = !res.length;
 
             //No追加
-            res.forEach((v,i) => {v.No = i + 1;});
+            res.forEach((v,i) => { v.No = i + 1; });
 
             return res;
         },
@@ -697,8 +708,11 @@ export default {
                                         border-right-width: 1px;
                                         border-bottom-width: 1px;
                                     }
+                                    table.DAI03080Grid1 tr.group-summary td:nth-child(3),
                                     table.DAI03080Grid1 tr.grand-summary td:nth-child(3) {
                                         text-align: center;
+                                    }
+                                    table.DAI03080Grid1 tr.grand-summary td:nth-child(3) {
                                         border-left-width: 1px;
                                         border-bottom-width: 1px;
                                     }
@@ -741,6 +755,9 @@ export default {
                                 `,
                                 headerFunc,
                                 25,
+                                false,
+                                true,
+                                false,
                             )
                         )
                 )

@@ -363,7 +363,6 @@ export default {
                 vue.footerButtons.find(v => v.id == "DAI03090Grid1_Clear").disabled = true;
                 vue.footerButtons.find(v => v.id == "DAI03090Grid1_Save").disabled = true;
                 vue.footerButtons.find(v => v.id == "DAI03090Grid1_Printout").disabled = true;
-                vue.footerButtons.find(v => v.id == "DAI03090Grid1_Download").disabled = true;
 
                 $.dialogErr({
                     title: "アップロード失敗",
@@ -393,7 +392,7 @@ export default {
 
             vue.footerButtons.find(v => v.id == "DAI03090Grid1_Clear").disabled = !customers.length;
             vue.footerButtons.find(v => v.id == "DAI03090Grid1_Printout").disabled = !customers.length;
-            vue.footerButtons.find(v => v.id == "DAI03090Grid1_Download").disabled = !customers.length;
+            vue.footerButtons.find(v => v.id == "DAI03090Grid1_Save").disabled = !customers.length;
 
             grid.setLocalData(_.cloneDeep(customers));
         },
