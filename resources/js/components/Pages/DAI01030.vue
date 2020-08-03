@@ -894,7 +894,7 @@ export default {
                     {
                         name: "SearchTel",
                         type: "textbox",
-                        attr: 'name="SearchTel" type="text" autocomplete="off" style="width: 150px !important;"',
+                        attr: 'name="SearchTel" type="tel" autocomplete="off" style="width: 150px !important;"',
                         cls: "SearchTel",
                         label: "<i class='fa fa-phone ml-2'></i>" + "電話番号 ",
                     },
