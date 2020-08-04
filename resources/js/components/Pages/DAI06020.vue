@@ -485,8 +485,8 @@ export default {
                     border: solid 0px black;
                 }
                 th, td {
-                    font-family: "MS UI Gothic";
-                    font-size: 9pt;
+                    font-family: "ＭＳ Ｐ明朝";
+                    font-size: 10pt;
                     font-weight: normal;
                     margin: 0px;
                     padding-left: 3px;
@@ -494,14 +494,14 @@ export default {
                     height:80px;
                 }
                 td.ticket-outer{
-                    width:calc(100vw/3);
+                    width:calc(90vw/3);
                     height:calc(100vh/9);
-                    padding:5px 10px 5px 10px;
+                    padding: 0px 10px 0px 12px;
                 }
                 div.ticket-content{
                     display:inline-block;
                     vertical-align:top;
-                    line-height: 1.5;
+                    line-height: 1.0;
                 }
                 .pagebreak {
                 break-before: page;
@@ -543,16 +543,16 @@ export default {
                     var str_icon_filename=vue.viewModel.BushoCd==701?"701.jpg":"101.jpg";
                     return `
                         <div>
-                            <div style="width:98%;">
+                            <div style="width:96%;">
                                 <div class="ticket-content" style="padding:1px 0px 0px 1px;">
-                                    <img src="${window.location.origin}/images/TicketIcon/${str_icon_filename}" style="width:15px;">
+                                    <img src="${window.location.origin}/images/TicketIcon/${str_icon_filename}" style="width:20px;">
                                 </div>
-                                <div class="ticket-content" style="width:89%;padding-top:5px;margin-bottom:5px;">
+                                <div class="ticket-content" style="width:85%;padding-top:5px;margin-bottom:5px;">
                                     <div class="ticket-content" style="width:75%;word-wrap:break-word;">${str_customer_name}</div>
                                     <div class="ticket-content" style="text-align:right; float:right">様<br/>(${vue.viewModel.CustomerCd})</div>
                                     <div style="clear:both"></div>
                                 </div>
-                                <div style="width:98%;text-align:center;margin-bottom:5px;${str_product_style}">
+                                <div style="width:97%;text-align:center;margin-bottom:5px;${str_product_style}">
                                     ${str_product_name}${str_service}&nbsp;&nbsp;&yen;${vue.viewModel.Price}
                                 </div>
                                 <div class="ticket-content">${str_IssueDate}</div>
@@ -574,7 +574,7 @@ export default {
                         </div>
                     `;
                 var ticket_empty=`
-                        <div style="text-align:center;font-size:18pt;">
+                        <div style="text-align:center;font-size:15pt;">
                         ＊＊＊＊＊
                         </div>
                     `;
