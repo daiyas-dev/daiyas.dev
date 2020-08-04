@@ -210,7 +210,7 @@ class DAI01030Controller extends Controller
                 SUM(IIF(注文区分=0, 現金金額, 0)) AS 現金金額,
                 SUM(IIF(注文区分=0, 掛売個数, 0)) AS 掛売個数,
                 SUM(IIF(注文区分=0, 掛売金額, 0)) AS 掛売金額,
-                MAX(IIF(注文区分 IS NULL OR (現金個数 = 0 AND 掛売個数 = 0), 1, 0)) AS 全表示,
+                MAX(IIF(注文区分 IS NULL, 1, 0)) AS 全表示,
                 MAX(IIF(注文区分=0, 修正日, null)) AS 修正日
             FROM
                 注文一覧
@@ -232,7 +232,7 @@ class DAI01030Controller extends Controller
             return $item["全表示"] == 1;
         });
 
-        if (!$HasShown) {
+        if (!!$HasShown) {
             $sql = "
                 WITH 得意先単価 AS (
                     SELECT
@@ -279,19 +279,21 @@ class DAI01030Controller extends Controller
                     AND 注文データ.得意先ＣＤ = $CustomerCd
                     AND 注文データ.注文区分 = 0
                     AND 注文データ.配送日 >= DATEADD(DAY, -8, '$DeliveryDate')
-                    AND 注文データ.配送日 <  '$DeliveryDate'
-                    AND (注文データ.現金個数 > 0 OR 注文データ.掛売個数 > 0)
+                    AND 注文データ.配送日 <=  '$DeliveryDate'
             ";
 
             // $products = DB::select($sql);
             $stmt = $pdo->query($sql);
             $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            collect($DataList)->each(function ($item, $key) use ($products) {
+            $DataList = collect($DataList)->map(function ($item, $key) use ($products) {
                 if (collect($products)->contains('商品ＣＤ', $item["商品ＣＤ"])) {
-                    $item["全表示"] = 0;
+                    $item["全表示"] = '0';
                 }
-            });
+                return $item;
+            })
+            ->values()
+            ;
 
         }
 
