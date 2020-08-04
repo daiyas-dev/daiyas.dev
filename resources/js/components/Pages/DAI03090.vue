@@ -331,6 +331,13 @@ export default {
         mountedFunc: function(vue) {
             vue.viewModel.TargetDate = moment().format("YYYY年MM月DD日");
         },
+        clear: function(){
+            var vue = this;
+            var grid = DAI03090Grid1;
+
+            $(vue.$el).find(".UploadFile").attr("data-path-text", "対象ファイルをドロップ、もしくはここをクリックして選択");
+            grid.clearData();
+        },
         addFileCallback: function(event) {
             var vue = this;
             $(vue.$el).find(".UploadFile").attr("data-path-text", event.name);

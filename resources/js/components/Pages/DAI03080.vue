@@ -242,7 +242,7 @@ export default {
                         title: "部署ＣＤ",
                         dataIndx: "部署ＣＤ", dataType: "string",
                         hidden: true,
-                        fixed: true,
+                        hiddenOnExport: false,
                     },
                     {
                         title: "請求先ＣＤ",
@@ -259,13 +259,12 @@ export default {
                             if (!!ui.rowData.pq_grandsummary) {
                                 //合計行
                                 ui.rowData["得意先名"] = "合計";
-                                return { text: "合　計" };
+                                return { text: " * * 合　計 * * " };
                             }
                             if (!!ui.rowData.pq_gsummary) {
                                 //小計行
-                                //TODO西山
                                 ui.rowData["得意先名"] = "小計";
-                                return { text: "小　計" };
+                                return { text: " * * 小　計 * * " };
                             }
                             return ui;
                         },
@@ -655,36 +654,39 @@ export default {
                                         border-right-width: 0px;
                                         border-bottom-width: 1px;
                                     }
+                                    table.DAI03080Grid1 tr.group-summary td,
                                     table.DAI03080Grid1 tr.grand-summary td {
                                         border-style: solid;
                                         border-left-width: 0px;
                                         border-top-width: 0px;
                                         border-right-width: 0px;
-                                        border-bottom-width: 0px;
+                                        border-bottom-width: 1px;
                                     }
                                     table.DAI03080Grid1 tr th:nth-child(1) {
-                                        width: 2.5%;
+                                        width: 3.5%;
                                     }
                                     table.DAI03080Grid1 tr th:nth-child(2) {
-                                        width: 6.0%;
+                                        width: 3.0%;
                                     }
-                                    table.DAI03080Grid1 tr th:nth-child(3),
-                                    table.DAI03080Grid1 tr th:nth-child(11) {
-                                        width: 21.0%;
+                                    table.DAI03080Grid1 tr th:nth-child(3) {
+                                        width: 4.0%;
                                     }
                                     table.DAI03080Grid1 tr th:nth-child(4),
-                                    table.DAI03080Grid1 tr th:nth-child(7) {
-                                        width: 7.5%;
+                                    table.DAI03080Grid1 tr th:nth-child(12) {
+                                        width: 21.0%;
+                                    }
+                                    table.DAI03080Grid1 tr th:nth-child(5) {
+                                        width: 7.0%;
+                                    }
+                                    table.DAI03080Grid1 tr th:nth-child(7),
+                                    table.DAI03080Grid1 tr th:nth-child(9) {
+                                        width: 9.0%;
                                     }
                                     table.DAI03080Grid1 tr th:nth-child(6),
                                     table.DAI03080Grid1 tr th:nth-child(8) {
-                                        width: 9.0%;
-                                    }
-                                    table.DAI03080Grid1 tr th:nth-child(5),
-                                    table.DAI03080Grid1 tr th:nth-child(7) {
                                         width: 4.5%;
                                     }
-                                    table.DAI03080Grid1 tr th:nth-child(9) {
+                                    table.DAI03080Grid1 tr th:nth-child(10) {
                                         width: 3.5%;
                                     }
                                     table.DAI03080Grid1 tr th:last-child {
@@ -701,26 +703,26 @@ export default {
                                         border-right-width: 0px;
                                         border-bottom-width: 1px;
                                     }
-                                    table.DAI03080Grid1 tr:not(.grand-summary) td:last-child {
+                                    table.DAI03080Grid1 tr:not(.grand-summary):not(.group-summary) td:last-child {
                                         border-style: solid;
-                                        border-left-width: 1px;
+                                        border-left-width: 0px;
                                         border-top-width: 0px;
                                         border-right-width: 1px;
                                         border-bottom-width: 1px;
                                     }
-                                    table.DAI03080Grid1 tr.group-summary td:nth-child(3),
-                                    table.DAI03080Grid1 tr.grand-summary td:nth-child(3) {
+                                    table.DAI03080Grid1 tr.group-summary td:nth-child(4),
+                                    table.DAI03080Grid1 tr.grand-summary td:nth-child(4) {
                                         text-align: center;
                                     }
-                                    table.DAI03080Grid1 tr.grand-summary td:nth-child(3) {
+                                    table.DAI03080Grid1 tr.group-summary td:first-child,
+                                    table.DAI03080Grid1 tr.grand-summary td:first-child {
                                         border-left-width: 1px;
                                         border-bottom-width: 1px;
                                     }
-                                    table.DAI03080Grid1 tr.grand-summary td:nth-child(4) {
+                                    table.DAI03080Grid1 tr.group-summary td:last-child,
+                                    table.DAI03080Grid1 tr.grand-summary td:last-child {
+                                        border-right-width: 1px;
                                         border-bottom-width: 1px;
-                                    }
-                                    table.DAI03080Grid1 tr.grand-summary td:nth-child(5) {
-                                        border-left-width: 1px;
                                     }
                                     table.header-table th {
                                         border-style: solid;
