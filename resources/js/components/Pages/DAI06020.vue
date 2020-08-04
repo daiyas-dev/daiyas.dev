@@ -494,7 +494,7 @@ export default {
                     height:80px;
                 }
                 td.ticket-outer{
-                    width:calc(90vw/3);
+                    width:calc(92vw/3);
                     height:calc(100vh/9);
                     padding: 0px 10px 0px 12px;
                 }
@@ -704,7 +704,7 @@ export default {
             //TODO:カラー印刷はブラウザから印刷設定を制御できないようなので、定義のみ記述しました。
             var printOptions = {
                 type: "raw-html",
-                style: "@media print and (color) { @page { size: A4 portrait; }}",
+                style: "@media print and (color) { @page { size: 210mm 302mm portrait; }}",
                 printable: printable,
             };
             printJS(printOptions);
