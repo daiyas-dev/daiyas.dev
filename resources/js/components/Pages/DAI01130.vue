@@ -693,7 +693,7 @@ export default {
                 "伝票Ｎｏ": vue.viewModel.DenpyoNo,
                 "部署ＣＤ": vue.searchParams.BushoCd,
                 "得意先ＣＤ": vue.searchParams.CustomerCd,
-                "入金区分": 1,
+                "入金区分": 0,
                 "現金": grid.pdata.find(r => r.kind == "現金").value * 1,
                 "小切手": grid.pdata.find(r => r.kind == "小切手").value * 1,
                 "振込": grid.pdata.find(r => r.kind == "振込").value * 1,

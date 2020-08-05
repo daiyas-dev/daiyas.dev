@@ -1586,8 +1586,8 @@ export default {
                             "本日総売上額": _.sumBy(ProductDataList, "現金金額") + _.sumBy(ProductDataList, "掛売金額"),
                             "総値引金額": _.sumBy(ProductDataList, "現金売値引金額") + _.sumBy(ProductDataList, "掛売値引金額"),
                             "その他": _.sumBy(ProductDataList, "その他現金") + _.sumBy(ProductDataList, "その他掛売"),
-                            "チケット": _.sumBy(ProductDataList, "チケット金額"),
-                            "バークレー": _.sumBy(ProductDataList, "バークレー金額"),
+                            "チケット": _.sumBy(ProductDataList, "チケット金額") || 0,
+                            "バークレー": _.sumBy(ProductDataList, "バークレー金額") || 0,
                         }
                     ];
                     vue.DAI01110GridSummary.options.dataModel.data = SummaryData;
