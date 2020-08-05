@@ -9,6 +9,7 @@ use Illuminate\Support\Arr;
 use DB;
 use Exception;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 use PDO;
 
 class DAI01030Controller extends Controller
@@ -123,11 +124,18 @@ class DAI01030Controller extends Controller
         return response()->json($this->GetOrderList($request));
     }
 
+    function getUnixTimeMillSecond()
+    {
+        $arrTime = explode('.', microtime(true));
+        return date('Y-m-d H:i:s', $arrTime[0]) . '.' . $arrTime[1];
+    }
+
     /**
      * GetOrderList
      */
     public function GetOrderList($vm)
     {
+        Log::debug('Start:' . $this->getUnixTimeMillSecond());
         $BushoCd = $vm->BushoCd;
         $CustomerCd = $vm->CustomerCd;
         $DeliveryDate = $vm->DeliveryDate;
@@ -227,6 +235,7 @@ class DAI01030Controller extends Controller
         // $DataList = DB::select($sql);
         $stmt = $pdo->query($sql);
         $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        Log::debug('Search1:' . $this->getUnixTimeMillSecond());
 
         $HasShown = collect($DataList)->some(function ($item, $key) {
             return $item["全表示"] == 1;
@@ -294,11 +303,13 @@ class DAI01030Controller extends Controller
             })
             ->values()
             ;
+            Log::debug('Search2:' . $this->getUnixTimeMillSecond());
 
         }
 
         $pdo = null;
 
+        Log::debug('Result:' . $this->getUnixTimeMillSecond());
         return $DataList;
     }
 
@@ -902,6 +913,7 @@ class DAI01030Controller extends Controller
      */
     public function Save($request)
     {
+        Log::debug('Save Start:' . $this->getUnixTimeMillSecond());
         $skip = [];
 
         //モバイルsv更新用
@@ -1020,10 +1032,11 @@ class DAI01030Controller extends Controller
             throw $exception;
         }
 
+        Log::debug('Save End:' . $this->getUnixTimeMillSecond());
         return response()->json([
             'result' => true,
             "edited" => count($skip) > 0,
-            "current" => $this->GetOrderList($request),
+            "current" => count($skip) > 0 ? $this->GetOrderList($request) : [],
         ]);
     }
 
@@ -1161,5 +1174,27 @@ AND 部署ＣＤ = $BushoCd
             "Uriage" => !!$UriageVal ? $UriageVal->金額 : 0,
             "Zandaka" => !!$SeikyuVal ? $SeikyuVal->今回請求額 : 0,
         ]);
+    }
+
+    /**
+     * SendPWA
+     */
+    public function SendPWA($request)
+    {
+        $BushoCd = $request->BushoCd ?? $request->bushoCd;
+        $DeliveryDate = $request->DeliveryDate;
+        $CourseCd = $request->CourseCd;
+        $CustomerCd = $request->CustomerCd;
+
+        //モバイルsv更新
+        $ds = new DataSendWrapper();
+        $Message = null;
+        if ($DeliveryDate == Carbon::now()->format('Ymd')) {
+            //当日注文の場合、通知
+            $Message = $request->Message;
+        }
+        $ds->UpdateOrderData($BushoCd, $DeliveryDate, $CustomerCd, $CourseCd, $Message);
+
+        return;
     }
 }

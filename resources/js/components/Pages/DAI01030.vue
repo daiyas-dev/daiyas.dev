@@ -37,8 +37,8 @@
                     id="GroupCustomerCd"
                     :vmodel=viewModel
                     bind="GroupCustomerCd"
-                    uri="/Utilities/GetGroupCustomerList"
-                    :params="{ CustomerCd: viewModel.CustomerCd }"
+                    uri="/api/DAI01030GetGroupCustomerList.php"
+                    :params="{ CustomerCd: viewModel.CustomerCd, CustomerNm: viewModel.CustomerNm }"
                     customStyle="{width: 200px}"
                     :withCode=true
                     :hasNull=true
@@ -156,7 +156,7 @@
         <PqGridWrapper
             :id='"DAI01030Grid1" + (!!params ? _uid : "")'
             ref="DAI01030Grid1"
-            dataUrl="/DAI01030/Search"
+            dataUrl="/api/DAI01030Search.php"
             :query=this.searchParams
             :SearchOnCreate=false
             :SearchOnActivate=false
@@ -808,9 +808,10 @@ export default {
 
             //顧客情報検索
             $(vue.$el).find(".CustomerSelect").removeClass("has-error");
+            vue.viewModel.CustomerNm = null;
             var params = _.cloneDeep(vue.searchParams);
             params.noCache = true;
-            axios.post("/DAI01030/GetCustomerInfo", params)
+            axios.post("/api/DAI01030GetCustomerInfo.php", params)
             .then(res => {
                 var info = res.data;
 
@@ -974,6 +975,7 @@ export default {
             var params = _.cloneDeep(vue.searchParams);
             params.noCache = true;
 
+            console.log("01030 call searchData")
             vue.DAI01030Grid1.searchData(params);
         },
         toggleGridView: function() {
@@ -982,6 +984,7 @@ export default {
         },
         onCompleteFunc: function(grid, ui) {
             var vue = this;
+            console.log("01030 call onCompleteFunc")
 
             if (grid.pdata.length > 0) {
                 var data = grid.pdata[0];
@@ -998,7 +1001,7 @@ export default {
             //最終修正日/担当者
             vue.viewModel.LastEditor = "";
             vue.viewModel.LastEditDate = "";
-            axios.post("/DAI01030/GetLastEdit", params)
+            axios.post("/api/DAI01030GetLastEdit.php", params)
                 .then(res => {
                     vue.viewModel.LastEditor = res.data.修正担当者名;
                     vue.viewModel.LastEditDate = !!res.data.修正日 ? moment(res.data.修正日).format("YYYY/MM/DD HH:mm:ss") : null;
@@ -1010,7 +1013,7 @@ export default {
 
             //配達済/未配達
             vue.viewModel.IsDeliveried = false;
-            axios.post("/DAI01030/IsDeliveried", params)
+            axios.post("/api/DAI01030IsDeliveried.php", params)
                 .then(res => {
                     vue.viewModel.IsDeliveried = res.data.IsDeliveried;
                 })
@@ -1020,7 +1023,7 @@ export default {
                 ;
 
             //備考
-            axios.post("/DAI01030/GetBikou", params)
+            axios.post("/api/DAI01030GetBikou.php", params)
                 .then(res => {
                     var bikou;
                     if(res.data.filter(v => v.注文区分 == 0).length > 0) {
@@ -1043,9 +1046,12 @@ export default {
                 vue.isSave=false;
                 $(vue.$el).find(".CustomerSelect .target-input").focus();
             }
+
+            console.log("01030 call onCompleteFunc End")
         },
         onAfterSearchFunc: function (gridVue, grid, res) {
             var vue = this;
+            console.log("01030 call onAfterSearchFunc")
 
             //配送日
             var deliverDate = _.max(res.filter(v => v.注文区分 == 0).map(v => v.配送日));
@@ -1055,6 +1061,7 @@ export default {
             var deliverTime = _.max(res.map(v => v.注文時間));
             vue.viewModel.DeliveryTime = deliverTime || moment().format("HH:mm:ss");
 
+            console.log("01030 call onAfterSearchFunc End")
             return res;
         },
         onSelectChangeFunc: function(grid, ui) {
@@ -1094,7 +1101,7 @@ export default {
             return ret;
         },
         GroupCustomerParamsChangedCheckFunc: function(newVal, oldVal) {
-            var ret = !!newVal.CustomerCd;
+            var ret = !!newVal.CustomerCd && !!newVal.CustomerNm;
             return ret;
         },
         onGroupCustomerChanged: function(element, info) {
@@ -1247,7 +1254,7 @@ export default {
 
             grid.saveData(
                 {
-                    uri: "/DAI01030/Save",
+                    uri: "/api/DAI01030Save.php",
                     params: {
                         SaveList: SaveList,
                         DeleteList: DeleteList,
@@ -1266,7 +1273,9 @@ export default {
                                 });
                                 grid.blinkDiff(res.current);
                             } else {
-                                // grid.setLocalData(res.current);
+                                //PWA送信設定
+                                axios.post("/DAI01030/SendPWA", params);
+
                                 grid.refreshDataAndView();
                                 vue.viewModel.IsEdit = true;
                             }
@@ -1576,7 +1585,7 @@ export default {
 
             axios.all(
                 [
-                    axios.post("/DAI01030/Search", params),
+                    axios.post("/api/DAI01030Search.php", params),
                     axios.post("/DAI01030/GetProductList", params),
                 ]
             ).then(
