@@ -1220,7 +1220,7 @@ export default {
                 strNoRows: "",
                 rowHt: 19,
                 rowHtHead: 19,
-                width: 245,
+                width: 290,
                 height: 89,
                 editable: false,
                 columnTemplate: {
@@ -1606,13 +1606,6 @@ export default {
                     vue.DAI01110GridTicketSummary.options.dataModel.data = TicketSummaryData;
                     vue.DAI01110GridTicketSummary.refreshDataAndView();
 
-                    var TicketData = [
-                        {kind: "チケット", value: _.sumBy(ProductDataList, "チケット枚数")},
-                        {kind: "ボーナス", value: _.sumBy(ProductDataList, "ボーナス枚数")},
-                    ];
-                    vue.DAI01110GridTicket.options.dataModel.data = TicketData;
-                    vue.DAI01110GridTicket.refreshDataAndView();
-
                     //コース別明細データ
                     var CourseMeisaiData = _.cloneDeep(res.data.CourseMeisaiData);
                     vue.viewModel.IsSaved = !!CourseMeisaiData;
@@ -1636,6 +1629,14 @@ export default {
                         });
                         vue.DAI01110GridMoneyInfo.refreshDataAndView();
                         vue.DAI01110GridMoneyInfo.commit();
+
+                        //チケット
+                        var TicketData = [
+                            {kind: "チケット", value: CourseMeisaiData.セイブチケットＥお || 0},
+                            {kind: "ボーナス", value: CourseMeisaiData.セイブチケットＨお || 0},
+                        ];
+                        vue.DAI01110GridTicket.options.dataModel.data = TicketData;
+                        vue.DAI01110GridTicket.refreshDataAndView();
 
                         //バークレーバウチャー
                         vue.DAI01110GridBV.pdata.map((v, i) => {
