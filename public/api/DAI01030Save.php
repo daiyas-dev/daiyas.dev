@@ -117,7 +117,6 @@ try {
                 AND 部署ＣＤ=?
                 AND 得意先ＣＤ=?
                 AND 配送日=?
-                AND 明細行Ｎｏ=?
             ";
 
             $stmt = $pdo->prepare($NextNoSql);
@@ -127,11 +126,11 @@ try {
                     $rec['注文日付'],
                     $rec['部署ＣＤ'],
                     $rec['得意先ＣＤ'],
-                    $rec['配送日'],
-                    $rec['明細行Ｎｏ']
+                    $rec['配送日']
                 )
             );
-            $no = $stmt->fetch()["No"];
+            $ret = $stmt->fetch(PDO::FETCH_ASSOC);
+            $no = $ret["No"] ?? 1;
         }
 
         if (!!isset($rec['現金個数']) && !!isset($rec['掛売個数'])) {
