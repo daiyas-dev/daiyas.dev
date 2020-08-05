@@ -215,6 +215,10 @@
 [pgid=DAI01110] .pq-align-center-force {
     justify-content: center !important;
 }
+
+[pgid=DAI01110] .pq-cont-inner.pq-cont-right {
+    overflow-x: hidden !important;
+}
 </style>
 <style scoped>
 label{
@@ -1673,7 +1677,7 @@ export default {
             return "チケット";
         },
         setGridBVTitle: function(title) {
-            return "バークレーヴァウチャーズチケット(弁当用)";
+            return "バークレーヴァウチャーズチケット";
         },
         delete: function() {
             var vue = this;
