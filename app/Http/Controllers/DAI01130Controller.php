@@ -208,6 +208,9 @@ class DAI01130Controller extends Controller
                 } else {
                     $Target['修正日'] = $date;
 
+                    $Target['摘要'] = !!$Target['摘要'] ? $Target['摘要'] : "" ;
+                    $Target['備考'] = !!$Target['備考'] ? $Target['備考'] : "" ;
+
                     入金データ::query()
                         ->where('入金日付', $Target['入金日付'])
                         ->where('伝票Ｎｏ', $Target['伝票Ｎｏ'])
@@ -224,6 +227,8 @@ class DAI01130Controller extends Controller
 
                 $Target['伝票Ｎｏ'] = $no;
                 $Target['修正日'] = $date;
+                $Target['摘要'] = !!$Target['摘要'] ? $Target['摘要'] : "" ;
+                $Target['備考'] = !!$Target['備考'] ? $Target['備考'] : "" ;
 
                 入金データ::insert($Target);
             }
