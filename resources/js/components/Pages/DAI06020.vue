@@ -494,9 +494,9 @@ export default {
                     height:80px;
                 }
                 td.ticket-outer{
-                    width:calc(92vw/3);
+                    width:calc(89vw/3);
                     height:calc(100vh/9);
-                    padding: 0px 10px 0px 12px;
+                    padding: 0px 15px 0px 15px;
                 }
                 div.ticket-content{
                     display:inline-block;
@@ -511,8 +511,8 @@ export default {
                 div[style="page-break-before: always;"] {
                     margin-top: 0px !important;
                     margin-bottom: 0px !important;
-                    margin-right: 0px !important;
-                    margin-left: 0px !important;
+                    margin-right: 5px !important;
+                    margin-left: 5px !important;
                 }
             `;
 
@@ -538,8 +538,8 @@ export default {
                     var str_product_style=(kind==1 || kind==2) ? "color:green;background-color:peachpuff":"color:red;" ;//商品名のスタイル設定(通常チケット:背景色=なし,文字色=赤 / サービス:背景色=オレンジ,文字色=緑)
                     var str_product_name = kind==1 ? vue.viewModel.ProductName.substr(0,7) : kind==2 ? vue.viewModel.ProductName.substr(0,5) : vue.viewModel.ProductName.substr(0,12);//商品名。通常チケットは先頭から12文字、サービスチケットは先頭から7文字、サービス半券は先頭から5文字を取得
 
-                    var str_IssueDate= vue.viewModel.IsPrintIssueDate=='1' ? "発行:"+ moment(vue.viewModel.IssueDate, "YYYY年MM月DD日").format("YYYY/MM/DD") : "";
-                    var str_ExpireDate=vue.viewModel.IsPrintExpireDate=='1' ? "有効期限:"+moment(vue.viewModel.ExpireDate, "YYYY年MM月DD日").format("YYYY/MM/DD") : "";
+                    var str_IssueDate= vue.viewModel.IsPrintIssueDate=='1' ? moment(vue.viewModel.IssueDate, "YYYY年MM月DD日").format("YYYY/MM/DD") : "";
+                    var str_ExpireDate=vue.viewModel.IsPrintExpireDate=='1' ? moment(vue.viewModel.ExpireDate, "YYYY年MM月DD日").format("YYYY/MM/DD") : "";
                     var str_icon_filename=vue.viewModel.BushoCd==701?"701.jpg":"101.jpg";
                     return `
                         <div>
@@ -555,11 +555,13 @@ export default {
                                 <div style="width:97%;text-align:center;margin-bottom:5px;${str_product_style}">
                                     ${str_product_name}${str_service}&nbsp;&nbsp;&yen;${vue.viewModel.Price}
                                 </div>
-                                <div class="ticket-content">${str_IssueDate}</div>
-                                <div class="ticket-content" style="text-align:right; float:right">${str_ExpireDate}</div>
+                                <div class="ticket-content">発行:</div>
+                                <div class="ticket-content" style="font-size:9pt;">${str_IssueDate}</div>
+                                <div class="ticket-content" style="text-align:right; padding-left: 1px;">有効期限:</div>
+                                <div class="ticket-content" style="text-align:right; font-size:9pt;">${str_ExpireDate}</div>
                                 <div style="clear:both"></div>
-                                <div class="ticket-content">株式会社ダイヤス食品</div>
-                                <div class="ticket-content" style="text-align:right; float:right">No.${str_TicketNo}${str_seq}</div>
+                                <div class="ticket-content" >株式会社ダイヤス食品</div>
+                                <div class="ticket-content" style="text-align:right; padding-left:23px;">№${str_TicketNo}${str_seq}</div>
                                 <div style="clear:both"></div>
                             </div>
                         </div>
@@ -574,7 +576,7 @@ export default {
                         </div>
                     `;
                 var ticket_empty=`
-                        <div style="text-align:center;font-size:15pt;">
+                        <div style="text-align:center;font-size:13pt;">
                         ＊＊＊＊＊
                         </div>
                     `;
