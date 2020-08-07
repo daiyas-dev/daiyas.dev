@@ -93,11 +93,14 @@ Vue.directive("setKana", {
 
                 var callback = binding.value;
 
-                var hCnt = Moji(target).filter("HE").toString().length + Moji(target).filter("HS").toString().length;
+                var hCnt;
+                if (!!target) {
+                    hCnt = Moji(target).filter("HE").toString().length + Moji(target).filter("HS").toString().length;
 
-                if (hCnt == target.length) {
-                    console.log("setKana directive", target);
-                    callback(target);
+                    if (hCnt == target.length) {
+                        console.log("setKana directive", target);
+                        callback(target);
+                    }
                 }
 
             }, 100)
@@ -116,10 +119,6 @@ Vue.directive("setKana", {
                     el.setAttribute("toKana", target);
                 }
                 if (Moji(target).filter("ZE").toString().length == target.length) {
-                    console.log("setKana directive", target);
-                    el.setAttribute("toKana", target);
-                }
-                if (Moji(target).filter("HE").toString().length == target.length) {
                     console.log("setKana directive", target);
                     el.setAttribute("toKana", target);
                 }
@@ -151,9 +150,6 @@ Vue.directive("setKana", {
 
                         if (Moji(data).filter("ZE").toString().length == data.length) {
                             data = Moji(data).convert('ZE', 'HE').toString();
-                            result = data;
-                        }
-                        if (/\d/.test(data)) {
                             result = data;
                         }
 
