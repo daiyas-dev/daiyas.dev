@@ -97,6 +97,16 @@ Vue.directive("setKana", {
                     console.log("setKana directive", target);
                     el.setAttribute("toKana", target);
                 }
+                if (Moji(target).filter("KK").toString().length == target.length) {
+                    console.log("setKana directive", target);
+                    el.setAttribute("toKana", target);
+                }
+                if (Moji(target).filter("ZE").toString().length == target.length) {
+                    console.log("setKana directive", target);
+                    target = Moji(target).convert("ZE","HE").toString();
+                    el.setAttribute("toKana", target);
+                }
+
             }, 100)
         );
         el.addEventListener(
@@ -121,6 +131,11 @@ Vue.directive("setKana", {
                         console.log("getKana api ret", target, resTarget, binding);
 
                         var result = !!resData && resData.startsWith(resTarget) ? resData : resTarget;
+
+                        if (Moji(data).filter("ZE").toString().length == data.length) {
+                            data = Moji(data).convert('ZE', 'HE').toString();
+                            result = data;
+                        }
 
                         if (data == "㈱") {
                             result = "ｶﾌﾞ";
