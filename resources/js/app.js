@@ -87,8 +87,22 @@ Vue.directive("maxBytes", {
 Vue.directive("setKana", {
     inserted(el, binding) {
         el.addEventListener(
-            //"input",
-            //"compositionend",
+            "input",
+            _.debounce(event => {
+                var target = event.data;
+
+                var callback = binding.value;
+
+                var hCnt = Moji(target).filter("HE").toString().length + Moji(target).filter("HS").toString().length;
+
+                if (hCnt == target.length) {
+                    console.log("setKana directive", target);
+                    callback(target);
+                }
+
+            }, 100)
+        );
+        el.addEventListener(
             "compositionupdate",
             _.debounce(event => {
                 var target = event.data;    //el.value;
