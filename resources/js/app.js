@@ -148,6 +148,9 @@ Vue.directive("setKana", {
 
                         var result = !!resData && resData.startsWith(resTarget) ? resData : resTarget;
 
+                        if (/\w/.test(data)){
+                            result = "";
+                        }
                         if (Moji(data).filter("ZE").toString().length == data.length) {
                             data = Moji(data).convert('ZE', 'HE').toString();
                             result = data;
