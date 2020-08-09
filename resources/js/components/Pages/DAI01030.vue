@@ -165,6 +165,7 @@
             :onCompleteFunc=onCompleteFunc
             :onAfterSearchFunc=this.onAfterSearchFunc
             :onSelectChangeFunc=onSelectChangeFunc
+            :onEnterMove=true
             :setMoveNextCell=setMoveNextCell
             :autoToolTipDisabled=true
             classes="mt-1 mb-1 mr-3 ml-3"
