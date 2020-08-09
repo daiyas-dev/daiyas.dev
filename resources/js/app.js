@@ -143,23 +143,28 @@ Vue.directive("setKana", {
                 window.getKana(data, resData => {
                     console.log("getKana api ret", data, resData, binding);
 
-                    window.getKana(target, resTarget => {
-                        console.log("getKana api ret", target, resTarget, binding);
+                    if (!!target) {
+                        window.getKana(target, resTarget => {
+                            console.log("getKana api ret", target, resTarget, binding);
 
-                        var result = !!resData && resData.startsWith(resTarget) ? resData : resTarget;
+                            var result = !!resData && resData.startsWith(resTarget) ? resData : resTarget;
 
-                        if (Moji(data).filter("ZE").toString().length == data.length) {
-                            data = Moji(data).convert('ZE', 'HE').toString();
-                            result = data;
-                        }
+                            if (/\w/.test(data)){
+                                result = "";
+                            }
+                            if (Moji(data).filter("ZE").toString().length == data.length) {
+                                data = Moji(data).convert('ZE', 'HE').toString();
+                                result = data;
+                            }
 
-                        if (data == "㈱") {
-                            result = "ｶﾌﾞ";
-                        }
+                            if (data == "㈱") {
+                                result = "ｶﾌﾞ";
+                            }
 
-                        result = binding.modifiers.full ? result : window.Moji(result).convert("ZK", "HK");
-                        callback(result);
-                    });
+                            result = binding.modifiers.full ? result : window.Moji(result).convert("ZK", "HK");
+                            callback(result);
+                        });
+                    }
                 });
             }
         );
