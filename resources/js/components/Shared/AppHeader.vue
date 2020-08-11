@@ -11,6 +11,11 @@
                     Web受注 <span class="badge badge-light webOrderCount">{{webOrderCount}}</span>
                 </button>
             </div>
+            <div class="col-md-1">
+                <button type="button" class="btn btn-primary" @click="showPrevList">
+                    再表示 <span class=""></span>
+                </button>
+            </div>
             <div class="col-md-2 justify-content-end">
                 <span :class="['ml-1', 'badge', this.isLogOn == true ? 'badge-success' : 'badge-danger']">{{nowDate}}</span>
                 <span :class="['ml-1', 'badge', this.isLogOn == true ? 'badge-success' : 'badge-danger']">{{isLogOn == true ? userNm : "未ログイン"}}</span>
@@ -276,6 +281,10 @@ export default {
                 width: 1200,
                 height: 750,
             });
+        },
+        showPrevList: function() {
+            var vue = this;
+            vue.$root.$refs.CtiReceiver.showPrevList();
         },
     }
 }

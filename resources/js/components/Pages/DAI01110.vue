@@ -1031,7 +1031,7 @@ export default {
                 rowHt: 19,
                 rowHtHead: 19,
                 width: 245,
-                height: 295,
+                height: 299,
                 editable: false,
                 columnTemplate: {
                     editable: false,
@@ -1164,7 +1164,7 @@ export default {
                 rowHt: 19,
                 rowHtHead: 19,
                 width: 170,
-                height: 67,
+                height: 71,
                 editable: false,
                 columnTemplate: {
                     editable: false,
@@ -1224,8 +1224,8 @@ export default {
                 strNoRows: "",
                 rowHt: 19,
                 rowHtHead: 19,
-                width: 290,
-                height: 89,
+                width: 245,
+                height: 71,
                 editable: false,
                 columnTemplate: {
                     editable: false,

@@ -27,6 +27,7 @@ export default {
             callInfo: null,
             existsFax: false,
             faxInfo: false,
+            prevNo: null,
         };
     },
     components: {
@@ -157,6 +158,8 @@ export default {
                         } else {
                             //複数該当
                             vue.showCustomerSelector(no, time, false, true);
+                            //再表示用に保持
+                            vue.prevNo = no;
                         }
                     })
                     .catch(err => {
@@ -251,7 +254,7 @@ export default {
                                 } else {
                                     //1030注文入力表示: OK
                                     vue.show01030(rowData);
-                                    return true;
+                                    return false;
                                 }
                             } else {
                                 //1030注文入力表示: OK
@@ -376,6 +379,12 @@ export default {
             var vue = this;
             vue.show01030(customerInfo);
         },
+        showPrevList: function() {
+            var vue = this;
+
+            if(!vue.prevNo) return;
+            vue.checkTelNo(vue.prevNo, moment().format("HH:mm:ss"));
+        }
     }
 };
 </script>
