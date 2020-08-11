@@ -530,6 +530,7 @@ class DataReceiveBase
                         }
                     }
                     break;
+                /*
                 case 'モバイル_予測入力':
                     //予測更新
                     foreach ($records as $rec_info) {
@@ -736,7 +737,7 @@ class DataReceiveBase
                     }
 
                     break;
-
+                */
                 case 'モバイル_更新予定リスト':
                     $arrDetailSeq=[];
                     foreach ($records as $rec_info) {

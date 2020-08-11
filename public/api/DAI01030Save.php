@@ -1,7 +1,4 @@
 <?php
-
-use App\Libs\DataSendWrapper;
-
 header('Content-Type: application/json; charset=UTF-8');
 $req = count($_REQUEST) > 0 ? $_REQUEST : json_decode(file_get_contents("php://input"), true);
 
@@ -11,10 +8,6 @@ if (!isset($req)) {
 }
 
 $skip = [];
-
-//モバイルsv更新用
-$MDeleteList = [];
-$MInsertList = [];
 
 $BushoCd = $req['BushoCd'];
 $CustomerCd = $req['CustomerCd'];
@@ -41,7 +34,6 @@ try {
     date_default_timezone_set('Asia/Tokyo');
     $date = date("Y-m-d H:i:s");
     foreach ($SaveList as $rec) {
-        $no = null;
         if (isset($rec['修正日']) && !!$rec['修正日']) {
             $SelectSql = "
                 SELECT
@@ -71,68 +63,38 @@ try {
             $r = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             if (count($r) != 1) {
-                $skip = array_push($skip, ["target" => $rec, "current" => null]);
+                $skip[] = ["target" => $rec, "current" => null];
                 continue;
-            } else if ($rec['修正日'] != $r[0]['修正日']) {
-                $skip = array_push($skip, ["target" => $rec, "current" => $r[0]]);
+            } elseif ($rec['修正日'] != $r[0]['修正日']) {
+                $skip[] = ["target" => $rec, "current" => $r[0]];
                 continue;
             }
-
-            $no = $rec['明細行Ｎｏ'];
-
-            $DeleteSql = "
-                DELETE 注文データ
-                WHERE
-                    注文区分=?
-                AND 注文日付=?
-                AND 部署ＣＤ=?
-                AND 得意先ＣＤ=?
-                AND 配送日=?
-                AND 明細行Ｎｏ=?
-            ";
-
-            $stmt = $pdo->prepare($DeleteSql);
-            $stmt->execute(
-                array(
-                    $rec['注文区分'],
-                    $rec['注文日付'],
-                    $rec['部署ＣＤ'],
-                    $rec['得意先ＣＤ'],
-                    $rec['配送日'],
-                    $rec['明細行Ｎｏ']
-                )
-            );
-
-            //モバイルsv更新用
-            array_push($MDeleteList, $rec);
-        } else {
-            $NextNoSql = "
-                SELECT
-                    MAX(明細行Ｎｏ) + 1 AS No
-                FROM
-                    注文データ
-                WHERE
-                    注文区分=?
-                AND 注文日付=?
-                AND 部署ＣＤ=?
-                AND 得意先ＣＤ=?
-                AND 配送日=?
-            ";
-
-            $stmt = $pdo->prepare($NextNoSql);
-            $stmt->execute(
-                array(
-                    $rec['注文区分'],
-                    $rec['注文日付'],
-                    $rec['部署ＣＤ'],
-                    $rec['得意先ＣＤ'],
-                    $rec['配送日']
-                )
-            );
-            $ret = $stmt->fetch(PDO::FETCH_ASSOC);
-            $no = $ret["No"] ?? 1;
         }
+    }
 
+    $DeleteSql = "
+        DELETE 注文データ
+        WHERE
+            注文区分=?
+        AND 注文日付=?
+        AND 部署ＣＤ=?
+        AND 得意先ＣＤ=?
+        AND 配送日=?
+    ";
+    $stmt = $pdo->prepare($DeleteSql);
+    $stmt->execute(
+        array(
+            $rec['注文区分'],
+            $rec['注文日付'],
+            $rec['部署ＣＤ'],
+            $rec['得意先ＣＤ'],
+            $rec['配送日'],
+        )
+    );
+
+    $no = 0;
+    foreach ($SaveList as $rec) {
+        $no++;
         if (!!isset($rec['現金個数']) && !!isset($rec['掛売個数'])) {
             $data = $rec;
             $data['修正日'] = $date;
@@ -145,7 +107,6 @@ try {
             $data['特記_社内用'] = $data['特記_社内用'] ?? '';
             $data['特記_配送用'] = $data['特記_配送用'] ?? '';
             $data['特記_通知用'] = $data['特記_通知用'] ?? '';
-
 
             $InsertSql = "
                 INSERT INTO 注文データ
@@ -216,12 +177,8 @@ try {
                     $data['特記_通知用']
                 )
             );
-
-            //モバイルsv更新用
-            array_push($MInsertList, $data);
         }
     }
-
     if (count($skip) > 0) {
         $pdo->rollBack();
     } else {
