@@ -7,17 +7,12 @@
             <div class="col-md-4 pr-2 justify-content-end">
             </div>
             <div class="col-md-1">
-                <button type="button" class="btn btn-primary" @click="showPrevList">CTI再表示</button>
+                <button type="button" class="btn btn-primary ctiPrevList" @click="showPrevList" disabled="false" v-if="showCtiPrevList">CTI再表示</button>
             </div>
             <div class="col-md-1"></div>
             <div class="col-md-2 justify-content-start">
                 <button type="button" class="btn btn-primary webOrder" @click="showWebOrderList">
                     Web受注 <span class="badge badge-light webOrderCount">{{webOrderCount}}</span>
-                </button>
-            </div>
-            <div class="col-md-2">
-                <button type="button" class="btn btn-primary ctiPrevList" @click="showPrevList" disabled="false" v-if="showCtiPrevList">
-                    CTI<br/>前回得意先一覧 <span class=""></span>
                 </button>
             </div>
             <div class="col-md-2 justify-content-end">
@@ -48,11 +43,6 @@ button.webOrder {
 
 .webOrderCount.blinking {
     animation: blink-animation 1s infinite;
-}
-button.ctiPrevList {
-    font-size: 15px;
-    line-height: 15px;
-    height: 35px;
 }
 
 @-webkit-keyframes blink-animation {
