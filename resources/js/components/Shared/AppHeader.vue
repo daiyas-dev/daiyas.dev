@@ -4,16 +4,15 @@
             <div class="col-md-2">
                 <span :class="['badge', this.isLogOn == true ? 'badge-success' : 'badge-danger']">{{title}}</span>
             </div>
-            <div class="col-md-6 pr-2 justify-content-end">
+            <div class="col-md-4 pr-2 justify-content-end">
             </div>
+            <div class="col-md-1">
+                <button type="button" class="btn btn-primary" @click="showPrevList">CTI再表示</button>
+            </div>
+            <div class="col-md-1"></div>
             <div class="col-md-2 justify-content-start">
                 <button type="button" class="btn btn-primary webOrder" @click="showWebOrderList">
                     Web受注 <span class="badge badge-light webOrderCount">{{webOrderCount}}</span>
-                </button>
-            </div>
-            <div class="col-md-1">
-                <button type="button" class="btn btn-primary" @click="showPrevList">
-                    再表示 <span class=""></span>
                 </button>
             </div>
             <div class="col-md-2 justify-content-end">
