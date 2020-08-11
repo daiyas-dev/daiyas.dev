@@ -251,7 +251,7 @@ export default {
                                 } else {
                                     //1030注文入力表示: OK
                                     vue.show01030(rowData);
-                                    return true;
+                                    return false;
                                 }
                             } else {
                                 //1030注文入力表示: OK
