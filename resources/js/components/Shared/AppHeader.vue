@@ -11,9 +11,9 @@
                     Web受注 <span class="badge badge-light webOrderCount">{{webOrderCount}}</span>
                 </button>
             </div>
-            <div class="col-md-1">
-                <button type="button" class="btn btn-primary" @click="showPrevList">
-                    再表示 <span class=""></span>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-primary ctiPrevList" @click="showPrevList" disabled="false" v-if="showCtiPrevList">
+                    CTI<br/>前回得意先一覧 <span class=""></span>
                 </button>
             </div>
             <div class="col-md-2 justify-content-end">
@@ -45,6 +45,11 @@ button.webOrder {
 .webOrderCount.blinking {
     animation: blink-animation 1s infinite;
 }
+button.ctiPrevList {
+    font-size: 15px;
+    line-height: 15px;
+    height: 35px;
+}
 
 @-webkit-keyframes blink-animation {
     0%, 49% {
@@ -75,6 +80,7 @@ export default {
             DatePickerWrapper: DatePickerWrapper,
             fetch: true,
             interval: null,
+            showCtiPrevList: false,
         }
     },
     components: {
@@ -104,6 +110,10 @@ export default {
 
         if (vue.isLogOn) {
             vue.startPolling();
+        }
+
+        if (!!window.ipcRenderer) {
+            vue.showCtiPrevList = true;
         }
     },
     methods: {
@@ -285,6 +295,10 @@ export default {
         showPrevList: function() {
             var vue = this;
             vue.$root.$refs.CtiReceiver.showPrevList();
+        },
+        hasPrevList: function(hasPrevList) {
+            var vue = this;
+            $(vue.$el).find(".ctiPrevList").attr("disabled", !hasPrevList);
         },
     }
 }

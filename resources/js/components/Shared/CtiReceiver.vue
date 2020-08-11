@@ -158,8 +158,10 @@ export default {
                         } else {
                             //複数該当
                             vue.showCustomerSelector(no, time, false, true);
-                            //再表示用に保持
+
+                            //CTI前回得意先一覧 表示用
                             vue.prevNo = no;
+                            vue.$root.$refs.AppHeader.hasPrevList(true);
                         }
                     })
                     .catch(err => {
