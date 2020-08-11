@@ -12,7 +12,7 @@
                 </button>
             </div>
             <div class="col-md-1">
-                <button type="button" class="btn btn-primary" @click="event => showLatestCTIList(event,'0836832362')">
+                <button type="button" class="btn btn-primary" @click="showPrevList">
                     再表示 <span class=""></span>
                 </button>
             </div>
@@ -282,12 +282,9 @@ export default {
                 height: 750,
             });
         },
-        showLatestCTIList: function(event, no) {
+        showPrevList: function() {
             var vue = this;
-            vue.$root.$refs.CtiReceiver.checkTelNo(no, moment().format("HH:mm:ss"));
-
-            event.preventDefault();
-            return false;
+            vue.$root.$refs.CtiReceiver.showPrevList();
         },
     }
 }
