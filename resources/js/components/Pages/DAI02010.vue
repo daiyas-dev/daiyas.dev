@@ -52,7 +52,7 @@
                 <label>締日</label>
             </div>
             <div class="col-md-1">
-                <input id="SimeDate" type="text" :value=viewModel.SimeDate class="form-control" :disabled="SimeDateDisabled" @keydown.enter="onSimeDateChanged">
+                <input id="SimeDate" type="text" v-model=viewModel.SimeDate class="form-control" :disabled="SimeDateDisabled" @keydown.enter="onSimeDateChanged">
             </div>
             <div class="col-md-1">
                 <label>末日：99</label>

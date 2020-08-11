@@ -775,7 +775,7 @@ export default {
             }
 
             //コース
-            if (!!vue.viewModel.CourseCd && vue.$refs.PopupSelect_Course.isValid) {
+            if (!!vue.viewModel.CourseCd) {
                 rules.push({ dataIndx: "コースＣＤ", condition: "equal", value: vue.viewModel.CourseCd });
             }
 
