@@ -300,7 +300,7 @@ class WebOrderDataReceive extends DataReceiveBase
                 }
             } else {
                 //insert
-                $sql="select max(Web受注ID)+1 as NewID from Web受注データ";
+                $sql="select isnull(max(Web受注ID)+1, 1) as NewID from Web受注データ";
                 $WebOrderID=DB::selectOne($sql);
                 $WebOrderRecord['WebOrderId'] = $WebOrderID->NewID;//戻値のセット
                 $sql="insert into Web受注データ(
