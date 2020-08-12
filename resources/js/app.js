@@ -156,36 +156,36 @@ Vue.directive("setKana", {
                     return;
                 }
 
-                window.getKana(data, resData => {
-                    console.log("getKana api ret", data, resData, binding);
+                // window.getKana(data, resData => {
+                //     console.log("getKana api ret", data, resData, binding);
 
-                    if (!!target) {
-                        window.getKana(target, resTarget => {
-                            console.log("getKana api ret", target, resTarget, binding);
+                //     if (!!target) {
+                //         window.getKana(target, resTarget => {
+                //             console.log("getKana api ret", target, resTarget, binding);
 
-                            var result = !!resData && resData.startsWith(resTarget) ? resData : resTarget;
+                //             var result = !!resData && resData.startsWith(resTarget) ? resData : resTarget;
 
-                            if (/\w/g.test(data)){
-                                if (data.length == target.length) {
-                                    result = "";
-                                } else {
-                                    result = data;
-                                }
-                            }
-                            if (Moji(data).filter("ZE").toString().length == data.length) {
-                                data = Moji(data).convert('ZE', 'HE').toString();
-                                result = data;
-                            }
+                //             if (/\w/g.test(data)){
+                //                 if (data.length == target.length) {
+                //                     result = "";
+                //                 } else {
+                //                     result = data;
+                //                 }
+                //             }
+                //             if (Moji(data).filter("ZE").toString().length == data.length) {
+                //                 data = Moji(data).convert('ZE', 'HE').toString();
+                //                 result = data;
+                //             }
 
-                            if (data == "㈱") {
-                                result = "ｶﾌﾞ";
-                            }
+                //             if (data == "㈱") {
+                //                 result = "ｶﾌﾞ";
+                //             }
 
-                            result = binding.modifiers.full ? result : window.Moji(result).convert("ZK", "HK");
-                            callback(result);
-                        });
-                    }
-                });
+                //             result = binding.modifiers.full ? result : window.Moji(result).convert("ZK", "HK");
+                //             callback(result);
+                //         });
+                //     }
+                // });
 
                 // var targetZ = Moji(target).reject("HE").reject("ZE").toString();
                 // var dataZ = Moji(data).reject("HE").reject("ZE").toString();
@@ -227,6 +227,47 @@ Vue.directive("setKana", {
                 //         });
                 //     }
                 // });
+                var ary = _.reduce(
+                    data.split(""),
+                    (a, v) => {
+                        var str = _.last(a) || "";
+
+                        var check = kind => (Moji(str).filter(kind) == str ^
+                        Moji(v).filter(kind) == v) == 0;
+
+                        //TODO 頭文字が英数の時　配列が正しくない
+                        if (check("HE")){
+                            str = str + v;
+                            a[a.length - 1] = str;
+                        } else {
+                            a.push(v);
+                        }
+
+                        return a;
+                    },
+                    []
+                )
+                var pms = ary.map(v => {
+                    return window.getKana(v, res =>{
+                        var result;
+                        if (Moji(v).filter("HE") == v){
+                            callback(v);
+                        } else {
+                            result = window.Moji(res).convert("ZK", "HK");
+                            if (v == "㈱") result = "ｶﾌﾞ";
+                            callback(result);
+                        }
+                    });
+                });
+                Promise.all(pms)
+                    .then(ret => {
+                        console.log(ret);
+                        var result = ret.map(r => _.isObject(r) ?
+                        Moji(r.data.converted).convert("ZK", "HK").toString() : r).join("");
+                        console.log(result);
+                        //TODO 英数と文字の順番が逆転する時がある
+                    })
+                    .catch(err => console.log(err));
             }
         );
     }
