@@ -22,6 +22,13 @@ class DAI10010Controller extends Controller
         $CustomerCd = $request->CustomerCd;
         $TargetDate = $request->TargetDate;
 
+        $sql_62="select count(*)as cnt from 売上データ明細
+                    where 日付='$TargetDate'
+                    and 得意先ＣＤ=$CustomerCd
+                    and 商品ＣＤ=62
+                ";
+        $exists_prod62 = DB::selectOne($sql_62)->cnt;
+
         $sql = "
             SELECT
                 MTT.商品ＣＤ AS Cd,
@@ -53,6 +60,22 @@ class DAI10010Controller extends Controller
                 LEFT OUTER JOIN 商品マスタ PM
                     ON	PM.商品ＣＤ=MTT.商品ＣＤ
         ";
+        if (0<$exists_prod62) {
+            $sql.="
+                union select
+                    商品ＣＤ
+                    ,商品名
+                    ,$CustomerCd
+                    ,商品ＣＤ
+                    ,商品名
+                    ,商品区分
+                    ,主食ＣＤ
+                    ,副食ＣＤ
+                    ,売価単価
+                from 商品マスタ
+                where 商品ＣＤ=62
+            ";
+        }
 
         $Result = DB::select($sql);
 
