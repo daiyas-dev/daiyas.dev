@@ -191,6 +191,18 @@ window.getKana = (target, callback) => {
         })
 };
 
+window.getKanaP = target => {
+    return window.axios.post(
+        "https://labs.goo.ne.jp/api/hiragana",
+        {
+            app_id: window.goo_api_key,
+            request_id: "get_kana",
+            sentence: target,
+            output_type: "katakana"
+        }
+    )
+};
+
 
 /**
  * Echo exposes an expressive API for subscribing to channels and listening
