@@ -127,7 +127,7 @@ Vue.directive("setKana", {
                     el.setAttribute("toKana", target);
                 }
 
-            }, 100)
+            }, 10)
         );
         el.addEventListener(
             "compositionend",
@@ -144,8 +144,8 @@ Vue.directive("setKana", {
 
                 if (!!binding.modifiers.disabled) return;
 
-                if (Moji(target).filter("HE").toString().length == target.length) {
-                    callback(target);
+                if (Moji(target).filter("HE").toString().length == target.length && data.length == target.length) {
+                        callback(target);
                     return;
                 }
 
@@ -158,8 +158,12 @@ Vue.directive("setKana", {
 
                             var result = !!resData && resData.startsWith(resTarget) ? resData : resTarget;
 
-                            if (/\w/.test(data)){
-                                result = "";
+                            if (/\w/g.test(data)){
+                                if (data.length == target.length) {
+                                    result = "";
+                                } else {
+                                    result = data;
+                                }
                             }
                             if (Moji(data).filter("ZE").toString().length == data.length) {
                                 data = Moji(data).convert('ZE', 'HE').toString();
