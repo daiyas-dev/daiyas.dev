@@ -126,7 +126,14 @@ Vue.directive("setKana", {
                     console.log("setKana directive", target);
                     el.setAttribute("toKana", target);
                 }
-
+                if (Moji(target).reject("HE").filter("HG").toString().length > 0) {
+                    console.log("setKana directive", target);
+                    el.setAttribute("toKana", target);
+                }
+                if (Moji(target).reject("HE").filter("KK").toString().length > 0) {
+                    console.log("setKana directive", target);
+                    el.setAttribute("toKana", target);
+                }
             }, 10)
         );
         el.addEventListener(
@@ -179,6 +186,39 @@ Vue.directive("setKana", {
                         });
                     }
                 });
+
+                // var targetZ = Moji(target).reject("HE").toString();
+
+                // window.getKana(data, resData => {
+                //     console.log("getKana api ret", data, resData, binding);
+
+                //     if (!!targetZ) {
+                //         window.getKana(targetZ, resTarget => {
+                //             console.log("getKana api ret", targetZ, resTarget, binding);
+
+                //             var result = !!resData && resData.startsWith(resTarget) ? resData : resTarget;
+
+                //             if (/\w/g.test(data)){
+                //                 if (data.length == target.length && Moji(target).filter("HE").toString() > 0) {
+                //                     result = Moji(target).filter("HE").toString() + Moji(result).convert('ZK', 'HK').toString();
+                //                 } else {
+                //                     result = data;
+                //                 }
+                //             }
+                //             if (Moji(data).filter("ZE").toString().length == data.length) {
+                //                 data = Moji(data).convert('ZE', 'HE').toString();
+                //                 result = data;
+                //             }
+
+                //             if (data == "㈱") {
+                //                 result = "ｶﾌﾞ";
+                //             }
+
+                //             result = binding.modifiers.full ? result : window.Moji(result).convert("ZK", "HK");
+                //             callback(result);
+                //         });
+                //     }
+                // });
             }
         );
     }
