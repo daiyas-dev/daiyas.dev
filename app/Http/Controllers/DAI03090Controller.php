@@ -44,6 +44,7 @@ class DAI03090Controller extends Controller
             return response()->json([
                 'result' => false,
                 "message" => '取込に失敗しました。',
+                'exception' => $ex->getMessage(),
             ]);
         }
     }
@@ -128,7 +129,7 @@ class DAI03090Controller extends Controller
                             AND K.行NO = $Customer->口座種別
                         ");
                         $knames = $stmt->fetch(PDO::FETCH_ASSOC);
-                        $Customer->口座種別名 = $knames["種別名"];
+                        $Customer->口座種別名 = isset($knames) ? $knames["種別名"] : "";
 
                         $stmt = $pdo->query("
                             SELECT
@@ -147,7 +148,7 @@ class DAI03090Controller extends Controller
                             AND 入金日付 = '$TargetDate'
                         ");
                         $price = $stmt->fetch(PDO::FETCH_ASSOC);
-                        $Customer->入金額 = $price["入金額"];
+                        $Customer->入金額 = isset($price) ? $price["入金額"] : 0;
 
                         $err = mb_substr($Line, 111, 1);
                         $Customer->エラー = $err != " " && $err != "0" ? "エラー" : "";
@@ -170,6 +171,7 @@ class DAI03090Controller extends Controller
             return response()->json([
                 'result' => false,
                 "message" => '取込に失敗しました。',
+                "exception" => $ex,
             ]);
         } finally {
             $pdo = null;
