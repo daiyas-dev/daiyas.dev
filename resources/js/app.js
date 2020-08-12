@@ -187,10 +187,11 @@ Vue.directive("setKana", {
                     }
                 });
 
-                // var targetZ = Moji(target).reject("HE").toString();
+                // var targetZ = Moji(target).reject("HE").reject("ZE").toString();
+                // var dataZ = Moji(data).reject("HE").reject("ZE").toString();
 
-                // window.getKana(data, resData => {
-                //     console.log("getKana api ret", data, resData, binding);
+                // window.getKana(dataZ, resData => {
+                //     console.log("getKana api ret", dataZ, resData, binding);
 
                 //     if (!!targetZ) {
                 //         window.getKana(targetZ, resTarget => {
@@ -198,13 +199,20 @@ Vue.directive("setKana", {
 
                 //             var result = !!resData && resData.startsWith(resTarget) ? resData : resTarget;
 
-                //             if (/\w/g.test(data)){
-                //                 if (data.length == target.length && Moji(target).filter("HE").toString() > 0) {
-                //                     result = Moji(target).filter("HE").toString() + Moji(result).convert('ZK', 'HK').toString();
+                //             if (data.length == target.length) {
+                //                 if (/^\d/.test(target)) {
+                //                     result = Moji(result).convert('ZK', 'HK').toString() + Moji(target).filter("HE").toString();
+                //                 } else if (/^[０１２３４５６７８９]/.test(target)) {
+                //                     result = Moji(target).filter("ZE").convert('ZE', 'HE').toString() + Moji(result).convert('ZK', 'HK').toString();
+                //                 } else if (/[０１２３４５６７８９]$/.test(target)) {
+                //                     result = Moji(result).convert('ZK', 'HK').toString() + Moji(target).filter("ZE").convert('ZE', 'HE').toString();
                 //                 } else {
-                //                     result = data;
+                //                     result = Moji(target).filter("HE").toString() + Moji(result).convert('ZK', 'HK').toString();
                 //                 }
+                //             } else {
+                //                 result = data;
                 //             }
+
                 //             if (Moji(data).filter("ZE").toString().length == data.length) {
                 //                 data = Moji(data).convert('ZE', 'HE').toString();
                 //                 result = data;
