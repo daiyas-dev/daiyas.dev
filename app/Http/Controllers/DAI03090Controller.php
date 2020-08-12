@@ -10,6 +10,7 @@ use Illuminate\Support\Arr;
 use DB;
 use Exception;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 use PDO;
 
 class DAI03090Controller extends Controller
@@ -148,7 +149,7 @@ class DAI03090Controller extends Controller
                             AND 入金日付 = '$TargetDate'
                         ");
                         $price = $stmt->fetch(PDO::FETCH_ASSOC);
-                        $Customer->入金額 = isset($price) ? $price["入金額"] : 0;
+                        $Customer->入金額 = isset($price["入金額"]) ? $price["入金額"] : 0;
 
                         $err = mb_substr($Line, 111, 1);
                         $Customer->エラー = $err != " " && $err != "0" ? "エラー" : "";
