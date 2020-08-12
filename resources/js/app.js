@@ -126,8 +126,15 @@ Vue.directive("setKana", {
                     console.log("setKana directive", target);
                     el.setAttribute("toKana", target);
                 }
-
-            }, 100)
+                if (Moji(target).reject("HE").filter("HG").toString().length > 0) {
+                    console.log("setKana directive", target);
+                    el.setAttribute("toKana", target);
+                }
+                if (Moji(target).reject("HE").filter("KK").toString().length > 0) {
+                    console.log("setKana directive", target);
+                    el.setAttribute("toKana", target);
+                }
+            }, 10)
         );
         el.addEventListener(
             "compositionend",
@@ -144,37 +151,123 @@ Vue.directive("setKana", {
 
                 if (!!binding.modifiers.disabled) return;
 
-                if (Moji(target).filter("HE").toString().length == target.length) {
-                    callback(target);
+                if (Moji(target).filter("HE").toString().length == target.length && data.length == target.length) {
+                        callback(target);
                     return;
                 }
 
-                window.getKana(data, resData => {
-                    console.log("getKana api ret", data, resData, binding);
+                // window.getKana(data, resData => {
+                //     console.log("getKana api ret", data, resData, binding);
 
-                    if (!!target) {
-                        window.getKana(target, resTarget => {
-                            console.log("getKana api ret", target, resTarget, binding);
+                //     if (!!target) {
+                //         window.getKana(target, resTarget => {
+                //             console.log("getKana api ret", target, resTarget, binding);
 
-                            var result = !!resData && resData.startsWith(resTarget) ? resData : resTarget;
+                //             var result = !!resData && resData.startsWith(resTarget) ? resData : resTarget;
 
-                            if (/\w/.test(data)){
-                                result = "";
-                            }
-                            if (Moji(data).filter("ZE").toString().length == data.length) {
-                                data = Moji(data).convert('ZE', 'HE').toString();
-                                result = data;
-                            }
+                //             if (/\w/g.test(data)){
+                //                 if (data.length == target.length) {
+                //                     result = "";
+                //                 } else {
+                //                     result = data;
+                //                 }
+                //             }
+                //             if (Moji(data).filter("ZE").toString().length == data.length) {
+                //                 data = Moji(data).convert('ZE', 'HE').toString();
+                //                 result = data;
+                //             }
 
-                            if (data == "㈱") {
-                                result = "ｶﾌﾞ";
-                            }
+                //             if (data == "㈱") {
+                //                 result = "ｶﾌﾞ";
+                //             }
 
-                            result = binding.modifiers.full ? result : window.Moji(result).convert("ZK", "HK");
+                //             result = binding.modifiers.full ? result : window.Moji(result).convert("ZK", "HK");
+                //             callback(result);
+                //         });
+                //     }
+                // });
+
+                // var targetZ = Moji(target).reject("HE").reject("ZE").toString();
+                // var dataZ = Moji(data).reject("HE").reject("ZE").toString();
+
+                // window.getKana(dataZ, resData => {
+                //     console.log("getKana api ret", dataZ, resData, binding);
+
+                //     if (!!targetZ) {
+                //         window.getKana(targetZ, resTarget => {
+                //             console.log("getKana api ret", targetZ, resTarget, binding);
+
+                //             var result = !!resData && resData.startsWith(resTarget) ? resData : resTarget;
+
+                //             if (data.length == target.length) {
+                //                 if (/^\d/.test(target)) {
+                //                     result = Moji(result).convert('ZK', 'HK').toString() + Moji(target).filter("HE").toString();
+                //                 } else if (/^[０１２３４５６７８９]/.test(target)) {
+                //                     result = Moji(target).filter("ZE").convert('ZE', 'HE').toString() + Moji(result).convert('ZK', 'HK').toString();
+                //                 } else if (/[０１２３４５６７８９]$/.test(target)) {
+                //                     result = Moji(result).convert('ZK', 'HK').toString() + Moji(target).filter("ZE").convert('ZE', 'HE').toString();
+                //                 } else {
+                //                     result = Moji(target).filter("HE").toString() + Moji(result).convert('ZK', 'HK').toString();
+                //                 }
+                //             } else {
+                //                 result = data;
+                //             }
+
+                //             if (Moji(data).filter("ZE").toString().length == data.length) {
+                //                 data = Moji(data).convert('ZE', 'HE').toString();
+                //                 result = data;
+                //             }
+
+                //             if (data == "㈱") {
+                //                 result = "ｶﾌﾞ";
+                //             }
+
+                //             result = binding.modifiers.full ? result : window.Moji(result).convert("ZK", "HK");
+                //             callback(result);
+                //         });
+                //     }
+                // });
+                var ary = _.reduce(
+                    data.split(""),
+                    (a, v) => {
+                        var str = _.last(a) || "";
+
+                        var check = kind => (Moji(str).filter(kind) == str ^
+                        Moji(v).filter(kind) == v) == 0;
+
+                        //TODO 頭文字が英数の時　配列が正しくない
+                        if (check("HE")){
+                            str = str + v;
+                            a[a.length - 1] = str;
+                        } else {
+                            a.push(v);
+                        }
+
+                        return a;
+                    },
+                    []
+                )
+                var pms = ary.map(v => {
+                    return window.getKana(v, res =>{
+                        var result;
+                        if (Moji(v).filter("HE") == v){
+                            callback(v);
+                        } else {
+                            result = window.Moji(res).convert("ZK", "HK");
+                            if (v == "㈱") result = "ｶﾌﾞ";
                             callback(result);
-                        });
-                    }
+                        }
+                    });
                 });
+                Promise.all(pms)
+                    .then(ret => {
+                        console.log(ret);
+                        var result = ret.map(r => _.isObject(r) ?
+                        Moji(r.data.converted).convert("ZK", "HK").toString() : r).join("");
+                        console.log(result);
+                        //TODO 英数と文字の順番が逆転する時がある
+                    })
+                    .catch(err => console.log(err));
             }
         );
     }
