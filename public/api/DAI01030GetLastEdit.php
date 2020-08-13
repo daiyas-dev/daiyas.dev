@@ -22,25 +22,58 @@ $user = 'daiyas';
 $password = 'daiyas';
 
 $pdo = new PDO($dsn, $user, $password);
-
+//修正担当者CDを取得
 $sql = "
             SELECT TOP 1
                 CD.修正担当者ＣＤ,
-                TM.担当者名 AS 修正担当者名,
                 CD.修正日
             FROM
                 注文データ CD
-                LEFT OUTER JOIN 担当者マスタ TM
-                    ON  TM.担当者ＣＤ = CD.修正担当者ＣＤ
             WHERE
                 CD.得意先ＣＤ = $CustomerCd
             AND CD.配送日 = '$DeliveryDate'
             ORDER BY
                 修正日 DESC
         ";
-
 $stmt = $pdo->query($sql);
-$Result = $stmt->fetch(PDO::FETCH_ASSOC);
+$OrderData = $stmt->fetch(PDO::FETCH_ASSOC);
+$EditorCd=$OrderData['修正担当者ＣＤ'];
+$len=strlen($EditorCd);
+//修正担当者CDを取り出す
+if($len<=3)
+{
+    //何もしない
+}
+else if(4<=$len && substr($EditorCd,0,1)==1)
+{
+    if ($len==4) {
+        $EditorCd=(int)substr($EditorCd, 1, 3);
+    }
+    else if ($len==7)
+    {
+        $EditorCd=(int)substr($EditorCd, 5, 3);
+    }
+    else if (8<=$len)
+    {
+        $EditorCd=(int)substr($EditorCd, 7, 3);
+    }
+}
+//修正担当者名を取得
+$sql = "
+            SELECT
+                TM.担当者名
+            FROM
+                担当者マスタ TM
+            WHERE
+                TM.担当者ＣＤ = $EditorCd
+        ";
+$stmt = $pdo->query($sql);
+$Editor = $stmt->fetch(PDO::FETCH_ASSOC);
 $pdo = null;
+$EditorNm=$Editor['担当者名'];
 
+$Result = ["修正担当者ＣＤ"=>$EditorCd,
+           "修正担当者名"=>$EditorNm,
+           "修正日"=>$OrderData['修正日']
+          ];
 print json_encode($Result, JSON_PRETTY_PRINT);

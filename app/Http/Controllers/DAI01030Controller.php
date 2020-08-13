@@ -83,6 +83,7 @@ class DAI01030Controller extends Controller
     public function GetTodayOrder($request)
     {
         $TantoCd = $request->TantoCd;
+        $TantoCdLike = '1' . sprintf('%03d', $TantoCd) . '000%';
 
         $sql = "
             SELECT
@@ -98,7 +99,7 @@ class DAI01030Controller extends Controller
                 注文データ
             WHERE
                 CONVERT(varchar, 修正日, 112) = CONVERT(date, GETDATE())
-                AND 修正担当者CD=$TantoCd
+                AND (修正担当者ＣＤ = $TantoCd OR 修正担当者ＣＤ like '$TantoCdLike')
             GROUP BY
                 注文区分,
                 注文日付,
