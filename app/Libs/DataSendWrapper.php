@@ -703,6 +703,9 @@ class DataSendWrapper extends PWADataSend
             $after_sql="";
             foreach ($order_list as $order_data)
             {
+                $cbh = new carbon($order_data->配送日);
+                $q_order_date = $cbh->format('Y/m/d');
+
                 $after_sql .= "update SaleInputData set
                              updated_at=now()
                             ,achievements_input=0
@@ -711,7 +714,7 @@ class DataSendWrapper extends PWADataSend
                             where department_code=$busho_cd
                             and customer_code=$customer_cd
                             and product_code={$order_data->商品ＣＤ}
-                            and date={$order_data->配送日};";
+                            and date='{$q_order_date}';";
                 $after_sql .= "update ExpectedInputData set
                              updated_at=now()
                             ,order_num={$order_data->注文個数}
@@ -719,7 +722,7 @@ class DataSendWrapper extends PWADataSend
                             where department_code=$busho_cd
                             and customer_code=$customer_cd
                             and product_code={$order_data->商品ＣＤ}
-                            and date={$order_data->配送日};";
+                            and date='{$q_order_date}';";
             }
             $this->InsertMultiRow($table_name, null, $table_sql, false, $busho_cd, $customer_cd, null, $del_sql,null,$after_sql);
         } catch (Exception $exception) {
