@@ -88,7 +88,7 @@ Vue.directive("setKana", {
     inserted(el, binding) {
         el.addEventListener(
             "input",
-            _.debounce(event => {
+            event => {
                 var target = event.data;
 
                 var callback = binding.value;
@@ -103,7 +103,7 @@ Vue.directive("setKana", {
                     }
                 }
 
-            }, 100)
+            },
         );
         el.addEventListener(
             "compositionupdate",
@@ -156,45 +156,52 @@ Vue.directive("setKana", {
                     return;
                 }
 
-                var ary = _.reduce(
-                    data.split(""),
-                    (a, v) => {
-                        var str = _.last(a) || "";
 
-                        var check = kind => (Moji(str).filter(kind) == str ^
-                        Moji(v).filter(kind) == v) == 0;
+                window.getKana(target, resTarget => {
+                    resTarget = Moji(resTarget).convert("ZK", "HK").toString();
 
-                        if (check("HE") && str != ""){
-                            str = str + v;
-                            a[a.length - 1] = str;
+                    var ary = _.reduce(
+                        data.split(""),
+                        (a, v) => {
+                            var str = _.last(a) || "";
+
+                            var check = kind => (Moji(str).filter(kind) == str ^
+                                Moji(v).filter(kind) == v) == 0;
+
+                            if (check("HE") && str != "") {
+                                str = str + v;
+                                a[a.length - 1] = str;
+                            } else {
+                                a.push(v);
+                            }
+
+                            return a;
+                        },
+                        []
+                    );
+
+                    var pms = ary.map(v => {
+                        if (Moji(v).filter("HE") == v) {
+                            return new Promise(resolve => resolve(v));
+                        } else if (v == "㈱") {
+                            return new Promise(resolve => resolve("ｶﾌﾞ"));
                         } else {
-                            a.push(v);
+                            return new Promise(resolve => resolve(window.getKanaP(v)));
                         }
+                    });
 
-                        return a;
-                    },
-                    []
-                )
+                    Promise.all(pms)
+                        .then(ret => {
+                            console.log(ret);
+                            var resData = ret.map(r => _.isObject(r) ? Moji(r.data.converted).convert("ZK", "HK").toString() : r).join("");
+                            console.log(result);
 
-                var pms = ary.map(v => {
-                    if (Moji(v).filter("HE") == v) {
-                        return new Promise(resolve => resolve(v));
-                    } else if (v == "㈱") {
-                        return new Promise(resolve => resolve("ｶﾌﾞ"));
-                    } else {
-                        return new Promise(resolve => resolve(window.getKanaP(v)));
-                    }
+                            var result = _.isArray(ret) && ret.length > 1 ? resData : resData.startsWith(resTarget) ? resData : resTarget;
+
+                            callback(result);
+                        })
+                        .catch(err => console.log(err));
                 });
-
-                Promise.all(pms)
-                    .then(ret => {
-                        console.log(ret);
-                        var result = ret.map(r => _.isObject(r) ?
-                        Moji(r.data.converted).convert("ZK", "HK").toString() : r).join("");
-                        console.log(result);
-                        callback(result);
-                    })
-                    .catch(err => console.log(err));
             }
         );
     }
