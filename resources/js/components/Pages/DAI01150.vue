@@ -94,30 +94,30 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-9 d-block">
-                <PqGridWrapper
-                    id="DAI01150GridSeikyu"
-                    ref="DAI01150GridSeikyu"
-                    :options=this.gridSeikyuOptions
-                    :autoToolTipDisabled=true
-                    :SearchOnCreate=false
-                    :SearchOnActivate=false
-                    :resizeFunc=resizeGrid
-                    classes="ml-0 mr-0 mt-1 mb-0"
-                />
-                <PqGridWrapper
-                    id="DAI01150GridNyukin"
-                    ref="DAI01150GridNyukin"
-                    :options=this.gridNyukinOptions
-                    :autoToolTipDisabled=true
-                    :SearchOnCreate=false
-                    :SearchOnActivate=false
-                    :resizeFunc=resizeGrid
-                    classes="ml-0 mr-0 mt-1 mb-0"
-                />
-            </div>
-            <div class="col-md-1 flex align-items-end">
-                <div class="urikakeZan">
+            <div class="col-md-12 align-items-end">
+                <div class="d-block">
+                    <PqGridWrapper
+                        id="DAI01150GridSeikyu"
+                        ref="DAI01150GridSeikyu"
+                        :options=this.gridSeikyuOptions
+                        :autoToolTipDisabled=true
+                        :SearchOnCreate=false
+                        :SearchOnActivate=false
+                        :resizeFunc=resizeGrid
+                        classes="ml-0 mr-0 mt-1 mb-0"
+                    />
+                    <PqGridWrapper
+                        id="DAI01150GridNyukin"
+                        ref="DAI01150GridNyukin"
+                        :options=this.gridNyukinOptions
+                        :autoToolTipDisabled=true
+                        :SearchOnCreate=false
+                        :SearchOnActivate=false
+                        :resizeFunc=resizeGrid
+                        classes="ml-0 mr-0 mt-1 mb-0"
+                    />
+                </div>
+                <div class="urikakeZan ml-2">
                     <label>売掛残</label>
                     <input class="form-control" style="width: 100px; text-align: right;" type="text" :value=viewModel.UrikakeZan readonly tabindex="-1">
                 </div>
