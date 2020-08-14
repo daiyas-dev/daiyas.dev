@@ -140,6 +140,8 @@ Vue.directive("setKana", {
             "compositionend",
             event => {
                 var target = el.getAttribute("toKana");
+                target = Moji(target).convert("ZE", "HE").convert("HG", "KK").convert("ZK", "HK").toString();
+
                 var data = event.data;
                 el.setAttribute("toKana", "");
 
@@ -157,51 +159,53 @@ Vue.directive("setKana", {
                 }
 
 
-                window.getKana(target, resTarget => {
-                    resTarget = Moji(resTarget).convert("ZK", "HK").toString();
+                var ary = _.reduce(
+                    data.split(""),
+                    (a, v) => {
+                        var str = _.last(a) || "";
 
-                    var ary = _.reduce(
-                        data.split(""),
-                        (a, v) => {
-                            var str = _.last(a) || "";
+                        var check = kind => (Moji(str).filter(kind) == str ^
+                            Moji(v).filter(kind) == v) == 0;
 
-                            var check = kind => (Moji(str).filter(kind) == str ^
-                                Moji(v).filter(kind) == v) == 0;
-
-                            if (check("HE") && str != "") {
-                                str = str + v;
-                                a[a.length - 1] = str;
-                            } else {
-                                a.push(v);
-                            }
-
-                            return a;
-                        },
-                        []
-                    );
-
-                    var pms = ary.map(v => {
-                        if (Moji(v).filter("HE") == v) {
-                            return new Promise(resolve => resolve(v));
-                        } else if (v == "㈱") {
-                            return new Promise(resolve => resolve("ｶﾌﾞ"));
+                        if (check("HE") && str != "") {
+                            str = str + v;
+                            a[a.length - 1] = str;
                         } else {
-                            return new Promise(resolve => resolve(window.getKanaP(v)));
+                            a.push(v);
                         }
-                    });
 
-                    Promise.all(pms)
-                        .then(ret => {
-                            console.log(ret);
-                            var resData = ret.map(r => _.isObject(r) ? Moji(r.data.converted).convert("ZK", "HK").toString() : r).join("");
-                            console.log(result);
+                        return a;
+                    },
+                    []
+                );
 
-                            var result = _.isArray(ret) && ret.length > 1 ? resData : resData.startsWith(resTarget) ? resData : resTarget;
-
-                            callback(result);
-                        })
-                        .catch(err => console.log(err));
+                var pms = ary.map(v => {
+                    if (Moji(v).filter("HE") == v) {
+                        return new Promise(resolve => resolve(v));
+                    } else if (v == "㈱") {
+                        return new Promise(resolve => resolve("ｶﾌﾞ"));
+                    } else {
+                        return new Promise(resolve => resolve(window.getKanaP(v)));
+                    }
                 });
+
+                Promise.all(pms)
+                    .then(ret => {
+                        console.log(ret);
+                        var resData = ret.map(r => _.isObject(r) ? Moji(r.data.converted).convert("ZK", "HK").toString() : r).join("");
+                        console.log(result);
+                        //予測変換判定
+                        var isTranslate = target.length < data.length;
+
+                        var result = isTranslate
+                            ? _.isArray(ret) ? resData : resData.startsWith(resTarget) ? resData : target
+                            : target
+                            ;
+
+
+                        callback(result);
+                    })
+                    .catch(err => console.log(err));
             }
         );
     }
