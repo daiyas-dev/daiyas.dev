@@ -113,8 +113,12 @@
                     :SearchOnCreate=false
                     :SearchOnActivate=false
                     :resizeFunc=resizeGrid
-                    classes="ml-0 mr-0 mt-1 mb-0"
+                    classes="ml-0 mr-0 mt-1 mb-0 gridNyukin"
                 />
+                <div class="urikakeZan">
+                    <label>売掛残</label>
+                    <input class="form-control" style="width: 100px; text-align: right;" type="text" :value=viewModel.UrikakeZan readonly tabindex="-1">
+                </div>
             </div>
         </div>
     </form>
@@ -134,6 +138,17 @@
 }
 label{
     width: 80px;
+}
+.gridNyukin {
+    float: left;
+}
+.urikakeZan {
+    float: left;
+    display: flex;
+    align-items: flex-end;
+    flex-direction: column;
+    margin-top: calc(48%/3);
+    margin-left: 5px;
 }
 </style>
 
@@ -228,7 +243,7 @@ export default {
                 columnBorders: true,
                 rowHt: 25,
                 rowHtHead: 25,
-                width: 950,
+                width: 951,
                 fillHandle: "",
                 numberCell: { show: true, title: "No.", resizable: false },
                 autoRow: false,
@@ -365,7 +380,7 @@ export default {
                 columnBorders: true,
                 rowHtHead: 25,
                 rowHt: 25,
-                width: 1050,
+                width: 951,
                 fillHandle: "",
                 numberCell: { show: true, title: "No.", resizable: false },
                 autoRow: false,
@@ -498,6 +513,7 @@ export default {
                         dataType: "integer",
                         format: "#,###",
                         width: 100, minWidth: 100, maxWidth: 100,
+                        hidden: true,
                         render: ui => {
                             if (!ui.rowData.pq_grandsummary) {
                                 if (!ui.cls) ui.cls = [];
@@ -647,6 +663,7 @@ export default {
                                     + v.その他 * 1)
                 )
                 ;
+            vue.viewModel.UrikakeZan = Number(vue.viewModel.UrikakeZan).toLocaleString();
 
             //請求データ
             if (!!isBlink) {
