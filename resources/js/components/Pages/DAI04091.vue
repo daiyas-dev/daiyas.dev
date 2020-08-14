@@ -1359,8 +1359,8 @@ export default {
 
             var SaveList = _.cloneDeep(grid.pdata)
             .map(v => {
-                v.部署ＣＤ = v.部署ＣＤ || model.BushoCd ;
-                v.コースＣＤ = v.コースＣＤ || model.CourseCd;
+                v.部署ＣＤ = model.BushoCd ;
+                v.コースＣＤ = model.CourseCd;
                 v.得意先ＣＤ = v.コード;
                 v.得意先名 = v.名称;
                 return v;

@@ -21,27 +21,8 @@ class DAI10010Controller extends Controller
     {
         $CustomerCd = $request->CustomerCd;
         $TargetDate = $request->TargetDate;
-
-        $sql_62="select count(*)as cnt from 売上データ明細
-                    where 日付='$TargetDate'
-                    and 得意先ＣＤ=$CustomerCd
-                    and 商品ＣＤ=62
-                ";
-        $exists_prod62 = DB::selectOne($sql_62)->cnt;
-
-        $sql = "
-            SELECT
-                MTT.商品ＣＤ AS Cd,
-                PM.商品名 AS CdNm,
-                MTT.得意先ＣＤ,
-                MTT.商品ＣＤ,
-                PM.商品名,
-                PM.商品区分,
-                PM.主食ＣＤ,
-                PM.副食ＣＤ,
-                MTT.単価 AS 売価単価
-            FROM
-                (
+        //指定日付の得意先単価を取得するSQL
+        $sql_mtt="(
                     SELECT
                         *
                     FROM (
@@ -56,24 +37,49 @@ class DAI10010Controller extends Controller
                     ) TT
                     WHERE
                         RNK = 1
-                ) MTT
+                ) MTT";
+
+        //売上データ明細に得意先単価未登録の商品が存在するか確認
+        $sql_62="SELECT COUNT(*)AS CNT FROM 売上データ明細 UDM
+                    WHERE UDM.日付='$TargetDate'
+                    AND UDM.得意先ＣＤ=$CustomerCd
+                    AND NOT EXISTS(SELECT 1 FROM $sql_mtt WHERE MTT.商品ＣＤ=UDM.商品ＣＤ)
+                ";
+        $exists_prod62 = DB::selectOne($sql_62)->CNT;
+
+        $sql = "
+            SELECT
+                MTT.商品ＣＤ AS Cd,
+                PM.商品名 AS CdNm,
+                MTT.得意先ＣＤ,
+                MTT.商品ＣＤ,
+                PM.商品名,
+                PM.商品区分,
+                PM.主食ＣＤ,
+                PM.副食ＣＤ,
+                MTT.単価 AS 売価単価
+            FROM
+                $sql_mtt
                 LEFT OUTER JOIN 商品マスタ PM
                     ON	PM.商品ＣＤ=MTT.商品ＣＤ
         ";
         if (0<$exists_prod62) {
+            //得意先単価未登録の商品も追加
             $sql.="
-                union select
-                    商品ＣＤ
-                    ,商品名
+                UNION SELECT
+                     M.商品ＣＤ
+                    ,M.商品名
                     ,$CustomerCd
-                    ,商品ＣＤ
-                    ,商品名
-                    ,商品区分
-                    ,主食ＣＤ
-                    ,副食ＣＤ
-                    ,売価単価
-                from 商品マスタ
-                where 商品ＣＤ=62
+                    ,M.商品ＣＤ
+                    ,M.商品名
+                    ,M.商品区分
+                    ,M.主食ＣＤ
+                    ,M.副食ＣＤ
+                    ,M.売価単価
+                FROM 商品マスタ M
+                WHERE M.弁当区分 in(0,8,9)
+                AND M.表示ＦＬＧ=0
+                AND NOT EXISTS(SELECT 1 FROM $sql_mtt WHERE MTT.商品ＣＤ=M.商品ＣＤ)
             ";
         }
 
