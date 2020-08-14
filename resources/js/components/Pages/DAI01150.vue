@@ -94,7 +94,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-11 d-block">
+            <div class="col-md-9 d-block">
                 <PqGridWrapper
                     id="DAI01150GridSeikyu"
                     ref="DAI01150GridSeikyu"
@@ -113,8 +113,10 @@
                     :SearchOnCreate=false
                     :SearchOnActivate=false
                     :resizeFunc=resizeGrid
-                    classes="ml-0 mr-0 mt-1 mb-0 gridNyukin"
+                    classes="ml-0 mr-0 mt-1 mb-0"
                 />
+            </div>
+            <div class="col-md-1 flex align-items-end">
                 <div class="urikakeZan">
                     <label>売掛残</label>
                     <input class="form-control" style="width: 100px; text-align: right;" type="text" :value=viewModel.UrikakeZan readonly tabindex="-1">
@@ -139,16 +141,13 @@
 label{
     width: 80px;
 }
-.gridNyukin {
-    float: left;
-}
 .urikakeZan {
-    float: left;
     display: flex;
     align-items: flex-end;
     flex-direction: column;
-    margin-top: calc(48%/3);
-    margin-left: 5px;
+}
+[pgid=DAI01150] .pq-cont-inner.pq-cont-right {
+    overflow-x: hidden !important;
 }
 </style>
 
