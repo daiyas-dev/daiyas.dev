@@ -801,8 +801,7 @@ class DataReceiveBase
                                 ->where('得意先ＣＤ', $MobileSales->得意先ＣＤ)
                                 ->where('日付', $MobileSales->日付)
                                 ->where('商品ＣＤ', $MobileSales->商品ＣＤ)
-                                ->where('主食ＣＤ', $MobileSales->主食ＣＤ)
-                                ->where('副食ＣＤ', $MobileSales->副食ＣＤ)
+                                ->where('売掛現金区分', $MobileSales->現金売掛区分)
                                 ->get();
 
                             $rec = [];
@@ -820,9 +819,9 @@ class DataReceiveBase
                                 $rec["現金個数"] = $MobileSales->現金売掛区分 == 0 ? $MobileSales->実績数 : 0;
                                 $rec["現金金額"] = $MobileSales->現金売掛区分 == 0 ? $MobileSales->金額 : 0;
                                 $rec["現金値引"] = $MobileSales->現金売掛区分 == 0 ? $MobileSales->値引 : 0;
-                                $rec["掛売個数"] = $MobileSales->現金売掛区分 == 1 ? $MobileSales->実績数 : 0;
-                                $rec["掛売金額"] = $MobileSales->現金売掛区分 == 1 ? $MobileSales->金額 : 0;
-                                $rec["掛売値引"] = $MobileSales->現金売掛区分 == 1 ? $MobileSales->値引 : 0;
+                                $rec["掛売個数"] = $MobileSales->現金売掛区分 != 0 ? $MobileSales->実績数 : 0;
+                                $rec["掛売金額"] = $MobileSales->現金売掛区分 != 0 ? $MobileSales->金額 : 0;
+                                $rec["掛売値引"] = $MobileSales->現金売掛区分 != 0 ? $MobileSales->値引 : 0;
                             }
                             $rec["売掛現金区分"] = $MobileSales->現金売掛区分;
                             $rec["現金値引事由ＣＤ"] = 0;
@@ -841,8 +840,7 @@ class DataReceiveBase
                                     ->where('得意先ＣＤ', $MobileSales->得意先ＣＤ)
                                     ->where('日付', $MobileSales->日付)
                                     ->where('商品ＣＤ', $MobileSales->商品ＣＤ)
-                                    ->where('主食ＣＤ', $MobileSales->主食ＣＤ)
-                                    ->where('副食ＣＤ', $MobileSales->副食ＣＤ)
+                                    ->where('売掛現金区分', $MobileSales->現金売掛区分)
                                     ->update($rec);
                             } else {
                                 //日付・得意先毎に振り出した明細行Noを控える。(レコードロック対策)
@@ -874,6 +872,7 @@ class DataReceiveBase
                                 $rec["商品ＣＤ"] = $MobileSales->商品ＣＤ;
                                 $rec["主食ＣＤ"] = $MobileSales->主食ＣＤ;
                                 $rec["副食ＣＤ"] = $MobileSales->副食ＣＤ;
+                                $rec["売掛現金区分"] = $MobileSales->現金売掛区分;
 
                                 $Product = DB::connection('sqlsrv_batch')->table("商品マスタ")
                                     ->where('商品ＣＤ', $MobileSales->商品ＣＤ)
@@ -966,9 +965,9 @@ class DataReceiveBase
                                     $dist["現金個数"] = $MobileDist->現金売掛区分 == 0 ? $MobileDist->実績数 : 0;
                                     $dist["現金金額"] = $MobileDist->現金売掛区分 == 0 ? $MobileDist->金額 : 0;
                                     $dist["現金値引"] = $MobileDist->現金売掛区分 == 0 ? $MobileDist->値引 : 0;
-                                    $dist["掛売個数"] = $MobileDist->現金売掛区分 == 1 ? $MobileDist->実績数 : 0;
-                                    $dist["掛売金額"] = $MobileDist->現金売掛区分 == 1 ? $MobileDist->金額 : 0;
-                                    $dist["掛売値引"] = $MobileDist->現金売掛区分 == 1 ? $MobileDist->値引 : 0;
+                                    $dist["掛売個数"] = $MobileDist->現金売掛区分 != 0 ? $MobileDist->実績数 : 0;
+                                    $dist["掛売金額"] = $MobileDist->現金売掛区分 != 0 ? $MobileDist->金額 : 0;
+                                    $dist["掛売値引"] = $MobileDist->現金売掛区分 != 0 ? $MobileDist->値引 : 0;
                                     $dist["売掛現金区分"] = $MobileDist->現金売掛区分;
                                     $dist["現金値引事由ＣＤ"] = 0;
                                     $dist["掛売値引事由ＣＤ"] = 0;
@@ -1005,8 +1004,7 @@ class DataReceiveBase
                                         ->where('得意先ＣＤ', $MobileDist->得意先ＣＤ)
                                         ->where('日付', $MobileDist->日付)
                                         ->where('商品ＣＤ', $MobileDist->商品ＣＤ)
-                                        ->where('主食ＣＤ', $MobileDist->主食ＣＤ)
-                                        ->where('副食ＣＤ', $MobileDist->副食ＣＤ)
+                                        ->where('売掛現金区分', $MobileSales->現金売掛区分)
                                         ->where(function ($q) {
                                             $q->orWhere('掛売個数', '>', 0)
                                                 ->orWhere('現金個数', '>', 0);
@@ -1030,8 +1028,7 @@ class DataReceiveBase
                                             ->where('得意先ＣＤ', $MobileDist->得意先ＣＤ)
                                             ->where('日付', $MobileDist->日付)
                                             ->where('商品ＣＤ', $MobileDist->商品ＣＤ)
-                                            ->where('主食ＣＤ', $MobileDist->主食ＣＤ)
-                                            ->where('副食ＣＤ', $MobileDist->副食ＣＤ)
+                                            ->where('売掛現金区分', $MobileSales->現金売掛区分)
                                             ->update($pdata);
                                     }
                                 }
