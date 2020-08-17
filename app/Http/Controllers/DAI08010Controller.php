@@ -20,6 +20,100 @@ class DAI08010Controller extends Controller
 {
 
     /**
+     * GetCustomerListForSelect
+     */
+    public function GetCustomerListForSelect($request)
+    {
+        $BushoCd = $request->bushoCd ?? $request->BushoCd;
+        $WhereBusho = $BushoCd ? " AND TM.部署ＣＤ=$BushoCd" : "";
+
+        $KeyWord = $request->KeyWord;
+        $TelNo = !!$KeyWord ? str_replace('-', '', $KeyWord) : '';
+
+        $WhereKeyWord = $KeyWord
+            ? " AND (
+                    TM.得意先名 LIKE '%$KeyWord%' OR
+                    TM.備考１ LIKE '$KeyWord%' OR
+                    TM.備考２ LIKE '$KeyWord%' OR
+                    TM.備考３ LIKE '$KeyWord%' OR
+                    TM.電話番号１ LIKE '$KeyWord%' OR
+                    TM.電話番号１ LIKE '$TelNo%'
+                )"
+            : "";
+
+        $pdo = DB::connection()->getPdo();
+
+        if (is_numeric($KeyWord) && ctype_digit($KeyWord)) {
+            $WhereCustomer = " AND TM.得意先ＣＤ=$KeyWord";
+
+            //得意先ＣＤでの検索
+            $ByCustomerSql = "
+                SELECT
+                    TM.得意先ＣＤ AS Cd,
+                    TM.得意先名 AS CdNm,
+                    TM.部署CD,
+                    TM.得意先名カナ,
+                    TM.得意先名略称,
+                    TM.住所１,
+                    TM.電話番号１,
+                    TM.ＦＡＸ１,
+                    TM.備考１,
+                    TM.備考２,
+                    TM.備考３,
+                    TM.売掛現金区分,
+                    TM.支払方法１,
+                    TM.締日１,
+                    BM.部署名
+                FROM 得意先マスタ TM
+                LEFT JOIN 部署マスタ BM
+                    ON TM.部署CD = BM.部署CD
+                WHERE 0=0
+                $WhereBusho
+                $WhereCustomer
+            ";
+
+            $stmt = $pdo->query($ByCustomerSql);
+            $Result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            if (count($Result) == 1) {
+                $pdo = null;
+                return response()->json($Result);
+            }
+        }
+
+        $sql = "
+            SELECT
+                TM.得意先ＣＤ AS Cd,
+                TM.得意先名 AS CdNm,
+                TM.部署CD,
+                TM.得意先名カナ,
+                TM.得意先名略称,
+                TM.住所１,
+                TM.電話番号１,
+                TM.ＦＡＸ１,
+                TM.備考１,
+                TM.備考２,
+                TM.備考３,
+                TM.売掛現金区分,
+                TM.支払方法１,
+                TM.締日１,
+                BM.部署名
+            FROM 得意先マスタ TM
+            LEFT OUTER JOIN 部署マスタ BM
+                ON TM.部署CD = BM.部署CD
+            WHERE 0=0
+            $WhereBusho
+            $WhereKeyWord
+        ";
+
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = null;
+
+        return response()->json(['Data' => $DataList]);
+    }
+
+    /**
      * GetOrderNoList
      */
     public function GetOrderNoList($request)
@@ -635,50 +729,27 @@ class DAI08010Controller extends Controller
      */
     public function Delete($request)
     {
-        $skip = [];
-
         DB::beginTransaction();
 
         try {
-            $params = $request->all();
+            $BushoCd = $request->BushoCd;
+            $CustomerCd = $request->CustomerCd;
+            $DeliveryDate = $request->DeliveryDate;
+            $OrderNo = $request->OrderNo;
 
-            $DeleteList = $params['DeleteList'];
+            仕出し注文データ::query()
+                ->where('部署ＣＤ', $BushoCd)
+                ->where('受注Ｎｏ', $OrderNo)
+                ->where('配達日付', $DeliveryDate)
+                ->delete();
 
-            foreach ($DeleteList as $rec) {
-                if (isset($rec['修正日']) && !!$rec['修正日']) {
-                    $r = 注文データ::query()
-                        ->where('注文区分', $rec['注文区分'])
-                        ->where('注文日付', $rec['注文日付'])
-                        ->where('部署ＣＤ', $rec['部署ＣＤ'])
-                        ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
-                        ->where('配送日', $rec['配送日'])
-                        ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
-                        ->get();
+            仕出し注文明細データ::query()
+                ->where('部署ＣＤ', $BushoCd)
+                ->where('受注Ｎｏ', $OrderNo)
+                ->where('配達日付', $DeliveryDate)
+                ->delete();
 
-                    if (count($r) != 1) {
-                        $skip = collect($skip)->push(["target" => $rec, "current" => null]);
-                        continue;
-                    } else if ($rec['修正日'] != $r[0]->修正日) {
-                        $skip = collect($skip)->push(["target" => $rec, "current" => $r[0]]);
-                        continue;
-                    }
-
-                    注文データ::query()
-                        ->where('注文区分', $rec['注文区分'])
-                        ->where('注文日付', $rec['注文日付'])
-                        ->where('部署ＣＤ', $rec['部署ＣＤ'])
-                        ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
-                        ->where('配送日', $rec['配送日'])
-                        ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
-                        ->delete();
-                }
-            }
-
-            if (count($skip) > 0) {
-                DB::rollBack();
-            } else {
-                DB::commit();
-            }
+            DB::commit();
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;
@@ -686,7 +757,6 @@ class DAI08010Controller extends Controller
 
         return response()->json([
             'result' => true,
-            "edited" => count($skip) > 0 ? $this->GetOrderList($request) : [],
         ]);
     }
 }

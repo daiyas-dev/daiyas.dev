@@ -107,8 +107,8 @@
                     :vmodel=CustomerInfo
                     bind="得意先ＣＤ"
                     buddy="得意先名"
-                    dataUrl="/Utilities/GetCustomerListForSelect"
-                    :params="{ KeyWord: viewModel.CustomerCd, UserBushoCd: viewModel.BushoCd }"
+                    dataUrl="/DAI08010/GetCustomerListForSelect"
+                    :params="{ BushoCd: viewModel.BushoCd }"
                     :isPreload=true
                     title="顧客一覧"
                     labelCd="顧客CD"
@@ -123,6 +123,7 @@
                     :editable=true
                     :isNameEditable=true
                     :onNameChangedFunc=onCustomerNameChanged
+                    :dataListReset=true
                     :reuse=true
                     :existsCheck=true
                     :inputWidth=150
@@ -1719,8 +1720,7 @@ export default {
             grid.saveData(
                 {
                     uri: "/DAI08010/Delete",
-                    params: {
-                    },
+                    params: { noCache: true },
                     optional: this.searchParams,
                     confirm: {
                         isShow: true,
