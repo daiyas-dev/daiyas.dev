@@ -432,9 +432,9 @@ ORDER BY
                             ,YO.コースＣＤ
                             ,YO.得意先ＣＤ
                             ,YO.商品ＣＤ
-                            ,SUM(YO.予測数)AS YO予測数
+                            ,SUM(IIF(MH.実績入力=1, 0, YO.予測数))AS YO予測数
                             ,MAX(YO.注文入力) AS YO注文入力
-                            ,SUM(YO.注文数) AS YO注文数
+                            ,SUM(IIF(MH.実績入力=1, 0, YO.注文数)) AS YO注文数
                         FROM(
                                 SELECT
                                     Y.部署ＣＤ
@@ -457,6 +457,11 @@ ORDER BY
                                 FROM
                                     ORDER_DATA OD
                             )YO
+							LEFT JOIN モバイル_販売入力 MH
+								ON  YO.部署ＣＤ=MH.部署ＣＤ
+								AND YO.コースＣＤ=MH.コースＣＤ
+								AND YO.得意先ＣＤ=MH.得意先ＣＤ
+								AND MH.日付='$DeliveryDate'
                         GROUP BY
                             YO.部署ＣＤ
                             ,YO.コースＣＤ
@@ -504,7 +509,7 @@ ORDER BY
                 ,CONVERT(VARCHAR,COU.コースＣＤ) AS コースＣＤ
                 ,COU.コース名
                 ,SHO.商品ＣＤ
-                ,ISNULL(MOB_MOTI.個数,0) - (case ISNULL(MOB_HAN.実績入力フラグ,0) when 1 then ISNULL(MOB_HAN.販売数,0) else ISNULL(MOB_YOS.予測注文数,0) end) + ISNULL(MOB_IDO_UKE.個数,0) - ISNULL(MOB_IDO_WATASHI.個数,0) AS 個数
+                ,ISNULL(MOB_MOTI.個数,0) - ISNULL(MOB_HAN.販売数,0) - ISNULL(MOB_YOS.予測注文数,0) + ISNULL(MOB_IDO_UKE.個数,0) - ISNULL(MOB_IDO_WATASHI.個数,0) AS 個数
             FROM
                 [コースマスタ] COU
                     INNER JOIN [担当者マスタ] TAN ON
@@ -538,7 +543,7 @@ ORDER BY
             ORDER BY
                 COU.部署ＣＤ
                 ,COU.コースＣＤ
-    ";
+        ";
 
         $DataList = DB::select(DB::raw($sql));
 
