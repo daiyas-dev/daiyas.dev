@@ -827,7 +827,8 @@ export default {
             var CheckKaikei = res[0].CheckKaikei * 1;
 
             vue.checkMsg = !!CheckSeikyu ? "請求済" : !!CheckKaikei ? "会計処理済" : "";
-            vue.footerButtons.find(v => v.id == "DAI07010Grid1_Save").disabled = !!CheckSeikyu || !!CheckKaikei;
+            // vue.footerButtons.find(v => v.id == "DAI07010Grid1_Save").disabled = !!CheckSeikyu || !!CheckKaikei;
+            vue.footerButtons.find(v => v.id == "DAI07010Grid1_Save").disabled = !!CheckKaikei;
 
             return UriageDataList;
         },

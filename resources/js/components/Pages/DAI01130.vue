@@ -624,7 +624,8 @@ export default {
 
             vue.checkMsg = !!CheckSeikyu ? "請求済みです" : !!CheckKaikei ? "会計処理済みです" : "";
             vue.footerButtons.find(v => v.id == "DAI01130Grid1_Delete").disabled = !!CheckSeikyu || !!CheckKaikei;
-            vue.footerButtons.find(v => v.id == "DAI01130Grid1_Save").disabled = !!CheckSeikyu || !!CheckKaikei;
+            // vue.footerButtons.find(v => v.id == "DAI01130Grid1_Save").disabled = !!CheckSeikyu || !!CheckKaikei;
+            vue.footerButtons.find(v => v.id == "DAI01130Grid1_Save").disabled = !!CheckKaikei;
         },
         CustomerAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
