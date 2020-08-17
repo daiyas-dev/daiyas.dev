@@ -59,7 +59,7 @@
                         style="width: 150px"
                         v-model=viewModel.CustomerCd
                         autocomplete="off"
-                        @input=onCustomerChanged
+                        @keydown.enter=onCustomerChanged
                     >
                     <button type="button"
                         class="selector-button btn btn-info p-0 border-0"
@@ -800,10 +800,10 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        onCustomerChanged: _.debounce(function() {
+        onCustomerChanged: function() {
             var vue = this;
             vue.CustomerChangedFunc();
-        }, 300),
+        },
         CustomerChangedFunc: function(noSearch) {
             var vue = this;
 
