@@ -483,7 +483,7 @@ export default {
                             return;
                         }
 
-                        var checkRequire = grid => grid.pdata.map(r => [r.商品ＣＤ, r.個数]).every(r => r.every(v => !!v) || r.every(v => !v));
+                        var checkRequire = grid => grid.pdata.map(r => [r.商品ＣＤ]).every(r => r.every(v => !!v) || r.every(v => !v));
 
                         var require = checkRequire(grid);
 
