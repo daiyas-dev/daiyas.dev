@@ -54,12 +54,21 @@ class DAI07010Controller extends Controller
                     $BushoCd AS 部署CD,
                     $CourseCd AS コースCD,
                     $CustomerCd AS 得意先CD
-                FROM
-                    得意先単価マスタ T1
+                FROM (
+                    SELECT
+                        *
+                        , RANK() OVER(PARTITION BY 得意先ＣＤ, 商品ＣＤ ORDER BY 適用開始日 DESC) AS RNK
+                    FROM
+                        得意先単価マスタ新
+                    WHERE
+                        得意先ＣＤ=$CustomerCd
+                    AND 適用開始日 <= '$FirstDay'
+                ) T1
 					INNER JOIN 商品マスタ T3
 						ON T3.商品ＣＤ=T1.商品ＣＤ
                 WHERE
-                    T1.得意先CD = $CustomerCd
+                    RNK = 1
+                AND T1.得意先CD = $CustomerCd
                 UNION
                 SELECT
                     T2.商品CD,
