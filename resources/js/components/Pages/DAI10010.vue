@@ -307,9 +307,12 @@ export default {
                             trigger: () => !!vue.viewModel.CustomerCd && vue.getProductList().length,
                             source: () => vue.getProductList(),
                             bind: "商品ＣＤ",
-                            buddies: { "商品名": "CdNm", "単価": "売価単価", "商品区分": "商品区分", "主食ＣＤ": "主食ＣＤ", "副食ＣＤ": "副食ＣＤ" },
-                            onSelect: rowData => {
+                            buddies: { "商品名": "CdNm", "単価": "売価単価", "商品区分": "商品区分", },
+                            onSelect: (rowData, selected) => {
+                                console.log("10010 GridSelect");
                                 rowData["金額"] = rowData["単価"] * rowData["個数"];
+                                rowData["主食ＣＤ"] = selected["主食ＣＤ"];
+                                rowData["副食ＣＤ"] = selected["副食ＣＤ"];
                             },
                             AutoCompleteFunc: vue.ProductAutoCompleteFuncInGrid,
                             AutoCompleteMinLength: 0,
@@ -498,6 +501,7 @@ export default {
                         var changes = grid.createSaveParams();
                         changes.AddList = changes.AddList.filter(r => _.values(diff(grid.vue.autoEmptyRowFunc(), r)).some(v => !!v));
                         var SaveList = _.concat(changes.AddList, changes.UpdateList);
+                        var DeleteList = grid.getChanges().deleteList;
 
                         //売上データ明細の型に整形
                         SaveList.forEach((v, i) => {
@@ -540,12 +544,26 @@ export default {
                             delete v.今回請求額;
                         });
 
+                        DeleteList = DeleteList.map(v => {
+                            var ret = {};
+                            ret.日付 = v.日付;
+                            ret.部署ＣＤ = vue.searchParams.BushoCd;
+                            ret.コースＣＤ = v.コースＣＤ;
+                            ret.行Ｎｏ = v.行Ｎｏ;
+                            ret.得意先ＣＤ = v.得意先ＣＤ;
+                            ret.明細行Ｎｏ = v.明細行Ｎｏ;
+                            ret.受注Ｎｏ = v.受注Ｎｏ;
+
+                            return ret;
+                        });
+
                         //保存実行
                         grid.saveData(
                             {
                                 uri: "/DAI10010/Save",
                                 params: {
                                     SaveList: SaveList,
+                                    DeleteList: DeleteList,
                                 },
                                 optional: vue.searchParams,
                                 confirm: {

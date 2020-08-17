@@ -257,16 +257,33 @@ ORDER BY
 
         $params = $request->all();
         $SaveList = $params['SaveList'];
+        $DeleteList = $params['DeleteList'];
 
         //モバイルsv更新用
         $MUpdateList = [];
         $MInsertList = [];
+        $MDeleteList = [];
 
         DB::beginTransaction();
 
         try {
-
             $date = Carbon::now()->format('Y-m-d H:i:s');
+
+            foreach ($DeleteList as $rec) {
+                売上データ明細::query()
+                    ->where('日付', $rec['日付'])
+                    ->where('部署ＣＤ', $rec['部署ＣＤ'])
+                    ->where('コースＣＤ', $rec['コースＣＤ'])
+                    ->where('行Ｎｏ', $rec['行Ｎｏ'])
+                    ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
+                    ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
+                    ->where('受注Ｎｏ', $rec['受注Ｎｏ'])
+                    ->delete();
+
+                //モバイルsv更新用
+                array_push($MDeleteList, $rec);
+            }
+
             foreach ($SaveList as $rec) {
                 if (isset($rec['修正日']) && !!$rec['修正日']) {
                     $r = 売上データ明細::query()
@@ -326,6 +343,10 @@ ORDER BY
             DB::commit();
 
             //モバイルsv更新
+            foreach ($MDeleteList as $rec) {
+                $ds = new DataSendWrapper();
+                $ds->Delete('売上データ明細', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
+            }
             foreach ($MUpdateList as $rec) {
                 $ds = new DataSendWrapper();
                 $ds->Update('売上データ明細', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
