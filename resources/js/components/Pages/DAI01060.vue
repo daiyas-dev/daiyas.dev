@@ -714,7 +714,7 @@ export default {
 
                     //取得した結果を設定
                     params.CourseList = resCourse;
-                    params.ProductList = resProduct;
+                    params.ProductList = _.uniqBy(resProduct, "商品ＣＤ");
 
                     grid.hideLoading();
 

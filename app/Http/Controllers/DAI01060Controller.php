@@ -27,13 +27,21 @@ set @日付WK  = CONVERT(datetime, '$TargetDate', $BushoCd);
 
 WITH TAISHO_SHOHIN AS (
 SELECT
-  CONVERT(int,KAKU.サブ各種CD1) AS 商品ＣＤ
-  ,KAKU.各種略称 AS 商品名
-  ,KAKU.行NO AS ソート順
-FROM
-  各種テーブル KAKU
-WHERE
-  KAKU.各種CD = 33
+	商品ＣＤ
+	,商品名
+	,ソート順
+FROM (
+	SELECT
+	  CONVERT(int,KAKU.サブ各種CD1) AS 商品ＣＤ
+	  ,KAKU.各種略称 AS 商品名
+	  ,KAKU.行NO AS ソート順
+	  ,RANK() OVER(PARTITION BY サブ各種CD1 ORDER BY 行NO) AS RNK
+	FROM
+	  各種テーブル KAKU
+	WHERE
+	  KAKU.各種CD = 33
+) X
+WHERE RNK = 1
 ),
 MOBILE_MOTI AS(
 SELECT
