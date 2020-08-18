@@ -38,9 +38,10 @@ class DataSendWrapper extends PWADataSend
      * @param 得意先CD
      * @param コースCD
      * @param 通知メッセージ
+     * @param insert処理前に実行するSQL
      * @return void
      */
-    public function Insert($table_name,$table_data,$Immediate = null,$busho_cd = null,$customer_cd=null,$course_cd=null, $notify_message = null)
+    public function Insert($table_name,$table_data,$Immediate = null,$busho_cd = null,$customer_cd=null,$course_cd=null, $notify_message = null, $before_sql = null)
     {
         try {
             $new_data=array();
@@ -74,6 +75,11 @@ class DataSendWrapper extends PWADataSend
             $fields=substr($fields,1);
             $values=substr($values,1);
             $sql="insert into $new_table_name ( $fields )values( $values )";
+
+            if($before_sql !== null)
+            {
+                $sql=$before_sql.";".$sql;
+            }
 
             //送信リストに登録
             parent::StoreSendList($sql,$Immediate,$busho_cd,$customer_cd,$course_cd, $notify_message);

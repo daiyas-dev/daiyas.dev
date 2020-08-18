@@ -68,11 +68,11 @@ class DAI04041Controller extends Controller
             //モバイルSvを更新
             $Message = $params['Message'];
             $ds = new DataSendWrapper();
-            if ($isNew) {
-                $ds->Insert('得意先マスタ',$newData,true,$newData['部署CD'],null,null, $Message);
-            }else{
-                $ds->Update('得意先マスタ',$newData,true,$newData['部署CD'],null,null, $Message);
-            }
+
+            $sql="select * from 得意先マスタ where 得意先ＣＤ=$CustomerCd";
+            $CustomerData = (array)DB::selectOne($sql);
+            $del_sql="delete from CustomerMaster where customer_code=$CustomerCd";
+            $ds->Insert('得意先マスタ',$CustomerData,true,$newData['部署CD'],null,null, $Message,$del_sql);
 
         } catch (Exception $exception) {
             DB::rollBack();
