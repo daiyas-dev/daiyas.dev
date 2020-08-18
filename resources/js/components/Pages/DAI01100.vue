@@ -722,7 +722,7 @@ export default {
             .then((grid1) => {
                 grid1.showLoading();
 
-                axios.post("/DAI01100/ColSearch", { BushoCd: vue.viewModel.BushoCd })
+                axios.post("/DAI01100/ColSearch", { BushoCd: vue.viewModel.BushoCd, noCache:true })
                     .then(response => {
                         var res = _.cloneDeep(response.data);
                         vue.ProductList = res;
@@ -835,7 +835,7 @@ export default {
             //コース区分変更
             axios.post(
                 "/Utilities/GetCourseKbnFromDate",
-                {TargetDate: moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD")}
+                {TargetDate: moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD"), noCache: true }
             )
                 .then(res => {
                     vue.viewModel.CourseKbn = res.data.コース区分;

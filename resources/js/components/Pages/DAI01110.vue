@@ -1347,7 +1347,9 @@ export default {
 
             if (vue.viewModel.CourseCd == null || vue.viewModel.CourseCd == undefined) {
                 //商品リスト変更
-                axios.post("/DAI01110/GetProductList", vue.searchParams)
+                var params = vue.searchParams;
+                params.noCache = true;
+                axios.post("/DAI01110/GetProductList", params)
                     .then(res => {
                         vue.ProductList = res.data;
 
@@ -1378,7 +1380,7 @@ export default {
             //コース区分変更
             axios.post(
                 "/Utilities/GetCourseKbnFromDate",
-                {TargetDate: moment(vue.viewModel.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD")}
+                {TargetDate: moment(vue.viewModel.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD"), noCache:true }
             )
                 .then(res => {
                     console.log(res);
@@ -1858,9 +1860,9 @@ export default {
             axios.all(
                 [
                     //コースリストの取得
-                    axios.post("/Utilities/GetCourseList", { BushoCd: params.BushoCd, CourseKbn: params.CourseKbn, }),
+                    axios.post("/Utilities/GetCourseList", { BushoCd: params.BushoCd, CourseKbn: params.CourseKbn, noCache:true }),
                     //商品リストの取得
-                    axios.post("/DAI01061/GetTargetProducts", { BushoCd: params.BushoCd, CourseKbn: params.CourseKbn, CourseCd: params.CourseCd, }),
+                    axios.post("/DAI01061/GetTargetProducts", { BushoCd: params.BushoCd, CourseKbn: params.CourseKbn, CourseCd: params.CourseCd, noCache:true }),
                 ]
             ).then(
                 axios.spread((responseCourse, responseProduct) => {
