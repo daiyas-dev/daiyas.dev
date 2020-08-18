@@ -424,6 +424,7 @@ export default {
                 .values()
                 .map((g, i) => {
                     var rows = _(g)
+                        .sortBy(v => v.コースＣＤ + "_" + v.順 + "_" + v.食事区分)
                         .groupBy(v => v.コースＣＤ + "_" + v.順 + "_" + v.食事区分)
                         .values()
                         .map((r, i) => {
@@ -479,11 +480,11 @@ export default {
                                 return acc;
                             }
 
-                            var dk = _.keys(acc).filter(k => k.match(/^\d+$/));
+                            var dk = _.uniq(_.keys(acc).filter(k => k.match(/^\d+$/)).concat(_.keys(r).filter(k => k.match(/^\d+$/)))).sort();
                             var dv = dk.map(k => acc[k]);
-                            var max = _.max(dv.map(v => (v.match(/\n/g) || []).length));
+                            var max = _.max(dv.filter(v => !!v).map(v => (v.match(/\n/g) || []).length));
 
-                            var add = (s, d, m) => !d ? s : (s + _.repeat("\n", m - (s.match(/\n/g) || []).length + 1) + d);
+                            var add = (s, d, m) => !d ? s  : (!s ? (_.repeat("\n", m + 1) + d) : (s + _.repeat("\n", m - (s.match(/\n/g) || []).length + 1) + d));
 
                             dk.forEach(k => acc[k] = add(acc[k], r[k], max));
                             acc.食事区分名 = add(acc.食事区分名, r.食事区分名, max);

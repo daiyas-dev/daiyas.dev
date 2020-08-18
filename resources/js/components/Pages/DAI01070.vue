@@ -106,7 +106,7 @@
         <PqGridWrapper
             id="DAI01070Grid1"
             ref="DAI01070Grid1"
-            dataUrl="/DAI01070/Search"
+            dataUrl="https://daiyas-mobile.tk/api/getoverunder"
             :query=this.searchParams
             :SearchOnCreate=false
             :SearchOnActivate=false
@@ -461,6 +461,17 @@ export default {
         },
         onAfterSearchFunc: function (grieVue, grid, res) {
             var vue = this;
+
+            res = res.map(v => {
+                return {
+	                "チェック": v.check_flag,
+	                "コースＣＤ": v.course_code,
+	                "コース名": v.course_name,
+	                "商品ＣＤ": v.product_code,
+	                "個数": v.quantity,
+                };
+            });
+            window.res = res;
 
             //集計
             var groupings = _(res)
