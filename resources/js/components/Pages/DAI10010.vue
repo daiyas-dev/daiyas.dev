@@ -307,9 +307,9 @@ export default {
                             trigger: () => !!vue.viewModel.CustomerCd && vue.getProductList().length,
                             source: () => vue.getProductList(),
                             bind: "商品ＣＤ",
-                            buddies: { "商品名": "CdNm", "単価": "売価単価", "商品区分": "商品区分", },
+                            buddies: { "商品名": "CdNm", "商品区分": "商品区分", },
                             onSelect: (rowData, selected) => {
-                                console.log("10010 GridSelect");
+                                rowData["単価"] = selected["売価単価"];
                                 rowData["金額"] = rowData["単価"] * rowData["個数"];
                                 rowData["主食ＣＤ"] = selected["主食ＣＤ"];
                                 rowData["副食ＣＤ"] = selected["副食ＣＤ"];
