@@ -37,4 +37,6 @@ $stmt = $pdo->query($sql);
 $Result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $pdo = null;
 
+$Result = ["IsDeliveried" => count($Result) > 0];
+
 print json_encode($Result, JSON_PRETTY_PRINT);
