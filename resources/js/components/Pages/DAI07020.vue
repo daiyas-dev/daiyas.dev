@@ -441,7 +441,7 @@ export default {
 
                                         var ymd = moment(v.日付).format("MMDD");
                                         acc[ymd] = (!!acc[ymd] ? (acc[ymd] + "\n") : "")
-                                            + v.商品略称 + _.repeat("\n" + v.商品略称, (v.現金個数 + v.掛売個数 - 1));
+                                            + v.商品略称 + _.repeat("\n" + v.商品略称, ((v.現金個数 || 0) * 1 + (v.掛売個数 || 0) * 1 - 1));
 
                                         acc[ymd + "_個数"] = (acc[ymd + "_個数"] || 0)
                                             + (v.現金個数 || 0) * 1  + (v.掛売個数 || 0) * 1;
