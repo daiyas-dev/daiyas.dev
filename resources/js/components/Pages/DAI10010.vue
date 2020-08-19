@@ -553,9 +553,9 @@ export default {
                             var ret = {};
                             ret.日付 = v.日付;
                             ret.部署ＣＤ = vue.searchParams.BushoCd;
-                            ret.コースＣＤ = v.コースＣＤ;
+                            ret.コースＣＤ = vue.searchParams.CourseCd || 0;
                             ret.行Ｎｏ = v.行Ｎｏ;
-                            ret.得意先ＣＤ = v.得意先ＣＤ;
+                            ret.得意先ＣＤ = vue.searchParams.CustomerCd;
                             ret.明細行Ｎｏ = v.明細行Ｎｏ;
                             ret.受注Ｎｏ = v.受注Ｎｏ;
 
