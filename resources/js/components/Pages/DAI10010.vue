@@ -290,8 +290,12 @@ export default {
                     [
                         "金額",
                         function(rowData){
-                            var ret = rowData["単価"] * rowData["個数"];
-                            ret = _.isNaN(ret) ? 0 : ret;
+                            var ret = 0;
+                            if (!!rowData["個数"]){
+                                var ret = rowData["単価"] * rowData["個数"];
+                            } else {
+                                ret = rowData["売掛現金区分"] == 0 ? rowData["現金金額"] :rowData["掛売金額"];
+                            }
                             return ret;
                         }
                     ],
@@ -370,7 +374,7 @@ export default {
                         dataType: "integer",
                         format: "#,##0",
                         width: 75, maxWidth: 75, minWidth: 75,
-                        editable: false,
+                        editable: true,
                         render: ui => {
                             if (!ui.rowData[ui.dataIndx]) {
                                 return { text: "" };
@@ -521,7 +525,7 @@ export default {
                             v.掛売値引 = (v.売上売掛現金区分 != 0 ? v.値引 : 0) || 0;
                             v.掛売値引事由ＣＤ = (v.売上売掛現金区分 != 0 ? v.値引事由 : 0) || 0;
                             v.請求日付 = v.請求日付 = v.売上売掛現金区分 != 0 ? (!!v.請求日付 ? moment(v.請求日付).format("YYYYMMDD") : "") : "";
-                            v.予備金額１ = v.単価;
+                            v.予備金額１ = v.単価 || 0;
                             v.予備金額２ = 0;
                             v.売掛現金区分 = v.売上売掛現金区分;
                             v.予備ＣＤ２ = 0;
