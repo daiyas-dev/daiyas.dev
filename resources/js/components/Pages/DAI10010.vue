@@ -796,7 +796,7 @@ export default {
                 var data = SalesList.filter(v => !!v.商品ＣＤ);
                 data.forEach(v => {
                     v.個数 = (v.売掛現金区分 == 0 ? v.現金個数 : v.掛売個数 ) * 1 + v.分配元数量 * 1;
-                    v.単価 = vue.ProductList.find(p => p.商品ＣＤ == v.商品ＣＤ).売価単価 * 1;
+                    v.単価 = !!v.予備金額１ ? v.予備金額１ : vue.ProductList.find(p => p.商品ＣＤ == v.商品ＣＤ).売価単価 * 1;
                     v.値引 = (v.売掛現金区分 == 0 ? v.現金値引 : v.掛売値引 ) * 1;
                     v.値引事由 = (v.売掛現金区分 == 0 ? v.現金値引事由ＣＤ : v.掛売値引事由ＣＤ ) * 1;
                 });
@@ -988,7 +988,7 @@ export default {
             var data = res.SalesList.filter(v => !!v.商品ＣＤ);
             data.forEach(v => {
                 v.個数 = (v.売掛現金区分 == 0 ? v.現金個数 : v.掛売個数 ) * 1;
-                v.単価 = vue.ProductList.find(p => p.商品ＣＤ == v.商品ＣＤ).売価単価 * 1;
+                v.単価 = !!v.予備金額１ ? v.予備金額１ : vue.ProductList.find(p => p.商品ＣＤ == v.商品ＣＤ).売価単価 * 1;
                 v.値引 = (v.売掛現金区分 == 0 ? v.現金値引 : v.掛売値引 ) * 1;
                 v.値引事由 = (v.売掛現金区分 == 0 ? v.現金値引事由ＣＤ : v.掛売値引事由ＣＤ ) * 1;
             });
