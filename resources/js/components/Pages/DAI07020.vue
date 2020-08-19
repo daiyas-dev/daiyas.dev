@@ -443,6 +443,9 @@ export default {
                                         acc[ymd] = (!!acc[ymd] ? (acc[ymd] + "\n") : "")
                                             + v.商品略称 + _.repeat("\n" + v.商品略称, (v.現金個数 + v.掛売個数 - 1));
 
+                                        acc[ymd + "_個数"] = (acc[ymd + "_個数"] || 0)
+                                            + (v.現金個数 || 0) * 1  + (v.掛売個数 || 0) * 1;
+
                                         acc.住所 = v.住所;
                                         acc.備考１ = v.備考１;
                                         acc.締支払 = v.締支払;
@@ -468,6 +471,7 @@ export default {
                                 "得意先名": g[0].得意先名,
                                 "電話番号１": g[0].電話番号１,
                                 "食事区分名": null,
+                                "個数": 0,
                             };
                         }));
                     }
@@ -476,6 +480,9 @@ export default {
                         rows,
                         (acc, r, i) => {
                             if (_.isEmpty(acc)) {
+                                var dk = _.keys(r).filter(k => k.match(/^\d+$/));
+                                dk.forEach(k => r[k] = r[k + "_個数"] > 0 ? r[k] : null);
+
                                 acc = r;
                                 return acc;
                             }
@@ -486,7 +493,7 @@ export default {
 
                             var add = (s, d, m) => !d ? s  : (!s ? (_.repeat("\n", m + 1) + d) : (s + _.repeat("\n", m - (s.match(/\n/g) || []).length + 1) + d));
 
-                            dk.forEach(k => acc[k] = add(acc[k], r[k], max));
+                            dk.forEach(k => acc[k] = r[k + "_個数"] > 0 ? add(acc[k], r[k], max) : acc[k]);
                             acc.食事区分名 = add(acc.食事区分名, r.食事区分名, max);
 
                             return acc;
