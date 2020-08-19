@@ -40,12 +40,15 @@ class DAI10010Controller extends Controller
                 ) MTT";
 
         //売上データ明細に得意先単価未登録の商品が存在するか確認
+        /*
         $sql_62="SELECT COUNT(*)AS CNT FROM 売上データ明細 UDM
                     WHERE UDM.日付='$TargetDate'
                     AND UDM.得意先ＣＤ=$CustomerCd
                     AND NOT EXISTS(SELECT 1 FROM $sql_mtt WHERE MTT.商品ＣＤ=UDM.商品ＣＤ)
                 ";
         $exists_prod62 = DB::selectOne($sql_62)->CNT;
+        */
+        $exists_prod62=1;
 
         $sql = "
             SELECT
@@ -77,8 +80,7 @@ class DAI10010Controller extends Controller
                     ,M.副食ＣＤ
                     ,M.売価単価
                 FROM 商品マスタ M
-                WHERE M.弁当区分 in(0,8,9)
-                AND M.表示ＦＬＧ=0
+                WHERE ((M.弁当区分 in(0,8,9) AND M.表示ＦＬＧ=0) OR M.商品ＣＤ=25)
                 AND NOT EXISTS(SELECT 1 FROM $sql_mtt WHERE MTT.商品ＣＤ=M.商品ＣＤ)
             ";
         }
