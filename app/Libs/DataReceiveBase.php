@@ -530,216 +530,7 @@ class DataReceiveBase
                         }
                     }
                     break;
-                /*
-                case 'モバイル_予測入力':
-                    //予測更新
-                    foreach ($records as $rec_info) {
-                        $pk = $rec_info->key;
-                        $data = $rec_info->data;
-                        $kind = $rec_info->kind;
-
-                        $MobileSales = DB::connection('sqlsrv_batch')->table("モバイル_販売入力")
-                            ->where('部署ＣＤ', $data['部署ＣＤ'])
-                            ->where('得意先ＣＤ', $data['得意先ＣＤ'])
-                            ->where('日付', $data['日付'])
-                            ->first();
-
-                        $Customer = DB::connection('sqlsrv_batch')->table("得意先マスタ")
-                            ->where('部署ＣＤ', $data['部署ＣＤ'])
-                            ->where('得意先ＣＤ', $data['得意先ＣＤ'])
-                            ->first();
-
-                        $Product = DB::connection('sqlsrv_batch')->table("商品マスタ")
-                            ->where('商品ＣＤ', $data['商品ＣＤ'])
-                            ->first();
-                        if($Product===null)
-                        {
-                            continue;
-                        }
-
-                        $CustomerPrice = DB::select(
-                            "
-                                SELECT
-                                    *
-                                FROM (
-                                    SELECT
-                                        *
-                                        , RANK() OVER(PARTITION BY 得意先ＣＤ, 商品ＣＤ ORDER BY 適用開始日 DESC) AS RNK
-                                    FROM
-                                        得意先単価マスタ新
-                                    WHERE
-                                        得意先ＣＤ = ?
-                                    AND 商品ＣＤ = ?
-                                    AND 適用開始日 <= ?
-                                ) TT
-                                WHERE
-                                    RNK = 1
-                            ",
-                            [$data['得意先ＣＤ'], $data['商品ＣＤ'], $data['日付']]
-                        );
-
-                        $model = new 注文データ();
-                        $model->fill($data);
-
-                        $model['配送日'] = $data['日付'];
-
-                        $model['商品ＣＤ'] = $Product->商品ＣＤ;
-                        $model['商品区分'] = $Product->商品区分;
-
-                        $tanka = count($CustomerPrice) > 0 ? $CustomerPrice[0]->単価 : $Product->売価単価;
-                        $model['予備金額１'] = $tanka;
-
-                        $model['修正担当者ＣＤ'] = 9999;
-                        $model['修正日'] = Carbon::now()->format('Y/m/d H:i:s');
-
-                        $orderTime = !$MobileSales ? '00:00:00' : preg_replace("/\..+$/", '', preg_split("/ /", $MobileSales->修正日)[1]);
-
-                        //見込入力用
-                        $mikomi = clone $model;
-                        if ($Customer->売掛現金区分 == 0) {
-                            $mikomi["現金個数"] = $data["見込数"];
-                            $mikomi["現金金額"] = ($tanka * $data["見込数"]);
-                            $mikomi["掛売個数"] = 0;
-                            $mikomi["掛売金額"] = 0;
-                        } else {
-                            $mikomi["現金個数"] = 0;
-                            $mikomi["現金金額"] = 0;
-                            $mikomi["掛売個数"] = $data["見込数"];
-                            $mikomi["掛売金額"] = ($tanka * $data["見込数"]);
-                        }
-
-                        $Orders = DB::connection('sqlsrv_batch')->table("注文データ")
-                            ->where('部署ＣＤ', $data['部署ＣＤ'])
-                            ->where('得意先ＣＤ', $data['得意先ＣＤ'])
-                            ->where('配送日', $data['日付'])
-                            ->where('商品ＣＤ', $data['商品ＣＤ'])
-                            ->where('注文区分', 1)
-                            ->get();
-
-                        if (count($Orders) > 0) {
-                            DB::connection('sqlsrv_batch')->table("注文データ")
-                                ->where('部署ＣＤ', $data['部署ＣＤ'])
-                                ->where('得意先ＣＤ', $data['得意先ＣＤ'])
-                                ->where('配送日', $data['日付'])
-                                ->where('商品ＣＤ', $data['商品ＣＤ'])
-                                ->where('注文区分', 1)
-                                ->update(collect($mikomi)->all());
-                            //echo "\t update 見込:" . $data['部署ＣＤ'] . "/" . $data['得意先ＣＤ'] . "/" . $data['商品ＣＤ'] . "\n";
-                        } else {
-                            $mikomi["注文区分"] = 1;
-                            $mikomi["注文日付"] = $data['日付'];
-                            $mikomi["注文時間"] = $orderTime;
-                            $mikomi["部署ＣＤ"] = $data['部署ＣＤ'];
-                            $mikomi["得意先ＣＤ"] = $data['得意先ＣＤ'];
-                            $mikomi["入力区分"] = 0;
-
-                            $mikomi["備考１"] = '';
-                            $mikomi["備考２"] = '';
-                            $mikomi["備考３"] = '';
-                            $mikomi["備考４"] = '';
-                            $mikomi["備考５"] = '';
-                            $mikomi["予備金額１"] = $tanka;
-                            $mikomi["予備金額２"] = 0;
-                            $mikomi["予備ＣＤ１"] = 0;
-                            $mikomi["予備ＣＤ２"] = 0;
-
-                            $mikomi['特記_社内用'] = $Customer->備考１;
-                            $mikomi['特記_配送用'] = $Customer->備考２;
-                            $mikomi['特記_通知用'] = $Customer->備考３;
-
-                            $no = DB::connection('sqlsrv_batch')->table("注文データ")
-                                ->where('注文区分', 1)
-                                ->where('注文日付', $data['日付'])
-                                ->where('部署ＣＤ', $data['部署ＣＤ'])
-                                ->where('得意先ＣＤ', $data['得意先ＣＤ'])
-                                ->where('配送日', $data['日付'])
-                                ->max('明細行Ｎｏ') + 1;
-
-                            $mikomi["明細行Ｎｏ"] = $no;
-
-                            DB::connection('sqlsrv_batch')->table("注文データ")->insert(collect($mikomi)->all());
-                            //echo "\t insert 見込:" . $data['部署ＣＤ'] . "/" . $data['得意先ＣＤ'] . "/" . $data['商品ＣＤ'] . "\n";
-                        }
-
-                        //注文入力用
-                        $chumon = clone $model;
-                        if ($Customer->売掛現金区分 == 0) {
-                            $chumon["現金個数"] = $data["注文数"];
-                            $chumon["現金金額"] = ($tanka * $data["注文数"]);
-                            $chumon["掛売個数"] = 0;
-                            $chumon["掛売金額"] = 0;
-                        } else {
-                            $chumon["現金個数"] = 0;
-                            $chumon["現金金額"] = 0;
-                            $chumon["掛売個数"] = $data["注文数"];
-                            $chumon["掛売金額"] = ($tanka * $data["注文数"]);
-                        }
-
-                        $Orders = DB::connection('sqlsrv_batch')->table("注文データ")
-                            ->where('部署ＣＤ', $data['部署ＣＤ'])
-                            ->where('得意先ＣＤ', $data['得意先ＣＤ'])
-                            ->where('配送日', $data['日付'])
-                            ->where('商品ＣＤ', $data['商品ＣＤ'])
-                            ->where('注文区分', 0)
-                            ->get();
-
-                        if (count($Orders) > 0) {
-                            DB::connection('sqlsrv_batch')->table("注文データ")
-                                ->where('部署ＣＤ', $data['部署ＣＤ'])
-                                ->where('得意先ＣＤ', $data['得意先ＣＤ'])
-                                ->where('配送日', $data['日付'])
-                                ->where('商品ＣＤ', $data['商品ＣＤ'])
-                                ->where('注文区分', 0)
-                                ->update(collect($chumon)->all());
-                            //echo "\t update 注文:" . $data['部署ＣＤ'] . "/" . $data['得意先ＣＤ'] . "/" . $data['商品ＣＤ'] . "\n";
-                        } else {
-                            $chumon["注文区分"] = 0;
-                            $chumon["注文日付"] = $data['日付'];
-                            $chumon["注文時間"] = $orderTime;
-                            $chumon["部署ＣＤ"] = $data['部署ＣＤ'];
-                            $chumon["得意先ＣＤ"] = $data['得意先ＣＤ'];
-                            $chumon["入力区分"] = 0;
-
-                            $chumon["備考１"] = '';
-                            $chumon["備考２"] = '';
-                            $chumon["備考３"] = '';
-                            $chumon["備考４"] = '';
-                            $chumon["備考５"] = '';
-                            $chumon["予備金額１"] = $tanka;
-                            $chumon["予備金額２"] = 0;
-                            $chumon["予備ＣＤ１"] = 0;
-                            $chumon["予備ＣＤ２"] = 0;
-
-                            $chumon['特記_社内用'] = $Customer->備考１;
-                            $chumon['特記_配送用'] = $Customer->備考２;
-                            $chumon['特記_通知用'] = $Customer->備考３;
-
-                            $no = DB::connection('sqlsrv_batch')->table("注文データ")
-                            ->where('注文区分', 0)
-                            ->where('注文日付', $data['日付'])
-                            ->where('部署ＣＤ', $data['部署ＣＤ'])
-                            ->where('得意先ＣＤ', $data['得意先ＣＤ'])
-                            ->where('配送日', $data['日付'])
-                            ->max('明細行Ｎｏ') + 1;
-
-                            $chumon["明細行Ｎｏ"] = $no;
-
-                            DB::connection('sqlsrv_batch')->table("注文データ")->insert(collect($chumon)->all());
-                            //echo "\t insert 注文:" . $data['部署ＣＤ'] . "/" . $data['得意先ＣＤ'] . "/" . $data['商品ＣＤ'] . "\n";
-                        }
-
-                        DB::connection('sqlsrv_batch')->table("モバイル_予測入力")
-                            ->where('部署ＣＤ', $data['部署ＣＤ'])
-                            ->where('得意先ＣＤ', $data['得意先ＣＤ'])
-                            ->where('日付', $data['日付'])
-                            ->where('商品ＣＤ', $data['商品ＣＤ'])
-                            ->update(["更新フラグ" => 1]);
-                    }
-
-                    break;
-                */
                 case 'モバイル_更新予定リスト':
-                    $arrDetailSeq=[];
                     foreach ($records as $rec_info) {
                         $pk = $rec_info->key;
                         $data = $rec_info->data;
@@ -749,27 +540,32 @@ class DataReceiveBase
                         $data['更新フラグ'];
                         $data['更新日'];
                         $data['処理区分'];
-                        $data['モバイルデータ更新_部署ＣＤ'];
-                        $data['モバイルデータ更新_コースＣＤ'];
+                        //$data['モバイルデータ更新_部署ＣＤ'];
+                        //$data['モバイルデータ更新_コースＣＤ'];
                         $data['WebService_メソッド名'];
                         $data['WebService_部署ＣＤ'];
                         $data['WebService_コースＣＤ'];
                         $data['WebService_更新区分'];
 
-                        $Customer = DB::connection('sqlsrv_batch')->table("得意先マスタ")
-                            ->where('部署ＣＤ', $data['WebService_部署ＣＤ'])
-                            ->where('得意先ＣＤ', $data['得意先ＣＤ'])
-                            ->first();
+                        //該当する売上データ明細を削除
+                        DB::connection('sqlsrv_batch')->table("売上データ明細")
+                        ->where('部署ＣＤ', $data['WebService_部署ＣＤ'])
+                        ->where('コースＣＤ', $data['WebService_コースＣＤ'])
+                        ->where('得意先ＣＤ', $data['得意先ＣＤ'])
+                        ->where('日付', $data['日付'])
+                        ->delete();
 
-                        //モバイル販売入力
+                        //モバイル販売入力を取得
                         $MobileSalesList = DB::connection('sqlsrv_batch')->table("モバイル_販売入力")
                             ->where('部署ＣＤ', $data['WebService_部署ＣＤ'])
                             ->where('得意先ＣＤ', $data['得意先ＣＤ'])
                             ->where('日付', $data['日付'])
                             ->get();
 
+                        //売上データ明細の作成
+                        $row_detail_seq = 0;//売上データ明細の明細行No
                         foreach ($MobileSalesList as $MobileSales) {
-                            //コーステーブル最小SEQ
+                            //コーステーブル最小SEQ(配送順)を取得する
                             $CSeq = 1;
                             $CourseMng = DB::connection('sqlsrv_batch')->table("コーステーブル管理")
                                 ->where('部署ＣＤ', $MobileSales->部署ＣＤ)
@@ -794,15 +590,6 @@ class DataReceiveBase
                                     )
                                     ->min('ＳＥＱ');
                             }
-
-                            $UriageList = DB::connection('sqlsrv_batch')->table("売上データ明細")
-                                ->where('部署ＣＤ', $MobileSales->部署ＣＤ)
-                                ->where('コースＣＤ', $MobileSales->コースＣＤ)
-                                ->where('得意先ＣＤ', $MobileSales->得意先ＣＤ)
-                                ->where('日付', $MobileSales->日付)
-                                ->where('商品ＣＤ', $MobileSales->商品ＣＤ)
-                                ->where('売掛現金区分', $MobileSales->現金売掛区分)
-                                ->get();
 
                             $rec = [];
                             if($MobileSales->実績入力 == 0)
@@ -832,60 +619,29 @@ class DataReceiveBase
                             $rec["分配元数量"] = 0;
                             $rec['修正担当者ＣＤ'] = 9999;
                             $rec['修正日'] = Carbon::now()->format('Y/m/d H:i:s');
+                            $rec["日付"] = $MobileSales->日付;
+                            $rec["部署ＣＤ"] = $MobileSales->部署ＣＤ;
+                            $rec["コースＣＤ"] = $MobileSales->コースＣＤ;
+                            $rec["行Ｎｏ"] = $CSeq;
+                            $rec["得意先ＣＤ"] = $MobileSales->得意先ＣＤ;
+                            $row_detail_seq++;
+                            $rec["明細行Ｎｏ"] = $row_detail_seq;
+                            $rec["商品ＣＤ"] = $MobileSales->商品ＣＤ;
+                            $rec["主食ＣＤ"] = $MobileSales->主食ＣＤ;
+                            $rec["副食ＣＤ"] = $MobileSales->副食ＣＤ;
+                            $rec["売掛現金区分"] = $MobileSales->現金売掛区分;
 
-                            if (count($UriageList) > 0) {
-                                DB::connection('sqlsrv_batch')->table("売上データ明細")
-                                    ->where('部署ＣＤ', $MobileSales->部署ＣＤ)
-                                    ->where('コースＣＤ', $MobileSales->コースＣＤ)
-                                    ->where('得意先ＣＤ', $MobileSales->得意先ＣＤ)
-                                    ->where('日付', $MobileSales->日付)
-                                    ->where('商品ＣＤ', $MobileSales->商品ＣＤ)
-                                    ->where('売掛現金区分', $MobileSales->現金売掛区分)
-                                    ->update($rec);
-                            } else {
-                                //日付・得意先毎に振り出した明細行Noを控える。(レコードロック対策)
-                                $detail_seq=-1;
-                                if (array_key_exists($MobileSales->日付, $arrDetailSeq)) {
-                                    if (array_key_exists($MobileSales->得意先ＣＤ, $arrDetailSeq[$MobileSales->日付])) {
-                                        $detail_seq=$arrDetailSeq[$MobileSales->日付][$MobileSales->得意先ＣＤ]+1;
-                                    }
-                                }
-                                if ($detail_seq===-1) {
-                                    $sql_next_detail_row_no="select isnull(max(明細行Ｎｏ),0)+1 as next_detail_row_no
-                                                           from 売上データ明細
-                                                          where 日付 = '$MobileSales->日付'
-                                                            and 部署ＣＤ=$MobileSales->部署ＣＤ
-                                                            and コースＣＤ=$MobileSales->コースＣＤ
-                                                            and 行Ｎｏ=$CSeq
-                                                            and 得意先ＣＤ=$MobileSales->得意先ＣＤ
-                                                        ";
-                                    $detail_seq = DB::connection('sqlsrv_batch')->selectOne($sql_next_detail_row_no)->next_detail_row_no;
-                                }
-                                $arrDetailSeq[$MobileSales->日付][$MobileSales->得意先ＣＤ]=$detail_seq;
+                            $Product = DB::connection('sqlsrv_batch')->table("商品マスタ")
+                                ->where('商品ＣＤ', $MobileSales->商品ＣＤ)
+                                ->first();
 
-                                $rec["日付"] = $MobileSales->日付;
-                                $rec["部署ＣＤ"] = $MobileSales->部署ＣＤ;
-                                $rec["コースＣＤ"] = $MobileSales->コースＣＤ;
-                                $rec["行Ｎｏ"] = $CSeq;
-                                $rec["得意先ＣＤ"] = $MobileSales->得意先ＣＤ;
-                                $rec["明細行Ｎｏ"] = $detail_seq;
-                                $rec["商品ＣＤ"] = $MobileSales->商品ＣＤ;
-                                $rec["主食ＣＤ"] = $MobileSales->主食ＣＤ;
-                                $rec["副食ＣＤ"] = $MobileSales->副食ＣＤ;
-                                $rec["売掛現金区分"] = $MobileSales->現金売掛区分;
-
-                                $Product = DB::connection('sqlsrv_batch')->table("商品マスタ")
-                                    ->where('商品ＣＤ', $MobileSales->商品ＣＤ)
-                                    ->first();
-
-                                $rec["商品区分"] = $Product->商品区分;
-                                $rec["請求日付"] = '';
-                                $rec["予備金額２"] = 0;
-                                $rec["予備ＣＤ２"] = 0;
-                                $rec["備考"] = $MobileSales->メッセージ;
-                                $rec["食事区分"] = 2;
-                                DB::connection('sqlsrv_batch')->table("売上データ明細")->insert($rec);
-                            }
+                            $rec["商品区分"] = $Product->商品区分;
+                            $rec["請求日付"] = '';
+                            $rec["予備金額２"] = 0;
+                            $rec["予備ＣＤ２"] = 0;
+                            $rec["備考"] = $MobileSales->メッセージ;
+                            $rec["食事区分"] = 2;
+                            DB::connection('sqlsrv_batch')->table("売上データ明細")->insert($rec);
 
                             //分配得意先
                             $DistCustomerList = DB::connection('sqlsrv_batch')->table("得意先マスタ")
@@ -984,18 +740,6 @@ class DataReceiveBase
                                     $dist['修正日'] = Carbon::now()->format('Y/m/d H:i:s');
 
                                     DB::connection('sqlsrv_batch')->table("売上データ明細")->insert($dist);
-
-                                    /*
-                                    $Parent = DB::connection('sqlsrv_batch')->table("売上データ明細")
-                                        ->where('部署ＣＤ', $MobileSales->部署ＣＤ)
-                                        ->where('コースＣＤ', $MobileSales->コースＣＤ)
-                                        ->where('得意先ＣＤ', $MobileSales->得意先ＣＤ)
-                                        ->where('日付', $MobileSales->日付)
-                                        ->where('商品ＣＤ', $MobileSales->商品ＣＤ)
-                                        ->where('主食ＣＤ', $MobileSales->主食ＣＤ)
-                                        ->where('副食ＣＤ', $MobileSales->副食ＣＤ)
-                                        ->get();
-                                    */
 
                                     //分配元更新
                                     $Parent = DB::connection('sqlsrv_batch')->table("売上データ明細")
