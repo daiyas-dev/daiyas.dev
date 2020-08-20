@@ -109,6 +109,7 @@ class DAI02021Controller extends Controller
             AND 売上データ明細.日付 >= '$DateStart'
             AND 売上データ明細.日付 <= '$DateEnd'
             AND 売上データ明細.売掛現金区分 = 1
+            AND 売上データ明細.掛売金額 - ISNULL(売上データ明細.掛売値引, 0) > 0
             UNION
             SELECT
                 入金データ.部署ＣＤ,

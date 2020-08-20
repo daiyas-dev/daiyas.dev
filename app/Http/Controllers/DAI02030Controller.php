@@ -311,6 +311,7 @@ class DAI02030Controller extends Controller
                     AND	MEISAI.伝票日付 <= SEIKYU.請求日範囲終了
             WHERE
                 SEIKYU.予備金額１ IN ($SeikyuNoArray)
+			AND (MEISAI.伝票Ｎｏ IS NOT NULL OR MEISAI.金額 > 0)
             ORDER BY
                 MEISAI.得意先ＣＤ
                 ,MEISAI.伝票日付
