@@ -747,21 +747,23 @@ export default {
             var rules = [];
 
             //請求日付
-            if (vue.viewModel.SimeKbn == "2") {
-                if (!!vue.viewModel.SimeDateArray.length) {
-                    var crules = vue.viewModel.SimeDateArray.map(d => {
-                        var date;
-                        if (d.code == 99) {
-                            date = moment(vue.searchParams.TargetDate).endOf("month").format("YYYY-MM-DD 00:00:00.000");
-                        } else {
-                            date = moment(vue.searchParams.TargetDate).startOf("month").add(d.code - 1, "day").format("YYYY-MM-DD 00:00:00.000");
-                        }
-                        return { condition: "equal", mode: "OR", value: date };
-                    });
-                    rules.push({ dataIndx: "請求日付", crules: crules });
-                } else {
-                    var date = moment(vue.searchParams.TargetDate).endOf("month").format("YYYY-MM-DD 00:00:00.000");
-                    rules.push({ dataIndx: "請求日付", condition: "equal", value: date });
+            if (vue.viewModel.BushoCd != 501) {
+                if (vue.viewModel.SimeKbn == "2") {
+                    if (!!vue.viewModel.SimeDateArray.length) {
+                        var crules = vue.viewModel.SimeDateArray.map(d => {
+                            var date;
+                            if (d.code == 99) {
+                                date = moment(vue.searchParams.TargetDate).endOf("month").format("YYYY-MM-DD 00:00:00.000");
+                            } else {
+                                date = moment(vue.searchParams.TargetDate).startOf("month").add(d.code - 1, "day").format("YYYY-MM-DD 00:00:00.000");
+                            }
+                            return { condition: "equal", mode: "OR", value: date };
+                        });
+                        rules.push({ dataIndx: "請求日付", crules: crules });
+                    } else {
+                        var date = moment(vue.searchParams.TargetDate).endOf("month").format("YYYY-MM-DD 00:00:00.000");
+                        rules.push({ dataIndx: "請求日付", condition: "equal", value: date });
+                    }
                 }
             }
 
@@ -1167,7 +1169,13 @@ export default {
                 }
             `;
 
-            axios.post("/DAI02030/GetMeisaiList", { SeikyuNoArray: grid.pdata.map(v => v.請求番号 * 1)})
+
+            //ダイアログ
+            var progressDlg = $.dialogProgress({
+                contents: "<i class='fa fa-spinner fa-spin' style='font-size: 24px; margin-right: 5px;'></i> 印刷準備中…",
+            });
+
+            axios.post("/DAI02030/GetMeisaiList", { SeikyuNoArray: grid.pdata.map(v => v.請求番号 * 1), noCache: true })
             .then(res => {
                 var group = _.groupBy(res.data, v => v.請求先ＣＤ);
 
@@ -1820,6 +1828,9 @@ export default {
                     title: "印刷失敗",
                     contents: "請求明細の検索に失敗しました" + "<br/>" + err.message,
                 });
+            })
+            .finally (() => {
+                progressDlg.dialog("close");
             });
         },
     }
