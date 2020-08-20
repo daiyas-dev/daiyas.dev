@@ -1583,6 +1583,7 @@ export default {
                 //OrderInfo
                 var OrderInfo = _.cloneDeep(vue.OrderInfo);
                 OrderInfo.部署ＣＤ = !!OrderInfo.受注Ｎｏ ? OrderInfo.部署ＣＤ : vue.viewModel.BushoCd;
+                OrderInfo.得意先ＣＤ = vue.$refs.PopupSelect_Customer.selectValue;
                 OrderInfo.配達日付 = moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYY-MM-DD 00:00:00.000");
                 OrderInfo.配達時間 = moment(vue.viewModel.DeliveryTime, "HH時mm分").format("HH:mm");
                 OrderInfo.製造締切時間 = moment(vue.viewModel.TakeoutTime, "HH時mm分").format("HH:mm");
@@ -1751,6 +1752,8 @@ export default {
                                     vue.params.Parent.conditionChanged(true);
                                 }
                             }
+
+                            vue.conditionChanged();
 
                             return false;
                         },

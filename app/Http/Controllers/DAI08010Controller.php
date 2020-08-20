@@ -612,7 +612,7 @@ class DAI08010Controller extends Controller
                 $OrderData['部署ＣＤ'] = $OrderInfo['部署ＣＤ'];
                 $OrderData['受注Ｎｏ'] = $JNo;
                 $OrderData['配達日付'] = $OrderInfo['配達日付'];
-                $OrderData['得意先ＣＤ'] = $OrderInfo['得意先ＣＤ'] ?? $TCode;
+                $OrderData['得意先ＣＤ'] = $OrderInfo['得意先ＣＤ'];
                 $OrderData['製造用特記'] = $OrderData['製造用特記'] ?? '';
                 $OrderData['事務用特記'] = $OrderData['事務用特記'] ?? '';
                 $OrderData['修正日'] = $date;
