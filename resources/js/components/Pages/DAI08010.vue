@@ -1664,6 +1664,7 @@ export default {
                                         grid.refreshDataAndView();
                                     } else {
                                         vue.viewModel.OrderNo = res.params.OrderNo;
+                                        vue.conditionChanged();
                                     }
                                     if (!!res.isDeleteUriage) {
                                         $.dialogInfo({
