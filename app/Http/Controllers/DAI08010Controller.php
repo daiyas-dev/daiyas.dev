@@ -597,7 +597,7 @@ class DAI08010Controller extends Controller
                                 "日付" => $fd,
                                 "伝票ＮＯ" => $JNo,
                                 "修正担当者ＣＤ" => $OrderInfo['修正担当者ＣＤ'],
-                                "修正日" => $OrderInfo['修正日'],
+                                "修正日" => $date,
                             ]
                         );
                     } else {
@@ -605,7 +605,7 @@ class DAI08010Controller extends Controller
                             ->where('部署ＣＤ', $OrderInfo['部署ＣＤ'])
                             ->where('伝票種類', 1)
                             ->where('日付', $fd)
-                            ->update(['伝票ＮＯ' => $JNo]);
+                            ->update(['伝票ＮＯ' => $JNo, '修正日' => $date]);
                     }
                 }
 
