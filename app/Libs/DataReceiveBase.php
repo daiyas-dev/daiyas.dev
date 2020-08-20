@@ -555,7 +555,7 @@ class DataReceiveBase
                         //該当する売上データ明細を削除
                         DB::connection('sqlsrv_batch')->table("売上データ明細")
                         ->where('部署ＣＤ', $data['WebService_部署ＣＤ'])
-                        ->where('コースＣＤ', $data['WebService_コースＣＤ'])
+                        //->where('コースＣＤ', $data['WebService_コースＣＤ'])
                         ->where('得意先ＣＤ', $data['得意先ＣＤ'])
                         ->where('日付', $data['日付'])
                         ->delete();
