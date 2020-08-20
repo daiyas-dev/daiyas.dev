@@ -62,7 +62,7 @@ class DAI08020Controller extends Controller
             ,T1.配達時間
             ,   T1.製造締切時間
             ,T1.受注Ｎｏ
-            ,(T3.電話番号１ + CHAR(13) + CHAR(10) + T3.ＦＡＸ１) AS 電話番号
+            ,(ISNULL(T3.電話番号１,'') + CHAR(13) + CHAR(10) + ISNULL(T3.ＦＡＸ１,'')) AS 電話番号
             ,T1.配達先１ + T1.配達先２ AS 配達先
             ,   ( SELECT 各種名称 FROM 各種テーブル WHERE 各種CD = 31 AND 行NO = T1.配達区分 ) AS 配達区分
             ,T2.商品名
