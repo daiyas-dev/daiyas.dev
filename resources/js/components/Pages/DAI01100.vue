@@ -176,6 +176,7 @@ export default {
                 BushoCd: this.viewModel.BushoCd,
                 DeliveryDate: moment(this.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD"),
                 CourseCd: this.viewModel.CourseCd,
+                noCache: true,
             };
         },
     },

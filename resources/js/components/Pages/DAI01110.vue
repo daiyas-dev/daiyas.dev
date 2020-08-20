@@ -256,6 +256,7 @@ export default {
                 TargetDate: moment(this.viewModel.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD"),
                 CourseCd: this.viewModel.CourseCd,
                 TantoCd: this.viewModel.TantoCd,
+                noCache: true,
             };
         }
     },

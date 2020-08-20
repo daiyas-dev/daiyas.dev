@@ -79,8 +79,7 @@ class DAI01031Controller extends Controller
                         モバイル_販売入力.日付 = '$TargetDate'
                 LEFT OUTER JOIN [モバイル_更新予定リスト]
                     ON	モバイル_更新予定リスト.得意先ＣＤ = $Table.得意先ＣＤ AND
-                        モバイル_更新予定リスト.日付 = '$TargetDate' AND
-                        モバイル_更新予定リスト.更新フラグ = 1
+                        モバイル_更新予定リスト.日付 = '$TargetDate'
             WHERE
             $Table.コースＣＤ = $CourseCd AND
             $Table.部署CD = $BushoCd AND
