@@ -547,6 +547,11 @@ class DataReceiveBase
                         $data['WebService_コースＣＤ'];
                         $data['WebService_更新区分'];
 
+                        if($data['WebService_更新区分']!='売上')
+                        {
+                            continue;
+                        }
+
                         //該当する売上データ明細を削除
                         DB::connection('sqlsrv_batch')->table("売上データ明細")
                         ->where('部署ＣＤ', $data['WebService_部署ＣＤ'])

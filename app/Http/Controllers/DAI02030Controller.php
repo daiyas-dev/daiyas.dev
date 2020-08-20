@@ -322,11 +322,15 @@ class DAI02030Controller extends Controller
         $user = 'daiyas';
         $password = 'daiyas';
 
+        $ttl = ini_get('max_execution_time');
+        set_time_limit(0);
+
         $pdo = new PDO($dsn, $user, $password);
         $stmt = $pdo->query($sql);
         $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $pdo = null;
 
+        set_time_limit($ttl);
         // $DataList = DB::select(DB::raw($sql));
 
         return $DataList;
