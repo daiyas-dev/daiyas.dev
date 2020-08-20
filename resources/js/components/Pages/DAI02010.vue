@@ -616,6 +616,7 @@ export default {
                                 uri: "/DAI02010/Save",
                                 params: {
                                     CustomerList: DAI02010Grid1.pdata.map(v => v.請求先ＣＤ),
+                                    noCache: true,
                                 },
                                 optional: vue.searchParams,
                                 confirm: {
@@ -638,6 +639,7 @@ export default {
                                 uri: "/DAI02010/Release",
                                 params: {
                                     CustomerList: DAI02010Grid1.pdata.map(v => v.請求先ＣＤ),
+                                    noCache: true,
                                 },
                                 optional: vue.searchParams,
                                 confirm: {
@@ -667,6 +669,7 @@ export default {
                                 uri: "/DAI02010/Save",
                                 params: {
                                     CustomerList: data.請求先ＣＤ,
+                                    noCache: true,
                                 },
                                 optional: vue.searchParams,
                                 confirm: {
@@ -695,6 +698,7 @@ export default {
                                 uri: "/DAI02010/Release",
                                 params: {
                                     CustomerList: data.請求先ＣＤ,
+                                    noCache: true,
                                 },
                                 optional: vue.searchParams,
                                 confirm: {
