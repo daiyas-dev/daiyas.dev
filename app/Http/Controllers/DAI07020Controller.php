@@ -97,7 +97,8 @@ class DAI07020Controller extends Controller
                     ON  SHOHIN.商品ＣＤ = URIAGE_MEISAI.商品ＣＤ
             WHERE
                 TOKUISAKI.部署ＣＤ=$BushoCd
-                --AND TOKUISAKI.得意先ＣＤ IN (11271, 13664, 13734)
+                AND URIAGE_MEISAI.掛売個数 + URIAGE_MEISAI.現金個数 > 0
+                --AND TOKUISAKI.得意先ＣＤ IN (10795)
                 --AND COU.コースＣＤ=102
             ORDER BY
                 CT.コースＣＤ
