@@ -160,15 +160,15 @@
             </div>
             <div class="col-md-2">
                 <label class="w-100 text-center">TEL1</label>
-                <input class="form-control p-2 TelNo1" style="width: 125px;" type="text" v-model=CustomerInfo.電話番号１>
+                <input class="form-control p-2 TelNo1" style="width: 155px;" type="text" v-model=CustomerInfo.電話番号１>
             </div>
             <div class="col-md-2">
                 <label class="w-100 text-center">TEL2</label>
-                <input class="form-control p-2 TelNo2" style="width: 125px;" type="text" v-model=CustomerInfo.電話番号２>
+                <input class="form-control p-2 TelNo2" style="width: 155px;" type="text" v-model=CustomerInfo.電話番号２>
             </div>
             <div class="col-md-2">
                 <label class="w-100 text-center">Fax</label>
-                <input class="form-control p-2 Fax" style="width: 125px;" type="text" v-model=CustomerInfo.ＦＡＸ１>
+                <input class="form-control p-2 Fax" style="width: 155px;" type="text" v-model=CustomerInfo.ＦＡＸ１>
             </div>
         </div>
         <div class="row">

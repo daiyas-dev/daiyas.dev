@@ -2055,7 +2055,7 @@ $OrderBy
 						Tel_CustNo
 					FROM C_TelToCust
 					WHERE
-						Tel_TelNo='$TelNo'
+                    REPLACE(Tel_TelNo, '-', '')='$TelNo'
 				 )
             "
             : "";
@@ -2190,7 +2190,7 @@ $OrderBy
             FROM
                 非顧客電話番号マスタ
             WHERE
-                REPLACE(電話番号, '-', '') = '$TelNo'
+                電話番号 = '$TelNo'
         ";
 
         $stmt = $pdo->query($CheckRejectSql);
@@ -2204,16 +2204,21 @@ $OrderBy
 
         $CheckRegistSql = "
             SELECT
-                C_TelToCust.*
+                REPLACE(CT.Tel_TelNo, '-', '') AS Tel_TelNo
+                ,CT.Tel_CustNo
+                ,CT.Tel_RepFlg
+                ,CT.Tel_DelFlg
+                ,CT.Tel_NewDate
+                ,CT.Tel_UpdDate
                 ,得意先マスタ.部署CD
                 ,得意先マスタ.得意先ＣＤ
                 ,得意先マスタ.得意先名
             FROM
-                C_TelToCust
+                C_TelToCust CT
                 LEFT OUTER JOIN 得意先マスタ
-                    ON 得意先マスタ.得意先ＣＤ = C_TelToCust.Tel_CustNo
+                    ON 得意先マスタ.得意先ＣＤ = CT.Tel_CustNo
             WHERE
-            REPLACE(C_TelToCust.Tel_TelNo, '-', '') = '$TelNo'
+            REPLACE(CT.Tel_TelNo, '-', '') = '$TelNo'
         ";
         $stmt = $pdo->query($CheckRegistSql);
         $Regists = $stmt->fetchAll(PDO::FETCH_ASSOC);
