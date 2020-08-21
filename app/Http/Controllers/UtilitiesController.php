@@ -2203,7 +2203,7 @@ $OrderBy
         }
 
         $CheckRegistSql = "
-            SELECT
+            SELECT DISTINCT
                 REPLACE(CT.Tel_TelNo, '-', '') AS Tel_TelNo
                 ,CT.Tel_CustNo
                 ,CT.Tel_RepFlg
