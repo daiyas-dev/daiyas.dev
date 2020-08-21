@@ -359,18 +359,18 @@ class DAI07010Controller extends Controller
             FacadesDB::commit();
 
             //モバイルsv更新
-            foreach ($MDeleteList as $rec) {
-                $ds = new DataSendWrapper();
-                $ds->Delete('売上データ明細', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
-            }
-            foreach ($MUpdateList as $rec) {
-                $ds = new DataSendWrapper();
-                $ds->Update('売上データ明細', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
-            }
-            foreach ($MInsertList as $rec) {
-                $ds = new DataSendWrapper();
-                $ds->Insert('売上データ明細', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
-            }
+            // foreach ($MDeleteList as $rec) {
+            //     $ds = new DataSendWrapper();
+            //     $ds->Delete('売上データ明細', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
+            // }
+            // foreach ($MUpdateList as $rec) {
+            //     $ds = new DataSendWrapper();
+            //     $ds->Update('売上データ明細', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
+            // }
+            // foreach ($MInsertList as $rec) {
+            //     $ds = new DataSendWrapper();
+            //     $ds->Insert('売上データ明細', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
+            // }
 
         } catch (Exception $exception) {
             FacadesDB::rollBack();

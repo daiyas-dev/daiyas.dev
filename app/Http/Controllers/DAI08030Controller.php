@@ -333,10 +333,10 @@ class DAI08030Controller extends Controller
             $ds = new DataSendWrapper();
             $ds->Execute($Msql, true, null, null, null);
 
-            foreach ($MInsertList as $meisai) {
-                $ds = new DataSendWrapper();
-                $ds->Insert('売上データ明細', $meisai, true, $meisai['部署ＣＤ'], null, $meisai['コースＣＤ']);
-            }
+            // foreach ($MInsertList as $meisai) {
+            //     $ds = new DataSendWrapper();
+            //     $ds->Insert('売上データ明細', $meisai, true, $meisai['部署ＣＤ'], null, $meisai['コースＣＤ']);
+            // }
 
         } catch (Exception $exception) {
             $pdo = null;
