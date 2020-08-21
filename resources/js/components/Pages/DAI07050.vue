@@ -498,6 +498,7 @@ export default {
                     onClick: function () {
                         var params = _.cloneDeep(vue.searchParams);
                         params.noCache = true;
+                        params.UpdateUser = vue.getLoginInfo().uid;
 
                         axios.post("/DAI07050/GetSeikyuNo", params)
                             .then(res => {
