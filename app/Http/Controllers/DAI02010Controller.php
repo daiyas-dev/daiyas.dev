@@ -13,6 +13,7 @@ use Exception;
 use Hamcrest\Arrays\IsArray;
 use Illuminate\Support\Carbon;
 use PDO;
+use PhpOffice\PhpSpreadsheet\Calculation\Financial;
 use Symfony\Component\Console\Helper\TableRows;
 class DAI02010Controller extends Controller
 {
@@ -79,6 +80,9 @@ class DAI02010Controller extends Controller
         DB::beginTransaction();
 
         try {
+            $ttl = ini_get('max_execution_time');
+            set_time_limit(0);
+
             $this->DeleteSeikyu($request);
             $this->InsertSeikyu($request);
             $this->UpdateSeikyuNo($request);
@@ -96,6 +100,8 @@ class DAI02010Controller extends Controller
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;
+        } finally {
+            set_time_limit($ttl);
         }
 
         return;
@@ -110,6 +116,9 @@ class DAI02010Controller extends Controller
         DB::beginTransaction();
 
         try {
+            $ttl = ini_get('max_execution_time');
+            set_time_limit(0);
+
             $this->DeleteSeikyu($request);
             $this->ReleaseUriage($request);
             $this->ReleaseNyukin($request);
@@ -127,6 +136,8 @@ class DAI02010Controller extends Controller
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;
+        } finally {
+            set_time_limit($ttl);
         }
 
         return;
