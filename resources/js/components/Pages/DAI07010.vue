@@ -1055,6 +1055,12 @@ export default {
             var UpdateList = grid.getChanges().updateList;
             var OldList = grid.getChanges().oldList;
 
+            if (!UpdateList.length) {
+                UpdateList = grid.getPlainPData().filter(v => (v.数量合計 || 0) * 1 > 0);
+                OldList = grid.getPlainPData().filter(v => (v.数量合計 || 0) * 1 > 0)
+                    .map(r => _.pickBy(r, (v, k) => /^\d{8}$/.test(k)));
+            }
+
             var SaveList = _.flatten(
                 UpdateList.map((upd, i) => {
                     var old = OldList[i];
