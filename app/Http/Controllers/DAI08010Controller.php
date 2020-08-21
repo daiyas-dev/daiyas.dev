@@ -548,7 +548,7 @@ class DAI08010Controller extends Controller
 
                 //C_TelToCust
                 $TelToCust = CTelToCust::query()
-                    ->where('Tel_TelNo', $CustomerData['電話番号１'])
+                    ->where('Tel_TelNo', str_replace("-","",$CustomerData['電話番号１']))
                     ->where('Tel_CustNo', $CustomerData['得意先ＣＤ'])
                     ->get();
 
@@ -556,7 +556,7 @@ class DAI08010Controller extends Controller
                     $TelDate = Carbon::parse($CustomerData['修正日'])->format('Y/m/d');
                     $TelToCust = CTelToCust::query()->insert(
                         [
-                            "Tel_TelNo" => $CustomerData['電話番号１'],
+                            "Tel_TelNo" => str_replace("-","",$CustomerData['電話番号１']),
                             "Tel_CustNo" => $CustomerData['得意先ＣＤ'],
                             "Tel_RepFlg" => 0,
                             "Tel_DelFlg" => 0,
