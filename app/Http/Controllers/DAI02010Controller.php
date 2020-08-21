@@ -16,8 +16,6 @@ use PDO;
 use Symfony\Component\Console\Helper\TableRows;
 class DAI02010Controller extends Controller
 {
-    public $UriageMeisaiData;
-
     /**
      *  LastSimeDateSearch
      */
@@ -50,11 +48,12 @@ class DAI02010Controller extends Controller
         ";
 
         //$DataList = DB::selectOne($sql);
-        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-        $user = 'daiyas';
-        $password = 'daiyas';
+        // $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        // $user = 'daiyas';
+        // $password = 'daiyas';
 
-        $pdo = new PDO($dsn, $user, $password);
+        // $pdo = new PDO($dsn, $user, $password);
+        $pdo = DB::getPdo();
         $stmt = $pdo->query($sql);
         $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $pdo = null;
@@ -75,31 +74,28 @@ class DAI02010Controller extends Controller
      */
     public function Save($request)
     {
-        $this->UriageMeisaiData=array();
-        DB::beginTransaction();
-
-        try {
-            $ttl = ini_get('max_execution_time');
-            set_time_limit(0);
-            $this->DeleteSeikyu($request);
-            $this->InsertSeikyu($request);
-            $this->UpdateSeikyuNo($request);
-            $this->UpdateUriage($request);
-            $this->UpdateNyukin($request);
-            DB::commit();
-            set_time_limit($ttl);
-
-            //モバイルSvを更新
-            $ds = new DataSendWrapper();
-            if (!!$this->UriageMeisaiData)
-            {
-                $ds->UpdateUriageMeisaiData($this->UriageMeisaiData);
+        //$this->UriageMeisaiData=array();
+        //取得した得意先を最大50個ずつ締め処理を行う
+        $CustomerList = is_array($request->CustomerList) ? $request->CustomerList : array($request->CustomerList);
+        $CustomerListChunk = array_chunk($CustomerList, 50);
+        foreach ($CustomerListChunk as $CustomerListPiece) {
+            $request->CustomerList=implode(",", $CustomerListPiece);
+            DB::beginTransaction();
+            try {
+                $ttl = ini_get('max_execution_time');
+                set_time_limit(0);
+                $this->DeleteSeikyu($request);
+                $this->InsertSeikyu($request);
+                $this->UpdateSeikyuNo($request);
+                $this->UpdateUriage($request);
+                $this->UpdateNyukin($request);
+                DB::commit();
+                set_time_limit($ttl);
+            } catch (Exception $exception) {
+                DB::rollBack();
+                throw $exception;
             }
-        } catch (Exception $exception) {
-            DB::rollBack();
-            throw $exception;
         }
-
         return;
     }
 
@@ -108,29 +104,21 @@ class DAI02010Controller extends Controller
      */
     public function Release($request)
     {
-        $this->UriageMeisaiData=array();
-        DB::beginTransaction();
-
-        try {
-            $this->DeleteSeikyu($request);
-            $this->ReleaseUriage($request);
-            $this->ReleaseNyukin($request);
-
-            DB::commit();
-
-            // //モバイルSvを更新
-            // $ds = new DataSendWrapper();
-            // if (!!$this->UriageMeisaiData)
-            // {
-            //     foreach ($this->UriageMeisaiData as $rec) {
-            //         $ds->Update('売上データ明細', $rec, true, $rec['部署ＣＤ'], $rec['得意先ＣＤ'], $rec['コースＣＤ']);
-            //     }
-            // }
-        } catch (Exception $exception) {
-            DB::rollBack();
-            throw $exception;
+        $CustomerList = is_array($request->CustomerList) ? $request->CustomerList : array($request->CustomerList);
+        $CustomerListChunk = array_chunk($CustomerList, 50);
+        foreach ($CustomerListChunk as $CustomerListPiece) {
+            $request->CustomerList=implode(",", $CustomerListPiece);
+            DB::beginTransaction();
+            try {
+                $this->DeleteSeikyu($request);
+                $this->ReleaseUriage($request);
+                $this->ReleaseNyukin($request);
+                DB::commit();
+            } catch (Exception $exception) {
+                DB::rollBack();
+                throw $exception;
+            }
         }
-
         return;
     }
 
@@ -145,7 +133,8 @@ class DAI02010Controller extends Controller
         $SelectData = $this->SelectCustomerList($vm);
 
         $SimeKbn = $vm->SimeKbn;
-        $WhereSimeTarget = $SimeKbn == 0 ? "部署ＣＤ=$BushoCd" : "部署ＣＤ=$BushoCd AND num5 > 0";
+        //$WhereSimeTarget = $SimeKbn == 2 ? "部署ＣＤ=$BushoCd AND num5 > 0" : "部署ＣＤ=$BushoCd" ;
+        $WhereSimeTarget = "部署ＣＤ=$BushoCd" ;
 
         $sqlCourse = "
             LEFT OUTER JOIN (
@@ -280,190 +269,12 @@ class DAI02010Controller extends Controller
 
         // var_export($sql);
 
-        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-        $user = 'daiyas';
-        $password = 'daiyas';
+        // $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        // $user = 'daiyas';
+        // $password = 'daiyas';
 
-        $pdo = new PDO($dsn, $user, $password);
-        $stmt = $pdo->query($sql);
-        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        // $DataList = DB::select($sql);
-        $pdo = null;
-
-        return $DataList;
-    }
-
-    /**
-     * GetSeikyuSimeListX
-     */
-    public function GetSeikyuSimeListX($vm)
-    {
-        $SimeKbn = $vm->SimeKbn;
-        $SimeDate = $vm->SimeDate;
-        $TargetDate = $vm->TargetDate;
-        $TargetDateMax = $vm->TargetDateMax;
-
-        $WhereSimeDate = $SimeKbn == 2
-            ? ($SimeDate == 0 ? "AND M1.締日１= $SimeDate" : "AND (M1.締日１= $SimeDate OR M1.締日２ = $SimeDate)")
-            : "";
-        $WhereTargetDate = "AND T1.請求日付 = '$TargetDateMax'";
-
-        $BushoCd = $vm->BushoCd;
-
-        $CourseCd = $vm->CourseCd;
-        $WehreCourseCd = !!$CourseCd ? " AND COUM.コースＣＤ = $CourseCd" : "";
-        //$WehreCourseCd2 = "";//str_replace('COU', 'COUT', $WehreCourseCd);
-
-        $CustomerCd = $vm->CustomerCd;
-        $WehreCustomerCd = !!$CustomerCd ? " AND T1.請求先ＣＤ = $CustomerCd" : " AND T1.請求先ＣＤ != 0";
-
-        $sqlCourse = "
-            LEFT OUTER JOIN (
-                SELECT
-                    COU.部署ＣＤ  ,
-                    COU.得意先ＣＤ  ,
-                    MIN(COU.コースＣＤ) AS コースＣＤ
-                FROM
-                    コーステーブル COU
-                    LEFT OUTER JOIN コースマスタ COUM ON COU.部署ＣＤ = COUM.部署ＣＤ AND COU.コースＣＤ = COUM.コースＣＤ
-                WHERE
-                    COU.部署ＣＤ = $BushoCd
-                AND COUM.コース区分 IN (1,2,3)
-                GROUP BY  COU.部署ＣＤ, COU.得意先ＣＤ
-            ) COU_KEY ON
-                COU_KEY.部署ＣＤ = M1.部署ＣＤ
-                AND COU_KEY.得意先ＣＤ =
-                    CASE
-                        WHEN M1.受注得意先ＣＤ = 0 THEN M1.得意先ＣＤ
-                        ELSE M1.受注得意先ＣＤ
-                    END
-            LEFT OUTER JOIN [コーステーブル] COUT ON
-                COUT.部署ＣＤ = COU_KEY.部署ＣＤ
-                AND COUT.得意先ＣＤ = COU_KEY.得意先ＣＤ
-                AND COUT.コースＣＤ = COU_KEY.コースＣＤ
-            LEFT OUTER JOIN [コースマスタ] COUM ON
-                COUM.部署ＣＤ = COUT.部署ＣＤ
-                AND COUM.コースＣＤ = COUT.コースＣＤ
-        ";
-        //$WhereSqlCourse= !!$CourseCd ? $sqlCourse : "";
-        //$WhereSqlCourse = $sqlCourse;
-
-        $sql = "
-        WITH 属性データ AS
-        (
-            SELECT
-                 T1.*
-            FROM
-                請求データ T1
-                INNER JOIN 得意先マスタ M1 ON
-                        M1.得意先ＣＤ = T1.請求先ＣＤ
-                    $WhereSimeDate
-                    AND M1.締区分 IN ($SimeKbn)
-            WHERE
-                T1.部署ＣＤ = $BushoCd
-            $WhereTargetDate
-            $WehreCustomerCd
-        ),
-        前回請求データ AS (
-            SELECT
-                Z.*
-            FROM (
-                    SELECT
-                        RANK() OVER(PARTITION BY T1.部署ＣＤ, T1.請求先ＣＤ ORDER BY T1.請求日付 DESC) AS RNK,
-                        T1.部署ＣＤ,
-                        T1.請求先ＣＤ,
-                        T1.請求日付,
-                        T1.請求日範囲開始,
-                        T1.請求日範囲終了
-                    FROM
-                        請求データ T1
-                        INNER JOIN 得意先マスタ M1 ON
-                                M1.得意先ＣＤ = T1.請求先ＣＤ
-                                $WhereSimeDate
-                            AND M1.締区分 IN (2)
-                    WHERE
-                        T1.部署ＣＤ = $BushoCd
-                    AND T1.請求日付 < '$TargetDateMax'
-            ) Z
-            WHERE Z.RNK=1
-        ),
-		未分配データ AS
-		(
-			SELECT
-				M.部署ＣＤ
-				,M.得意先ＣＤ
-				,日付
-				,(M.現金個数 + M.掛売個数) AS 未分配
-			FROM
-				売上データ明細 M
-			WHERE
-				M.部署ＣＤ = 101
-			AND M.得意先ＣＤ IN
-				(
-				SELECT
-					受注得意先ＣＤ
-				FROM 得意先マスタ
-				WHERE
-					得意先ＣＤ != 受注得意先ＣＤ AND 受注得意先ＣＤ != 0
-				AND 受注得意先ＣＤ = M.得意先ＣＤ
-				GROUP BY 受注得意先ＣＤ
-				)
-			AND (M.現金個数 + M.掛売個数) > 0
-		)
-
-        SELECT DISTINCT
-            M1.得意先ＣＤ
-            ,M1.得意先名
-            ,M1.売掛現金区分
-            ,M1.締区分
-            ,M1.締日１
-            ,M1.締日２
-            ,M1.支払サイト
-            ,M1.支払日
-            ,M1.集金区分
-            ,M1.請求先ＣＤ
-            ,M1.税区分
-			,COUM.コースＣＤ
-			,COUM.コース名
-            ,T1.*
-            ,Z1.請求日範囲開始 AS 前回請求日範囲開始
-            ,Z1.請求日範囲終了 AS 前回請求日範囲終了
-            ,IIF(Z1.請求日範囲終了 IS NOT NULL, DATEADD(DAY, 1, Z1.請求日範囲終了), M1.新規登録日) AS 今回請求日範囲開始
-            ,DATEADD(DAY, 0, '$TargetDateMax') AS 今回請求日範囲終了
-            ,(
-				CASE M1.支払日
-					WHEN 99 THEN DATEADD(MONTH, M1.支払サイト, EOMONTH('$TargetDateMax'))
-					ELSE DATEADD(DAY, M1.支払日, DATEADD(MONTH, M1.支払サイト - 1, EOMONTH('$TargetDateMax')))
-				END
-			) AS 今回回収予定日
-            ,U1.得意先ＣＤ AS 未分配得意先ＣＤ
-            ,IIF(T1.予備金額１ > 0, 1, 0) AS 締処理済
-            ,IIF(U1.得意先ＣＤ IS NOT NULL, 1, 0) AS 未分配
-        FROM
-            得意先マスタ M1
-            $sqlCourse
-            LEFT OUTER JOIN 属性データ T1 ON T1.請求先ＣＤ = M1.請求先ＣＤ
-            LEFT OUTER JOIN 前回請求データ Z1 ON Z1.請求先ＣＤ = M1.請求先ＣＤ
-            LEFT OUTER JOIN 未分配データ U1 ON U1.得意先ＣＤ = M1.受注得意先ＣＤ
-				AND U1.日付 >= IIF(Z1.請求日範囲終了 IS NOT NULL, DATEADD(DAY, 1, Z1.請求日範囲終了), M1.新規登録日)
-				AND U1.日付 <= DATEADD(DAY, 0, '$TargetDateMax')
-        WHERE
-            M1.締区分 IN ($SimeKbn)
-        AND M1.部署CD = $BushoCd
-        AND M1.売掛現金区分 IN (0,1,2)
-        AND M1.得意先ＣＤ = M1.請求先ＣＤ
-        --AND M1.３回前残高 + M1.前々回残高 + M1.前回残高 + M1.今回入金額 + M1.今回売上額 > 0
-        $WehreCourseCd
-        ORDER BY 得意先ＣＤ
-        ";
-
-        //var_export($sql);
-
-        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-        $user = 'daiyas';
-        $password = 'daiyas';
-
-        $pdo = new PDO($dsn, $user, $password);
+        // $pdo = new PDO($dsn, $user, $password);
+        $pdo = DB::getPdo();
         $stmt = $pdo->query($sql);
         $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
         // $DataList = DB::select($sql);
@@ -703,6 +514,7 @@ class DAI02010Controller extends Controller
                     WHEN 2 THEN
                         CASE 支払日
                             WHEN 99 THEN DATEADD(MONTH, 支払サイト, EOMONTH('$TargetDateMax'))
+                            WHEN 0  THEN LEFT(CONVERT(VARCHAR,DATEADD(MONTH, 支払サイト, EOMONTH ('$TargetDateMax')), 112), 6)+'01'
                             ELSE DATEADD(DAY, 支払日, DATEADD(MONTH, 支払サイト - 1, EOMONTH('$TargetDateMax')))
                         END
                     ELSE
@@ -1052,11 +864,12 @@ class DAI02010Controller extends Controller
         AND B1.請求先ＣＤ = U1.得意先ＣＤ
         ";
 
-        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-        $user = 'daiyas';
-        $password = 'daiyas';
+        // $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        // $user = 'daiyas';
+        // $password = 'daiyas';
 
-        $pdo = new PDO($dsn, $user, $password);
+        // $pdo = new PDO($dsn, $user, $password);
+        $pdo = DB::getPdo();
         $stmt = $pdo->query($sql);
         //$DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $pdo = null;
@@ -1103,11 +916,12 @@ class DAI02010Controller extends Controller
 
         // var_export($sql);
 
-        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-        $user = 'daiyas';
-        $password = 'daiyas';
+        // $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        // $user = 'daiyas';
+        // $password = 'daiyas';
 
-        $pdo = new PDO($dsn, $user, $password);
+        // $pdo = new PDO($dsn, $user, $password);
+        $pdo = DB::getPdo();
         $stmt = $pdo->query($sql);
         //$DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $pdo = null;
@@ -1144,11 +958,12 @@ class DAI02010Controller extends Controller
         AND U1.請求日付 = ''
         AND (U1.売掛現金区分 = 1)
         ";
-        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-        $user = 'daiyas';
-        $password = 'daiyas';
+        // $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        // $user = 'daiyas';
+        // $password = 'daiyas';
 
-        $pdo = new PDO($dsn, $user, $password);
+        // $pdo = new PDO($dsn, $user, $password);
+        $pdo = DB::getPdo();
         $stmt = $pdo->query($sql);
 
         // //モバイルSv更新用データを取得
@@ -1211,11 +1026,12 @@ class DAI02010Controller extends Controller
         AND N1.請求日付 = ''
         ";
 
-        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-        $user = 'daiyas';
-        $password = 'daiyas';
+        // $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        // $user = 'daiyas';
+        // $password = 'daiyas';
 
-        $pdo = new PDO($dsn, $user, $password);
+        // $pdo = new PDO($dsn, $user, $password);
+        $pdo = DB::getPdo();
         $stmt = $pdo->query($sql);
         //$DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $pdo = null;
@@ -1237,11 +1053,12 @@ class DAI02010Controller extends Controller
         WHERE 請求管理No = 1
         ";
 
-        $dsn = 'sqlsrv:server=localhost;database=daiyas';
-        $user = 'daiyas';
-        $password = 'daiyas';
+        // $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        // $user = 'daiyas';
+        // $password = 'daiyas';
 
-        $pdo = new PDO($dsn, $user, $password);
+        // $pdo = new PDO($dsn, $user, $password);
+        $pdo = DB::getPdo();
         $stmt = $pdo->query($sql);
         //$DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $pdo = null;
