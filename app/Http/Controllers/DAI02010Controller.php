@@ -195,7 +195,10 @@ class DAI02010Controller extends Controller
             FROM
                 更新データ U1
             WHERE
-                部署ＣＤ=$BushoCd
+                --要確認
+                num1 = 0	--[３回前残高]
+                AND
+                num5 > 0	--今回売上額
         )
 		,未分配データ AS
 		(
