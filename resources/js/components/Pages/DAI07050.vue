@@ -1095,7 +1095,11 @@ export default {
                             </div>
                             <div style="float: left; width: 20%">
                                 <div class="header-seikyu-no">
-                                    <span/>${!!r.請求先ＣＤ ? ("000000000" + r.請求番号).slice(-9) : (moment(r.請求日付).format("YYMMDD") + " - " + r.請求番号)}
+                                    <span/>${
+                                        !!r.請求先ＣＤ
+                                            ? ("000000000" + r.請求番号).slice(-9)
+                                            : (moment(r.請求日付).format("YYMMDD") + " - " + ("000" + r.請求番号).slice(-3))
+                                    }
                                 </div>
                                 <div style="margin-top: 10px;">
                                     <span style="padding-left: 40px; letter-spacing: 0.8em;"> 年 月 日</span>
