@@ -13,7 +13,6 @@ use Exception;
 use Hamcrest\Arrays\IsArray;
 use Illuminate\Support\Carbon;
 use PDO;
-use PhpOffice\PhpSpreadsheet\Calculation\Financial;
 use Symfony\Component\Console\Helper\TableRows;
 class DAI02010Controller extends Controller
 {
@@ -82,14 +81,13 @@ class DAI02010Controller extends Controller
         try {
             $ttl = ini_get('max_execution_time');
             set_time_limit(0);
-
             $this->DeleteSeikyu($request);
             $this->InsertSeikyu($request);
             $this->UpdateSeikyuNo($request);
             $this->UpdateUriage($request);
             $this->UpdateNyukin($request);
-
             DB::commit();
+            set_time_limit($ttl);
 
             //モバイルSvを更新
             $ds = new DataSendWrapper();
@@ -100,8 +98,6 @@ class DAI02010Controller extends Controller
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;
-        } finally {
-            set_time_limit($ttl);
         }
 
         return;
@@ -116,9 +112,6 @@ class DAI02010Controller extends Controller
         DB::beginTransaction();
 
         try {
-            $ttl = ini_get('max_execution_time');
-            set_time_limit(0);
-
             $this->DeleteSeikyu($request);
             $this->ReleaseUriage($request);
             $this->ReleaseNyukin($request);
@@ -136,8 +129,6 @@ class DAI02010Controller extends Controller
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;
-        } finally {
-            set_time_limit($ttl);
         }
 
         return;
@@ -152,6 +143,9 @@ class DAI02010Controller extends Controller
         $TargetDateMax = $vm->TargetDateMax;
 
         $SelectData = $this->SelectCustomerList($vm);
+
+        $SimeKbn = $vm->SimeKbn;
+        $WhereSimeTarget = $SimeKbn == 0 ? "部署ＣＤ=$BushoCd" : "部署ＣＤ=$BushoCd AND num5 > 0";
 
         $sqlCourse = "
             LEFT OUTER JOIN (
@@ -206,10 +200,7 @@ class DAI02010Controller extends Controller
             FROM
                 更新データ U1
             WHERE
-                --要確認
-                num1 = 0	--[３回前残高]
-                AND
-                num5 > 0	--今回売上額
+                $WhereSimeTarget
         )
 		,未分配データ AS
 		(
@@ -641,7 +632,8 @@ class DAI02010Controller extends Controller
 			,num2
 			,num8
 			,num9
-			,num10
+            ,num10
+            ,締区分
         FROM
             更新前データ1 K1
         --◆売上データ明細取得
@@ -707,10 +699,15 @@ class DAI02010Controller extends Controller
             ,支払日
             --,CASE WHEN (締日１ = 99 OR 締日２ = 99) THEN DATEADD(MONTH, 支払サイト, '$TargetDateMax') ELSE '$TargetDateMax' END AS 回収予定日
             ,(
-				CASE 支払日
-					WHEN 99 THEN DATEADD(MONTH, 支払サイト, EOMONTH('$TargetDateMax'))
-					ELSE DATEADD(DAY, 支払日, DATEADD(MONTH, 支払サイト - 1, EOMONTH('$TargetDateMax')))
-				END
+                CASE 締区分
+                    WHEN 2 THEN
+                        CASE 支払日
+                            WHEN 99 THEN DATEADD(MONTH, 支払サイト, EOMONTH('$TargetDateMax'))
+                            ELSE DATEADD(DAY, 支払日, DATEADD(MONTH, 支払サイト - 1, EOMONTH('$TargetDateMax')))
+                        END
+                    ELSE
+                        DATEADD(DAY, 支払日, DATEADD(MONTH, 支払サイト, '$TargetDateMax'))
+                END
 			) AS 回収予定日
             ,税区分
             ,CASE WHEN (num1 != 0 AND num9 != 0) THEN CASE WHEN (num1 > num9) THEN num1 - num9 ELSE 0 END ELSE num1 END AS num1
