@@ -2288,7 +2288,7 @@ export default {
             if (!!vue.params && !!vue.params.電話番号１) {
                 res.push(
                     {
-                        Tel_TelNo:  vue.params.電話番号１,
+                        Tel_TelNo:  vue.params.電話番号１.replace(/-/g,""),
                         Tel_CustNo: null,
                         Tel_RepFlg: 0,
                         Tel_DelFlg: 0,

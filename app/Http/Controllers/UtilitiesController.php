@@ -2190,7 +2190,7 @@ $OrderBy
             FROM
                 非顧客電話番号マスタ
             WHERE
-                電話番号 = '$TelNo'
+                REPLACE(電話番号, '-', '') = '$TelNo'
         ";
 
         $stmt = $pdo->query($CheckRejectSql);
@@ -2213,7 +2213,7 @@ $OrderBy
                 LEFT OUTER JOIN 得意先マスタ
                     ON 得意先マスタ.得意先ＣＤ = C_TelToCust.Tel_CustNo
             WHERE
-                C_TelToCust.Tel_TelNo = '$TelNo'
+            REPLACE(C_TelToCust.Tel_TelNo, '-', '') = '$TelNo'
         ";
         $stmt = $pdo->query($CheckRegistSql);
         $Regists = $stmt->fetchAll(PDO::FETCH_ASSOC);
