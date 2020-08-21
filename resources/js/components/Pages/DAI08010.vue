@@ -1039,6 +1039,7 @@ export default {
 
             if (code != vue.OrderInfo.受注Ｎｏ || entity.配達日付 != vue.OrderInfo.配達日付) {
                 vue.CustomerInfo.得意先ＣＤ = entity.得意先ＣＤ;
+                vue.conditionChanged();
             }
         },
         onCustomerChanged: function(code, entity, comp) {
@@ -1163,15 +1164,18 @@ export default {
             vue.CustomerInfo = _.cloneDeep(data.CustomerInfo || vue.CustomerInfoInit);
             vue.CustomerInfoOrg = _.cloneDeep(data.CustomerInfo || null);
 
-            if (!!data.OrderInfo) {
+            if (!!data.OrderInfo && data.OrderInfo.受注Ｎｏ == vue.viewModel.OrderNo) {
                 data.OrderInfo.合計数量 = (data.OrderInfo.合計数量 || 0) * 1;
                 data.OrderInfo.合計金額 = (data.OrderInfo.合計金額 || 0) * 1;
                 data.OrderInfo.合計消費税 = (data.OrderInfo.合計消費税 || 0) * 1;
                 data.OrderInfo.預り金 = (data.OrderInfo.預り金 || 0) * 1;
-            }
 
-            vue.OrderInfo = _.cloneDeep(data.OrderInfo || vue.OrderInfoInit);
-            vue.OrderInfoOrg = _.cloneDeep(data.OrderInfo || null);
+                vue.OrderInfo = _.cloneDeep(data.OrderInfo);
+                vue.OrderInfoOrg = _.cloneDeep(data.OrderInfo);
+            } else {
+                vue.OrderInfo = _.cloneDeep(vue.OrderInfoInit);
+                vue.OrderInfoOrg = _.cloneDeep(null);
+            }
 
             vue.OrderInfo.配達先１ = vue.OrderInfo.配達先１ || vue.CustomerInfo.お届け先住所１;
             vue.OrderInfo.配達先２ = vue.OrderInfo.配達先２ || vue.CustomerInfo.お届け先住所２;
@@ -1222,11 +1226,14 @@ export default {
             vue.footerButtons.find(v => v.id == "DAI08010Grid1_DeleteOrder").disabled = !!CheckSeikyu || !!CheckKaikei;
             vue.footerButtons.find(v => v.id == "DAI08010Grid1_Save").disabled = !!CheckSeikyu || !!CheckKaikei;
 
-            var list = data.MeisaiList;
-            list.forEach(v => {
-                v.InitialValue = _.cloneDeep(v);
-                return v;
-            });
+            var list = [];
+            if (!!data.OrderInfo && data.OrderInfo.受注Ｎｏ == vue.viewModel.OrderNo) {
+                list = data.MeisaiList;
+                list.forEach(v => {
+                    v.InitialValue = _.cloneDeep(v);
+                    return v;
+                });
+            }
 
             return list;
         },
