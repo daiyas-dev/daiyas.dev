@@ -186,11 +186,11 @@ class DAI02030Controller extends Controller
                     ON	TANM.担当者ＣＤ = COUM.担当者ＣＤ
             WHERE
                 SEIKYU.部署ＣＤ = $BushoCd
-            AND (
-                ISNULL(SEIKYU.[３回前残高], 0) + ISNULL(SEIKYU.前々回残高, 0) + ISNULL(SEIKYU.前回残高, 0) != 0
-                OR
-                SEIKYU.今回売上額 != 0
-            )
+            --AND (
+            --    ISNULL(SEIKYU.[３回前残高], 0) + ISNULL(SEIKYU.前々回残高, 0) + ISNULL(SEIKYU.前回残高, 0) != 0
+            --    OR
+            --    SEIKYU.今回売上額 != 0
+            --)
             $WhereTargetDate
             $WehreCustomerCd
             ORDER BY
