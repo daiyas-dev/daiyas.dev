@@ -195,7 +195,7 @@ Vue.directive("setKana", {
                         var resData = ret.map(r => _.isObject(r) ? Moji(r.data.converted).convert("ZK", "HK").toString() : r).join("");
                         console.log(result);
                         //予測変換判定
-                        var isTranslate = target.length < data.length;
+                        var isTranslate = target.length <= data.length;
 
                         var result = isTranslate
                             ? _.isArray(ret) ? resData : resData.startsWith(resTarget) ? resData : target
