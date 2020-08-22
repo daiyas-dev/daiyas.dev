@@ -185,7 +185,7 @@
                     :nameWidth=250
                     :onAfterChangedFunc=onCourseChanged
                     :isShowAutoComplete=true
-                    :AutoCompleteNoLimit=true
+                    :AutoCompleteNoLimit=false
                     :AutoCompleteFunc=CourseAutoCompleteFunc
                 />
             </div>
@@ -1026,6 +1026,7 @@ export default {
             }
 
             var list = dataList
+                .filter(v => !!vue.viewModel.BushoCd ? v.部署ＣＤ == (vue.viewModel.BushoCd || vue.getLoginInfo().bushoCd) : true)
                 .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
                 .filter(v => {
                     return keyOR.length == 0
