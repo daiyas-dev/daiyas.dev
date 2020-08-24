@@ -186,11 +186,11 @@ class DAI02030Controller extends Controller
                     ON	TANM.担当者ＣＤ = COUM.担当者ＣＤ
             WHERE
                 SEIKYU.部署ＣＤ = $BushoCd
-            AND (
-                ISNULL(SEIKYU.[３回前残高], 0) + ISNULL(SEIKYU.前々回残高, 0) + ISNULL(SEIKYU.前回残高, 0) != 0
-                OR
-                SEIKYU.今回売上額 != 0
-            )
+            --AND (
+            --    ISNULL(SEIKYU.[３回前残高], 0) + ISNULL(SEIKYU.前々回残高, 0) + ISNULL(SEIKYU.前回残高, 0) != 0
+            --    OR
+            --    SEIKYU.今回売上額 != 0
+            --)
             $WhereTargetDate
             $WehreCustomerCd
             ORDER BY
@@ -238,9 +238,9 @@ class DAI02030Controller extends Controller
                     売上データ明細.食事区分,
                     食事区分名称.各種略称 AS 食事区分名,
                     商品マスタ.商品名 + IIF(売上データ明細.掛売値引 > 0, '(値引)', '') AS 商品名,
-                    売上データ明細.掛売個数 AS 数量,
+                    SUM(売上データ明細.掛売個数) AS 数量,
                     ISNULL(売上データ明細.予備金額１, 商品マスタ.売価単価) AS 単価,
-                    売上データ明細.掛売金額 - ISNULL(売上データ明細.掛売値引, 0) AS 金額,
+                    SUM(売上データ明細.掛売金額 - ISNULL(売上データ明細.掛売値引, 0)) AS 金額,
                     NULL AS 入金金額,
                     売上データ明細.備考 AS 備考
                 FROM
@@ -257,6 +257,21 @@ class DAI02030Controller extends Controller
                         AND 食事区分名称.サブ各種CD1 = 売上データ明細.食事区分
                 WHERE
                     売上データ明細.売掛現金区分 = 1
+                GROUP BY
+                    IIF(得意先マスタ.請求先ＣＤ=0, 得意先マスタ.得意先ＣＤ, 得意先マスタ.請求先ＣＤ),
+                    売上データ明細.部署ＣＤ,
+                    売上データ明細.得意先ＣＤ,
+					得意先マスタ.得意先名,
+                    売上データ明細.コースＣＤ,
+                    コースマスタ.コース名,
+                    コースマスタ.コース区分,
+                    売上データ明細.日付,
+                    売上データ明細.商品ＣＤ,
+                    売上データ明細.食事区分,
+                    食事区分名称.各種略称,
+                    商品マスタ.商品名 + IIF(売上データ明細.掛売値引 > 0, '(値引)', ''),
+                    ISNULL(売上データ明細.予備金額１, 商品マスタ.売価単価),
+                    売上データ明細.備考
                 UNION
                 SELECT
                     IIF(得意先マスタ.請求先ＣＤ=0, 得意先マスタ.得意先ＣＤ, 得意先マスタ.請求先ＣＤ) AS 請求先ＣＤ,

@@ -155,7 +155,7 @@
                     :nameWidth=250
                     :onAfterChangedFunc=onCourseChanged
                     :isShowAutoComplete=true
-                    :AutoCompleteNoLimit=true
+                    :AutoCompleteNoLimit=false
                     :AutoCompleteFunc=CourseAutoCompleteFunc
                 />
             </div>
@@ -286,6 +286,7 @@ export default {
                 CustomerCd: null,
                 CustomerNm: null,
                 SearchOptions: [],
+                PrintOrder: 0,
             },
             pgId: "DAI02030",
             DAI02030Grid1: null,
@@ -586,10 +587,14 @@ export default {
                 case "DAI07080":
                     vue.viewModel.SimeKbn = "1";
                     vue.SimeKbnDisabled = true;
+                    vue.viewModel.PrintOrder = 1;
+                    vue.onPrintOrderChanged();
                     break;
                 case "DAI07090":
                     vue.viewModel.SimeKbn = "2";
                     vue.SimeKbnDisabled = true;
+                    vue.viewModel.PrintOrder = 1;
+                    vue.onPrintOrderChanged();
                     break;
                 case "DAI02030":
                     vue.SimeKbnDisabled = false;
@@ -736,6 +741,8 @@ export default {
                 return;
             }
 
+            vue.onPrintOrderChanged();
+
             grid.searchData(vue.searchParams, false, null, callback);
         },
         filterChanged: function() {
@@ -813,6 +820,7 @@ export default {
             }
 
             var list = dataList
+                .filter(v => !!vue.viewModel.BushoCd ? v.部署ＣＤ == (vue.viewModel.BushoCd || vue.getLoginInfo().bushoCd) : true)
                 .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
                 .filter(v => {
                     return keyOR.length == 0

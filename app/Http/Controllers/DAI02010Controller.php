@@ -509,7 +509,7 @@ class DAI02010Controller extends Controller
             ,今回請求額
             ,支払日
             --,CASE WHEN (締日１ = 99 OR 締日２ = 99) THEN DATEADD(MONTH, 支払サイト, '$TargetDateMax') ELSE '$TargetDateMax' END AS 回収予定日
-            ,(
+            ,ISNULL(
                 CASE 締区分
                     WHEN 2 THEN
                         CASE 支払日
@@ -519,7 +519,8 @@ class DAI02010Controller extends Controller
                         END
                     ELSE
                         DATEADD(DAY, 支払日, DATEADD(MONTH, 支払サイト, '$TargetDateMax'))
-                END
+                END,
+                '$TargetDateMax'
 			) AS 回収予定日
             ,税区分
             ,CASE WHEN (num1 != 0 AND num9 != 0) THEN CASE WHEN (num1 > num9) THEN num1 - num9 ELSE 0 END ELSE num1 END AS num1
