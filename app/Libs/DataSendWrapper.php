@@ -759,6 +759,23 @@ class DataSendWrapper extends PWADataSend
         }
     }
     /**
+     * 売上明細データをDelete/Insertで更新する
+     * @param 売上明細データ(1レコード分)
+     */
+    public function InsertUriageMeisaiData($new_data)
+    {
+        $del_sql="delete from SalesDetailsData
+                    where date = '{$new_data['日付']}'
+                      and department_code = {$new_data['部署ＣＤ']}
+                      and course_code = {$new_data['コースＣＤ']}
+                      and row_no = {$new_data['行Ｎｏ']}
+                      and customer_code = {$new_data['得意先ＣＤ']}
+                      and detail_row_no = {$new_data['明細行Ｎｏ']}
+                      and order_no = {$new_data['受注Ｎｏ']}";
+        $this->Insert('売上データ明細',$new_data,true,$new_data['部署ＣＤ'],$new_data['得意先ＣＤ'],$new_data['コースＣＤ'], null,$del_sql);
+    }
+
+    /**
      * 指定したSQLをモバイル送信リストに登録する
      * @param SQL
      * @param すぐに実行するか。null以外ならすぐに実行

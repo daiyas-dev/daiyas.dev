@@ -345,17 +345,15 @@ ORDER BY
             DB::commit();
 
             //モバイルsv更新
+            $ds = new DataSendWrapper();
             foreach ($MDeleteList as $rec) {
-                $ds = new DataSendWrapper();
                 $ds->Delete('売上データ明細', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
             }
             foreach ($MUpdateList as $rec) {
-                $ds = new DataSendWrapper();
-                $ds->Update('売上データ明細', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
+                $ds->InsertUriageMeisaiData($rec);
             }
             foreach ($MInsertList as $rec) {
-                $ds = new DataSendWrapper();
-                $ds->Insert('売上データ明細', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
+                $ds->InsertUriageMeisaiData($rec);
             }
 
         } catch (Exception $exception) {
