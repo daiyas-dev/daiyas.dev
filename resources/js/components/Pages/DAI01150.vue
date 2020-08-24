@@ -8,7 +8,7 @@
                 <VueSelectBusho
                     :onChangedFunc=onBushoChanged
                     :hasNull=true
-                    :disabled=true
+                    :disabled=false
                 />
             </div>
             <div class="col-md-1">
@@ -30,7 +30,7 @@
                     bind="CustomerCd"
                     buddy="CustomerNm"
                     dataUrl="/Utilities/GetCustomerListForSelect"
-                    :params="{ KeyWord: null, UserBushoCd: getLoginInfo().bushoCd }"
+                    :params="{ KeyWord: null, UserBushoCd: getLoginInfo().bushoCd, BushoCd: viewModel.BushoCd }"
                     :isPreload=true
                     title="得意先一覧"
                     labelCd="得意先CD"
@@ -729,6 +729,7 @@ export default {
 
             var list = dataList
                 .map(v => { v.whole = _(v).pickBy((v, k) => wholeColumns.includes(k)).values().join(""); return v; })
+                .filter(v => v.部署CD == vue.viewModel.BushoCd)
                 .filter(v => {
                     return keyOR.length == 0
                         || _.some(keyOR, k => v.Cd.startsWith(k))
