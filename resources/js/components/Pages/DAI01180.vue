@@ -435,12 +435,8 @@ export default {
         },
         mountedFunc: function(vue) {
             //日付の初期値 -> 当日
-            // vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
-            // vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
-
-            vue.viewModel.DateStart = moment('20200822').format("YYYY年MM月DD日");
-            vue.viewModel.DateEnd = moment('20200822').format("YYYY年MM月DD日");
-
+            vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
+            vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
