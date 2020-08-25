@@ -2285,7 +2285,7 @@ export default {
                 return v;
             });
 
-            if (!!vue.params && !!vue.params.電話番号１) {
+            if (!!vue.params && !!vue.params.電話番号１ && vue.params.電話番号１ != vue.params.電話番号１) {
                 res.push(
                     {
                         Tel_TelNo:  vue.params.電話番号１.replace(/-/g,""),
