@@ -435,8 +435,12 @@ export default {
         },
         mountedFunc: function(vue) {
             //日付の初期値 -> 当日
-            vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
-            vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
+            // vue.viewModel.DateStart = moment().format("YYYY年MM月DD日");
+            // vue.viewModel.DateEnd = moment().format("YYYY年MM月DD日");
+
+            vue.viewModel.DateStart = moment('20200822').format("YYYY年MM月DD日");
+            vue.viewModel.DateEnd = moment('20200822').format("YYYY年MM月DD日");
+
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
@@ -462,8 +466,26 @@ export default {
         onDateChanged: function(code, entity) {
             var vue = this;
 
-            //条件変更ハンドラ
-            vue.conditionChanged();
+            //コース区分変更
+            if (vue.viewModel.DateStart == vue.viewModel.DateEnd) {
+                axios.post(
+                    "/Utilities/GetCourseKbnFromDate",
+                    {TargetDate: moment(vue.viewModel.DateStart, "YYYY年MM月DD日").format("YYYYMMDD")}
+                )
+                    .then(res => {
+                        console.log(res);
+                        vue.viewModel.CourseKbn = res.data.コース区分;
+
+                        //条件変更ハンドラ
+                        vue.conditionChanged();
+                    })
+                    .catch(err => {
+                        console.log(err);
+                    });
+            } else {
+                vue.viewModel.CourseKbn = null;
+            }
+
         },
         onCourseCdChanged: function(code, entity) {
             var vue = this;
