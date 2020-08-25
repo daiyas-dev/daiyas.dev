@@ -354,7 +354,7 @@ export default {
                 return res;
             }
             vue.viewModel.LastTicketNo=res[0].チケット管理番号 == null ? 0 : res[0].チケット管理番号;
-            vue.footerButtons.find(v => v.id == "DAI06020Grid1_Save").disabled = (!vue.viewModel.LastTicketNo);
+            vue.footerButtons.find(v => v.id == "DAI06020Grid1_Save").disabled = false;//(!vue.viewModel.LastTicketNo);
             return res;
         },
         CustomerAutoCompleteFunc: function(input, dataList, comp) {
