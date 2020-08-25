@@ -443,6 +443,12 @@ export default {
                         selectLabel: "Cd == 0 ? '' : (Cd + ')' + CdNm)",
                         selectNullFirst: false,
                     },
+                    {
+                        title: "コースＣＤ",
+                        dataIndx: "コースＣＤ",
+                        dataType: "integer",
+                        hidden: true,
+                    },
                 ],
             },
         });
@@ -553,7 +559,7 @@ export default {
                             var ret = {};
                             ret.日付 = v.日付;
                             ret.部署ＣＤ = vue.searchParams.BushoCd;
-                            ret.コースＣＤ = vue.searchParams.CourseCd || 0;
+                            ret.コースＣＤ = v.コースＣＤ || vue.searchParams.CourseCd;
                             ret.行Ｎｏ = v.行Ｎｏ;
                             ret.得意先ＣＤ = vue.searchParams.CustomerCd;
                             ret.明細行Ｎｏ = v.明細行Ｎｏ;
