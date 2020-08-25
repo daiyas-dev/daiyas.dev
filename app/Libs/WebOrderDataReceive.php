@@ -136,7 +136,7 @@ class WebOrderDataReceive extends DataReceiveBase
                     {
                         //Insert or Updateする
                         //追加項目を付加
-                        $record['修正担当者ＣＤ']="9999";
+                        $record['修正担当者ＣＤ']="999";
                         $record['修正日']=Carbon::now()->format('Y/m/d H:i:s');
                         if (0<$count)
                         {
@@ -247,7 +247,7 @@ class WebOrderDataReceive extends DataReceiveBase
             }
             foreach ($WebOrderList as $WebOrderRecord)
             {
-                $OrderToMobile = $this->SaveOrderFromWeb($WebOrderRecord['WebOrderId'],$WebOrderRecord['DeliveryDate']);
+                //$OrderToMobile = $this->SaveOrderFromWeb($WebOrderRecord['WebOrderId'],$WebOrderRecord['DeliveryDate']);
             }
             $this->updateLastUpdateDateByDB($receive_id,$response["last_update_date"]);
             DB::commit();
@@ -295,31 +295,33 @@ class WebOrderDataReceive extends DataReceiveBase
                     DB::delete($sql);
                 } else {
                     //update
-                    $sql="update Web受注データ set 注文日時='{$record['注文日時']}',修正担当者ＣＤ=9999,修正日=getdate() where $where";
+                    $sql="update Web受注データ set 注文日時='{$record['注文日時']}',修正担当者ＣＤ=999,修正日=getdate() where $where";
                     DB::update($sql);
                 }
             } else {
-                //insert
-                $sql="select isnull(max(Web受注ID)+1, 1) as NewID from Web受注データ";
-                $WebOrderID=DB::selectOne($sql);
-                $WebOrderRecord['WebOrderId'] = $WebOrderID->NewID;//戻値のセット
-                $sql="insert into Web受注データ(
-                            Web受注ID
-                        ,Web得意先ＣＤ
-                        ,配送日
-                        ,注文日時
-                        ,修正担当者ＣＤ
-                        ,修正日
-                    )values(
-                         {$WebOrderRecord['WebOrderId']}
-                        ,'{$record['Web得意先ＣＤ']}'
-                        ,'{$record['配送日']}'
-                        ,'{$record['注文日時']}'
-                        ,9999
-                        ,getdate()
-                    )
-                ";
-                DB::insert($sql);
+                if ($record['削除フラグ'] != "1") {
+                    //insert
+                    $sql="select isnull(max(Web受注ID)+1, 1) as NewID from Web受注データ";
+                    $WebOrderID=DB::selectOne($sql);
+                    $WebOrderRecord['WebOrderId'] = $WebOrderID->NewID;//戻値のセット
+                    $sql="insert into Web受注データ(
+                                Web受注ID
+                            ,Web得意先ＣＤ
+                            ,配送日
+                            ,注文日時
+                            ,修正担当者ＣＤ
+                            ,修正日
+                        )values(
+                            {$WebOrderRecord['WebOrderId']}
+                            ,'{$record['Web得意先ＣＤ']}'
+                            ,'{$record['配送日']}'
+                            ,'{$record['注文日時']}'
+                            ,999
+                            ,getdate()
+                        )
+                    ";
+                    DB::insert($sql);
+                }
             }
             $WebOrderList[]=$WebOrderRecord;
         }
@@ -339,7 +341,11 @@ class WebOrderDataReceive extends DataReceiveBase
         foreach ($table_data as $record) {
             //Web受注IDを取得
             $sql="select J1.Web受注ID from Web受注データ J1 where J1.Web得意先ＣＤ='{$record['Web得意先ＣＤ']}' and J1.配送日='{$record['配送日']}'";
-            $WebOrderID = DB::selectOne($sql)->Web受注ID;
+
+            $WebOrder = DB::selectOne($sql);
+            if (!isset($WebOrder)) continue;
+
+            $WebOrderID = $WebOrder->Web受注ID;
 
             //Web受注データ利用者情報の存在確認
             $where="Web受注ID=$WebOrderID and 注文ID={$record['注文ID']} and 利用者ID={$record['利用者ID']}";
@@ -352,30 +358,32 @@ class WebOrderDataReceive extends DataReceiveBase
                     DB::delete($sql);
                 } else {
                     //update
-                    $sql="update Web受注データ利用者情報 set 利用者CD='{$record['利用者CD']}',修正担当者ＣＤ=9999,修正日=getdate() where $where";
+                    $sql="update Web受注データ利用者情報 set 利用者CD='{$record['利用者CD']}',修正担当者ＣＤ=999,修正日=getdate() where $where";
                     DB::update($sql);
                 }
             } else {
-                //insert
-                $sql="insert into Web受注データ利用者情報(
-                            Web受注ID
-                        ,注文ID
-                        ,利用者ID
-                        ,利用者CD
-                        ,備考ID
-                        ,修正担当者ＣＤ
-                        ,修正日
-                    )values(
-                        $WebOrderID
-                        ,{$record['注文ID']}
-                        ,{$record['利用者ID']}
-                        ,'{$record['利用者CD']}'
-                        ,null
-                        ,9999
-                        ,getdate()
-                    )
-                ";
-                DB::insert($sql);
+                if ($record['削除フラグ'] != "1") {
+                    //insert
+                    $sql="insert into Web受注データ利用者情報(
+                                Web受注ID
+                            ,注文ID
+                            ,利用者ID
+                            ,利用者CD
+                            ,備考ID
+                            ,修正担当者ＣＤ
+                            ,修正日
+                        )values(
+                            $WebOrderID
+                            ,{$record['注文ID']}
+                            ,{$record['利用者ID']}
+                            ,'{$record['利用者CD']}'
+                            ,null
+                            ,999
+                            ,getdate()
+                        )
+                    ";
+                    DB::insert($sql);
+                }
             }
         }
     }
@@ -394,7 +402,11 @@ class WebOrderDataReceive extends DataReceiveBase
         foreach ($table_data as $record) {
             //Web受注IDを取得
             $sql="select J1.Web受注ID from Web受注データ J1 where J1.Web得意先ＣＤ='{$record['Web得意先ＣＤ']}' and J1.配送日='{$record['配送日']}'";
-            $WebOrderID = DB::selectOne($sql)->Web受注ID;
+
+            $WebOrder = DB::selectOne($sql);
+            if (!isset($WebOrder)) continue;
+
+            $WebOrderID = $WebOrder->Web受注ID;
 
             //Web受注データ利用者別詳細の存在確認
             $where="Web受注ID=$WebOrderID and 注文ID={$record['注文ID']} and 注文情報ID={$record['注文情報ID']}";
@@ -407,43 +419,45 @@ class WebOrderDataReceive extends DataReceiveBase
                     DB::delete($sql);
                 } else {
                     //update
-                    $sql="update Web受注データ利用者別詳細 set 注文日時='{$record['注文日時']}',修正担当者ＣＤ=9999,修正日=getdate() where $where";
+                    $sql="update Web受注データ利用者別詳細 set 注文日時='{$record['注文日時']}',修正担当者ＣＤ=999,修正日=getdate() where $where";
                     DB::update($sql);
                 }
             } else {
-                //insert
-                $destination_id=($record['届け先ID']===null || $record['届け先ID']==='') ? "null" : $record['届け先ID'];
-                $sql="insert into Web受注データ利用者別詳細(
-                        Web受注ID
-                        ,注文ID
-                        ,注文情報ID
-                        ,注文日時
-                        ,商品ＣＤ
-                        ,単価
-                        ,現金個数
-                        ,現金金額
-                        ,掛売個数
-                        ,掛売金額
-                        ,届け先ID
-                        ,修正担当者ＣＤ
-                        ,修正日
-                        )values(
-                        $WebOrderID
-                        , {$record['注文ID']}
-                        , {$record['注文情報ID']}
-                        ,'{$record['注文日時']}'
-                        , {$record['商品ＣＤ']}
-                        , {$record['単価']}
-                        , {$record['現金個数']}
-                        , {$record['現金金額']}
-                        , {$record['掛売個数']}
-                        , {$record['掛売金額']}
-                        , $destination_id
-                        , 9999
-                        , getdate()
-                    )
-                ";
-                DB::insert($sql);
+                if ($record['削除フラグ'] != "1") {
+                    //insert
+                    $destination_id=($record['届け先ID']===null || $record['届け先ID']==='') ? "null" : $record['届け先ID'];
+                    $sql="insert into Web受注データ利用者別詳細(
+                            Web受注ID
+                            ,注文ID
+                            ,注文情報ID
+                            ,注文日時
+                            ,商品ＣＤ
+                            ,単価
+                            ,現金個数
+                            ,現金金額
+                            ,掛売個数
+                            ,掛売金額
+                            ,届け先ID
+                            ,修正担当者ＣＤ
+                            ,修正日
+                            )values(
+                            $WebOrderID
+                            , {$record['注文ID']}
+                            , {$record['注文情報ID']}
+                            ,'{$record['注文日時']}'
+                            , {$record['商品ＣＤ']}
+                            , {$record['単価']}
+                            , {$record['現金個数']}
+                            , {$record['現金金額']}
+                            , {$record['掛売個数']}
+                            , {$record['掛売金額']}
+                            , $destination_id
+                            , 999
+                            , getdate()
+                        )
+                    ";
+                    DB::insert($sql);
+                }
             }
         }
     }
@@ -588,7 +602,7 @@ class WebOrderDataReceive extends DataReceiveBase
                 ,商品ＣＤ
         ";
         $OrderList = DB::select($GetOrderSQL);
-        $EditUser="9999";
+        $EditUser="999";
         $EditDate=Carbon::now()->format('Y-m-d H:i:s');
         foreach($OrderList as $rec) {
             $rec = (array) $rec;

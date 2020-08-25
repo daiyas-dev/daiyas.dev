@@ -4,12 +4,16 @@
             <div class="col-md-1">
                 <label>配送日</label>
             </div>
-            <div class="col-md-11">
+            <div class="col-md-8">
                 <input class="form-control p-0 text-center" type="text" style="width: 100px;" :value=FormattedDeliveryDate readonly tabindex="-1">
                 <label class="ml-2 mr-1" style="width: unset; max-width: unset;">注文日時</label>
                 <input class="form-control p-0 text-center" type="text" style="width: 135px;" :value=FormattedOrderDate readonly tabindex="-1">
                 <label class="ml-2 mr-1">部署</label>
                 <input class="form-control" type="text" style="width: 200px;" :value=params.部署名 readonly tabindex="-1">
+            </div>
+            <div class="col-md-3 justify-content-end">
+                <label class="mr-1">締切</label>
+                <input class="form-control text-center" type="text" style="width: 150px;" :value=TimeoutInfo readonly tabindex="-1">
             </div>
         </div>
         <div class="row">
@@ -108,7 +112,26 @@ export default {
                 EditUser: vue.getLoginInfo().uid,
                 IsRegisted: vue.IsRegisted,
             };
-        }
+        },
+        TimeoutInfo: function() {
+            var vue = this;
+
+            if (!vue.params.締切時刻) return "締切設定無し";
+
+            var dl = moment(moment(vue.params.配送日).format("YYYY/MM/DD ") + vue.params.締切時刻);
+            if (moment().isAfter(dl)) {
+                return "締切済: " + dl.format("HH:mm");
+            } else {
+                var dt = dl.diff(moment(), "days");
+
+                var dur = moment.duration(dl.diff(moment()), "milliseconds");
+                var formatter = new Intl.NumberFormat('ja', { minimumIntegerDigits: 2 });
+                var dh =  formatter.format(Math.floor(dur.asHours()));
+                var dm =  formatter.format(dur.minutes());
+
+                return "あと: " + (!!dt ? (dt + "日") : (dh + ":" + dm));
+            }
+        },
     },
     watch: {
         IsRegisted: {
@@ -405,11 +428,6 @@ export default {
                     }
                 },
                 {visible: "false"},
-                // { visible: "true", value: "伝票削除", id: "DAI01032Grid1_DeleteOrder", disabled: true, shortcut: "F3",
-                //     onClick: function () {
-                //         vue.deleteOrder();
-                //     }
-                // },
                 { visible: "true", value: "行削除", id: "DAI01032Grid1_DeleteRow", disabled: true, shortcut: "F4",
                     onClick: function () {
                         vue.deleteRow();
@@ -427,7 +445,7 @@ export default {
                     }
                 },
                 {visible: "false"},
-                { visible: "true", value: "取込", id: "DAI01032Grid1_Save", disabled: false, shortcut: "F9",
+                { visible: "true", value: "注文取込", id: "DAI01032Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         vue.saveOrder();
                     }
@@ -465,7 +483,7 @@ export default {
                 // vue.footerButtons.find(v => v.id == "DAI01032Grid1_showProductMaint").disabled = false;
             }
 
-            vue.footerButtons.find(v => v.id == "DAI01032Grid1_Save").value = vue.IsRegisted == "1" ? "変更" : "取込";
+            vue.footerButtons.find(v => v.id == "DAI01032Grid1_Save").value = vue.IsRegisted == "1" ? "注文変更" : "注文取込";
 
             vue.conditionChanged(true);
         },
@@ -778,10 +796,10 @@ export default {
                                 grid.blinkDiff(res.current);
                             } else {
                                 if (vue.IsRegisted == "0") {
-                                    $.dialogInfo({
-                                        title: "Web受注注文取込完了",
-                                        contents: "Web受注の注文内容を取り込みました。以降の変更は自動で取り込まれます。",
-                                    });
+                                    // $.dialogInfo({
+                                    //     title: "Web受注注文取込完了",
+                                    //     contents: "Web受注の注文内容を取り込みました。以降の変更は自動で取り込まれます。",
+                                    // });
                                     vue.IsRegisted = "1";
 
                                     if (!!vue.params && !!vue.params.Grid) {

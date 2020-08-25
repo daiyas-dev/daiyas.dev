@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Libs\DataSendWrapper;
+use App\Libs\WebOrderDataSendWrapper;
 use App\Libs\WebOrderSend;
 use App\Models\Web受注データ;
 use App\Models\Web受注データ利用者別詳細;
@@ -234,9 +234,7 @@ class DAI01032Controller extends Controller
 					ON  MEMO.Web得意先ＣＤ=WEB.Web得意先ＣＤ
 					AND MEMO.備考ID=USERS.備考ID
             ORDER BY
-                USERS.注文ID
-                ,USERS.利用者CD
-                ,DETAILS.注文情報ID
+                USERS.利用者ID
                 ,DETAILS.商品ＣＤ
         ";
 
@@ -274,7 +272,7 @@ class DAI01032Controller extends Controller
                     ->where('注文情報ID', $rec['注文情報ID'])
                     ->delete();
 
-                //TODO: AWS連携 -> Web注文情報データ
+                //AWS連携 -> Web注文情報データ
                 //Web受注sv更新用
                 array_push($WODeleteListForInfo, $rec);
             }
@@ -318,7 +316,7 @@ class DAI01032Controller extends Controller
                             ->where('注文情報ID', $rec['注文情報ID'])
                             ->update($data);
 
-                        //TODO: AWS連携 -> Web注文情報データ
+                        //AWS連携 -> Web注文情報データ
                         //Web受注sv更新用
                         array_push($WOUpdateListForInfo, $data);
 
@@ -330,7 +328,7 @@ class DAI01032Controller extends Controller
                             ->where('注文情報ID', $rec['注文情報ID'])
                             ->delete();
 
-                        //TODO: AWS連携 -> Web注文情報データ
+                        //AWS連携 -> Web注文情報データ
                         //Web受注sv更新用
                         array_push($WODeleteListForInfo, $rec);
                     }
@@ -347,14 +345,7 @@ class DAI01032Controller extends Controller
                             //注文IDをAWSから発番して貰う
                             $sender = new WebOrderSend();
                             $OrderId = $sender->GetOrderId();
-                            // $OrderId = Web受注データ利用者情報::query()
-                            //     ->where('Web受注ID', $WebOrderId)
-                            //     ->max('注文ID') + 1;
-                            //TODO: sql
-                            // "
-                            //     SELECT AUTOINC FROM information_schema.INNODB_TABLESTATS where name = 'daiyas/WebOrderData';
-                            //     ALTER TABLE WebOrderData AUTO_INCREMENT = N + 1;
-                            // ";
+
                             $data = [];
                             $data['Web受注ID'] = $WebOrderId;
                             $data['注文ID'] = $OrderId;
@@ -370,15 +361,6 @@ class DAI01032Controller extends Controller
                         //注文情報IDをAWSから発番して貰う
                         $sender = new WebOrderSend();
                         $InfoId = $sender->GetOrderInfoId();
-                        // $InfoId = Web受注データ利用者別詳細::query()
-                        //     ->where('Web受注ID', $WebOrderId)
-                        //     ->where('注文ID', $OrderId)
-                        //     ->max('注文情報ID') + 1;
-                        //TODO: sql
-                        // "
-                        //     SELECT AUTOINC FROM information_schema.INNODB_TABLESTATS where name = 'daiyas/WebOrderInfoData';
-                        //     ALTER TABLE WebOrderInfoData AUTO_INCREMENT = N + 1;
-                        // ";
 
                         $data = $rec;
                         $data['Web受注ID'] = $WebOrderId;
@@ -398,7 +380,7 @@ class DAI01032Controller extends Controller
 
                         Web受注データ利用者別詳細::insert($data);
 
-                        //TODO: AWS連携 -> Web注文情報データ
+                        //AWS連携 -> Web注文情報データ
                         //Web受注sv更新用
                         array_push($WOInsertListForInfo, $data);
                     }
@@ -441,7 +423,7 @@ class DAI01032Controller extends Controller
                         ->where('注文ID', $info->注文ID)
                         ->delete();
 
-                    //TODO: AWS連携 -> Web注文データ
+                    //AWS連携 -> Web注文データ
                     //Web受注sv更新用
                     array_push($WODeleteListForOrder, $info);
                 }
@@ -450,7 +432,8 @@ class DAI01032Controller extends Controller
             $OrderCountSQL = "
                 SELECT
                     WEB.Web受注ID
-					,WEB.Web得意先ＣＤ
+                    ,WEB.Web得意先ＣＤ
+                    ,WEB.配送日
                     ,COUNT(USERS.注文ID) AS COUNT
                 FROM
 					Web受注データ WEB
@@ -461,6 +444,7 @@ class DAI01032Controller extends Controller
                 GROUP BY
                     WEB.Web受注ID
 					,WEB.Web得意先ＣＤ
+                    ,WEB.配送日
             ";
 
             $order_count = DB::select($OrderCountSQL);
@@ -478,37 +462,42 @@ class DAI01032Controller extends Controller
             } else {
                 DB::commit();
 
-                // //Web受注sv更新
+                //Web受注sv更新
+                foreach ($order_count as $order) {
+                    $ds = new WebOrderDataSendWrapper();
+                    $ds->UpdateWebOrderData($order->Web得意先ＣＤ, $order->配送日);
+                }
+
                 // foreach ($WODeleteListForOrder as $rec) {
-                //     $ds = new DataSendWrapper();
-                //     $ds->Delete('Web注文データ', $rec, true, $rec['部署ＣＤ'], null, null);
+                //     $ds = new WebOrderDataSendWrapper();
+                //     $ds->Delete('Web注文データ', $rec, true, null, null, null);
                 // }
                 // //TODO: Web受注svのWeb注文データのinsert/updateは、社内側のWeb受注データ利用者別詳細を集計したもので行う
 
                 // foreach ($WODeleteListForInfo as $rec) {
-                //     $ds = new DataSendWrapper();
-                //     $ds->Delete('Web注文情報データ', $rec, true, $rec['部署ＣＤ'], null, null);
+                //     $ds = new WebOrderDataSendWrapper();
+                //     $ds->Delete('Web注文情報データ', $rec, true, null, null, null);
                 // }
                 // foreach ($WOInsertListForInfo as $data) {
-                //     $ds = new DataSendWrapper();
-                //     $ds->Insert('Web注文情報データ', $data, true, $rec['部署ＣＤ'], null, null);
+                //     $ds = new WebOrderDataSendWrapper();
+                //     $ds->Insert('Web注文情報データ', $data, true, null, null, null);
                 // }
                 // foreach ($WOUpdateListForInfo as $data) {
-                //     $ds = new DataSendWrapper();
-                //     $ds->Update('Web注文情報データ', $data, true, $rec['部署ＣＤ'], null, null);
+                //     $ds = new WebOrderDataSendWrapper();
+                //     $ds->Update('Web注文情報データ', $data, true, null, null, null);
                 // }
 
-                // if ($IsRegisted == 0) {
-                //     //TODO: 初回取込時はAWSに何かを送信して、確認メールを送る
-                // }
+                if ($IsRegisted == 0) {
+                    //TODO: 初回取込時はAWSに何かを送信して、確認メールを送る
+                }
 
                 // //モバイルsv更新
                 // foreach ($OrderToMobile["MDeleteList"] as $rec) {
-                //     $ds = new DataSendWrapper();
+                //     $ds = new WebOrderDataSendWrapper();
                 //     $ds->Delete('注文データ', $rec, true, $rec['部署ＣＤ'], null, null);
                 // }
                 // foreach ($OrderToMobile["MInsertList"] as $data) {
-                //     $ds = new DataSendWrapper();
+                //     $ds = new WebOrderDataSendWrapper();
                 //     $ds->Insert('注文データ', $data, true, $rec['部署ＣＤ'], null, null);
                 // }
             }
@@ -550,7 +539,7 @@ class DAI01032Controller extends Controller
 				AND 配送日='$DeliveryDate'
 			)
             SELECT
-				0 AS 注文区分
+				1 AS 注文区分
 				,FORMAT(MAX(注文日時), 'yyyy-MM-dd') AS 注文日付
 				,FORMAT(MAX(注文日時), 'HH:mm:ss') AS 注文時間
 				,部署CD AS 部署ＣＤ

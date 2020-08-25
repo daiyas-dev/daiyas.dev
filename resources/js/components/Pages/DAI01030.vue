@@ -781,6 +781,7 @@ export default {
 
             if (!!vue.params && !!vue.params.Parent && !!vue.params.CustomerCd) {
                 vue.CustomerChangedFunc();
+                vue.conditionChanged(true);
             }
         },
         activatedFunc: function(vue) {

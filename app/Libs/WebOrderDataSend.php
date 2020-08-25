@@ -27,7 +27,7 @@ class WebOrderSend
 
             $sql ="
                     SELECT 送信ＩＤ,SQL
-                      FROM モバイル送信リスト
+                      FROM Web受注送信リスト
                      WHERE 送信済フラグ<>1
                            $where_send_id
                      ORDER BY 送信ＩＤ
@@ -102,7 +102,7 @@ class WebOrderSend
         try
         {
             //WebAPI宛に送信
-            $url= "http://18.178.211.62/api/mobiledatareceive";
+            $url= "http://18.178.211.62/api/weborderdatareceive";
 
             // base64エンコード
             $base64_data = base64_encode(file_get_contents($zip_file_path));
@@ -136,18 +136,18 @@ class WebOrderSend
             $arrResult=json_decode($result);
             if($arrResult==null)
             {
-                //モバイル送信エラーを書き込む
+                //Web受注送信エラーを書き込む
                 $description="エラー";
                 $this->ErrorSendList($send_id,$description,$result);
             }
             else
             {
                 if ($arrResult->result==1) {
-                    //モバイル送信リストにOKを書き込む
+                    //Web受注送信リストにOKを書き込む
                     $this->SuccessSendList($send_id);
                 }
                 else{
-                    //モバイル送信エラーを書き込む
+                    //Web受注送信エラーを書き込む
                     $description="エラー";
                     $this->ErrorSendList($send_id,$description,base64_decode($arrResult->message));
                 }
@@ -159,7 +159,7 @@ class WebOrderSend
     }
 
     /**
-     * 指定のSQLをモバイル送信リストに登録する
+     * 指定のSQLをWeb受注送信リストに登録する
      * @param SQL文
      * @param すぐに実行するか。null以外ならすぐに実行
      * @param 部署CD
@@ -167,10 +167,10 @@ class WebOrderSend
      * @param コースCD
      * @return void
      */
-    public function StoreSendList($sql,$Immediate = null,$busho_cd = null,$customer_cd=null,$course_cd=null)
+    public function StoreSendList($sql,$Immediate = null,$web_customer_code = null)
     {
         try {
-            //モバイル送信リストに登録する
+            //Web受注送信リストに登録する
             $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
             $user = 'daiyas';
             $password = 'daiyas';
@@ -180,7 +180,7 @@ class WebOrderSend
             $next_id_Sql = "
                     SELECT
                         MAX(送信ＩＤ)+1 AS NEXT_ID
-                    FROM モバイル送信リスト
+                    FROM Web受注送信リスト
                 ";
             $stmt = $pdo->query($next_id_Sql);
             $send_id = $stmt->fetch()["NEXT_ID"];
@@ -191,15 +191,11 @@ class WebOrderSend
             $controller_id=$arrCallMethod["ControllerID"];
             $method_name=$arrCallMethod["MethodName"];
 
-            $q_busho_cd   = $busho_cd    == null ? 'null' : $busho_cd;
-            $q_customer_cd= $customer_cd == null ? 'null' : $customer_cd;
-            $q_course_cd  = $course_cd   == null ? 'null' : $course_cd;
+            $q_web_customer_code= $web_customer_code == null ? 'null' : $web_customer_code;
             $esc_sql=str_replace("'","''",$sql);
-            $ms_sql="INSERT INTO モバイル送信リスト(
+            $ms_sql="INSERT INTO Web受注送信リスト(
                     送信ＩＤ
-                   ,部署ＣＤ
-                   ,得意先ＣＤ
-                   ,コースＣＤ
+                   ,Web得意先ＣＤ
                    ,コントローラＩＤ
                    ,メソッド名
                    ,作成日時
@@ -208,9 +204,7 @@ class WebOrderSend
                    ,送信済日時
                    )VALUES(
                      $send_id
-                    ,$q_busho_cd
-                    ,$q_customer_cd
-                    ,$q_course_cd
+                    ,'$q_web_customer_code'
                     ,'$controller_id'
                     ,'$method_name'
                     ,GETDATE()
@@ -266,14 +260,14 @@ class WebOrderSend
     }
 
     /**
-     * モバイル送信リストに送信フラグを書き込む
+     * Web受注送信リストに送信フラグを書き込む
      * @param 送信ID
      * @return void
      */
     private function SuccessSendList($send_id)
     {
         try {
-            $sql="UPDATE モバイル送信リスト SET 送信済フラグ=1,送信済日時=GETDATE() WHERE 送信ＩＤ=$send_id";
+            $sql="UPDATE Web受注送信リスト SET 送信済フラグ=1,送信済日時=GETDATE() WHERE 送信ＩＤ=$send_id";
             $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
             $user = 'daiyas';
             $password = 'daiyas';
@@ -289,7 +283,7 @@ class WebOrderSend
     }
 
     /**
-     * モバイル送信エラーテーブルに送信フラグを書き込む
+     * Web受注送信エラーテーブルに送信フラグを書き込む
      * @param 送信ID
      * @param エラー理由
      * @param エラーメッセージ(エラー発生時に取得したメッセージをそのまま保存する)
@@ -298,7 +292,7 @@ class WebOrderSend
     private function ErrorSendList($send_id,$description,$message)
     {
         try {
-            //モバイル送信リストに登録する
+            //Web受注送信リストに登録する
             $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
             $user = 'daiyas';
             $password = 'daiyas';
@@ -308,7 +302,7 @@ class WebOrderSend
             $next_seq_Sql = "
                     SELECT
                         MAX(試行回数)+1 AS NEXT_SEQ
-                    FROM モバイル送信エラー
+                    FROM Web受注送信エラー
                     WHERE 送信ＩＤ = $send_id
                 ";
             $stmt = $pdo->query($next_seq_Sql);
@@ -317,7 +311,7 @@ class WebOrderSend
 
             //呼出元を取得
             $esc_message=str_replace("'","''",$message);
-            $ms_sql="INSERT INTO モバイル送信エラー(
+            $ms_sql="INSERT INTO Web受注送信エラー(
                     送信ＩＤ
                    ,試行回数
                    ,エラー発生日時

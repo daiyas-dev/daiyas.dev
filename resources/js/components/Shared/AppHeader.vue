@@ -139,7 +139,7 @@ export default {
                 vue.interval = setInterval(
                     () => {
                         if (!!vue.fetch) {
-                            axios.post("/Utilities/SearchWebOrderList", { UnRegisted: "1", noCache: true })
+                            axios.post("/Utilities/SearchWebOrderList", { UnRegisted: "1", Timeout: "0", noCache: true })
                                 .then(res => {
                                     if (!res.data.length) return;
 
@@ -180,7 +180,7 @@ export default {
 
             PageDialog.showSelector({
                 dataUrl: "/Utilities/SearchWebOrderList",
-                params: { TargetDate: moment().format("YYYYMMDD"), UnRegisted: "1", Start: 1, Chunk: 100 },
+                params: { TargetDate: moment().format("YYYYMMDD"), UnRegisted: "1", Timeout: "0", Start: 1, Chunk: 100 },
                 title: "Web受注一覧",
                 labelCd: "得意先CD",
                 labelCdNm: "得意先名",
@@ -193,17 +193,23 @@ export default {
                           return moment(ui.rowData.注文日時).format("YYYY/MM/DD HH:mm");
                       },
                     },
+                    { title: "締切", dataIndx: "締切時刻", dataType: "string", align: "center", width: 100, maxWidth: 100, minWidth: 100,
+                      render: ui => {
+                          var ret = vue.calcDeadlline(ui.rowData.配送日, ui.rowData.締切時刻, ui);
+                          return ret;
+                      },
+                    },
                     { title: "取込", dataIndx: "取込", dataType: "string", align: "center", width: 100, maxWidth: 100, minWidth: 100,
                       render: ui => {
                           return { text: ui.rowData.確認 == "0" ? "" : "取込済"  };
                       },
                     },
                 ],
-                width: 1000,
+                width: 1100,
                 height: 700,
                 reuse: false,
                 showBushoSelector: true,
-                customParams: { TargetDate: moment().format("YYYYMMDD"), UnRegisted: "1" },
+                customParams: { TargetDate: moment().format("YYYYMMDD"), UnRegisted: "1",  Timeout: "0",},
                 customElementFunc: (targetVue, container) => {
                     var dp = new (VueApp.createInstance(vue.DatePickerWrapper))(
                         {
@@ -218,6 +224,25 @@ export default {
                         }
                     );
                     dp.$mount();
+
+                    var vct = new (VueApp.createInstance(vue.VueCheck))(
+                        {
+                            propsData: {
+                                id: "VueCheck_SearchWebOrderList_Timeout",
+                                ref: "VueCheck_SearchWebOrderList_Timeout",
+                                vmodel: targetVue.customElementParams,
+                                bind: "Timeout",
+                                checkedCode: "1",
+                                customContainerStyle: "border: none;",
+                                list: [
+                                    {code: '0', name: '全て', label: '締切済のみ'},
+                                    {code: '1', name: '表示', label: '締切済のみ'},
+                                ],
+                                onChangedFunc: () => targetVue.conditionChanged(),
+                            }
+                        }
+                    );
+                    vct.$mount();
 
                     var vc = new (VueApp.createInstance(vue.VueCheck))(
                         {
@@ -245,6 +270,7 @@ export default {
                     )
                     .append(
                         $("<div>").addClass("col-md-4").addClass("justify-content-end")
+                            .append(vct.$el)
                             .append(vc.$el)
                     );
                 },
@@ -267,6 +293,25 @@ export default {
                     },
                 ],
             });
+        },
+        calcDeadlline: function(targetDate, deadLine, ui) {
+            var vue = this;
+
+            if (!deadLine) return "締切設定無し";
+
+            var dl = moment(moment(targetDate).format("YYYY/MM/DD ") + deadLine);
+            if (moment().isAfter(dl)) {
+                return "締切済: " + dl.format("HH:mm");
+            } else {
+                var dt = dl.diff(moment(), "days");
+
+                var dur = moment.duration(dl.diff(moment()), "milliseconds");
+                var formatter = new Intl.NumberFormat('ja', { minimumIntegerDigits: 2 });
+                var dh =  formatter.format(Math.floor(dur.asHours()));
+                var dm =  formatter.format(dur.minutes());
+
+                return "あと: " + (!!dt ? (dt + "日") : (dh + ":" + dm));
+            }
         },
         show01032: function(data, grid) {
             var vue = this;

@@ -2317,7 +2317,10 @@ $OrderBy
         $WhereBusho = $BushoCd ? "AND TOK.部署CD=$BushoCd" : "";
 
         $UnRegisted = $request->UnRegisted;
-        $HavingUnRegisted = $UnRegisted == '1' ? "HAVING SUM(X.確認済) = 0" : "";
+        $HavingUnRegisted = $UnRegisted == '1' ? "AND SUM(X.確認済) = 0" : "";
+
+        $Timeout = $request->Timeout;
+        $HavingTimeout = $Timeout == '1' ? "AND CAST(X.配送日 + ' ' + X.締切時刻 AS datetime) < GETDATE()" : "";
 
         $Start = $request->Start ?? 1;
         $Chunk = $request->Chunk ?? 1000000;
@@ -2349,11 +2352,7 @@ $OrderBy
             $WhereKeyWord = " AND ($Conditions)";
         }
 
-        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-        $user = 'daiyas';
-        $password = 'daiyas';
-
-        $pdo = new PDO($dsn, $user, $password);
+        $pdo = DB::getPdo();
 
         $SearchSql = "
             SELECT
@@ -2376,6 +2375,7 @@ $OrderBy
 					,STRING_AGG(IIF(X.売掛現金区分 = 1, X.得意先名, NULL), '/')  AS 得意先名_掛売
 					,STRING_AGG(IIF(X.売掛現金区分 = 1, X.電話番号１, NULL), '/')  AS 電話番号_掛売
                     ,IIF(SUM(X.確認済) > 0, 1, 0) AS 確認
+					,X.締切時刻
             		,ROW_NUMBER() OVER (ORDER BY X.Web受注ID) AS ROWNUM
                 FROM (
                     SELECT DISTINCT
@@ -2391,6 +2391,7 @@ $OrderBy
                         ,BSH.部署名
 						,TOK.電話番号１
                         ,IIF(CHU.明細行Ｎｏ IS NULL, 0, 1) AS	確認済
+						,WEBTOKDL.締切時刻
                     FROM
                         Web受注データ WEB
                         INNER JOIN Web受注得意先マスタ WEBTOK
@@ -2399,6 +2400,9 @@ $OrderBy
                             ON  TOK.得意先ＣＤ=WEBTOK.得意先ＣＤ
                         INNER JOIN 部署マスタ BSH
                             ON  BSH.部署CD=TOK.部署CD
+                        LEFT OUTER JOIN Web受注得意先締切時刻マスタ WEBTOKDL
+                            ON  WEBTOKDL.Web得意先ＣＤ=WEB.Web得意先ＣＤ
+							AND WEBTOKDL.曜日=DATEPART(WEEKDAY, WEB.配送日)
                         LEFT OUTER JOIN 注文データ CHU
                             ON  CHU.配送日=WEB.配送日
                             AND CHU.得意先ＣＤ=TOK.得意先ＣＤ
@@ -2420,7 +2424,11 @@ $OrderBy
                     ,X.注文日時
 					,X.部署CD
 					,X.部署名
-                $HavingUnRegisted
+                    ,X.締切時刻
+				HAVING
+					0=0
+                    $HavingUnRegisted
+                    $HavingTimeout
             ) G
             WHERE
                 ROWNUM BETWEEN $Start AND $End
