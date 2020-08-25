@@ -511,7 +511,7 @@ export default {
                         SaveList.forEach((v, i) => {
                             v.日付 = moment(vue.searchParams.TargetDate).format("YYYY-MM-DD");
                             v.部署ＣＤ = vue.searchParams.BushoCd;
-                            v.コースＣＤ = vue.searchParams.CourseCd || 0;
+                            v.コースＣＤ = v.コースＣＤ || vue.searchParams.CourseCd;
                             v.行Ｎｏ = v.行Ｎｏ || (!!vue.params ? (vue.params.CustomerIndex || 0): 0);
                             v.得意先ＣＤ = vue.searchParams.CustomerCd;
                             v.受注Ｎｏ = _.max(grid.pdata.map(v => v.受注Ｎｏ)) || 0;

@@ -160,7 +160,7 @@ ORDER BY
 
         $sql = "
 SELECT
-	コーステーブル.コースＣＤ,
+	売上データ明細.コースＣＤ,
 	コースマスタ.コース名,
 	コーステーブル.ＳＥＱ,
 	コーステーブル.得意先ＣＤ,
@@ -240,7 +240,6 @@ FROM
 WHERE
     得意先マスタ.部署ＣＤ = $BushoCd
 AND 得意先マスタ.得意先ＣＤ = $CustomerCd
-$WhereCourseCd
 ORDER BY
 	売上データ明細.商品ＣＤ
         ";
@@ -291,7 +290,6 @@ ORDER BY
                     $r = 売上データ明細::query()
                         ->where('日付', $rec['日付'])
                         ->where('部署ＣＤ', $rec['部署ＣＤ'])
-                        ->where('コースＣＤ', $rec['コースＣＤ'])
                         ->where('行Ｎｏ', $rec['行Ｎｏ'])
                         ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
                         ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
@@ -312,7 +310,6 @@ ORDER BY
                     売上データ明細::query()
                         ->where('日付', $rec['日付'])
                         ->where('部署ＣＤ', $rec['部署ＣＤ'])
-                        ->where('コースＣＤ', $rec['コースＣＤ'])
                         ->where('行Ｎｏ', $rec['行Ｎｏ'])
                         ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
                         ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
@@ -322,7 +319,7 @@ ORDER BY
                         //モバイルsv更新用
                         array_push($MUpdateList, $rec);
 
-                    } else {
+                } else {
                     $no = 売上データ明細::query()
                         ->where('日付', $rec['日付'])
                         ->where('部署ＣＤ', $rec['部署ＣＤ'])
