@@ -1445,6 +1445,64 @@ $WhereCourseKbn
     }
 
     /**
+     * GetCustomerListForMaintDistinct
+     */
+    public function GetCustomerListForMaintDistinct($request)
+    {
+        $BushoCd = $request->bushoCd ?? $request->BushoCd;
+        $CustomerCd = $request->CustomerCd;
+
+        $WhereBusho = $BushoCd ? " AND TOK.部署CD=$BushoCd" : "";
+        $WhereCustomer = $CustomerCd ? " AND TOK.得意先ＣＤ=$CustomerCd" : "";
+
+        $sql = "
+            WITH CT_DISTINCT AS (
+                SELECT
+                    *
+                FROM (
+                    SELECT
+                        CT.部署ＣＤ
+                        ,CT.得意先ＣＤ
+                        ,CT.コースＣＤ
+                        ,CM.コース区分
+                        ,CM.コース名
+                        ,MIN(CM.コース区分) OVER(PARTITION BY CM.部署CD, CT.得意先ＣＤ)  AS 最小コース区分
+                    FROM コーステーブル CT
+                    LEFT OUTER JOIN コースマスタ CM
+                        ON CM.部署CD=CT.部署CD AND CT.コースＣＤ=CM.コースＣＤ
+                ) CT_MIN
+                WHERE
+                    コース区分 = 最小コース区分
+            )
+            SELECT DISTINCT
+                TOK.部署CD
+                ,BM.部署名
+                ,TOK.得意先CD
+                ,TOK.得意先名
+                ,TOK.得意先名カナ
+                ,TOK.状態区分
+                ,TOK.承認日
+                ,TOK.承認者ＣＤ
+                ,TOK.電話番号１
+                ,CT_DISTINCT.コースＣＤ
+                ,CT_DISTINCT.コース名
+                ,CT_DISTINCT.コース区分
+            FROM 得意先マスタ TOK
+            LEFT OUTER JOIN 部署マスタ BM
+                ON BM.部署CD=TOK.部署CD
+            LEFT OUTER JOIN CT_DISTINCT
+                ON CT_DISTINCT.部署CD=TOK.部署CD AND CT_DISTINCT.得意先ＣＤ=TOK.得意先ＣＤ
+            WHERE 0=0
+            $WhereBusho
+            $WhereCustomer
+        ";
+
+        $DataList = DB::select($sql);
+
+        return response()->json(['Data'=>$DataList, 'CountConstraint'=> false]);
+    }
+
+    /**
      * GetCustomerList
      */
     public function GetCustomerList($request)

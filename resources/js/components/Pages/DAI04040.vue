@@ -124,7 +124,7 @@
         <PqGridWrapper
             id="DAI04040Grid1"
             ref="DAI04040Grid1"
-            dataUrl="/Utilities/GetCustomerListForMaint"
+            dataUrl="/Utilities/GetCustomerListForMaintDistinct"
             :query=this.viewModel
             :SearchOnCreate=false
             :SearchOnActivate=false
