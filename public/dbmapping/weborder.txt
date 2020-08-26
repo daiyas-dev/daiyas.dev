@@ -6,6 +6,7 @@
             "Web得意先ＣＤ":"web_customer_code",
             "利用者ID":"user_id",
             "利用者CD":"user_code",
+            "備考1":"memo1",
             "得意先ＣＤ":"dummy",
             "修正担当者ＣＤ":"dummy",
             "修正日":"updated_at"

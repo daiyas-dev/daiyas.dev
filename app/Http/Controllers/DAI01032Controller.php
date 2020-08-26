@@ -202,6 +202,7 @@ class DAI01032Controller extends Controller
                 ,USERS.利用者CD
                 ,USERS.備考ID
                 ,MEMO.文言 AS 備考
+                ,USERM.備考1
                 ,USERM.得意先ＣＤ
                 ,TM.得意先名
                 ,DETAILS.注文情報ID

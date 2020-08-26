@@ -4,15 +4,17 @@
             <div class="col-md-1">
                 <label>配送日</label>
             </div>
-            <div class="col-md-8">
+            <div class="col-md-7">
                 <input class="form-control p-0 text-center" type="text" style="width: 100px;" :value=FormattedDeliveryDate readonly tabindex="-1">
                 <label class="ml-2 mr-1" style="width: unset; max-width: unset;">注文日時</label>
                 <input class="form-control p-0 text-center" type="text" style="width: 135px;" :value=FormattedOrderDate readonly tabindex="-1">
                 <label class="ml-2 mr-1">部署</label>
                 <input class="form-control" type="text" style="width: 200px;" :value=params.部署名 readonly tabindex="-1">
             </div>
-            <div class="col-md-3 justify-content-end">
-                <label class="mr-1">締切</label>
+            <div class="col-md-4 justify-content-end">
+                <label class="mr-1">状況</label>
+                <input class="form-control text-center" type="text" style="width: 100px;" :value=DeliveryInfo readonly tabindex="-1">
+                <label class="ml-1 mr-1">締切</label>
                 <input class="form-control text-center" type="text" style="width: 150px;" :value=TimeoutInfo readonly tabindex="-1">
             </div>
         </div>
@@ -132,6 +134,13 @@ export default {
                 return "あと: " + (!!dt ? (dt + "日") : (dh + ":" + dm));
             }
         },
+        DeliveryInfo: function() {
+            var vue = this;
+
+            if (vue.IsDeliveried == null) return null;
+
+            return !!vue.IsDeliveried ? "配達済" : "未配達";
+        },
     },
     watch: {
         IsRegisted: {
@@ -149,6 +158,7 @@ export default {
             viewModel: {
             },
             IsRegisted: "0",
+            IsDeliveried: null,
             ProductList: [],
             UserList: [],
             PlaceList: [],
@@ -250,6 +260,12 @@ export default {
                                 return { text: !!ui.rowData.得意先名 ? (ui.rowData.利用者CD + ": " + ui.rowData.得意先名) : ui.rowData.利用者CD };
                             },
                         },
+                    },
+                    {
+                        title: "利用者名",
+                        dataIndx: "備考1", dataType: "string",
+                        width: 150, minWidth: 150, maxWidth: 150,
+                        tooltip: true,
                     },
                     {
                         title: "利用者ID",
@@ -476,6 +492,22 @@ export default {
                     vue.footerButtons.find(v => v.id == "DAI01032Grid1_DeleteRow").disabled = !isSelection;
                 }
             );
+
+            //配達済/未配達
+            var posts = [];
+            if (!!vue.params.得意先ＣＤ_現金) {
+                posts.push(axios.post("/api/DAI01030IsDeliveried.php", {CustomerCd: vue.params.得意先ＣＤ_現金, DeliveryDate: vue.searchParams.DeliveryDate, noCache: true}));
+            }
+            if (!!vue.params.得意先ＣＤ_掛売) {
+                posts.push(axios.post("/api/DAI01030IsDeliveried.php", {CustomerCd: vue.params.得意先ＣＤ_掛売, DeliveryDate: vue.searchParams.DeliveryDate, noCache: true}));
+            }
+
+            if (!!posts.length) {
+                Promise.all(posts)
+                    .then(ret => {
+                        vue.IsDeliveried = ret.every(v => !!v.data.IsDeliveried);
+                    });
+            }
 
             if (!!vue.params && vue.params.Web得意先ＣＤ) {
                 //TODO: メンテ機能は現在停止
