@@ -235,7 +235,9 @@ class WebOrderDataReceive extends DataReceiveBase
             $WebOrderList=[];
             $datafile=$zip_dir_path.'\\WebOrderData.txt';
             if (file_exists($datafile)) {
-                $WebOrderList=$this->SaveWebOrder($datafile);
+                $RetArray=$this->SaveWebOrder($datafile);
+                $WebOrderList=$RetArray[0];
+                $WebOrderDeleteList=$RetArray[1];
             }
             $datafile=$zip_dir_path.'\\WebOrderUserData.txt';
             if (file_exists($datafile)) {
@@ -249,6 +251,17 @@ class WebOrderDataReceive extends DataReceiveBase
             {
                 //$OrderToMobile = $this->SaveOrderFromWeb($WebOrderRecord['WebOrderId'],$WebOrderRecord['DeliveryDate']);
             }
+            $DeleteWebOrderIDs='';
+            foreach ($WebOrderDeleteList as $WebOrderDeleteRecord) {
+                $DeleteWebOrderIDs .= ','.$WebOrderDeleteRecord['Web受注ID'];
+            }
+            if(2<=strlen($DeleteWebOrderIDs))
+            {
+                $DeleteWebOrderIDs=substr($DeleteWebOrderIDs,1);
+                $sql="delete from Web受注データ where Web受注ID in($DeleteWebOrderIDs)";
+                DB::delete($sql);
+            }
+
             $this->updateLastUpdateDateByDB($receive_id,$response["last_update_date"]);
             DB::commit();
 
@@ -272,11 +285,12 @@ class WebOrderDataReceive extends DataReceiveBase
             社内側Web受注データの更新については、Web得意先ＣＤ及び配送日が一致するレコードが存在する場合はupdateもしくはdelete
             存在しない場合は、Web受注IDを最大 + 1で払い出してinsert
      * @param  string   読み込むファイル
-     * @return array    Web受注ID,配送日の配列
+     * @return array    作成・更新対象(Web受注ID,配送日の配列),削除対象(Web受注ID,配送日の配列)
      */
     private function SaveWebOrder($datafile)
     {
         $WebOrderList=[];
+        $WebOrderDeleteList=[];
         //1レコードごとにデータを更新
         $table_data = json_decode(file_get_contents($datafile), true);
         foreach ($table_data as $record) {
@@ -291,8 +305,12 @@ class WebOrderDataReceive extends DataReceiveBase
                 $WebOrderRecord['WebOrderId'] = $WebOrderID->Web受注ID;//戻値のセット
                 if ($record['削除フラグ']=="1") {
                     //delete
-                    $sql="delete from Web受注データ where $where";
-                    DB::delete($sql);
+                    //$sql="delete from Web受注データ where $where";
+                    //DB::delete($sql);
+                    $WebOrderDeleteRecord['Web受注ID'] =$WebOrderID->Web受注ID;//戻値のセット
+                    $WebOrderDeleteRecord['Web得意先ＣＤ'] =$record['Web得意先ＣＤ'];//戻値のセット
+                    $WebOrderDeleteRecord['DeliveryDate'] =$record['配送日'];//戻値のセット
+                    $WebOrderDeleteList[]=$WebOrderDeleteRecord;
                 } else {
                     //update
                     $sql="update Web受注データ set 注文日時='{$record['注文日時']}',修正担当者ＣＤ=999,修正日=getdate() where $where";
@@ -325,7 +343,7 @@ class WebOrderDataReceive extends DataReceiveBase
             }
             $WebOrderList[]=$WebOrderRecord;
         }
-        return $WebOrderList;
+        return array($WebOrderList,$WebOrderDeleteList);
     }
     /**
      * Web受注データ利用者情報を更新する
