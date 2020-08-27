@@ -239,7 +239,7 @@ class DAI02030Controller extends Controller
                     食事区分名称.各種略称 AS 食事区分名,
                     商品マスタ.商品名 + IIF(売上データ明細.掛売値引 > 0, '(値引)', '') AS 商品名,
                     SUM(売上データ明細.掛売個数) AS 数量,
-                    ISNULL(売上データ明細.予備金額１, 商品マスタ.売価単価) AS 単価,
+                    ISNULL(売上データ明細.予備金額１, 0) AS 単価,
                     SUM(売上データ明細.掛売金額 - ISNULL(売上データ明細.掛売値引, 0)) AS 金額,
                     NULL AS 入金金額,
                     売上データ明細.備考 AS 備考
@@ -270,7 +270,7 @@ class DAI02030Controller extends Controller
                     売上データ明細.食事区分,
                     食事区分名称.各種略称,
                     商品マスタ.商品名 + IIF(売上データ明細.掛売値引 > 0, '(値引)', ''),
-                    ISNULL(売上データ明細.予備金額１, 商品マスタ.売価単価),
+                    ISNULL(売上データ明細.予備金額１, 0),
                     売上データ明細.備考
                 UNION
                 SELECT
@@ -343,6 +343,43 @@ class DAI02030Controller extends Controller
         $pdo = new PDO($dsn, $user, $password);
         $stmt = $pdo->query($sql);
         $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($DataList as $key => $data) {
+            if ( $data["単価"] === 0 or $data["単価"] === '0') {
+                $sql = "
+                    SELECT
+                        売価単価
+                        ,MTT.単価
+                    FROM 商品マスタ
+                    LEFT JOIN
+                        (SELECT
+                            *
+                        FROM (
+                            SELECT
+                                *
+                                , RANK() OVER(PARTITION BY 得意先ＣＤ, 商品ＣＤ ORDER BY 適用開始日 DESC) AS RNK
+                            FROM
+                                得意先単価マスタ新
+                            WHERE
+                                得意先ＣＤ= {$data["得意先ＣＤ"]}
+                            AND 商品ＣＤ = {$data["商品ＣＤ"]}
+                            AND 適用開始日 <= '{$data["伝票日付"]}'
+                        ) TT
+                        WHERE
+                            RNK = 1
+                        ) MTT ON
+                    MTT.商品ＣＤ = 商品マスタ.商品ＣＤ
+                    WHERE 商品マスタ.商品ＣＤ = {$data["商品ＣＤ"]}
+                ";
+                $stmt = $pdo->query($sql);
+                $TankaDataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                if (!!$TankaDataList && $TankaDataList[0]["単価"] > 0) {
+                    $DataList[$key]["単価"] = $TankaDataList[0]["単価"];
+                } else {
+                    $DataList[$key]["単価"] = $TankaDataList[0]["売価単価"];
+                }
+            }
+        }
         $pdo = null;
 
         set_time_limit($ttl);
