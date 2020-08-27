@@ -31,6 +31,7 @@ class PWADataSend
                     SELECT 送信ＩＤ,SQL, 通知メッセージ
                       FROM モバイル送信リスト
                      WHERE 送信済フラグ<>1
+                       AND NOT EXISTS(SELECT 1 FROM モバイル送信エラー E WHERE E.送信ＩＤ=モバイル送信リスト.送信ＩＤ)
                            $where_send_id
                      ORDER BY 送信ＩＤ
                   ";
