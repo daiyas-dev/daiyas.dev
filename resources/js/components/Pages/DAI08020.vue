@@ -788,17 +788,17 @@ export default {
                             ${layout_product_body}
                             <tr>
                                 ${layout_bikou2}
-                                <th>小 計</th><th>${h.小計}</th>
+                                <th>小 計</th><th>${pq.formatNumber(h.小計, "#,##0")}</th>
                                 <th rowspan="3">
                                     <div style="text-align: left;">${h.注文日付}</div>
                                     <div>受付店：${h.会社名称}</div>
                                 </th>
                             </tr>
                             <tr>
-                                <th>消費税</th><th>${h.消費税}</th>
+                                <th>消費税</th><th>${pq.formatNumber(h.消費税, "#,##0")}</th>
                             </tr>
                             <tr>
-                                <th>金額合計</th><th>${h.合計}</th>
+                                <th>金額合計</th><th>${pq.formatNumber(h.合計, "#,##0")}</th>
                             </tr>
                         </tbody>
                     `;
