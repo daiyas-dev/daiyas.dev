@@ -198,7 +198,7 @@ export default {
         TargetDays: function() {
             var vue = this;
             var last = vue.viewModel.Kind == "week" ? moment(vue.FirstDay).add(6, "days")
-                        : moment(vue.FirstDay).add(1, "months").add(-1, "days");
+                        : moment(vue.FirstDay).add(1, "months");
             return last.diff(moment(vue.FirstDay), "days");
         },
         searchParams: function() {
