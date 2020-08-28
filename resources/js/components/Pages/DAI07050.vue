@@ -1085,7 +1085,7 @@ export default {
                                         <tbody>
                                             <tr>
                                                 <th style="width: 25%"> 金 額 </th>
-                                                <th style="width: 75%">${!!r.請求先ＣＤ ? "¥" + (pq.formatNumber(vue.viewModel.ValueKind == "0" ? r.今回請求額 : r.今回売上額, "#,###0")) + "-" : ""}</th>
+                                                <th style="width: 75%">${!!r.請求先ＣＤ ? "¥" + (pq.formatNumber(vue.viewModel.ValueKind == "0" ? r.今回請求額 : r.今回売上額, "#,##0")) + "-" : ""}</th>
                                             </tr>
                                         </tbody>
                                     </table>
