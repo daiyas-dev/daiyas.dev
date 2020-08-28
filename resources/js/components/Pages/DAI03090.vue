@@ -415,8 +415,7 @@ export default {
             var tekiyo = Moji(moment(vue.searchParams.TargetDate).format("M")).convert("HE", "ZE").toString() + "月分入金";
             var date = moment(vue.searchParams.TargetDate).endOf("month").format("YYYYMMDD");
             var now = moment().format("YYYY-MM-DD HH:mm:ss");
-
-            var SaveList = grid.pdata.filter(v => !!v.処理FLG)
+            var SaveList = grid.pdata.filter(v => ((v.処理FLG=="true") && (!v.エラー)))
                 .map(r => {
                     var v = {};
 
