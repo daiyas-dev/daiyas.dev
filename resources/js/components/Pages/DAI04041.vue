@@ -1083,8 +1083,8 @@ export default {
                 var vue = this;
                 var str = newVal || "";
 
-                vue.viewModel.得意先名略称 = str.slice(0,20);
-                vue.viewModel.得意先名スマホ用 = str.slice(0,20);
+                vue.viewModel.得意先名略称 = !!vue.viewModel.得意先名略称 ? vue.viewModel.得意先名略称 : str.slice(0,20);
+                vue.viewModel.得意先名スマホ用 = !!vue.viewModel.得意先名スマホ用 ? vue.viewModel.得意先名スマホ用 : str.slice(0,20);
                 // if (!!str) {
                 //     vue.viewModel.得意先名スマホ用 = vue.viewModel.得意先名スマホ用 || "";
                 //     window.getKana(str, res => {
