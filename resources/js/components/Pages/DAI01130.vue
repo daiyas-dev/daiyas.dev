@@ -577,8 +577,11 @@ export default {
                 return v;
             });
             var match = vue.DenpyoNoList.find(v => moment(v.入金日付).format("YYYY年MM月DD日") == vue.viewModel.TargetDate);
-            if (!!match && !vue.viewModel.DenpyoNo) {
+            if (!!match)
+            {
                 vue.viewModel.DenpyoNo = match.伝票Ｎｏ;
+            } else {
+                vue.viewModel.DenpyoNo = null;
             }
 
             //入金データ
