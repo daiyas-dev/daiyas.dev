@@ -110,8 +110,14 @@ FROM
 )
 SELECT
 	対象日付.配送日
-	,IIF(祝日マスタ.対象日付 IS NULL, IIF(DATEPART(WEEKDAY, 対象日付.配送日) = 1, 1, 0), 1) AS 休日指定
-	,chumon.注文区分
+	,IIF(祝日マスタ.対象日付 IS NULL, IIF(
+        (SELECT
+            SUBSTRING(休日設定, DATEPART(WEEKDAY, 対象日付.配送日), 1) as 休日設定
+        FROM 得意先マスタ
+        WHERE 得意先ＣＤ = $CustomerCd
+        )=1
+        , 1, 0), 1) AS 休日指定
+    ,chumon.注文区分
 	,CONVERT(varchar, chumon.注文日付, 112) 注文日付
 	,chumon.注文時間
 	,tokui.売掛現金区分
