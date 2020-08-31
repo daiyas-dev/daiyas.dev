@@ -361,7 +361,7 @@ export default {
 
             var prev = pqgrid.options.colModel.filter(c => c.dataIndx == col.dataIndx)[0];
             if (!!prev) {
-                pqgrid.options.colModel[grid.options.colModel.indexOf(prev)] = col;
+                pqgrid.options.colModel[pqgrid.options.colModel.indexOf(prev)] = col;
             } else {
                 if (c.colIndx == undefined) {
                     pqgrid.options.colModel.push(col);
