@@ -114,7 +114,6 @@ class PWADataSend
     {
         try
         {
-            return;
             //WebAPI宛に送信
             //TODO:テスト用URL(NEW社内)
             $url = "http://192.168.1.210/hellolaravel/public/api/mobiledatareceive";
