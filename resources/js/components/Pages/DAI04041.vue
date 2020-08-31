@@ -2220,10 +2220,6 @@ export default {
             vue.showColumns = [
                     { title: "区分", dataIndx: "コース区分", dataType: "string", width: 50, maxWidth: 50, minWidth: 50, colIndx: 0 },
                     { title: "区分名称", dataIndx: "各種名称", dataType: "string", width: 90, maxWidth: 90, minWidth: 90, colIndx: 1 },
-                    { title: "コースCD", dataIndx: "コースＣＤ", dataType: "string", width: 90, maxWidth: 90, minWidth: 90, colIndx: 2 },
-                    { title: "コース名", dataIndx: "コース名", dataType: "string", width: 250, maxWidth: 300, minWidth: 200, colIndx: 3 },
-                    { title: "Cd", dataIndx: "Cd", dataType: "string", hidden: true, colIndx: 4 },
-                    { title: "CdNm", dataIndx: "CdNm", dataType: "string", hidden: true, colIndx: 5 },
             ];
 
             var params = {CustomerCd: cds, BushoCd: vue.viewModel.部署CD}
@@ -2231,6 +2227,8 @@ export default {
                 dataUrl: "/DAI04041/GetCourseListForCustomer",
                 params: params,
                 title: "コース検索",
+                labelCd: "コースCD",
+                labelCdNm: "コース名",
                 isModal: true,
                 showColumns: vue.showColumns,
                 width: 600,
