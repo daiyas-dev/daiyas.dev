@@ -149,8 +149,8 @@ class DAI04041Controller extends Controller
             SELECT
                 コースマスタ.コース区分,
                 各種テーブル.各種名称,
-                コーステーブル.コースＣＤ AS Cd,
-                コースマスタ.コース名 AS CdNm
+                コーステーブル.コースＣＤ,
+                コースマスタ.コース名
 
             FROM [コーステーブル]
 
