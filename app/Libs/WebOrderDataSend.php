@@ -6,7 +6,7 @@ use PDO;
 use Illuminate\Support\Carbon;
 
 //社内DBからWeb受注へ更新用SQLを送信する
-class WebOrderSend
+class WebOrderDataSend
 {
     public function Send($send_id = null)
     {

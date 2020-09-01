@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Libs\WebOrderDataSendWrapper;
-use App\Libs\WebOrderSend;
+use App\Libs\WebOrderDataSend;
 use App\Models\Web受注データ;
 use App\Models\Web受注データ利用者別詳細;
 use App\Models\Web受注データ利用者情報;
@@ -344,7 +344,7 @@ class DAI01032Controller extends Controller
 
                         if (!$OrderId) {
                             //注文IDをAWSから発番して貰う
-                            $sender = new WebOrderSend();
+                            $sender = new WebOrderDataSend();
                             $OrderId = $sender->GetOrderId();
 
                             $data = [];
@@ -360,7 +360,7 @@ class DAI01032Controller extends Controller
                         }
 
                         //注文情報IDをAWSから発番して貰う
-                        $sender = new WebOrderSend();
+                        $sender = new WebOrderDataSend();
                         $InfoId = $sender->GetOrderInfoId();
 
                         $data = $rec;
