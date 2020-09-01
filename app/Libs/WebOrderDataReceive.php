@@ -299,7 +299,7 @@ class WebOrderDataReceive extends DataReceiveBase
             $WebOrder = DB::selectOne($sql);
             $WebOrderID = 0;
 
-            if (isset($WebOrder)) {
+            if (isset($WebOrder->Web受注ID)) {
                 $WebOrderID = $WebOrder->Web受注ID;
             } else {
                 //Web受注ID払出
