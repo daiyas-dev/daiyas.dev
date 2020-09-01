@@ -576,18 +576,13 @@ export default {
                 v.label = v.伝票Ｎｏ + "【" + moment(v.入金日付).format("YYYY年MM月DD日") + "入金】"
                 return v;
             });
-            var match = vue.DenpyoNoList.find(v => moment(v.入金日付).format("YYYY年MM月DD日") == vue.viewModel.TargetDate);
-            if (!!match)
-            {
-                //TODO:同一日に複数伝票NOを入力するため、チェックを一旦外す
-                //vue.viewModel.DenpyoNo = match.伝票Ｎｏ;
-                vue.viewModel.DenpyoNo = null;
-            } else {
-                vue.viewModel.DenpyoNo = null;
-            }
 
             //入金データ
-            var NyukinData = data.NyukinData.filter(v => !!vue.viewModel.DenpyoNo ? v.伝票Ｎｏ == vue.viewModel.DenpyoNo : true)[0];
+            var NyukinData;
+            if (!!vue.viewModel.DenpyoNo) {
+                NyukinData = data.NyukinData.filter(v => v.伝票Ｎｏ == vue.viewModel.DenpyoNo)[0];
+            }
+
 
             if (!!NyukinData) {
                 vue.CurrentNyukinData = NyukinData;
