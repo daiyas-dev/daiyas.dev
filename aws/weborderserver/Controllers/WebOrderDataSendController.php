@@ -96,6 +96,7 @@ class WebOrderDataSendController extends Controller
                 web_customer_code AS Web得意先ＣＤ,
                 user_id AS 利用者ID,
                 user_code AS 利用者CD,
+                memo1 AS 備考1,
                 IF(deleted_at IS NULL, 0, 1) AS 削除フラグ,
                 IF(deleted_at IS NULL, updated_at, deleted_at) AS 最終更新日
             FROM
@@ -143,27 +144,11 @@ class WebOrderDataSendController extends Controller
                 WebOrderData.web_customer_code AS Web得意先ＣＤ,
                 WebOrderData.delivery_date AS 配送日,
                 MAX(WebOrderData.updated_at) AS 注文日時,
-                IF(
-                    (
-                        SELECT
-                            COUNT(X.order_id)
-                        FROM
-                            WebOrderData X
-                        WHERE
-                            X.web_customer_code = WebOrderData.web_customer_code
-                        AND X.delivery_date = WebOrderData.delivery_date
-                        AND X.deleted_at IS NOT NULL
-                        GROUP BY
-                            X.web_customer_code,
-                            X.delivery_date
-                    ) > 0
-                    ,1
-                    ,0
-                ) AS 削除フラグ
+                COUNT(WebOrderData.order_id) = SUM(IF(WebOrderData.deleted_at IS NULL, 0, 1)) AS 削除フラグ
             FROM WebOrderData
             WHERE
-                0=0
-                $where_lud
+                WebOrderData.delivery_date >= CURDATE()
+            AND WebOrderData.deleted_at IS NULL
             GROUP BY
                 WebOrderData.web_customer_code,
                 WebOrderData.delivery_date
@@ -215,8 +200,8 @@ class WebOrderDataSendController extends Controller
                 FROM WebOrderData
                 INNER JOIN WebUserMaster ON WebUserMaster.user_id = WebOrderData.user_id
                 WHERE
-                    0=0
-                    $where_lud
+                    WebOrderData.delivery_date >= CURDATE()
+                AND WebOrderData.deleted_at IS NULL
             ";
 
         //最終更新日を取得
@@ -272,8 +257,8 @@ class WebOrderDataSendController extends Controller
                 INNER JOIN WebOrderInfoData ON WebOrderInfoData.order_id = WebOrderData.order_id
                 INNER JOIN WebUserMaster ON WebUserMaster.user_id = WebOrderData.user_id
                 WHERE
-                    0=0
-                    $where_lud
+                    WebOrderData.delivery_date >= CURDATE()
+                AND WebOrderData.deleted_at IS NULL
             ";
 
         //最終更新日を取得
