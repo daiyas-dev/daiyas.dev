@@ -625,20 +625,17 @@ class DataSendWrapper extends PWADataSend
             $q_date = $q_date->format('Y/m/d');
             $table_name = "注文データ";
             $del_sql = "delete from OrderData
-                    where order_date='$q_date'
-                    and department_code = $busho_cd
+                    where department_code = $busho_cd
                     and customer_code = $customer_cd
                     and delivery_date='$q_date'
                 ";
             $table_sql = "select * from $table_name
-                        where 注文日付='$q_date'
-                        and 部署ＣＤ = $busho_cd
+                        where 部署ＣＤ = $busho_cd
                         and 得意先ＣＤ = $customer_cd
                         and 配送日='$q_date'
                 ";
             $order_num_sql="select 商品ＣＤ,(sum(isnull(現金個数,0)) + sum(isnull(掛売個数,0)))as 注文個数 from 注文データ
                             where 注文区分=0
-                            and 注文日付='$q_date'
                             and 部署ＣＤ = $busho_cd
                             and 得意先ＣＤ = $customer_cd
                             and 配送日='$q_date'

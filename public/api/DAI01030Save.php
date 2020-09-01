@@ -76,7 +76,6 @@ try {
         DELETE 注文データ
         WHERE
             注文区分=?
-        AND 注文日付=?
         AND 部署ＣＤ=?
         AND 得意先ＣＤ=?
         AND 配送日=?
@@ -85,7 +84,6 @@ try {
     $stmt->execute(
         array(
             $rec['注文区分'],
-            $rec['注文日付'],
             $rec['部署ＣＤ'],
             $rec['得意先ＣＤ'],
             $rec['配送日'],

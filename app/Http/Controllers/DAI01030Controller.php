@@ -88,8 +88,6 @@ class DAI01030Controller extends Controller
         $sql = "
             SELECT
                 ROW_NUMBER() OVER (ORDER BY CONVERT(varchar, 修正日, 108) desc) AS no,
-                注文区分,
-                注文日付,
                 部署ＣＤ,
                 得意先CD,
                 配送日,
@@ -100,9 +98,8 @@ class DAI01030Controller extends Controller
             WHERE
                 CONVERT(varchar, 修正日, 112) = CONVERT(date, GETDATE())
                 AND (修正担当者ＣＤ = $TantoCd OR 修正担当者ＣＤ like '$TantoCdLike')
+				AND 注文区分=0
             GROUP BY
-                注文区分,
-                注文日付,
                 部署ＣＤ,
                 得意先CD,
                 配送日,
