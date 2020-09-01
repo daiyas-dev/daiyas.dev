@@ -60,6 +60,7 @@
                         v-model=viewModel.CustomerCd
                         autocomplete="off"
                         @keydown.enter=onCustomerChanged
+                        @keydown.tab=onCustomerChanged
                     >
                     <button type="button"
                         class="selector-button btn btn-info p-0 border-0"
