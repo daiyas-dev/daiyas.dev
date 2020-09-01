@@ -5,7 +5,7 @@ use Exception;
 use PDO;
 use DB;
 use Illuminate\Support\Carbon;
-class WebOrderDataSendWrapper extends WebOrderSend
+class WebOrderDataSendWrapper extends WebOrderDataSend
 {
     /**
      * 指定のテーブルのUpdateSQLをモバイル送信リストに登録する
