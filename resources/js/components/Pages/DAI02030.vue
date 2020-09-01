@@ -1475,8 +1475,8 @@ export default {
                         div[style="break-before: page;"],
                         div[style="break-before: auto;"],
                         div[style="page-break-before: always;"] {
-                            margin-top: 25px !important;
-                            margin-bottom: 25px !important;
+                            margin-top: 28px !important;
+                            margin-bottom: 27px !important;
                             margin-right: 30px !important;
                             margin-left: 30px !important;
                         }
