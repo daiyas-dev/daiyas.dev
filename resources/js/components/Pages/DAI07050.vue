@@ -864,7 +864,7 @@ export default {
                     width: 100%;
                 }
                 .header-title{
-                	font-size: 12pt;
+                	font-size: 13pt;
                 	font-weight: bold;
                 	letter-spacing: 16px;
                     border-style: solid;
@@ -872,10 +872,6 @@ export default {
                     border-top-width: 0px;
                     border-right-width: 0px;
                     border-bottom-width: 1px;
-                }
-                .header-subtitle{
-                	font-size: 14pt;
-                	padding-bottom: 10px;
                 }
                 .header-seikyu-no{
                     border-style: solid;
@@ -886,6 +882,7 @@ export default {
                     margin-top: 3px;
                     padding-top: 3px;
                     text-align: center;
+                    font-size: 11pt;
                 }
                 span {
                     padding-left: 8px;
@@ -903,6 +900,9 @@ export default {
                     font-size: 10pt;
                     font-weight: bold;
                     height: 15px;
+                }
+                div.header-tokuisaki > div {
+                    font-size: 12pt;
                 }
 				#busho-inkan {
                     -webkit-print-color-adjust: exact;
@@ -1030,20 +1030,24 @@ export default {
                     margin-left: 40px;
                     height: 55px !important;
                 }
-                tr:not(:nth-child(1)) div.header {
+                td {
                     border-style: dotted;
                     border-left-width: 0px;
-                    border-top-width: 1px;
+                    border-top-width: 0px;
                     border-right-width: 0px;
-                    border-bottom-width: 0px;
+                    border-bottom-width: 1px;
+                    padding-top: 20px;
 
+                }
+                tr:first-child > td {
+                    padding-top: 8px;
+                }
+                table.DAI07050Grid1 {
+                    margin-top: 13px;
                 }
                 div.header,
                 div.header > div {
                     margin: 0px;
-                }
-                tr div.header {
-                    padding-top: 20px;
                 }
                 div.tel-no {
                     margin-bottom: 10px;
@@ -1066,7 +1070,7 @@ export default {
                         <div class="header">
                             <div style="float: left; width: 80%; height: 85px;">
                                 <div style="clear: left;">
-                                    <div style="float: left; width: 43%">
+                                    <div style="float: left; width: 43%; font-size: 11pt;">
                                         ${!!r.請求先ＣＤ ? r.請求先ＣＤ + " - " + r.コースＣＤ : ""}
                                     </div>
                                     <div class="header-title" style="float: left; width: 38%; text-align: center; margin-left:20px;">
@@ -1085,11 +1089,11 @@ export default {
                                         <tbody>
                                             <tr>
                                                 <th style="width: 25%"> 金 額 </th>
-                                                <th style="width: 75%">${!!r.請求先ＣＤ ? "¥" + (pq.formatNumber(vue.viewModel.ValueKind == "0" ? r.今回請求額 : r.今回売上額, "#,##0")) + "-" : ""}</th>
+                                                <th style="width: 75%; font-size: 15pt;">${!!r.請求先ＣＤ ? "¥" + (pq.formatNumber(vue.viewModel.ValueKind == "0" ? r.今回請求額 : r.今回売上額, "#,##0")) + "-" : ""}</th>
                                             </tr>
                                         </tbody>
                                     </table>
-                                    <div style="padding-top: 18px; height: 30px; padding-left:293px;">
+                                    <div style="padding-top: 18px; height: 30px; padding-left:293px; font-size: 11pt;">
                                         <span/><span/>${!!r.請求先ＣＤ ? "（" + moment(vue.viewModel.TargetDate, "YYYY年MM月DD日").day(6).format("YYYY/MM/DD") + " 締）" : ""}
                                     </div>
                                 </div>
@@ -1135,7 +1139,7 @@ export default {
                                     </div>
                                 </div>
                                 <div style="float: left; width: 40%">
-                                    <div style="float: left; width: 40%">
+                                    <div style="float: left; width: 40%; margin-top: 5px;">
                                         <div style="clear: left; height:20px;" class="inkan">
                                             取扱者印
                                         </div>
