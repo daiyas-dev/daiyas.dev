@@ -102,7 +102,10 @@ class WebOrderSend
         try
         {
             //WebAPI宛に送信
-            $url= "http://18.178.211.62/api/weborderdatareceive";
+            //TODO:テスト用URL(NEW社内)
+            $url = "http://192.168.1.211/hellolaravel/public/api/weborderdatareceive";
+            //TODO:本番URL
+            $url = "https://daiyas-order.com/api/weborderdatareceive";
 
             // base64エンコード
             $base64_data = base64_encode(file_get_contents($zip_file_path));
