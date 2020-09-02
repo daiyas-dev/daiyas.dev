@@ -339,16 +339,13 @@ class DAI01101Controller extends Controller
             $ds->Execute($Msql, true, $BushoCd, null, $CourseCd);
 
             foreach ($MDeleteList as $rec) {
-                $ds = new DataSendWrapper();
                 $ds->Delete('売上データ明細', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
             }
             foreach ($MInsertList as $rec) {
-                $ds = new DataSendWrapper();
-                $ds->Insert('売上データ明細', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
+                $ds->InsertUriageMeisaiData($rec);
             }
             foreach ($MUpdateList as $rec) {
-                $ds = new DataSendWrapper();
-                $ds->Update('売上データ明細', $rec, true, $rec['部署ＣＤ'], null, $rec['コースＣＤ']);
+                $ds->InsertUriageMeisaiData($rec);
             }
     } catch (Exception $exception) {
             DB::rollBack();
