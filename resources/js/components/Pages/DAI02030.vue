@@ -1623,10 +1623,10 @@ export default {
                                             </br></br>
                                             <div style="margin-bottom: 8px;">
                                                 <span/>〒
-                                                <span/>${r.郵便番号}
+                                                <span/>${r.郵便番号 || ""}
                                             </div>
                                             <div>
-                                                ${r.住所１}
+                                                ${r.住所１ || ""}
                                             </div>
                                             <br>
                                         </div>
