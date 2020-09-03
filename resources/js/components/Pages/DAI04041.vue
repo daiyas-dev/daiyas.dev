@@ -1121,7 +1121,11 @@ export default {
                     }
                     if(newVal == "2"){
                         var cd = DAI04041.$refs.PopupSelect_Bank.dataList[0].Cd;
-                        vue.$refs.PopupSelect_Bank.setSelectValue(cd);
+                        if (!!vue.viewModel.金融機関CD) {
+                            vue.$refs.PopupSelect_Bank.setSelectValue(vue.viewModel.金融機関CD);
+                        } else {
+                            vue.$refs.PopupSelect_Bank.setSelectValue(cd);
+                        }
                     }
                 }
             },
