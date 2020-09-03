@@ -427,7 +427,12 @@ class DataSendWrapper extends PWADataSend
         try {
             //得意先の所属する部署を取得
             $sql="select 部署CD from 得意先マスタ where 得意先ＣＤ=$customer_cd;";
-            $busho_cd = DB::selectOne($sql)->部署CD;
+            $arrCustomer=DB::selectOne($sql);
+            $busho_cd="";
+            if($arrCustomer)
+            {
+                $busho_cd = $arrCustomer->部署CD;
+            }
 
             $table_name="得意先単価マスタ新";
             $del_sql="delete from CustomerPriceMasterNew where customer_code = $customer_cd";
