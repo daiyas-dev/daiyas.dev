@@ -316,19 +316,32 @@ export default {
         show01032: function(data, grid) {
             var vue = this;
 
-            var params = _.cloneDeep(data);
-            params.IsChild = true;
-            params.Parent = vue;
-            params.Grid = grid;
+            axios.post(
+                "/Utilities/SearchWebOrderList",
+                { TargetDate: moment(data.配送日).format("YYYYMMDD"), Start: 1, Chunk: 1000, noCache: true, },
+            )
+            .then(res => {
+                if (!res.data.length) return;
 
-            PageDialog.show({
-                pgId: "DAI01032",
-                params: params,
-                isModal: true,
-                isChild: true,
-                reuse: false,
-                width: 1200,
-                height: 750,
+                var target = res.data[0].Result.find(v => v.Web得意先ＣＤ == data.Web得意先ＣＤ);
+                console.log("find 01032 target", target);
+
+                if (!!target) {
+                    var params = _.cloneDeep(target);
+                    params.IsChild = true;
+                    params.Parent = vue;
+                    params.Grid = grid;
+
+                    PageDialog.show({
+                        pgId: "DAI01032",
+                        params: params,
+                        isModal: true,
+                        isChild: true,
+                        reuse: false,
+                        width: 1200,
+                        height: 750,
+                    });
+                }
             });
         },
         showPrevList: function() {
