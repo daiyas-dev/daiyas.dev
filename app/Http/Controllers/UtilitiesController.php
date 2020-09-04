@@ -777,8 +777,32 @@ ORDER BY
     {
         $from = $request->from;
         $to = $request->to;
+        $BushoCd = $request->BushoCd;
 
-        $query = 祝日マスタ::query()
+        $query = 祝日マスタ::query();
+
+        if (!!$BushoCd) {
+            $query = 祝日マスタ::query()
+            ->when(
+                $from,
+                function ($q) use ($from) {
+                    return $q->where('対象日付', '>=', $from);
+                }
+            )
+            ->when(
+                $to,
+                function ($q) use ($to) {
+                    return $q->where('対象日付', '<=', $to);
+                }
+            )
+            ->when(
+                $BushoCd,
+                function ($q) use ($BushoCd) {
+                    return $q->where('対象部署ＣＤ', 'LIKE', "%$BushoCd%");
+                }
+            );
+        } else {
+            $query = 祝日マスタ::query()
             ->when(
                 $from,
                 function ($q) use ($from) {
@@ -791,6 +815,8 @@ ORDER BY
                     return $q->where('対象日付', '<=', $to);
                 }
             );
+        }
+
 
         $HolidayList = collect($query->get())
             ->map(function ($Bikou) {

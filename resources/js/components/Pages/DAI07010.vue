@@ -628,7 +628,7 @@ export default {
                 to: moment(vue.FirstDay).add(vue.TargetDays, "days").format("YYYY/MM/DD"),
             };
 
-            if (vue.PrevParamsHoliday && _.isEqual(vue.PrevParamsHoliday, params)) {
+            if (vue.PrevParamsHoliday && _.isEqual(vue.PrevParamsHoliday, params && !vue.viewModel.BushoCd)) {
                 callback();
                 return;
             }
@@ -644,6 +644,7 @@ export default {
                         {
                             from: vue.FirstDay,
                             to: moment(vue.FirstDay).add(vue.TargetDays, "days").format("YYYY/MM/DD"),
+                            BushoCd: vue.viewModel.BushoCd,
                         }
                     ),
                  ]
