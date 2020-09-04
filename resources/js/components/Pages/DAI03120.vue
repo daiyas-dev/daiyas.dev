@@ -210,6 +210,15 @@ export default {
                         summary: {
                             type: "TotalInt",
                         },
+                        render: ui => {
+                            if (!ui.rowData.pq_grandsummary && !ui.rowData.pq_gsummary) {
+                                //集計行以下、0非表示
+                                if (!(ui.rowData[ui.dataIndx] * 1)) {
+                                    return { text: "" };
+                                }
+                            }
+                            return ui;
+                        },
                     },
                     {
                         title: "金額",
