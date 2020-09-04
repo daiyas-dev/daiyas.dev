@@ -2145,6 +2145,10 @@ export default {
             params.修正担当者ＣＤ = vue.getLoginInfo().uid;
             params.修正日 = moment().format("YYYY-MM-DD HH:mm:ss.SSS")
 
+            if (!!params.得意先名カナ && params.得意先名カナ.length > 30) {
+                params.得意先名カナ = params.得意先名カナ.slice(0,30);
+            }
+
             //新規か修正か
             params.IsNew = params.IsNew || vue.params.IsNew;
 
