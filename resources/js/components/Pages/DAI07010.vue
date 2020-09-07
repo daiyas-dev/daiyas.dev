@@ -127,6 +127,7 @@
                     :isModal=true
                     :editable=true
                     :reuse=true
+                    :dataListReset=true
                     :existsCheck=true
                     :inputWidth=150
                     :nameWidth=300

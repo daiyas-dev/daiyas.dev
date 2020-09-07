@@ -81,7 +81,6 @@ class DAI07010Controller extends Controller
                 WHERE
                     T2.日付 BETWEEN '$FirstDay' AND '$LastDay'
                     AND T2.部署CD = $BushoCd
-                    AND T2.コースCD = $CourseCd
                     AND T2.得意先CD = $CustomerCd
             )
 			, CUSTOMERPRICE AS (
@@ -130,6 +129,7 @@ class DAI07010Controller extends Controller
                     T2.日付 BETWEEN '$FirstDay' AND '$LastDay'
                     AND T2.部署CD = $BushoCd
                     AND T2.得意先CD = $CustomerCd
+                    AND T2.コースCD = $CourseCd
                     AND T1.商品CD = T2.商品CD
                 LEFT OUTER JOIN 商品マスタ M1 ON
                     T1.商品CD = M1.商品CD
@@ -141,6 +141,8 @@ class DAI07010Controller extends Controller
                     AND M3.サブ各種CD1 = M1.食事区分
                 LEFT OUTER JOIN 得意先マスタ M4 ON
                     M4.得意先CD = $CustomerCd
+            WHERE
+                T2.コースCD = $CourseCd
             ORDER BY
                 T1.商品CD
         ";
