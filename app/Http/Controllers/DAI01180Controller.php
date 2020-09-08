@@ -181,17 +181,20 @@ FROM
       AND NUD.入金日付 <= '$DateEnd'
       AND (
         CUM.コース区分 = (
-          SELECT
-            MIN(DMY_COUM.コース区分)
-          FROM
-            コースマスタ DMY_COUM
-            LEFT OUTER JOIN コーステーブル DMY_COU
-              ON DMY_COUM.部署ＣＤ = DMY_COU.部署ＣＤ
-              AND DMY_COUM.コースＣＤ = DMY_COU.コースＣＤ
-          WHERE
-            DMY_COUM.部署ＣＤ = NUD.部署ＣＤ
-            AND DMY_COU.得意先ＣＤ = TOM.受注得意先ＣＤ
-            AND DMY_COUM.コース区分 IN (1, 2, 3, 4)
+            SELECT
+                D.コース区分
+            FROM (
+                SELECT
+                    CASE
+                        WHEN (SELECT 対象日付 FROM 祝日マスタ WHERE 対象日付 = NUD.入金日付) IS NOT NULL THEN 4
+                        ELSE
+                            CASE DATEPART(WEEKDAY, NUD.入金日付)
+                                WHEN 1 THEN 3
+                                WHEN 7 THEN 2
+                                ELSE 1
+                            END
+                    END AS コース区分
+            ) D
         )
         OR CUM.コースＣＤ IS NULL
       )
