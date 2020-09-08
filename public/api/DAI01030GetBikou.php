@@ -35,6 +35,7 @@ $sql = "
         LEFT OUTER JOIN 注文データ CD
             ON  CD.得意先ＣＤ = TK.得意先ＣＤ
             AND CD.配送日 = '$DeliveryDate'
+            AND CD.注文区分=0
     WHERE
         TK.得意先ＣＤ = $CustomerCd
     ORDER BY
