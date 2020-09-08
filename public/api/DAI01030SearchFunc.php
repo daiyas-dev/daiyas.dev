@@ -72,6 +72,8 @@ function Search() {
                 CD.予備ＣＤ１,
                 CD.予備金額１,
                 CD.修正担当者ＣＤ,
+                CD.Web受注ID,
+				WM.Web得意先ＣＤ,
                 CD.修正日
             FROM
                 得意先単価 MTT
@@ -79,6 +81,8 @@ function Search() {
                     ON  CD.得意先ＣＤ = MTT.得意先ＣＤ
                     AND CD.商品ＣＤ = MTT.商品ＣＤ
                     AND CD.配送日 = '$DeliveryDate'
+                LEFT OUTER JOIN Web受注得意先マスタ WM
+                    ON  WM.得意先ＣＤ = CD.得意先ＣＤ
         )
         SELECT
             得意先ＣＤ,
@@ -97,6 +101,8 @@ function Search() {
             SUM(IIF(注文区分=0, 掛売個数, 0)) AS 掛売個数,
             SUM(IIF(注文区分=0, 掛売金額, 0)) AS 掛売金額,
             MAX(IIF(注文区分 IS NULL, 1, 0)) AS 全表示,
+            MAX(Web受注ID) AS Web受注ID,
+            MAX(Web得意先ＣＤ) AS Web得意先ＣＤ,
             MAX(IIF(注文区分=0, 修正日, null)) AS 修正日
         FROM
             注文一覧

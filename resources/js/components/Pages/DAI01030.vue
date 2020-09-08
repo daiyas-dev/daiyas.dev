@@ -682,6 +682,11 @@ export default {
                             },
                         ],
                     },
+                    {
+                        title: "Web受注ID",
+                        dataIndx: "Web受注ID", dataType: "integer",
+                        hidden: true,
+                    },
                 ],
             },
         });
@@ -1214,6 +1219,8 @@ export default {
                 delete v.予定数;
                 delete v.現金;
                 delete v.掛売;
+                delete v.Web受注ID;
+                delete v.Web得意先ＣＤ;
                 delete v.全表示;
                 delete v.sortIndx;
             });
@@ -1278,6 +1285,22 @@ export default {
                             } else {
                                 //PWA送信設定
                                 axios.post("/DAI01030/SendPWA", params);
+
+                                //TODO: PWA送信設定と同じく、パラメータの変更が発生しないように考慮
+                                // //Web受注送信
+                                // if (grid.getData().some(r => !!r.Web受注得意先ＣＤ)) {
+                                //     var web_customer_code = grid.getData().find(r => !!r.Web受注得意先ＣＤ).Web受注得意先ＣＤ;
+                                //     axios.post(
+                                //         "https://daiyas-order.com/api/setregistered",
+                                //         {
+                                //             web_customer_code: web_customer_code,
+                                //             delivery_date: params.DeliveryDate,
+                                //             registered_date: moment().format("YYYY-MM-DD HH:mm:ss")
+                                //         }
+                                //     )
+                                //     .then(res => console.log(res))
+                                //     .catch(err => console.log(err));
+                                // }
 
                                 grid.refreshDataAndView();
                                 vue.viewModel.IsEdit = true;
