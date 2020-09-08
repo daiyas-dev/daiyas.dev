@@ -184,11 +184,14 @@ try {
     }
 
     require("DAI01030SearchFunc.php");
-
     $Result = [
         'result' => true,
         "edited" => count($skip) > 0,
         "current" => count($skip) > 0 ? Search() : [],
+        "busho_cd"=>$BushoCd,
+        "customer_cd"=>$CustomerCd,
+        "delivery_date"=>$DeliveryDate,
+        "course_code"=> isset($req['CourseCd']) ? $req['CourseCd'] : null,
     ];
     print json_encode($Result, JSON_PRETTY_PRINT);
 
