@@ -12,6 +12,7 @@ class DAI05080Controller extends Controller
 {
     public function SearchCustomerPrice($vm)
     {
+        $today = date("Y/m/d");
         $BushoArray = $vm->BushoArray;
         $WhereBusho1="";
         if($BushoArray !=null && is_array($BushoArray) && 0<count($BushoArray))
@@ -29,7 +30,14 @@ class DAI05080Controller extends Controller
                     ,T3.単価
                 FROM
                     得意先マスタ T1
-                    LEFT JOIN 得意先単価マスタ T3 ON T1.得意先ＣＤ = T3.得意先ＣＤ
+                    LEFT JOIN (
+                            SELECT * FROM (
+                                SELECT *, RANK() OVER(PARTITION BY 得意先ＣＤ, 商品ＣＤ ORDER BY 適用開始日 DESC) AS RNK
+                                FROM 得意先単価マスタ新
+                                WHERE 適用開始日 <= '$today'
+                            ) TT
+                            WHERE RNK = 1
+                        ) T3 ON T1.得意先ＣＤ = T3.得意先ＣＤ
                     LEFT JOIN 商品マスタ T4 ON T4.商品ＣＤ = T3.商品ＣＤ
                 WHERE
                     0=0
