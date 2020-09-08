@@ -141,8 +141,11 @@ class DAI07010Controller extends Controller
                     AND M3.サブ各種CD1 = M1.食事区分
                 LEFT OUTER JOIN 得意先マスタ M4 ON
                     M4.得意先CD = $CustomerCd
+                INNER JOIN コーステーブル CT ON
+                    CT.部署CD = $BushoCd
+                    AND CT.得意先CD = $CustomerCd
             WHERE
-                T2.コースCD = $CourseCd
+                T1.コースCD = CT.コースCD
             ORDER BY
                 T1.商品CD
         ";
