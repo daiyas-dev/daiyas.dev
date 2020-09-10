@@ -142,7 +142,7 @@ class DAI04051Controller extends Controller
             //モバイルsv更新
             $Message = $params['Message'];
             $ds = new DataSendWrapper();
-            $ds->Delete('得意先単価マスタ新', $params, true, null, $params['得意先ＣＤ'], null, $Message);
+            $ds->Delete('得意先単価マスタ新', $params, false, null, $params['得意先ＣＤ'], null, $Message);
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;
