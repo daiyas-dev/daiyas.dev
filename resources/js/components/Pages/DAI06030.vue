@@ -73,6 +73,7 @@
                     :vmodel=viewModel
                     bind="AdjustmentDate"
                     :editable=true
+                    :onChangedFunc=onAdjustmentDateChanged
                 />
             </div>
         </div>
@@ -269,6 +270,14 @@ export default {
 
         },
         onAdjustmentIDChanged: function(code, entities) {
+            var vue = this;
+            vue.ConditionChanged();
+        },
+        onAdjustmentDateChanged: function(code, entities) {
+            var vue = this;
+            vue.ConditionChanged();
+        },
+        ConditionChanged: function() {
             var vue = this;
             var AdjustmentDate=moment(vue.viewModel.AdjustmentDate,"YYYY年MM月DD日").format("YYYY/MM/DD");
 
