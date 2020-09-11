@@ -266,7 +266,9 @@ class DAI06030Controller extends Controller
             $AdjustmentReason=$params['AdjustmentReason'];
             $ProductCd=$params['ProductCd'];
             $TicketZanSa=$params['TicketZanSa'];
+            $TicketZanSa=-$TicketZanSa;//数値の正負を反転する
             $SVTicketZanSa=$params['SVTicketZanSa'];
+            $SVTicketZanSa=-$SVTicketZanSa;//数値の正負を反転する
             $Kingaku=$params['Kingaku'];
             $ShuseiTantoCd=$params['ShuseiTantoCd'];
 

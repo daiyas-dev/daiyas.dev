@@ -296,12 +296,12 @@ export default {
                         var TicketAdjustment = _.cloneDeep(response.data[0].TicketAdjustment[0]);
                         var TicketAdjustmentSummary = _.cloneDeep(response.data[0].TicketAdjustmentSummary[0]);
 
-                        vue.viewModel.TicketZanSystem=TicketZansu.チケット残数*1 + TicketAdjustmentSummary.累積チケット減数*1;
-                        vue.viewModel.TicketZanJitsu=vue.viewModel.TicketZanSystem-TicketAdjustment.チケット減数*1;
+                        vue.viewModel.TicketZanSystem=TicketZansu.チケット残数*1 - TicketAdjustmentSummary.累積チケット減数*1;
+                        vue.viewModel.TicketZanJitsu=vue.viewModel.TicketZanSystem+TicketAdjustment.チケット減数*1;
                         vue.viewModel.TicketZanSa=vue.viewModel.TicketZanJitsu*1 - vue.viewModel.TicketZanSystem*1;
 
-                        vue.viewModel.SVTicketZanSystem=(TicketZansu.サービス残数*1 + TicketAdjustmentSummary.累積SV減数*1).toFixed(1);
-                        vue.viewModel.SVTicketZanJitsu=(vue.viewModel.SVTicketZanSystem-TicketAdjustment.SV減数*1).toFixed(1);
+                        vue.viewModel.SVTicketZanSystem=(TicketZansu.サービス残数*1 - TicketAdjustmentSummary.累積SV減数*1).toFixed(1);
+                        vue.viewModel.SVTicketZanJitsu=(vue.viewModel.SVTicketZanSystem+TicketAdjustment.SV減数*1).toFixed(1);
                         vue.viewModel.SVTicketZanSa=(vue.viewModel.SVTicketZanJitsu*1 - vue.viewModel.SVTicketZanSystem*1).toFixed(1);
 
                         vue.viewModel.AdjustmentReason = TicketAdjustment.調整理由==2 ? 2 : 1;
