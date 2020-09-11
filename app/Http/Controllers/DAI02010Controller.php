@@ -275,7 +275,7 @@ class DAI02010Controller extends Controller
         // $password = 'daiyas';
 
         // $pdo = new PDO($dsn, $user, $password);
-        Log::debug('GetSeikyuSimeList sql\n' . $sql);//TODO:
+        //Log::debug('GetSeikyuSimeList sql\n' . $sql);//TODO:
         $pdo = DB::getPdo();
         $stmt = $pdo->query($sql);
         $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
