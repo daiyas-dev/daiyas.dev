@@ -19,7 +19,7 @@ class PWADataReceive extends DataReceiveBase
         //TODO:テスト用URL(NEW社内)
         $url = "http://192.168.1.210/hellolaravel/public/api/mobiledatasend";
         //TODO:本番URL
-        $url="https://daiyas-mobile.tk/api/mobiledatasend";
+        //$url="https://daiyas-mobile.tk/api/mobiledatasend";
         try {
             $sql ="
                     SELECT 受信ＩＤ,テーブル名,最終更新日時

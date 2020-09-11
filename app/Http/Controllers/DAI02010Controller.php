@@ -12,6 +12,7 @@ use DB;
 use Exception;
 use Hamcrest\Arrays\IsArray;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 use PDO;
 use Symfony\Component\Console\Helper\TableRows;
 class DAI02010Controller extends Controller
@@ -274,6 +275,7 @@ class DAI02010Controller extends Controller
         // $password = 'daiyas';
 
         // $pdo = new PDO($dsn, $user, $password);
+        Log::debug('GetSeikyuSimeList sql\n' . $sql);//TODO:
         $pdo = DB::getPdo();
         $stmt = $pdo->query($sql);
         $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
