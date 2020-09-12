@@ -45,6 +45,31 @@ class DAI01180Controller extends Controller
         $DateStart = $vm->DateStart;
         $DateEnd = $vm->DateEnd;
 
+        $sql_course="
+            AND (
+                CUM.コース区分 = (
+                    SELECT
+                        D.コース区分
+                    FROM (
+                        SELECT
+                            CASE
+                                WHEN (SELECT 対象日付 FROM 祝日マスタ WHERE 対象日付 = NUD.入金日付) IS NOT NULL THEN 4
+                                ELSE
+                                    CASE DATEPART(WEEKDAY, NUD.入金日付)
+                                        WHEN 1 THEN 3
+                                        WHEN 7 THEN 2
+                                        ELSE 1
+                                    END
+                            END AS コース区分
+                    ) D
+                )
+                OR CUM.コースＣＤ IS NULL
+            )
+        ";
+        if ($BushoCd==501) {
+            $sql_course="";//コース区分を見ない
+        }
+
         $sql = "
 SELECT
   CONVERT(NVARCHAR, D1.日付, 111) AS 日付
@@ -179,6 +204,7 @@ FROM
       NUD.部署ＣＤ = $BushoCd
       AND NUD.入金日付 >= '$DateStart'
       AND NUD.入金日付 <= '$DateEnd'
+      /*
       AND (
         CUM.コース区分 = (
             SELECT
@@ -198,6 +224,8 @@ FROM
         )
         OR CUM.コースＣＤ IS NULL
       )
+      */
+      $sql_course
     GROUP BY
       NUD.部署ＣＤ
       , CUT.コースＣＤ
