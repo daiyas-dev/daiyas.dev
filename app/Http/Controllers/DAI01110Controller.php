@@ -453,7 +453,7 @@ class DAI01110Controller extends Controller
                     AND 入金データ.得意先ＣＤ = 得意先マスタ.得意先ＣＤ
                     AND 入金データ.入金区分 = 1
             WHERE
-                得意先マスタ.得意先ＣＤ = 得意先マスタ.受注得意先ＣＤ
+                (得意先マスタ.得意先ＣＤ = 得意先マスタ.受注得意先ＣＤ OR 得意先マスタ.受注得意先ＣＤ = 0)
             AND	売上データ明細.部署ＣＤ = $BushoCd
             AND	売上データ明細.コースＣＤ = $CourseCd
             AND 売上データ明細.日付 = '$TargetDate'
