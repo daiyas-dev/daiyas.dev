@@ -122,8 +122,8 @@
                     :vmodel=viewModel
                     bind="商品コード"
                     :buddies='{ "商品名": "CdNm" }'
-                    dataUrl="/Utilities/GetProductListForSelect"
-                    :params='{ CustomerCd: viewModel.顧客コード, TargetDate: searchParams.ClaimDate, ExceptNull: true }'
+                    dataUrl="/Utilities/GetProductListForSelectNew"
+                    :params='{ CustomerCd: viewModel.顧客コード, TargetDate: searchParams.ClaimDate}'
                     :isPreload=true
                     title="商品名一覧"
                     labelCd="商品コード"
