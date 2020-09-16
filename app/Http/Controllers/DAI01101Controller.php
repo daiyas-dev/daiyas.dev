@@ -180,7 +180,7 @@ class DAI01101Controller extends Controller
                 SET
                     現金個数 = 0,
                     掛売個数 = 0,
-                    分配元数量 = 現金個数 + 掛売個数,
+                    分配元数量 = 現金個数 + 掛売個数 + 分配元数量,
                     修正日 = '$date',
                     修正担当者ＣＤ = $EditUser
                 WHERE
@@ -188,7 +188,6 @@ class DAI01101Controller extends Controller
                 AND 部署ＣＤ = $BushoCd
                 AND コースＣＤ = $CourseCd
                 AND 得意先ＣＤ = $CustomerCd
-                AND 分配元数量 = 0
             ";
 
             //親得意先　モバイルsv更新用
@@ -197,7 +196,7 @@ class DAI01101Controller extends Controller
                 SET
                     cash_num = 0,
                     sold_num = 0,
-                    source_quantity = cash_num + sold_num,
+                    source_quantity = cash_num + sold_num + source_quantity,
                     updated_at = '$date',
                     updated_responsible_code = $EditUser
                 WHERE
@@ -205,7 +204,6 @@ class DAI01101Controller extends Controller
                 AND department_code = $BushoCd
                 AND course_code = $CourseCd
                 AND customer_code = $CustomerCd
-                AND source_quantity = 0
             ";
 
             DB::update($sql);
