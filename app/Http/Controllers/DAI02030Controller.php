@@ -320,8 +320,7 @@ class DAI02030Controller extends Controller
             FROM
                 請求明細 MEISAI
                 INNER JOIN 請求データ SEIKYU
-                    ON  MEISAI.部署ＣＤ = SEIKYU.部署ＣＤ
-                    AND MEISAI.請求先ＣＤ = SEIKYU.請求先ＣＤ
+                    ON  MEISAI.請求先ＣＤ = SEIKYU.請求先ＣＤ
                     AND	MEISAI.伝票日付 >= SEIKYU.請求日範囲開始
                     AND	MEISAI.伝票日付 <= SEIKYU.請求日範囲終了
             WHERE

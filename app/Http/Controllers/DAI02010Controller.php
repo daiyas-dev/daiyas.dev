@@ -378,7 +378,6 @@ class DAI02010Controller extends Controller
 				売上データ明細
             WHERE
                 (売掛現金区分 = 1)
-            AND 部署ＣＤ = $BushoCd
             GROUP BY 得意先ＣＤ, 日付
             ) U1 ON
                 U1.得意先ＣＤ = K1.得意先ＣＤ
@@ -679,6 +678,7 @@ class DAI02010Controller extends Controller
             請求先ＣＤ IS NOT NULL
         )
         ";
+        //Log::info('SelectCustomerList sql\n' . $sql);
 
         return $sql;
     }
