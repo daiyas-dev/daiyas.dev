@@ -243,7 +243,6 @@ export default {
                         dataIndx: "得意先名", dataType: "string",
                         width: 250, minWidth: 250,
                         fixed: true,
-                        tooltip: true,
                         render: ui => {
                             if (!!ui.Export) ui.cls = [];
                             if (!!ui.Export && !!ui.rowData.pq_grandsummary) {

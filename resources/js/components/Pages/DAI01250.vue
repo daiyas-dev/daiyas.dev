@@ -156,7 +156,6 @@ export default {
                         width: 200, minWidth: 200,
                         hidden: false,
                         editable: false,
-                        tooltip: true,
                         fixed: false,
                     },
                     {
@@ -173,7 +172,6 @@ export default {
                         width: 200, maxWidth: 200, minWidth: 200,
                         hidden: false,
                         editable: false,
-                        tooltip: true,
                         fixed: true,
                     },
                     {

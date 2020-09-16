@@ -566,7 +566,6 @@ export default {
                         title: "商品名",
                         dataIndx: "商品名", dataType: "string",
                         width: 200, minWidth: 200, maxWidth: 200,
-                        tooltip: true,
                     },
                     {
                         title: "商品区分",
