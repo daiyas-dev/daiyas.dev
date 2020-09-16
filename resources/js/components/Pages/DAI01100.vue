@@ -287,7 +287,6 @@ export default {
                         title: "得意先",
                         dataIndx: "得意先名", dataType: "string",
                         width: 150, maxWidth: 1000, minWidth: 150,
-                        tooltip: true,
                         render: ui => {
                             if (ui.rowData.summaryRow) {
                                 ui.column.align = "center";
