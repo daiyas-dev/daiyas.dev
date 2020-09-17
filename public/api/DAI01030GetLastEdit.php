@@ -37,6 +37,11 @@ $sql = "
         ";
 $stmt = $pdo->query($sql);
 $OrderData = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if(!$OrderData){
+    return;
+}
+
 $EditorCd=$OrderData['修正担当者ＣＤ'];
 $len=strlen($EditorCd);
 //修正担当者CDを取り出す
