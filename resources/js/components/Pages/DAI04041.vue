@@ -79,7 +79,6 @@
                                 autocomplete="off"
                                 v-model="viewModel.得意先名カナ"
                                 maxlength=30
-                                v-maxBytes=30
                             >
                         </div>
                         <div class="col-md-6">
