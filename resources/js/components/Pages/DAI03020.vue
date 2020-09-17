@@ -282,7 +282,6 @@ export default {
                         title: "得意先名",
                         dataIndx: "得意先名", dataType: "string",
                         width: 120, minWidth: 120,
-                        tooltip: true,
                         render: ui => {
                             if (!!ui.rowData.pq_grandsummary) {
                                 return { text: "合　計" };

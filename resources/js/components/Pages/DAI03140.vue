@@ -220,7 +220,6 @@ export default {
                         title: "部署名",
                         dataIndx: "部署名", dataType: "string",
                         width: 120, minWidth: 120,
-                        tooltip: true,
                         hidden:true,
                         render: ui => {
                             if (!!ui.rowData.pq_grandsummary) {
@@ -267,7 +266,6 @@ export default {
                         dataIndx: "得意先名", dataType: "string",
                         width: 120, minWidth: 120,
                         hidden:true,
-                        tooltip: true,
                         render: ui => {
                             if (!!ui.Export) {
                                 if (!!ui.rowData.pq_grandsummary) {

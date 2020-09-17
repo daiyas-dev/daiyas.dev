@@ -253,7 +253,6 @@ export default {
                         title: "得意先名",
                         dataIndx: "得意先名", dataType: "string",
                         width: 200, minWidth: 200,maxWidth: 200,
-                        tooltip: true,
                         render: ui => {
                             var vue = this;
                             if (!!ui.rowData.pq_grandsummary) {
@@ -317,7 +316,6 @@ export default {
                         title: "預金者名",
                         dataIndx: "預金者名", dataType: "string",
                         width: 120, maxWidth: 120, minWidth: 120,
-                        tooltip: true,
                     },
                     {
                         title: "顧客番号",

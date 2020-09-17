@@ -300,7 +300,6 @@ export default {
                         title: "営業担当",
                         dataIndx: "営業担当者名", dataType: "string",
                         width: 110, minWidth: 110, maxWidth: 110,
-                        tooltip: true,
                     },
                     {
                         title: "既存客・食数",
@@ -349,7 +348,6 @@ export default {
                         title: "顧客名",
                         dataIndx: "得意先名", dataType: "string",
                         width: 130, minWidth: 130, maxWidth: 130,
-                        tooltip: true,
                     },
                     {
                         title: "食数",

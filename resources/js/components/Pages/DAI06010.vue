@@ -245,7 +245,6 @@ export default {
                         title: "得意先名",
                         dataIndx: "得意先名", dataType: "string",
                         width: 280, minWidth: 280, maxWidth: 280,
-                        tooltip: true,
                     },
                     {
                         title: "発効日付",

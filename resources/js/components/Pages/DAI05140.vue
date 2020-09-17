@@ -994,37 +994,37 @@ export default {
                                                 <td>部門</td>
                                                 <td>${vue.viewModel.BushoNm}</td>
                                                 <td>配送コース</td>
-                                                <td colspan=3>${vue.viewModel.CourseNm}</td>
+                                                <td colspan=3>${vue.viewModel.CourseNm || ""}</td>
                                             </tr>
                                             <tr>
                                                 <td>顧客</td>
-                                                <td colspan=2>${vue.viewModel.得意先名}</td>
+                                                <td colspan=2>${vue.viewModel.得意先名 || ""}</td>
                                                 <td>平均食数</td>
                                                 <td colspan=2 style="text-align: right;">${vue.viewModel.平均食数}食</td>
                                             </tr>
                                             <tr>
                                                 <td>顧客担当者</td>
-                                                <td colspan=5>${vue.viewModel.顧客担当者名}</td>
+                                                <td colspan=5>${vue.viewModel.顧客担当者名 || ""}</td>
                                             </tr>
                                             <tr>
                                                 <td>商品</td>
-                                                <td colspan=2>${vue.viewModel.商品名}</td>
+                                                <td colspan=2>${vue.viewModel.商品名 || ""}</td>
                                                 <td>単価</td>
                                                 <td colspan=2 style="text-align: right;">${vue.viewModel.単価}円</td>
                                             </tr>
                                             <tr>
                                                 <td>クレーム種類</td>
-                                                <td colspan=5>${vue.viewModel.クレーム区分名}</td>
+                                                <td colspan=5>${vue.viewModel.クレーム区分名 || ""}</td>
                                             </tr>
                                             <tr style="height: 100px;">
                                                 <td>クレーム内容</td>
-                                                <td colspan=5>${vue.viewModel.クレーム内容}</td>
+                                                <td colspan=5>${vue.viewModel.クレーム内容 || ""}</td>
                                             </tr>
                                             <tr>
                                                 <td>受付担当</td>
-                                                <td colspan=2>${vue.viewModel.受付担当者名}</td>
+                                                <td colspan=2>${vue.viewModel.受付担当者名 || ""}</td>
                                                 <td>受付方法</td>
-                                                <td colspan=2>${vue.viewModel.受付方法名}</td>
+                                                <td colspan=2>${vue.viewModel.受付方法名 || ""}</td>
                                             </tr>
                                             <tr>
                                                 <td>クレーム処理日</td>
@@ -1032,39 +1032,39 @@ export default {
                                             </tr>
                                             <tr>
                                                 <td>クレーム処理者</td>
-                                                <td colspan=5>${vue.viewModel.処理担当者名}</td>
+                                                <td colspan=5>${vue.viewModel.処理担当者名 || ""}</td>
                                             </tr>
                                             <tr>
                                                 <td>クレーム処理品</td>
-                                                <td colspan=2>${vue.viewModel.クレーム処理品}</td>
+                                                <td colspan=2>${vue.viewModel.クレーム処理品 || ""}</td>
                                                 <td>処理費用</td>
                                                 <td colspan=2 style="text-align: right;">${vue.viewModel.クレーム処理費用}円</td>
                                             </tr>
                                             <tr style="height: 100px;">
                                                 <td>客先応答</td>
-                                                <td colspan=5>${vue.viewModel.客先反応}</td>
+                                                <td colspan=5>${vue.viewModel.客先反応 || ""}</td>
                                             </tr>
                                             <tr>
                                                 <td>原因部署</td>
-                                                <td colspan=2>${vue.viewModel.部門名}</td>
+                                                <td colspan=2>${vue.viewModel.部門名 || ""}</td>
                                                 <td>原因記入者</td>
-                                                <td colspan=2>${vue.viewModel.原因入力担当者名}</td>
+                                                <td colspan=2>${vue.viewModel.原因入力担当者名 || ""}</td>
                                             </tr>
                                             <tr>
                                                 <td>原因部署担当</td>
-                                                <td colspan=5>${vue.viewModel.原因部署担当}</td>
+                                                <td colspan=5>${vue.viewModel.原因部署担当 || ""}</td>
                                             </tr>
                                             <tr style="height: 100px;">
                                                 <td>原因</td>
-                                                <td colspan=5>${vue.viewModel.原因}</td>
+                                                <td colspan=5>${vue.viewModel.原因 || ""}</td>
                                             </tr>
                                             <tr>
                                                 <td>対策記入者</td>
-                                                <td colspan=5>${vue.viewModel.対策入力担当者名}</td>
+                                                <td colspan=5>${vue.viewModel.対策入力担当者名 || ""}</td>
                                             </tr>
                                             <tr style="height: 100px;">
                                                 <td>対策</td>
-                                                <td colspan=5>${vue.viewModel.対策}</td>
+                                                <td colspan=5>${vue.viewModel.対策 || ""}</td>
                                             </tr>
                                             <tr>
                                                 <td>継続または失客</td>

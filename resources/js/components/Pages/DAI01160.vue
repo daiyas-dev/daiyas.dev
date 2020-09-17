@@ -240,7 +240,6 @@ export default {
                         dataIndx: "顧客名", dataType: "string",
                         width: 200, minWidth: 200, maxWidth: 200,
                         fixed: true,
-                        tooltip: true,
                         render: ui => {
                             var vue = this;
                             if (!!ui.rowData.pq_grandsummary && vue.viewModel.IsBikoOutput == 1) {
@@ -640,7 +639,6 @@ export default {
                                 dataIndx: "備考１",
                                 dataType: "string",
                                 width: 200, minWidth: 200,
-                                tooltip: true,
                             }
                         );
 

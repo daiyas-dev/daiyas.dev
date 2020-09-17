@@ -348,14 +348,12 @@ export default {
                     {
                         title: "得意先",
                         dataIndx: "得意先名",
-                        tooltip: true,
                         colModel: [
                             {
                                 title: "住所/配達先",
                                 dataIndx: "配達先",
                                 dataType: "string",
                                 width: 250, minWidth: 250,
-                                tooltip: true,
                                 render: ui => {
                                     var $div = $("<div>")
                                         .append(

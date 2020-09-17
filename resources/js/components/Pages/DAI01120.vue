@@ -443,7 +443,6 @@ export default {
                         dataIndx: "コース名",
                         dataType: "string",
                         width: 150, minWidth: 150,
-                        tooltip: true,
                     },
                     {
                         title: "CD",
@@ -456,7 +455,6 @@ export default {
                         dataIndx: "得意先名",
                         dataType: "string",
                         width: 200, minWidth: 200,
-                        tooltip: true,
                     },
                     {
                         title: "CD",

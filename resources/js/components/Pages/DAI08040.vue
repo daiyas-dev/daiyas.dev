@@ -333,14 +333,12 @@ export default {
                         title: "得意先ＣＤ",
                         dataIndx: "得意先ＣＤ",
                         dataType: "string",
-                        hidden: true,
                     },
                     {
                         title: "得意先名<br/>住所/配達先",
                         dataIndx: "得意先",
                         dataType: "string",
                         width: 300, minWidth: 300, maxWidth: 300,
-                        tooltip: true,
                         render: ui => {
                             switch (ui.rowData.gidx) {
                                 case 0:
@@ -407,7 +405,6 @@ export default {
                         dataIndx: "商品名",
                         dataType: "string",
                         width: 200, minWidth: 200, maxWidth: 200,
-                        tooltip: true,
                         render: ui => {
                             if (!!ui.rowData.pq_grandsummary) {
                                 return { text: "＊ ＊　合　　計　＊ ＊" };

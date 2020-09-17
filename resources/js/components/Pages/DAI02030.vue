@@ -141,7 +141,7 @@
                         { title: "部署ＣＤ", dataIndx: "部署ＣＤ", dataType: "string", width: 100, maxWidth: 100, minWidth: 100, colIndx: 0 },
                         { title: "部署名", dataIndx: "部署名", dataType: "string", width: 150, maxWidth: 150, minWidth: 150, colIndx: 1 },
                         { title: "担当者ＣＤ", dataIndx: "担当者ＣＤ", dataType: "integer", width: 100, maxWidth: 100, minWidth: 100 },
-                        { title: "担当者名", dataIndx: "担当者名", dataType: "string", width: 100, maxWidth: 100, minWidth: 100, tooltip: true, }
+                        { title: "担当者名", dataIndx: "担当者名", dataType: "string", width: 100, maxWidth: 100, minWidth: 100 }
                     ]'
                     :popupWidth=1000
                     :popupHeight=600
@@ -389,7 +389,6 @@ export default {
                         dataIndx: "得意先名",
                         dataType: "string",
                         width: 200, minWidth: 200,
-                        tooltip: true,
                         hidden: true,
                         hiddenOnExport: false,
                     },
@@ -398,7 +397,6 @@ export default {
                         dataIndx: "得意先名略称",
                         dataType: "string",
                         width: 200, minWidth: 200,
-                        tooltip: true,
                         hidden: false,
                         hiddenOnExport: true,
                     },
@@ -413,7 +411,6 @@ export default {
                         dataIndx: "コース名",
                         dataType: "string",
                         width: 150, minWidth: 150,
-                        tooltip: true,
                         render: ui => {
                             if (!ui.Export) {
                                 if (!!ui.rowData.pq_grandsummary) {

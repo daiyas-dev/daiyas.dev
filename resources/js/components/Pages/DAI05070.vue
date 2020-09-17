@@ -188,14 +188,12 @@ export default {
                         dataIndx: "ファイル名",
                         dataType: "string",
                         width: 200, maxWidth: 200, minWidth: 200,
-                        tooltip: true,
                     },
                     {
                         title: "ファイル日時",
                         dataIndx: "ファイル日時",
                         dataType: "string",
                         width: 150, maxWidth: 150, minWidth: 150,
-                        tooltip: true,
                         render: ui => {
                             if (!!ui.rowData[ui.dataIndx]){
                                 return { text: moment(ui.rowData[ui.dataIndx]).format("YYYY年MM月DD日 HH時mm分ss秒") };
@@ -220,14 +218,12 @@ export default {
                         dataIndx: "銀行",
                         dataType: "string",
                         width: 150, maxWidth: 150, minWidth: 150,
-                        tooltip: true,
                     },
                     {
                         title: "本支店",
                         dataIndx: "本支店",
                         dataType: "string",
                         width: 100, maxWidth: 100, minWidth: 100,
-                        tooltip: true,
                     },
                     {
                         title: "種別",

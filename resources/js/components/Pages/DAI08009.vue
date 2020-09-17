@@ -226,7 +226,6 @@ export default {
                     {
                         title: "顧客名",
                         dataIndx: "得意先名",
-                        tooltip: true,
                         colModel: [
                             {
                                 title: () => {
@@ -242,7 +241,6 @@ export default {
                                 dataIndx: "電話番号１",
                                 dataType: "string",
                                 width: 250, minWidth: 250, maxWidth: 250,
-                                tooltip: true,
                                 render: ui => {
                                     var $div = $("<div>")
                                         .append(
@@ -275,7 +273,6 @@ export default {
                         dataIndx: "住所",
                         dataType: "string",
                         width: 200, minWidth: 200,
-                        tooltip: true,
                         render: ui => {
                             var $div = $("<div>")
                                 .append(

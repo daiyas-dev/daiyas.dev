@@ -248,7 +248,6 @@ export default {
                         width: 150, maxWidth: 150, minWidth: 150,
                         editable: true,
                         key: true,
-                        tooltip: true,
                         autocomplete: {
                             source: () => vue.getUserList(),
                             bind: "利用者CD",
@@ -265,7 +264,6 @@ export default {
                         title: "利用者名",
                         dataIndx: "備考1", dataType: "string",
                         width: 150, minWidth: 150, maxWidth: 150,
-                        tooltip: true,
                     },
                     {
                         title: "利用者ID",
@@ -307,7 +305,6 @@ export default {
                         title: "商品名",
                         dataIndx: "商品名", dataType: "string",
                         width: 150, minWidth: 150, maxWidth: 150,
-                        tooltip: true,
                     },
                     {
                         title: "商品区分",
@@ -395,7 +392,6 @@ export default {
                         align: "left",
                         width: 200, maxWidth: 200, minWidth: 200,
                         editable: ui => !!vue.PlaceList.length,
-                        tooltip: true,
                         autocomplete: {
                             source: () => vue.getPlaceList(),
                             bind: "届け先ID",
@@ -413,7 +409,6 @@ export default {
                         align: "left",
                         width: 200, maxWidth: 200, minWidth: 200,
                         editable: false, //ui => !!vue.MemoList.length,
-                        tooltip: true,
                         // autocomplete: {
                         //     source: () => vue.getMemoList(),
                         //     bind: "備考ID",

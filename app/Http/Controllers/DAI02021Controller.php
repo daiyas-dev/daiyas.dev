@@ -104,8 +104,7 @@ class DAI02021Controller extends Controller
                     ON  食事区分名称.各種CD = 38
                     AND 食事区分名称.サブ各種CD1 = 売上データ明細.食事区分
             WHERE
-                売上データ明細.部署ＣＤ = $BushoCd
-            AND 得意先マスタ.請求先ＣＤ = $CustomerCd
+                得意先マスタ.請求先ＣＤ = $CustomerCd
             AND 売上データ明細.日付 >= '$DateStart'
             AND 売上データ明細.日付 <= '$DateEnd'
             AND 売上データ明細.売掛現金区分 = 1

@@ -207,7 +207,6 @@ export default {
                         title: "請求先名",
                         dataIndx: "請求先名", dataType: "string",
                         width: 120, minWidth: 120,
-                        tooltip: true,
                     },
                     {
                         title: "前月残高",

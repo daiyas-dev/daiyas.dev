@@ -276,7 +276,6 @@ export default {
                         title: "部署",
                         dataIndx: "部署", dataType: "string",
                         hidden:true,
-                        tooltip: true,
                     },
                     {
                         title: "部署ＣＤ",
@@ -292,7 +291,6 @@ export default {
                         title: "得意先",
                         dataIndx: "得意先", dataType: "string",
                         hidden:true,
-                        tooltip: true,
                     },
                     {
                         title: "得意先ＣＤ",
@@ -313,7 +311,6 @@ export default {
                         title: "商品名",
                         dataIndx: "商品名", dataType: "string",
                         width: 180, minWidth: 180, maxWidth: 180,
-                        tooltip: true,
                     },
                     {
                         title: "単価",
