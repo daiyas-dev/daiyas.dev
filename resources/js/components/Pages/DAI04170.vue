@@ -135,7 +135,6 @@ export default {
                         dataType: "integer",
                         align: "left",
                         width: 150, minWidth: 150, maxWidth: 150,
-                        tooltip: true,
                         render: ui => {
                             return ui.rowData.既定製造パターン + ":" + ui.rowData.既定製造パターン名;
                         },
@@ -151,14 +150,12 @@ export default {
                         dataIndx: "商品名",
                         dataType: "string",
                         width: 200, minWidth: 200, maxWidth: 200,
-                        tooltip: true,
                     },
                     {
                         title: "商品略称",
                         dataIndx: "商品略称",
                         dataType: "string",
                         width: 100, minWidth: 100, maxWidth: 100,
-                        tooltip: true,
                     },
                     {
                         title: "商品区分",
@@ -192,7 +189,6 @@ export default {
                         dataType: "integer",
                         align: "left",
                         width: 150, minWidth: 150, maxWidth: 150,
-                        tooltip: true,
                         render: ui => {
                             return ui.rowData.副食ＣＤ + ":" + ui.rowData.副食名;
                         },
@@ -203,7 +199,6 @@ export default {
                         dataType: "integer",
                         align: "left",
                         width: 150, minWidth: 150, maxWidth: 150,
-                        tooltip: true,
                         render: ui => {
                             return ui.rowData.主食ＣＤ + ":" + ui.rowData.主食名;
                         },

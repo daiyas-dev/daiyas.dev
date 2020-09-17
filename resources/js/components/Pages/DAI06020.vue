@@ -271,7 +271,6 @@ export default {
                         title: "商品名",
                         dataIndx: "商品名", dataType: "string",
                         width: 230, minWidth: 230, maxWidth: 230,
-                        tooltip: true,
                     },
                     {
                         title: "単価",

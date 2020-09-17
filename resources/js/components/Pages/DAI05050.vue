@@ -117,7 +117,6 @@ export default {
                         title: "得意先名",
                         dataIndx: "得意先名", dataType: "string",
                         width: 230, minWidth: 230, maxWidth: 230,
-                        tooltip: true,
                     },
                     {
                         title: "得意先名カナ",
@@ -133,7 +132,6 @@ export default {
                         title: "住所１",
                         dataIndx: "住所１", dataType: "string",
                         width: 230, minWidth: 230, maxWidth: 230,
-                        tooltip: true,
                     },
                     {
                         title: "電話番号",

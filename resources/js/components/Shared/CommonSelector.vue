@@ -158,7 +158,6 @@ export default {
                         title: this.labelCdNm,
                         dataIndx: "CdNm",
                         dataType: "string",
-                        tooltip: true,
                         hidden: vue.isCodeOnly,
                         filter: { crules: [{ condition: "contain" }] },
                     },

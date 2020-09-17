@@ -255,7 +255,6 @@ export default {
                         title: "得意先名",
                         dataIndx: "得意先名", dataType: "string",
                         width: 180, minWidth: 180,
-                        tooltip: true,
                         fixed: true,
                     },
                 ],
@@ -373,7 +372,6 @@ export default {
                         dataIndx: "商品_" + i,
                         dataType: "string",
                         width: 120, maxWidth: 120, minWidth: 120,
-                        tooltip: true,
                     }
                 );
                 newCols.push(

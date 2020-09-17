@@ -235,7 +235,6 @@ export default {
                         dataIndx: "得意先名",
                         dataType: "string",
                         width: 200, minWidth: 200, maxWidth: 200,
-                        tooltip: true,
                     },
                     {
                         title: "伝票Ｎｏ",
@@ -263,7 +262,6 @@ export default {
                         dataIndx: "商品名",
                         dataType: "string",
                         width: 200, minWidth: 200, maxWidth: 200,
-                        tooltip: true,
                     },
                     {
                         title: "数量",
@@ -297,7 +295,6 @@ export default {
                         dataIndx: "配達先",
                         dataType: "string",
                         width: 250, minWidth: 250, maxWidth: 250,
-                        tooltip: true,
                     },
                     {
                         title: "得意先ＣＤ",
