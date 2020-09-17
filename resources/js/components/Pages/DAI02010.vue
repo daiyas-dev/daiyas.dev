@@ -419,7 +419,6 @@ export default {
                         dataIndx: "得意先名",
                         dataType: "string",
                         width: 200, minWidth: 200,
-                        tooltip: true,
                         hidden: true,
                         hiddenOnExport: false,
                     },
@@ -428,7 +427,6 @@ export default {
                         dataIndx: "得意先名略称",
                         dataType: "string",
                         width: 200, minWidth: 200,
-                        tooltip: true,
                         hidden: false,
                         hiddenOnExport: true,
                     },
@@ -443,7 +441,6 @@ export default {
                         dataIndx: "コース名",
                         dataType: "string",
                         width: 150, minWidth: 125,
-                        tooltip: true,
                         render: ui => {
                             if (!ui.Export) {
                                 if (!!ui.rowData.pq_grandsummary) {

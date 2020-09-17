@@ -278,14 +278,12 @@ export default {
                     {
                         title: "得意先",
                         dataIndx: "得意先",
-                        tooltip: true,
                         colModel: [
                             {
                                 title: "得意先担当者",
                                 dataIndx: "得意先担当者",
                                 dataType: "string",
                                 width: 150, minWidth: 150,
-                                tooltip: true,
                                 render: ui => {
                                     var $div = $("<div>")
                                         .append(
@@ -349,7 +347,6 @@ export default {
                         dataType: "string",
                         width: 250, minWidth: 250,
                         cls: "top-wrap",
-                        tooltip: true,
                     },
                     {
                         title: "継続/失客",

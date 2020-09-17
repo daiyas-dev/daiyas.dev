@@ -178,7 +178,6 @@ export default {
                         title: "得意先",
                         dataIndx: "得意先名", dataType: "string",
                         width: 250, maxWidth: 250, minWidth: 250,
-                        tooltip: true,
                         cls: "CustomerNameCell",
                         render: ui => {
                             if (ui.rowData.pq_grandsummary) {

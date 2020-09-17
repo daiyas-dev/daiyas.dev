@@ -171,7 +171,6 @@ export default {
                         title: "得意先名",
                         dataIndx: "得意先名", dataType: "string",
                         width: 120, minWidth: 120,maxWidth: 400,
-                        tooltip: true,
                     },
                     {
                         title: "前月残高",

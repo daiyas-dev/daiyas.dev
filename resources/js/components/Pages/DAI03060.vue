@@ -247,7 +247,6 @@ export default {
                         title: "コース名",
                         dataIndx: "コース名", dataType: "string",
                         width: 200, minWidth: 200,
-                        tooltip: true,
                         hidden:false,
                         fixed: true,
                     },
@@ -261,7 +260,6 @@ export default {
                         title: "担当者名",
                         dataIndx: "担当者名", dataType: "string",
                         width: 150, minWidth: 150,
-                        tooltip: true,
                         hidden:false,
                         fixed: true,
                         render: ui => {

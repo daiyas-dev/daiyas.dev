@@ -170,7 +170,6 @@ export default {
                         dataIndx: "依頼人名",
                         dataType: "string",
                         width: 150, maxWidth: 150, minWidth: 150,
-                        tooltip: true,
                     },
                     {
                         title: "振込金額",
@@ -194,7 +193,6 @@ export default {
                         dataIndx: "得意先名",
                         dataType: "string",
                         width: 150, maxWidth: 150, minWidth: 150,
-                        tooltip: true,
                     },
                     {
                         title: "売掛金額",

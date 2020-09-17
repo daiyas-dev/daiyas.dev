@@ -244,7 +244,6 @@ export default {
                         title: "得意先名",
                         dataIndx: "得意先名", dataType: "string",
                         width: 200, minWidth: 200,
-                        tooltip: true,
                         editable: false,
                         fixed: true,
                         render: ui => {
