@@ -48,7 +48,7 @@ $sql = "
             ON MB.部署ＣＤ = M1.部署ＣＤ
         LEFT OUTER JOIN 祝日マスタ MH
             ON  MH.対象日付 = '$DeliveryDate'
-            AND (対象部署ＣＤ IS NULL OR 対象部署ＣＤ LIKE '%' + STR(MB.部署ＣＤ) + '%')
+            AND (対象部署ＣＤ IS NULL OR 対象部署ＣＤ LIKE '%' + CONVERT(varchar,MB.部署ＣＤ) + '%')
         LEFT OUTER JOIN (
             SELECT
                 CT.部署ＣＤ
