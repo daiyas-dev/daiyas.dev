@@ -178,7 +178,7 @@
             <div class="col-md-5 d-block">
                 <textarea
                     class="form-control"
-                    style="max-height: unset;"
+                    style="max-height: unset; font-size: 1.1rem;"
                     rows=3
                     id="bikou-shanai"
                     v-model=viewModel.BikouForControl
@@ -192,7 +192,7 @@
             <div class="col-md-5 d-block">
                 <textarea
                     class="form-control"
-                    style="max-height: unset;"
+                    style="max-height: unset; font-size: 1.1rem;"
                     rows=3
                     id="bikou-haiso"
                     v-model=viewModel.BikouForDelivery
@@ -212,7 +212,7 @@
             <div class="col-md-5 d-block">
                 <textarea
                     class="form-control"
-                    style="max-height: unset;"
+                    style="max-height: unset; font-size: 1.1rem;"
                     rows=3
                     id="bikou-tuuchi"
                     v-model=viewModel.BikouForNotification
