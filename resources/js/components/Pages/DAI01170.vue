@@ -44,6 +44,7 @@
             :SearchOnCreate=false
             :SearchOnActivate=false
             :options=this.grid1Options
+            :autoToolTipDisabled=true
         />
     </form>
 </template>

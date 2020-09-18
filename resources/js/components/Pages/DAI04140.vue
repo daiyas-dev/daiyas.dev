@@ -46,6 +46,7 @@
             :options=grid1Options
             :onBeforeCreateFunc=onBeforeCreateFunc
             :onAfterSearchFunc=onAfterSearchFunc
+            :autoToolTipDisabled=true
         />
     </form>
 </template>

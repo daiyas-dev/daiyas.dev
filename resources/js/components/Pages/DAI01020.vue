@@ -49,6 +49,7 @@
             :SearchOnCreate=false
             :SearchOnActivate=false
             :onAfterSearchFunc=this.onAfterSearchFunc
+            :autoToolTipDisabled=true
         />
     </form>
 </template>
