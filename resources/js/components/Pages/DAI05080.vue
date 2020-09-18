@@ -324,7 +324,7 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        refreshCols: function() {
+        refreshCols: function(grid) {
             var vue = this;
             var newCols = grid.options.colModel.filter(v => !!v.fixed);
             var i=1;
@@ -379,7 +379,7 @@ export default {
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.BushoArray || vue.viewModel.BushoArray.length==0) return;
             if (!grid.options.colModel.some(v => v.custom)) {
-                vue.refreshCols();
+                vue.refreshCols(grid);
             }
 
             var params = $.extend(true, {}, vue.viewModel);
