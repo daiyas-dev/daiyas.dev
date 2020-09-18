@@ -654,6 +654,16 @@ class DAI01032Controller extends Controller
 
         $OrderList = DB::select($GetOrderSQL);
 
+        //取り込みの前に指定の注文の見込を削除する
+        if (isset($OrderList) && is_array($OrderList) && 0<count($OrderList)) {
+            注文データ::query()
+            ->where('注文区分', 1)
+            ->where('部署ＣＤ', $OrderList[0]->部署ＣＤ)
+            ->where('得意先ＣＤ', $OrderList[0]->得意先ＣＤ)
+            ->where('配送日', $DeliveryDate)
+            ->delete();
+        }
+
         foreach ($OrderList as $rec) {
             $rec = (array) $rec;
 

@@ -72,6 +72,7 @@
             :options=grid1Options
             :onBeforeCreateFunc=onBeforeCreateFunc
             :onAfterSearchFunc=onAfterSearchFunc
+            :autoToolTipDisabled=true
             :maxRowSelectCount=1
         />
     </form>

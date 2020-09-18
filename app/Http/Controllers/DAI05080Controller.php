@@ -78,6 +78,8 @@ class DAI05080Controller extends Controller
                     ,T1.得意先名
                     ,T1.電話番号１
                     ,T1.ＦＡＸ１
+                    ,T5.電話番号 AS 部署電話番号
+                    ,T5.FAX AS 部署FAX
                 FROM
                     得意先マスタ T1
                     LEFT JOIN 部署マスタ T5 ON T1.部署ＣＤ = T5.部署CD
@@ -108,6 +110,7 @@ class DAI05080Controller extends Controller
                 [
                     "CourseData" => $this->SearchCourse($request),
                     "PriceData" => $this->SearchCustomerPrice($request),
+
                 ]
             ]
         );

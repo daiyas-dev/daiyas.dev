@@ -51,6 +51,7 @@
             :SearchOnActivate=true
             :options=grid1Options
             :onAfterSearchFunc=onAfterSearchFunc
+            :autoToolTipDisabled=true
         />
     </form>
 </template>

@@ -61,6 +61,7 @@
             :onBeforeCreateFunc=onBeforeCreateFunc
             :onAfterSearchFunc=onAfterSearchFunc
             :maxRowSelectCount=1
+            :autoToolTipDisabled=true
         />
     </form>
 </template>

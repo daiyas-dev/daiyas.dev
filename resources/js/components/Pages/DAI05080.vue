@@ -129,7 +129,7 @@ export default {
                 numberCell: { show: true, title: "No.", resizable: false, },
                 autoRow: true,
                 rowHt: 35,
-                freezeCols: 7,
+                freezeCols: 9,
                 editable: false,
                 columnTemplate: {
                     editable: false,
@@ -177,6 +177,18 @@ export default {
                     {
                         title: "部署名",
                         dataIndx: "部署名", dataType: "string",
+                        fixed: true,
+                        hidden:true,
+                    },
+                    {
+                        title: "部署電話番号",
+                        dataIndx: "部署電話番号", dataType: "string",
+                        fixed: true,
+                        hidden:true,
+                    },
+                    {
+                        title: "部署FAX",
+                        dataIndx: "部署FAX", dataType: "string",
                         fixed: true,
                         hidden:true,
                     },
@@ -677,8 +689,8 @@ export default {
                                         </div>
                                         <div style="float:left;" class="kaisya-info">
                                             <div>株式会社 <span/>ダイヤス食品<span/></div>
-                                            <div>Fax.<span/><span/>0836-21-4700</div>
-                                            <div>Tel.<span/><span/>0836-32-1113</div>
+                                            <div>Fax.<span/><span/>${!r.部署FAX ? "0836-21-4700" : r.部署FAX}</div>
+                                            <div>Tel.<span/><span/>${r.部署電話番号}</div>
                                             <div class="insatubi">印刷日　${moment().format("YYYY/MM/DD")}</div>
                                         </div>
                                     </div>

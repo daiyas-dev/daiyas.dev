@@ -93,6 +93,7 @@
             :SearchOnActivate=true
             :onBeforeCreateFunc=this.onBeforeCreateFunc
             :onAfterSearchFunc=this.onAfterSearchFunc
+            :autoToolTipDisabled=true
         />
     </form>
 </template>

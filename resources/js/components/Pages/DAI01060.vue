@@ -51,6 +51,7 @@
             :onAfterSearchFunc=this.onAfterSearchFunc
             :resizeFunc=this.gridResizeFunc
             :onCellKeyDownFunc=onCellKeyDownFunc
+            :autoToolTipDisabled=true
         />
     </form>
 </template>
