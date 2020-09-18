@@ -2092,12 +2092,13 @@ export default {
         saveTokuisaki: function() {
             var vue = this;
 
-            if(!vue.viewModel.得意先ＣＤ || !vue.viewModel.得意先名){
+            if(!vue.viewModel.得意先ＣＤ || !vue.viewModel.得意先名 || !vue.viewModel.売掛現金区分){
                 $.dialogErr({
                     title: "登録不可",
                     contents: [
                         !vue.viewModel.得意先ＣＤ ? "得意先ＣＤが入力されていません。<br/>" : "",
-                        !vue.viewModel.得意先名 ? "得意先名が入力されていません。<br/>" : ""
+                        !vue.viewModel.得意先名 ? "得意先名が入力されていません。<br/>" : "",
+                        !vue.viewModel.売掛現金区分 ? "売掛現金区分が入力されていません。<br/>" : ""
                     ]
                 })
                 if(!vue.viewModel.得意先ＣＤ){
@@ -2109,6 +2110,13 @@ export default {
                     $(vue.$el).find("#CustomerNm").addClass("has-error");
                 }else{
                     $(vue.$el).find("#CustomerNm").removeClass("has-error");
+                }
+
+                //2020/09/18追加
+                if(!vue.viewModel.売掛現金区分){
+                    $(vue.$el).find("#UriGenKbn").addClass("has-error");
+                }else{
+                    $(vue.$el).find("#UriGenKbn").removeClass("has-error");
                 }
                 return;
             }
