@@ -83,6 +83,17 @@ export default {
     },
     computed: {
     },
+
+    watch: {
+        "DAI01170Grid1.pdata": {
+            deep: true,
+            handler: function(newVal) {
+                var vue = this;
+                vue.footerButtons.find(v => v.id == "DAI01170Grid1_Print").disabled = !newVal.length;
+            },
+        },
+    },
+
     data() {
         return $.extend(true, {}, PageBaseMixin.data(), {
             ScreenTitle: "日時処理 > 売上月計日計表",
