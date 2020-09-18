@@ -364,7 +364,7 @@
                         </div>
                         <div class="col-md-2">
                             <label style="min-width: 60px;">締日1</label>
-                            <input class="form-control text-right p-2" style="width: 40px;" type="text"
+                            <input class="form-control text-right p-2" style="width: 40px;" type="text" @input="onSimebi1Changed"
                                 v-model=viewModel.締日１
                                 maxlength="2"
                                 v-int
@@ -1452,6 +1452,17 @@ export default {
             }else{
                 $(vue.$el).find("#ServiceTicket").removeClass("has-error");
             }
+        },
+        onSimebi1Changed: function() {
+            var vue = this;
+            var Simebi1 = vue.viewModel.締日１;
+
+            if(Simebi1 > 0) {
+                vue.viewModel.売掛現金区分 = 1
+
+            } //else if(Simebi1 == 0) {
+                //vue.viewModel.売掛現金区分 = 0
+            //}
         },
         searchTelList: function() {
             //電話番号一覧検索
