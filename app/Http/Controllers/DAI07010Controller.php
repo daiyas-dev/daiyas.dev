@@ -122,7 +122,8 @@ class DAI07010Controller extends Controller
                     WHEN M2.得意先CD IS NULL THEN ISNULL(M1.売価単価,0)
                     ELSE ISNULL(M2.単価,0)
                 END AS 単価
-				,T2.修正日
+                ,T2.修正日
+                ,(SELECT 担当者名 FROM 担当者マスタ WHERE 担当者ＣＤ = T2.修正担当者ＣＤ) AS 更新者
             FROM
                 SHOHINCD T1
                 LEFT OUTER JOIN 売上データ明細 T2 ON
