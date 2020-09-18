@@ -2046,12 +2046,15 @@ export default {
             var vue = this;
 
             $(vue.$el).find(".has-error").removeClass("has-error");
+            var BusyoCd = vue.viewModel.部署CD;
+            console.log("部署コード",BusyoCd);
 
             _.keys(DAI04041.viewModel).forEach(k => DAI04041.viewModel[k] = null);
             vue.viewModel.IsNew = true;
             vue.viewModel.userId = vue.query.userId;
 
             //初期値
+            vue.viewModel.部署CD = BusyoCd;
             vue.viewModel.状態区分 = "30";
             vue.viewModel.支払方法１ = "1";
             vue.viewModel.集金区分 = "1";
