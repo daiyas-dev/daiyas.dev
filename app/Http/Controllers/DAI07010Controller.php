@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
 use Exception;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB as FacadesDB;
 
@@ -317,6 +318,7 @@ class DAI07010Controller extends Controller
                             ->where('受注Ｎｏ', $rec['受注Ｎｏ'])
                             ->delete($rec);
 
+                            Log::info('DAI07010 Save DELETE Value\n' . print_r($rec, true));
                             //モバイルsv更新用
                             array_push($MDeleteList, $rec);
 
@@ -331,6 +333,7 @@ class DAI07010Controller extends Controller
                             ->where('受注Ｎｏ', $rec['受注Ｎｏ'])
                             ->update($rec);
 
+                            Log::info('DAI07010 Save UPDATE Value\n' . print_r($rec, true));
                             //モバイルsv更新用
                             array_push($MUpdateList, $rec);
 
@@ -357,6 +360,7 @@ class DAI07010Controller extends Controller
 
                     売上データ明細::insert($rec);
 
+                    Log::info('DAI07010 Save INSERT Value\n' . print_r($rec, true));
                     //モバイルsv更新用
                     array_push($MInsertList, $rec);
                 }
