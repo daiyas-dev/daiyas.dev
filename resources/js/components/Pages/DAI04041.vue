@@ -1499,6 +1499,7 @@ export default {
                                         $(vue.$el).find(".has-error").removeClass("has-error");
                                         vue.viewModel = res.data[0];
                                         vue.viewModel.IsNew = false;
+                                        vue.params.IsNew = false; // 更新用に変更
 
                                         //currency-input項目、String->Number
                                         vue.viewModel.集金手数料 = (vue.viewModel.集金手数料 || 0 ) * 1;
@@ -2223,6 +2224,8 @@ export default {
 
                         //画面を閉じる
                         //$(vue.$el).closest(".ui-dialog-content").dialog("close");
+
+                        vue.params.IsNew = false; // 新規登録後は更新モードに入る
                     }
                 })
                 .catch(err => {
