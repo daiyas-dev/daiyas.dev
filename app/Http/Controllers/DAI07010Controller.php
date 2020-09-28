@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
 use Exception;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB as FacadesDB;
 
@@ -122,7 +123,8 @@ class DAI07010Controller extends Controller
                     WHEN M2.得意先CD IS NULL THEN ISNULL(M1.売価単価,0)
                     ELSE ISNULL(M2.単価,0)
                 END AS 単価
-				,T2.修正日
+                ,T2.修正日
+                ,(SELECT 担当者名 FROM 担当者マスタ WHERE 担当者ＣＤ = T2.修正担当者ＣＤ) AS 更新者
             FROM
                 SHOHINCD T1
                 LEFT OUTER JOIN 売上データ明細 T2 ON
@@ -316,6 +318,7 @@ class DAI07010Controller extends Controller
                             ->where('受注Ｎｏ', $rec['受注Ｎｏ'])
                             ->delete($rec);
 
+                            Log::info('DAI07010 Save DELETE Value\n' . print_r($rec, true));
                             //モバイルsv更新用
                             array_push($MDeleteList, $rec);
 
@@ -330,6 +333,7 @@ class DAI07010Controller extends Controller
                             ->where('受注Ｎｏ', $rec['受注Ｎｏ'])
                             ->update($rec);
 
+                            Log::info('DAI07010 Save UPDATE Value\n' . print_r($rec, true));
                             //モバイルsv更新用
                             array_push($MUpdateList, $rec);
 
@@ -356,6 +360,7 @@ class DAI07010Controller extends Controller
 
                     売上データ明細::insert($rec);
 
+                    Log::info('DAI07010 Save INSERT Value\n' . print_r($rec, true));
                     //モバイルsv更新用
                     array_push($MInsertList, $rec);
                 }

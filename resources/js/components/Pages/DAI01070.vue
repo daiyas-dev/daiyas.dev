@@ -267,7 +267,6 @@ export default {
                         dataIndx: "コース名", dataType: "string",
                         width: 200, minWidth: 200, maxWidth: 200,
                         fixed: true,
-                        tooltip:true,
                     },
                 ],
             },

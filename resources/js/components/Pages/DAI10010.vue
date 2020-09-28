@@ -65,8 +65,8 @@
             <div class="col-md-1">
                 <label>得意先</label>
             </div>
-            <div class="col-md-9">
-                <PopupSelect
+            <div class="col-md-10">
+                <PopupSelectKeyDown
                     id="CustomerSelect"
                     ref="PopupSelect_Customer"
                     :vmodel=viewModel
@@ -90,11 +90,14 @@
                     :existsCheck=true
                     :inputWidth=100
                     :nameWidth=400
-                    :onAfterSearchFunc=CustomerAfterSearchFunc
-                    :onAfterChangedFunc=onCustomerChanged
-                    :isShowAutoComplete=true
-                    :AutoCompleteFunc=CustomerAutoCompleteFunc
+                    :isShowAutoComplete=false
+                    :onKeyDownEnterFunc=onCustomerChanged
+                    :isRealTimeSearch=false
+                    :onAfterChangedFunc=onCustomerSelectChanged
                 />
+                <div style="margin-left:10px;">
+                得意先コードを入力後<br/>Enterキーを押して下さい。
+                </div>
             </div>
         </div>
         <PqGridWrapper
@@ -170,11 +173,13 @@ form[pgid="DAI10010"] .pq-grid .DAI10010_toolbar .toolbar_button.ope {
 
 <script>
 import PageBaseMixin from "@vcs/PageBaseMixin.vue";
+import PopupSelectKeyDown from "@vcs/PopupSelectKeyDown.vue";
 
 export default {
     mixins: [PageBaseMixin],
     name: "DAI10010",
     components: {
+        "PopupSelectKeyDown": PopupSelectKeyDown,
     },
     computed: {
         searchParams: function() {
@@ -653,6 +658,10 @@ export default {
                     console.log("10010 early search")
                     vue.prevPostData = _.cloneDeep(vue.searchParams);
                     vue.searchData(vue.searchParams);
+                    if('CustomerCd' in vue.searchParams)
+                    {
+                        vue.LockUpdate(vue.searchParams.CustomerCd);
+                    }
                 });
             }
         },
@@ -728,7 +737,47 @@ export default {
                 comp.focus(true);
             }
         },
-        onCustomerChanged: function(code, entity, comp) {
+        //得意先を入力してEnterキーを謳歌した後の処理
+        onCustomerChanged: function(code, entity,comp) {
+            var vue = this;
+
+            if (!!entity && !_.isEmpty(entity)) {
+                vue.viewModel.BushoCd = entity["部署CD"];
+                vue.viewModel.CustomerCd = code;
+                vue.viewModel.CustomerNm= entity["CdNm"];
+                vue.viewModel.PaymentCd = entity["売掛現金区分"];
+                vue.viewModel.PaymentNm = ["現金", "掛売"][vue.viewModel.PaymentCd];
+                if (entity["支払方法１"] == 5) {
+                    vue.viewModel.PaymentCd = 2;
+                    vue.viewModel.PaymentNm = "チケット";
+                }
+
+                var params = _.cloneDeep(vue.searchParams);
+                params.CustomerCd = code;
+                if (!vue.ProductList.length) {
+                    //商品リスト検索
+                    axios.post("/DAI10010/GetProductList", params)
+                        .then(res => {
+                            vue.ProductList = res.data;
+                            //条件変更ハンドラ
+                            vue.conditionChanged();
+                        })
+                        .catch(err => {
+                            console.log("/DAI10010/GetProductList Error", err)
+                            $.dialogErr({
+                                title: "商品マスタ検索失敗",
+                                contents: "商品マスタの検索に失敗しました" + "<br/>" + err.message,
+                            });
+                        });
+                } else {
+                    vue.conditionChanged();
+                }
+                vue.LockUpdate(code);
+
+            }
+        },
+        //得意先を虫眼鏡で選択したあとの処理
+        onCustomerSelectChanged: function(code, entity, comp) {
             var vue = this;
             var grid = vue.DAI10010Grid1;
 
@@ -766,6 +815,32 @@ export default {
                     vue.conditionChanged();
                 }
             }
+            vue.LockUpdate(code);
+        },
+        LockUpdate: function(CustomerCd){
+            //請求状況検索
+            if(!CustomerCd){
+                return;
+            }
+            var vue = this;
+            var params = _.cloneDeep(vue.searchParams);
+            params.CustomerCd = CustomerCd;
+            vue.isLocked = false;
+            axios.post("/DAI10010/GetSeikyuData", params)
+                .then(res => {
+                    console.log("請求状況", res.data);
+                    if(!!res.data)
+                    {
+                        vue.isLocked = res.data.length == 0 ? false : moment(res.data[0].請求日付).isAfter(vue.searchParams.TargetDate);
+                    }
+                })
+                .catch(err => {
+                    console.log("/DAI10010/u Error", err)
+                    $.dialogErr({
+                        title: "請求状況",
+                        contents: "請求状況の検索に失敗しました" + "<br/>" + err.message,
+                    });
+                });
         },
         conditionChanged: function(force) {
             var vue = this;
@@ -987,7 +1062,6 @@ export default {
         },
         setCustomGridTitle: function(title) {
             var vue = this;
-
             return title + (vue.isLocked ? $("<span>").css("color", "red").text("【請求済】").prop("outerHTML") : "");
         },
         onAfterSearchFunc: function (grieVue, grid, res) {

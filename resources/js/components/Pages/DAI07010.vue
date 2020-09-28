@@ -102,7 +102,7 @@
             <div class="col-md-1">
                 <label>得意先</label>
             </div>
-            <div class="col-md-9">
+            <div class="col-md-7">
                 <PopupSelect
                     id="CustomerSelect"
                     ref="PopupSelect_Customer"
@@ -139,6 +139,12 @@
                 />
                 <label class="label-blue text-center">TEL</label>
                 <input class="form-control p-0 label-blue text-center" style="width: 120px;" type="text" :value=viewModel.TelNo readonly tabindex="-1">
+            </div>
+            <div class="col-md-4">
+                <label class="label-blue text-center">更新者</label>
+                <input class="form-control p-0 label-blue text-center" style="width: 140px;" type="text" :value=viewModel.Changer readonly tabindex="-1">
+                <label class="label-blue text-center">更新日時</label>
+                <input class="form-control p-0 label-blue text-center" style="width: 250px;" type="text" :value=viewModel.ModificationDate readonly tabindex="-1">
             </div>
         </div>
         <PqGridWrapper
@@ -256,6 +262,8 @@ export default {
                 CourseCd: null,
                 CourseNm: null,
                 Kind: null,
+                Changer: null,
+                ModificationDate: null,
             },
             uploadData: null,
             DAI07010Grid1: null,
@@ -765,6 +773,14 @@ export default {
         },
         onAfterSearchFunc: function (gridVue, grid, res) {
             var vue = this;
+
+            vue.viewModel.ModificationDate ="";
+            vue.viewModel.Changer = "";
+
+            if(!!res[0].UriageDataList){
+                vue.viewModel.ModificationDate = res[0].UriageDataList[0].修正日 ? moment(res[0].UriageDataList[0].修正日).format("YYYY年MM月DD日 HH:mm:ss"):null;
+                vue.viewModel.Changer = res[0].UriageDataList[0].更新者
+            }
 
             return vue.editSearchResult(res);
         },
