@@ -609,6 +609,7 @@ export default {
 
                 vue.viewModel.Tekiyo = null;
                 vue.viewModel.Biko = null;
+                vue.viewModel.DenpyoNo = null;
 
                 //入金データ
                 vue.DAI01130GridNyukin.rollback();
