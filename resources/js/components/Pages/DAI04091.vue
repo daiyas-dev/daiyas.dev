@@ -1925,7 +1925,14 @@ export default {
             }
             console.log("moveNodesSelf", nodes, moveAt);
             grid.scrollRow({rowIndxPage: moveAt});
-            vue.changeToolbarButtonsAfter(grid, vue.$refs.DAI04091Grid1, moveAt, lastmoveAt);
+
+            if (grid == vue.DAI04091Grid1) {
+                console.log("Active Grid is Left.");
+                vue.changeToolbarButtonsAfter(grid, vue.$refs.DAI04091Grid1, moveAt, lastmoveAt);
+            } else if (grid == vue.DAI04091Grid2) {
+                console.log("Active Grid is Right.");
+                vue.changeToolbarButtonsAfter(grid, vue.$refs.DAI04091Grid2, moveAt, lastmoveAt);
+            }
         },
         onMainGridResize: grid => {
 
