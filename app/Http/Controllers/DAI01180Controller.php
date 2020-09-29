@@ -45,7 +45,6 @@ class DAI01180Controller extends Controller
         $DateStart = $vm->DateStart;
         $DateEnd = $vm->DateEnd;
 
-        /*
         $sql_course="
             AND (
                 CUM.コース区分 = (
@@ -70,8 +69,6 @@ class DAI01180Controller extends Controller
         if ($BushoCd==501 || $BushoCd==602) {
             $sql_course="";//コース区分を見ない
         }
-        */
-        $sql_course="";//コース区分を見ない
 
         $sql = "
 SELECT
