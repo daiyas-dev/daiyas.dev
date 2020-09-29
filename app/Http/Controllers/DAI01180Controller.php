@@ -66,7 +66,7 @@ class DAI01180Controller extends Controller
                 OR CUM.コースＣＤ IS NULL
             )
         ";
-        if ($BushoCd==501) {
+        if ($BushoCd==501 || $BushoCd==602) {
             $sql_course="";//コース区分を見ない
         }
 

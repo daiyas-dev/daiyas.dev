@@ -563,6 +563,7 @@ export default {
                 BushoNm: null,
                 CourseCd: null,
                 CourseNm: null,
+                CourseKbn: null,
                 TantoCd: null,
                 TantoNm: null,
                 MngCd: null,
@@ -577,6 +578,7 @@ export default {
                 BushoNm: null,
                 CourseCd: null,
                 CourseNm: null,
+                CourseKbn: null,
                 TantoCd: null,
                 TantoNm: null,
                 MngCd: null,
@@ -1054,12 +1056,14 @@ export default {
             data.viewModel.BushoCd = targets[0].部署ＣＤ;
             data.viewModel.CourseCd = targets[0].コースＣＤ;
             data.viewModel.MngCd = targets[0].管理ＣＤ;
+            data.viewModel.CourseKbn = targets[0].コース区分;
         }
 
         if (targets[1]) {
             data.others.BushoCd = targets[1].部署ＣＤ;
             data.others.CourseCd = targets[1].コースＣＤ;
             data.others.MngCd = targets[1].管理ＣＤ;
+            data.others.CourseKbn = targets[1].コース区分;
         }
 
         return data;
@@ -1167,6 +1171,25 @@ export default {
             grid.widget().find(".toolbar_button.toDownward").prop("disabled", isDisabled || isLast);
             grid.widget().find(".toolbar_button.toLast").prop("disabled", isDisabled || isLast);
         },
+
+        changeToolbarButtonsAfter: function(grid, gridVue, moveAt, lastmoveAt) {
+            var isDisabled = !gridVue.isSelection;
+            var isFirst = false
+            var isLast = false;
+
+            if (moveAt == 0) {
+                isFirst = true;
+            }else if (moveAt == lastmoveAt) {
+                isLast = true;
+            }
+
+            grid.widget().find(".toolbar_button.delete").prop("disabled", isDisabled);
+            grid.widget().find(".toolbar_button.toFirst").prop("disabled", isDisabled || isFirst);
+            grid.widget().find(".toolbar_button.toUpward").prop("disabled", isDisabled || isFirst);
+            grid.widget().find(".toolbar_button.toDownward").prop("disabled", isDisabled || isLast);
+            grid.widget().find(".toolbar_button.toLast").prop("disabled", isDisabled || isLast);
+        },
+
         onBushoChanged: function(code, entity) {
             var vue = this;
 
@@ -1283,14 +1306,63 @@ export default {
             var vue = this;
             return vue.CustomerList;
         },
+
+        isUniqueArray: function(SendGrid) {
+            var arr = _.cloneDeep(SendGrid.pdata)
+            .filter(k=> !!k.コード).map(v => {
+                return v.コード;
+            })
+            var ret = _.filter(arr, (val, i, iteratee) => _.includes(iteratee, val, i + 1));
+            return ret.length;
+        },
+
+        GetGridCustomerCd: function(SendGrid) {
+            var arr = _.cloneDeep(SendGrid.pdata)
+            .filter(k=> !!k.コード).map(v => {
+                return v.コード;
+            })
+            var ret = arr
+            return ret;
+        },
+
         saveCourse: function(isBoth) {
             var vue = this;
             var grid1 = vue.DAI04091Grid1;
 
             var params = _.cloneDeep(vue.viewModel);
+            params.StartDate = moment(params.StartDate, "YYYY/MM/DD").format("YYYY/MM/DD");
+            params.EndDate = moment(params.EndDate, "YYYY/MM/DD").format("YYYY/MM/DD");
             params.idx = 0;
 
-            vue.save(grid1, vue.viewModel, params, isBoth);
+            if (vue.isUniqueArray(grid1) == 0) {
+                var CTCustomerCd = vue.GetGridCustomerCd(grid1);
+                var CTCourseKbn = vue.viewModel.CourseKbn;
+                var StartDate = params.StartDate;
+                var EndDate = params.EndDate;
+                console.log(StartDate);
+                console.log(EndDate);
+                var Result;
+                axios.post("/DAI04091/CoursekbnCheck", { CustomerCd: grid1.pdata.map(v => v.コード), CourseKbn: CTCourseKbn, StartDate, EndDate })
+                        .then(res => Result = res.data);
+                if (Result == 0 || 1) {
+                    vue.save(grid1, vue.viewModel, params, isBoth);
+                }
+                else
+                {
+                    $.dialogInfo({
+                    title: "重複チェック",
+                    contents: "別コースに得意先が存在しています。",
+                    });
+                }
+            }
+            else
+            {
+                $.dialogInfo({
+                    title: "重複チェック",
+                    contents: "コースの中に得意先が重複しています。",
+                });
+            }
+
         },
         saveCourseOthers: function(isBoth) {
             var vue = this;
@@ -1299,49 +1371,71 @@ export default {
             var params = _.cloneDeep(vue.others);
             params.idx = 1;
 
-            vue.save(grid2, vue.others, params, isBoth);
+            if (vue.isUniqueArray(grid2) == 0) {
+
+                vue.save(grid2, vue.others, params, isBoth);
+            }
+            else
+            {
+                $.dialogInfo({
+                    title: "重複チェック",
+                    contents: "コースの中に得意先が重複しています。",
+                });
+            }
+
         },
         saveCourseBoth: function() {
             var vue = this;
+            var grid1 = vue.DAI04091Grid1;
+            var grid2 = vue.DAI04091Grid2;
 
-            $.dialogConfirm({
-                title: "確認",
-                contents: "変更内容を保存します。宜しいですか？",
-                buttons:[
-                    {
-                        text: "はい",
-                        class: "btn btn-primary",
-                        click: function(){
-                            $(this).dialog("close");
+            if (vue.isUniqueArray(grid1) != 0 || vue.isUniqueArray(grid2) != 0) {
+                $.dialogInfo({
+                    title: "重複チェック",
+                    contents: "コースの中に得意先が重複しています。",
+                });
+            }
+            else
+            {
+                $.dialogConfirm({
+                    title: "確認",
+                    contents: "変更内容を保存します。宜しいですか？",
+                    buttons:[
+                        {
+                            text: "はい",
+                            class: "btn btn-primary",
+                            click: function(){
+                                $(this).dialog("close");
 
-                            //保存実行
-                            Promise.all([
-                                new Promise((resolve, reject ) => resolve()).then(() => vue.saveCourse(true)),
-                                new Promise((resolve, reject ) => resolve()).then(() => vue.saveCourseOthers(true)),
-                            ])
-                            .then((res1, res2) => {
-                                console.log("save both promise all", res1, res2);
-                                vue.params.parent.conditionChanged();
-                            })
-                            .catch(err => {
-                                console.log(vue.id + " saveBoth", err);
-                                $.dialogErr({
-                                    title: "異常終了",
-                                    contents: "変更内容の保存に失敗しました",
-                                });
-                            })
-                            ;
-                        }
-                    },
-                    {
-                        text: "いいえ",
-                        class: "btn btn-danger",
-                        click: function(){
-                            $(this).dialog("close");
-                        }
-                    },
-                ],
-            });
+                                //保存実行
+                                Promise.all([
+                                    new Promise((resolve, reject ) => resolve()).then(() => vue.saveCourse(true)),
+                                    new Promise((resolve, reject ) => resolve()).then(() => vue.saveCourseOthers(true)),
+                                ])
+                                .then((res1, res2) => {
+                                    console.log("save both promise all", res1, res2);
+                                    vue.params.parent.conditionChanged();
+                                })
+                                .catch(err => {
+                                    console.log(vue.id + " saveBoth", err);
+                                    $.dialogErr({
+                                        title: "異常終了",
+                                        contents: "変更内容の保存に失敗しました",
+                                    });
+                                })
+                                ;
+                            }
+                        },
+                        {
+                            text: "いいえ",
+                            class: "btn btn-danger",
+                            click: function(){
+                                $(this).dialog("close");
+                            }
+                        },
+                    ],
+                });
+            }
         },
         save: function(grid, model, params, isBoth) {
             var vue = this;
@@ -1803,6 +1897,7 @@ export default {
             var nodes = grid.SelectRow().getSelection().map(v => v.rowData);
 
             var moveAt = 0;
+            var lastmoveAt = grid.pdata.length - 1;
             if ($btn.hasClass("toFirst")) {
                 moveAt = 0;
                 grid.moveNodes(nodes, moveAt);
@@ -1829,7 +1924,15 @@ export default {
                 grid.moveNodes(nodes, moveAt + 1);
             }
             console.log("moveNodesSelf", nodes, moveAt);
-            to.scrollRow({rowIndxPage: moveAt});
+            grid.scrollRow({rowIndxPage: moveAt});
+
+            if (grid == vue.DAI04091Grid1) {
+                console.log("Active Grid is Left.");
+                vue.changeToolbarButtonsAfter(grid, vue.$refs.DAI04091Grid1, moveAt, lastmoveAt);
+            } else if (grid == vue.DAI04091Grid2) {
+                console.log("Active Grid is Right.");
+                vue.changeToolbarButtonsAfter(grid, vue.$refs.DAI04091Grid2, moveAt, lastmoveAt);
+            }
         },
         onMainGridResize: grid => {
 

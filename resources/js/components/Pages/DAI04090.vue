@@ -384,12 +384,12 @@ export default {
             var params = {};
             if (!isNew) {
                 if (rowData) {
-                    params.targets = [_.pick(_.cloneDeep(rowData), ["部署ＣＤ", "コースＣＤ", "管理ＣＤ"])];
+                    params.targets = [_.pick(_.cloneDeep(rowData), ["部署ＣＤ", "コースＣＤ", "管理ＣＤ", "コース区分"])];
                 } else {
                     var rows = grid.SelectRow().getSelection();
                     if (rows.length == 0 || rows.length > 2) return;
 
-                    params.targets = _.cloneDeep(rows).map(v => _.pick(v.rowData, ["部署ＣＤ", "コースＣＤ", "管理ＣＤ"]));
+                    params.targets = _.cloneDeep(rows).map(v => _.pick(v.rowData, ["部署ＣＤ", "コースＣＤ", "管理ＣＤ", "コース区分"]));
                 }
             }
             params.parent = vue;
