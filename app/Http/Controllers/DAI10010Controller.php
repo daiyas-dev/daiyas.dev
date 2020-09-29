@@ -91,6 +91,24 @@ class DAI10010Controller extends Controller
     }
 
     /**
+     * GetSeikyuData
+     */
+    public function GetSeikyuData($request)
+    {
+        $CustomerCd = $request->CustomerCd;
+        $sql = "
+            SELECT TOP(1)
+                請求日付
+            FROM
+                請求データ
+            WHERE 請求データ.請求先ＣＤ = $CustomerCd
+            ORDER BY 請求日付 DESC
+            ";
+        $Result = DB::select($sql);
+        return response()->json($Result);
+    }
+
+    /**
      * GetTodayOrder
      */
     public function GetTodayOrder($request) {

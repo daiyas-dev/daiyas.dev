@@ -574,6 +574,7 @@ export default {
         },
         onBushoChanged: function(code, entities) {
             var vue = this;
+            vue.viewModel.CustomerCd = null;
         },
         onCourseChanged: function(code, entity, comp) {
             var vue = this;
