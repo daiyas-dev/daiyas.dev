@@ -257,6 +257,7 @@ class DAI02030Controller extends Controller
                         AND 食事区分名称.サブ各種CD1 = 売上データ明細.食事区分
                 WHERE
                     売上データ明細.売掛現金区分 = 1
+                    AND 売上データ明細.分配元数量=0
                 GROUP BY
                     IIF(得意先マスタ.請求先ＣＤ=0, 得意先マスタ.得意先ＣＤ, 得意先マスタ.請求先ＣＤ),
                     売上データ明細.部署ＣＤ,

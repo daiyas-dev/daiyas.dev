@@ -377,7 +377,7 @@ class DAI02010Controller extends Controller
             FROM
 				売上データ明細
             WHERE
-                (売掛現金区分 = 1)
+                (売掛現金区分 = 1 AND 売上データ明細.分配元数量=0)
             GROUP BY 得意先ＣＤ, 日付
             ) U1 ON
                 U1.得意先ＣＤ = K1.得意先ＣＤ
