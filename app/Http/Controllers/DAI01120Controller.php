@@ -145,7 +145,7 @@ WHERE
             WHERE
                 (日付 >= '$DateStart' AND   日付 <= '$DateEnd')
             AND 売上データ明細.部署ＣＤ = $BushoCd
-            AND (売上データ明細.現金個数>0 OR 売上データ明細.掛売個数>0)
+            AND ((売上データ明細.現金個数>0 OR 売上データ明細.掛売個数>0) OR 売上データ明細.商品ＣＤ = 25)
             $WehreCourseCd
             $WehreCustomerCd
             $WehreSeikyuCd
