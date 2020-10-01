@@ -183,6 +183,126 @@ try {
         $pdo->commit();
     }
 
+    //モバイル連携データの送信
+    //事前に実行するSQLを作成(既存の注文データを削除)
+
+    $DeliveryDate = date('Y/m/d', strtotime($DeliveryDate));
+
+    $send_sql = "delete from OrderData where department_code = $BushoCd and customer_code = $CustomerCd and delivery_date='$DeliveryDate';";
+
+    //メインのSQL
+    $table_sql = "select * FROM 注文データ WHERE 部署ＣＤ = $BushoCd AND 得意先ＣＤ = $CustomerCd AND 配送日='$DeliveryDate'";
+    $stmt = $pdo->query($table_sql);
+    $table_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $public_path="C:/daiyas/workspace/daiyas/public";
+    $map = json_decode(file_get_contents($public_path."/dbmapping/pwa.txt"),true);
+    $map = $map["注文データ"];
+
+    $stmt = $pdo->query($table_sql);
+    $table_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    //送信用SQLを生成
+    foreach($table_data as $record_data)
+    {
+        foreach($record_data as $key=>$val)
+        {
+            if(array_key_exists($key,$map["Field"]))
+            {
+                $new_key=$map["Field"][$key];
+                $new_data[$new_key]=$val;
+            }
+        }
+
+        //SQLの作成
+        $new_table_name=$map["TableName"];
+        $fields="";
+        $values="";
+        foreach($new_data as $key=>$val)
+        {
+            $fields .= ", $key";
+            //値がNULLなら文字列NULL、それ以外はシングルクォート付きの値で戻す
+            $q_val = $val===NULL ? "null" : "'$val'";
+            $values .= ", $q_val";
+        }
+        $fields=substr($fields,1);
+        $values=substr($values,1);
+        $send_sql .= "insert into $new_table_name ( $fields )values( $values );";
+    }
+
+    //事後に実行するSQL(モバイル予測入力、モバイル販売入力の更新)
+    //注文数の取得
+    $order_num_sql="select 商品ＣＤ,(sum(isnull(現金個数,0)) + sum(isnull(掛売個数,0)))as 注文個数 from 注文データ where 注文区分=0 and 部署ＣＤ = $BushoCd and 得意先ＣＤ = $CustomerCd and 配送日='$DeliveryDate' group by 商品ＣＤ";
+    $stmt = $pdo->query($order_num_sql);
+    $order_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($order_list as $order_data)
+    {
+        $send_sql .= "update SaleInputData set
+            updated_at=now()
+            ,achievements_input=0
+            ,order_num={$order_data['注文個数']}
+            ,order_input=1
+            where department_code=$BushoCd
+            and customer_code=$CustomerCd
+            and product_code={$order_data['商品ＣＤ']}
+            and date='$DeliveryDate';";
+        $send_sql .= "update ExpectedInputData set
+            updated_at=now()
+        ,order_num={$order_data['注文個数']}
+        ,order_input=1
+        where department_code=$BushoCd
+        and customer_code=$CustomerCd
+        and product_code={$order_data['商品ＣＤ']}
+        and date='$DeliveryDate';";
+    }
+
+    //送信IDを取得
+    $next_id_Sql = "SELECT MAX(送信ＩＤ)+1 AS NEXT_ID FROM モバイル送信リスト";
+    $stmt = $pdo->query($next_id_Sql);
+    $send_id = $stmt->fetch()["NEXT_ID"];
+    $send_id = $send_id==null ? 1 : $send_id;
+
+    $controller_id="DAI0130Save";
+    $method_name="DAI0130Save";
+    $q_BushoCd   = $BushoCd;
+    $q_CustomerCd= $CustomerCd;
+    $q_course_cd  = empty($course_cd) ? 'null' : $course_cd;
+    $esc_sql=str_replace("'","''",$send_sql);
+
+    $Message = null;
+    $now = date("Y/m/d");
+    if ($DeliveryDate == $now) {
+        //当日注文の場合、通知
+        $Message = $req['Message'];
+    }
+    $q_notify_message  = empty($Message) ? '' : json_encode($Message);
+    $ms_sql="INSERT INTO モバイル送信リスト(
+            送信ＩＤ
+           ,部署ＣＤ
+           ,得意先ＣＤ
+           ,コースＣＤ
+           ,コントローラＩＤ
+           ,メソッド名
+           ,作成日時
+           ,SQL
+           ,通知メッセージ
+           ,送信済フラグ
+           ,送信済日時
+           )VALUES(
+             $send_id
+            ,$q_BushoCd
+            ,$q_CustomerCd
+            ,$q_course_cd
+            ,'$controller_id'
+            ,'$method_name'
+            ,GETDATE()
+            ,'$esc_sql'
+            ,'$q_notify_message'
+            ,0
+            ,null
+           )
+        ";
+    $pdo->exec($ms_sql);
+
+    //登録完了後の後処理
     require("DAI01030SearchFunc.php");
     $Result = [
         'result' => true,
