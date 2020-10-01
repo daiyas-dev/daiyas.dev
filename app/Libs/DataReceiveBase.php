@@ -552,6 +552,18 @@ class DataReceiveBase
                             continue;
                         }
 
+                        //2020/10/01 コース別明細データ存在チェック
+                        $CourseSalesDetail = DB::connection('sqlsrv_batch')->table("コース別明細データ")
+                            ->where('日付', $data['日付'])
+                            ->where('部署CD', $data['WebService_部署ＣＤ'])
+                            ->where('コースＣＤ', $data['WebService_コースＣＤ'])
+                            ->get();
+
+                        $cnt = count($CourseSalesDetail);
+                        if ($cnt > 0) {
+                            continue;
+                        }
+
                         //該当する売上データ明細を削除
                         DB::connection('sqlsrv_batch')->table("売上データ明細")
                         ->where('部署ＣＤ', $data['WebService_部署ＣＤ'])
