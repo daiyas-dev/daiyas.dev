@@ -69,6 +69,21 @@ WITH コース区分判定 AS (
 				END
 		END) AS 区分
 ),
+得意先単価マスタデータ AS (
+    SELECT
+        *
+    FROM (
+        SELECT
+            *
+            , RANK() OVER(PARTITION BY 得意先ＣＤ, 商品ＣＤ ORDER BY 適用開始日 DESC) AS RNK
+        FROM
+            得意先単価マスタ新
+        WHERE
+        適用開始日 <= '$DeliveryDate'
+    ) TT
+    WHERE
+        RNK = 1
+),
 得意先別注文データ AS (
 	select
 		chumon.*
@@ -104,7 +119,22 @@ WITH コース区分判定 AS (
 					SELECT
 						*
 					FROM
-						得意先単価マスタ TT
+						(
+                        SELECT
+							*
+						FROM (
+							SELECT
+								*
+								, RANK() OVER(PARTITION BY 得意先ＣＤ, 商品ＣＤ ORDER BY 適用開始日 DESC) AS RNK
+							FROM
+								得意先単価マスタ新
+							WHERE
+								得意先ＣＤ=T1.得意先ＣＤ
+							AND 適用開始日 <= '$DeliveryDate'
+                        ) TT
+                        WHERE
+                            RNK = 1
+                        ) TT
 						INNER JOIN 	単価表示商品 TP
 							on TT.商品ＣＤ = TP.単価表示商品CD
 				) AS T2
@@ -122,7 +152,7 @@ WITH コース区分判定 AS (
 		SELECT
 			*
 		FROM
-			得意先単価マスタ TT
+            得意先単価マスタデータ TT
 			INNER JOIN 	単価表示商品 TP
 				on TT.商品ＣＤ = TP.単価表示商品CD
 	) AS T1

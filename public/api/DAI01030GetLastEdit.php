@@ -32,6 +32,7 @@ $sql = "
             WHERE
                 CD.得意先ＣＤ = $CustomerCd
             AND CD.配送日 = '$DeliveryDate'
+            AND CD.注文区分 = 0
             ORDER BY
                 修正日 DESC
         ";
