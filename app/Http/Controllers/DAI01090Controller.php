@@ -175,6 +175,7 @@ ORDER BY
     public function Save($request)
     {
         $skip = [];
+        $CustomerCd = $request->CustomerCd;
 
         DB::beginTransaction();
 
@@ -183,79 +184,140 @@ ORDER BY
 
             $SaveList = $params['SaveList'];
 
+            $sql = "
+                    SELECT 備考１ as '特記_社内用',
+                           備考２ as '特記_配送用',
+                           備考３ as '特記_通知用'
+                    FROM 得意先マスタ
+                    WHERE 得意先ＣＤ = $CustomerCd
+            ";
+            $Tokuisaki = DB::selectOne($sql);
+
             $date = Carbon::now()->format('Y-m-d H:i:s');
             foreach ($SaveList as $rec) {
-                $r = 注文データ::query()
-                    ->where('注文区分', $rec['注文区分'])
-                    ->where('注文日付', $rec['注文日付'])
-                    ->where('部署ＣＤ', $rec['部署ＣＤ'])
-                    ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
-                    ->where('配送日', $rec['配送日'])
-                    ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
-                    ->get();
+                // $r = 注文データ::query()
+                //     ->where('注文区分', $rec['注文区分'])
+                //     ->where('注文日付', $rec['注文日付'])
+                //     ->where('部署ＣＤ', $rec['部署ＣＤ'])
+                //     ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
+                //     ->where('配送日', $rec['配送日'])
+                //     ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
+                //     ->get();
 
+                // $rec['備考１'] = $rec['備考１'] ?? '';
+                // $rec['備考２'] = $rec['備考２'] ?? '';
+                // $rec['備考３'] = $rec['備考３'] ?? '';
+                // $rec['備考４'] = $rec['備考４'] ?? '';
+                // $rec['備考５'] = $rec['備考５'] ?? '';
+                // $rec['特記_社内用'] = $rec['特記_社内用'] ?? '';
+                // $rec['特記_配送用'] = $rec['特記_配送用'] ?? '';
+                // $rec['特記_通知用'] = $rec['特記_通知用'] ?? '';
+
+                注文データ::query()
+                ->where('注文区分', $rec['注文区分'])
+                ->where('注文日付', $rec['注文日付'])
+                ->where('部署ＣＤ', $rec['部署ＣＤ'])
+                ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
+                ->where('配送日', $rec['配送日'])
+                ->where('商品ＣＤ', $rec['商品ＣＤ'])
+                ->delete();
+
+            if(isset($rec['現金個数']) || isset($rec['掛売個数'])){
+                $no = 注文データ::query()
+                ->where('注文区分', $rec['注文区分'])
+                ->where('注文日付', $rec['注文日付'])
+                ->where('部署ＣＤ', $rec['部署ＣＤ'])
+                ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
+                ->where('配送日', $rec['配送日'])
+                ->max('明細行Ｎｏ') + 1;
+
+                $rec['注文区分'] = $rec['注文区分'] ?? 0;
+                $rec['注文日付'] = $rec['注文日付'] ?? 0;
+                $rec['部署ＣＤ'] = $rec['部署ＣＤ'] ?? 0;
+                $rec['得意先ＣＤ'] = $rec['得意先ＣＤ'] ?? 0;
+                $rec['明細行Ｎｏ'] = $no;
+                $rec['現金個数'] = $rec['現金個数'] ?? 0;
+                $rec['現金金額'] = $rec['現金金額'] ?? 0;
+                $rec['掛売個数'] = $rec['掛売個数'] ?? 0;
+                $rec['掛売金額'] = $rec['掛売金額'] ?? 0;
+                $rec['修正日'] = $date;
                 $rec['備考１'] = $rec['備考１'] ?? '';
                 $rec['備考２'] = $rec['備考２'] ?? '';
                 $rec['備考３'] = $rec['備考３'] ?? '';
                 $rec['備考４'] = $rec['備考４'] ?? '';
                 $rec['備考５'] = $rec['備考５'] ?? '';
-                $rec['特記_社内用'] = $rec['特記_社内用'] ?? '';
-                $rec['特記_配送用'] = $rec['特記_配送用'] ?? '';
-                $rec['特記_通知用'] = $rec['特記_通知用'] ?? '';
+                $rec['特記_社内用'] = $Tokuisaki->特記_社内用 ?? '';
+                $rec['特記_配送用'] = $Tokuisaki->特記_配送用 ?? '';
+                $rec['特記_通知用'] = $Tokuisaki->特記_通知用 ?? '';
 
-                if (isset($rec['修正日']) && !!$rec['修正日']) {
-                    if (count($r) != 1) {
-                        $skip = collect($skip)->push(["target" => $rec, "current" => null]);
-                        continue;
-                    } else if ($rec['修正日'] != $r[0]->修正日) {
-                        $skip = collect($skip)->push(["target" => $rec, "current" => $r[0]]);
-                        continue;
-                    }
+                注文データ::insert($rec);
+            }
 
-                    //現金個数及び掛売個数がnullの場合は削除扱い
-                    if (!isset($rec['現金個数']) && !isset($rec['掛売個数'])) {
-                        注文データ::query()
-                            ->where('注文区分', $rec['注文区分'])
-                            ->where('注文日付', $rec['注文日付'])
-                            ->where('部署ＣＤ', $rec['部署ＣＤ'])
-                            ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
-                            ->where('配送日', $rec['配送日'])
-                            ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
-                            ->delete();
-                    } else {
-                        $rec['現金個数'] = $rec['現金個数'] ?? 0;
-                        $rec['現金金額'] = $rec['現金金額'] ?? 0;
-                        $rec['掛売個数'] = $rec['掛売個数'] ?? 0;
-                        $rec['掛売金額'] = $rec['掛売金額'] ?? 0;
-                        $rec['修正日'] = $date;
+                // if (isset($rec['修正日']) && !!$rec['修正日']) {
+                //     if (count($r) != 1) {
+                //         $skip = collect($skip)->push(["target" => $rec, "current" => null]);
+                //         continue;
+                //     } else if ($rec['修正日'] != $r[0]->修正日) {
+                //         $skip = collect($skip)->push(["target" => $rec, "current" => $r[0]]);
+                //         continue;
+                //     }
 
-                        注文データ::query()
-                            ->where('注文区分', $rec['注文区分'])
-                            ->where('注文日付', $rec['注文日付'])
-                            ->where('部署ＣＤ', $rec['部署ＣＤ'])
-                            ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
-                            ->where('配送日', $rec['配送日'])
-                            ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
-                            ->update($rec);
-                    }
-                } else {
-                    $no = 注文データ::query()
-                        ->where('注文区分', $rec['注文区分'])
-                        ->where('注文日付', $rec['注文日付'])
-                        ->where('部署ＣＤ', $rec['部署ＣＤ'])
-                        ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
-                        ->where('配送日', $rec['配送日'])
-                        ->max('明細行Ｎｏ') + 1;
+                //     //現金個数及び掛売個数がnullの場合は削除扱い
+                //     if (!isset($rec['現金個数']) && !isset($rec['掛売個数'])) {
+                //         注文データ::query()
+                //             ->where('注文区分', $rec['注文区分'])
+                //             ->where('注文日付', $rec['注文日付'])
+                //             ->where('部署ＣＤ', $rec['部署ＣＤ'])
+                //             ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
+                //             ->where('配送日', $rec['配送日'])
+                //             ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
+                //             ->delete();
 
-                    $rec['明細行Ｎｏ'] = $no;
-                    $rec['現金個数'] = $rec['現金個数'] ?? 0;
-                    $rec['現金金額'] = $rec['現金金額'] ?? 0;
-                    $rec['掛売個数'] = $rec['掛売個数'] ?? 0;
-                    $rec['掛売金額'] = $rec['掛売金額'] ?? 0;
-                    $rec['修正日'] = $date;
+                //     } else{
+                //         注文データ::query()
+                //             ->where('注文区分', $rec['注文区分'])
+                //             ->where('注文日付', $rec['注文日付'])
+                //             ->where('部署ＣＤ', $rec['部署ＣＤ'])
+                //             ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
+                //             ->where('配送日', $rec['配送日'])
+                //             ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
+                //             ->delete();
 
-                    注文データ::insert($rec);
-                }
+                //         $no = 注文データ::query()
+                //         ->where('注文区分', $rec['注文区分'])
+                //         ->where('注文日付', $rec['注文日付'])
+                //         ->where('部署ＣＤ', $rec['部署ＣＤ'])
+                //         ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
+                //         ->where('配送日', $rec['配送日'])
+                //         ->max('明細行Ｎｏ') + 1;
+    
+                //         $rec['明細行Ｎｏ'] = $no;
+                //         $rec['現金個数'] = $rec['現金個数'] ?? 0;
+                //         $rec['現金金額'] = $rec['現金金額'] ?? 0;
+                //         $rec['掛売個数'] = $rec['掛売個数'] ?? 0;
+                //         $rec['掛売金額'] = $rec['掛売金額'] ?? 0;
+                //         $rec['修正日'] = $date;
+    
+                //         注文データ::insert($rec);
+                //     }
+                // } else {
+                //     $no = 注文データ::query()
+                //         ->where('注文区分', $rec['注文区分'])
+                //         ->where('注文日付', $rec['注文日付'])
+                //         ->where('部署ＣＤ', $rec['部署ＣＤ'])
+                //         ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
+                //         ->where('配送日', $rec['配送日'])
+                //         ->max('明細行Ｎｏ') + 1;
+
+                //     $rec['明細行Ｎｏ'] = $no;
+                //     $rec['現金個数'] = $rec['現金個数'] ?? 0;
+                //     $rec['現金金額'] = $rec['現金金額'] ?? 0;
+                //     $rec['掛売個数'] = $rec['掛売個数'] ?? 0;
+                //     $rec['掛売金額'] = $rec['掛売金額'] ?? 0;
+                //     $rec['修正日'] = $date;
+
+                //     注文データ::insert($rec);
+                // }
             }
 
             DB::commit();
