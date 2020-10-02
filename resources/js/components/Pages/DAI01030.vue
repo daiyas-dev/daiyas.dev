@@ -1287,11 +1287,11 @@ export default {
                                 grid.blinkDiff(res.current);
                             } else {
                                 //PWA送信設定
-                                params.BushoCd =res.busho_cd
-                                params.DeliveryDate = res.delivery_date;
-                                params.CourseCd = res.course_code;
-                                params.CustomerCd = res.customer_cd;
-                                axios.post("/DAI01030/SendPWA", params);
+                                //params.BushoCd =res.busho_cd
+                                //params.DeliveryDate = res.delivery_date;
+                                //params.CourseCd = res.course_code;
+                                //params.CustomerCd = res.customer_cd;
+                                //axios.post("/DAI01030/SendPWA", params);
 
                                 //TODO: PWA送信設定と同じく、パラメータの変更が発生しないように考慮
                                 // //Web受注送信

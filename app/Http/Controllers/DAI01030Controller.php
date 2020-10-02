@@ -1176,6 +1176,7 @@ AND 部署ＣＤ = $BushoCd
 
     /**
      * SendPWA
+     * (2020/10/01以降、当関数は使用しない。折を見て削除する。)
      */
     public function SendPWA($request)
     {
@@ -1187,7 +1188,7 @@ AND 部署ＣＤ = $BushoCd
         //モバイルsv更新
         $ds = new DataSendWrapper();
         $Message = null;
-        if ($DeliveryDate == Carbon::now()->format('Ymd')) {
+        if ($DeliveryDate == Carbon::now()->format('Y/m/d')) {
             //当日注文の場合、通知
             $Message = $request->Message;
         }
