@@ -94,7 +94,7 @@
             </div>
             <div class="col-md-7">
                 <input class="form-control label-blue" style="width: 100px;" type="text" :value=viewModel.CourseCd readonly tabindex="-1">
-                <input class="form-control ml-1 label-blue" style="width: 350px;" type="text" :value=viewModel.CourseNm readonly tabindex="-1">
+                <input class="form-control ml-1 label-blue" style="width: 350px;" type="text" :value=viewModel.CourseNm readonly tabindex="-1" id="dai01030_course-label">
                 <input class="form-control ml-1 label-blue" style="width: 200px;" type="text" :value=viewModel.TantoNm readonly tabindex="-1">
             </div>
             <!-- <div class="col-md-1">
@@ -838,9 +838,13 @@ export default {
                 vue.viewModel.CustomerInfo = info;
 
                 //コース登録無し
+                var obj = document.getElementById("dai01030_course-label");
                 if (!info["コースＣＤ"]) {
                     vue.viewModel.CourseNm = "コーステーブル未登録です";
                     vue.viewModel.TantoNm = "";
+                    obj.style.color = '#FF0000';
+                }else{
+                    obj.style.color = '#495057';
                 }
 
                 //現金/掛売列の表示制御
