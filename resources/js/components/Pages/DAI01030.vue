@@ -94,7 +94,7 @@
             </div>
             <div class="col-md-7">
                 <input class="form-control label-blue" style="width: 100px;" type="text" :value=viewModel.CourseCd readonly tabindex="-1">
-                <input class="form-control ml-1 label-blue" style="width: 350px;" type="text" :value=viewModel.CourseNm readonly tabindex="-1">
+                <input class="form-control ml-1 label-blue" style="width: 350px;" type="text" :value=viewModel.CourseNm readonly tabindex="-1" id="dai01030_course-label">
                 <input class="form-control ml-1 label-blue" style="width: 200px;" type="text" :value=viewModel.TantoNm readonly tabindex="-1">
             </div>
             <!-- <div class="col-md-1">
@@ -192,7 +192,7 @@
             <div class="col-md-5 d-block">
                 <textarea
                     class="form-control"
-                    style="max-height: unset; font-size: 1.1rem;"
+                    style="max-height: unset; font-size: 1.1rem; font-weight: 600"
                     rows=3
                     id="bikou-haiso"
                     v-model=viewModel.BikouForDelivery
@@ -212,7 +212,7 @@
             <div class="col-md-5 d-block">
                 <textarea
                     class="form-control"
-                    style="max-height: unset; font-size: 1.1rem;"
+                    style="max-height: unset; font-size: 1.1rem; font-weight: 600"
                     rows=3
                     id="bikou-tuuchi"
                     v-model=viewModel.BikouForNotification
@@ -838,9 +838,13 @@ export default {
                 vue.viewModel.CustomerInfo = info;
 
                 //コース登録無し
+                var obj = document.getElementById("dai01030_course-label");
                 if (!info["コースＣＤ"]) {
                     vue.viewModel.CourseNm = "コーステーブル未登録です";
                     vue.viewModel.TantoNm = "";
+                    obj.style.color = '#FF0000';
+                }else{
+                    obj.style.color = '#495057';
                 }
 
                 //現金/掛売列の表示制御
@@ -1283,11 +1287,11 @@ export default {
                                 grid.blinkDiff(res.current);
                             } else {
                                 //PWA送信設定
-                                params.BushoCd =res.busho_cd
-                                params.DeliveryDate = res.delivery_date;
-                                params.CourseCd = res.course_code;
-                                params.CustomerCd = res.customer_cd;
-                                axios.post("/DAI01030/SendPWA", params);
+                                //params.BushoCd =res.busho_cd
+                                //params.DeliveryDate = res.delivery_date;
+                                //params.CourseCd = res.course_code;
+                                //params.CustomerCd = res.customer_cd;
+                                //axios.post("/DAI01030/SendPWA", params);
 
                                 //TODO: PWA送信設定と同じく、パラメータの変更が発生しないように考慮
                                 // //Web受注送信

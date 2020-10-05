@@ -32,6 +32,7 @@ $sql = "
             WHERE
                 CD.得意先ＣＤ = $CustomerCd
             AND CD.配送日 = '$DeliveryDate'
+            AND CD.注文区分 = 0
             ORDER BY
                 修正日 DESC
         ";
@@ -56,7 +57,7 @@ else if(4<=$len && substr($EditorCd,0,1)==1)
     }
     else if ($len==7)
     {
-        $EditorCd=(int)substr($EditorCd, 5, 3);
+        $EditorCd=(int)substr($EditorCd, 4, 3);
     }
     else if (8<=$len)
     {
