@@ -2580,7 +2580,7 @@ $OrderBy
                             ON  CHU.配送日=WEB.配送日
                             AND CHU.得意先ＣＤ=TOK.得意先ＣＤ
                             AND CHU.Web受注ID=WEB.Web受注ID
-                            AND CHU.注文区分=0
+                            AND CHU.注文区分=1
                     WHERE
                         0=0
                     $WhereBusho
