@@ -320,7 +320,7 @@ export default {
                 DateStart: moment(vue.viewModel.DateStart, "YYYY年MM月DD日").format("YYYYMMDD"),
                 DateEnd: moment(vue.viewModel.DateEnd, "YYYY年MM月DD日").format("YYYYMMDD"),
                 CourseCd: vue.viewModel.CourseCd,
-                SeikyuCd: vue.viewModel.CustomerCd,
+                SeikyuCd: vue.viewModel.SeikyuCd,
                 CustomerCd: vue.viewModel.CustomerCd,
                 JuchuCd: vue.viewModel.JuchuCd,
                 ProductCd: vue.viewModel.ProductCd,
