@@ -1588,6 +1588,16 @@ export default {
                     vue.DAI01110GridCredit.options.dataModel.data = ProductDataList;
                     vue.DAI01110GridCredit.refreshDataAndView();
 
+
+                    //チケット
+                    var TicketData = [
+                        {kind: "チケット", value: _.sumBy(ProductDataList, "チケット枚数") || 0},
+                        {kind: "ボーナス", value: _.sumBy(ProductDataList, "ボーナス枚数") || 0},
+                    ];
+                    vue.DAI01110GridTicket.options.dataModel.data = TicketData;
+                    vue.DAI01110GridTicket.refreshDataAndView();
+
+
                     var SummaryData = [
                         {
                             "本日総売上額": _.sumBy(ProductDataList, "現金金額") + _.sumBy(ProductDataList, "掛売金額"),
