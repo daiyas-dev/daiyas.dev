@@ -528,7 +528,7 @@ export default {
         onAfterSearchFunc: function (grieVue, grid, res) {
             var vue = this;
 
-            res.forEach(r => r.コース = r.コースＣＤ==null ? "コースなし" : (r.コースＣＤ + " " + r.コース名));
+            res.forEach(r => r.コース = r.コースＣＤ==null || r.コース名==null ? "コースなし" : (r.コースＣＤ + " " + r.コース名));
 
             vue.footerButtons.find(v => v.id == "DAI01180Grid1_CSV").disabled = !res.length;
             vue.footerButtons.find(v => v.id == "DAI01180Grid1_Excel").disabled = !res.length;
