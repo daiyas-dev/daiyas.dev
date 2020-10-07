@@ -197,7 +197,7 @@
                     :isShowName=true
                     :isModal=true
                     :editable=true
-                    :reuse=true
+                    :reuse=false
                     :existsCheck=true
                     :inputWidth=80
                     :nameWidth=160
@@ -252,7 +252,7 @@
                     :isShowName=true
                     :isModal=true
                     :editable=true
-                    :reuse=true
+                    :reuse=false
                     :existsCheck=true
                     :inputWidth=80
                     :nameWidth=160
