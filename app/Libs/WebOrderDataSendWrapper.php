@@ -419,7 +419,7 @@ class WebOrderDataSendWrapper extends WebOrderDataSend
                             + TRIM(STR(商品ＣＤ)) + ','
                             + TRIM(STR(IIF(掛売個数 > 0, 1, 0))) + ','
                             + TRIM(STR(IIF(掛売個数 > 0, 掛売個数, 現金個数))) + ','
-                            + TRIM(STR(IIF(掛売個数 > 0, 掛売金額, 現金金額))) + ','
+                            + TRIM(STR(単価)) + ','
                             + ISNULL(TRIM(STR(届け先ID)), 'NULL') + ','
                             + 'NOW(),'
                             + 'NOW(),'

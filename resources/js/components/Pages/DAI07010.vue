@@ -777,7 +777,8 @@ export default {
             vue.viewModel.ModificationDate ="";
             vue.viewModel.Changer = "";
 
-            if(!!res[0].UriageDataList){
+            console.log(res[0].UriageDataList);
+            if(res[0].UriageDataList.length != 0 && !!res[0].UriageDataList){
                 vue.viewModel.ModificationDate = res[0].UriageDataList[0].修正日 ? moment(res[0].UriageDataList[0].修正日).format("YYYY年MM月DD日 HH:mm:ss"):null;
                 vue.viewModel.Changer = res[0].UriageDataList[0].更新者
             }
