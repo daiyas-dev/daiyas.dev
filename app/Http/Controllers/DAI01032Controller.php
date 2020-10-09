@@ -257,7 +257,7 @@ class DAI01032Controller extends Controller
         $WOUpdateListForInfo = [];
         $WODeleteListForOrder = [];
 
-        DB::beginTransaction();
+        DB::connection('sqlsrv_weborder')->beginTransaction();
 
         try {
             $WebOrderId = $request->WebOrderId;
@@ -415,7 +415,7 @@ class DAI01032Controller extends Controller
                     ,USERS.注文ID
             ";
 
-            $info_count = DB::select($InfoCountSQL);
+            $info_count = DB::connection('sqlsrv_weborder')->select($InfoCountSQL);
 
             foreach ($info_count as $info) {
                 if ($info->COUNT == 0) {
@@ -448,7 +448,7 @@ class DAI01032Controller extends Controller
                     ,WEB.配送日
             ";
 
-            $order_count = DB::select($OrderCountSQL);
+            $order_count = DB::connection('sqlsrv_weborder')->select($OrderCountSQL);
 
             foreach ($order_count as $order) {
                 if ($order->COUNT == 0) {
@@ -459,9 +459,9 @@ class DAI01032Controller extends Controller
             }
 
             if (count($skip) > 0) {
-                DB::rollBack();
+                DB::connection('sqlsrv_weborder')->rollBack();
             } else {
-                DB::commit();
+                DB::connection('sqlsrv_weborder')->commit();
 
                 //Web受注sv更新
                 foreach ($order_count as $order) {
@@ -503,7 +503,7 @@ class DAI01032Controller extends Controller
                 // }
             }
         } catch (Exception $exception) {
-            DB::rollBack();
+            DB::connection('sqlsrv_weborder')->rollBack();
             throw $exception;
         }
 
