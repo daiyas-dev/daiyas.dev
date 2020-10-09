@@ -509,7 +509,6 @@ export default {
                                         },
                                         []
                                     );
-                                    console.log("印刷データ",printRows);
 
                                     var html = grid.generateHtmlFromJson(
                                         printRows,
