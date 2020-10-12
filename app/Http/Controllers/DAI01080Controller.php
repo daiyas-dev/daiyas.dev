@@ -441,6 +441,10 @@ WITH WITH_注文データ AS
                 $Message = $params['Message'];
                 $ds = new DataSendWrapper();
                 $ds->UpdateExpectedInputData($params['BushoCd'],$params['CourseCd'],$params['DeliveryDate'], $Message);
+
+                //モバイルsv更新
+                $ds->UpdateExpectedData($params['BushoCd'],$params['DeliveryDate'],null);
+
             }
         } catch (Exception $exception) {
             DB::rollBack();
