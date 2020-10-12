@@ -227,7 +227,7 @@ export default {
                     {
                         title: "CD",
                         dataIndx: "得意先ＣＤ", dataType: "integer",
-                        width: 60, minWidth: 60, maxWidth: 60,
+                        width: 85, minWidth: 85, maxWidth: 85,
                         fixed: true,
                         render: ui => {
                             if (!ui.rowData.pq_grandsummary && !!ui.rowData.pq_gtitle && ui.rowData.pq_level == 1) {

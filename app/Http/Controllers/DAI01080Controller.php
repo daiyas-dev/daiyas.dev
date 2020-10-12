@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Libs\DataSendWrapper;
 use App\Models\モバイル予測入力;
+use App\Models\注文データ;
 use App\Models\日別得意先製造パターン;
+use App\Models\商品マスタ;
+use App\Models\得意先マスタ;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
@@ -214,6 +217,7 @@ WITH WITH_注文データ AS
 
         $ProductList = $params['ProductList'];
         $PatternList = $params['PatternList'];
+        $ResponsibleCode = $params['LoginInfo'];
 
         $date = Carbon::now()->format('Y-m-d H:i:s');
         $skipProduct = [];
@@ -264,6 +268,126 @@ WITH WITH_注文データ AS
                         $rec['修正日'] = $date;
 
                         モバイル予測入力::insert($rec);
+                    } else {
+                        $skipProduct = collect($skipProduct)->push(["target" => $rec, "current" => $r[0]]);
+                        continue;
+                    }
+                }
+            }
+
+            //注文データ更新
+            foreach ($ProductList as $rec) {
+                //得意先単価マスタ新情報取得
+                $CustomerCd = $rec['得意先ＣＤ'];
+                $DeliveryDate = date('Y-m-d');
+                $ProductCd = $rec['商品ＣＤ'];
+
+                $sql = "
+                SELECT
+                 単価
+                FROM (
+                    SELECT
+                        *
+                        , RANK() OVER(PARTITION BY 得意先ＣＤ, 商品ＣＤ ORDER BY 適用開始日 DESC) AS RNK
+                    FROM
+                        得意先単価マスタ新
+                    WHERE
+                        得意先ＣＤ=$CustomerCd
+                    AND 適用開始日 <= '$DeliveryDate'
+                    AND 商品ＣＤ = '$ProductCd'
+                ) TT
+                WHERE
+                    RNK = 1
+                ";
+                $p = DB::select($sql);
+
+                if(empty($p)){
+                    continue;
+                }
+
+                //商品マスタ情報取得
+                $s = 商品マスタ::query()
+                ->where('商品ＣＤ', $rec['商品ＣＤ'])
+                ->get();
+
+                //得意先マスタ情報取得
+                $t = 得意先マスタ::query()
+                ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
+                ->get();
+
+                $rec['配送日'] = $rec['日付'];
+                $rec['注文日付'] = $rec['日付'];
+                $rec['注文時間'] = date('H:i:s');
+                $rec['注文区分'] = 1;
+                $rec['商品区分'] = $s[0]->商品区分;
+                $rec['入力区分'] = 0;
+                $rec['予備金額１'] = $p[0]->単価;
+                $rec['予備金額２'] = 0;
+                $rec['予備ＣＤ１'] = 0;
+                $rec['予備ＣＤ２'] = 0;
+                $rec['修正担当者ＣＤ'] = $ResponsibleCode;
+                $rec['明細行Ｎｏ'] = 0;
+
+                if($t[0]->売掛現金区分 == 0){
+                    $rec['現金個数']=$rec['見込数'];
+                    $rec['現金金額']=$p[0]->単価 * $rec['見込数'];
+                    $rec['掛売個数']=0;
+                    $rec['掛売金額']=0;
+                }else{
+                    $rec['現金個数']=0;
+                    $rec['現金金額']=0;
+                    $rec['掛売個数']=$rec['見込数'];;
+                    $rec['掛売金額']=$p[0]->単価 * $rec['見込数'];
+                }
+
+                unset($rec['日付']);
+                unset($rec['見込数']);
+                unset($rec['見込入力']);
+                unset($rec['更新フラグ']);
+                unset($rec['行Ｎｏ']);
+
+                $r = 注文データ::query()
+                    ->where('注文区分', $rec['注文区分'])
+                    ->where('部署ＣＤ', $rec['部署ＣＤ'])
+                    ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
+                    ->where('配送日', $rec['配送日'])
+                    ->where('商品ＣＤ', $rec['商品ＣＤ'])
+                    ->get();
+
+                if (isset($rec['修正日']) && !!$rec['修正日']) {
+                    if (count($r) != 1) {
+                        $skipProduct = collect($skipProduct)->push(["target" => $rec, "current" => null]);
+                        continue;
+                    } else if ($rec['修正日'] != $r[0]->修正日) {
+                        $skipProduct = collect($skipProduct)->push(["target" => $rec, "current" => $r[0]]);
+                        continue;
+                    }
+
+                    $rec['明細行Ｎｏ'] = $r[0]->明細行Ｎｏ;
+                    $rec['修正日'] = $date;
+
+                    注文データ::query()
+                        ->where('注文区分', $rec['注文区分'])
+                        ->where('部署ＣＤ', $rec['部署ＣＤ'])
+                        ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
+                        ->where('配送日', $rec['配送日'])
+                        ->where('商品ＣＤ', $rec['商品ＣＤ'])
+                        ->where('明細行Ｎｏ', $rec['明細行Ｎｏ'])
+                        ->update($rec);
+                } else {
+                    $no = null;
+                    if (count($r) == 0) {
+                        $no = 注文データ::query()
+                            ->where('注文区分', $rec['注文区分'])
+                            ->where('部署ＣＤ', $rec['部署ＣＤ'])
+                            ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
+                            ->where('配送日', $rec['配送日'])
+                            ->max('明細行Ｎｏ') + 1;
+
+                        $rec['明細行Ｎｏ'] = $no;
+                        $rec['修正日'] = $date;
+
+                        注文データ::insert($rec);
                     } else {
                         $skipProduct = collect($skipProduct)->push(["target" => $rec, "current" => $r[0]]);
                         continue;
