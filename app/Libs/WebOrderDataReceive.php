@@ -30,7 +30,7 @@ class WebOrderDataReceive extends DataReceiveBase
                       FROM Web受注受信リスト
                      ORDER BY 受信ＩＤ
                   ";
-            $DataList=DB::select($sql);
+            $DataList=DB::connection('sqlsrv_weborder')->select($sql);
 
             //1テーブルごとにリクエストを投げて処理する
             foreach ($DataList as $DataItem)
@@ -129,7 +129,7 @@ class WebOrderDataReceive extends DataReceiveBase
                         {
                             //Deleteする
                             $sql="DELETE FROM $cnv_table_name WHERE $where";
-                            DB::delete($sql);
+                            DB::connection('sqlsrv_weborder')->delete($sql);
                         }
                     }
                     else
@@ -143,7 +143,8 @@ class WebOrderDataReceive extends DataReceiveBase
                             //UPDATE
                             //TODO: Web受注得意先利用者マスタ.得意先ＣＤはupdate対象外か? WebUserMasterの対応する列不明のため下記update文に未設定
                             $sql="UPDATE $cnv_table_name set 利用者CD='{$record['利用者CD']}',備考1='{$record['備考1']}',修正担当者ＣＤ='{$record['修正担当者ＣＤ']}',修正日='{$record['修正日']}' WHERE $where";
-                            DB::update($sql);
+
+                            DB::connection('sqlsrv_weborder')->update($sql);
                         }
                         else
                         {
@@ -162,7 +163,7 @@ class WebOrderDataReceive extends DataReceiveBase
                             $fields=substr($fields,1);
                             $values=substr($values,1);
                             $sql="insert into $cnv_table_name ( $fields )values( $values )";
-                            DB::insert($sql);
+                            DB::connection('sqlsrv_weborder')->insert($sql);
                         }
                     }
                 }
@@ -230,15 +231,15 @@ class WebOrderDataReceive extends DataReceiveBase
 
         //解凍したファイルを読み込んでSQLを実行
         //1つのzipに含まれているファイルは1トランザクションで処理する
-        DB::beginTransaction();
+        DB::connection('sqlsrv_weborder')->beginTransaction();
         try {
             //データをクリア
             $sql = "DELETE FROM Web受注データ利用者別詳細 WHERE Web受注ID IN (SELECT Web受注ID FROM Web受注データ WHERE 配送日 >= CONVERT(DATE, GETDATE()))";
-            DB::delete($sql);
+            DB::connection('sqlsrv_weborder')->delete($sql);
             $sql = "DELETE FROM Web受注データ利用者情報 WHERE Web受注ID IN (SELECT Web受注ID FROM Web受注データ WHERE 配送日 >= CONVERT(DATE, GETDATE()))";
-            DB::delete($sql);
+            DB::connection('sqlsrv_weborder')->delete($sql);
             $sql = "DELETE FROM Web受注データ WHERE 配送日 >= CONVERT(DATE, GETDATE())";
-            DB::delete($sql);
+            DB::connection('sqlsrv_weborder')->delete($sql);
 
             // $WebOrderList=[];
             $datafile=$zip_dir_path.'\\WebOrderData.txt';
@@ -255,7 +256,7 @@ class WebOrderDataReceive extends DataReceiveBase
             }
 
             $this->updateLastUpdateDateByDB($receive_id, null);
-            DB::commit();
+            DB::connection('sqlsrv_weborder')->commit();
 
             //使用したテンポラリファイルを消す
             unlink($zip_path);
@@ -267,7 +268,7 @@ class WebOrderDataReceive extends DataReceiveBase
             rmdir($zip_dir_path);
         }
         catch (Exception $exception) {
-            DB::rollBack();
+            DB::connection('sqlsrv_weborder')->rollBack();
             throw $exception;
         }
     }
@@ -296,7 +297,7 @@ class WebOrderDataReceive extends DataReceiveBase
                     注文データ.配送日='{$record['配送日']}'
                 AND Web受注得意先マスタ.Web得意先ＣＤ='{$record['Web得意先ＣＤ']}'
             ";
-            $WebOrder = DB::selectOne($sql);
+            $WebOrder = DB::connection('sqlsrv_weborder')->selectOne($sql);
             $WebOrderID = 0;
 
             if (isset($WebOrder->Web受注ID)) {
@@ -304,11 +305,11 @@ class WebOrderDataReceive extends DataReceiveBase
             } else {
                 //Web受注ID払出
                 $sql = "select isnull(max(Web受注ID)+1, 1) as NewID from Web受注データ";
-                $WebOrder = DB::selectOne($sql);
+                $WebOrder = DB::connection('sqlsrv_weborder')->selectOne($sql);
                 $WebOrderID = $WebOrder->NewID;
                 while(true) {
                     $sql = "select count(*) as CNT from 注文データ where Web受注ID=$WebOrderID";
-                    $count = DB::selectOne($sql);
+                    $count = DB::connection('sqlsrv_weborder')->selectOne($sql);
                     if ($count->CNT == 0) {
                         break;
                     } else {
@@ -334,7 +335,7 @@ class WebOrderDataReceive extends DataReceiveBase
                     ,getdate()
                 )
             ";
-            DB::insert($sql);
+            DB::connection('sqlsrv_weborder')->insert($sql);
 
         }
         return;
@@ -354,7 +355,7 @@ class WebOrderDataReceive extends DataReceiveBase
             //Web受注IDを取得
             $sql="select J1.Web受注ID from Web受注データ J1 where J1.Web得意先ＣＤ='{$record['Web得意先ＣＤ']}' and J1.配送日='{$record['配送日']}'";
 
-            $WebOrder = DB::selectOne($sql);
+            $WebOrder = DB::connection('sqlsrv_weborder')->selectOne($sql);
             $WebOrderID = $WebOrder->Web受注ID;
 
             //insert
@@ -376,7 +377,7 @@ class WebOrderDataReceive extends DataReceiveBase
                     ,getdate()
                 )
             ";
-            DB::insert($sql);
+            DB::connection('sqlsrv_weborder')->insert($sql);
         }
     }
     /**
@@ -395,7 +396,7 @@ class WebOrderDataReceive extends DataReceiveBase
             //Web受注IDを取得
             $sql="select J1.Web受注ID from Web受注データ J1 where J1.Web得意先ＣＤ='{$record['Web得意先ＣＤ']}' and J1.配送日='{$record['配送日']}'";
 
-            $WebOrder = DB::selectOne($sql);
+            $WebOrder = DB::connection('sqlsrv_weborder')->selectOne($sql);
             $WebOrderID = $WebOrder->Web受注ID;
 
             //insert
@@ -430,7 +431,7 @@ class WebOrderDataReceive extends DataReceiveBase
                     , getdate()
                 )
             ";
-            DB::insert($sql);
+            DB::connection('sqlsrv_weborder')->insert($sql);
         }
     }
     /**
@@ -573,7 +574,7 @@ class WebOrderDataReceive extends DataReceiveBase
                 得意先ＣＤ
                 ,商品ＣＤ
         ";
-        $OrderList = DB::select($GetOrderSQL);
+        $OrderList = DB::connection('sqlsrv_weborder')->select($GetOrderSQL);
         $EditUser="999";
         $EditDate=Carbon::now()->format('Y-m-d H:i:s');
         foreach($OrderList as $rec) {

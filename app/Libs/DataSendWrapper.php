@@ -422,7 +422,7 @@ class DataSendWrapper extends PWADataSend
      * @param 得意先CD
      * @param 通知メッセージ
      */
-    public function UpdateCustomerPricemasterNew($customer_cd, $notify_message = null)
+    public function UpdateCustomerPricemasterNew($customer_cd, $notify_message = null, $course_cd)
     {
         try {
             //得意先の所属する部署を取得
@@ -437,7 +437,7 @@ class DataSendWrapper extends PWADataSend
             $table_name="得意先単価マスタ新";
             $del_sql="delete from CustomerPriceMasterNew where customer_code = $customer_cd";
             $table_sql="select * from $table_name where 得意先ＣＤ=$customer_cd";
-            $this->InsertMultiRow($table_name, null, $table_sql, false, $busho_cd, $customer_cd, null, $del_sql,$notify_message);
+            $this->InsertMultiRow($table_name, null, $table_sql, false, $busho_cd, $customer_cd, $course_cd, $del_sql,$notify_message);
         }
         catch (Exception $exception) {
             throw $exception;

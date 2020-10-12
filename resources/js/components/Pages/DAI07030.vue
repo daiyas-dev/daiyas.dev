@@ -500,12 +500,11 @@ export default {
                                                 a.push({});
                                             }
 
-                                            var row = i % 15; ;
+                                            var row = i % 15;
                                             var col = Math.floor(i / 15);
 
-                                            a[row]["label" + col] = v.商品略称;
-                                            a[row]["value" + col] = v.数量;
-
+                                            a[row]["label" + col] = v.数量==0 ? "" : v.商品略称;
+                                            a[row]["value" + col] = v.数量==0 ? "" : v.数量;
                                             return a;
                                         },
                                         []
