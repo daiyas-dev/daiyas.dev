@@ -1728,35 +1728,68 @@ $WhereCourseKbn
         $BushoCd = $request->bushoCd;
         $CourseCd = $request->courseCd;
 
-        $query = コーステーブル::with(['得意先'])
-            ->when(
-                $BushoCd,
-                function ($q) use ($BushoCd) {
-                    return $q->where('部署ＣＤ', $BushoCd);
-                }
-            )
-            ->when(
-                $CourseCd,
-                function ($q) use ($CourseCd) {
-                    return $q->where('コースＣＤ', $CourseCd);
-                }
-            );
+        $sql = "
+            SELECT CT.部署ＣＤ
+                  ,CT.コースＣＤ
+                  ,CM.コース名
+                  ,CT.得意先ＣＤ
+                  ,CT.ＳＥＱ
+                  ,TM.得意先名
+                  ,TM.得意先名カナ
+                  ,TM.得意先名略称
+                  ,TM.電話番号１
+                  ,TM.住所１
+                  ,TM.備考１
+                  ,TM.備考２
+                  ,TM.備考３
+            FROM コーステーブル CT
+            left outer join(
+                    SELECT 部署ＣＤ
+                        ,コースＣＤ
+                        ,コース名
+                    FROM コースマスタ
+                    WHERE 部署ＣＤ = '$BushoCd'
+                    AND   コースＣＤ = '$CourseCd'
+            ) CM
+            ON CT.部署ＣＤ = CM.部署ＣＤ
+            AND CT.コースＣＤ = CM.コースＣＤ
+            left outer join(
+                    SELECT 得意先ＣＤ
+                            ,部署ＣＤ
+                            ,得意先名
+                            ,得意先名カナ
+                            ,得意先名略称
+                            ,電話番号１
+                            ,住所１
+                            ,備考１
+                            ,備考２
+                            ,備考３
+                    FROM 得意先マスタ
+            ) TM
+            ON CT.部署ＣＤ = TM.部署CD
+            AND CT.得意先ＣＤ = TM.得意先ＣＤ
+            where CT.部署ＣＤ = '$BushoCd'
+            and CT.コースＣＤ = '$CourseCd'
+            ORDER BY CT.ＳＥＱ
+        ";
 
-        $CustomerList = collect($query->get())
+       $DataList = DB::select($sql);
+
+            $CustomerList = collect($DataList)
             ->map(function ($course) {
                 $vm = (object) $course;
 
                 $vm->Cd = $course->得意先ＣＤ;
-                $vm->CdNm = $course->得意先->得意先名;
-                $vm->得意先名 = $course->得意先->得意先名;
-                $vm->得意先名カナ = $course->得意先->得意先名カナ;
-                $vm->得意先名略称 = $course->得意先->得意先名略称;
-                $vm->電話番号１ = $course->得意先->電話番号１;
-                $vm->住所１ = $course->得意先->住所１;
-                $vm->備考１ = $course->得意先->備考１;
-                $vm->備考２ = $course->得意先->備考２;
-                $vm->備考３ = $course->得意先->備考３;
-                $vm->コース名 = $course->コース->コース名;
+                $vm->CdNm = $course->得意先名;
+                $vm->得意先名 = $course->得意先名;
+                $vm->得意先名カナ = $course->得意先名カナ;
+                $vm->得意先名略称 = $course->得意先名略称;
+                $vm->電話番号１ = $course->電話番号１;
+                $vm->住所１ = $course->住所１;
+                $vm->備考１ = $course->備考１;
+                $vm->備考２ = $course->備考２;
+                $vm->備考３ = $course->備考３;
+                $vm->コース名 = $course->コース名;
 
                 unset($vm->得意先);
                 unset($vm->コース);
