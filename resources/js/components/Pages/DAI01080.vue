@@ -294,6 +294,7 @@ export default {
                                 params: {
                                     ProductList: productUpdateList,
                                     PatternList: patternUpdateList,
+                                    LoginInfo: vue.getLoginInfo().uid,
                                 },
                                 optional: params,
                                 confirm: {
