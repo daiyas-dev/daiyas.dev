@@ -297,87 +297,115 @@
                 <div class="btn-group-vertical w-100 d-flex align-items-center moveButtons">
                     <fieldset class="text-center moveSelection">
                         <legend class="moveLegend">選択行</legend>
-                        <div class="w-100 d-flex justify-content-center">
-                            <fieldset class="text-center moveFirst">
-                                <legend class="moveLegend">先頭に<span class="moveAction">移動</span></legend>
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-light toLeft">
-                                        <span><i class="fa fa-angle-left fa-lg"></i>左へ</span>
-                                    </button>
-                                    <button type="button" class="btn btn-light toRight">
-                                        <span>右へ<i class="fa fa-angle-right fa-lg"></i></span>
-                                    </button>
-                                </div>
-                            </fieldset>
-                        </div>
-                        <div class="w-100 d-flex justify-content-center">
-                            <fieldset class="text-center moveAt">
-                                <legend class="moveLegend">選択位置に<span class="moveAction">移動</span></legend>
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-light toLeft">
-                                        <span><i class="fa fa-angle-left fa-lg"></i>左へ</span>
-                                    </button>
-                                    <button type="button" class="btn btn-light toRight">
-                                        <span>右へ<i class="fa fa-angle-right fa-lg"></i></span>
-                                    </button>
-                                </div>
-                            </fieldset>
-                        </div>
-                        <div class="w-100 d-flex justify-content-center">
-                            <fieldset class="text-center moveLast">
-                                <legend class="moveLegend">末尾に<span class="moveAction">移動</span></legend>
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-light toLeft">
-                                        <span><i class="fa fa-angle-left fa-lg"></i>左へ</span>
-                                    </button>
-                                    <button type="button" class="btn btn-light toRight">
-                                        <span>右へ<i class="fa fa-angle-right fa-lg"></i></span>
-                                    </button>
-                                </div>
-                            </fieldset>
-                        </div>
+                        <table>
+                            <tr>
+                                <td>
+                                    <div class="w-100 d-flex justify-content-center">
+                                        <fieldset class="text-center moveFirst">
+                                            <legend class="moveLegend">先頭に<span class="moveAction">移動</span></legend>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-light toLeft">
+                                                    <span><i class="fa fa-angle-left fa-lg"></i>左へ</span>
+                                                </button>
+                                                <button type="button" class="btn btn-light toRight">
+                                                    <span>右へ<i class="fa fa-angle-right fa-lg"></i></span>
+                                                </button>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="w-100 d-flex justify-content-center">
+                                        <fieldset class="text-center moveAt">
+                                            <legend class="moveLegend">選択位置に<span class="moveAction">移動</span></legend>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-light toLeft">
+                                                    <span><i class="fa fa-angle-left fa-lg"></i>左へ</span>
+                                                </button>
+                                                <button type="button" class="btn btn-light toRight">
+                                                    <span>右へ<i class="fa fa-angle-right fa-lg"></i></span>
+                                                </button>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="w-100 d-flex justify-content-center">
+                                        <fieldset class="text-center moveLast">
+                                            <legend class="moveLegend">末尾に<span class="moveAction">移動</span></legend>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-light toLeft">
+                                                    <span><i class="fa fa-angle-left fa-lg"></i>左へ</span>
+                                                </button>
+                                                <button type="button" class="btn btn-light toRight">
+                                                    <span>右へ<i class="fa fa-angle-right fa-lg"></i></span>
+                                                </button>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
                     </fieldset>
                     <fieldset class="text-center moveWhole">
-                        <legend class="moveLegend">全行</legend>
-                        <div class="w-100 d-flex justify-content-center">
-                            <fieldset class="text-center moveFirst">
-                                <legend class="moveLegend">先頭に<span class="moveAction">移動</span></legend>
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-light toLeft">
-                                        <span><i class="fa fa-angle-double-left fa-lg"></i>左へ</span>
-                                    </button>
-                                    <button type="button" class="btn btn-light toRight">
-                                        <span>右へ<i class="fa fa-angle-double-right fa-lg"></i></span>
-                                    </button>
-                                </div>
-                            </fieldset>
-                        </div>
-                        <div class="w-100 d-flex justify-content-center">
-                            <fieldset class="text-center moveAt">
-                                <legend class="moveLegend">選択位置に<span class="moveAction">移動</span></legend>
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-light toLeft">
-                                        <span><i class="fa fa-angle-double-left fa-lg"></i>左へ</span>
-                                    </button>
-                                    <button type="button" class="btn btn-light toRight">
-                                        <span>右へ<i class="fa fa-angle-double-right fa-lg"></i></span>
-                                    </button>
-                                </div>
-                            </fieldset>
-                        </div>
-                        <div class="w-100 d-flex justify-content-center">
-                            <fieldset class="text-center moveLast">
-                                <legend class="moveLegend">末尾に<span class="moveAction">移動</span></legend>
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-light toLeft">
-                                        <span><i class="fa fa-angle-double-left fa-lg"></i>左へ</span>
-                                    </button>
-                                    <button type="button" class="btn btn-light toRight">
-                                        <span>右へ<i class="fa fa-angle-double-right fa-lg"></i></span>
-                                    </button>
-                                </div>
-                            </fieldset>
-                        </div>
+                        <table>
+                            <tr>
+                                <td>
+                                    <legend class="moveLegend">全行</legend>
+                                    <div class="w-100 d-flex justify-content-center">
+                                        <fieldset class="text-center moveFirst">
+                                            <legend class="moveLegend">先頭に<span class="moveAction">移動</span></legend>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-light toLeft">
+                                                    <span><i class="fa fa-angle-double-left fa-lg"></i>左へ</span>
+                                                </button>
+                                                <button type="button" class="btn btn-light toRight">
+                                                    <span>右へ<i class="fa fa-angle-double-right fa-lg"></i></span>
+                                                </button>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="w-100 d-flex justify-content-center">
+                                        <fieldset class="text-center moveAt">
+                                            <legend class="moveLegend">選択位置に<span class="moveAction">移動</span></legend>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-light toLeft">
+                                                    <span><i class="fa fa-angle-double-left fa-lg"></i>左へ</span>
+                                                </button>
+                                                <button type="button" class="btn btn-light toRight">
+                                                    <span>右へ<i class="fa fa-angle-double-right fa-lg"></i></span>
+                                                </button>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="w-100 d-flex justify-content-center">
+                                        <fieldset class="text-center moveLast">
+                                            <legend class="moveLegend">末尾に<span class="moveAction">移動</span></legend>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-light toLeft">
+                                                    <span><i class="fa fa-angle-double-left fa-lg"></i>左へ</span>
+                                                </button>
+                                                <button type="button" class="btn btn-light toRight">
+                                                    <span>右へ<i class="fa fa-angle-double-right fa-lg"></i></span>
+                                                </button>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
                     </fieldset>
                 </div>
             </div>
