@@ -1728,7 +1728,7 @@ $WhereCourseKbn
         $BushoCd = $request->bushoCd;
         $CourseCd = $request->courseCd;
 
-        $sql = "
+        $sql1 = "
             SELECT CT.部署ＣＤ
                   ,CT.コースＣＤ
                   ,CM.コース名
@@ -1749,7 +1749,13 @@ $WhereCourseKbn
                         ,コース名
                     FROM コースマスタ
                     WHERE 部署ＣＤ = '$BushoCd'
-                    AND   コースＣＤ = '$CourseCd'
+        ";
+
+        $sql2 = "
+            AND   コースＣＤ = '$CourseCd'
+        ";
+
+        $sql3 = "
             ) CM
             ON CT.部署ＣＤ = CM.部署ＣＤ
             AND CT.コースＣＤ = CM.コースＣＤ
@@ -1769,9 +1775,22 @@ $WhereCourseKbn
             ON CT.部署ＣＤ = TM.部署CD
             AND CT.得意先ＣＤ = TM.得意先ＣＤ
             where CT.部署ＣＤ = '$BushoCd'
+        ";
+
+        $sql4 = "
             and CT.コースＣＤ = '$CourseCd'
             ORDER BY CT.ＳＥＱ
         ";
+
+        $sql5 = "
+            ORDER BY CT.コースＣＤ, CT.ＳＥＱ
+        ";
+
+        if (is_null($CourseCd)){
+            $sql = $sql1.$sql3.$sql5;
+        } else {
+            $sql = $sql1.$sql2.$sql3.$sql4;
+        }
 
        $DataList = DB::select($sql);
 
