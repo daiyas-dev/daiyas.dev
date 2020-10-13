@@ -100,6 +100,9 @@
                 </div>
             </div>
         </div>
+        
+        <div style="margin-left:10px; color:red;" id="Syorizumi"></div>
+
         <PqGridWrapper
             id="DAI10010Grid1"
             ref="DAI10010Grid1"
@@ -213,6 +216,7 @@ export default {
                 EatCd: null,
             },
             isLocked: null,
+            LockKbn: null,
             DAI10010Grid1: null,
             ProductList: [],
             DiscountList: [
@@ -868,6 +872,9 @@ export default {
                 p.ParentCustomerCd = vue.params.ParentCustomerCd;
             }
 
+            //日付開始日取得 2020/10/09
+            p.TargetDate = moment(p.TargetDate).format("YYYY/MM/01");
+
             vue.prevPostData = _.cloneDeep(p);
             p.noCache = true;
 
@@ -877,6 +884,8 @@ export default {
                 vue.ProductList = res.data.ProductList;
 
                 var SalesList = res.data.SalesList;
+
+                var UrikakeList = res.data.UrikakeList;
 
                 var data = SalesList.filter(v => !!v.商品ＣＤ);
                 data.forEach(v => {
@@ -888,8 +897,24 @@ export default {
 
                 grid.setLocalData(data);
 
-                vue.isLocked = SalesList.length == 0 ? false : moment(SalesList[0].請求日付).isAfter(vue.searchParams.TargetDate);
+                console.log("abcde");
 
+                vue.isLocked = UrikakeList.length == 0 ? false : true;
+                if (vue.isLocked == true)
+                {
+                    vue.LockKbn = "【会計処理済】";
+                }
+                else
+                {
+                    vue.LockKbn = "";
+                    vue.isLocked = SalesList.length == 0 ? false : moment(SalesList[0].請求日付).isAfter(vue.searchParams.TargetDate);
+                    if (vue.isLocked == true)
+                    {
+                        vue.LockKbn = "【請求済】";
+                    }
+                }
+
+                document.getElementById("Syorizumi").innerText = vue.LockKbn;
                 vue.footerButtons.find(v => v.id == "DAI10010_Save").disabled = vue.isLocked;
             })
             .finally(() => {
@@ -1062,7 +1087,8 @@ export default {
         },
         setCustomGridTitle: function(title) {
             var vue = this;
-            return title + (vue.isLocked ? $("<span>").css("color", "red").text("【請求済】").prop("outerHTML") : "");
+            console.log("aaaaaa");
+            return title;
         },
         onAfterSearchFunc: function (grieVue, grid, res) {
             var vue = this;

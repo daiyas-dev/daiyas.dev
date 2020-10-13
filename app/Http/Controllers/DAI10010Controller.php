@@ -108,6 +108,24 @@ class DAI10010Controller extends Controller
         return response()->json($Result);
     }
 
+    //2020/10/09 追加 売掛データ(月次集計からの登録)
+    public function GetUrikakeData($request)
+    {
+        $CustomerCd = $request->CustomerCd;
+        $TargetDate = $request->TargetDate;
+        $sql = "
+            SELECT TOP(1)
+                日付
+            FROM
+                売掛データ
+            WHERE 売掛データ.請求先ＣＤ = $CustomerCd
+            AND 日付 = '$TargetDate'
+            ORDER BY 日付 DESC
+            ";
+        $Result = DB::select($sql);
+        return response()->json($Result);
+    }
+
     /**
      * GetTodayOrder
      */
@@ -161,6 +179,7 @@ ORDER BY
             [
                 "SalesList" => $this->GetSalesList($vm),
                 "ProductList" => $this->GetProductList($pvm)->original,
+                "UrikakeList" => $this->GetUrikakeData($vm)->original,
             ]
         );
     }
