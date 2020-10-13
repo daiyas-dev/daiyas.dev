@@ -8,6 +8,7 @@ use Exception;
 use Illuminate\Support\Facades\DB;
 use PDO;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 
 //モバイル・Web受注から社内DBへ取込(ベースクラス)
 class DataReceiveBase
@@ -172,6 +173,7 @@ class DataReceiveBase
                         $values=substr($values, 1);
                         $sql="UPDATE $cnv_table_name SET $values WHERE $where";
                         $pdo->exec($sql);
+                        //Log::info("{$cnv_table_name} レコード受信\n" . $sql);
                     }
                 } else {
                     //INSERT
@@ -186,6 +188,7 @@ class DataReceiveBase
                     $values=substr($values, 1);
                     $sql="insert into $cnv_table_name ( $fields )values( $values )";
                     $pdo->exec($sql);
+                    //Log::info("{$cnv_table_name} レコード受信\n" . $sql);
                 }
                 $error_info=$pdo->errorInfo();
                 if ($error_info[0]!="00000" || $error_info[1]!=null || $error_info[2]!=null) {
@@ -247,6 +250,7 @@ class DataReceiveBase
                 $where=substr($where, 5);
                 $sql="DELETE FROM $cnv_table_name WHERE $where";
                 $pdo->exec($sql);
+                //Log::info("{$cnv_table_name} レコード削除\n" . $sql);
                 $error_info=$pdo->errorInfo();
                 if ($error_info[0]!="00000" || $error_info[1]!=null || $error_info[2]!=null) {
                     //SQLを実行してエラーが発生した場合
@@ -552,7 +556,9 @@ class DataReceiveBase
                             continue;
                         }
 
-                        //2020/10/01 コース別明細データ存在チェック
+                        Log::info('モバイル更新予定リスト受信\n' . json_encode($data,JSON_UNESCAPED_UNICODE));
+
+                        //コース別明細データ存在チェック
                         $CourseSalesDetail = DB::connection('sqlsrv_batch')->table("コース別明細データ")
                             ->where('日付', $data['日付'])
                             ->where('部署CD', $data['WebService_部署ＣＤ'])
@@ -659,6 +665,7 @@ class DataReceiveBase
                             $rec["備考"] = $MobileSales->メッセージ;
                             $rec["食事区分"] = 2;
                             DB::connection('sqlsrv_batch')->table("売上データ明細")->insert($rec);
+                            Log::info('売上データ明細 insert\n' . json_encode($rec,JSON_UNESCAPED_UNICODE));
 
                             //分配得意先
                             $DistCustomerList = DB::connection('sqlsrv_batch')->table("得意先マスタ")
@@ -757,6 +764,7 @@ class DataReceiveBase
                                     $dist['修正日'] = Carbon::now()->format('Y/m/d H:i:s');
 
                                     DB::connection('sqlsrv_batch')->table("売上データ明細")->insert($dist);
+                                    Log::info('売上データ明細(分配先) insert\n' . json_encode($dist,JSON_UNESCAPED_UNICODE));
 
                                     //分配元更新
                                     $Parent = DB::connection('sqlsrv_batch')->table("売上データ明細")
@@ -791,6 +799,8 @@ class DataReceiveBase
                                             ->where('商品ＣＤ', $MobileDist->商品ＣＤ)
                                             ->where('売掛現金区分', $MobileSales->現金売掛区分)
                                             ->update($pdata);
+
+                                        Log::info('売上データ明細(分配元) update\n' . json_encode($pdata,JSON_UNESCAPED_UNICODE));
                                     }
                                 }
                             }
