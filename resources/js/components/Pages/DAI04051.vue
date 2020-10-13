@@ -444,11 +444,11 @@ export default {
             var Message = {
                 "department_code": vue.viewModel.部署ＣＤ,
                 "course_code": null,
+                "values": {
+                    "updateMaster": true,
+                },
                 "custom_data": {
                     "message": "",
-                    "values": {
-                        "updateMaster": true,
-                    },
                 },
             };
             params.Message = Message;
@@ -508,11 +508,11 @@ export default {
             var Message = {
                 "department_code": vue.viewModel.部署ＣＤ,
                 "course_code": null,
+                "values": {
+                    "updateMaster": true,
+                },
                 "custom_data": {
                     "message": "",
-                    "values": {
-                        "updateMaster": true,
-                    },
                 },
             };
             params.Message = Message;
