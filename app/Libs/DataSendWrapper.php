@@ -675,6 +675,35 @@ class DataSendWrapper extends PWADataSend
         }
     }
     /**
+     * 受注テーブル(見込みデータ)を更新する
+     * @param 部署ＣＤ
+     * @param 配送日
+     * @param メッセージ
+     */
+    public function UpdateExpectedData($busho_cd,$DeliveryDate,$notify_message = null)
+    {
+        try {
+            $q_date = new Carbon($DeliveryDate);
+            $q_date = $q_date->format('Y/m/d');
+            $table_name = "注文データ";
+            $del_sql = "delete from OrderData
+                    where department_code = $busho_cd
+                    and delivery_date='$q_date'
+                    and order_type=1
+                ";
+            $table_sql = "select * from $table_name
+                        where 部署ＣＤ = $busho_cd
+                        and 配送日='$q_date'
+                        and 注文区分=1
+                ";
+            $after_sql = "";
+
+            $this->InsertMultiRow($table_name, null, $table_sql, false, $busho_cd, null, null, $del_sql,null,$after_sql);
+        } catch (Exception $exception) {
+            throw $exception;
+        }
+    }
+    /**
      * 受注テーブルを一括更新する
      * @param 部署ＣＤ
      * @param 得意先ＣＤ
