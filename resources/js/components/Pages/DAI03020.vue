@@ -84,7 +84,7 @@
                     :vmodel=viewModel
                     bind="CourseCd"
                     dataUrl="/Utilities/GetCourseList"
-                    :params='{ bushoCd: viewModel.BushoCd }'
+                    :params='{ bushoCd: viewModel.BushoCd, BushoArray:this.BushoCdArray,UserBushoCd: getLoginInfo().bushoCd }'
                     :dataListReset=true
                     title="コース一覧"
                     labelCd="コースCD"

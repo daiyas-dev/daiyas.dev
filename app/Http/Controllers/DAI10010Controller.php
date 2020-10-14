@@ -113,6 +113,8 @@ class DAI10010Controller extends Controller
     {
         $CustomerCd = $request->CustomerCd;
         $TargetDate = $request->TargetDate;
+        $TargetDate = new \DateTime($TargetDate);
+        $TargetDate = date_format($TargetDate, 'Y-m-01');
         $sql = "
             SELECT TOP(1)
                 日付

@@ -896,8 +896,6 @@ export default {
 
                 grid.setLocalData(data);
 
-                console.log("abcde");
-
                 vue.isLocked = UrikakeList.length == 0 ? false : true;
                 if (vue.isLocked == true)
                 {
