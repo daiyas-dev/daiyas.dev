@@ -100,7 +100,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div style="margin-left:10px; color:red;" id="Syorizumi"></div>
 
         <PqGridWrapper
@@ -857,7 +857,6 @@ export default {
 
             if (!force && (_.isEqual(grid.prevPostData, vue.searchParams))) return;
             if (!force && (_.isEqual(vue.prevPostData, vue.searchParams))) return;
-
             vue.searchData(vue.searchParams);
         },
         searchData: function(params) {
@@ -873,7 +872,7 @@ export default {
             }
 
             //日付開始日取得 2020/10/09
-            p.TargetDate = moment(p.TargetDate).format("YYYY/MM/01");
+            //p.TargetDate = moment(p.TargetDate).format("YYYY/MM/01");
 
             vue.prevPostData = _.cloneDeep(p);
             p.noCache = true;
