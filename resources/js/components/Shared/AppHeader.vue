@@ -246,7 +246,8 @@ export default {
 
                     var vc = new (VueApp.createInstance(vue.VueCheck))(
                         {
-                            propsData: {
+                            /* Web受注一覧へ取込済のレコードを常時表示により「取込済も表示」チェックボックスを非表示 */
+                            /* propsData: {
                                 id: "VueCheck_SearchWebOrderList",
                                 ref: "VueCheck_SearchWebOrderList",
                                 vmodel: targetVue.customElementParams,
@@ -258,7 +259,7 @@ export default {
                                     {code: '1', name: '表示', label: '取込済も表示'},
                                 ],
                                 onChangedFunc: () => targetVue.conditionChanged(),
-                            }
+                            } */
                         }
                     );
                     vc.$mount();

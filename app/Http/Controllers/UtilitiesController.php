@@ -2541,7 +2541,9 @@ $OrderBy
         $BushoCd = $request->bushoCd ?? $request->BushoCd;
         $WhereBusho = $BushoCd ? "AND TOK.部署CD=$BushoCd" : "";
 
-        $UnRegisted = $request->UnRegisted;
+        //Web受注一覧へ取込済のレコードも表示させるためUnRegistedの値を固定値に修正
+        //$UnRegisted = $request->UnRegisted;
+        $UnRegisted = '0';
         $HavingUnRegisted = $UnRegisted == '1' ? "AND SUM(X.確認済) = 0" : "";
 
         $Timeout = $request->Timeout;
