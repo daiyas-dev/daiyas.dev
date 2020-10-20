@@ -307,6 +307,7 @@ export default {
                                     BushoCd:vue.viewModel.BushoCd,
                                     TargetDate:vue.viewModel.TargetDate,
                                     ShoriKbn: vue.viewModel.ShoriKbn,
+                                    TokuiCd: vue.viewModel.CustomerCd,
                                     ShuseiTantoCd:vue.getLoginInfo()["uid"],
                                     SaveList: SaveList,
                                 },

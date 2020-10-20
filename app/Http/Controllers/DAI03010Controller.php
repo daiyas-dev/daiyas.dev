@@ -235,15 +235,24 @@ class DAI03010Controller extends Controller
             $BushoCd=$params['BushoCd'];
             $ShoriKbn = $params['ShoriKbn'];
             $ShuseiTantoCd=$params['ShuseiTantoCd'];
+            $TokuiCd=$params['TokuiCd'];
             $SaveList = $params['SaveList'];
             $TargetDate=$params['TargetDate'];
             $TargetDate=preg_replace('/年|月/','/',$TargetDate);
             $TargetDate.='01';
 
-            売掛データ::query()
-            ->where('部署ＣＤ', $BushoCd)
-            ->where('日付', $TargetDate)
-            ->delete();
+            if(is_null($TokuiCd)){
+                売掛データ::query()
+                ->where('部署ＣＤ', $BushoCd)
+                ->where('日付', $TargetDate)
+                ->delete();
+            }else{
+                売掛データ::query()
+                ->where('部署ＣＤ', $BushoCd)
+                ->where('日付', $TargetDate)
+                ->where('請求先ＣＤ', $TokuiCd)
+                ->delete();
+            }
 
             if($ShoriKbn=='1')//処理区分が集計処理ならInsert処理を実施
             {
