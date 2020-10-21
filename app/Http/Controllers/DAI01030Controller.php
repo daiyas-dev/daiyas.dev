@@ -1096,7 +1096,7 @@ class DAI01030Controller extends Controller
                 //モバイルsv更新
                 foreach ($MDeleteList as $rec) {
                     $ds = new DataSendWrapper();
-                    $ds->Delete('注文データ', $rec, true, $rec['部署ＣＤ'], null, null);
+                    $ds->Delete('注文データ', $rec, false, $rec['部署ＣＤ'], null, null);
                 }
             }
         } catch (Exception $exception) {

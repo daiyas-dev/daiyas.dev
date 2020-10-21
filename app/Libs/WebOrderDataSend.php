@@ -8,6 +8,11 @@ use Illuminate\Support\Carbon;
 //社内DBからWeb受注へ更新用SQLを送信する
 class WebOrderDataSend
 {
+    //TODO:テスト用URL(NEW社内)
+    //public $websrv_url = "http://192.168.1.211/hellolaravel/public/";
+    //TODO:本番URL
+    public $websrv_url="http://18.178.211.62/";
+
     public function Send($send_id = null)
     {
         try
@@ -102,10 +107,7 @@ class WebOrderDataSend
         try
         {
             //WebAPI宛に送信
-            //TODO:テスト用URL(NEW社内)
-            $url = "http://192.168.1.211/hellolaravel/public/api/weborderdatareceive";
-            //TODO:本番URL
-            $url = "https://daiyas-order.com/api/weborderdatareceive";
+            $url = $this->websrv_url . "api/weborderdatareceive";
 
             // base64エンコード
             $base64_data = base64_encode(file_get_contents($zip_file_path));
@@ -341,8 +343,7 @@ class WebOrderDataSend
     public function GetOrderId()
     {
         try {
-            //WebAPI宛に送信
-            $url = "http://18.178.211.62/api/generateorderid";
+            $url = $this->websrv_url . "api/generateorderid";
 
             // cURLセッションを初期化
             $ch = curl_init();
@@ -378,8 +379,7 @@ class WebOrderDataSend
     public function GetOrderInfoId()
     {
         try {
-            //WebAPI宛に送信
-            $url = "http://18.178.211.62/api/generateorderinfoid";
+            $url = $this->websrv_url . "api/generateorderinfoid";
 
             // cURLセッションを初期化
             $ch = curl_init();
