@@ -13,6 +13,7 @@ use Illuminate\Support\Arr;
 use DB;
 use Exception;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 use PDO;
 
 class DAI01032Controller extends Controller
@@ -238,6 +239,10 @@ class DAI01032Controller extends Controller
                 USERS.利用者ID
                 ,DETAILS.商品ＣＤ
         ";
+
+        /* ログ出力 START*/
+        Log::info('GetOrderList sql\n' . $sql);
+        /* ログ出力 END*/
 
         $DataList = DB::select($sql);
 

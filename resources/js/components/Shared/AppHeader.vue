@@ -139,7 +139,8 @@ export default {
                 vue.interval = setInterval(
                     () => {
                         if (!!vue.fetch) {
-                            axios.post("/Utilities/SearchWebOrderList", { UnRegisted: "1", Timeout: "0", noCache: true })
+                            //ログ出力用にcaptureFlagを追加
+                            axios.post("/Utilities/SearchWebOrderList", { UnRegisted: "1", Timeout: "0", noCache: true, captureFlag: false })
                                 .then(res => {
                                     if (!res.data.length) return;
 
@@ -180,7 +181,8 @@ export default {
 
             PageDialog.showSelector({
                 dataUrl: "/Utilities/SearchWebOrderList",
-                params: { TargetDate: moment().format("YYYYMMDD"), UnRegisted: "1", Timeout: "0", Start: 1, Chunk: 100 },
+                //ログ出力用にcaptureFlagを追加
+                params: { TargetDate: moment().format("YYYYMMDD"), UnRegisted: "1", Timeout: "0", Start: 1, Chunk: 100,captureFlag: false },
                 title: "Web受注一覧",
                 labelCd: "得意先CD",
                 labelCdNm: "得意先名",
@@ -319,7 +321,8 @@ export default {
 
             axios.post(
                 "/Utilities/SearchWebOrderList",
-                { TargetDate: moment(data.配送日).format("YYYYMMDD"), Start: 1, Chunk: 1000, noCache: true, },
+                //ログ出力用にcaptureFlagを追加
+                { TargetDate: moment(data.配送日).format("YYYYMMDD"), Start: 1, Chunk: 1000, noCache: true, captureFlag: false},
             )
             .then(res => {
                 if (!res.data.length) return;
