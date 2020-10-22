@@ -126,6 +126,7 @@ class DAI04051Controller extends Controller
         $Data = DB::selectOne($sql);
 
         $CourseCD = $Data->コースＣＤ ?? null;
+        $BushoCD = $Data->部署ＣＤ ?? null;
 
         DB::beginTransaction();
         try {
@@ -180,6 +181,7 @@ class DAI04051Controller extends Controller
 
             //モバイルsv更新
             $Message = $params['Message'];
+            $Message['department_code'] = $BushoCD;
             $Message['course_code'] = $CourseCD;
             $ds = new DataSendWrapper();
             $ds->UpdateCustomerPricemasterNew($CustomerCd,$Message,$CourseCD);
@@ -278,6 +280,7 @@ class DAI04051Controller extends Controller
         $Data = DB::selectOne($sql);
 
         $CourseCD = $Data->コースＣＤ ?? null;
+        $BushoCD = $Data->部署ＣＤ ?? null;
         
         DB::beginTransaction();
         try {
@@ -291,6 +294,7 @@ class DAI04051Controller extends Controller
             DB::commit();
             //モバイルsv更新
             $Message = $params['Message'];
+            $Message['department_code'] = $BushoCD;
             $Message['course_code'] = $CourseCD;
             $ds = new DataSendWrapper();
             //$ds->Delete('得意先単価マスタ新', $params, false, null, $params['得意先ＣＤ'], null, $Message);

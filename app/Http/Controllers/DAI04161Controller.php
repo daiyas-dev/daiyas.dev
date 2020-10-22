@@ -19,6 +19,7 @@ class DAI04161Controller extends Controller
     {
         $params = $request->all();
 
+        $errFlg = False;
         $model = new 祝日マスタ();
         $model->fill($params);
 
@@ -38,6 +39,7 @@ class DAI04161Controller extends Controller
                     DB::table('祝日マスタ')->insert($newData);
                 } catch (Exception $exception) {
                     $errMs = $exception->getCode();
+                    $errFlg = True;
 
                     //主キー重複
                     if($errMs == "23000"){
@@ -57,10 +59,13 @@ class DAI04161Controller extends Controller
             // モバイルSvを更新
             $Message = $params['Message'];
             $ds = new DataSendWrapper();
-            if ($isNew) {
-                $ds->Insert('祝日マスタ',$newData,true,null,null,null, $Message);
-            }else{
-                $ds->Update('祝日マスタ',$newData,true,null,null,null, $Message);
+            if($errFlg == false){
+                if ($isNew) {
+                    $del_sql="delete from HolidayMaster where target_date = '$TargetDate'";
+                    $ds->Insert('祝日マスタ',$newData,true,null,null,null, $Message,$del_sql);
+                }else{
+                    $ds->Update('祝日マスタ',$newData,true,null,null,null, $Message);
+                }
             }
 
         } catch (Exception $exception) {
