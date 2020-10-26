@@ -1083,6 +1083,8 @@ $WhereCourseKbn
             SELECT $SelectTop
                 TM.得意先ＣＤ AS Cd,
                 TM.得意先名 AS CdNm,
+                C.コースＣＤ,
+                C.コース名,
                 TM.部署CD,
                 TM.得意先名カナ,
                 TM.得意先名略称,
@@ -1100,6 +1102,20 @@ $WhereCourseKbn
             FROM 得意先マスタ TM
             LEFT OUTER JOIN 部署ソート BM
                 ON TM.部署CD = BM.部署CD
+
+                LEFT JOIN (
+                    SELECT * FROM (
+                        SELECT CT.部署ＣＤ, CT.得意先ＣＤ, CT.コースＣＤ, CM.コース名, RANK() OVER(PARTITION BY CT.部署ＣＤ, CT.得意先ＣＤ ORDER BY CT.コースＣＤ ASC) AS RNK
+                        FROM コーステーブル CT
+                        LEFT JOIN コースマスタ CM
+                            ON CT.部署ＣＤ = CM.部署ＣＤ
+                            AND CT.コースＣＤ = CM.コースＣＤ
+                            ) TT
+                            WHERE RNK = 1
+                        ) C
+                    ON TM.部署ＣＤ = C.部署ＣＤ
+                    and TM.得意先ＣＤ = C.得意先ＣＤ
+                
             WHERE 0=0
             $WhereBusho
             $WhereBushoList
