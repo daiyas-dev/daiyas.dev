@@ -32,6 +32,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use PDO;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use Illuminate\Support\Facades\Log;
 
 class UtilitiesController extends Controller
 {
@@ -2682,6 +2683,13 @@ $OrderBy
         // $DataList = DB::select($SearchSql);
         $stmt = $pdo->query($SearchSql);
         $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        /* ログ出力 START*/
+        if(!$request->captureFlag==false){
+            Log::info('SearchWebOrderList sql\n' . $SearchSql);
+            Log::info('SearchWebOrderListの値\n' . json_encode($DataList,JSON_UNESCAPED_UNICODE));
+        }
+        /* ログ出力 END*/
 
         // $CountSql = "
         //     SELECT

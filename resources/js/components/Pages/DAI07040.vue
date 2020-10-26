@@ -332,6 +332,9 @@ export default {
     },
     methods: {
         createdFunc: function(vue) {
+            //MultiSelectで利用出来るよう、ログイン済みの場合は部署CDをViewModelに保持
+            vue.viewModel.BushoCd = vue.viewModel.BushoCd || vue.getLoginInfo().bushoCd;
+
             vue.footerButtons.push(
                 { visible: "true", value: "検索", id: "DAI07040Grid1_Search", disabled: false, shortcut: "F5",
                     onClick: function () {

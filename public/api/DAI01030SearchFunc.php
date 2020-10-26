@@ -56,7 +56,8 @@ function Search() {
             SELECT
                 MTT.得意先ＣＤ,
                 MTT.商品ＣＤ,
-                IIF(CD.予備金額１ != 0, CD.予備金額１, MTT.単価) AS 単価,
+                --IIF(CD.予備金額１ != 0, CD.予備金額１, MTT.単価) AS 単価,
+                MTT.単価,
                 MTT.商品名,
                 MTT.商品区分,
                 CD.注文区分,
