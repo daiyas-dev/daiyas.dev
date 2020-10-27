@@ -401,8 +401,8 @@ class DAI06040Controller extends Controller
             SUM(SV内数) AS SV内数,
             MIN(ISNULL(チケット残数, 0)) AS チケット残数,
             MIN(ISNULL(チケット残数SV, 0)) AS チケット残数SV,
-            SUM(SUM(ISNULL(チケット販売, 0))) OVER (PARTITION BY コースＣＤ, ＳＥＱ ORDER BY コースＣＤ, ＳＥＱ, 日付) AS チケット販売累計,
-            SUM(SUM(ISNULL(チケット販売SV, 0))) OVER (PARTITION BY コースＣＤ, ＳＥＱ ORDER BY コースＣＤ, ＳＥＱ, 日付) AS チケット販売累計SV,
+            SUM(SUM(ISNULL(チケット販売, 0)+ISNULL(調整, 0))) OVER (PARTITION BY コースＣＤ, ＳＥＱ ORDER BY コースＣＤ, ＳＥＱ, 日付) AS チケット販売累計,
+            SUM(SUM(ISNULL(チケット販売SV, 0)+ISNULL(調整SV, 0))) OVER (PARTITION BY コースＣＤ, ＳＥＱ ORDER BY コースＣＤ, ＳＥＱ, 日付) AS チケット販売累計SV,
             SUM(SUM(ISNULL(弁当売上, 0))) OVER (PARTITION BY コースＣＤ, ＳＥＱ ORDER BY コースＣＤ, ＳＥＱ, 日付) AS 弁当売上累計,
             SUM(SUM(ISNULL(弁当売上SV, 0))) OVER (PARTITION BY コースＣＤ, ＳＥＱ ORDER BY コースＣＤ, ＳＥＱ, 日付) AS 弁当売上累計SV
         FROM
