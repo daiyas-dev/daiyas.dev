@@ -849,6 +849,26 @@ export default {
             vue.footerButtons.find(v => v.id == "DAI07010Grid1_Save").disabled = !!CheckSeikyu || !!CheckKaikei;
             //vue.footerButtons.find(v => v.id == "DAI07010Grid1_Save").disabled = !!CheckKaikei;
 
+            //2020/10/27 追加
+            var SeikyuList = res[0].GetSeikyu ;
+            var SeikyuDay = "";
+            var lmt = 0;
+            var AddMsg = "";
+
+            if(SeikyuList.length > 0){
+                if(SeikyuList.length > 5){
+                    lmt = 4
+                    AddMsg = " 他)"
+                } else{
+                    lmt = SeikyuList.length - 1
+                    AddMsg = ")"
+                }
+                for (var i = 0; i <= lmt; i++){
+                    SeikyuDay += ", " + moment(SeikyuList[i]["請求日付"], "YYYYMMDD").format("M/D");
+                } 
+                SeikyuDay = SeikyuDay.substr(2, SeikyuDay.length -1);
+                vue.checkMsg +=  " " + "(" + SeikyuDay + AddMsg ;
+            }        
             return UriageDataList;
         },
         setSearchResult: function (res, isBlink) {

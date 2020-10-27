@@ -204,6 +204,26 @@ class DAI07010Controller extends Controller
     }
 
     /**
+     * GetDate
+     */
+    public function GetSeikyu($request)
+    {
+        $TargetDate = $request->TargetDate;
+        $BushoCd = $request->BushoCd;
+        $CustomerCd = $request->CustomerCd;
+
+        $sql = "
+            SELECT 請求日付 FROM 請求データ
+            WHERE 部署ＣＤ = '$BushoCd'
+            AND 請求先ＣＤ = '$CustomerCd'
+            AND 請求日付 > '$TargetDate'
+            ORDER BY 請求日付 ASC
+        ";
+        $SeikyuList = DB::select($sql);
+        return $SeikyuList;
+    }
+
+    /**
      * GetData
      */
     public function GetData($request)
@@ -213,6 +233,7 @@ class DAI07010Controller extends Controller
                 "UriageDataList" => $this->GetUriageDataList($request),
                 "CheckSeikyu" => $this->CheckSeikyu($request),
                 "CheckKaikei" => $this->CheckKaikei($request),
+                "GetSeikyu" => $this->GetSeikyu($request)
             ]
         ];
     }
