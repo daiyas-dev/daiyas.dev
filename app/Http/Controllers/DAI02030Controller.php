@@ -241,8 +241,8 @@ class DAI02030Controller extends Controller
                     SUM(売上データ明細.掛売個数) AS 数量,
                     ISNULL(売上データ明細.予備金額１, 0) AS 単価,
                     SUM(売上データ明細.掛売金額 - ISNULL(売上データ明細.掛売値引, 0)) AS 金額,
-                    NULL AS 入金金額,
-                    売上データ明細.備考 AS 備考
+                    NULL AS 入金金額--,
+                    --売上データ明細.備考 AS 備考
                 FROM
                     [売上データ明細]
                     INNER JOIN [商品マスタ]
@@ -271,8 +271,8 @@ class DAI02030Controller extends Controller
                     売上データ明細.食事区分,
                     食事区分名称.各種略称,
                     商品マスタ.商品名 + IIF(売上データ明細.掛売値引 > 0, '(値引)', ''),
-                    ISNULL(売上データ明細.予備金額１, 0),
-                    売上データ明細.備考
+                    ISNULL(売上データ明細.予備金額１, 0)--,
+                    --売上データ明細.備考
                 UNION
                 SELECT
                     IIF(得意先マスタ.請求先ＣＤ=0, 得意先マスタ.得意先ＣＤ, 得意先マスタ.請求先ＣＤ) AS 請求先ＣＤ,
@@ -309,8 +309,8 @@ class DAI02030Controller extends Controller
                             + ISNULL(入金データ.その他, 0)
                             + ISNULL(入金データ.相殺, 0)
                             + ISNULL(入金データ.値引, 0)
-                    ) AS 入金金額,
-                    入金データ.備考
+                    ) AS 入金金額--,
+                    --入金データ.備考
                 FROM
                     [入金データ]
                     INNER JOIN [得意先マスタ]
