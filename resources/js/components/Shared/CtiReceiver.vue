@@ -245,6 +245,7 @@ export default {
                                                 text: "いいえ",
                                                 class: "btn btn-danger",
                                                 click: function(){
+                                                    var $dlg = $(this);
                                                     $dlg.dialog("close");
                                                     //1030注文入力表示: OK
                                                     vue.show01030(rowData);
