@@ -688,7 +688,7 @@
                                         :isShowName=true
                                         :isModal=true
                                         :editable=true
-                                        :reuse=true
+                                        :reuse=false
                                         :existsCheck=true
                                         :onChangeFunc=onEigyoTantoChanged
                                         :inputWidth=80
@@ -715,7 +715,7 @@
                                         :isShowName=true
                                         :isModal=true
                                         :editable=true
-                                        :reuse=true
+                                        :reuse=false
                                         :existsCheck=true
                                         :onChangeFunc=onKakutokuChanged
                                         :inputWidth=80
@@ -744,7 +744,7 @@
                                         :isShowName=true
                                         :isModal=true
                                         :editable=true
-                                        :reuse=true
+                                        :reuse=false
                                         :existsCheck=true
                                         :onChangeFunc=onTorokuChanged
                                         :inputWidth=80
@@ -1468,6 +1468,7 @@ export default {
             //電話番号一覧検索
             var vue = this;
             var grid = vue.DAI04041Grid1;
+            console.log("qaws");
 
             var cd = !!vue.params.得意先CD ? vue.params.得意先CD : (!!vue.viewModel.得意先ＣＤ ? vue.viewModel.得意先ＣＤ: "");
             if(!cd) return;
@@ -2205,27 +2206,62 @@ export default {
                         vue.viewModel.得意先ＣＤ = "";
                     }else{
                         vue.viewModel = res.data.model;
+                        
+                         var grid1 = vue.DAI04041Grid1;
+                        // var tel1 = vue.viewModel.電話番号１.replace(/-/g,"");
+                        
+                        // if (vue.isUniqueArray(grid1,tel1) == 0) {
+                            //電話帳一覧と履歴を更新
 
-                        //電話帳一覧と履歴を更新
-                        vue.saveTelList();
-                        vue.saveHistoryList();
+                        //2020/10/28
+                        res = grid1.pdata.map(v => {
+                            return v;
+                        });
 
-                        progressDlg.dialog("close");
+                        var newrow = _.cloneDeep(res[0]);
 
-                        if (!!vue.params.Parent) {
-                            if (vue.params.Parent.$attrs.pgId == "DAI04040") {
-                                vue.params.Parent.conditionChanged(true);
-                            } else if (vue.params.Parent.$attrs.pgId == "DAI01030") {
-                                vue.params.Parent.updateCustomer();
-                            } else if (!!vue.params.IsCTI) {
-                                vue.params.Parent.after04041(res.data.model);
-                            }
+                        if (!!vue.params && !!vue.params.電話番号１) {
+                            var match = res.filter(v => (v.Tel_TelNo ? v.Tel_TelNo.replace(/-/g,"") : "") == vue.viewModel.電話番号１.replace(/-/g,""));
+                            if(match.length == 0){   //電話番号１とリスト内の電話番号が重複していなければ登録
+                                newrow.Tel_TelNo = vue.viewModel.電話番号１.replace(/-/g,"");
+                                newrow.Tel_CustNo = null;
+                                newrow.Tel_RepFlg = 0;
+                                newrow.Tel_DelFlg = 0;
+                                grid1.pdata.push(newrow);
+                            }else{
+                                console.log("重複");
+                            };
                         }
+                            vue.saveTelList();
+                            vue.saveHistoryList();
 
-                        //画面を閉じる
-                        //$(vue.$el).closest(".ui-dialog-content").dialog("close");
+                            grid1.pdata = _.sortBy(grid1.pdata, "Tel_TelNo");
+                            grid1.refreshCM();
+                            grid1.refresh();
 
-                        vue.params.IsNew = false; // 新規登録後は更新モードに入る
+                            progressDlg.dialog("close");
+
+                            if (!!vue.params.Parent) {
+                                if (vue.params.Parent.$attrs.pgId == "DAI04040") {
+                                    vue.params.Parent.conditionChanged(true);
+                                } else if (vue.params.Parent.$attrs.pgId == "DAI01030") {
+                                    vue.params.Parent.updateCustomer();
+                                } else if (!!vue.params.IsCTI) {
+                                    vue.params.Parent.after04041(res.data.model);
+                                }
+                            }
+
+                            //画面を閉じる
+                            //$(vue.$el).closest(".ui-dialog-content").dialog("close");
+
+                            vue.params.IsNew = false; // 新規登録後は更新モードに入る
+                        // } else {
+                        // progressDlg.dialog("close");
+                        // $.dialogErr({
+                        // title: "重複チェック",
+                        // contents: "リスト内の電話番号が重複しています。",
+                        // });
+                        // }
                     }
                 })
                 .catch(err => {
@@ -2238,6 +2274,17 @@ export default {
                 }
             );
         },
+        //2020/10/15
+        // isUniqueArray: function(SendGrid,sendTel) {
+        //     var arr = _.cloneDeep(SendGrid.pdata)
+        //     .filter(k=> !!k.Tel_TelNo).map(v => {
+        //         return v.Tel_TelNo;
+        //     })
+        //     var ret = _.filter(arr, (val, i, iteratee) => _.includes(iteratee, val, i + 1));
+        //     return ret.length;
+            
+        // },
+
         showCourse: function() {
             var vue = this;
             var cds = vue.viewModel.得意先ＣＤ;
@@ -2317,19 +2364,19 @@ export default {
                 return v;
             });
 
-            if (!!vue.params && !!vue.params.電話番号１) {
-                var match = res.filter(v => v.Tel_TelNo.replace(/-/g,"") == vue.params.電話番号１.replace(/-/g,""));
-                if (match.length == 0) {
-                    res.push(
-                        {
-                            Tel_TelNo:  vue.params.電話番号１.replace(/-/g,""),
-                            Tel_CustNo: null,
-                            Tel_RepFlg: 0,
-                            Tel_DelFlg: 0,
-                        }
-                    );
-                }
-            }
+            // if (!!vue.params && !!vue.params.電話番号１) {
+            //     var match = res.filter(v => v.Tel_TelNo.replace(/-/g,"") == vue.params.電話番号１.replace(/-/g,""));
+            //     if (match.length == 0) {
+            //         res.push(
+            //             {
+            //                 Tel_TelNo:  vue.params.電話番号１.replace(/-/g,""),
+            //                 Tel_CustNo: null,
+            //                 Tel_RepFlg: 0,
+            //                 Tel_DelFlg: 0,
+            //             }
+            //         );
+            //     }
+            // }
 
             return res;
         },
