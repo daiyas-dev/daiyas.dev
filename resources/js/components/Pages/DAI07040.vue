@@ -613,7 +613,7 @@ export default {
                             </div>
                         </div>
                         <div  class="title" style="float: left; width: 50.7%;">
-                            <h3>* * * <span/週間曜日予定表<span/> * * *</h3>
+                            <h3>* * * <span/>週間曜日予定表<span/> * * *</h3>
                             <div style="margin-bottom: 5px;">コース：${!!vue.viewModel.CourseCdArray && vue.viewModel.CourseCdArray.length > 0 ?
                                 JSON.stringify(DAI07040.viewModel.CourseCdArray.map(v => v.code)).replace(/"|\[|]/g,"")
                                 : "全コース"}
