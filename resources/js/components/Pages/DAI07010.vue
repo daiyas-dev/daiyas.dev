@@ -520,7 +520,11 @@ export default {
         onCustomerChanged: function(code, entity) {
             var vue = this;
 
-            vue.viewModel.TelNo = !!entity ? entity.電話番号１ : "";
+            if (!!entity) {
+                vue.viewModel.CustomerInfo = entity;
+                vue.viewModel.TelNo = entity.電話番号１;
+            }
+
 
             //条件変更ハンドラ
             vue.conditionChanged();
@@ -637,12 +641,12 @@ export default {
                 to: moment(vue.FirstDay).add(vue.TargetDays, "days").format("YYYY/MM/DD"),
             };
 
-            if (vue.PrevParamsHoliday && _.isEqual(vue.PrevParamsHoliday, params && !vue.viewModel.BushoCd)) {
-                callback();
-                return;
-            }
+            // if (vue.PrevParamsHoliday && _.isEqual(vue.PrevParamsHoliday, params && !vue.viewModel.BushoCd)) {
+            //     callback();
+            //     return;
+            // }
 
-            vue.PrevParamsHoliday = _.cloneDeep(params);
+            // vue.PrevParamsHoliday = _.cloneDeep(params);
 
             //事前情報取得
             axios.all(
@@ -654,12 +658,22 @@ export default {
                             from: vue.FirstDay,
                             to: moment(vue.FirstDay).add(vue.TargetDays, "days").format("YYYY/MM/DD"),
                             BushoCd: vue.viewModel.BushoCd,
+                            noCache: true,
+                        }
+                    ),
+                    //祝日配送区分検索
+                    axios.post(
+                        "/DAI07010/IsHolidayDeriveryEnabled",
+                        {
+                            CustomerCd: vue.viewModel.CustomerCd,
+                            noCache: true,
                         }
                     ),
                  ]
             ).then(
-                axios.spread((responseHoliday) => {
+                axios.spread((responseHoliday, responseEnabled) => {
                     var resHoliday = responseHoliday.data;
+                    var resEnabled = responseEnabled.data == "0";
 
                     if (resHoliday.onError && !!resHoliday.errors) {
                         //メッセージリストに追加
@@ -694,7 +708,7 @@ export default {
                                 date: v.format("YYYYMMDD"),
                                 label: v.format("MM/DD"),
                                 weekdays: v.format("ddd") + "曜",
-                                isHoliday: holidays.includes(v.format("YYYYMMDD")) || v.format("d") == "0",
+                                isHoliday: !!resEnabled ? false : (holidays.includes(v.format("YYYYMMDD")) || v.format("d") == "0"),
                             };
                         });
 
@@ -865,10 +879,10 @@ export default {
                 }
                 for (var i = 0; i <= lmt; i++){
                     SeikyuDay += ", " + moment(SeikyuList[i]["請求日付"], "YYYYMMDD").format("M/D");
-                } 
+                }
                 SeikyuDay = SeikyuDay.substr(2, SeikyuDay.length -1);
                 vue.checkMsg +=  " " + "(" + SeikyuDay + AddMsg ;
-            }        
+            }
             return UriageDataList;
         },
         setSearchResult: function (res, isBlink) {
