@@ -302,18 +302,59 @@ try {
         ";
     $pdo->exec($ms_sql);
 
-    //登録完了後の後処理
-    require("DAI01030SearchFunc.php");
-    $Result = [
-        'result' => true,
-        "edited" => count($skip) > 0,
-        "current" => count($skip) > 0 ? Search() : [],
-        "busho_cd"=>$BushoCd,
-        "customer_cd"=>$CustomerCd,
-        "delivery_date"=>$DeliveryDate,
-        "course_code"=> isset($req['CourseCd']) ? $req['CourseCd'] : null,
-    ];
-    print json_encode($Result, JSON_PRETTY_PRINT);
+    $sql = "
+    SELECT * FROM Web受注得意先マスタ
+    WHERE 得意先ＣＤ = '$CustomerCd'
+    ";
+    $stmt = $pdo->query($sql);
+    $Data = $stmt->fetch(PDO::FETCH_ASSOC);
+    $pdo = null;
+
+    $Web_CustomerCd = $Data['Web得意先ＣＤ'] ?? null;
+
+    if(!!$Web_CustomerCd){
+        //2020-10-16
+        $url = "http://192.168.1.211/hellolaravel/public/api/setregistered";
+        //TODO:本番URL
+        //$url="http://18.178.211.62/api/setregistered";
+
+        // base64エンコード
+        $post_data = array(
+            'web_customer_code' => $Web_CustomerCd,
+            'delivery_date' => $DeliveryDate,
+            'registered_date'=> $date,
+        );
+
+        // cURLセッションを初期化
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url); // 取得するURLを指定
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($post_data));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // サーバー証明書の検証を行わない
+
+        //Post実行
+        $result = curl_exec($ch);
+        $curl_error=curl_error($ch);
+
+        // セッションを終了
+        curl_close($ch);
+        //echo 'RETURN:' . $result;
+
+        //登録完了後の後処理
+        require("DAI01030SearchFunc.php");
+        $Result = [
+            'result' => true,
+            "edited" => count($skip) > 0,
+            "current" => count($skip) > 0 ? Search() : [],
+            "busho_cd"=>$BushoCd,
+            "customer_cd"=>$CustomerCd,
+            "delivery_date"=>$DeliveryDate,
+            "course_code"=> isset($req['CourseCd']) ? $req['CourseCd'] : null,
+        ];
+        print json_encode($Result, JSON_PRETTY_PRINT);
+ }
 
 } catch (Exception $e) {
     $pdo->rollBack();
