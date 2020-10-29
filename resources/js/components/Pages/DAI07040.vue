@@ -426,7 +426,7 @@ export default {
             grid.filter({ oper: "replace", mode: "AND", rules: rules });
         },
         onAfterSearchFunc: function (vue, grid, res) {
-            var DeliveryList = res[0].DeliveryList;
+            var DeliveryList = res[0].DeliveryList.filter(v => v.数量 != 0);
 
             //集計
             var groupings = _(DeliveryList)
@@ -613,7 +613,7 @@ export default {
                             </div>
                         </div>
                         <div  class="title" style="float: left; width: 50.7%;">
-                            <h3>* * * <span/>週刊曜日予定表<span/> * * *</h3>
+                            <h3>* * * <span/週間曜日予定表<span/> * * *</h3>
                             <div style="margin-bottom: 5px;">コース：${!!vue.viewModel.CourseCdArray && vue.viewModel.CourseCdArray.length > 0 ?
                                 JSON.stringify(DAI07040.viewModel.CourseCdArray.map(v => v.code)).replace(/"|\[|]/g,"")
                                 : "全コース"}
