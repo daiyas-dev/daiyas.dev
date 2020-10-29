@@ -342,23 +342,23 @@ try {
             // セッションを終了
             curl_close($ch);
             //echo 'RETURN:' . $result;
-
-            //登録完了後の後処理
-            require("DAI01030SearchFunc.php");
-            $Result = [
-                'result' => true,
-                "edited" => count($skip) > 0,
-                "current" => count($skip) > 0 ? Search() : [],
-                "busho_cd"=>$BushoCd,
-                "customer_cd"=>$CustomerCd,
-                "delivery_date"=>$DeliveryDate,
-                "course_code"=> isset($req['CourseCd']) ? $req['CourseCd'] : null,
-            ];
-            print json_encode($Result, JSON_PRETTY_PRINT);
         }
         catch (Exception $e) {
         }
     }
+
+    //登録完了後の後処理
+    require("DAI01030SearchFunc.php");
+    $Result = [
+        'result' => true,
+        "edited" => count($skip) > 0,
+        "current" => count($skip) > 0 ? Search() : [],
+        "busho_cd"=>$BushoCd,
+        "customer_cd"=>$CustomerCd,
+        "delivery_date"=>$DeliveryDate,
+        "course_code"=> isset($req['CourseCd']) ? $req['CourseCd'] : null,
+    ];
+    print json_encode($Result, JSON_PRETTY_PRINT);
 
 } catch (Exception $e) {
     $pdo->rollBack();
