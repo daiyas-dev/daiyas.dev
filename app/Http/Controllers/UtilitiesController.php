@@ -799,7 +799,7 @@ ORDER BY
             ->when(
                 $BushoCd,
                 function ($q) use ($BushoCd) {
-                    return $q->where('対象部署ＣＤ', 'LIKE', "%$BushoCd%");
+                    return $q->whereNull('対象部署ＣＤ')->orWhere('対象部署ＣＤ', 'LIKE', "%$BushoCd%");
                 }
             );
         } else {
@@ -1116,7 +1116,7 @@ $WhereCourseKbn
                         ) C
                     ON TM.部署ＣＤ = C.部署ＣＤ
                     and TM.得意先ＣＤ = C.得意先ＣＤ
-                
+
             WHERE 0=0
             $WhereBusho
             $WhereBushoList
@@ -1759,6 +1759,7 @@ $WhereCourseKbn
                   ,TM.備考１
                   ,TM.備考２
                   ,TM.備考３
+                  ,TM.祝日配送区分
             FROM コーステーブル CT
             left outer join(
                     SELECT 部署ＣＤ
@@ -1787,6 +1788,7 @@ $WhereCourseKbn
                             ,備考１
                             ,備考２
                             ,備考３
+                            ,祝日配送区分
                     FROM 得意先マスタ
             ) TM
             ON CT.部署ＣＤ = TM.部署CD
@@ -1826,6 +1828,7 @@ $WhereCourseKbn
                 $vm->備考２ = $course->備考２;
                 $vm->備考３ = $course->備考３;
                 $vm->コース名 = $course->コース名;
+                $vm->祝日配送区分 = $course->祝日配送区分;
 
                 unset($vm->得意先);
                 unset($vm->コース);

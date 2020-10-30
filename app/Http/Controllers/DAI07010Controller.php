@@ -14,6 +14,30 @@ use Illuminate\Support\Facades\DB as FacadesDB;
 
 class DAI07010Controller extends Controller
 {
+
+
+    /**
+     * IsHolidayDeriveryEnabled
+     */
+    public function IsHolidayDeriveryEnabled($request)
+    {
+        $CustomerCd = $request->CustomerCd;
+
+        if (!isset($CustomerCd)) return 1;
+
+        $sql = "
+            SELECT
+            	祝日配送区分
+            FROM
+                得意先マスタ
+            WHERE
+                得意先ＣＤ = $CustomerCd
+        ";
+
+        $Result = DB::selectOne($sql);
+        return !!$Result ? $Result->祝日配送区分 : 1;
+    }
+
     /**
      * GetUriageDataList
      */
