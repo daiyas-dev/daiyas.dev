@@ -326,6 +326,12 @@ export default {
                                 rowData["金額"] = rowData["単価"] * rowData["個数"];
                                 rowData["主食ＣＤ"] = selected["主食ＣＤ"];
                                 rowData["副食ＣＤ"] = selected["副食ＣＤ"];
+
+                                if(selected["Cd"]==800)
+                                {
+                                    rowData["売上売掛現金区分"] = 0;
+                                    console.log("800");
+                                }
                             },
                             AutoCompleteFunc: vue.ProductAutoCompleteFuncInGrid,
                             AutoCompleteMinLength: 0,
@@ -1084,14 +1090,12 @@ export default {
         },
         setCustomGridTitle: function(title) {
             var vue = this;
-            console.log("aaaaaa");
             return title;
         },
         onAfterSearchFunc: function (grieVue, grid, res) {
             var vue = this;
-
             vue.ProductList = res.ProductList;
-
+            
             var data = res.SalesList.filter(v => !!v.商品ＣＤ);
             data.forEach(v => {
                 v.個数 = (v.売掛現金区分 == 0 ? v.現金個数 : v.掛売個数 ) * 1;
