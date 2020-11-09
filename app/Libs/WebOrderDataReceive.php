@@ -238,13 +238,26 @@ class WebOrderDataReceive extends DataReceiveBase
             DB::connection('sqlsrv_weborder')->delete($sql);
             $sql = "DELETE FROM Web受注データ利用者情報 WHERE Web受注ID IN (SELECT Web受注ID FROM Web受注データ WHERE 配送日 >= CONVERT(DATE, GETDATE()))";
             DB::connection('sqlsrv_weborder')->delete($sql);
+
+            //前回連携時と同じWeb受注IDとする為に保持
+            $sql = "SELECT * FROM Web受注データ WHERE 配送日 >= CONVERT(DATE, GETDATE())";
+            $PrevWebOrders = DB::connection('sqlsrv_weborder')->select($sql);
+
+            //発番時に重複を避ける為に保持
+            $sql = "SELECT max(Web受注ID) AS ID FROM Web受注データ WHERE 配送日 >= CONVERT(DATE, GETDATE())";
+            $max = DB::connection('sqlsrv_weborder')->selectOne($sql);
+            $WebIdMax = 0;
+            if (isset($max->ID)) {
+                $WebIdMax = $max->ID;
+            }
+
             $sql = "DELETE FROM Web受注データ WHERE 配送日 >= CONVERT(DATE, GETDATE())";
             DB::connection('sqlsrv_weborder')->delete($sql);
 
             // $WebOrderList=[];
             $datafile=$zip_dir_path.'\\WebOrderData.txt';
             if (file_exists($datafile)) {
-                $this->SaveWebOrder($datafile);
+                $this->SaveWebOrder($datafile, $PrevWebOrders, $WebIdMax);
             }
             $datafile=$zip_dir_path.'\\WebOrderUserData.txt';
             if (file_exists($datafile)) {
@@ -280,33 +293,50 @@ class WebOrderDataReceive extends DataReceiveBase
      * @param  string   読み込むファイル
      * @return array    作成・更新対象(Web受注ID,配送日の配列),削除対象(Web受注ID,配送日の配列)
      */
-    private function SaveWebOrder($datafile)
+    private function SaveWebOrder($datafile, $PrevWebOrders, $WebIdMax)
     {
         //1レコードごとにデータを更新
         $table_data = json_decode(file_get_contents($datafile), true);
         foreach ($table_data as $record) {
-            //取込済Web受注ID確認
-            $sql = "
-                SELECT
-                    注文データ.Web受注ID
-                FROM
-                    注文データ
-                    INNER JOIN Web受注得意先マスタ
-                        ON Web受注得意先マスタ.得意先ＣＤ=注文データ.得意先ＣＤ
-                WHERE
-                    注文データ.配送日='{$record['配送日']}'
-                AND Web受注得意先マスタ.Web得意先ＣＤ='{$record['Web得意先ＣＤ']}'
-            ";
-            $WebOrder = DB::connection('sqlsrv_weborder')->selectOne($sql);
             $WebOrderID = 0;
 
-            if (isset($WebOrder->Web受注ID)) {
-                $WebOrderID = $WebOrder->Web受注ID;
+            //前回連携時のWeb受注IDをsearch
+            $prev = collect($PrevWebOrders)
+                ->filter(function ($pwo) use($record) {
+                    return $pwo->Web得意先ＣＤ == $record['Web得意先ＣＤ'] && Carbon::parse($pwo->配送日) == Carbon::parse($record['配送日']);
+                })
+                ->values();
+
+            if (count($prev) == 1) {
+                $WebOrderID = $prev[0]->Web受注ID;
             } else {
-                //Web受注ID払出
-                $sql = "select isnull(max(Web受注ID)+1, 1) as NewID from Web受注データ";
+                //取込済Web受注ID確認 //TODO:　前回連携時の方でhitするので不要？
+                $sql = "
+                    SELECT
+                        注文データ.Web受注ID
+                    FROM
+                        注文データ
+                        INNER JOIN Web受注得意先マスタ
+                            ON Web受注得意先マスタ.得意先ＣＤ=注文データ.得意先ＣＤ
+                    WHERE
+                        注文データ.配送日='{$record['配送日']}'
+                    AND Web受注得意先マスタ.Web得意先ＣＤ='{$record['Web得意先ＣＤ']}'
+                ";
                 $WebOrder = DB::connection('sqlsrv_weborder')->selectOne($sql);
-                $WebOrderID = $WebOrder->NewID;
+
+                if (isset($WebOrder->Web受注ID)) {
+                    $WebOrderID = $WebOrder->Web受注ID;
+                }
+            }
+
+            if ($WebOrderID == 0) {
+                //Web受注ID払出
+                // $sql = "select isnull(max(Web受注ID)+1, 1) as NewID from Web受注データ";
+                // $WebOrder = DB::connection('sqlsrv_weborder')->selectOne($sql);
+                // $WebOrderID = $WebOrder->NewID;
+                $WebIdMax++;
+                $WebOrderID = $WebIdMax;
+
                 while(true) {
                     $sql = "select count(*) as CNT from 注文データ where Web受注ID=$WebOrderID";
                     $count = DB::connection('sqlsrv_weborder')->selectOne($sql);
