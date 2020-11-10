@@ -225,18 +225,23 @@ class DAI04091Controller extends Controller
         $ds->UpdateCourseTable($busho_cd,$course_cd, $notify_message);
     }
 
-    public function CoursekbnCheck($request)
+    /**
+     * 得意先の重複を確認する
+     */
+    public function CustomerDuplicateCheck($request)
     {
-        $CustomerCd = $request->CustomerCd;
+        $CustomerCd = array_filter($request->CustomerCd);
         $CustomerCd = implode(",", $CustomerCd);
+        $CourseCd = $request->CourseCd;
         $CourseKbn = $request->CourseKbn;
         $StartDate = $request->StartDate;
         $EndDate = $request->EndDate;
 
         $sql = "
                 SELECT
-                    CT.得意先ＣＤ
-                    ,count(*) AS Cnt
+                    CT.コースＣＤ
+                   ,CT.得意先ＣＤ
+                   ,(SELECT CM.得意先名略称 FROM 得意先マスタ CM WHERE CM.得意先ＣＤ=CT.得意先ＣＤ)AS 得意先略称
                 FROM
                     (
                         SELECT
@@ -276,8 +281,7 @@ class DAI04091Controller extends Controller
 
                 WHERE CM.コース区分=$CourseKbn
                 and CT.得意先ＣＤ in($CustomerCd)
-                group by CT.得意先ＣＤ
-                having count(*) > 1
+				and CT.コースＣＤ<>$CourseCd
             ";
 
             $Result = DB::select($sql);

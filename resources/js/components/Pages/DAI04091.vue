@@ -1369,19 +1369,32 @@ export default {
                 var EndDate = params.EndDate;
                 console.log(StartDate);
                 console.log(EndDate);
-                var Result;
-                axios.post("/DAI04091/CoursekbnCheck", { CustomerCd: grid1.pdata.map(v => v.コード), CourseKbn: CTCourseKbn, StartDate, EndDate })
-                        .then(res => Result = res.data);
-                if (Result == 0 || 1) {
-                    vue.save(grid1, vue.viewModel, params, isBoth);
-                }
-                else
-                {
-                    $.dialogInfo({
-                    title: "重複チェック",
-                    contents: "別コースに得意先が存在しています。",
-                    });
-                }
+                var tc = new Date().getTime();//axios実行時のキャッシュを無効にするため、現在のタイムスタンプを渡す
+                axios.post("/DAI04091/CustomerDuplicateCheck"
+                            , {
+                                timestamp:tc,
+                                CustomerCd: grid1.pdata.map(v => v.コード),
+                                CourseCd: vue.viewModel.CourseCd,
+                                CourseKbn: CTCourseKbn,
+                                StartDate,
+                                EndDate
+                              })
+                        .then(res => {
+                            var Result = res.data;
+                            console.log(Result);
+                            if (Result.length == 0) {
+                                console.log("セーブします")
+                                vue.save(grid1, vue.viewModel, params, isBoth);
+                            }
+                            else
+                            {
+                                var course_customer=_.map(Result,v => {return v.コースＣＤ + "コース : " + v.得意先ＣＤ + " " + v.得意先略称 + "<br/>"});
+                                console.log(course_customer);
+                                $.dialogInfo({
+                                title: "重複チェック",
+                                contents: "別コースに得意先が存在しています。<br/>" + course_customer.join("")});
+                            }
+                        });
             }
             else
             {
