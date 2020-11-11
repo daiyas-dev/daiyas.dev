@@ -556,7 +556,7 @@ class DAI01030Controller extends Controller
         }
 
         $SearchTel = preg_replace('/-/', '', $request->SearchTel);
-        $WhereTelNo = $SearchTel ? "AND REPLACE(M1.電話番号１, '-', '') = '$SearchTel'" : "";
+        $WhereTelNo = $SearchTel ? "AND ((REPLACE(M1.電話番号１, '-', '') = '$SearchTel') OR (REPLACE(M1.電話番号２, '-', '') = '$SearchTel'))" : "";
 
         $BaseSql = "
                 SELECT
