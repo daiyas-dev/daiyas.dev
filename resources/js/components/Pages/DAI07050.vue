@@ -1035,7 +1035,14 @@ export default {
                     border-right-width: 0px;
                     border-bottom-width: 1px;
                     padding-top: 20px;
-
+                }
+                table.DAI07050Grid1 tbody tr:nth-of-type(5n) td{
+                    border-style: dotted;
+                    border-left-width: 0px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                    padding-top: 20px;
                 }
                 tr:first-child > td {
                     padding-top: 8px;
