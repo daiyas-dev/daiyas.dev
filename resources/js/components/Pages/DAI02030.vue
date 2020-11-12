@@ -1477,6 +1477,12 @@ export default {
                             margin-right: 30px !important;
                             margin-left: 30px !important;
                         }
+                        div.font-large {
+                            font-size: large;
+                        }
+                        table.header-table tbody th.font-large {
+                            font-size: large;
+                        }
                     `;
                     var styleSeikyuMeisaiElse =`
                         .header-table th {
@@ -1652,9 +1658,9 @@ export default {
                                     <div>
                                     <div style="clear: both;">
                                         <div id="d-box">
-                                            <div class="header-tokuisaki">
+                                            <div class="header-tokuisaki font-large">
                                                 ${r.得意先名}
-                                                <span>様
+                                                <span>様</span>
                                             </div>
                                             <div>
                                                 Tel
@@ -1745,7 +1751,7 @@ export default {
                                         <th>${tIdx + idx == "0" ? pq.formatNumber(r.差引繰越額, "#,##0") : ""}</th>
                                         <th>${tIdx + idx == "0" ? pq.formatNumber(r.今回売上額, "#,##0") : ""}</th>
                                         <th>${tIdx + idx == "0" ? pq.formatNumber(r.消費税額, "#,##0") : ""}</th>
-                                        <th>${tIdx + idx == "0" ? pq.formatNumber(r.今回請求額, "#,##0") : ""}</th>
+                                        <th class="font-large">${tIdx + idx == "0" ? pq.formatNumber(r.今回請求額, "#,##0") : ""}</th>
                                     </tbody>
                                 </table>
                                 </div>
