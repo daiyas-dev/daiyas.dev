@@ -10,6 +10,7 @@ use DB;
 use Exception;
 use Illuminate\Support\Carbon;
 use PDO;
+use Illuminate\Support\Facades\Log;
 
 class DAI06040Controller extends Controller
 {
@@ -203,86 +204,91 @@ class DAI06040Controller extends Controller
         抽出データ AS
         (
             select
-                    URIAGE_MEISAI.部署ＣＤ
-                ,BUSYO.部署名
-                ,COU.コースＣＤ
-                ,COU.コース名
-                ,COU.コース区分
-                ,COU.ＳＥＱ
-                ,URIAGE_MEISAI.得意先ＣＤ
-                ,TOKUISAKI.得意先名
-                ,URIAGE_MEISAI.商品ＣＤ
-                ,TOKUISAKI.得意先名 + '（' + SHOHIN.商品名 + '）' as 得意先商品名
-                ,URIAGE_MEISAI.日付
-                ,REPLACE(DATENAME(W, URIAGE_MEISAI.日付), '曜日', '') AS 曜日
-                ,URIAGE_MEISAI.売掛現金区分
-                ,(case when URIAGE_MEISAI.売掛現金区分 = 2
-                    then URIAGE_MEISAI.掛売個数
-                    when  URIAGE_MEISAI.売掛現金区分 = 4
-                    then NULL end )as 弁当売上
-                ,(case when URIAGE_MEISAI.売掛現金区分 = 2
-                    then NULL
-                    when  URIAGE_MEISAI.売掛現金区分 = 4
-                    then URIAGE_MEISAI.掛売個数 end) as 弁当売上SV
-                ,SHOHIN.商品区分
-                ,URIAGE_MEISAI.食事区分
-                ,(ISNULL(URIAGE_MEISAI.現金個数, 0) + ISNULL(URIAGE_MEISAI.掛売個数, 0)) as 個数
-            from
-                売上データ明細 URIAGE_MEISAI
-                inner join 商品マスタ SHOHIN on
-                    URIAGE_MEISAI.商品ＣＤ = SHOHIN.商品ＣＤ
-                left join 部署マスタ BUSYO on
-                    URIAGE_MEISAI.部署ＣＤ = BUSYO.部署CD
-                inner join 得意先コースマスタ COU on
-                    URIAGE_MEISAI.得意先ＣＤ   = COU.得意先ＣＤ
-                left join 得意先マスタ TOKUISAKI on
-                    URIAGE_MEISAI.得意先ＣＤ = TOKUISAKI.得意先ＣＤ
-            where
-                URIAGE_MEISAI.部署ＣＤ = $BushoCd
-            and URIAGE_MEISAI.日付 >= '$DateStart'
-            and URIAGE_MEISAI.日付 <= '$DateEnd'
-            and URIAGE_MEISAI.売掛現金区分 in (0, 1, 2, 4)
-            union
-            select distinct
-                    BUSYO.部署ＣＤ
-                ,BUSYO.部署名
-                ,COU.コースＣＤ
-                ,COU.コース名
-                ,COU.コース区分
-                ,COU.ＳＥＱ
-                ,チケット調整.得意先ＣＤ as 得意先ＣＤ
-                ,TOKUISAKI.得意先名 as 得意先名
-                ,チケット調整.商品ＣＤ
-                ,TOKUISAKI.得意先名 + '（' + SHOHIN.商品名 + '）' as 得意先商品名
-                ,チケット調整.日付
-                ,REPLACE(DATENAME(W, チケット調整.日付), '曜日', '') AS 曜日
-                ,9999 as 	売掛現金区分
-                ,0 as 	弁当売上
-                ,0 as 	弁当売上SV
-                ,9999 as 	商品区分
-                ,9 as 	食事区分
-                ,0 as 	個数
-            from
-                チケット調整
-                inner join 得意先コースマスタ COU on
-                    チケット調整.得意先ＣＤ = COU.得意先ＣＤ
-                left join 部署マスタ BUSYO on
-                    COU.部署ＣＤ = BUSYO.部署CD
-                left join 得意先マスタ TOKUISAKI on
-                    チケット調整.得意先ＣＤ = TOKUISAKI.得意先ＣＤ
-                inner join 商品マスタ SHOHIN on
-                    チケット調整.商品ＣＤ = SHOHIN.商品ＣＤ
-                left outer join 売上データ明細 on
-                    チケット調整.得意先ＣＤ = 売上データ明細.得意先ＣＤ
-                    and 売上データ明細.日付 >= '$DateStart'
-                    and 売上データ明細.日付 <= '$DateEnd'
-                    and 売上データ明細.部署CD   = $BushoCd
-                    and 売上データ明細.商品区分 = 9
-                    and 売上データ明細.日付 >= チケット調整.日付
-                    and 売上データ明細.日付 <= チケット調整.日付
-            where チケット調整.日付 >= '$DateStart'
-                and チケット調整.日付 <= '$DateEnd'
-                and 売上データ明細.日付 is null
+             q.*
+            ,rank() over(partition by 得意先名,日付 order by 得意先名,日付,商品ＣＤ)as RNK
+            from(
+                select
+                        URIAGE_MEISAI.部署ＣＤ
+                    ,BUSYO.部署名
+                    ,COU.コースＣＤ
+                    ,COU.コース名
+                    ,COU.コース区分
+                    ,COU.ＳＥＱ
+                    ,URIAGE_MEISAI.得意先ＣＤ
+                    ,TOKUISAKI.得意先名
+                    ,URIAGE_MEISAI.商品ＣＤ
+                    ,TOKUISAKI.得意先名 + '（' + SHOHIN.商品名 + '）' as 得意先商品名
+                    ,URIAGE_MEISAI.日付
+                    ,REPLACE(DATENAME(W, URIAGE_MEISAI.日付), '曜日', '') AS 曜日
+                    ,URIAGE_MEISAI.売掛現金区分
+                    ,(case when URIAGE_MEISAI.売掛現金区分 = 2
+                        then URIAGE_MEISAI.掛売個数
+                        when  URIAGE_MEISAI.売掛現金区分 = 4
+                        then NULL end )as 弁当売上
+                    ,(case when URIAGE_MEISAI.売掛現金区分 = 2
+                        then NULL
+                        when  URIAGE_MEISAI.売掛現金区分 = 4
+                        then URIAGE_MEISAI.掛売個数 end) as 弁当売上SV
+                    ,SHOHIN.商品区分
+                    ,URIAGE_MEISAI.食事区分
+                    ,(ISNULL(URIAGE_MEISAI.現金個数, 0) + ISNULL(URIAGE_MEISAI.掛売個数, 0)) as 個数
+                from
+                    売上データ明細 URIAGE_MEISAI
+                    inner join 商品マスタ SHOHIN on
+                        URIAGE_MEISAI.商品ＣＤ = SHOHIN.商品ＣＤ
+                    left join 部署マスタ BUSYO on
+                        URIAGE_MEISAI.部署ＣＤ = BUSYO.部署CD
+                    inner join 得意先コースマスタ COU on
+                        URIAGE_MEISAI.得意先ＣＤ   = COU.得意先ＣＤ
+                    left join 得意先マスタ TOKUISAKI on
+                        URIAGE_MEISAI.得意先ＣＤ = TOKUISAKI.得意先ＣＤ
+                where
+                    URIAGE_MEISAI.部署ＣＤ = $BushoCd
+                and URIAGE_MEISAI.日付 >= '$DateStart'
+                and URIAGE_MEISAI.日付 <= '$DateEnd'
+                and URIAGE_MEISAI.売掛現金区分 in (0, 1, 2, 4)
+                union
+                select distinct
+                        BUSYO.部署ＣＤ
+                    ,BUSYO.部署名
+                    ,COU.コースＣＤ
+                    ,COU.コース名
+                    ,COU.コース区分
+                    ,COU.ＳＥＱ
+                    ,チケット調整.得意先ＣＤ as 得意先ＣＤ
+                    ,TOKUISAKI.得意先名 as 得意先名
+                    ,チケット調整.商品ＣＤ
+                    ,TOKUISAKI.得意先名 + '（' + SHOHIN.商品名 + '）' as 得意先商品名
+                    ,チケット調整.日付
+                    ,REPLACE(DATENAME(W, チケット調整.日付), '曜日', '') AS 曜日
+                    ,9999 as 	売掛現金区分
+                    ,0 as 	弁当売上
+                    ,0 as 	弁当売上SV
+                    ,9999 as 	商品区分
+                    ,9 as 	食事区分
+                    ,0 as 	個数
+                from
+                    チケット調整
+                    inner join 得意先コースマスタ COU on
+                        チケット調整.得意先ＣＤ = COU.得意先ＣＤ
+                    left join 部署マスタ BUSYO on
+                        COU.部署ＣＤ = BUSYO.部署CD
+                    left join 得意先マスタ TOKUISAKI on
+                        チケット調整.得意先ＣＤ = TOKUISAKI.得意先ＣＤ
+                    inner join 商品マスタ SHOHIN on
+                        チケット調整.商品ＣＤ = SHOHIN.商品ＣＤ
+                    left outer join 売上データ明細 on
+                        チケット調整.得意先ＣＤ = 売上データ明細.得意先ＣＤ
+                        and 売上データ明細.日付 >= '$DateStart'
+                        and 売上データ明細.日付 <= '$DateEnd'
+                        and 売上データ明細.部署CD   = $BushoCd
+                        and 売上データ明細.商品区分 = 9
+                        and 売上データ明細.日付 >= チケット調整.日付
+                        and 売上データ明細.日付 <= チケット調整.日付
+                where チケット調整.日付 >= '$DateStart'
+                    and チケット調整.日付 <= '$DateEnd'
+                    and 売上データ明細.日付 is null
+            )q
         ),
 
         抽出データ2 AS
@@ -344,6 +350,7 @@ class DAI06040Controller extends Controller
             ) A ON
                 A.得意先ＣＤ = T.得意先ＣＤ
             AND A.日付 = T.日付
+			AND T.RNK=1
         LEFT OUTER JOIN
             チケット残_SV Z ON
                 Z.得意先ＣＤ = T.得意先ＣＤ
@@ -481,6 +488,8 @@ class DAI06040Controller extends Controller
         WHERE
             IIF(D.得意先ＣＤ IS NULL, 2, 1) = 2
         ";
+
+        //Log::info('DAI06040_Search_SQL:\n' . $sql);
 
         $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';

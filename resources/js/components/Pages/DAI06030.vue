@@ -220,6 +220,12 @@ export default {
     methods: {
         createdFunc: function(vue) {
             vue.footerButtons.push(
+                { visible: "true", value: "検索", id: "DAI06030Grid1_Search", disabled: false, shortcut: "F3",
+                    onClick: function () {
+                        vue.ConditionChanged();
+                    }
+                },
+                {visible: "false"},
                 { visible: "true", value: "実行", id: "DAI06030Grid1_Save", disabled: true, shortcut: "F5",
                     onClick: function () {
                         vue.Save();
