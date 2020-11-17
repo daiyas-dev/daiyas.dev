@@ -2451,7 +2451,6 @@ $OrderBy
             SELECT DISTINCT
                 REPLACE(CT.Tel_TelNo, '-', '') AS Tel_TelNo
                 ,CT.Tel_CustNo
-                ,CT.Tel_RepFlg
                 ,CT.Tel_DelFlg
                 ,CT.Tel_NewDate
                 ,CT.Tel_UpdDate
