@@ -326,7 +326,7 @@
                     </div>
                     <div class="col-md-12 align-items-start">
                         <PqGridWrapper
-                            id="DAI04041Grid1"
+                            :id='"DAI04041Grid1" + (!!params ? _uid : "")'
                             ref="DAI04041Grid1"
                             dataUrl="/DAI04041/GetTelToCustList"
                             :query="{CustomerCd: this.viewModel.得意先ＣＤ}"
@@ -2206,10 +2206,10 @@ export default {
                         vue.viewModel.得意先ＣＤ = "";
                     }else{
                         vue.viewModel = res.data.model;
-                        
+
                          var grid1 = vue.DAI04041Grid1;
                         // var tel1 = vue.viewModel.電話番号１.replace(/-/g,"");
-                        
+
                         // if (vue.isUniqueArray(grid1,tel1) == 0) {
                             //電話帳一覧と履歴を更新
 
@@ -2220,7 +2220,7 @@ export default {
 
                         var newrow = _.cloneDeep(res[0]);
 
-                        if (!!vue.params && !!vue.params.電話番号１) {
+                        if (!!params && !!params.電話番号１) {
                             var match = res.filter(v => (v.Tel_TelNo ? v.Tel_TelNo.replace(/-/g,"") : "") == vue.viewModel.電話番号１.replace(/-/g,""));
                             if(match.length == 0){   //電話番号１とリスト内の電話番号が重複していなければ登録
                                 newrow.Tel_TelNo = vue.viewModel.電話番号１.replace(/-/g,"");
@@ -2282,7 +2282,7 @@ export default {
         //     })
         //     var ret = _.filter(arr, (val, i, iteratee) => _.includes(iteratee, val, i + 1));
         //     return ret.length;
-            
+
         // },
 
         showCourse: function() {
