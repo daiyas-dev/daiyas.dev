@@ -193,7 +193,6 @@ class DAI06030Controller extends Controller
         {
             return null;
         }
-        //TODO:現行SQLには[AND 得意先ＣＤ=$CustomerCd]の条件が存在しないが、必要と思われる。
         $sql="
                 SELECT
                       SUM(チケット減数) as 累積チケット減数
@@ -202,8 +201,8 @@ class DAI06030Controller extends Controller
                     [チケット調整]
                 WHERE
                     [チケット調整ID] >= $AdjustmentID
+                    AND 得意先ＣＤ= $CustomerCd
             ";
-            //AND 得意先ＣＤ=$CustomerCd
             $DataList = DB::select($sql);
         return $DataList;
     }
