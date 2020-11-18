@@ -222,6 +222,7 @@ export default {
             vue.footerButtons.push(
                 { visible: "true", value: "検索", id: "DAI06030Grid1_Search", disabled: false, shortcut: "F3",
                     onClick: function () {
+                        vue.onCustomerChanged();
                         vue.ConditionChanged();
                     }
                 },
@@ -291,6 +292,7 @@ export default {
                       CustomerCd: vue.viewModel.CustomerCd
                     , AdjustmentID: vue.viewModel.AdjustmentID
                     , AdjustmentDate:AdjustmentDate
+                    , noCache:true
                 })
                 .then(response => {
                     var TicketZansu = _.cloneDeep(response.data[0].TicketZansu[0]);
@@ -312,11 +314,11 @@ export default {
                         var TicketAdjustmentSummary = _.cloneDeep(response.data[0].TicketAdjustmentSummary[0]);
 
                         vue.viewModel.TicketZanSystem=TicketZansu.チケット残数*1 - TicketAdjustmentSummary.累積チケット減数*1;
-                        vue.viewModel.TicketZanJitsu=vue.viewModel.TicketZanSystem+TicketAdjustment.チケット減数*1;
+                        vue.viewModel.TicketZanJitsu=vue.viewModel.TicketZanSystem*1 +TicketAdjustment.チケット減数*1;
                         vue.viewModel.TicketZanSa=vue.viewModel.TicketZanJitsu*1 - vue.viewModel.TicketZanSystem*1;
 
                         vue.viewModel.SVTicketZanSystem=(TicketZansu.サービス残数*1 - TicketAdjustmentSummary.累積SV減数*1).toFixed(1);
-                        vue.viewModel.SVTicketZanJitsu=(vue.viewModel.SVTicketZanSystem+TicketAdjustment.SV減数*1).toFixed(1);
+                        vue.viewModel.SVTicketZanJitsu=(vue.viewModel.SVTicketZanSystem*1 + TicketAdjustment.SV減数*1).toFixed(1);
                         vue.viewModel.SVTicketZanSa=(vue.viewModel.SVTicketZanJitsu*1 - vue.viewModel.SVTicketZanSystem*1).toFixed(1);
 
                         vue.viewModel.AdjustmentReason = TicketAdjustment.調整理由==2 ? 2 : 1;

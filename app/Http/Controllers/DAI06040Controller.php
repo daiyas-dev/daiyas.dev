@@ -473,9 +473,25 @@ class DAI06040Controller extends Controller
         FROM 抽出データ5 T
         UNION
         SELECT
-            2 AS 処理区分,
-            ROW_NUMBER() OVER (ORDER BY ASCII(Z.得意先ＣＤ)) AS ROWNUMBER,
-            Z.*
+            2 AS 処理区分
+            ,ROW_NUMBER() OVER (ORDER BY ASCII(Z.得意先ＣＤ)) AS ROWNUMBER
+            ,Z.コースＣＤ
+            ,Z.コース名
+            ,Z.ＳＥＱ
+            ,Z.得意先ＣＤ
+            ,Z.得意先商品名
+            ,Z.日付
+            ,Z.曜日
+            ,Z.チケット販売
+            ,Z.チケット販売SV
+            ,Z.弁当売上
+            ,Z.弁当売上SV
+            ,0-CT.sum_チケット減数 as 調整
+            ,0-CT.sum_SV減数 AS 調整SV
+            ,Z.チケット内数
+            ,Z.SV内数
+            ,Z.チケット残数-CT.sum_チケット減数
+            ,Z.チケット残数SV-CT.sum_SV減数
         FROM
             チケット残数 Z
             LEFT OUTER JOIN (
@@ -485,7 +501,16 @@ class DAI06040Controller extends Controller
                     抽出データ5
             ) D
                 ON D.得意先ＣＤ = Z.得意先ＣＤ
-        WHERE
+            LEFT OUTER JOIN (
+                SELECT
+                    得意先ＣＤ
+                    , SUM(チケット減数) as sum_チケット減数
+                    , SUM(SV減数) as sum_SV減数
+                FROM チケット調整
+                WHERE 日付 >= '$DateStart' and 日付 <= '$DateEnd'
+                GROUP BY 得意先ＣＤ
+                ) CT on Z.得意先ＣＤ = CT.得意先ＣＤ and not exists(select 1 from 売上データ明細 ud where ud.得意先ＣＤ=Z.得意先ＣＤ and  ud.日付 >= '$DateStart' and ud.日付 <= '$DateEnd')
+            WHERE
             IIF(D.得意先ＣＤ IS NULL, 2, 1) = 2
         ";
 
