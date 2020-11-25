@@ -1174,6 +1174,212 @@ export default {
                 }
             `;
 
+            //501用レイアウト
+            var styleSeikyuMeisai501 =`
+                body > div > div:nth-of-type(even) > div[style='break-before: page;'] {
+                    break-before: auto !important;
+                }
+                div#g-box {
+                    padding-top: 0px !important;
+                }
+                div#h-box {
+                    display: none;
+                }
+                .header-table th {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 1px;
+                    border-bottom-width: 0px;
+                }
+                table.DAI02030Grid1 tr th,
+                table.DAI02030Grid1 tr td {
+                    height: 18px !important;
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI02030Grid1 tr th {
+                    border-top-width: 1px;
+                }
+                table.DAI02030Grid1 thead tr {
+                    height: 25px;
+                }
+                table.DAI02030Grid1 tbody tr {
+                    height: 20px;
+                }
+                table.DAI02030Grid1 tr > *:last-child {
+                    border-right-width: 1px;
+                }
+                table.DAI02030Grid1 thead tr th:nth-child(1) {
+                    width: 16%;
+                }
+                table.DAI02030Grid1 thead tr th:nth-child(n+2):nth-child(-n+9) {
+                    width: 8%;
+                }
+                table.DAI02030Grid1 thead tr th:nth-child(10),
+                table.DAI02030Grid1 thead tr th:nth-child(11) {
+                    width: 10%;
+                }
+                table.DAI02030Grid1 tbody tr td:nth-child(1) {
+                    text-align: left;
+                }
+                table.DAI02030Grid1 tbody tr.grandsummary td:nth-child(1) {
+                    text-align: center;
+                }
+                table.DAI02030Grid1 tbody tr td:nth-child(n+2){
+                    text-align: right;
+                }
+                body > div > div:nth-child(odd) > div > div.header {
+                    padding-top: 30px;
+                    border-style: dashed;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                div.header-tokuisaki {
+                    padding-top: 3px !important;
+                    padding-bottom: 3px !important;
+                    margin-top: 3px !important;
+                    margin-bottom: 3px !important;
+                }
+                div.header-seikyu-no,
+                div.header-seikyu-date {
+                    text-align: center;
+                }
+                div .page_div {
+                    margin-bottom: 30px;
+                }
+                div .header-info {
+                    color: transparent;
+                }
+                div[style="break-before: page;"],
+                div[style="break-before: auto;"],
+                div[style="page-break-before: always;"] {
+                    margin-top: 28px !important;
+                    margin-bottom: 27px !important;
+                    margin-right: 30px !important;
+                    margin-left: 30px !important;
+                }
+                div.font-large {
+                    font-size: large;
+                }
+                table.header-table tbody th.font-large {
+                    font-size: large;
+                }
+            `;
+            var styleSeikyuMeisaiElse =`
+                .header-table th {
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 1px;
+                    border-right-width: 1px;
+                    border-bottom-width: 0px;
+                }
+                .header-table tr th:first-child {
+                    border-left-width: 1px;
+                }
+                .header-table tr:nth-child(1) th:nth-child(n+4) {
+                    border-left-width: 0px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 0px;
+                }
+                .header-table tr:nth-child(4) th:nth-child(6) {
+                    border-top-width: 0px;
+                }
+                table.DAI02030Grid1 tr:nth-child(1) th {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 1px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI02030Grid1 tr th:last-child {
+                    border-right-width: 1px;
+                }
+                table.DAI02030Grid1 tr td {
+                    border-style: solid;
+                    border-left-width: 1px;
+                    border-top-width: 0px;
+                    border-right-width: 0px;
+                    border-bottom-width: 1px;
+                }
+                table.DAI02030Grid1 tr td:nth-child(1),
+                table.DAI02030Grid1 tr td:nth-child(2) {
+                    text-align: center;
+                }
+                table.DAI02030Grid1 tr td:nth-child(4),
+                table.DAI02030Grid1 tr td:nth-child(5),
+                table.DAI02030Grid1 tr td:nth-child(6),
+                table.DAI02030Grid1 tr td:nth-child(7) {
+                    text-align: right;
+                }
+                table.DAI02030Grid1 tr.gsummary td:nth-child(3),
+                table.DAI02030Grid1 tr.grandsummary td:nth-child(3) {
+                    text-align: center;
+                }
+                table.DAI02030Grid1 tr td:last-child {
+                    border-right-width: 1px;
+                }
+                table.DAI02030Grid1 thead tr th{
+                    height: 18px;
+                }
+                table.DAI02030Grid1 tbody tr {
+                    height: 27.5px;
+                }
+                th:first-child:nth-last-child(8),
+                th:first-child:nth-last-child(8) ~ th:nth-child(2) {
+                    width: 7.0%;
+                }
+                th:first-child:nth-last-child(8) ~ th:nth-child(3),
+                th:first-child:nth-last-child(8) ~ th:nth-child(8) {
+                    width: 25.0%;
+                }
+                th:first-child:nth-last-child(8) ~ th:nth-child(4),
+                th:first-child:nth-last-child(8) ~ th:nth-child(5) {
+                    width: 8.0%;
+                }
+                th:first-child:nth-last-child(5) {
+                    width: 40.0%;
+                }
+                th:first-child:nth-last-child(5) ~ th:nth-child(2) {
+                    width: 8.0%;
+                }
+                th:first-child:nth-last-child(5) ~ th:nth-child(5) {
+                    width: 22.0%;
+                }
+                tr.tsums td:nth-child(1){
+                    text-align: left !important;
+                }
+                tr.tsums td:nth-child(3),
+                tr.tsums td:nth-child(4){
+                    text-align: right !important;
+                }
+                tr.tsums-grandsummary td:nth-child(3){
+                    text-align: right;
+                }
+                tr.tsums td:nth-child(5),
+                tr.tsums-grandsummary td:nth-child(5){
+                    text-align: start !important;
+                }
+                tr.tsums-grandsummary td:nth-child(2){
+                    border-left-width: 0;
+                }
+                div[style="break-before: page;"],
+                div[style="break-before: auto;"],
+                div[style="page-break-before: always;"] {
+                    margin-top: 20px !important;
+                    margin-bottom: 20px !important;
+                    margin-right: 30px !important;
+                    margin-left: 30px !important;
+                }
+            `;
+
+            globalStyles += vue.viewModel.BushoCd == 501 && vue.viewModel.SimeKbn == 1 ? styleSeikyuMeisai501 : styleSeikyuMeisaiElse;
 
             //ダイアログ
             var progressDlg = $.dialogProgress({
@@ -1387,214 +1593,6 @@ export default {
                     var pdata = group[r.請求先ＣＤ] || [{}];
                     var target = meisaiGen(r, pdata);
 
-                    //501用レイアウト
-                    var styleSeikyuMeisai501 =`
-                        body > div > div:nth-of-type(even) > div[style='break-before: page;'] {
-                            break-before: auto !important;
-                        }
-                        div#g-box {
-                            padding-top: 0px !important;
-                        }
-                        div#h-box {
-                            display: none;
-                        }
-                        .header-table th {
-                            border-style: solid;
-                            border-left-width: 0px;
-                            border-top-width: 1px;
-                            border-right-width: 1px;
-                            border-bottom-width: 0px;
-                        }
-                        table.DAI02030Grid1 tr th,
-                        table.DAI02030Grid1 tr td {
-                            height: 18px !important;
-                            border-style: solid;
-                            border-left-width: 1px;
-                            border-top-width: 0px;
-                            border-right-width: 0px;
-                            border-bottom-width: 1px;
-                        }
-                        table.DAI02030Grid1 tr th {
-                            border-top-width: 1px;
-                        }
-                        table.DAI02030Grid1 thead tr {
-                            height: 25px;
-                        }
-                        table.DAI02030Grid1 tbody tr {
-                            height: 20px;
-                        }
-                        table.DAI02030Grid1 tr > *:last-child {
-                            border-right-width: 1px;
-                        }
-                        table.DAI02030Grid1 thead tr th:nth-child(1) {
-                            width: 16%;
-                        }
-                        table.DAI02030Grid1 thead tr th:nth-child(n+2):nth-child(-n+9) {
-                            width: 8%;
-                        }
-                        table.DAI02030Grid1 thead tr th:nth-child(10),
-                        table.DAI02030Grid1 thead tr th:nth-child(11) {
-                            width: 10%;
-                        }
-                        table.DAI02030Grid1 tbody tr td:nth-child(1) {
-                            text-align: left;
-                        }
-                        table.DAI02030Grid1 tbody tr.grandsummary td:nth-child(1) {
-                            text-align: center;
-                        }
-                        table.DAI02030Grid1 tbody tr td:nth-child(n+2){
-                            text-align: right;
-                        }
-                        body > div > div:nth-child(odd) > div > div.header {
-                            padding-top: 30px;
-                            border-style: dashed;
-                            border-left-width: 0px;
-                            border-top-width: 1px;
-                            border-right-width: 0px;
-                            border-bottom-width: 0px;
-                        }
-                        div.header-tokuisaki {
-                            padding-top: 3px !important;
-                            padding-bottom: 3px !important;
-                            margin-top: 3px !important;
-                            margin-bottom: 3px !important;
-                        }
-                        div.header-seikyu-no,
-                        div.header-seikyu-date {
-                            text-align: center;
-                        }
-                        div .page_div {
-                            margin-bottom: 30px;
-                        }
-                        div .header-info {
-                            color: transparent;
-                        }
-                        div[style="break-before: page;"],
-                        div[style="break-before: auto;"],
-                        div[style="page-break-before: always;"] {
-                            margin-top: 28px !important;
-                            margin-bottom: 27px !important;
-                            margin-right: 30px !important;
-                            margin-left: 30px !important;
-                        }
-                        div.font-large {
-                            font-size: large;
-                        }
-                        table.header-table tbody th.font-large {
-                            font-size: large;
-                        }
-                    `;
-                    var styleSeikyuMeisaiElse =`
-                        .header-table th {
-                            border-style: solid;
-                            border-left-width: 0px;
-                            border-top-width: 1px;
-                            border-right-width: 1px;
-                            border-bottom-width: 0px;
-                        }
-                        .header-table tr th:first-child {
-                            border-left-width: 1px;
-                        }
-                        .header-table tr:nth-child(1) th:nth-child(n+4) {
-                            border-left-width: 0px;
-                            border-top-width: 0px;
-                            border-right-width: 0px;
-                            border-bottom-width: 0px;
-                        }
-                        .header-table tr:nth-child(4) th:nth-child(6) {
-                            border-top-width: 0px;
-                        }
-                        table.DAI02030Grid1 tr:nth-child(1) th {
-                            border-style: solid;
-                            border-left-width: 1px;
-                            border-top-width: 1px;
-                            border-right-width: 0px;
-                            border-bottom-width: 1px;
-                        }
-                        table.DAI02030Grid1 tr th:last-child {
-                            border-right-width: 1px;
-                        }
-                        table.DAI02030Grid1 tr td {
-                            border-style: solid;
-                            border-left-width: 1px;
-                            border-top-width: 0px;
-                            border-right-width: 0px;
-                            border-bottom-width: 1px;
-                        }
-                        table.DAI02030Grid1 tr td:nth-child(1),
-                        table.DAI02030Grid1 tr td:nth-child(2) {
-                            text-align: center;
-                        }
-                        table.DAI02030Grid1 tr td:nth-child(4),
-                        table.DAI02030Grid1 tr td:nth-child(5),
-                        table.DAI02030Grid1 tr td:nth-child(6),
-                        table.DAI02030Grid1 tr td:nth-child(7) {
-                            text-align: right;
-                        }
-                        table.DAI02030Grid1 tr.gsummary td:nth-child(3),
-                        table.DAI02030Grid1 tr.grandsummary td:nth-child(3) {
-                            text-align: center;
-                        }
-                        table.DAI02030Grid1 tr td:last-child {
-                            border-right-width: 1px;
-                        }
-                        table.DAI02030Grid1 thead tr th{
-                            height: 18px;
-                        }
-                        table.DAI02030Grid1 tbody tr {
-                            height: 27.5px;
-                        }
-                        th:first-child:nth-last-child(8),
-                        th:first-child:nth-last-child(8) ~ th:nth-child(2) {
-                            width: 7.0%;
-                        }
-                        th:first-child:nth-last-child(8) ~ th:nth-child(3),
-                        th:first-child:nth-last-child(8) ~ th:nth-child(8) {
-                            width: 25.0%;
-                        }
-                        th:first-child:nth-last-child(8) ~ th:nth-child(4),
-                        th:first-child:nth-last-child(8) ~ th:nth-child(5) {
-                            width: 8.0%;
-                        }
-                        th:first-child:nth-last-child(5) {
-                            width: 40.0%;
-                        }
-                        th:first-child:nth-last-child(5) ~ th:nth-child(2) {
-                            width: 8.0%;
-                        }
-                        th:first-child:nth-last-child(5) ~ th:nth-child(5) {
-                            width: 22.0%;
-                        }
-                        tr.tsums td:nth-child(1){
-                            text-align: left !important;
-                        }
-                        tr.tsums td:nth-child(3),
-                        tr.tsums td:nth-child(4){
-                            text-align: right !important;
-                        }
-                        tr.tsums-grandsummary td:nth-child(3){
-                            text-align: right;
-                        }
-                        tr.tsums td:nth-child(5),
-                        tr.tsums-grandsummary td:nth-child(5){
-                            text-align: start !important;
-                        }
-                        tr.tsums-grandsummary td:nth-child(2){
-                            border-left-width: 0;
-                        }
-                        div[style="break-before: page;"],
-                        div[style="break-before: auto;"],
-                        div[style="page-break-before: always;"] {
-                            margin-top: 20px !important;
-                            margin-bottom: 20px !important;
-                            margin-right: 30px !important;
-                            margin-left: 30px !important;
-                        }
-                    `;
-
-                    var styleSeikyuMeisai = vue.viewModel.BushoCd == 501 && vue.viewModel.SimeKbn == 1 ? styleSeikyuMeisai501 : styleSeikyuMeisaiElse;
-
-
                     var maxPage = _.sum(target.map(t => _.chunk(t, 25).length));
                     var htmls = target.map((json, tIdx) => {
 
@@ -1760,7 +1758,7 @@ export default {
 
                         var html = grid.generateHtmlFromJson(
                             json,
-                            styleSeikyuMeisai,
+                            "",
                             headerFunc,
                             25,
                             true,
@@ -1810,7 +1808,7 @@ export default {
                     .map(v => $(v.get(0)).prop("outerHTML"))
                     .join("")
                     ;
-                    console.log("htmls", htmls);
+                    //console.log("htmls", htmls);
                     return htmls;
                 });
 

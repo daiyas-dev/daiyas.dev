@@ -2756,7 +2756,7 @@ export default {
 
                         chunks = _(chunks).values().flatten().value();
                         if (!chunks.length) chunks = [null];
-                        console.log("printable chunks", chunks, headers);
+                        //console.log("printable chunks", chunks, headers);
 
                         ret = $("<div>")
                             .append($("<style>").text(styles || ""))
