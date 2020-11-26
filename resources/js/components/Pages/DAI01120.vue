@@ -95,7 +95,7 @@
                     :isShowName=true
                     :isModal=true
                     :editable=true
-                    :reuse=true
+                    :reuse=false
                     :existsCheck=true
                     :inputWidth=150
                     :nameWidth=400
@@ -125,13 +125,15 @@
                     labelCdNm="得意先名"
                     :showColumns='[
                         { title: "部署名", dataIndx: "部署名", dataType: "string", width: 120, maxWidth: 120, minWidth: 120, colIndx: 0 },
+                        { title: "コースCD", dataIndx: "コースＣＤ", dataType: "string", align: "left", width: 100, maxWidth: 100, minWidth: 100, },
+                        { title: "コース名", dataIndx: "コース名", dataType: "string", width: 200, maxWidth: 200, minWidth: 200, },
                     ]'
                     :popupWidth=1000
                     :popupHeight=600
                     :isShowName=true
                     :isModal=true
                     :editable=true
-                    :reuse=true
+                    :reuse=false
                     :existsCheck=true
                     :inputWidth=150
                     :nameWidth=400
@@ -167,7 +169,7 @@
                     :isShowName=true
                     :isModal=true
                     :editable=true
-                    :reuse=true
+                    :reuse=false
                     :existsCheck=true
                     :inputWidth=150
                     :nameWidth=400
