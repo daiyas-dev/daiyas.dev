@@ -590,6 +590,7 @@ export default {
                 case "DAI07090":
                     vue.viewModel.SimeKbn = "2";
                     vue.SimeKbnDisabled = true;
+                    vue.SimeDateDisabled = false;
                     vue.viewModel.PrintOrder = 1;
                     vue.onPrintOrderChanged();
                     break;
@@ -751,23 +752,21 @@ export default {
             var rules = [];
 
             //請求日付
-            if (vue.viewModel.BushoCd != 501) {
-                if (vue.viewModel.SimeKbn == "2") {
-                    if (!!vue.viewModel.SimeDateArray.length) {
-                        var crules = vue.viewModel.SimeDateArray.map(d => {
-                            var date;
-                            if (d.code == 99) {
-                                date = moment(vue.searchParams.TargetDate).endOf("month").format("YYYY-MM-DD 00:00:00.000");
-                            } else {
-                                date = moment(vue.searchParams.TargetDate).startOf("month").add(d.code - 1, "day").format("YYYY-MM-DD 00:00:00.000");
-                            }
-                            return { condition: "equal", mode: "OR", value: date };
-                        });
-                        rules.push({ dataIndx: "請求日付", crules: crules });
-                    } else {
-                        var date = moment(vue.searchParams.TargetDate).endOf("month").format("YYYY-MM-DD 00:00:00.000");
-                        rules.push({ dataIndx: "請求日付", condition: "equal", value: date });
-                    }
+            if (vue.viewModel.SimeKbn == "2") {
+                if (!!vue.viewModel.SimeDateArray.length) {
+                    var crules = vue.viewModel.SimeDateArray.map(d => {
+                        var date;
+                        if (d.code == 99) {
+                            date = moment(vue.searchParams.TargetDate).endOf("month").format("YYYY-MM-DD 00:00:00.000");
+                        } else {
+                            date = moment(vue.searchParams.TargetDate).startOf("month").add(d.code - 1, "day").format("YYYY-MM-DD 00:00:00.000");
+                        }
+                        return { condition: "equal", mode: "OR", value: date };
+                    });
+                    rules.push({ dataIndx: "請求日付", crules: crules });
+                } else {
+                    var date = moment(vue.searchParams.TargetDate).endOf("month").format("YYYY-MM-DD 00:00:00.000");
+                    rules.push({ dataIndx: "請求日付", condition: "equal", value: date });
                 }
             }
 
