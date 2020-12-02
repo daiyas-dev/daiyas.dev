@@ -465,7 +465,7 @@ class DAI06040Controller extends Controller
         FROM
             抽出データ4
         )
-
+        SELECT q.* FROM(
         SELECT
             1 AS 処理区分,
             ROW_NUMBER() OVER (ORDER BY T.コースＣＤ, T.ＳＥＱ, T.得意先ＣＤ, T.日付) AS ROWNUMBER,
@@ -510,8 +510,10 @@ class DAI06040Controller extends Controller
                 WHERE 日付 >= '$DateStart' and 日付 <= '$DateEnd'
                 GROUP BY 得意先ＣＤ
                 ) CT on Z.得意先ＣＤ = CT.得意先ＣＤ and not exists(select 1 from 売上データ明細 ud where ud.得意先ＣＤ=Z.得意先ＣＤ and  ud.日付 >= '$DateStart' and ud.日付 <= '$DateEnd')
-            WHERE
+        WHERE
             IIF(D.得意先ＣＤ IS NULL, 2, 1) = 2
+        )q
+        ORDER BY q.コースＣＤ,q.ＳＥＱ,q.日付
         ";
 
         //Log::info('DAI06040_Search_SQL:\n' . $sql);
