@@ -2371,7 +2371,7 @@ $OrderBy
                     ,CT_DISTINCT.コースＣＤ
                     ,CT_DISTINCT.コース名
                     ,TOK.得意先ＣＤ AS Cd
-                    ,TOK.得意先名 AS CdNm
+                    ,TOK.得意先名略称 AS CdNm
 					,ROW_NUMBER() OVER (ORDER BY TOK.得意先ＣＤ) AS ROWNUM
                 FROM 得意先マスタ TOK
                     LEFT OUTER JOIN 部署マスタ BM
