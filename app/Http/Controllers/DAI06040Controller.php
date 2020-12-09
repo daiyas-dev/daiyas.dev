@@ -24,6 +24,330 @@ class DAI06040Controller extends Controller
         $DateEnd = $vm->DateEnd;
         $BushoCd = $vm->BushoCd;
 
+        /*チケット発行対象の得意先ごとに、
+        $DateStart時点のチケット残数、
+        および、$DateStartから#DateEndまでの期間のチケット増減(発行数、消費数、調整数)
+        を取得し、日付昇順にソートして戻す。
+        SQLで取得した結果を、PHPロジックでループし、
+        得意先ごとに日付昇順で残数から増減を計算して、日ごとのチケット数を求めます。
+        */
+        $sql = "
+            WITH
+            チケット発行得意先 AS(
+                SELECT DISTINCT
+                    TK.*
+                    ,( SELECT MIN(商品CD) FROM 得意先単価マスタ WHERE 得意先CD = TK.得意先ＣＤ ) AS 商品ＣＤ
+                FROM
+                    得意先マスタ TK
+                    LEFT OUTER JOIN チケット発行 TH
+                        ON  TH.発行日 < '$DateEnd'
+                        AND TH.得意先ＣＤ=TK.得意先ＣＤ
+                    LEFT OUTER JOIN チケット調整 TC
+                        ON  TC.日付 < '$DateEnd'
+                        AND TC.得意先ＣＤ=TK.得意先ＣＤ
+                WHERE
+                    TH.得意先ＣＤ IS NOT NULL OR TC.得意先ＣＤ IS NOT NULL
+            )
+            ,COURSE_BASE AS(
+                SELECT DISTINCT
+                    TOK.部署CD ,
+                    TOK.得意先CD ,
+                    M_COURSE.コース区分,
+                    M_COURSE.コースCD,
+                    M_COURSE.コース名,
+                    T_COURSE.ＳＥＱ,
+                    CONVERT(VARCHAR, TOK.部署CD) + '_' +
+                    CONVERT(VARCHAR, TOK.得意先CD) + '_' +
+                    CONVERT(VARCHAR, ISNULL(M_COURSE.コース区分, 0)) + '_' +
+                    CONVERT(VARCHAR, ISNULL(M_COURSE.コースCD, 0)) AS GROUPKEY
+                FROM (SELECT * FROM チケット発行得意先 M1 WHERE 0=0 AND 得意先CD IN (SELECT 得意先CD FROM コーステーブル WHERE 部署CD = $BushoCd)) TOK
+                    LEFT OUTER JOIN
+                        (
+                            SELECT DISTINCT
+                                部署CD
+                                ,得意先CD
+                                ,コースCD
+                                ,ＳＥＱ
+                            FROM
+                                [コーステーブル]
+                        ) T_COURSE ON
+                            TOK.部署CD = T_COURSE.部署CD
+                        AND TOK.得意先CD = T_COURSE.得意先CD
+                    LEFT OUTER JOIN
+                        (
+                            SELECT DISTINCT 部署CD,コースCD,コース名,コース区分 FROM [コースマスタ]
+                        ) M_COURSE ON
+                            T_COURSE.部署CD = M_COURSE.部署CD
+                        AND T_COURSE.コースCD = M_COURSE.コースCD
+            )
+            ,得意先コースマスタ AS
+            (
+                SELECT
+                    COURSE_BASE.*
+                FROM
+                    (
+                        -- コース区分が最小のものを採用
+                        SELECT DISTINCT 部署CD, 得意先CD,MIN(GROUPKEY) AS GROUPKEY FROM COURSE_BASE GROUP BY 部署CD, 得意先CD
+                    ) MIN_COURSE, COURSE_BASE
+                WHERE
+                    MIN_COURSE.GROUPKEY = COURSE_BASE.GROUPKEY
+                AND MIN_COURSE.部署CD   = COURSE_BASE.部署CD
+            )
+            ,チケット_残数 AS (
+                SELECT
+                    0 AS 処理区分
+                    ,T1.得意先ＣＤ
+                    ,T1.商品ＣＤ
+                    ,NULL AS 日付
+                    ,0 AS チケット販売
+                    ,0 AS チケット販売SV
+                    ,0 AS 弁当売上
+                    ,0 AS 弁当売上SV
+                    ,0 AS 調整
+                    ,0 AS 調整SV
+                    ,0 AS チケット内数
+                    ,0 AS SV内数
+                    ,ISNULL(チケット内数,0) - ISNULL(チケット弁当数,0) - ISNULL(チケット減数,0) AS チケット残数
+                    , CAST(ISNULL(SV内数,0) AS DECIMAL(10,1)) - CAST(ISNULL(SVチケット弁当数,0) AS DECIMAL(10,1)) - CAST(ISNULL(SV減数,0) AS DECIMAL(10,1)) AS チケットSV
+                FROM
+                    チケット発行得意先 T1
+                    LEFT JOIN
+                    (   -- チケット販売
+                    SELECT
+                        得意先ＣＤ
+                        , SUM(チケット内数) AS チケット内数
+                        , SUM(SV内数) SV内数
+                    FROM チケット発行
+                    WHERE
+                        発行日 < '$DateStart'
+                        AND 廃棄 = 0
+                    GROUP BY 得意先ＣＤ
+                    ) T0 ON T0.得意先ＣＤ = T1.得意先ＣＤ
+                    LEFT JOIN
+                    (   -- チケットでの売上
+                    SELECT
+                        得意先ＣＤ
+                        , SUM(掛売個数) AS チケット弁当数
+                    FROM 売上データ明細
+                    WHERE
+                        日付 < '$DateStart'
+                        AND 売掛現金区分 = 2
+                        AND 商品ＣＤ NOT IN (SELECT 商品ＣＤ FROM 商品マスタ WHERE 商品区分 = 9)
+                    GROUP BY 得意先ＣＤ
+                    ) T2 ON T1.得意先ＣＤ = T2.得意先ＣＤ
+                    LEFT JOIN
+                    (   -- サービスチケットでの売上
+                    SELECT
+                        得意先ＣＤ
+                        , SUM(掛売個数) AS SVチケット弁当数
+                    FROM 売上データ明細
+                    WHERE
+                        日付 < '$DateStart'
+                        AND 売掛現金区分 = 4
+                    GROUP BY 得意先ＣＤ
+                    ) T3 ON T1.得意先ＣＤ = T3.得意先ＣＤ
+                    LEFT OUTER JOIN
+                    (   -- チケット調整
+                    SELECT
+                        得意先ＣＤ
+                        , SUM(チケット減数) AS チケット減数
+                        , SUM(SV減数) AS SV減数
+                    FROM チケット調整
+                    WHERE
+                        日付 < '$DateStart'
+                    GROUP BY 得意先ＣＤ
+                    ) T5 ON T1.得意先ＣＤ = T5.得意先ＣＤ
+            )
+            ,チケット_消費 AS (
+                SELECT
+                    1 AS 処理区分
+                    ,T1.得意先ＣＤ
+                    ,T1.商品ＣＤ
+                    ,T2.日付 AS 日付
+                    ,0 AS チケット販売
+                    ,0 AS チケット販売SV
+                    ,IIF((T2.売掛現金区分 = 2 AND T2.商品区分 != 9),T2.掛売個数, 0) AS 弁当売上
+                    ,IIF((T2.売掛現金区分 = 4 AND T2.商品区分 != 9),T2.掛売個数, 0) AS 弁当売上SV
+                    ,0 AS 調整
+                    ,0 AS 調整SV
+                    ,0 AS チケット内数
+                    ,0 AS SV内数
+                    ,0 AS チケット残数
+                    ,0 AS チケットSV
+                FROM
+                    チケット発行得意先 T1
+                    ,売上データ明細 T2
+                WHERE T1.得意先ＣＤ=T2.得意先ＣＤ
+				AND T1.商品ＣＤ=T2.商品ＣＤ
+                AND T2.日付 >= '$DateStart'
+                AND T2.日付 <= '$DateEnd'
+				AND T1.商品ＣＤ=T2.商品ＣＤ
+            )
+            ,チケット_発行 AS (
+                SELECT
+                    1 AS 処理区分
+                    ,T1.得意先ＣＤ
+                    ,T1.商品ＣＤ
+                    ,T2.日付 AS 日付
+                    ,T2.現金個数*T3.チケット枚数 AS チケット販売
+                    ,T2.現金個数*T3.サービスチケット枚数 AS チケット販売SV
+                    ,0 AS 弁当売上
+                    ,0 AS 弁当売上SV
+                    ,0 AS 調整
+                    ,0 AS 調整SV
+                    ,T3.チケット枚数 AS チケット内数
+                    ,T3.サービスチケット枚数 AS SV内数
+                    ,0 AS チケット残数
+                    ,0 AS チケットSV
+                FROM
+                    チケット発行得意先 T1
+                    ,売上データ明細 T2
+                    ,得意先マスタ T3
+                WHERE T1.得意先ＣＤ=T2.得意先ＣＤ
+				AND T2.商品ＣＤ=800
+                AND T2.日付 >= '$DateStart'
+                AND T2.日付 <= '$DateEnd'
+                AND T2.商品区分=9
+                AND T3.得意先ＣＤ=T1.得意先ＣＤ
+            )
+            ,チケット_調整 AS (
+                SELECT
+                    1 AS 処理区分
+                    ,T1.得意先ＣＤ
+                    ,T1.商品ＣＤ
+                    ,T2.日付 AS 日付
+                    ,0 AS チケット販売
+                    ,0 AS チケット販売SV
+                    ,0 AS 弁当売上
+                    ,0 AS 弁当売上SV
+                    ,0-T2.チケット減数 AS 調整
+                    ,0-T2.SV減数 AS 調整SV
+                    ,0 AS チケット内数
+                    ,0 AS SV内数
+                    ,0 AS チケット残数
+                    ,0 AS チケットSV
+                FROM
+                    チケット発行得意先 T1
+                    LEFT JOIN 得意先コースマスタ T6 ON T6.得意先ＣＤ=T1.得意先ＣＤ
+                    ,チケット調整 T2
+                WHERE T1.得意先ＣＤ=T2.得意先ＣＤ
+				AND T1.商品ＣＤ=T2.商品ＣＤ
+                AND T2.日付 >= '$DateStart'
+                AND T2.日付 <= '$DateEnd'
+            )
+            ,チケット_増減 AS (
+                SELECT
+                    Q.処理区分
+                    ,Q.得意先ＣＤ
+                    ,Q.商品ＣＤ
+                    ,Q.日付
+                    ,SUM(Q.チケット販売)AS SUM_チケット販売
+                    ,SUM(Q.チケット販売SV)AS SUM_チケット販売SV
+                    ,SUM(Q.弁当売上)AS SUM_弁当売上
+                    ,SUM(Q.弁当売上SV)AS SUM_弁当売上SV
+                    ,SUM(Q.調整)AS SUM_調整
+                    ,SUM(Q.調整SV)AS SUM_調整SV
+                    ,SUM(Q.チケット内数)AS SUM_チケット内数
+                    ,SUM(Q.SV内数)AS SUM_SV内数
+                    ,SUM(Q.チケット残数)AS SUM_チケット残数
+                    ,SUM(Q.チケットSV)AS SUM_チケットSV
+                FROM(
+                    SELECT * FROM チケット_消費
+                    UNION ALL SELECT * FROM チケット_発行
+                    UNION ALL SELECT * FROM チケット_調整
+                )Q
+                GROUP BY
+                Q.処理区分
+                ,Q.得意先ＣＤ
+                ,Q.商品ＣＤ
+                ,Q.日付
+            )
+            ,チケット_台帳 AS(
+                SELECT
+                    T1.*
+                FROM(
+                        SELECT * FROM チケット_残数 X1
+                        WHERE EXISTS(SELECT 1 FROM チケット_増減 X2 WHERE X2.得意先ＣＤ=X1.得意先ＣＤ AND X2.商品ＣＤ=X1.商品ＣＤ)
+                        UNION SELECT * FROM チケット_増減
+                    )T1
+            )
+            SELECT
+                T1.処理区分
+                ,1 AS ROWNUMBER
+                ,T6.コースＣＤ
+                ,T6.コース名
+                ,T6.ＳＥＱ
+                ,T1.得意先ＣＤ
+                ,(SELECT T2.得意先名 FROM 得意先マスタ T2 WHERE T2.得意先ＣＤ=T1.得意先ＣＤ) + '（' + 商品マスタ.商品名 + '）' AS 得意先商品名
+                ,T1.日付
+                ,REPLACE(DATENAME(W, T1.日付), '曜日', '') AS 曜日
+                ,IIF(T1.チケット販売=0,NULL,T1.チケット販売)AS チケット販売
+                ,IIF(T1.チケット販売SV=0,NULL,T1.チケット販売SV)AS チケット販売SV
+                ,IIF(T1.弁当売上=0,NULL,T1.弁当売上)AS 弁当売上
+                ,IIF(T1.弁当売上SV=0,NULL,T1.弁当売上SV)AS 弁当売上SV
+                ,IIF(T1.調整=0,NULL,T1.調整)AS 調整
+                ,IIF(T1.調整SV=0,NULL,T1.調整SV)AS 調整SV
+                ,IIF(T1.チケット内数=0,NULL,T1.チケット内数)AS チケット内数
+                ,IIF(T1.SV内数=0,NULL,T1.SV内数)AS SV内数
+                ,IIF(T1.チケット残数=0,NULL,T1.チケット残数)AS チケット残数
+                ,IIF(T1.チケットSV=0,NULL,T1.チケットSV)AS チケット残数SV
+            FROM チケット_台帳 T1
+                INNER JOIN 得意先コースマスタ T6 ON T6.得意先ＣＤ=T1.得意先ＣＤ
+                LEFT OUTER JOIN 商品マスタ         ON 商品マスタ.商品ＣＤ = T1.商品ＣＤ
+            ORDER BY T6.コースＣＤ,T6.ＳＥＱ,処理区分,日付
+        ";
+
+        //Log::info('DAI06040_Search_SQL:\n' . $sql);
+
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+
+        $pdo = new PDO($dsn, $user, $password);
+        $stmt = $pdo->query($sql);
+        $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = null;
+
+        //SQLで取得したデータの残数計算
+        $rownumber=0;
+        $tknx_zan=0;
+        $tksv_zan=0;
+        $zansu_key=0;
+        foreach($DataList as $key=>$val)
+        {
+            $rownumber++;
+            $DataList[$key]['ROWNUMBER']=$rownumber;
+
+            if ($DataList[$key]['処理区分']==0)
+            {
+                //残数行が見つかったら残数のカウントをリセットする
+                $zansu_key=$key;
+                $tknx_zan=$DataList[$key]['チケット残数'];
+                $tksv_zan=$DataList[$key]['チケット残数SV'];
+            }
+            else
+            {
+                //残数以外に取引の行がある場合、残数業の処理区分を1に更新、および残数の累計をする。
+                $DataList[$zansu_key]['処理区分']=1;
+                $DataList[$key]['処理区分']=1;
+                $tknx_zan=$tknx_zan + $DataList[$key]['チケット販売'] + $DataList[$key]['調整'] - $DataList[$key]['弁当売上'];
+                $tksv_zan=$tksv_zan + $DataList[$key]['チケット販売SV'] + $DataList[$key]['調整SV'] - $DataList[$key]['弁当売上SV'];
+                $DataList[$key]['チケット残数']=$tknx_zan;
+                $DataList[$key]['チケット残数SV']=$tksv_zan;
+            }
+        }
+
+
+        return $DataList;
+
+    }
+    //2020/12/9 改修前のSearchロジック。現在未使用。廃棄予定です。
+    public function Search_Old($vm)
+    {
+        $DateStart = $vm->DateStart;
+        $DateEnd = $vm->DateEnd;
+        $BushoCd = $vm->BushoCd;
+
         $sql = "
         WITH チケット発行得意先 AS
         (
@@ -516,7 +840,7 @@ class DAI06040Controller extends Controller
         ORDER BY q.コースＣＤ,q.ＳＥＱ,q.日付
         ";
 
-        //Log::info('DAI06040_Search_SQL:\n' . $sql);
+        //Log::info('DAI06040_Search_SQL_OLD:\n' . $sql);
 
         $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
