@@ -36,7 +36,16 @@ class DAI06040Controller extends Controller
             チケット発行得意先 AS(
                 SELECT DISTINCT
                     TK.*
-                    ,( SELECT MIN(商品CD) FROM 得意先単価マスタ WHERE 得意先CD = TK.得意先ＣＤ ) AS 商品ＣＤ
+                    ,( SELECT MIN(商品ＣＤ) FROM
+						(
+						    SELECT
+						        *
+						        , RANK() OVER(PARTITION BY 得意先ＣＤ, 商品ＣＤ ORDER BY 適用開始日 DESC) AS RNK
+						    FROM
+						        得意先単価マスタ新
+						    WHERE 適用開始日 <= '$DateEnd'
+						) TT
+					 WHERE TT.得意先ＣＤ = TK.得意先ＣＤ ) AS 商品ＣＤ
                 FROM
                     得意先マスタ TK
                     LEFT OUTER JOIN チケット発行 TH
