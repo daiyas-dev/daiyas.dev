@@ -20,7 +20,7 @@ class WebOrderDataReceive extends DataReceiveBase
     public function Receive()
     {
         //TODO:テスト用URL(NEW社内)
-        $url = "http://192.168.1.211/hellolaravel/public/api/weborderdatasend";
+        //$url = "http://192.168.1.219/hellolaravel/public/api/weborderdatasend";
         //TODO:本番URL
         $url="https://daiyas-order.com/api/weborderdatasend";
 
@@ -309,7 +309,7 @@ class WebOrderDataReceive extends DataReceiveBase
 
             if (count($prev) == 1) {
                 $WebOrderID = $prev[0]->Web受注ID;
-            } else {
+              } else {
                 //取込済Web受注ID確認 //TODO:　前回連携時の方でhitするので不要？
                 $sql = "
                     SELECT
@@ -341,7 +341,15 @@ class WebOrderDataReceive extends DataReceiveBase
                     $sql = "select count(*) as CNT from 注文データ where Web受注ID=$WebOrderID";
                     $count = DB::connection('sqlsrv_weborder')->selectOne($sql);
                     if ($count->CNT == 0) {
-                        break;
+                        $sql="select count(*) as CNT from Web受注データ where Web受注ID=$WebOrderID";
+                        $count = DB::connection('sqlsrv_weborder')->selectOne($sql);
+                        if ($count->CNT == 0) {
+                            break;
+                        }
+                        else
+                        {
+                            $WebOrderID += 1;
+                        }
                     } else {
                         $WebOrderID += 1;
                     }
