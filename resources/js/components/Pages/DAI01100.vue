@@ -624,9 +624,35 @@ export default {
                                 a.修正日 = v.入金データ修正日;
                                 a.修正担当者ＣＤ = vue.getLoginInfo().uid;
 
+                                if(a.摘要.length>20)
+                                {
+                                    $.dialogInfo({
+                                        title: "登録チェック",
+                                        contents: "得意先[" + v.得意先ＣＤ + "]<br/>摘要は20文字以内で入力して下さい。",
+                                    });
+                                    return false;
+                                }
+                                /*
+                                if(a.備考.length>60)
+                                {
+                                    $.dialogInfo({
+                                        title: "登録チェック",
+                                        contents: "得意先[" + v.得意先ＣＤ + "]<br/>備考は60文字以内で入力して下さい。",
+                                    });
+                                    return false;
+                                }
+                                */
+
                                 return a;
                             }, {}))
                             ;
+                        //SaveListでfalseでない値が戻ってきたら登録実施(falseは登録チェックエラーとみなす)
+                        var check_result = [];
+                        check_result = SaveList.filter(v => v == false);
+                        if(check_result[0]==false)
+                        {
+                            return false;
+                        }
 
                         //保存実行
                         grid.saveData(
