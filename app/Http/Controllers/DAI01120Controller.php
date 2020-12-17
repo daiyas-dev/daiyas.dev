@@ -10,6 +10,7 @@ use DB;
 use Exception;
 use Illuminate\Support\Carbon;
 use PDO;
+use Illuminate\Support\Facades\Log;
 
 class DAI01120Controller extends Controller
 {
@@ -97,7 +98,7 @@ WHERE
         $WehreCourseCd = !!$CourseCd ? " AND 売上データ明細.コースＣＤ = $CourseCd" : "";
 
         $CustomerCd = $vm->CustomerCd;
-        $WehreCustomerCd = !!$CustomerCd ? " AND 得意先マスタ.得意先ＣＤ = $CustomerCd" : " AND 得意先マスタ.請求先ＣＤ != 0";
+        $WehreCustomerCd = !!$CustomerCd ? " AND 得意先マスタ.得意先ＣＤ = $CustomerCd" : "";
 
         $SeikyuCd = $vm->SeikyuCd;
         $WehreSeikyuCd = !!$SeikyuCd ? " AND 得意先マスタ.請求先ＣＤ = $SeikyuCd" : "";
@@ -157,6 +158,7 @@ WHERE
                 売上データ明細.得意先ＣＤ,
                 売上データ明細.商品ＣＤ
         ";
+        //Log::debug("DAI01120 GetSalesList SQL\n".$sql);
 
         $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
