@@ -528,6 +528,17 @@ export default {
                         var SaveList = _.concat(changes.AddList, changes.UpdateList);
                         var DeleteList = grid.getChanges().deleteList;
 
+                        var check_result = [];
+                        check_result = SaveList.filter(v => v.商品ＣＤ == null);
+                        if(!!check_result[0])
+                        {
+                            $.dialogInfo({
+                                title: "登録チェック",
+                                contents: "商品コードを入力して下さい。",
+                            });
+                            return false;
+                        }
+
                         //売上データ明細の型に整形
                         SaveList.forEach((v, i) => {
                             v.日付 = moment(vue.searchParams.TargetDate).format("YYYY-MM-DD");
@@ -1095,7 +1106,7 @@ export default {
         onAfterSearchFunc: function (grieVue, grid, res) {
             var vue = this;
             vue.ProductList = res.ProductList;
-            
+
             var data = res.SalesList.filter(v => !!v.商品ＣＤ);
             data.forEach(v => {
                 v.個数 = (v.売掛現金区分 == 0 ? v.現金個数 : v.掛売個数 ) * 1;
