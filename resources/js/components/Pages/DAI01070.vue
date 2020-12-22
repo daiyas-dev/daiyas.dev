@@ -246,14 +246,14 @@ export default {
                         dataIndx: "配送日", dataType: "date",
                         format: "yyyy/MM/dd",
                         hidden: true,
-                        hiddenOnExport: true,
+                        hiddenOnExport: false,
                         fixed: true,
                     },
                     {
                         title: "コース区分",
                         dataIndx: "コース区分名", dataType: "string",
                         hidden: true,
-                        hiddenOnExport: true,
+                        hiddenOnExport: false,
                         fixed: true,
                     },
                     {
@@ -555,6 +555,11 @@ export default {
         print: function() {
             var vue = this;
 
+            //列の設定を印刷用に変更
+            var grid = vue.DAI01070Grid1;
+            grid.options.colModel[2].hiddenOnExport=true;
+            grid.options.colModel[3].hiddenOnExport=true;
+
             //印刷用HTML全体適用CSS
             var globalStyles = `
                 body {
@@ -676,6 +681,10 @@ export default {
 
             //印刷用HTMLの確認はデバッグコンソールで以下を実行
             //$("#printJS").contents().find("html").html()
+
+            //列の設定を元に戻す
+            grid.options.colModel[2].hiddenOnExport=false;
+            grid.options.colModel[3].hiddenOnExport=false;
         },
     }
 }
