@@ -157,7 +157,7 @@ export default {
     },
     data() {
         var data = $.extend(true, {}, PageBaseMixin.data(), {
-            ScreenTitle: "日時処理 > 過不足問合せ",
+            ScreenTitle: "日次処理 > 過不足問合せ",
             noViewModel: true,
             viewModel: {
                 BushoCd: null,
@@ -246,14 +246,14 @@ export default {
                         dataIndx: "配送日", dataType: "date",
                         format: "yyyy/MM/dd",
                         hidden: true,
-                        hiddenOnExport: false,
+                        hiddenOnExport: true,
                         fixed: true,
                     },
                     {
                         title: "コース区分",
                         dataIndx: "コース区分名", dataType: "string",
                         hidden: true,
-                        hiddenOnExport: false,
+                        hiddenOnExport: true,
                         fixed: true,
                     },
                     {
@@ -288,9 +288,14 @@ export default {
                         vue.DAI01070Grid1.vue.exportData("csv");
                     }
                 },
-                { visible: "false", value: "Excel", id: "DAI01070Grid1_Excel", disabled: false, shortcut: "F11",
+                { visible: "false", value: "Excel", id: "DAI01070Grid1_Excel", disabled: false, shortcut: "F9",
                     onClick: function () {
                         vue.DAI01070Grid1.vue.exportData("xlsx");
+                    }
+                },
+                { visible: "true", value: "印刷", id: "DAI01070Grid1_Print", disabled: false, shortcut: "F11",
+                    onClick: function () {
+                        vue.print();
                     }
                 },
             );
@@ -546,6 +551,131 @@ export default {
                 ;
 
             return list;
+        },
+        print: function() {
+            var vue = this;
+
+            //印刷用HTML全体適用CSS
+            var globalStyles = `
+                body {
+                    -webkit-print-color-adjust: exact;
+                }
+                div.title {
+                    width: 100%;
+                    display: flex;
+                    justify-content: center;
+                }
+                div.title > h3 {
+                    margin-top: 0px;
+                    margin-bottom: 0px;
+                }
+                table {
+                    table-layout: fixed;
+                    margin-left: 0px;
+                    margin-right: 0px;
+                    width: 100%;
+                    border-spacing: unset;
+                    border: solid 0px black;
+                }
+                th, td {
+                    font-family: "MS UI Gothic";
+                    font-size: 9pt;
+                    font-weight: normal;
+                    margin: 0px;
+                    padding-left: 3px;
+                    padding-right: 3px;
+                }
+                th {
+                    height: 30px;
+                    text-align: center;
+                }
+                td {
+                    height: 17px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    border-style: solid;
+                    border-left-width: 0px;
+                    border-top-width: 0px;
+                    border-right-width: 1px;
+                    border-bottom-width: 1px;
+                }
+                td:nth-child(1) {
+                    border-left-width: 1px;
+                }
+            `;
+
+            var headerFunc = (chunk, idx, length) => {
+                return `
+                    <div class="title">
+                        <h3> * * 過不足問合せ * * </h3>
+                    </div>
+                    <table class="header-table" style="border-width: 0px">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">${vue.viewModel.BushoCd}:${vue.viewModel.BushoNm}</th>
+                                <th style="width: 35%;"></th>
+                                <th style="width: 15%;">配送日：${moment().format(vue.viewModel.DeliveryDate)}</th>
+                                <th style="width: 10%;">コース区分：${vue.viewModel.CourseKbn} ${vue.DAI01070Grid1.pdata[0].コース区分名}</th>
+                                <th style="width: 15%;">作成日：${moment().format("YYYY年MM月DD日")}</th>
+                                <th style="width: 10%; text-align: right;">PAGE：${idx + 1}/${length}</th>
+                            </tr>
+                        </thead>
+                    </table>
+                `;
+            };
+
+            var printable = $("<html>")
+                .append($("<head>").append($("<style>").text(globalStyles)))
+                .append(
+                    $("<body>")
+                        .append(
+                            vue.DAI01070Grid1.generateHtml(
+                                `
+                                    table.DAI01070Grid1 tr:nth-child(1) th {
+                                        border-style: solid;
+                                        border-left-width: 0px;
+                                        border-top-width: 1px;
+                                        border-right-width: 1px;
+                                        border-bottom-width: 1px;
+                                    }
+                                    table.DAI01070Grid1 tr:nth-child(1) th:nth-child(1) {
+                                        border-left-width: 1px;
+                                    }
+                                    table.DAI01070Grid1 tr.grand-summary td {
+                                        border-style: solid;
+                                        border-left-width: 0px;
+                                        border-top-width: 1px;
+                                        border-right-width: 1px;
+                                        border-bottom-width: 1px;
+                                    }
+                                    table.DAI01070Grid1 tr.grand-summary td:nth-child(1) {
+                                        border-left-width: 1px;
+                                    }
+                                    table.DAI01070Grid1 tr th:nth-child(1) {
+                                        width: 3.5%;
+                                    }
+
+                                    table.DAI01070Grid1 tr th:nth-child(2) {
+                                        width: 8.5%;
+                                    }
+                                `,
+                                headerFunc,
+                                30,
+                            )
+                        )
+                )
+                .prop("outerHTML")
+                ;
+            var printOptions = {
+                type: "raw-html",
+                style: "@media print { @page { size: A4 landscape; } }",
+                printable: printable,
+            };
+
+            printJS(printOptions);
+
+            //印刷用HTMLの確認はデバッグコンソールで以下を実行
+            //$("#printJS").contents().find("html").html()
         },
     }
 }
