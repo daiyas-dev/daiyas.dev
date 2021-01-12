@@ -196,7 +196,9 @@ export default {
             }
 
             if (!!vue.viewModel.KeyWord) {
-                var keywords = vue.viewModel.KeyWord.split(/[, 、　]/)
+                //平仮名をカタカナに変換後、半角に変換する
+                var HankakuKeywords = Moji(vue.viewModel.KeyWord.toString()).convert('HG', 'KK').convert('ZK', 'HK').toString();
+                var keywords = HankakuKeywords.split(/[, 、　]/)
                     .map(v => _.trim(v))
                     .map(k => k.replace(/^[\+＋]/, ""))
                     .filter(v => !!v);
