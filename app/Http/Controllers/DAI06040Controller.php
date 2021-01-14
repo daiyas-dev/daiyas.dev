@@ -315,7 +315,6 @@ class DAI06040Controller extends Controller
         $pdo = new PDO($dsn, $user, $password);
         $stmt = $pdo->query($sql);
         $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $pdo = null;
 
         //SQLで取得したデータの残数計算
         $rownumber=0;
@@ -329,6 +328,11 @@ class DAI06040Controller extends Controller
 
             if ($DataList[$key]['処理区分']==0)
             {
+                //チケット発行数と実際に販売した数の差(検索期間の開始日より前に発行したが、検索期間の開始日より前に販売していないチケット数)を求める
+                $arrZnasu=$this->Zansu_Mihanbai($pdo, $DataList[$key]['得意先ＣＤ'], $DateStart);
+                $DataList[$key]['チケット残数']-=$arrZnasu['未販売チケット数'];
+                $DataList[$key]['チケット残数SV']-=$arrZnasu['未販売SV数'];
+
                 //残数行が見つかったら残数のカウントをリセットする
                 $zansu_key=$key;
                 $tknx_zan=$DataList[$key]['チケット残数'];
@@ -346,10 +350,71 @@ class DAI06040Controller extends Controller
             }
         }
 
-
+        $pdo = null;
         return $DataList;
 
     }
+
+    /**
+     * チケット発行数と実際に販売した数の差(検索期間の開始日より前に発行したが、検索期間の開始日より前に販売していないチケット数)を求める
+     */
+    private function Zansu_Mihanbai(&$pdo,$CustomerCD,$DateStart)
+    {
+        $dtDateStart = new \DateTime($DateStart);
+
+        $Keshi=0;
+        $KeshiSV=0;
+
+        //チケット販売数を取得
+        $sql="
+                SELECT　得意先ＣＤ,日付,SUM(掛売個数+現金個数)AS 個数
+                FROM 売上データ明細
+                WHERE 商品ＣＤ=800
+                  AND 日付 >= '$DateStart'
+                  AND 商品区分=9
+                  AND 得意先ＣＤ=$CustomerCD
+                GROUP BY 得意先ＣＤ,日付
+                ORDER BY 日付 DESC
+           ";
+        $stmt = $pdo->query($sql);
+        $HanbaiList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        //チケット発行数を取得
+        $sql="
+                SELECT 得意先ＣＤ,発行日,チケット内数,SV内数,NULL AS 販売日
+                FROM チケット発行
+                WHERE 廃棄=0
+                AND 得意先ＣＤ= $CustomerCD
+                ORDER BY 発行日 DESC
+            ";
+        $stmt = $pdo->query($sql);
+        $HakkouList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach($HanbaiList as $HanbaiKey=>$HanbaiItem)
+        {
+            $Kosu=$HanbaiItem['個数'];
+            foreach($HakkouList as $HakkouKey=>$HakkouItem)
+            {
+                if($Kosu<=0)
+                {
+                    break;
+                }
+                if($HakkouList[$HakkouKey]['販売日']==null)
+                {
+                    $HakkouList[$HakkouKey]['販売日']=$HanbaiItem['日付'];
+                    $Kosu--;
+                    $dtHakkoubi = new \DateTime($HakkouList[$HakkouKey]['発行日']);
+                    if($dtHakkoubi<$dtDateStart)
+                    {
+                        $Keshi+=$HakkouList[$HakkouKey]['チケット内数'];
+                        $KeshiSV+=$HakkouList[$HakkouKey]['SV内数'];
+                    }
+                }
+            }
+        }
+        return array("未販売チケット数"=>$Keshi,"未販売SV数"=>$KeshiSV);
+     }
+
     //2020/12/9 改修前のSearchロジック。現在未使用。廃棄予定です。
     public function Search_Old($vm)
     {
