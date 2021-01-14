@@ -329,7 +329,7 @@ class DAI06040Controller extends Controller
             if ($DataList[$key]['処理区分']==0)
             {
                 //チケット発行数と実際に販売した数の差(検索期間の開始日より前に発行したが、検索期間の開始日より前に販売していないチケット数)を求める
-                $arrZnasu=$this->Zansu_Mihanbai($pdo, $DataList[$key]['得意先ＣＤ'], $DateStart);
+                $arrZnasu=$this->getMihanbaiSu($pdo, $DataList[$key]['得意先ＣＤ'], $DateStart);
                 $DataList[$key]['チケット残数']-=$arrZnasu['未販売チケット数'];
                 $DataList[$key]['チケット残数SV']-=$arrZnasu['未販売SV数'];
 
@@ -356,16 +356,17 @@ class DAI06040Controller extends Controller
     }
 
     /**
-     * チケット発行数と実際に販売した数の差(検索期間の開始日より前に発行したが、検索期間の開始日より前に販売していないチケット数)を求める
+     * チケットの未販売数を求める
+     * (検索期間の開始日より前に発行したが、販売が検索期間の開始日以降のチケットの枚数)
      */
-    private function Zansu_Mihanbai(&$pdo,$CustomerCD,$DateStart)
+    private function getMihanbaiSu(&$pdo,$CustomerCD,$DateStart)
     {
         $dtDateStart = new \DateTime($DateStart);
 
         $Keshi=0;
         $KeshiSV=0;
 
-        //チケット販売数を取得
+        //検索期間の開始日以降のチケット販売数を日付の降順で取得
         $sql="
                 SELECT　得意先ＣＤ,日付,SUM(掛売個数+現金個数)AS 個数
                 FROM 売上データ明細
@@ -379,7 +380,7 @@ class DAI06040Controller extends Controller
         $stmt = $pdo->query($sql);
         $HanbaiList = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        //チケット発行数を取得
+        //チケット発行数を発行日の降順で取得
         $sql="
                 SELECT 得意先ＣＤ,発行日,チケット内数,SV内数,NULL AS 販売日
                 FROM チケット発行
@@ -390,7 +391,8 @@ class DAI06040Controller extends Controller
         $stmt = $pdo->query($sql);
         $HakkouList = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        foreach($HanbaiList as $HanbaiKey=>$HanbaiItem)
+        //チケット販売実績をチケット発行実績に割り当てる
+        foreach($HanbaiList as $HanbaiItem)
         {
             $Kosu=$HanbaiItem['個数'];
             foreach($HakkouList as $HakkouKey=>$HakkouItem)
@@ -401,11 +403,13 @@ class DAI06040Controller extends Controller
                 }
                 if($HakkouList[$HakkouKey]['販売日']==null)
                 {
+                    //チケット発行実績に販売日を割り当てる
                     $HakkouList[$HakkouKey]['販売日']=$HanbaiItem['日付'];
                     $Kosu--;
                     $dtHakkoubi = new \DateTime($HakkouList[$HakkouKey]['発行日']);
                     if($dtHakkoubi<$dtDateStart)
                     {
+                        //割り当てたチケットの発行日が、検索期間の開始日より前だったら、未販売数として加算する
                         $Keshi+=$HakkouList[$HakkouKey]['チケット内数'];
                         $KeshiSV+=$HakkouList[$HakkouKey]['SV内数'];
                     }
