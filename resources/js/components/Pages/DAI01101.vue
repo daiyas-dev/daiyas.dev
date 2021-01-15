@@ -289,9 +289,9 @@ export default {
                                         if (!!res.edited && !!res.edited.length) {
                                             $.dialogInfo({
                                                 title: "登録チェック",
-                                                contents: "他で変更されたデータがあります。",
+                                                contents: "他で変更されたデータがあるか、コースが変更された得意先です。",
                                             });
-                                            grid.blinkDiff(res.edited);
+                                            //grid.blinkDiff(res.edited);
                                         } else {
                                             grid.commit();
 

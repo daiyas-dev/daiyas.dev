@@ -345,14 +345,14 @@ class DAI01101Controller extends Controller
             foreach ($MUpdateList as $rec) {
                 $ds->InsertUriageMeisaiData($rec);
             }
-    } catch (Exception $exception) {
+        } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;
         }
 
         return response()->json([
             'result' => true,
-            "edited" => count($skip) > 0 ? $this->GetSalesList($request) : [],
+            "edited" => count($skip) > 0 ? $this->GetSalesList($request,false) : [],
         ]);
     }
 }
