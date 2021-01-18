@@ -9,6 +9,7 @@ use Illuminate\Support\Arr;
 use DB;
 use Exception;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class DAI04091Controller extends Controller
 {
@@ -232,10 +233,19 @@ class DAI04091Controller extends Controller
     {
         $CustomerCd = array_filter($request->CustomerCd);
         $CustomerCd = implode(",", $CustomerCd);
+        $BushoCd = $request->BushoCd;
         $CourseCd = $request->CourseCd;
-        $CourseKbn = $request->CourseKbn;
         $StartDate = $request->StartDate;
         $EndDate = $request->EndDate;
+
+        //コースマスタからコース区分を取得
+        $sql="SELECT コース区分
+                FROM コースマスタ
+                WHERE 部署ＣＤ=$BushoCd
+                AND コースＣＤ=$CourseCd
+            ";
+        $result = DB::selectOne($sql);
+        $CourseKbn = $result->コース区分;
 
         $sql = "
                 SELECT
@@ -284,6 +294,7 @@ class DAI04091Controller extends Controller
 				and CT.コースＣＤ<>$CourseCd
             ";
 
+            //Log::info('DAI04091_CustomerDuplicateCheck_SQL:\n' . $sql);
             $Result = DB::select($sql);
 
             return response()->json($Result);

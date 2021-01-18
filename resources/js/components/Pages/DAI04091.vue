@@ -1369,10 +1369,12 @@ export default {
                 var EndDate = params.EndDate;
                 console.log(StartDate);
                 console.log(EndDate);
+                console.log("コース区分",CTCourseKbn);
                 var tc = new Date().getTime();//axios実行時のキャッシュを無効にするため、現在のタイムスタンプを渡す
                 axios.post("/DAI04091/CustomerDuplicateCheck"
                             , {
                                 timestamp:tc,
+                                BushoCd: vue.viewModel.BushoCd,
                                 CustomerCd: grid1.pdata.map(v => v.コード),
                                 CourseCd: vue.viewModel.CourseCd,
                                 CourseKbn: CTCourseKbn,
