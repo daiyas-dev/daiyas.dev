@@ -5,7 +5,7 @@
                 <label>電話番号</label>
             </div>
             <div class="col-md-3">
-                <input type="text" class="form-control" v-model="viewModel.TelNo" @keyup.enter="conditionChanged(null)"/>
+                <input type="text" class="form-control" v-model="viewModel.TelNo" @keyup.enter="conditionChanged(null)">
             </div>
         </div>
         <PqGridWrapper
@@ -47,10 +47,6 @@ export default {
         vm: Object,
     },
     computed: {
-        BushoCdArray: function() {
-            var vue = this;
-            return vue.viewModel.BushoArray.map(v => v.code);
-        },
     },
     data() {
         var vue = this;
@@ -77,27 +73,20 @@ export default {
                     editable: false,
                     sortable: false,
                 },
-                groupModel: {
-                    on: true,
-                    header: false,
-                    grandSummary: false,
-                    indent: 10,
-                    dataIndx: [],
-                    showSummary: [false],
-                    collapsed: [false],
-                    summaryInTitleRow: "collapsed",
-                },
                 filterModel: {
-                    on: true,
-                    mode: "AND",
+                    on: false,
                     header: false,
                     menuIcon: false,
-                    hideRows: false,
+                    hideRows: true,
                 },
-                summaryData: [
-                ],
-                formulas:[
-                ],
+                groupModel: {
+                    on: false,
+                    header: false,
+                    headerMenu: false,
+                },
+                summaryData: [],
+                mergeCells: [],
+                formulas: [],
                 colModel: [
                     {
                         title: "電話番号",
@@ -133,6 +122,9 @@ export default {
             );
         },
         mountedFunc: function(vue) {
+        },
+        activatedFunc: function(vue) {
+            //vue.IsChild = !!vue.params;
         },
         conditionChanged: function(callback) {
             var vue = this;
