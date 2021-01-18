@@ -620,8 +620,8 @@ export default {
             let blob = new Blob([csv], { type: 'text/csv' })
             let link = document.createElement('a')
             link.href = window.URL.createObjectURL(blob)
-            var nowtime=moment().format('YYYYMMDD_HHmmss');
-            link.download = '仕出受注問合せ_'+ nowtime +'.csv'
+            var nowtime=moment().format('YYYYMMDDHHmmss');
+            link.download = '仕出処理_受注問合せ_'+ nowtime +'.csv'
             link.click()
         },
         cnvNull: function(pVal) {
