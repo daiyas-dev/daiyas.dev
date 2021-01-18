@@ -369,7 +369,8 @@ export default {
                 // },
                 { visible: "true", value: "CSV", id: "DAI08009_Download", disabled: false, shortcut: "F7",
                     onClick: function () {
-                        vue.DAI08009Grid1.vue.exportData("csv", false, true);
+                        vue.downloadCSV();
+                        //vue.DAI08009Grid1.vue.exportData("csv", false, true);
                     }
                 },
                 {visible: "false"},
@@ -592,6 +593,46 @@ export default {
             });
         },
         print: function () {
+        },
+        downloadCSV: function() {
+            var vue = this;
+            var grid = vue.DAI08009Grid1;
+
+            var csv = '\ufeff' + '配達時間,受注NO,配達日付,得意先ＣＤ,得意先名,電話番号１,ＦＡＸ１,住所,配達先,エリアＣＤ,エリア名称,配達名称,地区名称,税名称\n'
+            grid.pdata.forEach(el => {
+                var line = el['配達時間']
+                             + ',' + this.cnvNull(el['受注Ｎｏ'])
+                             + ',' + this.cnvNull(moment(el['配達日付']).format("YYYY/MM/DD"))
+                             + ',' + this.cnvNull(el['得意先ＣＤ'])
+                             + ',' + this.cnvNull(el['得意先名'])
+                             + ',' + this.cnvNull(el['電話番号１'])
+                             + ',' + this.cnvNull(el['ＦＡＸ１'])
+                             + ',' + this.cnvNull(el['住所'])
+                             + ',' + this.cnvNull(el['配達先'])
+                             + ',' + this.cnvNull(el['エリアＣＤ'])
+                             + ',' + this.cnvNull(el['エリア名称'])
+                             + ',' + this.cnvNull(el['配達名称'])
+                             + ',' + this.cnvNull(el['地区名称'])
+                             + ',' + this.cnvNull(el['税名称'])
+                              + '\n';
+                csv += line;
+            })
+            let blob = new Blob([csv], { type: 'text/csv' })
+            let link = document.createElement('a')
+            link.href = window.URL.createObjectURL(blob)
+            var nowtime=moment().format('YYYYMMDD_HHmmss');
+            link.download = '仕出受注問合せ_'+ nowtime +'.csv'
+            link.click()
+        },
+        cnvNull: function(pVal) {
+            if(pVal==null)
+            {
+                return '';
+            }
+            else
+            {
+                return pVal;
+            }
         },
     }
 }
