@@ -8,6 +8,14 @@
                 <input type="text" class="form-control" v-model="viewModel.TelNo">
             </div>
         </div>
+        <div class="row">
+            <div class="col-md-1">
+                <label></label>
+            </div>
+            <div class="col-md-3">
+                電話番号を入力し、検索ボタンを押して下さい。
+            </div>
+        </div>
         <PqGridWrapper
             id="DAI04210Grid1"
             ref="DAI04210Grid1"
