@@ -300,10 +300,19 @@ export default {
                         "金額",
                         function(rowData){
                             var ret = 0;
-                            if (!!rowData["個数"]){
-                                var ret = rowData["単価"] * rowData["個数"];
-                            } else {
+                            if (rowData["売上売掛現金区分"]==3)
+                            {
+                                //バークレーの時の処理
                                 ret = rowData["売掛現金区分"] == 0 ? rowData["現金金額"] :rowData["掛売金額"];
+                            }
+                            else
+                            {
+                                //バークレー以外の時の処理
+                                if (!!rowData["個数"]){
+                                    var ret = rowData["単価"] * rowData["個数"];
+                                } else {
+                                    ret = rowData["売掛現金区分"] == 0 ? rowData["現金金額"] :rowData["掛売金額"];
+                                }
                             }
                             return ret;
                         }
@@ -758,7 +767,7 @@ export default {
                 comp.focus(true);
             }
         },
-        //得意先を入力してEnterキーを謳歌した後の処理
+        //得意先を入力してEnterキーを押下した後の処理
         onCustomerChanged: function(code, entity,comp) {
             var vue = this;
 
