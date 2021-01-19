@@ -5,15 +5,8 @@
                 <label>電話番号</label>
             </div>
             <div class="col-md-3">
-                <input type="text" class="form-control" v-model="viewModel.TelNo">
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-1">
-                <label></label>
-            </div>
-            <div class="col-md-3">
-                電話番号を入力し、検索ボタンを押して下さい。
+                <input type="text" class="form-control" v-model="viewModel.TelNo" @keyup.enter="conditionChanged(null)">
+                <input type="text" class="form-control" style="width:1px;visibility:hidden;">
             </div>
         </div>
         <PqGridWrapper
