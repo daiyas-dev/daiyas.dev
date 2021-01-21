@@ -169,7 +169,8 @@ class DAI02021Controller extends Controller
                 AND 入金日付 <= '$DateEnd'
             ORDER BY
                 伝票日付,
-                伝票Ｎｏ
+                伝票Ｎｏ,
+                食事区分
         ";
 
         $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';

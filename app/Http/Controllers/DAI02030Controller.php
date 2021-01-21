@@ -331,6 +331,7 @@ class DAI02030Controller extends Controller
                 MEISAI.得意先ＣＤ
                 ,MEISAI.伝票日付
                 ,MEISAI.伝票Ｎｏ
+                ,MEISAI.食事区分
 		";
 
         $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
