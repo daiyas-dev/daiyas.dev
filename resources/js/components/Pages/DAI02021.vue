@@ -1292,7 +1292,7 @@ export default {
                                             </div>
                                             <div style="margin-bottom: 8px;">
                                                 株式会社<span/>ダイヤス食品
-                                                <br>${vue.viewModel.BushoCd == 501 ? "デイリーボーノ事業所" : ""}
+                                                <br>${vue.viewModel.BushoCd == 501 ? "ゆとりキッチン事業部" : ""}
                                             </div>
                                         </div>
                                         <div id="c-box">
