@@ -10,6 +10,7 @@ use Exception;
 use Illuminate\Support\Carbon;
 use \GuzzleHttp\Client;
 use PDO;
+use Illuminate\Support\Facades\Log;
 
 class DAI08020Controller extends Controller
 {
@@ -63,7 +64,7 @@ class DAI08020Controller extends Controller
             ,   T1.製造締切時間
             ,T1.受注Ｎｏ
             ,(ISNULL(T3.電話番号１,'') + CHAR(13) + CHAR(10) + ISNULL(T3.ＦＡＸ１,'')) AS 電話番号
-            ,T1.配達先１ + T1.配達先２ AS 配達先
+            ,ISNULL(T1.配達先１,'') + ISNULL(T1.配達先２,'') AS 配達先
             ,   ( SELECT 各種名称 FROM 各種テーブル WHERE 各種CD = 31 AND 行NO = T1.配達区分 ) AS 配達区分
             ,T2.商品名
             ,T2.数量
@@ -90,7 +91,7 @@ class DAI08020Controller extends Controller
 
             -- 2016/06/21 文言修正、製造用特記、事務用特記の追加 S.Nakahara Rep Start
             -- ,T1.事務用特記 AS 備考
-            ,T1.製造用特記 + '  ' + T1.事務用特記 AS 備考
+            ,isnull(T1.製造用特記,'') + '  ' + isnull(T1.事務用特記,'') AS 備考
             -- 2016/06/21 文言修正、製造用特記、事務用特記の追加 S.Nakahara Rep End
 
             ,CONVERT(VARCHAR, T1.注文日付, 111) AS 注文日付
@@ -163,6 +164,8 @@ class DAI08020Controller extends Controller
         $WherePrintout
         ORDER BY $OrderPrint
         ";
+
+        //Log::info('DAI08020 :GetNouhinListSQL' . "\n" . $sql);//TODO:
 
         $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';

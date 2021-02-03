@@ -745,6 +745,7 @@ export default {
                     var layout_bikou2 = `
                         <th rowspan="3" colspan="2">
                             <div>備考</div>
+                            <div style="margin:5px 0px;width:100%;height:40px;white-space:normal;word-break: break-all;overflow: hidden;">${h.備考}</div>
                             <div>${h.部署ＣＤ} ${h.部署名} 仕上時間 ${h.製造締切時間}</div>
                         </th>
                     `;
@@ -902,60 +903,6 @@ export default {
 
                     return { contents: layout };
             });
-            var busyoCd;
-            var busyoNm;
-            var courseCd;
-            var courseNm;
-            var headerFunc = (header, idx, length) => {
-                return `
-                    <div class="title">
-                        <h3><div class="report-title-area">得意先別実績表<div></h3>
-                    </div>
-                    <table class="header-table" style="border-width: 0px">
-                        <thead>
-                            <tr>
-                                <th style="width:  5%;">部署</th>
-                                <th style="width:  5%; text-align: right;">${busyoCd}</th>
-                                <th style="width: 18%;">${busyoNm}</th>
-                                <th style="width:  5%;" class="blank-cell"></th>
-                                <th style="width:  5%;" class="blank-cell"></th>
-                                <th style="width: 15%;" class="blank-cell"></th>
-                                <th style="width: 20%;" class="blank-cell"></th>
-                                <th style="width:  5%;" class="blank-cell"></th>
-                                <th style="width: 12%;" class="blank-cell"></th>
-                                <th style="width:  5%;" class="blank-cell"></th>
-                                <th style="width:  5%;" class="blank-cell"></th>
-                            </tr>
-                            <tr>
-                                <th>配達日付</th>
-                                <th colspan="2">${vue.viewModel.DeliveryDate}</th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                            </tr>
-                            <tr>
-                                <th style="text-align: right;">${courseCd}</th>
-                                <th>${courseNm}</th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th class="blank-cell"></th>
-                                <th>作成日</th>
-                                <th style="text-align: right;">${moment().format("YYYY年MM月DD日")}</th>
-                                <th>PAGE</th>
-                                <th style="text-align: right;">${idx + 1}</th>
-                            </tr>
-                        </thead>
-                    </table>
-                `;
-            };
-
             var printable = $("<html>")
                 .append($("<head>").append($("<style>").text(globalStyles)))
                 .append(
