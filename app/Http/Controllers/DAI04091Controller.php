@@ -232,6 +232,12 @@ class DAI04091Controller extends Controller
     public function CustomerDuplicateCheck($request)
     {
         $CustomerCd = array_filter($request->CustomerCd);
+
+        if(empty($CustomerCd))
+        {
+            return array();
+        }
+
         $CustomerCd = implode(",", $CustomerCd);
         $BushoCd = $request->BushoCd;
         $CourseCd = $request->CourseCd;
