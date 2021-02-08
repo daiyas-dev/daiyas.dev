@@ -617,6 +617,25 @@ class DataSendWrapper extends PWADataSend
         }
     }
     /**
+     * モバイル_得意先マスタの受注得意先を更新更新する
+     * Updateする
+     * @param 受注得意先に指定する得意先CD
+     * @param 得意先CD(カンマ区切り(SQLのin句で使用する為))
+     * @param 通知メッセージ
+     */
+    public function UpdateOrderCustomerCode($CustomerCd,$BpCdList, $notify_message = null)
+    {
+        try {
+            $sql="select * from 得意先マスタ where 得意先ＣＤ=$CustomerCd";
+            $CustomerData = (array)DB::selectOne($sql);
+            $notify_message['department_code']=$CustomerData['部署CD'];
+            $send_sql="update CustomerMaster set order_customer_code=$CustomerCd where customer_code in($BpCdList)";
+            parent::StoreSendList($send_sql,false,$CustomerData['部署CD'],null,null, $notify_message);
+        } catch (Exception $exception) {
+            throw $exception;
+        }
+    }
+    /**
      * 受注テーブルを更新する
      * @param 部署ＣＤ
      * @param 配送日

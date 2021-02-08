@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
 use Illuminate\Support\Carbon;
+use App\Libs\DataSendWrapper;
 
 class DAI04042Controller extends Controller
 {
@@ -49,12 +50,22 @@ WHERE 0=0
 
         $sql = "
             UPDATE 得意先マスタ
-            SET 受注得意先ＣＤ = null
+            SET 受注得意先ＣＤ = 得意先ＣＤ
             WHERE 得意先ＣＤ=$BpCutomerCd
 
         ";
 
         $Result = DB::update($sql);
+
+        //モバイルSvを更新
+        $Message = $request->Message;
+        $ds = new DataSendWrapper();
+
+        $sql="select * from 得意先マスタ where 得意先ＣＤ=$BpCutomerCd";
+        $CustomerData = (array)DB::selectOne($sql);
+        $Message['department_code']=$CustomerData['部署CD'];
+        $del_sql="delete from CustomerMaster where customer_code=$BpCutomerCd";
+        $ds->Insert('得意先マスタ',$CustomerData,true,$CustomerData['部署CD'],null,null, $Message,$del_sql);
 
         return response()->json($Result);
     }
@@ -79,6 +90,11 @@ WHERE 0=0
         ";
 
         $Result = DB::update($sql);
+
+        //モバイルSvを更新
+        $Message = $request->Message;
+        $ds = new DataSendWrapper();
+        $ds->UpdateOrderCustomerCode($CustomerCd,$BpCdList,$Message);
 
         return response()->json($Result);
     }

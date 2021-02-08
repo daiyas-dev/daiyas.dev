@@ -242,7 +242,19 @@ export default {
             var grid = vue.DAI04042Grid1;
             //空行はparamsからを除く
             var bunpaisakiList = grid.pdata.filter(v => !!v.得意先ＣＤ).map((v,i) => v.得意先ＣＤ);
-            var params = { CustomerCd: DAI04042.params.得意先CD, Bunpaisaki: bunpaisakiList }
+
+            var Message = {
+                "department_code": null,
+                "course_code": null,
+                "custom_data": {
+                    "message": "",
+                    "values": {
+                        "updateMaster": true,
+                    },
+                },
+            };
+
+            var params = { CustomerCd: DAI04042.params.得意先CD, Bunpaisaki: bunpaisakiList, Message: Message };
             params.noCache = true;
 
             axios.post("/DAI04042/UpdateBunpaisakiList", params)
@@ -339,8 +351,19 @@ export default {
             //選択行の初期値から削除対象のキーを取得
             var bunpaisakiCd = row.InitialValue.得意先ＣＤ;
 
+            var Message = {
+                "department_code": null,
+                "course_code": null,
+                "custom_data": {
+                    "message": "",
+                    "values": {
+                        "updateMaster": true,
+                    },
+                },
+            };
+
             //選択中の得意先CDの受注得意先をnullで更新
-            var params = { CustomerCd: DAI04042.params.得意先CD, Bunpaisaki: bunpaisakiCd };
+            var params = { CustomerCd: DAI04042.params.得意先CD, Bunpaisaki: bunpaisakiCd, Message: Message };
             params.noCache = true;
 
             axios.post("/DAI04042/DeleteBunpaisakiList", params)
