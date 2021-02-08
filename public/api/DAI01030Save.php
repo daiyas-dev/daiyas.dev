@@ -300,7 +300,16 @@ try {
             ,null
            )
         ";
-    $pdo->exec($ms_sql);
+    try{
+        $pdo->exec($ms_sql);
+    }
+    catch (Exception $e) {
+        //エラーが発生したらログを採取する
+        $path='C:/daiyas/workspace/daiyas/storage/logs/';
+        $timestamp_er=date("Y/m/d H:i:s");
+        $timestamp_fn=str_replace('.','',microtime(true));
+        error_log("[" . $timestamp_er ."] ". $e->getMessage(), 3, $path."dai01030save_error_".$timestamp_fn.".log");
+    }
 
     $sql = "
     SELECT * FROM Web受注得意先マスタ
