@@ -314,6 +314,7 @@ class DAI01032Controller extends Controller
                             $data['利用者CD'],
                             $data['得意先ＣＤ'],
                             $data['備考'],
+                            $data['備考1'],
                         );
 
                         Web受注データ利用者別詳細::query()
