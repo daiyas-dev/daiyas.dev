@@ -254,19 +254,14 @@ try {
         and date='$DeliveryDate';";
     }
 
-    //送信IDを取得
-    $next_id_Sql = "SELECT MAX(送信ＩＤ)+1 AS NEXT_ID FROM モバイル送信リスト";
-    $stmt = $pdo->query($next_id_Sql);
-    $send_id = $stmt->fetch()["NEXT_ID"];
-    $send_id = $send_id==null ? 1 : $send_id;
-
+    //モバイル送信リストに書き込むデータの作成
     $controller_id="DAI0130Save";
     $method_name="DAI0130Save";
     $q_BushoCd   = $BushoCd;
     $q_CustomerCd= $CustomerCd;
     $q_course_cd  = empty($course_cd) ? 'null' : $course_cd;
     $esc_sql=str_replace("'","''",$send_sql);
-
+    //メッセージの作成
     $Message = null;
     $now = date("Y/m/d");
     if ($DeliveryDate == $now) {
@@ -274,47 +269,57 @@ try {
         $Message = $req['Message'];
     }
     $q_notify_message  = empty($Message) ? '' : json_encode($Message);
-    $ms_sql="INSERT INTO モバイル送信リスト(
-            送信ＩＤ
-           ,部署ＣＤ
-           ,得意先ＣＤ
-           ,コースＣＤ
-           ,コントローラＩＤ
-           ,メソッド名
-           ,作成日時
-           ,SQL
-           ,通知メッセージ
-           ,送信済フラグ
-           ,送信済日時
-           )VALUES(
-             $send_id
-            ,$q_BushoCd
-            ,$q_CustomerCd
-            ,$q_course_cd
-            ,'$controller_id'
-            ,'$method_name'
-            ,GETDATE()
-            ,'$esc_sql'
-            ,'$q_notify_message'
-            ,0
-            ,null
-           )
-        ";
-    try{
-        $pdo->exec($ms_sql);
-    }
-    catch (Exception $e) {
-        //エラーが発生したらログを採取する
-        $path='C:/daiyas/workspace/daiyas/storage/logs/';
-        $timestamp_er=date("Y/m/d H:i:s");
-        $timestamp_fn=str_replace('.','',microtime(true));
-        error_log("[" . $timestamp_er ."] ". $e->getMessage(), 3, $path."dai01030save_error_".$timestamp_fn.".log");
+
+    //モバイル送信リストに書き込む
+    $while_cnt=0;//SQLが成功するまでループさせるが、念のため最大5回まで試行する。
+    while ($while_cnt<5) {
+        //送信IDを取得
+        $next_id_Sql = "SELECT MAX(送信ＩＤ)+1 AS NEXT_ID FROM モバイル送信リスト";
+        $stmt = $pdo->query($next_id_Sql);
+        $send_id = $stmt->fetch()["NEXT_ID"];
+        $send_id = $send_id==null ? 1 : $send_id;
+
+        $ms_sql="INSERT INTO モバイル送信リスト(
+                送信ＩＤ
+            ,部署ＣＤ
+            ,得意先ＣＤ
+            ,コースＣＤ
+            ,コントローラＩＤ
+            ,メソッド名
+            ,作成日時
+            ,SQL
+            ,通知メッセージ
+            ,送信済フラグ
+            ,送信済日時
+            )VALUES(
+                $send_id
+                ,$q_BushoCd
+                ,$q_CustomerCd
+                ,$q_course_cd
+                ,'$controller_id'
+                ,'$method_name'
+                ,GETDATE()
+                ,'$esc_sql'
+                ,'$q_notify_message'
+                ,0
+                ,null
+            )
+            ";
+        try {
+            $pdo->exec($ms_sql);
+            break;//SQLが実行出来たらWhileを抜ける
+        } catch (Exception $e) {
+            //エラーが発生したらログを採取する
+            $path='C:/daiyas/workspace/daiyas/storage/logs/';
+            $timestamp_er=date("Y/m/d H:i:s");
+            $timestamp_fn=str_replace('.', '', microtime(true));
+            error_log("[" . $timestamp_er ."] ". $e->getMessage(), 3, $path."dai01030save_error_".$timestamp_fn.".log");
+            $while_cnt++;
+        }
     }
 
-    $sql = "
-    SELECT * FROM Web受注得意先マスタ
-    WHERE 得意先ＣＤ = '$CustomerCd'
-    ";
+    //Web受注サーバへの注文データ連携(Web受注対象得意先のみ)
+    $sql = "SELECT * FROM Web受注得意先マスタ WHERE 得意先ＣＤ = '$CustomerCd'";
     $stmt = $pdo->query($sql);
     $Data = $stmt->fetch(PDO::FETCH_ASSOC);
     $pdo = null;
