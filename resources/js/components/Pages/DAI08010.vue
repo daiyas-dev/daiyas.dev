@@ -1174,16 +1174,12 @@ export default {
                 vue.OrderInfo = _.cloneDeep(data.OrderInfo);
                 vue.OrderInfoOrg = _.cloneDeep(data.OrderInfo);
             } else {
-                //担当者情報を退避する
-                var tanto_cd = vue.getLoginInfo().uid;
-                var eigyo_tanto_cd = vue.OrderInfo.営業担当者ＣＤ;
-
                 vue.OrderInfo = _.cloneDeep(vue.OrderInfoInit);
                 vue.OrderInfoOrg = _.cloneDeep(null);
 
-                //担当者情報を戻す
-                vue.OrderInfo.担当者ＣＤ = tanto_cd;
-                vue.OrderInfo.営業担当者ＣＤ = eigyo_tanto_cd;
+                //担当者情報を置き換える(担当者=ログイン者、営業担当者=得意先マスタの獲得営業者)
+                vue.OrderInfo.担当者ＣＤ = vue.getLoginInfo().uid;
+                vue.OrderInfo.営業担当者ＣＤ = vue.CustomerInfo.獲得営業者ＣＤ;
             }
 
             vue.OrderInfo.配達先１ = vue.OrderInfo.配達先１ || vue.CustomerInfo.お届け先住所１;
