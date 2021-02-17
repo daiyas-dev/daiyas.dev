@@ -1034,7 +1034,8 @@ export default {
             var vue = this;
 
             if (!code) {
-                vue.clearOrder(true);
+                //同一内容で別の日の注文を入力することがあるため入力内容をクリアしない
+                //vue.clearOrder(true);
             }
 
             if (code != vue.OrderInfo.受注Ｎｏ || entity.配達日付 != vue.OrderInfo.配達日付) {
@@ -1173,8 +1174,16 @@ export default {
                 vue.OrderInfo = _.cloneDeep(data.OrderInfo);
                 vue.OrderInfoOrg = _.cloneDeep(data.OrderInfo);
             } else {
+                //担当者情報を退避する
+                var tanto_cd = vue.getLoginInfo().uid;
+                var eigyo_tanto_cd = vue.OrderInfo.営業担当者ＣＤ;
+
                 vue.OrderInfo = _.cloneDeep(vue.OrderInfoInit);
                 vue.OrderInfoOrg = _.cloneDeep(null);
+
+                //担当者情報を戻す
+                vue.OrderInfo.担当者ＣＤ = tanto_cd;
+                vue.OrderInfo.営業担当者ＣＤ = eigyo_tanto_cd;
             }
 
             vue.OrderInfo.配達先１ = vue.OrderInfo.配達先１ || vue.CustomerInfo.お届け先住所１;
@@ -1191,25 +1200,25 @@ export default {
             if (mt.isValid()) {
                 vue.viewModel.DeliveryTime = mt.format("HH時mm分");
             } else {
-                vue.viewModel.DeliveryTime = moment().format("HH時mm分");
+                //vue.viewModel.DeliveryTime = moment().format("HH時mm分");
             }
             mt = moment(vue.OrderInfo.製造締切時間, "HH:mm");
             if (mt.isValid()) {
                 vue.viewModel.TakeoutTime = mt.format("HH時mm分");
             } else {
-                vue.viewModel.TakeoutTime = null;
+                //vue.viewModel.TakeoutTime = null;
             }
             mt = moment(vue.OrderInfo.注文日付);
             if (mt.isValid()) {
                 vue.viewModel.OrderDate = mt.format("YYYY年MM月DD日");
             } else {
-                vue.viewModel.OrderDate = moment().format("YYYY年MM月DD日");
+                //vue.viewModel.OrderDate = moment().format("YYYY年MM月DD日");
             }
             mt = moment(vue.OrderInfo.注文時間, "HH:mm");
             if (mt.isValid()) {
                 vue.viewModel.OrderTime = mt.format("HH時mm分");
             } else {
-                vue.viewModel.OrderTime = moment().format("HH時mm分");
+                //vue.viewModel.OrderTime = moment().format("HH時mm分");
             }
             mt = moment(vue.OrderInfo.預り日付);
             if (mt.isValid()) {
