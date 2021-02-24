@@ -22,7 +22,6 @@
             :value="showText"
             :readonly="this.editable == false"
             autocomplete="off"
-            @input=onInput
             :disabled=isDisabled
             @keydown.enter=onKeyDownEnter
         >
@@ -442,22 +441,6 @@ export default {
             var vue = this;
             vue.setSelectValue(event.target.value, true);
         },
-        onInput: _.debounce(function(event) {
-            var vue = this;
-            console.log("onInput", event);
-            if (!!vue.onInputFunc) {
-                setTimeout(
-                    () => vue.onInputFunc(event.target.value, vue),
-                    0
-                );
-            }
-
-            if (!event.isComposing) {
-                if(vue.isRealTimeSearch){
-                    vue.setSelectValue(event.target.value, true);
-                }
-            }
-        }, 300),
         onKeyDownEnter: function(event) {
             var vue = this;
             var params = _.cloneDeep(vue.searchParams);
@@ -475,6 +458,10 @@ export default {
                         vue.selectValue = ret[0].Cd;
                     } else if (!!vue.dataListReset) {
                         vue.dataList = [];
+                    } else{
+                        vue.dataList = [];
+                        vue.selectName = null;
+                        vue.selectValue = params.KeyWord;
                     }
                     if (!!vue.onKeyDownEnterFunc) {
                         setTimeout(
