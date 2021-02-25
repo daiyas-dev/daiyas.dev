@@ -23,14 +23,14 @@
                 <label>得意先</label>
             </div>
             <div class="col-md-5">
-                <PopupSelect
+                <PopupSelectKeyDown
                     id="CustomerSelect"
                     ref="PopupSelect_Customer"
                     :vmodel=viewModel
-                    bind="CustomerCd"
-                    buddy="CustomerNm"
                     dataUrl="/Utilities/GetCustomerListForSelect"
                     :params="{ KeyWord: null, UserBushoCd: getLoginInfo().bushoCd, BushoCd: viewModel.BushoCd }"
+                    bind="CustomerCd"
+                    :buddies='{CustomerNm: "CdNm"}'
                     :isPreload=true
                     title="得意先一覧"
                     labelCd="得意先CD"
@@ -38,7 +38,7 @@
                     :showColumns='[
                         { title: "部署名", dataIndx: "部署名", dataType: "string", width: 120, maxWidth: 120, minWidth: 120, colIndx: 0 },
                         { title: "コースCD", dataIndx: "コースＣＤ", dataType: "string", align: "left", width: 100, maxWidth: 100, minWidth: 100, },
-                        { title: "コース名", dataIndx: "コース名", dataType: "string", width: 200, maxWidth: 200, minWidth: 200, },  
+                        { title: "コース名", dataIndx: "コース名", dataType: "string", width: 200, maxWidth: 200, minWidth: 200, },
                     ]'
                     :popupWidth=1000
                     :popupHeight=600
@@ -49,9 +49,10 @@
                     :existsCheck=true
                     :inputWidth=100
                     :nameWidth=300
+                    :isShowAutoComplete=false
+                    :onKeyDownEnterFunc=onCustomerChanged
+                    :isRealTimeSearch=false
                     :onAfterChangedFunc=onCustomerChanged
-                    :isShowAutoComplete=true
-                    :AutoCompleteFunc=CustomerAutoCompleteFunc
                 />
             </div>
             <div class="col-md-1">
@@ -59,6 +60,14 @@
             </div>
             <div class="col-md-5">
                 <input class="form-control" style="width: 100px;" type="text" :value=viewModel.SimeDate readonly tabindex="-1">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1">
+                <label> </label>
+            </div>
+            <div class="col-md-5" style="margin-left:10px;">
+                得意先コードを入力後Enterキーを押して下さい。
             </div>
         </div>
         <div class="row">
@@ -155,11 +164,13 @@ label{
 
 <script>
 import PageBaseMixin from "@vcs/PageBaseMixin.vue";
+import PopupSelectKeyDown from "@vcs/PopupSelectKeyDown.vue";
 
 export default {
     mixins: [PageBaseMixin],
     name: "DAI01150",
     components: {
+        "PopupSelectKeyDown": PopupSelectKeyDown,
     },
     props: {
         query: Object,
@@ -549,7 +560,7 @@ export default {
                     }
                 },
                 {visible: "false"},
-                { visible: "true", value: "明細入力", id: "DAI01150Grid1_Detail", disabled: true, shortcut: "Enter",
+                { visible: "true", value: "明細入力", id: "DAI01150Grid1_Detail", disabled: true,
                     onClick: function () {
                         vue.showDetail(false);
                     }
@@ -583,10 +594,18 @@ export default {
         },
         onCustomerChanged: function(code, entity, comp) {
             var vue = this;
+            var selectname = $(vue.$el).find(".select-name").val();
+            if(selectname==""){
+                vue.clearData();
+                return;
+            }
+            console.log("カスタマーチェンジ");//TODO:
 
+            if (!!entity && !_.isEmpty(entity)) {
+                vue.viewModel.CustomerCd = entity["Cd"];
+            }
             if (!!entity && !!vue.viewModel.CustomerCd) {
                 vue.viewModel.BushoCd = entity.部署CD;
-
                 axios.all(
                     [
                         axios.post("/DAI01150/GetCourse", vue.searchParams),
@@ -607,15 +626,19 @@ export default {
             }
 
             //条件変更ハンドラ
-            vue.conditionChanged();
+            console.log("条件変更ハンドラ呼び出し");//TODO:
+            vue.conditionChanged(true);
         },
+
         conditionChanged: function(force, blink) {
             var vue = this;
             var gridSeikyu = vue.DAI01150GridSeikyu;
             var gridNyukin = vue.DAI01150GridNyukin;
 
+            console.log("条件変更ハンドラ カスタマーコード",vue.viewModel.CustomerCd);//TODO:
+
             if (!gridSeikyu || !gridNyukin || !vue.getLoginInfo().isLogOn) return;
-            if (!vue.viewModel.CustomerCd || !vue.$refs.PopupSelect_Customer.isValid) return;
+            if (!vue.viewModel.CustomerCd) return;
 
             //検索
             var params = _.cloneDeep(vue.searchParams);
@@ -714,6 +737,19 @@ export default {
                 grid.options.height += (_.round(newHeight) - _.round(oldHeight));
                 grid.refresh();
             }
+        },
+        clearData : function(){
+            var vue = this;
+            var gridSeikyu = vue.DAI01150GridSeikyu;
+            var gridNyukin = vue.DAI01150GridNyukin;
+            vue.viewModel.CourseCd = "";
+            vue.viewModel.CourseNm = "";
+            vue.viewModel.SimeKbn = "";
+            vue.viewModel.SimeDate = "";
+            vue.viewModel.NyukinKind = "";
+            vue.viewModel.NyukinTerm = "";
+            gridSeikyu.clearData();
+            gridNyukin.clearData();
         },
         CustomerAutoCompleteFunc: function(input, dataList, comp) {
             var vue = this;
