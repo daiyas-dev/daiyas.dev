@@ -9,6 +9,7 @@ use Illuminate\Support\Arr;
 use DB;
 use Exception;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 use PDO;
 
 class DAI10010Controller extends Controller
@@ -80,7 +81,7 @@ class DAI10010Controller extends Controller
                     ,M.副食ＣＤ
                     ,M.売価単価
                 FROM 商品マスタ M
-                WHERE ((M.弁当区分 in(0,8,9) AND M.表示ＦＬＧ=0) OR M.商品ＣＤ=25)
+                WHERE ((M.弁当区分 in(0,8,9) AND M.表示ＦＬＧ=0) OR M.商品ＣＤ IN(25,39))
                 AND NOT EXISTS(SELECT 1 FROM $sql_mtt WHERE MTT.商品ＣＤ=M.商品ＣＤ)
             ";
         }
