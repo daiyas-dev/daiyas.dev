@@ -236,22 +236,26 @@ try {
     foreach ($order_list as $order_data)
     {
         $send_sql .= "update SaleInputData set
-            updated_at=now()
-            ,achievements_input=0
+             updated_at=now()
+            ,order_num={$order_data['注文個数']}
+            where department_code=$BushoCd
+            and customer_code=$CustomerCd
+            and product_code={$order_data['商品ＣＤ']}
+            and date='$DeliveryDate';";
+        $send_sql .= "update SaleInputData set
+             achievements_input=0
+            ,order_input=1
+            where department_code=$BushoCd
+            and customer_code=$CustomerCd
+            and date='$DeliveryDate';";
+        $send_sql .= "update ExpectedInputData set
+             updated_at=now()
             ,order_num={$order_data['注文個数']}
             ,order_input=1
             where department_code=$BushoCd
             and customer_code=$CustomerCd
             and product_code={$order_data['商品ＣＤ']}
             and date='$DeliveryDate';";
-        $send_sql .= "update ExpectedInputData set
-            updated_at=now()
-        ,order_num={$order_data['注文個数']}
-        ,order_input=1
-        where department_code=$BushoCd
-        and customer_code=$CustomerCd
-        and product_code={$order_data['商品ＣＤ']}
-        and date='$DeliveryDate';";
     }
 
     //モバイル送信リストに書き込むデータの作成
