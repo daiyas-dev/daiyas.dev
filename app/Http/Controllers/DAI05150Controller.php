@@ -2,17 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\祝日マスタ;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
 use Exception;
 use Illuminate\Support\Carbon;
-use \GuzzleHttp\Client;
 use PDO;
 
 class DAI05150Controller extends Controller
 {
+    /**
+     * DBにPDOで接続する際のDB接続文字列を取得する
+     */
+    private function GetDBConnectionString()
+    {
+        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+        $user = 'daiyas';
+        $password = 'daiyas';
+        return( array("dsn"=>$dsn,"user"=>$user,"password"=>$password));
+    }
     /**
      * GetClaimList
      */
@@ -73,21 +81,36 @@ class DAI05150Controller extends Controller
 					ON  GTK.各種CD=50
 					AND GTK.サブ各種CD1=CL.原因部署担当コード
 				LEFT OUTER JOIN 管理マスタ KM
-					ON KM.管理ＫＥＹ=1
+                    ON KM.管理ＫＥＹ=1
+            WHERE 0=0
+                AND (未使用フラグ=0 OR 未使用フラグ IS NULL)
 			ORDER BY
 				KB.部署ＣＤ ASC ,
 				CL.クレームID DESC
         ";
 
-        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-        $user = 'daiyas';
-        $password = 'daiyas';
-
-        $pdo = new PDO($dsn, $user, $password);
+        $dbcs = $this->GetDBConnectionString();
+        $pdo = new PDO($dbcs['dsn'], $dbcs['user'], $dbcs['password']);
         $stmt = $pdo->query($sql);
         $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $pdo = null;
 
         return $DataList;
+    }
+
+    /*
+     * クレーム情報を論理削除(未使用フラグ=1)にする
+    */
+    public function DeleteClaim($request) {
+        $claim_id = $request->claim_id;
+        $update_user_id=$request->update_user_id;
+        $date = Carbon::now()->format('Y-m-d H:i:s');
+
+        $sql = "UPDATE クレームデータ SET 未使用フラグ=1,修正担当者ＣＤ={$update_user_id},修正日='$date' WHERE クレームID=$claim_id";
+
+        $dbcs = $this->GetDBConnectionString();
+        $pdo = new PDO($dbcs['dsn'], $dbcs['user'], $dbcs['password']);
+        $stmt = $pdo->query($sql);
+        $pdo = null;
     }
 }

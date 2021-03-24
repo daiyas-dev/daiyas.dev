@@ -182,6 +182,7 @@ export default {
             handler: function(newVal) {
                 var vue = this;
                 vue.footerButtons.find(v => v.id == "DAI05150_Print").disabled = !newVal.length;
+                vue.footerButtons.find(v => v.id == "DAI05150_Delete").disabled = !newVal.length;
             },
         },
     },
@@ -444,6 +445,11 @@ export default {
                     }
                 },
                 {visible: "false"},
+                { visible: "false", value: "削除", id: "DAI05150_Delete", disabled: false,
+                    onClick: function () {
+                        vue.Delete();
+                    }
+                },
             );
         },
         mountedFunc: function(vue) {
@@ -652,6 +658,54 @@ export default {
                 width: 1100,
                 height: 700,
             });
+        },
+        //クレーム情報を削除する
+        Delete: function() {
+            var vue = this;
+            var grid = vue.DAI05150Grid1;
+            if (!grid) return;
+            var rows = grid.SelectRow().getSelection();
+            if (rows.length != 1) return;
+            var rowData = _.cloneDeep(rows[0].rowData);
+            console.log("ロウデータ",rowData);//TODO:
+
+            var params = {
+                     claim_id: rowData['クレームID']
+                    ,update_user_id: vue.getLoginInfo().uid
+                    ,noCache:true
+                };
+
+            console.log("パラメータ",params);//TODO:
+
+            $.dialogConfirm({
+                title: "削除確認",
+                contents: "クレームデータを削除します。",
+                buttons:[
+                    {
+                        text: "はい",
+                        class: "btn btn-primary",
+                        click: function(){
+                            axios.post("/DAI05150/DeleteClaim", params)
+                                .then(res => {
+                                    DAI05150.conditionChanged();
+                                    $(this).dialog("close");
+                                })
+                                .catch(err => {
+                                    console.log(err);
+                                }
+                            );
+                        }
+                    },
+                    {
+                        text: "いいえ",
+                        class: "btn btn-danger",
+                        click: function(){
+                            $(this).dialog("close");
+                        }
+                    },
+                ],
+            });
+
         },
         print: function() {
             var vue = this;
