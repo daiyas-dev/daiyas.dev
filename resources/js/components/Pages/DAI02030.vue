@@ -1588,14 +1588,15 @@ export default {
                     };
                 }
 
+                var page_no=0;
                 var contents = grid.pdata.map(r => {
                     var pdata = group[r.請求先ＣＤ] || [{}];
                     var target = meisaiGen(r, pdata);
 
                     var maxPage = _.sum(target.map(t => _.chunk(t, 25).length));
                     var htmls = target.map((json, tIdx) => {
-
                         var headerFunc = (header, idx, length, chunk, chunks) => {
+                            page_no++;
                             return `
                                 <div class="header">
                                     <div>
@@ -1613,7 +1614,7 @@ export default {
                                             </div>
                                         </div>
                                         <div id="l-box">
-                                            ${tIdx + idx + 1}
+                                            ${page_no}
                                             /
                                             <span/>${maxPage}
                                         </div>
