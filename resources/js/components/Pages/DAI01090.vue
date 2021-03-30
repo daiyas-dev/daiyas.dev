@@ -32,7 +32,7 @@
                 <label>得意先</label>
             </div>
             <div class="col-md-9">
-                <PopupSelect
+                <PopupSelectKeyDown
                     id="CustomerSelect"
                     ref="PopupSelect_Customer"
                     :vmodel=viewModel
@@ -58,10 +58,19 @@
                     :existsCheck=true
                     :inputWidth=150
                     :nameWidth=400
+                    :onKeyDownEnterFunc=onCustomerChanged
+                    :isShowAutoComplete=false
+                    :isRealTimeSearch=false
                     :onAfterChangedFunc=onCustomerChanged
-                    :isShowAutoComplete=true
-                    :AutoCompleteFunc=CustomerAutoCompleteFunc
                 />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1">
+                <label> </label>
+            </div>
+            <div class="col-md-5" style="margin-left:10px;">
+                得意先コードを入力後Enterキーを押して下さい。
             </div>
         </div>
 
@@ -95,11 +104,13 @@ label{
 
 <script>
 import PageBaseMixin from "@vcs/PageBaseMixin.vue";
+import PopupSelectKeyDown from "@vcs/PopupSelectKeyDown.vue";
 
 export default {
     mixins: [PageBaseMixin],
     name: "DAI01090",
     components: {
+        "PopupSelectKeyDown": PopupSelectKeyDown,
     },
     props: {
         query: Object,
@@ -264,8 +275,16 @@ export default {
         },
         onCustomerChanged: function(code, entity, comp) {
             var vue = this;
+            var selectname = $(vue.$el).find(".select-name").val();
+            if(selectname==""){
+                vue.clearData();
+                return;
+            }
+
+            console.log("カスタマーチェンジ",entity);//TODO:
 
             if (!!entity && !_.isEmpty(entity)) {
+                vue.viewModel.CustomerCd = entity["Cd"];
                 vue.viewModel.BushoCd = entity["部署CD"];
 
                 //条件変更ハンドラ
