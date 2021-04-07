@@ -757,6 +757,13 @@ class DataSendWrapper extends PWADataSend
                         ;";
             $order_list=DB::select($order_num_sql);
             $after_sql="";
+            $after_sql .= "update ExpectedInputData set
+                             updated_at=now()
+                            ,order_num=0
+                            ,order_input=1
+                            where department_code=$busho_cd
+                            and customer_code=$customer_cd
+                            and date>='$q_date_start' and date<='$q_date_end';";
             foreach ($order_list as $order_data)
             {
                 $cbh = new carbon($order_data->配送日);
