@@ -1589,6 +1589,7 @@ export default {
                 }
 
                 var page_no=0;
+                var before_seikyu_cd=0;
                 var contents = grid.pdata.map(r => {
                     var pdata = group[r.請求先ＣＤ] || [{}];
                     var target = meisaiGen(r, pdata);
@@ -1596,7 +1597,20 @@ export default {
                     var maxPage = _.sum(target.map(t => _.chunk(t, 25).length));
                     var htmls = target.map((json, tIdx) => {
                         var headerFunc = (header, idx, length, chunk, chunks) => {
-                            page_no++;
+                            if(before_seikyu_cd==0)
+                            {
+                                page_no=1;
+                            }
+                            else if(before_seikyu_cd==r.請求先ＣＤ)
+                            {
+                                page_no++;
+                            }
+                            else
+                            {
+                                page_no=1;
+                            }
+                            before_seikyu_cd=r.請求先ＣＤ;
+
                             return `
                                 <div class="header">
                                     <div>
