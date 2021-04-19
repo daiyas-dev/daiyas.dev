@@ -15,9 +15,14 @@ ipcRenderer.on("printToPDF", (e, arg) => {
 });
 
 ipcRenderer.print = (target, options) => {
-    console.log("ipcRenderer print", target, options);
+    // console.log("ipcRenderer print", target, options);
 
-    var content = target.contentDocument.documentElement.outerHTML;
+    var content = (typeof target == "object") ? target.contentDocument.documentElement.outerHTML : target;
+    console.log("preload silent=" + options.silent);
+    if (typeof target == "object") {
+        target.parentNode.removeChild(target);
+        console.log("remove print frame");
+    }
 
     ipcRenderer.send("Print_Req", content, options);
 };

@@ -30,10 +30,12 @@ builder.build(
         },
     })
     .then(function (result) {
+        var version = package.version;
+        // var version = package.version.replace(/\.0+/g, ".");
         //setup exe copy
         fs.copyFile(
-            "./build/" + package.build.productName + " Setup " + package.version + ".exe",
-            "../public/client/win/" + package.build.productName + " Setup " + package.version + ".exe",
+            "./build/" + package.build.productName + " Setup " + version + ".exe",
+            "../public/client/win/" + package.build.productName + " Setup " + version + ".exe",
             err => {
                 if (err) {
                     console.log("exe copy failed", err);
@@ -45,8 +47,8 @@ builder.build(
         );
         //blockmap copy
         fs.copyFile(
-            "./build/" + package.build.productName + " Setup " + package.version + ".exe.blockmap",
-            "../public/client/win/" + package.build.productName + " Setup " + package.version + ".exe.blockmap",
+            "./build/" + package.build.productName + " Setup " + version + ".exe.blockmap",
+            "../public/client/win/" + package.build.productName + " Setup " + version + ".exe.blockmap",
             err => {
                 if (err) {
                     console.log("blockmap copy failed", err);
@@ -71,7 +73,7 @@ builder.build(
         );
         //setup exe renamed copy(for download)
         fs.copyFile(
-            "./build/" + package.build.productName + " Setup " + package.version + ".exe",
+            "./build/" + package.build.productName + " Setup " + version + ".exe",
             "../public/client/win/" + package.build.productName + "Setup.exe",
             err => {
                 if (err) {

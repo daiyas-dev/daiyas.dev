@@ -1,6 +1,6 @@
 {
   "name": "daiyas_client",
-  "version": "1.10.2302",
+  "version": "2.4.1901",
   "description": "DaiyasClient For CTI",
   "main": "main.js",
   "scripts": {
@@ -19,7 +19,8 @@
     "electron-log": "^3.0.9",
     "electron-updater": "^4.2.0",
     "jquery": "^3.4.1",
-    "rimraf": "^3.0.0"
+    "rimraf": "^3.0.0",
+    "uuid": "^8.3.2"
   },
   "build": {
     "productName": "ダイヤスクライアント",

@@ -31,7 +31,7 @@ function appUpdater(mainWindow, log) {
                 type: "question",
                 buttons: ["今すぐ再起動", "あとで実行"],
                 defaultId: 1,
-                message: "新しいバージョンをダウンロードしました。クライアントを再起動しますか？",
+                message: "新しいバージョンをダウンロードしました。\nクライアントを再起動しますか？",
                 detail: message
             }
         );

@@ -4,6 +4,9 @@
 <script>
     window.$ = window.jQuery = require("jquery");
     const ipcRenderer = require("electron").ipcRenderer;
+    var printKey = null;
+
+    ipcRenderer.on("Key_Set", (event, key) => printKey = key);
 
     ipcRenderer.on("Print_Set", (event, content) => {
         document.body.innerHTML = content;
@@ -14,13 +17,13 @@
                     var loaded = $("img").map((i, e) => e.complete).get().every(v => v == true);
                     if (!!loaded) {
                         clearInterval(tmr);
-                        ipcRenderer.send("Print_Ready");
+                        ipcRenderer.send("Print_Ready", printKey);
                     }
                 },
                 100
             );
         } else {
-            ipcRenderer.send("Print_Ready");
+            ipcRenderer.send("Print_Ready", printKey);
         }
     });
 </script>
