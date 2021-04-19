@@ -296,6 +296,8 @@ export default {
             TargetDateFormat: "YYYY年MM月DD日",
             TargetDateDayViewHeaderFormat: "YYYY年MM月",
             BushoInfo: null,
+            silentPrint: false,
+            progressDlg: null,
             grid1Options: {
                 selectionModel: { type: "row", mode: "block", row: true, column: true, },
                 showHeader: true,
@@ -548,7 +550,43 @@ export default {
                 {visible: "false"},
                 { visible: "true", value: "印刷", id: "DAI02030Grid1_Print", disabled: true, shortcut: "F11",
                     onClick: function () {
-                        vue.print();
+
+                        if (vue.DAI02030Grid1.pdata.length > 100 && !!window.ipcRenderer && !vue.silentPrint) {
+                            $.dialogConfirm({
+                                title: "印刷対象が大量です",
+                                contents: "プレビューが表示出来ない可能性があります。<br>直接プリンタに送信する直接印刷をお薦めします。",
+                                buttons:[
+                                    {
+                                        text: "直接印刷",
+                                        class: "btn btn-primary",
+                                        click: function(){
+                                            $(this).dialog("close");
+                                            vue.silentPrint = true;
+                                            vue.$root.$emit("setSilentPrint", true);
+                                            vue.print();
+                                        }
+                                    },
+                                    {
+                                        text: "通常印刷",
+                                        class: "btn btn-success",
+                                        click: function(){
+                                            $(this).dialog("close");
+                                            vue.print();
+                                        }
+                                    },
+                                    {
+                                        text: "キャンセル",
+                                        class: "btn btn-danger",
+                                        click: function(){
+                                            $(this).dialog("close");
+                                            return;
+                                        }
+                                    },
+                                ],
+                            });
+                        } else {
+                            vue.print();
+                        }
                     }
                 },
             );
@@ -569,6 +607,9 @@ export default {
 
             //初期フィルタ
             vue.filterChanged();
+
+            vue.$root.$on("setSilentPrint", vue.setSilentPrint);
+            vue.$root.$on("PrintMessageFromMain", vue.closeProgressDlg);
         },
         activatedFunc: function(vue) {
             vue.changeScreen(vue);
@@ -579,6 +620,7 @@ export default {
             var title = pgId == "DAI07080" ? "個人宅 > 週間請求書" : pgId == "DAI07090" ? "個人宅 > 月間請求書" : "締日処理 > 請求書";
             vue.pgId = pgId;
             vue.$root.$emit("setTitle", title);
+            vue.$root.$emit("showSilentPrint", true);
 
             switch (vue.pgId) {
                 case "DAI07080":
@@ -1381,167 +1423,112 @@ export default {
             globalStyles += vue.viewModel.BushoCd == 501 && vue.viewModel.SimeKbn == 1 ? styleSeikyuMeisai501 : styleSeikyuMeisaiElse;
 
             //ダイアログ
-            var progressDlg = $.dialogProgress({
+            vue.progressDlg = $.dialogProgress({
                 contents: "<i class='fa fa-spinner fa-spin' style='font-size: 24px; margin-right: 5px;'></i> 印刷準備中…",
             });
 
-            axios.post("/DAI02030/GetMeisaiList", { SeikyuNoArray: grid.pdata.map(v => v.請求番号 * 1), noCache: true })
-            .then(res => {
-                var group = _.groupBy(res.data, v => v.請求先ＣＤ);
+            var data = _.clone(grid.pdata);
+            var printChunkSize = vue.silentPrint ? 50 : 9999;
+            var printChunks = _.chunk(data.map(v => v.請求番号 * 1), printChunkSize);
 
-                var meisaiGen;
-                if (vue.viewModel.BushoCd == 501 && vue.viewModel.SimeKbn == 1) {
-                    meisaiGen = (r, pdata) => {
-                        // var days = _.range(0, moment(r.請求日範囲終了).diff(moment(r.請求日範囲開始), "days") + 1)
-                        //     .map(v => moment(r.請求日範囲開始).add(v, "days").format("D日(dd)"));
-                        var days = _.range(-6, 1).map(v => moment(r.請求日範囲終了).add(v, "days").format("D日<br>(dd)"));
+            var execute = (printChunk, offset) => {
+                axios.post("/DAI02030/GetMeisaiList", { SeikyuNoArray: printChunk, noCache: true })
+                .then(res => {
+                    var group = _.groupBy(res.data, v => v.請求先ＣＤ);
 
-                        var target = _(pdata)
-                            .groupBy(v => v.商品ＣＤ)
-                            .values()
-                            .map(g => {
-                                return _.reduce(
-                                    g,
-                                    (a, v, i) => {
-                                        if (i == 0) {
-                                            a.商品 = v.商品名
-                                        }
+                    var meisaiGen;
+                    if (vue.viewModel.BushoCd == 501 && vue.viewModel.SimeKbn == 1) {
+                        meisaiGen = (r, pdata) => {
+                            // var days = _.range(0, moment(r.請求日範囲終了).diff(moment(r.請求日範囲開始), "days") + 1)
+                            //     .map(v => moment(r.請求日範囲開始).add(v, "days").format("D日(dd)"));
+                            var days = _.range(-6, 1).map(v => moment(r.請求日範囲終了).add(v, "days").format("D日<br>(dd)"));
 
-                                        days.forEach(date => {
-                                            var d = moment(v.伝票日付).format("D日<br>(dd)");
-                                            a[date] = (a[date] || 0) + (date == d ? v.数量 * 1 : 0);
-                                        })
+                            var target = _(pdata)
+                                .groupBy(v => v.商品ＣＤ)
+                                .values()
+                                .map(g => {
+                                    return _.reduce(
+                                        g,
+                                        (a, v, i) => {
+                                            if (i == 0) {
+                                                a.商品 = v.商品名
+                                            }
 
-                                        a.食数 = (a.食数 || 0) + (v.数量 || 0) * 1;
-                                        a.買上額 = (a.買上額 || 0) + (v.金額 || 0) * 1;
-                                        a.入金額 = (a.入金額 || 0) + (v.入金金額 || 0) * 1;
+                                            days.forEach(date => {
+                                                var d = moment(v.伝票日付).format("D日<br>(dd)");
+                                                a[date] = (a[date] || 0) + (date == d ? v.数量 * 1 : 0);
+                                            })
 
-                                        return a;
-                                    },
-                                    {}
-                                );
-                            })
-                            .value()
-                            ;
+                                            a.食数 = (a.食数 || 0) + (v.数量 || 0) * 1;
+                                            a.買上額 = (a.買上額 || 0) + (v.金額 || 0) * 1;
+                                            a.入金額 = (a.入金額 || 0) + (v.入金金額 || 0) * 1;
 
-                        //空行補完
-                        target.push(..._.range(0, 8 - target.length)
-                            .map(v => {
-                                var empty = {};
-                                empty.商品 = null;
-
-                                days.forEach(date => {
-                                    empty[date] = null;
+                                            return a;
+                                        },
+                                        {}
+                                    );
                                 })
+                                .value()
+                                ;
 
-                                empty.食数 = null;
-                                empty.買上額 = null;
-                                empty.入金額 = null;
+                            //空行補完
+                            target.push(..._.range(0, 8 - target.length)
+                                .map(v => {
+                                    var empty = {};
+                                    empty.商品 = null;
 
-                                return empty;
-                            })
-                        );
+                                    days.forEach(date => {
+                                        empty[date] = null;
+                                    })
 
-                        //合計行
-                        target.push(_.reduce(
-                            pdata,
-                            (a, v, i) => {
-                                if (i == 0) {
-                                    a.商品 = "合計";
-                                }
+                                    empty.食数 = null;
+                                    empty.買上額 = null;
+                                    empty.入金額 = null;
 
-                                days.forEach(date => {
-                                    var d = moment(v.伝票日付).format("D日<br>(dd)");
-                                    a[date] = (a[date] || 0) + (date == d ? v.数量 * 1 : 0);
+                                    return empty;
                                 })
+                            );
 
-                                a.食数 = (a.食数 || 0) + (v.数量 || 0) * 1;
-                                a.買上額 = (a.買上額 || 0) + (v.金額 || 0) * 1;
-                                a.入金額 = (a.入金額 || 0) + (v.入金金額 || 0) * 1;
+                            //合計行
+                            target.push(_.reduce(
+                                pdata,
+                                (a, v, i) => {
+                                    if (i == 0) {
+                                        a.商品 = "合計";
+                                    }
 
-                                return a;
-                            },
-                            { class: "grandsummary" }
-                        ));
+                                    days.forEach(date => {
+                                        var d = moment(v.伝票日付).format("D日<br>(dd)");
+                                        a[date] = (a[date] || 0) + (date == d ? v.数量 * 1 : 0);
+                                    })
 
-                        // 0 to null, value add comma
-                        target.forEach(t => {
-                            _.forIn(t, (v, k, o) => { o[k] = !!v ? (pq.formatNumber(v, "#,##0") || v) : null; })
-                        });
+                                    a.食数 = (a.食数 || 0) + (v.数量 || 0) * 1;
+                                    a.買上額 = (a.買上額 || 0) + (v.金額 || 0) * 1;
+                                    a.入金額 = (a.入金額 || 0) + (v.入金金額 || 0) * 1;
 
-                        return [target];
-                    };
-                } else {
-                    meisaiGen = (r, pdata) => {
-                        var target = [];
-
-                        if (_.every(pdata, v => v.得意先ＣＤ == r.請求先ＣＤ || v.得意先ＣＤ == undefined)) {
-                            var datas = _.cloneDeep(pdata);
-
-                            var summary = _.reduce(
-                                datas,
-                                (a, v, k) => {
-                                    a.商品名 = "【 合 計 】";
-                                    a.数量 = (a.数量 || 0) + (v.数量 || 0) * 1;
-                                    a.金額 = (a.金額 || 0) + (!v.伝票Ｎｏ ? (v.金額 || 0) * 1 : 0);
-                                    a.入金金額 = (a.入金金額 || 0) + (!!v.伝票Ｎｏ ? (v.入金金額 || 0) * 1 : 0);
                                     return a;
                                 },
-                                {}
-                            );
-                            summary.class = "grandsummary";
-                            datas.push(summary);
-                            datas.forEach((v, i) => {
-                                v.日付 = i == 0 || pdata[i - 1].日付 != v.日付 ? v.日付 : "";
-                                v.数量 = pq.formatNumber(v.数量, "#,##0");
-                                v.単価 = pq.formatNumber(v.単価, "#,##0");
-                                v.金額 = pq.formatNumber(v.金額, "#,##0");
-                                v.入金金額 = pq.formatNumber(v.入金金額, "#,##0");
-                            });
-                            target.push(datas);
+                                { class: "grandsummary" }
+                            ));
 
-                        } else {
-                            var tg = _.groupBy(pdata, v => v.得意先ＣＤ);
-                            var tk = _.sortBy(_.keys(tg), k => k != r.請求先ＣＤ ? 0 : 1);
-                            var tsums = tk.map(k => {
-                                var summary = _.reduce(
-                                    tg[k],
-                                    (a, v) => {
-                                        a.商品名 = v.得意先名;
-                                        a.区分 = "全";
-                                        a.買上小計 = (a.買上小計 || 0) + (!v.伝票Ｎｏ ? (v.金額 || 0) * 1 : 0);
-                                        a.入金小計 = (a.入金小計 || 0) + (!!v.伝票Ｎｏ ? (v.入金金額 || 0) * 1 : 0);
-                                        return a;
-                                    },
-                                    {}
-                                );
-                                summary.class = "tsums";
-                                return summary;
+                            // 0 to null, value add comma
+                            target.forEach(t => {
+                                _.forIn(t, (v, k, o) => { o[k] = !!v ? (pq.formatNumber(v, "#,##0") || v) : null; })
                             });
-                            var tgsum = _.reduce(
-                                tsums,
-                                (a, v) => {
-                                    a.商品名 = "【 合 計 】";
-                                    a.買上小計 = (a.買上小計 || 0) + v.買上小計;
-                                    a.入金小計 = (a.入金小計 || 0) + v.入金小計;
-                                    return a;
-                                },
-                                {}
-                            );
-                            tgsum.class = "tsums-grandsummary";
-                            var sums = tsums.concat(tgsum);
-                            sums.forEach((v, i) => {
-                                v.買上小計 = pq.formatNumber(v.買上小計, "#,##0");
-                                v.入金小計 = pq.formatNumber(v.入金小計, "#,##0");
-                            });
-                            target = [sums];
 
-                            var tgmeisai = tk.map(k => _.cloneDeep(tg[k])).map((m, i) => {
-                                var title = { "商品名": m[0].得意先名 };
+                            return [target];
+                        };
+                    } else {
+                        meisaiGen = (r, pdata) => {
+                            var target = [];
+
+                            if (_.every(pdata, v => v.得意先ＣＤ == r.請求先ＣＤ || v.得意先ＣＤ == undefined)) {
+                                var datas = _.cloneDeep(pdata);
+
                                 var summary = _.reduce(
-                                    m,
+                                    datas,
                                     (a, v, k) => {
-                                        a.商品名 = "【 小 計 】";
+                                        a.商品名 = "【 合 計 】";
                                         a.数量 = (a.数量 || 0) + (v.数量 || 0) * 1;
                                         a.金額 = (a.金額 || 0) + (!v.伝票Ｎｏ ? (v.金額 || 0) * 1 : 0);
                                         a.入金金額 = (a.入金金額 || 0) + (!!v.伝票Ｎｏ ? (v.入金金額 || 0) * 1 : 0);
@@ -1549,17 +1536,59 @@ export default {
                                     },
                                     {}
                                 );
-                                summary.class = "gsummary";
+                                summary.class = "grandsummary";
+                                datas.push(summary);
+                                datas.forEach((v, i) => {
+                                    v.日付 = i == 0 || pdata[i - 1].日付 != v.日付 ? v.日付 : "";
+                                    v.数量 = pq.formatNumber(v.数量, "#,##0");
+                                    v.単価 = pq.formatNumber(v.単価, "#,##0");
+                                    v.金額 = pq.formatNumber(v.金額, "#,##0");
+                                    v.入金金額 = pq.formatNumber(v.入金金額, "#,##0");
+                                });
+                                target.push(datas);
 
-                                m.unshift(title);
-                                m.push(summary);
-
-                                if (i == tk.length - 1) {
-                                    console.log("gsum");
-                                    var gsum = _.reduce(
-                                        pdata,
+                            } else {
+                                var tg = _.groupBy(pdata, v => v.得意先ＣＤ);
+                                var tk = _.sortBy(_.keys(tg), k => k != r.請求先ＣＤ ? 0 : 1);
+                                var tsums = tk.map(k => {
+                                    var summary = _.reduce(
+                                        tg[k],
                                         (a, v) => {
-                                            a.商品名 = "【 合 計 】";
+                                            a.商品名 = v.得意先名;
+                                            a.区分 = "全";
+                                            a.買上小計 = (a.買上小計 || 0) + (!v.伝票Ｎｏ ? (v.金額 || 0) * 1 : 0);
+                                            a.入金小計 = (a.入金小計 || 0) + (!!v.伝票Ｎｏ ? (v.入金金額 || 0) * 1 : 0);
+                                            return a;
+                                        },
+                                        {}
+                                    );
+                                    summary.class = "tsums";
+                                    return summary;
+                                });
+                                var tgsum = _.reduce(
+                                    tsums,
+                                    (a, v) => {
+                                        a.商品名 = "【 合 計 】";
+                                        a.買上小計 = (a.買上小計 || 0) + v.買上小計;
+                                        a.入金小計 = (a.入金小計 || 0) + v.入金小計;
+                                        return a;
+                                    },
+                                    {}
+                                );
+                                tgsum.class = "tsums-grandsummary";
+                                var sums = tsums.concat(tgsum);
+                                sums.forEach((v, i) => {
+                                    v.買上小計 = pq.formatNumber(v.買上小計, "#,##0");
+                                    v.入金小計 = pq.formatNumber(v.入金小計, "#,##0");
+                                });
+                                target = [sums];
+
+                                var tgmeisai = tk.map(k => _.cloneDeep(tg[k])).map((m, i) => {
+                                    var title = { "商品名": m[0].得意先名 };
+                                    var summary = _.reduce(
+                                        m,
+                                        (a, v, k) => {
+                                            a.商品名 = "【 小 計 】";
                                             a.数量 = (a.数量 || 0) + (v.数量 || 0) * 1;
                                             a.金額 = (a.金額 || 0) + (!v.伝票Ｎｏ ? (v.金額 || 0) * 1 : 0);
                                             a.入金金額 = (a.入金金額 || 0) + (!!v.伝票Ｎｏ ? (v.入金金額 || 0) * 1 : 0);
@@ -1567,294 +1596,350 @@ export default {
                                         },
                                         {}
                                     );
-                                    gsum.class = "grandsummary";
-                                    m.push(gsum);
-                                }
-                                m.forEach((v, j) => {
-                                    v.日付 = j == 0 || m[j - 1].日付 != v.日付 ? v.日付 : "";
-                                    v.数量 = pq.formatNumber(v.数量, "#,##0");
-                                    v.単価 = pq.formatNumber(v.単価, "#,##0");
-                                    v.金額 = pq.formatNumber(v.金額, "#,##0");
-                                    v.入金金額 = pq.formatNumber(v.入金金額, "#,##0");
+                                    summary.class = "gsummary";
+
+                                    m.unshift(title);
+                                    m.push(summary);
+
+                                    if (i == tk.length - 1) {
+                                        console.log("gsum");
+                                        var gsum = _.reduce(
+                                            pdata,
+                                            (a, v) => {
+                                                a.商品名 = "【 合 計 】";
+                                                a.数量 = (a.数量 || 0) + (v.数量 || 0) * 1;
+                                                a.金額 = (a.金額 || 0) + (!v.伝票Ｎｏ ? (v.金額 || 0) * 1 : 0);
+                                                a.入金金額 = (a.入金金額 || 0) + (!!v.伝票Ｎｏ ? (v.入金金額 || 0) * 1 : 0);
+                                                return a;
+                                            },
+                                            {}
+                                        );
+                                        gsum.class = "grandsummary";
+                                        m.push(gsum);
+                                    }
+                                    m.forEach((v, j) => {
+                                        v.日付 = j == 0 || m[j - 1].日付 != v.日付 ? v.日付 : "";
+                                        v.数量 = pq.formatNumber(v.数量, "#,##0");
+                                        v.単価 = pq.formatNumber(v.単価, "#,##0");
+                                        v.金額 = pq.formatNumber(v.金額, "#,##0");
+                                        v.入金金額 = pq.formatNumber(v.入金金額, "#,##0");
+                                    });
+
+                                    return m;
                                 });
 
-                                return m;
-                            });
-
-                            target.push(...tgmeisai);
-                        }
-
-                        return target;
-                    };
-                }
-
-                var page_no=0;
-                var before_seikyu_cd=0;
-                var contents = grid.pdata.map(r => {
-                    var pdata = group[r.請求先ＣＤ] || [{}];
-                    var target = meisaiGen(r, pdata);
-
-                    var maxPage = _.sum(target.map(t => _.chunk(t, 25).length));
-                    var htmls = target.map((json, tIdx) => {
-                        var headerFunc = (header, idx, length, chunk, chunks) => {
-                            if(before_seikyu_cd==0)
-                            {
-                                page_no=1;
+                                target.push(...tgmeisai);
                             }
-                            else if(before_seikyu_cd==r.請求先ＣＤ)
-                            {
-                                page_no++;
-                            }
-                            else
-                            {
-                                page_no=1;
-                            }
-                            before_seikyu_cd=r.請求先ＣＤ;
 
-                            return `
-                                <div class="header">
-                                    <div>
-                                        <div id="k-box">
-                                            <div style="float: left">
-                                                ｺｰﾄﾞNo.${r.請求先ＣＤ}
-                                                <span/>-${r.コースＣＤ != 0 ? r.コースＣＤ : ""}
-                                            </div>
-                                            <div class="header-info">
-                                                <span/>(
-                                                <span/>${r.締日１}
-                                                <span>- ${r.支払サイト}</span>
-                                                <span>- ${r.支払日}</span>
-                                                )
-                                            </div>
-                                        </div>
-                                        <div id="l-box">
-                                            ${page_no}
-                                            /
-                                            <span/>${maxPage}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div id="a-box">
-                                            </br></br>
-                                            <div style="margin-bottom: 8px;">
-                                                <span/>〒
-                                                <span/>${r.郵便番号 || ""}
-                                            </div>
-                                            <div>
-                                                ${r.住所１ || ""}
-                                            </div>
-                                            <br>
-                                        </div>
-                                        <div id="b-box">
-                                            <div class="header-title">
-                                                請求書
-                                            </div>
-                                            <div class="header-subtitle">
-                                                (軽減税率対象)
-                                            </div>
-                                            <div style="margin-bottom: 8px;">
-                                                株式会社<span/>ダイヤス食品
-                                                <br>${vue.viewModel.BushoCd == 501 ? "ゆとりキッチン事業部" : ""}
-                                            </div>
-                                        </div>
-                                        <div id="c-box">
-                                            <div class="header-seikyu-date">
-                                                <span style="white-space: pre;">${vue.viewModel.BushoCd == 501 && vue.viewModel.SimeKbn == 1 ?
-                                                    moment(r.請求日付).format("YYYY/MM/DD") : moment(r.請求日付).format("  YY  年  MM  月  DD  日")}</span>
-                                            </div>
-                                            <div class="header-seikyu-no">
-                                                <span/>請求番号
-                                                <span/>${r.請求番号}
-                                            </div>
-                                        </div>
-                                    <div>
-                                    <div style="clear: both;">
-                                        <div id="d-box">
-                                            <div class="header-tokuisaki font-large">
-                                                ${r.得意先名}
-                                                <span>様</span>
-                                            </div>
-                                            <div>
-                                                Tel
-                                                <span/><span/>${r.電話番号１ || ""}
-                                                <span/><span/>Fax
-                                                <span/><span/>${r.ＦＡＸ１ || ""}
-                                            </div>
-                                            </br>
-                                        </div>
-                                        <div id="e-box">
-                                        </div>
-                                        <div id="f-box">
-                                            <div>
-                                                <span/>〒
-                                                <span/>${vue.BushoInfo.郵便番号}
-                                            </div>
-                                            <div>
-                                                ${vue.BushoInfo.住所}
-                                            </div>
-                                            <div>
-                                                Tel
-                                                <span/><span/>${vue.BushoInfo.電話番号}
-                                            </div>
-                                            <div>
-                                                Fax
-                                                <span/><span/>${vue.BushoInfo.FAX || ""}
-                                            </div>
-                                        </div>
-                                        <div id="g-box">
-                                            <div style="margin-bottom: 3px;">
-                                                毎度ありがとうございます。
-                                            </div>
-                                            <div>
-                                                下記の通りご請求申し上げます。
-                                            </div>
-                                        </div>
-                                        <div id="h-box">
-                                            <div style="margin-bottom: 8px;">
-                                                取引金融機関
-                                            </div>
-                                            <div id="i-box">
-                                                <div>
-                                                    ${vue.BushoInfo.金融機関1名称}
-                                                </div>
-                                                <div>
-                                                    ${vue.BushoInfo.口座種別1名称}
-                                                    <span/><span/>${vue.BushoInfo.口座番号1}
-                                                </div>
-                                                <div>
-                                                    ${!!vue.BushoInfo.金融機関2名称 ? vue.BushoInfo.金融機関2名称 : ""}
-                                                </div>
-                                                <div>
-                                                    ${!!vue.BushoInfo.口座種別2名称 ? vue.BushoInfo.口座種別2名称 : ""}
-                                                    <span/><span/>${!!vue.BushoInfo.口座番号2 ? vue.BushoInfo.口座番号2 : ""}
-                                                </div>
-                                            </div>
-                                            <div id="j-box">
-                                                <div>
-                                                    <span/>${vue.BushoInfo.金融機関支店1名称}
-                                                </div>
-                                                <div>
-                                                    ${vue.BushoInfo.口座名義人1}
-                                                </div>
-                                                <div>
-                                                    <span/>${!!vue.BushoInfo.金融機関支店2名称 ? vue.BushoInfo.金融機関支店2名称 : ""}
-                                                </div>
-                                                <div>
-                                                    ${!!vue.BushoInfo.口座名義人2 ? vue.BushoInfo.口座名義人2 : ""}
-                                            </div>
-                                        </div>
-                                    </div>
-                                <table class="header-table" style="border-width: 0px; margin-bottom: 14px;">
-                                    <thead>
-                                        <tr>
-                                            <th>前回請求額</th>
-                                            <th>御入金額</th>
-                                            <th>繰越金額</th>
-                                            <th>御買上金額</th>
-                                            <th>消費税</th>
-                                            <th>今回請求額</th>
-                                        </tr>
-                                        <tr>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                        <th>${tIdx + idx == "0" ? pq.formatNumber(r.前回請求残高, "#,##0") : ""}</th>
-                                        <th>${tIdx + idx == "0" ? pq.formatNumber(r.今回入金額, "#,##0") : ""}</th>
-                                        <th>${tIdx + idx == "0" ? pq.formatNumber(r.差引繰越額, "#,##0") : ""}</th>
-                                        <th>${tIdx + idx == "0" ? pq.formatNumber(r.今回売上額, "#,##0") : ""}</th>
-                                        <th>${tIdx + idx == "0" ? pq.formatNumber(r.消費税額, "#,##0") : ""}</th>
-                                        <th class="font-large">${tIdx + idx == "0" ? pq.formatNumber(r.今回請求額, "#,##0") : ""}</th>
-                                    </tbody>
-                                </table>
-                                </div>
-                            `;
+                            return target;
                         };
+                    }
+                    var page_no = offset || 0;
+                    var before_seikyu_cd=0;
+                    var contents = data.filter(r => printChunk.includes(r.請求番号 * 1)).map(r => {
+                        var pdata = group[r.請求先ＣＤ] || [{}];
+                        var target = meisaiGen(r, pdata);
 
-                        var html = grid.generateHtmlFromJson(
-                            json,
-                            "",
-                            headerFunc,
-                            25,
-                            true,
-                            vue.viewModel.BushoCd == 501, //false,
-                            vue.viewModel.BushoCd == 501 && vue.viewModel.SimeKbn == 1 ? null :
-                            tIdx == 0 && target.length > 1
-                                ? [
-                                    "商品名",
-                                    "区分",
-                                    "買上小計",
-                                    "入金小計",
-                                    "備考",
-                                ]
-                                : [
-                                    "日付",
-                                    "食事区分名",
-                                    "商品名",
-                                    "数量",
-                                    "単価",
-                                    "金額",
-                                    "入金金額",
-                                    "備考",
-                                ],
-                            vue.viewModel.BushoCd == 501 && vue.viewModel.SimeKbn == 1 ? null :
-                            tIdx == 0 && target.length > 1
-                                ? [
-                                    "商品名称",
-                                    "区分",
-                                    "買上小計",
-                                    "入金小計",
-                                    "備考",
-                                ]
-                                : [
-                                    "月日",
-                                    "区分",
-                                    "商品名称",
-                                    "食数",
-                                    "単価",
-                                    "買上額",
-                                    "入金額",
-                                    "備考",
-                                ],
-                        );
+                        var maxPage = _.sum(target.map(t => _.chunk(t, 25).length));
+                        var htmls = target.map((json, tIdx) => {
+                            var headerFunc = (header, idx, length, chunk, chunks) => {
+                                if(before_seikyu_cd==0)
+                                {
+                                    page_no=1;
+                                }
+                                else if(before_seikyu_cd==r.請求先ＣＤ)
+                                {
+                                    page_no++;
+                                }
+                                else
+                                {
+                                    page_no=1;
+                                }
+                                before_seikyu_cd=r.請求先ＣＤ;
+                                return `
+                                    <div class="header">
+                                        <div>
+                                            <div id="k-box">
+                                                <div style="float: left">
+                                                    ｺｰﾄﾞNo.${r.請求先ＣＤ}
+                                                    <span/>-${r.コースＣＤ != 0 ? r.コースＣＤ : ""}
+                                                </div>
+                                                <div class="header-info">
+                                                    <span/>(
+                                                    <span/>${r.締日１}
+                                                    <span>- ${r.支払サイト}</span>
+                                                    <span>- ${r.支払日}</span>
+                                                    )
+                                                </div>
+                                            </div>
+                                            <div id="l-box">
+                                                ${page_no}
+                                                /
+                                                <span/>${maxPage}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div id="a-box">
+                                                </br></br>
+                                                <div style="margin-bottom: 8px;">
+                                                    <span/>〒
+                                                    <span/>${r.郵便番号 || ""}
+                                                </div>
+                                                <div>
+                                                    ${r.住所１ || ""}
+                                                </div>
+                                                <br>
+                                            </div>
+                                            <div id="b-box">
+                                                <div class="header-title">
+                                                    請求書
+                                                </div>
+                                                <div class="header-subtitle">
+                                                    (軽減税率対象)
+                                                </div>
+                                                <div style="margin-bottom: 8px;">
+                                                    株式会社<span/>ダイヤス食品
+                                                    <br>${vue.viewModel.BushoCd == 501 ? "ゆとりキッチン事業部" : ""}
+                                                </div>
+                                            </div>
+                                            <div id="c-box">
+                                                <div class="header-seikyu-date">
+                                                    <span style="white-space: pre;">${vue.viewModel.BushoCd == 501 && vue.viewModel.SimeKbn == 1 ?
+                                                        moment(r.請求日付).format("YYYY/MM/DD") : moment(r.請求日付).format("  YY  年  MM  月  DD  日")}</span>
+                                                </div>
+                                                <div class="header-seikyu-no">
+                                                    <span/>請求番号
+                                                    <span/>${r.請求番号}
+                                                </div>
+                                            </div>
+                                        <div>
+                                        <div style="clear: both;">
+                                            <div id="d-box">
+                                                <div class="header-tokuisaki font-large">
+                                                    ${r.得意先名}
+                                                    <span>様</span>
+                                                </div>
+                                                <div>
+                                                    Tel
+                                                    <span/><span/>${r.電話番号１ || ""}
+                                                    <span/><span/>Fax
+                                                    <span/><span/>${r.ＦＡＸ１ || ""}
+                                                </div>
+                                                </br>
+                                            </div>
+                                            <div id="e-box">
+                                            </div>
+                                            <div id="f-box">
+                                                <div>
+                                                    <span/>〒
+                                                    <span/>${vue.BushoInfo.郵便番号}
+                                                </div>
+                                                <div>
+                                                    ${vue.BushoInfo.住所}
+                                                </div>
+                                                <div>
+                                                    Tel
+                                                    <span/><span/>${vue.BushoInfo.電話番号}
+                                                </div>
+                                                <div>
+                                                    Fax
+                                                    <span/><span/>${vue.BushoInfo.FAX || ""}
+                                                </div>
+                                            </div>
+                                            <div id="g-box">
+                                                <div style="margin-bottom: 3px;">
+                                                    毎度ありがとうございます。
+                                                </div>
+                                                <div>
+                                                    下記の通りご請求申し上げます。
+                                                </div>
+                                            </div>
+                                            <div id="h-box">
+                                                <div style="margin-bottom: 8px;">
+                                                    取引金融機関
+                                                </div>
+                                                <div id="i-box">
+                                                    <div>
+                                                        ${vue.BushoInfo.金融機関1名称}
+                                                    </div>
+                                                    <div>
+                                                        ${vue.BushoInfo.口座種別1名称}
+                                                        <span/><span/>${vue.BushoInfo.口座番号1}
+                                                    </div>
+                                                    <div>
+                                                        ${!!vue.BushoInfo.金融機関2名称 ? vue.BushoInfo.金融機関2名称 : ""}
+                                                    </div>
+                                                    <div>
+                                                        ${!!vue.BushoInfo.口座種別2名称 ? vue.BushoInfo.口座種別2名称 : ""}
+                                                        <span/><span/>${!!vue.BushoInfo.口座番号2 ? vue.BushoInfo.口座番号2 : ""}
+                                                    </div>
+                                                </div>
+                                                <div id="j-box">
+                                                    <div>
+                                                        <span/>${vue.BushoInfo.金融機関支店1名称}
+                                                    </div>
+                                                    <div>
+                                                        ${vue.BushoInfo.口座名義人1}
+                                                    </div>
+                                                    <div>
+                                                        <span/>${!!vue.BushoInfo.金融機関支店2名称 ? vue.BushoInfo.金融機関支店2名称 : ""}
+                                                    </div>
+                                                    <div>
+                                                        ${!!vue.BushoInfo.口座名義人2 ? vue.BushoInfo.口座名義人2 : ""}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <table class="header-table" style="border-width: 0px; margin-bottom: 14px;">
+                                        <thead>
+                                            <tr>
+                                                <th>前回請求額</th>
+                                                <th>御入金額</th>
+                                                <th>繰越金額</th>
+                                                <th>御買上金額</th>
+                                                <th>消費税</th>
+                                                <th>今回請求額</th>
+                                            </tr>
+                                            <tr>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                            <th>${tIdx + idx == "0" ? pq.formatNumber(r.前回請求残高, "#,##0") : ""}</th>
+                                            <th>${tIdx + idx == "0" ? pq.formatNumber(r.今回入金額, "#,##0") : ""}</th>
+                                            <th>${tIdx + idx == "0" ? pq.formatNumber(r.差引繰越額, "#,##0") : ""}</th>
+                                            <th>${tIdx + idx == "0" ? pq.formatNumber(r.今回売上額, "#,##0") : ""}</th>
+                                            <th>${tIdx + idx == "0" ? pq.formatNumber(r.消費税額, "#,##0") : ""}</th>
+                                            <th class="font-large">${tIdx + idx == "0" ? pq.formatNumber(r.今回請求額, "#,##0") : ""}</th>
+                                        </tbody>
+                                    </table>
+                                    </div>
+                                `;
+                            };
 
-                        return html;
-                    })
-                    .map(v => $(v.get(0)).prop("outerHTML"))
-                    .join("")
-                    ;
-                    //console.log("htmls", htmls);
-                    return htmls;
+                            var html = grid.generateHtmlFromJson(
+                                json,
+                                "",
+                                headerFunc,
+                                25,
+                                true,
+                                vue.viewModel.BushoCd == 501, //false,
+                                vue.viewModel.BushoCd == 501 && vue.viewModel.SimeKbn == 1 ? null :
+                                tIdx == 0 && target.length > 1
+                                    ? [
+                                        "商品名",
+                                        "区分",
+                                        "買上小計",
+                                        "入金小計",
+                                        "備考",
+                                    ]
+                                    : [
+                                        "日付",
+                                        "食事区分名",
+                                        "商品名",
+                                        "数量",
+                                        "単価",
+                                        "金額",
+                                        "入金金額",
+                                        "備考",
+                                    ],
+                                vue.viewModel.BushoCd == 501 && vue.viewModel.SimeKbn == 1 ? null :
+                                tIdx == 0 && target.length > 1
+                                    ? [
+                                        "商品名称",
+                                        "区分",
+                                        "買上小計",
+                                        "入金小計",
+                                        "備考",
+                                    ]
+                                    : [
+                                        "月日",
+                                        "区分",
+                                        "商品名称",
+                                        "食数",
+                                        "単価",
+                                        "買上額",
+                                        "入金額",
+                                        "備考",
+                                    ],
+                            );
+
+                            return html;
+                        })
+                        .map(v => $(v.get(0)).prop("outerHTML"))
+                        .join("")
+                        ;
+                        //console.log("htmls", htmls);
+                        return htmls;
+                    });
+
+                    var printable = $("<html>")
+                        .append($("<head>").append($("<style>").text(globalStyles)))
+                        .append(
+                            $("<body>")
+                                .append(contents)
+                        )
+                        .prop("outerHTML")
+                        ;
+
+                    var printOptions = {
+                        type: "raw-html",
+                        style: "@media print { @page { size: A4; } }",
+                        printable: printable,
+                        silent: vue.silentPrint,
+                    };
+
+                    printJS(printOptions);
+
+                    //印刷用HTMLの確認はデバッグコンソールで以下を実行
+                    //$("#printJS").contents().find("html").html()
+
+                    if (vue.silentPrint) {
+                        // 印刷完了待ち
+                        console.log("start pframe: " + $("#printJS").length);
+                        new Promise((resolve, reject) => {
+                            var timer = setInterval(function () {
+                                console.log("promise pframe: " + $("#printJS").length);
+                                if ($("#printJS").length == 0) {
+                                    clearInterval(timer);
+                                    return resolve(true);
+                                }
+                            }, 100);
+                        })
+                        .then(ret => {
+                            var next = printChunks.shift();
+                            if (!!next) {
+                                execute(next, page_no);
+                            }
+                        });
+                    } else {
+                        vue.progressDlg.dialog("close");
+                    }
+                })
+                .catch(err => {
+                    console.log(err);
+                    $.dialogErr({
+                        title: "印刷失敗",
+                        contents: "請求明細の検索に失敗しました" + "<br/>" + err.message,
+                    });
+                    vue.progressDlg.dialog("close");
+                })
+                .finally (() => {
+                    // vue.progressDlg.dialog("close");
                 });
+            };
 
-                var printable = $("<html>")
-                    .append($("<head>").append($("<style>").text(globalStyles)))
-                    .append(
-                        $("<body>")
-                            .append(contents)
-                    )
-                    .prop("outerHTML")
-                    ;
-
-                var printOptions = {
-                    type: "raw-html",
-                    style: "@media print { @page { size: A4; } }",
-                    printable: printable,
-                };
-
-                printJS(printOptions);
-                //印刷用HTMLの確認はデバッグコンソールで以下を実行
-                //$("#printJS").contents().find("html").html()
-            })
-            .catch(err => {
-                console.log(err);
-                $.dialogErr({
-                    title: "印刷失敗",
-                    contents: "請求明細の検索に失敗しました" + "<br/>" + err.message,
-                });
-            })
-            .finally (() => {
-                progressDlg.dialog("close");
-            });
+            execute(printChunks.shift());
+        },
+        setSilentPrint: function(enabled) {
+            var vue = this;
+            vue.silentPrint = !!enabled;
+            console.log("2030 setSilentPrint", vue.silentPrint)
+        },
+        closeProgressDlg: function() {
+            var vue = this;
+            if (vue.progressDlg) {
+                vue.progressDlg.dialog("close");
+                vue.progressDlg = null;
+            }
         },
     }
 }

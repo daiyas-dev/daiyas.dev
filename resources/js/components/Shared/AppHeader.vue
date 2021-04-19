@@ -1,10 +1,31 @@
 <template>
     <header class="AppHeader mt-2 mb-2">
         <div class="row ml-2 mr-2">
-            <div class="col-md-2">
+            <div class="col-md-3">
                 <span :class="['badge', this.isLogOn == true ? 'badge-success' : 'badge-danger']">{{title}}</span>
             </div>
-            <div class="col-md-4 pr-2 justify-content-end">
+            <div class="col-md-3 pr-2 ">
+                <template v-if="isShowSilentPrint">
+                    <VueCheck
+                        id="VueCheck_SilentPrint"
+                        ref="VueCheck_SilentPrint"
+                        :vmodel=this
+                        bind="silentPrint"
+                        checkedCode="1"
+                        customContainerStyle="border: none;"
+                        :list="[
+                            {code: '0', name: 'しない', label: '直接印刷'},
+                            {code: '1', name: 'する', label: '直接印刷'},
+                        ]"
+                        :onChangedFunc=onSilentPrintChanged
+                    />
+                    <span :class="[
+                        'font-weight-bold',
+                        'ml-3',
+                        this.printStatus == 'error' ? 'text-danger'
+                            : (this.printStatus == 'accept' ? 'text-success' : 'text-primary')
+                    ]">{{printMessage}}</span>
+                </template>
             </div>
             <div class="col-md-1">
                 <button type="button" class="btn btn-primary ctiPrevList" @click="showPrevList" disabled="false" v-if="showCtiPrevList">CTI再表示</button>
@@ -70,19 +91,29 @@ export default {
             userNm: null,
             isLogOn: null,
             webOrderCount: 0,
-            VueCheck: VueCheck,
+            VueCheckComp: VueCheck,
             DatePickerWrapper: DatePickerWrapper,
             fetch: true,
             interval: null,
             showCtiPrevList: false,
+            hasSilentPrint: false,
+            silentPrint: "0",
+            printStatus: "",
+            printMessage: "",
+            printMessageInterval: null,
         }
     },
     components: {
+        "VueCheck": VueCheck,
     },
     computed: {
         nowDate: function () {
             return moment().format('YYYY/MM/DD', new Date());
-        }
+        },
+        isShowSilentPrint: function() {
+            var vue = this;
+            return !!vue.hasSilentPrint && !!window.ipcRenderer;
+        },
     },
     created: function () {
     },
@@ -108,6 +139,12 @@ export default {
 
         if (!!window.ipcRenderer) {
             vue.showCtiPrevList = true;
+
+            vue.$root.$on("showSilentPrint", vue.showSilentPrint);
+            vue.$root.$on("setSilentPrint", vue.setSilentPrint);
+
+            vue.$root.$on("PrintMessageFromMain", vue.setPrintMessage);
+            window.ipcRenderer.on("PrintMessageFromMain", (e, arg) => vue.$root.$emit("PrintMessageFromMain", arg));
         }
     },
     methods: {
@@ -130,10 +167,11 @@ export default {
         setTitle: function(title) {
             var vue = this;
             vue.title = title;
+            vue.hasSilentPrint = false;
         },
         startPolling: function() {
             var vue = this;
-            vue.fetch = true;
+            vue.fetch = false;
 
             if (!vue.interval) {
                 vue.interval = setInterval(
@@ -227,7 +265,7 @@ export default {
                     );
                     dp.$mount();
 
-                    var vct = new (VueApp.createInstance(vue.VueCheck))(
+                    var vct = new (VueApp.createInstance(vue.VueCheckComp))(
                         {
                             propsData: {
                                 id: "VueCheck_SearchWebOrderList_Timeout",
@@ -246,7 +284,7 @@ export default {
                     );
                     vct.$mount();
 
-                    var vc = new (VueApp.createInstance(vue.VueCheck))(
+                    var vc = new (VueApp.createInstance(vue.VueCheckComp))(
                         {
                             /* Web受注一覧へ取込済のレコードを常時表示により「取込済も表示」チェックボックスを非表示 */
                             /* propsData: {
@@ -355,6 +393,51 @@ export default {
         hasPrevList: function(hasPrevList) {
             var vue = this;
             $(vue.$el).find(".ctiPrevList").attr("disabled", !hasPrevList);
+        },
+        showSilentPrint: function(show) {
+            var vue = this;
+            vue.hasSilentPrint = show;
+        },
+        setSilentPrint: function(enabled) {
+            var vue = this;
+            vue.silentPrint = enabled ? "1" : "0";
+        },
+        onSilentPrintChanged: function() {
+            var vue = this;
+            if (vue.silentPrint == "0") {
+                vue.printStatus = null;
+                vue.printMessage = "";
+            }
+            vue.$root.$emit("setSilentPrint", vue.silentPrint == "1");
+        },
+        setPrintMessage: function(arg) {
+            var vue = this;
+
+            if (vue.silentPrint == "0") return;
+
+            var ret = arg.split("/");
+            var status = ret[0];
+            var msg = ret[1];
+
+            vue.printStatus = status;
+            vue.printMessage = msg;
+
+            if (vue.printStatus == "running") {
+                if (vue.printMessageInterval) clearInterval(vue.printMessageInterval);
+
+                vue.printMessageInterval = setInterval(
+                    () => {
+                        if (vue.printStatus == "running") {
+                            var m = vue.printMessage.match(/\.+$/);
+                            var r = !!m ? (m[0].length % 5 + 1) : 1;
+                            vue.printMessage = vue.printMessage.replace(/\.+$/, "") + ".".repeat(r);
+                        } else {
+                            clearInterval(vue.printMessageInterval);
+                        }
+                    },
+                    1000
+                );
+            }
         },
     }
 }
