@@ -25,7 +25,7 @@
         "jquery-contextmenu": "2.8.0",
         "jquery-deparam": "^0.5.3",
         "jquery-ui-pack": "1.12.2",
-        "jspdf": "1.5.2",
+        "jspdf": "2.3.1",
         "jszip": "2.5.0",
         "laravel-echo": "1.5.4",
         "laravel-mix": "^4.0.7",
