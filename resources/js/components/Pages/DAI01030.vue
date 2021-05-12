@@ -1167,28 +1167,39 @@ export default {
             }
             else
             {
-                $.dialogConfirm({
-                    title: "配送日確認",
-                    contents: "配送日が本日ではないですが、宜しいですか？",
-                    buttons:[
-                        {
-                            text: "はい",
-                            class: "btn btn-primary",
-                            click: function(){
-                                $(this).dialog("close");
-                                vue.saveOrderExec(vue,grid,false);
-                            }
-                        },
-                        {
-                            text: "いいえ",
-                            class: "btn btn-danger",
-                            click: function(){
-                                $(this).dialog("close");
-                                return;
-                            }
-                        },
-                    ],
-                });
+                var hasPastDate = moment(vue.viewModel.DeliveryDate, "YYYY年MM月DD日").format("YYYYMMDD")<moment().format("YYYYMMDD");
+                if(hasPastDate){
+                    $.dialogErr({
+                        title: "配送日エラー",
+                        contents: "配送日が過去の日付のため、登録できません。",
+                    });
+                    return;
+                }
+                else
+                {
+                    $.dialogConfirm({
+                        title: "配送日確認",
+                        contents: "配送日が本日ではないですが、宜しいですか？",
+                        buttons:[
+                            {
+                                text: "はい",
+                                class: "btn btn-primary",
+                                click: function(){
+                                    $(this).dialog("close");
+                                    vue.saveOrderExec(vue,grid,false);
+                                }
+                            },
+                            {
+                                text: "いいえ",
+                                class: "btn btn-danger",
+                                click: function(){
+                                    $(this).dialog("close");
+                                    return;
+                                }
+                            },
+                        ],
+                    });
+                }
             }
         },
         saveOrderExec: function(vue,grid,isConfirm) {
