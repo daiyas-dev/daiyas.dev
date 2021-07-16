@@ -976,6 +976,8 @@ export default {
 
                 vue.viewModel.OrderDate = vue.viewModel.DeliveryDate;
                 vue.viewModel.OrderTime = vue.viewModel.DeliveryTime;
+
+                vue.CustomerInfo.売掛現金区分='1';
             } else {
                 vue.viewModel.BushoCd = vue.params.部署ＣＤ;
                 vue.viewModel.DeliveryDate = moment(vue.params.配達日付).format("YYYY年MM月DD日");
