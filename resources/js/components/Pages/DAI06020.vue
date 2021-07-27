@@ -320,6 +320,9 @@ export default {
         },
         mountedFunc: function(vue) {
             var vue = this;
+            if (!vue.params || !!vue.params.IsNew) {
+                vue.viewModel.InsatsuTantoCd = vue.getLoginInfo().uid;
+            }
             //日付の初期値 -> 当日
             vue.viewModel.IssueDate = moment().format("YYYY年MM月DD日");
         },
