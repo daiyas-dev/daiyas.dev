@@ -190,7 +190,32 @@ class DAI06040Controller extends Controller
 				AND T1.商品ＣＤ=T2.商品ＣＤ
                 AND T2.日付 >= '$DateStart'
                 AND T2.日付 <= '$DateEnd'
-				AND T1.商品ＣＤ=T2.商品ＣＤ
+                AND T1.商品ＣＤ=T2.商品ＣＤ
+				UNION
+                SELECT
+                    1 AS 処理区分
+                    ,T1.得意先ＣＤ
+                    ,10
+                    ,T2.日付 AS 日付
+                    ,0 AS チケット販売
+                    ,0 AS チケット販売SV
+                    ,IIF((T2.売掛現金区分 = 2 AND T2.商品区分 != 9),T2.掛売個数, 0) AS 弁当売上
+                    ,IIF((T2.売掛現金区分 = 4 AND T2.商品区分 != 9),T2.掛売個数, 0) AS 弁当売上SV
+                    ,0 AS 調整
+                    ,0 AS 調整SV
+                    ,0 AS チケット内数
+                    ,0 AS SV内数
+                    ,0 AS チケット残数
+                    ,0 AS チケットSV
+                FROM
+                    チケット発行得意先 T1
+                    ,売上データ明細 T2
+                WHERE T1.得意先ＣＤ=T2.得意先ＣＤ
+				AND T2.商品ＣＤ=13
+				AND T2.売掛現金区分=2
+				AND T2.得意先ＣＤ in(26006,26003)
+                AND T2.日付 >= '$DateStart'
+                AND T2.日付 <= '$DateEnd'
             )
             ,チケット_発行 AS (
                 SELECT
