@@ -191,7 +191,7 @@ class DAI06040Controller extends Controller
                 AND T2.日付 >= '$DateStart'
                 AND T2.日付 <= '$DateEnd'
                 AND T1.商品ＣＤ=T2.商品ＣＤ
-				UNION
+				UNION ALL
                 SELECT
                     1 AS 処理区分
                     ,T1.得意先ＣＤ
