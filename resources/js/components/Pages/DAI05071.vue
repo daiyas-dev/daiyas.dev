@@ -602,7 +602,7 @@ export default {
 
             //登録データの作成
             var FurikomiList=[];
-            _.forEach(grid.pdata,r=>{
+            _.forEach(grid.getData(),r=>{
                 var SaveItem={};
                 SaveItem.取引日=r.取引日;
                 SaveItem.振込依頼人名=r.依頼人名;

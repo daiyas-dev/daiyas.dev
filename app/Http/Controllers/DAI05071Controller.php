@@ -7,6 +7,7 @@ use Illuminate\Support\Arr;
 use DB;
 use Exception;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 use PDO;
 
 class DAI05071Controller extends Controller
@@ -154,6 +155,7 @@ class DAI05071Controller extends Controller
      */
     public function Save($request)
     {
+        Log::debug('05071 Save');
         $params = $request->all();
         DB::beginTransaction();
         try {
@@ -163,10 +165,13 @@ class DAI05071Controller extends Controller
             $FurikomiList=$params['FurikomiList'];
             $BushoInfo=$this->GetBushoInfoExec($params['BushoCd'])[0];
             $RecordNo=0;
+        Log::debug('count='.count($FurikomiList));
             foreach($FurikomiList as $SaveItem)
             {
+        Log::debug('05071' . $SaveItem['入金登録区分']);
                 if($SaveItem['入金登録区分']==true)
                 {
+        Log::debug('05071 save');
                     $this->SaveMidashi($params,$BushoInfo);
                     $this->SaveMeisai($params,$BushoInfo,$RecordNo,$SaveItem);
                     if($SaveItem['依頼人登録区分']==true)
