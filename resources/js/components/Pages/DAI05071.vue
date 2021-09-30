@@ -3,7 +3,7 @@
         <!-- prevent jQuery Dialog open autofucos -->
         <span class="ui-helper-hidden-accessible"><input type="text"/></span>
         <div class="row">
-            <div class="col-md-1">
+            <div class="col-md-2">
                 <label>部署</label>
             </div>
             <div class="col-md-2">
@@ -17,37 +17,57 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-1">
+            <div class="col-md-2">
                 <label>振込ファイル</label>
             </div>
             <div class="col-md-5">
-                <input class="form-control p-0 label-blue" style="width: 600px;" type="text" :value=viewModel.FurikomiFileName readonly tabindex="-1">
+                <input class="form-control p-1 label-blue" style="width: 600px;" type="text" :value=viewModel.FurikomiFileName readonly tabindex="-1">
             </div>
         </div>
         <div class="row">
-            <div class="col-md-1">
+            <div class="col-md-2">
                 <label>ファイル日時</label>
             </div>
             <div class="col-md-4">
-                <input class="form-control p-0 label-blue" style="width: 240px;" type="text" :value=viewModel.FurikomiFileDate readonly tabindex="-1">
+                <input class="form-control p-1 label-blue" style="width: 240px;" type="text" :value=viewModel.FurikomiFileDate readonly tabindex="-1">
             </div>
         </div>
         <div class="row">
-            <div class="col-md-1">
+            <div class="col-md-2">
                 <label>口座</label>
             </div>
             <div class="col-md-5">
-                <input class="form-control p-0 label-blue" style="width: 600px;" type="text" :value=viewModel.Kouza readonly tabindex="-1">
+                <input class="form-control p-1 label-blue" style="width: 600px;" type="text" :value=viewModel.Kouza readonly tabindex="-1">
             </div>
         </div>
         <div class="row">
-            <div class="col-md-1">
+            <div class="col-md-2">
                 <label>振込合計金額</label>
             </div>
             <div class="col-md-2">
-                <input class="form-control p-0 label-blue" style="width: 120px; text-align:right;" type="text" :value=viewModel.FurikomiKingaku readonly tabindex="-1">
+                <input class="form-control p-0 label-blue" style="width: 120px; text-align:right;" type="text" :value=this.FurikomiKingakuEditted readonly tabindex="-1">
             </div>
         </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <fieldset class="w-100">
+                    <legend>絞込条件</legend>
+                    <div class="row">
+                        <div class="col-md-5">
+                            <label style="width: auto; margin-right: 10px">得意先名/依頼人名</label>
+                            <input class="form-control" type="text" style="width: 200px; font-size: 15px !important;"
+                                v-model=filter.CustomerName
+                                maxlength="10"
+                                v-maxBytes=20
+                                @input="onCustomerChanged"
+                            >
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+
         <PqGridWrapper
             id="DAI05071Grid1"
             ref="DAI05071Grid1"
@@ -85,8 +105,29 @@
 [pgid=DAI05071] .title-col {
     background-image: -webkit-linear-gradient(top, rgb(254, 254, 254), rgb(218, 230, 240));
 }
-label{
-    width: 80px;
+form[pgid=DAI05071] label{
+    width: auto;
+}
+form[pgid=DAI05071] fieldset {
+    border: 1px solid gray;
+    padding: 0;
+    padding-bottom: 10px;
+    padding-left: 10px;
+    margin-bottom: 5px;
+}
+fieldset * {
+    font-size: 14px !important;
+}
+legend {
+    font-size: 18px !important;
+    width: 85px !important;
+    padding: 0;
+    margin: 0;
+    margin-left: 5px;
+}
+fieldset .row {
+    margin-left: 10px;
+    margin-right: 0px;
 }
 </style>
 
@@ -104,7 +145,12 @@ export default {
             return {
                 BushoCd: vue.viewModel.BushoCd,
                 FurikomiFileName: vue.viewModel.FurikomiFileName,
+                TargetDate: moment(vue.viewModel.TargetDate, "YYYY年MM月DD日").format("YYYY/MM/DD"),
             };
+        },
+        FurikomiKingakuEditted: function() {
+            var vue = this;
+            return Number(vue.viewModel.FurikomiKingaku).toLocaleString();
         },
     },
     data() {
@@ -125,6 +171,9 @@ export default {
                 KouzaSyubetu: null,
                 FurikomiKingaku: null,
             },
+            filter: {
+                CustomerName: null,
+            },
             IsChild: false,
             IsFirstFocus: false,
             DAI05071Grid1: null,
@@ -134,7 +183,7 @@ export default {
                 showToolbar: false,
                 columnBorders: true,
                 rowHt: 25,
-                rowHtHead: 25,
+                rowHtHead: 45,
                 fillHandle: "",
                 numberCell: { show: true, title: "No.", resizable: false },
                 autoRow: false,
@@ -143,8 +192,16 @@ export default {
                     editable: false,
                     sortable: false,
                 },
+                editModel: {
+                    clicksToEdit: 2,
+                    keyUpDown: false,
+                    saveKey: $.ui.keyCode.ENTER,
+                    onSave: "nextFocus",
+                    onTab: "nextFocus",
+                },
                 filterModel: {
-                    on: false,
+                    on: true,
+                    mode: "OR",
                     header: false,
                     menuIcon: false,
                     hideRows: false,
@@ -169,7 +226,7 @@ export default {
                         title: "振込依頼人名",
                         dataIndx: "依頼人名",
                         dataType: "string",
-                        width: 150, maxWidth: 150, minWidth: 150,
+                        width: 175, maxWidth: 175, minWidth: 175,
                     },
                     {
                         title: "振込金額",
@@ -179,8 +236,15 @@ export default {
                     {
                         title: "結果",
                         dataIndx: "結果",
+                        dataType: "integer",
+                        hidden: true,
+                    },
+                    {
+                        title: "結果",
+                        dataIndx: "結果マーク",
                         dataType: "string",
-                        width: 75, maxWidth: 75, minWidth: 75,
+                        width: 45, maxWidth: 45, minWidth: 45,
+                        align: "center",
                     },
                     {
                         title: "得意先CD",
@@ -195,6 +259,12 @@ export default {
                         width: 150, maxWidth: 150, minWidth: 150,
                     },
                     {
+                        title: "得意先名カナ",
+                        dataIndx: "得意先名カナ",
+                        dataType: "string",
+                        hidden: true,
+                    },
+                    {
                         title: "売掛金額",
                         dataIndx: "売掛金額",
                         dataType: "integer",
@@ -203,20 +273,24 @@ export default {
                     },
                     {
                         title: "入金額",
-                        dataIndx: "入金金額", dataType: "integer", format: "#,##0",
+                        dataIndx: "入金総額",
+                        dataType: "integer", format: "#,##0",
                         width: 75, maxWidth: 75, minWidth: 75,
                     },
                     {
                         title: "手数料",
-                        dataIndx: "振込手数料", dataType: "integer", format: "#,##0",
+                        dataIndx: "振込手数料",
+                        dataType: "integer", format: "#,##0",
                         width: 75, maxWidth: 75, minWidth: 75,
+                        editableColumn: true,
+                        editable: ui => ui.rowData["CUR入金登録区分"] == "false",
                     },
                     {
                         title: "依頼人登録",
                         dataIndx: "依頼人登録区分",
                         type: "checkbox",
                         cbId: "F依頼人登録区分",
-                        width: 100, minWidth: 100, maxWidth: 100,
+                        width: 75, minWidth: 75, maxWidth: 75,
                         align: "center",
                         editableColumn: true,
                         editor: false,
@@ -239,10 +313,19 @@ export default {
                         dataIndx: "入金登録区分",
                         type: "checkbox",
                         cbId: "F入金登録区分",
-                        width: 100, minWidth: 100, maxWidth: 100,
+                        width: 60, minWidth: 60, maxWidth: 60,
                         align: "center",
                         editableColumn: true,
+                        editable: ui => !ui.rowData["CUR入金登録区分"],
                         editor: false,
+                        render: ui => ui.rowData["CUR入金登録区分"] == "true" ? "済" : ui,
+                    },
+                    {
+                        title: "入金登録",
+                        dataIndx: "CUR入金登録区分",
+                        dataType: "string",
+                        align: "center",
+                        hidden: true,
                     },
                     {
                         title: "入金登録",
@@ -265,6 +348,7 @@ export default {
                         align: "center",
                         width: 100, minWidth: 100, maxWidth: 100,
                         editableColumn: true,
+                        editable: ui => ui.rowData["CUR入金登録区分"] == "false",
                     },
                     {
                         title: "店番",
@@ -381,16 +465,15 @@ export default {
                         vue.conditionChanged(true);
                     }
                 },
-                { visible: "true", value: "得意先検索", id: "DAI05071Grid1_SearchCustomer", disabled: false, shortcut: "F8",
-                    onClick: function () {
-                        vue.conditionChanged(true);
-                    }
-                },
+                {visible: "false"},
+                {visible: "false"},
                 { visible: "true", value: "登録", id: "DAI05071Grid1_Save", disabled: false, shortcut: "F9",
                     onClick: function () {
                         vue.save();
                     }
                 },
+                {visible: "false"},
+                {visible: "false"},
                 {visible: "false"},
                 {visible: "false"},
                 {visible: "false"},
@@ -432,15 +515,19 @@ export default {
             //条件変更ハンドラ
             vue.conditionChanged();
         },
-        onCustomerChanged: function(code, entity, comp) {
+        onCustomerChanged: function() {
+            console.log("05071 filter");
             var vue = this;
+            var grid = vue.DAI05071Grid1;
 
-            if (!!entity) {
-                vue.viewModel.BushoCd = entity.部署CD;
+            if (!grid) return;
+            var rules = [];
+            if (vue.filter.CustomerName != "") {
+                rules.push({ dataIndx: "得意先名", condition: "contain", value: vue.filter.CustomerName });
+                rules.push({ dataIndx: "得意先名カナ", condition: "contain", value: vue.filter.CustomerName, });
+                rules.push({ dataIndx: "依頼人名", condition: "contain", value: vue.filter.CustomerName, });
             }
-
-            //条件変更ハンドラ
-            vue.conditionChanged();
+            grid.filter({ oper: "replace", mode: "OR", rules: rules });
         },
         conditionChanged: function(force) {
             var vue = this;

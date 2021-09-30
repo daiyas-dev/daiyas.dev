@@ -59,7 +59,37 @@ class DAI05071Controller extends Controller
     {
         $BushoCd = $request->BushoCd;
         $FurikomiFileName = $request->FurikomiFileName;
+        $TargetDate = $request->TargetDate;
         $sql = "
+                    WITH URIKAKE AS (
+                        SELECT
+                            得意先ＣＤ,
+                            対象日,
+	                        今回請求額
+                        FROM
+						    (
+                                SELECT
+                                    得意先ＣＤ,
+                                    支払サイト,
+                                    CASE WHEN 締日 = 0 OR 締日 >= 30 THEN STEP1DATE
+                                    ELSE DATEADD(MM, - (支払サイト), STEP1DATE) END AS 対象日
+                                FROM
+                                (
+						            SELECT
+                                        得意先ＣＤ,
+                                        ISNULL(支払サイト,0) AS 支払サイト,
+	                                    CASE WHEN ISNULL(締日１,0) = 0 OR ISNULL(締日１,0) >= 30 THEN DATEADD(MM, 0, LEFT('$TargetDate',7)+'/01')-1
+	                                    ELSE DATEADD(MM, -1, LEFT('$TargetDate',8) + RIGHT('00' + CAST(ISNULL(締日１,0) AS NVARCHAR), 2))
+	                                    END AS STEP1DATE,
+                                        ISNULL(締日１,0) AS 締日
+                                    FROM 得意先マスタ
+                                    WHERE 売掛現金区分 <> 0
+						        ) B
+						    ) B
+						    , 請求データ
+                        WHERE B.得意先ＣＤ = 請求データ.請求先ＣＤ
+                        AND   B.対象日 = 請求データ.請求日付
+                    )
                     SELECT
                           振込明細.部署ＣＤ
                         , 振込明細.ファイル名
@@ -82,19 +112,29 @@ class DAI05071Controller extends Controller
                         , 振込明細.金融機関名
                         , 振込明細.支店名
                         , 振込明細.EDI情報
+                        , URIKAKE.今回請求額 AS 売掛金額
                         , 振込明細.入金金額
                         , 振込明細.振込手数料
+                        , 振込明細.入金金額 + 振込明細.振込手数料 AS 入金総額
                         , 振込明細.得意先ＣＤ
                         , CASE 振込明細.依頼人登録区分 WHEN 1 THEN 'true' ELSE 'false'END AS F依頼人登録区分
                         , CASE 振込明細.入金登録区分 WHEN 1 THEN 'true' ELSE 'false'END AS F入金登録区分
+                        , CASE 振込明細.入金登録区分 WHEN 1 THEN 'true' ELSE 'false'END AS CUR入金登録区分
                         , 振込明細.入金日
                         , 振込明細.入金伝票Ｎｏ
                         , 振込明細.結果
+						, CASE (SELECT COUNT(*) FROM 得意先振込依頼人名 WHERE 得意先振込依頼人名.振込依頼人名 = 振込明細.依頼人名)
+							WHEN 0 THEN '×'
+							WHEN 1 THEN IIF(振込明細.結果 = 0, '×', '〇')
+							ELSE '◎'
+						  END AS 結果マーク
                         , 振込明細.修正担当者ＣＤ
                         , 振込明細.修正日
                         , 得意先マスタ.得意先名
+                        , 得意先マスタ.得意先名カナ
                     FROM 振込明細
                          LEFT JOIN 得意先マスタ ON 得意先マスタ.得意先ＣＤ = 振込明細.得意先ＣＤ
+                         LEFT JOIN URIKAKE ON URIKAKE.得意先ＣＤ = 振込明細.得意先ＣＤ
                     WHERE 振込明細.部署ＣＤ   = $BushoCd
                       AND 振込明細.ファイル名 = '$FurikomiFileName'
                 ";

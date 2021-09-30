@@ -135,6 +135,7 @@ export default {
                 DateStart: null,
                 DateEnd: null,
             },
+            uploadingDlg: null,
             DAI05070Grid1: null,
             grid1Options: {
                 selectionModel: { type: "row", mode: "single", row: true },
@@ -187,13 +188,15 @@ export default {
                         title: "ファイル名",
                         dataIndx: "ファイル名",
                         dataType: "string",
-                        width: 200, maxWidth: 200, minWidth: 200,
+                        width: 215, maxWidth: 215, minWidth: 215,
+                        align: "center",
                     },
                     {
                         title: "ファイル日時",
                         dataIndx: "ファイル日時",
                         dataType: "string",
-                        width: 150, maxWidth: 150, minWidth: 150,
+                        width: 225, maxWidth: 225, minWidth: 225,
+                        align: "center",
                         render: ui => {
                             if (!!ui.rowData[ui.dataIndx]){
                                 return { text: moment(ui.rowData[ui.dataIndx]).format("YYYY年MM月DD日 HH時mm分ss秒") };
@@ -206,6 +209,7 @@ export default {
                         dataIndx: "処理日付",
                         dataType: "string",
                         width: 150, maxWidth: 150, minWidth: 150,
+                        align: "center",
                         render: ui => {
                             if (!!ui.rowData[ui.dataIndx]){
                                 return { text: moment(ui.rowData[ui.dataIndx]).format("YYYY年MM月DD日") };
@@ -230,12 +234,14 @@ export default {
                         dataIndx: "種別",
                         dataType: "string",
                         width: 80, maxWidth: 80, minWidth: 80,
+                        align: "center",
                     },
                     {
                         title: "口座番号",
                         dataIndx: "口座番号",
                         dataType: "string",
                         width: 100, maxWidth: 100, minWidth: 100,
+                        align: "center",
                     },
                     {
                         title: "振込合計金額",
@@ -307,12 +313,20 @@ export default {
         addFileCallback: function(event) {
             var vue = this;
             console.log("5070 addFileFileCallback", event);
+
+            //アップロード中ダイアログ
+            vue.uploadingDlg = $.dialogProgress({
+                contents: "<i class='fa fa-spinner fa-spin' style='font-size: 24px; margin-right: 5px;'></i> アップロード中…",
+            });
+
             vue.UpdateFileName=event.name;
             vue.UpdateFileLastModifiedDate=event.lastModifiedDate;
             $(vue.$el).find(".UploadFile").attr("data-path-text", event.name);
         },
         uploadFileCallback: function(res) {
             var vue = this;
+
+            vue.uploadingDlg.dialog("close");
 
             if (!!res.result) {
                 console.log("5070 uploadCallback", res)
@@ -347,6 +361,7 @@ export default {
                 };
             } else if (!!rowData) {
                 data = _.cloneDeep(rowData);
+                data.処理日付 = moment(vue.viewModel.TargetDate, "YYYY年MM月DD日").format("YYYYMMDD");
             } else {
                 var selection = grid.SelectRow().getSelection();
 
@@ -382,7 +397,7 @@ export default {
                 isModal: true,
                 isChild: true,
                 reuse: false,
-                width: 900,
+                width: 1200,
                 height: 725,
             });
         },
