@@ -340,7 +340,7 @@ export default {
             axios.all(
                 [
                     //商品リストの取得
-                    axios.post("/DAI01101/GetProductList", { CustomerCd: vue.params.CustomerCd }),
+                    axios.post("/DAI01101/GetProductList", { CustomerCd: vue.params.CustomerCd , TargetDate: vue.params.TargetDate}),
                     //分配元データの取得
                     axios.post("/DAI01101/GetParentData", vue.searchParams),
                 ]

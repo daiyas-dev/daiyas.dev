@@ -21,6 +21,7 @@ class DAI01101Controller extends Controller
     public function GetProductList($request)
     {
         $CustomerCd = $request->CustomerCd;
+        $TargetDate = Carbon::createFromFormat('Y年m月d日', $request->TargetDate)->format('Ymd') ;
 
         $sql = "
             SELECT
@@ -32,9 +33,23 @@ class DAI01101Controller extends Controller
                 IIF(MTT.商品ＣＤ IS NOT NULL, MTT.単価, PM.売価単価) AS 売価単価
             FROM
                 商品マスタ PM
-                LEFT JOIN 得意先単価マスタ MTT
+                LEFT JOIN　(
+                    SELECT
+                        *
+                    FROM (
+                        SELECT
+                            *
+                            , RANK() OVER(PARTITION BY 得意先ＣＤ, 商品ＣＤ ORDER BY 適用開始日 DESC) AS RNK
+                        FROM
+                            得意先単価マスタ新
+                        WHERE
+                            得意先ＣＤ = $CustomerCd
+                        AND 適用開始日 <= '$TargetDate'
+                    ) TT
+                    WHERE
+                        RNK = 1
+				) MTT
                     ON	PM.商品ＣＤ=MTT.商品ＣＤ
-                    AND MTT.得意先ＣＤ=$CustomerCd
             WHERE
                 表示ＦＬＧ=0
 				AND PM.商品ＣＤ IN (SELECT サブ各種CD1 FROM 各種テーブル WHERE 各種CD=44)
