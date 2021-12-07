@@ -86,8 +86,8 @@
                             <input type="text" class="form-control" style="font-size: 15px !important;"
                                 autocomplete="off"
                                 v-model="viewModel.得意先名略称"
-                                maxlength=20
-                                v-maxBytes=30
+                                maxlength=30
+                                maxBytes=30
                             >
                         </div>
                     </div>
@@ -97,8 +97,8 @@
                             <input type="text" class="form-control"
                                 autocomplete="off"
                                 v-model="viewModel.得意先名スマホ用"
-                                maxlength=15
-                                v-maxBytes=30
+                                maxlength=30
+                                maxBytes=30
                             >
                         </div>
                     </div>
