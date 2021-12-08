@@ -46,6 +46,7 @@ class DAI01260Controller extends Controller
                 ,	T4.得意先ＣＤ AS 分配元得意先CD
                 ,	T4.得意先名 AS 分配元得意先名
                 ,	T1.分配元数量
+                ,	T1.食事区分
                 FROM
                     売上データ明細 T1
                     LEFT JOIN 部署マスタ T2
@@ -75,6 +76,7 @@ class DAI01260Controller extends Controller
                 ,	(T1.掛売個数 + T1.現金個数) AS 数量
                 ,	(T1.掛売金額 + T1.現金金額) AS 売上金額
                 ,	(T3.現金 + T3.小切手 + T3.振込 + T3.バークレー + T3.その他 + T3.相殺 + T3.値引) AS 入金額
+                ,	T1.食事区分
                 FROM
                     得意先マスタ T0
                     INNER JOIN 売上データ明細 T1
@@ -122,6 +124,7 @@ class DAI01260Controller extends Controller
                     AND VW01.コースCD = VW02.コースCD
                     AND VW01.商品CD = VW02.商品CD
                     AND VW01.分配元得意先CD = VW02.受注得意先CD
+                    AND VW01.食事区分 = VW02.食事区分
             ORDER BY
                 VW01.部署CD
             ,   VW01.コースCD
