@@ -595,10 +595,16 @@ export default {
         onCustomerChanged: function(code, entity, comp) {
             var vue = this;
             var selectname = $(vue.$el).find(".select-name").val();
+
+            if (!!entity && !_.isEmpty(entity)) {
+                vue.viewModel.BushoCd = entity.部署CD;
+            }
+
             if(selectname==""){
                 vue.clearData();
                 return;
             }
+
             console.log("カスタマーチェンジ");//TODO:
 
             if (!!entity && !_.isEmpty(entity)) {
