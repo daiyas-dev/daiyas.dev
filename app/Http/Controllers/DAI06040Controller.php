@@ -49,10 +49,10 @@ class DAI06040Controller extends Controller
                 FROM
                     得意先マスタ TK
                     LEFT OUTER JOIN チケット発行 TH
-                        ON  TH.発行日 < '$DateEnd'
+                        ON  TH.発行日 <= '$DateEnd'
                         AND TH.得意先ＣＤ=TK.得意先ＣＤ
                     LEFT OUTER JOIN チケット調整 TC
-                        ON  TC.日付 < '$DateEnd'
+                        ON  TC.日付 <= '$DateEnd'
                         AND TC.得意先ＣＤ=TK.得意先ＣＤ
                 WHERE
                     TH.得意先ＣＤ IS NOT NULL OR TC.得意先ＣＤ IS NOT NULL
