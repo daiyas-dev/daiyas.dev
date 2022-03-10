@@ -77,6 +77,7 @@ SELECT
   , MAX(D1.部署名) AS 部署名
   , D1.コースＣＤ
   , MAX(D1.コース名) AS コース名
+  , D1.ＳＥＱ
   , D1.得意先ＣＤ
   , MAX(D1.得意先名) AS 得意先名
   , D1.締日
@@ -99,6 +100,7 @@ FROM
       , MAX(BUM.部署名) AS 部署名
       , URID.コースＣＤ
       , MAX(CUM.コース名) AS コース名
+      , CUT.ＳＥＱ
       , URID.得意先ＣＤ
       , MAX(TOM.得意先名) AS 得意先名
       , CASE
@@ -141,6 +143,9 @@ FROM
       LEFT JOIN コースマスタ CUM
         ON CUM.コースＣＤ = URID.コースＣＤ
         AND CUM.部署ＣＤ = URID.部署ＣＤ
+      LEFT JOIN コーステーブル CUT
+        ON CUT.コースＣＤ = URID.コースＣＤ
+        AND CUT.得意先ＣＤ = TOM.受注得意先ＣＤ
     WHERE
       URID.部署ＣＤ = $BushoCd
       AND URID.日付 >= '$DateStart'
@@ -149,6 +154,7 @@ FROM
     GROUP BY
       URID.部署ＣＤ
       , URID.コースＣＤ
+      , CUT.ＳＥＱ
       , URID.得意先ＣＤ
       , URID.日付
       , URID.売掛現金区分
@@ -159,8 +165,9 @@ FROM
       NUD.入金日付 AS 日付
       , NUD.部署ＣＤ
       , MAX(BUM.部署名) AS 部署名
-      , URID.コースＣＤ
+      , CUT.コースＣＤ
       , MAX(CUM.コース名) AS コース名
+      , CUT.ＳＥＱ
       , NUD.得意先ＣＤ
       , MAX(TOM.得意先名) AS 得意先名
       , CASE
@@ -183,20 +190,18 @@ FROM
       , SUM(値引) AS 調整額
     FROM
       入金データ NUD
-      LEFT JOIN 売上データ明細 URID
-        ON NUD.部署ＣＤ = URID.部署ＣＤ
-        AND NUD.得意先ＣＤ = URID.得意先ＣＤ
-        AND NUD.入金日付 = URID.日付
       LEFT JOIN 部署マスタ BUM
         ON BUM.部署ＣＤ = NUD.部署ＣＤ
       LEFT JOIN 得意先マスタ TOM
         ON TOM.得意先ＣＤ = NUD.得意先ＣＤ
+      LEFT JOIN コーステーブル CUT
+        ON CUT.得意先ＣＤ = TOM.受注得意先ＣＤ
+        AND CUT.部署ＣＤ = $BushoCd
       LEFT JOIN コースマスタ CUM
-        ON CUM.コースＣＤ = URID.コースＣＤ
-        AND CUM.部署ＣＤ = $BushoCd
+        ON CUM.コースＣＤ = CUT.コースＣＤ
+        AND CUM.部署ＣＤ = NUD.部署ＣＤ
     WHERE
       NUD.部署ＣＤ = $BushoCd
-      AND URID.明細行Ｎｏ = 1
       AND NUD.入金日付 >= '$DateStart'
       AND NUD.入金日付 <= '$DateEnd'
       /*
@@ -223,7 +228,8 @@ FROM
       $sql_course
     GROUP BY
       NUD.部署ＣＤ
-      , URID.コースＣＤ
+      , CUT.コースＣＤ
+      , CUT.ＳＥＱ
       , NUD.得意先ＣＤ
       , NUD.入金日付
       , TOM.締日１
@@ -233,6 +239,7 @@ WHERE
 GROUP BY
   D1.部署ＣＤ
   , D1.コースＣＤ
+  , D1.ＳＥＱ
   , D1.得意先ＣＤ
   , D1.日付
   , D1.締日
@@ -240,6 +247,7 @@ ORDER BY
   D1.日付
   , D1.部署ＣＤ
   , D1.コースＣＤ
+  , D1.ＳＥＱ
 ";
 
         $DataList = DB::select(DB::raw($sql));
