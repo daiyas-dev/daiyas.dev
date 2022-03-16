@@ -514,7 +514,7 @@ export default {
                     params = $.extend(true, params, p);
                 });
 
-                if (!!vue.viewModel.BushoCd) {
+                if ((!!vue.viewModel.BushoCd) || vue.viewModel.BushoCd=='') {
                     params.BushoCd = vue.viewModel.BushoCd;
                 }
 
