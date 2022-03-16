@@ -537,22 +537,17 @@ class DAI01030Controller extends Controller
         if (!!$Keywords && !!count($Keywords)) {
             $Conditions = collect($Keywords)
                 ->map(function ($Keyword) {
-                    $Condition = "
-                        (
-                            M1.得意先名カナ LIKE '%$Keyword%'
-                        )
-                    ";
+                    $Condition = "M1.得意先名カナ LIKE '%$Keyword%'";
 
+                    //検索キーワードが数値なら得意先CDも検索対象にする
+                    if (isset($Keyword) && (!!is_numeric($Keyword) || !!ctype_digit($Keyword))) {
+                        $Condition .= "OR M1.得意先ＣＤ=$Keyword";
+                    }
                     return $Condition;
                 })
                 ->join(' OR ');
 
             $WhereKeyWord = "AND ($Conditions)";
-        }
-
-        $Keyword = $request->Keyword;
-        if (isset($Keyword) && (!!is_numeric($Keyword) || !!ctype_digit($Keyword))) {
-            $WhereKeyWord = "AND M1.得意先ＣＤ=$Keyword";
         }
 
         $SearchTel = preg_replace('/-/', '', $request->SearchTel);
@@ -670,6 +665,7 @@ class DAI01030Controller extends Controller
                 $BaseSql
             ) AS T
         ";
+        Log::debug('DAI01030_GetCustomerInfoList_SQL\n'.$SearchSql);
 
         $pdo = DB::connection()->getPdo();
         $stmt = $pdo->query($SearchSql);
