@@ -254,6 +254,10 @@ button .nav-link {
     top: 385px;
     left: 600px;
 }
+.tab-content .tab-pane button#menu_DAI01270 {
+    top: 440px;
+    left: 600px;
+}
 .tab-content .tab-pane button#menu_DAI02010 {
     top: 0px;
     left: 0px;
