@@ -665,7 +665,7 @@ class DAI01030Controller extends Controller
                 $BaseSql
             ) AS T
         ";
-        Log::debug('DAI01030_GetCustomerInfoList_SQL\n'.$SearchSql);
+        //Log::debug('DAI01030_GetCustomerInfoList_SQL\n'.$SearchSql);
 
         $pdo = DB::connection()->getPdo();
         $stmt = $pdo->query($SearchSql);

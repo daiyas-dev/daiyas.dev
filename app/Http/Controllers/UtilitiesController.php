@@ -2206,9 +2206,6 @@ $OrderBy
         $ProductCd = $request->ProductCd;
         $WhereProductCd = !!$ProductCd ? "AND TT.商品ＣＤ=$ProductCd" : "";
 
-        $TargetDate = $request->TargetDate;
-        $OrderTargetDate = !!$TargetDate ? "IIF(TT.適用開始日 <= '$TargetDate', 0, 1)," : "";
-
         $sql = "
             SELECT
                 TT.*
@@ -2217,13 +2214,16 @@ $OrderBy
 				,TM.得意先名
                 ,SM.商品名
                 ,IIF(
-                    FIRST_VALUE(TT.適用開始日) OVER(
-                        PARTITION BY TT.得意先ＣＤ, TT.商品ＣＤ
-                        ORDER BY $OrderTargetDate TT.適用開始日 DESC
-                    ) = TT.適用開始日,
-                    1, 0
-                ) AS 状況
-            FROM
+                        (
+                            SELECT MAX(TT2.適用開始日)
+                              FROM 得意先単価マスタ新 TT2
+                             WHERE TT2.得意先ＣＤ=TT.得意先ＣＤ
+                               AND TT2.商品ＣＤ=TT.商品ＣＤ
+                               AND TT2.適用開始日<=GETDATE()
+                        )= TT.適用開始日
+                        , 1, 0
+                    ) AS 状況
+                FROM
                 得意先単価マスタ新 TT
 				LEFT OUTER JOIN 得意先マスタ TM
                     ON  TM.得意先ＣＤ=TT.得意先ＣＤ
@@ -2245,6 +2245,9 @@ $OrderBy
         $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
         $password = 'daiyas';
+
+        //テスト用ログ出力
+        //Log::info('GetTankaList sql\n' . $sql);
 
         $pdo = new PDO($dsn, $user, $password);
         $stmt = $pdo->query($sql);
