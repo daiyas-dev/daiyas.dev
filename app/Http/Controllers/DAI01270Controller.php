@@ -99,6 +99,7 @@ class DAI01270Controller extends Controller
 
             $ErrorList = array();
             $ErrorList = $this->CSVCheck($pdo,$Contents,$ErrorList);
+            $Executionflg = 0;
 
             foreach ($Lines as $i => $Line) {
                 $Evacuation = (object)[];
@@ -154,8 +155,12 @@ class DAI01270Controller extends Controller
 
                         array_push($Customers, $Customer);
                     };
-                }
-            }
+                    IF($Executionflg <> 2){
+                        $Executionflg = $ErrorList[$i]->Executionflg;
+                    }
+                };
+
+            };
 
             $message = $ErrorList[$i+1];
             //エラー表示を含んで値を返す
@@ -168,6 +173,7 @@ class DAI01270Controller extends Controller
                     'Existenceflg' => $Existenceflg,
                     "DataCheckNo" => 1,
                     "message" => $message,
+                    "Executionflg" => $Executionflg
                 ]);
             };
 
@@ -206,6 +212,7 @@ class DAI01270Controller extends Controller
                 $Evacuation = (object)[];
                 $Errorflg = (object)[];
                 $InputErrorCount = 0;
+                $Executionflg = 0;
 
                 /*解説
                     $ErrorCount = エラーメッセージの数
@@ -225,6 +232,7 @@ class DAI01270Controller extends Controller
                             $message = $message .'<br>注文情報ファイルの'.$i.'行目の項目を区切る半角カンマの数をご確認下さい。';
                         };
                         $ErrorCount = $ErrorCount + 1;
+                        $Executionflg = 1;
                         $Errorflg->半角カンマ数 = 'NG';
                     }else{
                         $Errorflg->半角カンマ数 = 'OK';
@@ -254,6 +262,7 @@ class DAI01270Controller extends Controller
                                         $message = $message .'<br>注文情報ファイルの'.$i.'行目の配送日が数字ではありません。';
                                     };
                                     $ErrorCount = $ErrorCount + 1;
+                                    $Executionflg = 2;
                                     $Errorflg->配送日 = 'NG';
                                 }elseif (!checkdate($m, $d, $y)) {
                                     IF ($ErrorCount == 0){
@@ -262,6 +271,7 @@ class DAI01270Controller extends Controller
                                         $message = $message .'<br>注文情報ファイルの'.$i.'行目の配送日が正しく入力されていません。';
                                     };
                                     $ErrorCount = $ErrorCount + 1;
+                                    $Executionflg = 2;
                                     $Errorflg->配送日 = 'NG';
                                 };
                             }else{
@@ -271,6 +281,7 @@ class DAI01270Controller extends Controller
                                     $message = $message .'<br>注文情報ファイルの'.$i.'行目の配送日が正しく入力されていません。';
                                 };
                                 $ErrorCount = $ErrorCount + 1;
+                                $Executionflg = 2;
                                 $Errorflg->配送日 = 'NG';
                             };
                         };
@@ -285,6 +296,8 @@ class DAI01270Controller extends Controller
                             $ErrorCount = $ErrorCount + 1;
                             if(empty($Evacuation[1])){
                                 $InputErrorCount = $InputErrorCount + 1;
+                            }else{
+                                $Executionflg = 2;
                             };
                             $Errorflg->得意先CD = 'NG';
                         }else{
@@ -301,6 +314,8 @@ class DAI01270Controller extends Controller
                             $ErrorCount = $ErrorCount + 1;
                             if(empty($Evacuation[3])){
                                 $InputErrorCount = $InputErrorCount + 1;
+                            }else{
+                                $Executionflg = 2;
                             };
                             $Errorflg->商品CD = 'NG';
                         }else{
@@ -317,6 +332,8 @@ class DAI01270Controller extends Controller
                             $ErrorCount = $ErrorCount + 1;
                             if(empty($Evacuation[4])){
                                 $InputErrorCount = $InputErrorCount + 1;
+                            }else{
+                                $Executionflg = 2;
                             };
                             $Errorflg->数量 = 'NG';
                         }else{
@@ -341,6 +358,7 @@ class DAI01270Controller extends Controller
                                 }elseIF ($ErrorCount < 5){
                                     $message = $message .'<br>注文情報ファイルの'.$i.'行目の得意先CDが存在しません。';
                                 };
+                                $Executionflg = 2;
                                 $ErrorCount = $ErrorCount + 1;
                             };
                             //売掛現金区分の売掛チェック確認
@@ -350,6 +368,7 @@ class DAI01270Controller extends Controller
                                 }elseIF ($ErrorCount < 5){
                                     $message = $message .'<br>注文情報ファイルの'.$i.'行目の得意先CDが売掛ではありません。';
                                 };
+                                $Executionflg = 2;
                                 $ErrorCount = $ErrorCount + 1;
                             };
                         };
@@ -372,6 +391,7 @@ class DAI01270Controller extends Controller
                                 } elseif ($ErrorCount < 6) {
                                     $message = $message .'<br>注文情報ファイルの'.$i.'行目の商品CDが存在しません。';
                                 };
+                                $Executionflg = 2;
                                 $ErrorCount = $ErrorCount + 1;
                             };
                         };
@@ -396,6 +416,7 @@ class DAI01270Controller extends Controller
                                 } elseif ($ErrorCount < 6) {
                                     $message = $message .'<br>注文情報ファイルの'.$i.'行目の得意先単価マスタ新へ登録されていません。';
                                 };
+                                $Executionflg = 2;
                                 $ErrorCount = $ErrorCount + 1;
                             };
 
@@ -405,11 +426,19 @@ class DAI01270Controller extends Controller
                                 } elseif ($ErrorCount < 6) {
                                     $message = $message .'<br>注文情報ファイルの'.$i.'行目の配送日が適用開始日より前の日付です。';
                                 };
+                                $Executionflg = 2;
                                 $ErrorCount = $ErrorCount + 1;
                             };
                         };
                     };
+                    IF (($InputErrorCount == 4) AND ($Executionflg <> 2)){
+                        $Executionflg = 1;
+                    }elseIF ($InputErrorCount > 0){
+                        $Executionflg = 2;
+                    };
                     $Errorflg->InputErrorCount =  $InputErrorCount;
+                    $Errorflg->Executionflg =  $Executionflg;
+
                 }
                 $ErrorList[$i] = $Errorflg;
             }
