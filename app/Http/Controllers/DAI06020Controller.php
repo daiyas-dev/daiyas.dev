@@ -48,11 +48,14 @@ class DAI06020Controller extends Controller
                 SELECT
                     TT.*
                     ,IIF(
-                        FIRST_VALUE(TT.適用開始日) OVER(
-                            PARTITION BY TT.得意先ＣＤ, TT.商品ＣＤ
-                            ORDER BY TT.適用開始日 DESC
-                        ) = TT.適用開始日,
-                        1, 0
+                        (
+                            SELECT MAX(TT2.適用開始日)
+                              FROM 得意先単価マスタ新 TT2
+                             WHERE TT2.得意先ＣＤ=TT.得意先ＣＤ
+                               AND TT2.商品ＣＤ=TT.商品ＣＤ
+                               AND TT2.適用開始日<=GETDATE()
+                        )= TT.適用開始日
+                        , 1, 0
                     ) AS 状況
                 FROM
                     得意先単価マスタ新 TT
