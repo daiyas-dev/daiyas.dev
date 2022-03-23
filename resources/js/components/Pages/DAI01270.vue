@@ -238,7 +238,9 @@ export default {
                     vue.CustomerInfoArray = _.cloneDeep(res.Customers);
 
                     vue.setLocalData(vue.CustomerInfoArray);
-                    vue.footerButtons.find(v => v.id == "DAI01270Grid1_Save").disabled = true;
+                    if(res.Executionflg == 2) {
+                        vue.footerButtons.find(v => v.id == "DAI01270Grid1_Save").disabled = true;
+                    };
 
                     $.dialogErr({
                         title: "CSV不正",
@@ -316,6 +318,12 @@ export default {
                             vue.setLocalData(_.cloneDeep(res.Customers), true);
                             return false;
                         },
+                    },
+                    done: {
+                        isShow: true,
+                        title: "正常終了",
+                        message: "注文情報の保存が完了しました。",
+                        callback: (vue, grid, res)=>{},
                     },
                 }
             );
