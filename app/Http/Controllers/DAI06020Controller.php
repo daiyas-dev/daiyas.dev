@@ -17,6 +17,13 @@ class DAI06020Controller extends Controller
     {
         $BushoCd = $vm->BushoCd;
         $CustomerCd = $vm->CustomerCd;
+        $IssueDate = $vm->IssueDate;
+
+        $IssueDate = str_replace('日', '', $IssueDate);  // "日"を空文字に置換する
+        $IssueDate = str_replace('年', '/', $IssueDate); // "年"を"-"に置換する
+        $IssueDate = str_replace('月', '/', $IssueDate); // "月"を"-"に置換する
+                            //    AND TT2.適用開始日<=$IssueDate
+                            //    AND TT2.適用開始日<=GETDATE()
 
         //得意先の情報を取得する。取得されるのは必ず1件。
         $sql = "
@@ -53,7 +60,7 @@ class DAI06020Controller extends Controller
                               FROM 得意先単価マスタ新 TT2
                              WHERE TT2.得意先ＣＤ=TT.得意先ＣＤ
                                AND TT2.商品ＣＤ=TT.商品ＣＤ
-                               AND TT2.適用開始日<=GETDATE()
+                               AND TT2.適用開始日<='$IssueDate'
                         )= TT.適用開始日
                         , 1, 0
                     ) AS 状況

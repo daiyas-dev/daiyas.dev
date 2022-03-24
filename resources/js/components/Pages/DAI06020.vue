@@ -344,6 +344,7 @@ export default {
             if (!grid || !vue.getLoginInfo().isLogOn) return;
             if (!vue.viewModel.BushoCd) return;
             if (!vue.viewModel.CustomerCd) return;
+            if (!vue.viewModel.IssueDate) return;
             var params = $.extend(true, {}, vue.viewModel);
             grid.searchData(params, false, null, callback);
         },
