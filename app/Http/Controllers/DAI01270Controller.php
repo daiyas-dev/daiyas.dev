@@ -13,7 +13,6 @@ use DB;
 use Exception;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
-use PDO;
 
 class DAI01270Controller extends Controller
 {
@@ -34,32 +33,18 @@ class DAI01270Controller extends Controller
                 $spl = new \SplFileInfo($request->file);
 
                 $Contents = mb_convert_encoding(file_get_contents($spl->getPathname()), "utf-8", "sjis");
-                $TargetDate = $request->TargetDate;
-
-                $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-                $user = 'daiyas';
-                $password = 'daiyas';
-                $pdo = new PDO($dsn, $user, $password);
 
                 $file = $request->file('file');
                 $FileName = $file->getClientOriginalName();
                 $Existenceflg = 0;
 
                 //外部受注システム取込履歴チェック確認
-                $stmt = $pdo->query("
-                    SELECT
-                        ファイル名
-                    FROM
-                        外部受注システム取込履歴
-                    WHERE
-                        ファイル名='$FileName'
-                ");
-                $value = $stmt->fetch(PDO::FETCH_ASSOC);
-                if($value){
+                $value = DB::select("SELECT ファイル名 FROM 外部受注システム取込履歴 WHERE ファイル名='$FileName'");
+                if(count($value)>0){
                     $Existenceflg = 1;
                 };
 
-                return $this->GetResult($Contents, $TargetDate, $Existenceflg);
+                return $this->GetResult($Contents, $Existenceflg);
             } else {
                 return response()->json([
                     'result' => false,
@@ -80,85 +65,73 @@ class DAI01270Controller extends Controller
     /**
      * GetResult
      */
-    public function GetResult($Contents, $TargetDate, $Existenceflg)
+    public function GetResult($Contents, $Existenceflg)
     {
-
-        $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
-        $user = 'daiyas';
-        $password = 'daiyas';
-        $pdo = new PDO($dsn, $user, $password);
-
         try {
-
             $Lines = explode("\r\n", $Contents);
-
             $Company = (object)[];
             $Customers = [];
-
-            $ErrorList = array();
-            $ErrorList = $this->CSVCheck($pdo,$Contents,$ErrorList);
+            $arrReturn = $this->CSVCheck($Contents);
+            $last_data_row = $arrReturn['last_data_row'];
+            $error_message = $arrReturn['error_message'];
 
             foreach ($Lines as $i => $Line) {
-                $Evacuation = (object)[];
+                //1行目は見出しの為処理しない
+                if($i===0){
+                    continue;
+                }
+
                 $Customer = (object)[];
 
+                //行に値がない場合は処理しない。画面にも表示しない
+                if($Line==''){
+                    continue;
+                }
+                //行が全てカンマのみの場合は処理しない。画面にも表示しない
+                $LineStr=str_replace(' ','',$Line);
+                if($LineStr==',,,,,'){
+                    continue;
+                }
+
+                $Evacuation = (object)[];
                 $Evacuation = explode(",", $Line);
 
-                //CSV2行目からスタート
-                IF ($i <> 0) {
-                    IF (($ErrorList[$i]->半角カンマ数 <> 'NG') AND ($ErrorList[$i]->InputErrorCount <> 4)) {
+                //要素数が6個以外の場合は画面に出さない。画面には表示する
+                if(count($Evacuation)<>6){
+                    if($i<=$last_data_row)
+                    {
                         $Customer->行番号 = $i;
-                        $Customer->配送日 = $Evacuation[0];
-
-                        $Customer->得意先CD = $Evacuation[1];
-                        IF ($ErrorList[$i]->得意先CD <> 'NG') {
-                            IF ($Evacuation[1] <> "") {
-                                $stmt = $pdo->query("
-                            SELECT
-                                得意先名略称
-                            FROM
-                                得意先マスタ
-                            WHERE
-                                得意先ＣＤ=$Customer->得意先CD
-                            ");
-                                $name = $stmt->fetch(PDO::FETCH_ASSOC);
-
-                                IF ($name) {
-                                    $Customer->顧客名 = $name["得意先名略称"];
-                                };
-                            };
-                        };
-
-                        $Customer->商品CD = $Evacuation[3];
-                        IF ($ErrorList[$i]->商品CD <> 'NG') {
-                            IF ($Evacuation[3] <> "") {
-                                $stmt = $pdo->query("
-                            SELECT
-                                商品名
-                            FROM
-                                商品マスタ
-                            WHERE
-                                商品ＣＤ=$Customer->商品CD
-                            ");
-                                $name = $stmt->fetch(PDO::FETCH_ASSOC);
-
-                                IF ($name) {
-                                    $Customer->商品名 = $name["商品名"];
-                                }
-                            };
-                        };
-
-                        $Customer->数量 = $Evacuation[5];
-
                         array_push($Customers, $Customer);
-                    };
-                };
+                    }
+                    continue;
+                }
 
+                //画面に出力するリストを作成
+                $Customer->行番号 = $i;
+                $Customer->配送日 = $Evacuation[0];
+                $Customer->得意先CD = $Evacuation[1];
+                $Customer->商品CD = $Evacuation[3];
+                $Customer->数量 = $Evacuation[5];
+
+                if (!empty($Customer->得意先CD) && ctype_digit($Customer->得意先CD)){
+                    $name = DB::select("SELECT 得意先名略称 FROM 得意先マスタ WHERE 得意先ＣＤ=$Customer->得意先CD");
+                    if (count($name)>0) {
+                        $Customer->顧客名 = $name[0]->得意先名略称;
+                    }
+                }
+
+                if (!empty($Customer->商品CD) && ctype_digit($Customer->商品CD)) {
+                    $name = DB::select("SELECT 商品名 FROM 商品マスタ WHERE 商品ＣＤ=$Customer->商品CD");
+                    if (count($name)>0) {
+                        $Customer->商品名 = $name[0]->商品名;
+                    }
+                }
+
+                array_push($Customers, $Customer);
             };
 
-            $message = $ErrorList[$i+1];
             //エラー表示を含んで値を返す
-            IF ($message <> ""){
+            IF ($error_message <> ""){
                 return response()->json([
                     'result' => false,
                     'Contents' => $Contents,
@@ -166,10 +139,9 @@ class DAI01270Controller extends Controller
                     'Customers' => $Customers,
                     'Existenceflg' => $Existenceflg,
                     "DataCheckNo" => 1,
-                    "message" => $message,
+                    "message" => $error_message,
                 ]);
             };
-
 
             return response()->json([
                 'result' => true,
@@ -186,402 +158,152 @@ class DAI01270Controller extends Controller
                 "exception" => $ex,
             ]);
         } finally {
-            $pdo = null;
         }
     }
 
     /**
      * CSVCheck
      */
-    public function CSVCheck($pdo,$Contents,$ErrorList)
+    public function CSVCheck($Contents)
     {
         try {
-
+            $last_data_row=0;
             $Lines = explode("\r\n", $Contents);
-            $message = "";
-            $ErrorCount = 0;
-
+            $Errors = [];
             foreach ($Lines as $i => $Line) {
+                //1行目は見出しの為処理しない
+                if($i===0){
+                    continue;
+                }
+                //行に値がない場合は処理しない
+                if($Line==''){
+                    continue;
+                }
+                //行が全てカンマのみの場合は処理しない
+                $LineStr=str_replace(' ','',$Line);
+                if($LineStr==',,,,,'){
+                    continue;
+                }
+
+                $last_data_row=$i;
                 $Evacuation = (object)[];
-                $Errorflg = (object)[];
-                $InputErrorCount = 0;
-                $NeedErrorNo = array();
-                $ErrorNo = array();
+                $Evacuation = explode(",", $Line);
 
-                /*解説
-                    $ErrorCount = エラーメッセージの数
-                    $Errorflg = 必須入力の「OK」or「NG」
-                    $InputErrorCount = 必須入力のエラー数
-                    $NeedErrorNo = 必須入力エラーメッセージ作成用の番号
-                    $NeedErrorNo = "5"まで使用 2022/03/25時点
-                    $ErrorNo = エラーメッセージ作成用の番号
-                    $ErrorNo = "14"まで使用 2022/03/25時点
-                */
+                //要素数チェック
+                if(count($Evacuation)<>6){
+                    $Errors[]=$i.'行目 項目を区切る半角カンマの数は6個にして下さい。';
+                    continue;
+                }
 
-                //CSV2行目からスタート
-                $Errorflg->RowNo = $i;
-                IF ($i <> 0) {
-
-                    //必須入力チェック
-                    //「,」の個数チェック
-                    $WordCount = mb_substr_count($Line, ",");
-                    IF ($WordCount <> 5) {
-                        IF ($WordCount <> 0){
-                            IF ($ErrorCount == 0) {
-                                $NeedErrorNo[] = "1";
-                            } elseIF ($ErrorCount < 5) {
-                                $NeedErrorNo[] = "1a";
-                            };
-                        };
-                        $ErrorCount = $ErrorCount + 1;
-                        $Errorflg->半角カンマ数 = 'NG';
-                    }else{
-                        $Errorflg->半角カンマ数 = 'OK';
-                    };
-                    //半角カンマ数 = NGなら取込行として不正のためスキップ
-                    IF ($Errorflg->半角カンマ数 <> 'NG'){
-                        $Evacuation = explode(",", $Line);
-
-                        //配送日必須入力チェック
-                        if(empty($Evacuation[0])){
-                            IF ($ErrorCount == 0){
-                                $NeedErrorNo[] = "2";
-                            }elseIF ($ErrorCount < 5){
-                                $NeedErrorNo[] = "2a";
-                            };
-                            $ErrorCount = $ErrorCount + 1;
-                            $InputErrorCount = $InputErrorCount + 1;
-                            $Errorflg->配送日 = 'NG';
-                        }else{
-                            $Errorflg->配送日 = 'OK';
-                        };
-
-                        //得意先CD必須入力チェック
-                        IF (empty($Evacuation[1])) {
-                            IF ($ErrorCount == 0) {
-                                $NeedErrorNo[] = "3";
-                            } elseIF ($ErrorCount < 6) {
-                                $NeedErrorNo[] = "3a";
-                            };
-                            $ErrorCount = $ErrorCount + 1;
-                            $InputErrorCount = $InputErrorCount + 1;
-                            $Errorflg->得意先CD = 'NG';
-                        }else{
-                            $Errorflg->得意先CD = 'OK';
-                        };
-
-                        //商品CD必須入力チェック
-                        if(empty($Evacuation[3])){
-                            IF ($ErrorCount == 0){
-                                $NeedErrorNo[] = "4";
-                            }elseIF ($ErrorCount < 5){
-                                $NeedErrorNo[] = "4a";
-                            };
-                            $ErrorCount = $ErrorCount + 1;
-                            $InputErrorCount = $InputErrorCount + 1;
-                            $Errorflg->商品CD = 'NG';
-                        }else{
-                            $Errorflg->商品CD = 'OK';
-                        };
-
-                        //数量必須入力チェック
-                        if((empty($Evacuation[5]))){
-                            IF ($ErrorCount == 0){
-                                $NeedErrorNo[] = "5";
-                            }elseIF ($ErrorCount < 5){
-                                $NeedErrorNo[] = "5a";
-                            };
-                            $ErrorCount = $ErrorCount + 1;
-                            $InputErrorCount = $InputErrorCount + 1;
-                            $Errorflg->数量 = 'NG';
-                        }else{
-                            $Errorflg->数量 = 'OK';
-                        };
-
-                        IF ($InputErrorCount == 4) {
-                            $ErrorCount = $ErrorCount - 4;
-                            $NeedErrorNo = array();
-                        }else{
-                            //必須入力のいずれかが入力されていれば以下のエラー処理
-                            //配送日チェック
-                            IF ($Errorflg->配送日 == 'OK'){
-                                $WordCount = mb_substr_count($Evacuation[0], "/");
-                                IF ($WordCount == 2) {
-                                    list($y, $m, $d) = explode('/', $Evacuation[0]);
-                                    IF ((!ctype_digit($m)) OR (!ctype_digit($d)) OR (!ctype_digit($y))) {
-                                        IF ($ErrorCount == 0){
-                                            $ErrorNo[] = "1";
-                                        }elseIF ($ErrorCount < 5){
-                                            $ErrorNo[] = "1a";
-                                        };
-                                        $ErrorCount = $ErrorCount + 1;
-                                        $Errorflg->配送日 = 'NG';
-                                    }elseIF (!checkdate($m, $d, $y)) {
-                                        IF ($ErrorCount == 0){
-                                            $ErrorNo[] = "2";
-                                        }elseIF ($ErrorCount < 5){
-                                            $ErrorNo[] = "2a";
-                                        };
-                                        $ErrorCount = $ErrorCount + 1;
-                                        $Errorflg->配送日 = 'NG';
-                                    };
-                                }else{
-                                    IF ($ErrorCount == 0){
-                                        $ErrorNo[] = "3";
-                                    }elseIF ($ErrorCount < 5){
-                                        $ErrorNo[] = "3a";
-                                    };
-                                    $ErrorCount = $ErrorCount + 1;
-                                    $Errorflg->配送日 = 'NG';
-                                };
-                            }
-
-                            //得意先CDチェック
-                            IF ((!ctype_digit($Evacuation[1])) OR (mb_strlen($Evacuation[1]) > 7)) {
-                                IF ($ErrorCount == 0) {
-                                    $ErrorNo[] = "4";
-                                } elseIF ($ErrorCount < 6) {
-                                    $ErrorNo[] = "4a";
-                                };
-                                $ErrorCount = $ErrorCount + 1;
-                                $Errorflg->得意先CD = 'NG';
+                //配送日
+                $valid_DeliveryDate=false;
+                if (!$Evacuation[0]) {
+                    $Errors[]=$i.'行目 配送日が入力されていません。';
+                }else{
+                    //日付がハイフン区切りならスラッシュに置き換える
+                    try {
+                        $date = new \DateTime($Evacuation[0]);
+                        if (!$date) {
+                            $Errors[]=$i.'行目 配送日は年/月/日で指定して下さい。';
+                        }
+                        else{
+                            if (checkdate($date->format('m'), $date->format('d'), $date->format('Y')) === true) {
+                                $valid_DeliveryDate=true;
                             }else{
-                                $Errorflg->得意先CD = 'OK';
-                            };
-
-                            //商品CDチェック
-                            if(!ctype_digit($Evacuation[3])){
-                                IF ($ErrorCount == 0){
-                                    $ErrorNo[] = "5";
-                                }elseIF ($ErrorCount < 5){
-                                    $ErrorNo[] = "5a";
-                                };
-                                $ErrorCount = $ErrorCount + 1;
-                                $Errorflg->商品CD = 'NG';
-                            }else{
-                                $Errorflg->商品CD = 'OK';
-                            };
-
-                            //数量チェック
-                            if(!ctype_digit($Evacuation[5])){
-                                IF ($ErrorCount == 0){
-                                    $ErrorNo[] = "6";
-                                }elseIF ($ErrorCount < 5){
-                                    $ErrorNo[] = "6a";
-                                };
-                                $ErrorCount = $ErrorCount + 1;
-                                $Errorflg->数量 = 'NG';
-                            }else{
-                                $Errorflg->数量 = 'OK';
-                            };
-
-                            if($Errorflg->得意先CD <> 'NG'){
-                                $stmt = $pdo->query("
-                                    SELECT
-                                        得意先名略称,売掛現金区分
-                                    FROM
-                                        得意先マスタ
-                                    WHERE
-                                        得意先ＣＤ='$Evacuation[1]'
-                                ");
-                                $value = $stmt->fetch(PDO::FETCH_ASSOC);
-
-                                //得意先CDチェック確認
-                                if(!$value){
-                                    IF ($ErrorCount == 0){
-                                        $ErrorNo[] = "7";
-                                    }elseIF ($ErrorCount < 5){
-                                        $ErrorNo[] = "7a";
-                                    };
-                                    $ErrorCount = $ErrorCount + 1;
-                                };
-                                //売掛現金区分の売掛チェック確認
-                                if($value["売掛現金区分"] <> 1){
-                                    IF ($ErrorCount == 0){
-                                        $ErrorNo[] = "8";
-                                    }elseIF ($ErrorCount < 5){
-                                        $ErrorNo[] = "8a";
-                                    };
-                                    $ErrorCount = $ErrorCount + 1;
-                                };
-                            };
-
-
-                            IF ($Errorflg->商品CD <> 'NG') {
-                                //商品ＣＤチェック
-                                $stmt = $pdo->query("
-                                SELECT
-                                    商品名
-                                FROM
-                                    商品マスタ
-                                WHERE
-                                    商品ＣＤ='$Evacuation[3]'
-                                ");
-                                $names = $stmt->fetch(PDO::FETCH_ASSOC);
-                                IF (!$names) {
-                                    IF ($ErrorCount == 0) {
-                                        $ErrorNo[] = "9";
-                                    } elseIF ($ErrorCount < 6) {
-                                        $ErrorNo[] = "9a";
-                                    };
-                                    $ErrorCount = $ErrorCount + 1;
-                                };
-                            };
-
-                            IF ($Errorflg->得意先CD <> 'NG' AND $Errorflg->商品CD <> 'NG') {
-                                //得意先単価マスタ新チェック
-                                $stmt = $pdo->query("
-                                SELECT
-                                    適用開始日
-                                FROM
-                                    得意先単価マスタ新
-                                WHERE
-                                    商品ＣＤ='$Evacuation[3]'
-                                    AND
-                                    得意先ＣＤ='$Evacuation[1]'
-                                ");
-                                $value = $stmt->fetch(PDO::FETCH_ASSOC);
-
-                                IF (!$value) {
-                                    IF ($ErrorCount == 0) {
-                                        $ErrorNo[] = "10";
-                                    } elseIF ($ErrorCount < 6) {
-                                        $ErrorNo[] = "10a";
-                                    };
-                                    $ErrorCount = $ErrorCount + 1;
-                                };
-
-                                IF ($Errorflg->配送日 <> 'NG' AND $value["適用開始日"] > $Evacuation[0]) {
-                                    IF ($ErrorCount == 0) {
-                                        $ErrorNo[] = "11";
-                                    } elseIF ($ErrorCount < 6) {
-                                        $ErrorNo[] = "11a";
-                                    };
-                                    $ErrorCount = $ErrorCount + 1;
-                                };
-                            };
-                        };
-                    };
-                    $Errorflg->InputErrorCount =  $InputErrorCount;
-
-
-                    //必須メッセージ作成
-                    if(!(is_array($NeedErrorNo) && empty($NeedErrorNo))){
-                        for ($j = 0 ; $j < count($NeedErrorNo); $j++) {
-                            IF ($NeedErrorNo[$j] == "1") {
-                                $message = '取込ファイルの'.$i.'行目の項目を区切る半角カンマの数をご確認下さい。';
+                                $Errors[]=$i.'行目 配送日が無効な日付です。';
                             }
-                            IF ($NeedErrorNo[$j] == "1a") {
-                                $message = $message .'<br>注文情報ファイルの'.$i.'行目の項目を区切る半角カンマの数をご確認下さい。';
-                            }
-                            IF ($NeedErrorNo[$j] == "2") {
-                                $message = '注文情報ファイルの'.$i.'行目の配送日が入力されていません。';
-                            }
-                            IF ($NeedErrorNo[$j] == "2a") {
-                                $message = $message .'<br>注文情報ファイルの'.$i.'行目の配送日が入力されていません。';
-                            }
-                            IF ($NeedErrorNo[$j] == "3") {
-                                $message = '注文情報ファイルの'.$i.'行目の得意先CDが入力されていません。';
-                            }
-                            IF ($NeedErrorNo[$j] == "3a") {
-                                $message = $message .'<br>注文情報ファイルの'.$i.'行目の得意先CDが入力されていません。';
-                            }
-                            IF ($NeedErrorNo[$j] == "4") {
-                                $message = '注文情報ファイルの'.$i.'行目の商品CDが入力されていません。';
-                            }
-                            IF ($NeedErrorNo[$j] == "4a") {
-                                $message = $message .'<br>注文情報ファイルの'.$i.'行目の商品CDが入力されていません。';
-                            }
-                            IF ($NeedErrorNo[$j] == "5") {
-                                $message = '注文情報ファイルの'.$i.'行目の数量が正しく入力されていません。';
-                            }
-                            IF ($NeedErrorNo[$j] == "5a") {
-                                $message = $message .'<br>注文情報ファイルの'.$i.'行目の数量が正しく入力されていません。';
-                            }
-                        };
-                    }
-
-                    //メッセージ作成
-                    IF (!(is_array($ErrorNo) && empty($ErrorNo))) {
-                        for ($j = 0 ; $j < count($ErrorNo); $j++) {
-                            if($ErrorNo[$j] == "1"){
-                                $message = '注文情報ファイルの'.$i.'行目の配送日が数字ではありません。';
-                            }
-                            if($ErrorNo[$j] == "1a"){
-                                $message = $message .'<br>注文情報ファイルの'.$i.'行目の配送日が数字ではありません。';
-                            }
-                            if($ErrorNo[$j] == "2"){
-                                $message = '注文情報ファイルの'.$i.'行目の配送日が正しく入力されていません。';
-                            }
-                            if($ErrorNo[$j] == "2a"){
-                                $message = $message .'<br>注文情報ファイルの'.$i.'行目の配送日が正しく入力されていません。';
-                            }
-                            if($ErrorNo[$j] == "3"){
-                                $message = '注文情報ファイルの'.$i.'行目の配送日が正しく入力されていません。';
-                            }
-                            if($ErrorNo[$j] == "3a"){
-                                $message = $message .'<br>注文情報ファイルの'.$i.'行目の配送日が正しく入力されていません。';
-                            }
-                            if($ErrorNo[$j] == "4"){
-                                $message = '注文情報ファイルの'.$i.'行目の得意先CDが正しく入力されていません。';
-                            }
-                            if($ErrorNo[$j] == "4a"){
-                                $message = $message .'<br>注文情報ファイルの'.$i.'行目の得意先CDが正しく入力されていません。';
-                            }
-                            if($ErrorNo[$j] == "5"){
-                                $message = '注文情報ファイルの'.$i.'行目の商品CDが正しく入力されていません。';
-                            }
-                            if($ErrorNo[$j] == "5a"){
-                                $message = $message .'<br>注文情報ファイルの'.$i.'行目の商品CDが正しく入力されていません。';
-                            }
-                            if($ErrorNo[$j] == "6"){
-                                $message = '注文情報ファイルの'.$i.'行目の数量が正しく入力されていません。';
-                            }
-                            if($ErrorNo[$j] == "6a"){
-                                $message = $message .'<br>注文情報ファイルの'.$i.'行目の数量が正しく入力されていません。';
-                            }
-                            if($ErrorNo[$j] == "7"){
-                                $message = '注文情報ファイルの'.$i.'行目の得意先CDが存在しません。';
-                            }
-                            if($ErrorNo[$j] == "7a"){
-                                $message = $message .'<br>注文情報ファイルの'.$i.'行目の得意先CDが存在しません。';
-                            }
-                            if($ErrorNo[$j] == "8"){
-                                $message = '注文情報ファイルの'.$i.'行目の得意先CDが売掛ではありません。';
-                            }
-                            if($ErrorNo[$j] == "8a"){
-                                $message = $message .'<br>注文情報ファイルの'.$i.'行目の得意先CDが売掛ではありません。';
-                            }
-                            if($ErrorNo[$j] == "9"){
-                                $message = '注文情報ファイルの'.$i.'行目の商品CDが存在しません。';
-                            }
-                            if($ErrorNo[$j] == "9a"){
-                                $message = $message .'<br>注文情報ファイルの'.$i.'行目の商品CDが存在しません。';
-                            }
-                            if($ErrorNo[$j] == "10"){
-                                $message = '注文情報ファイルの'.$i.'行目の得意先単価マスタへ登録されていません。';
-                            }
-                            if($ErrorNo[$j] == "10a"){
-                                $message = $message .'<br>注文情報ファイルの'.$i.'行目の得意先単価マスタへ登録されていません。';
-                            }
-                            if($ErrorNo[$j] == "11"){
-                                $message = '注文情報ファイルの'.$i.'行目の配送日が適用開始日より前の日付です。';
-                            }
-                            if($ErrorNo[$j] == "11a"){
-                                $message = $message .'<br>注文情報ファイルの'.$i.'行目の配送日が適用開始日より前の日付です。';
-                            }
-                        };
+                        }
+                    } catch (Exception $ex) {
+                        $Errors[]=$i.'行目 配送日は年/月/日で指定して下さい。';
                     }
                 }
-                $ErrorList[$i] = $Errorflg;
+
+                //得意先ＣＤ
+                $valid_customer=false;
+                if (!$Evacuation[1]) {
+                    $Errors[]=$i.'行目 得意先ＣＤが入力されていません。';
+                }else if(!ctype_digit($Evacuation[1])){
+                    $Errors[]=$i.'行目 得意先ＣＤは数値で入力して下さい。';
+                }else{
+                    //入力値妥当性チェック
+                    $value = DB::select("SELECT 得意先名略称,売掛現金区分 FROM 得意先マスタ WHERE 得意先ＣＤ=$Evacuation[1]");
+                    if (count($value)==0) {
+                        $Errors[]=$i.'行目 得意先ＣＤが得意先マスタに存在しません。';
+                    }else{
+                        $Evacuation[2]=$value[0]->得意先名略称;
+                        //売掛現金区分の売掛チェック確認
+                        if ($value[0]->売掛現金区分 <> 1) {
+                            $Errors[]=$i.'行目 得意先マスタの売掛現金区分が売掛ではありません。';
+                        }else{
+                            $valid_customer=true;
+                        }
+                    }
+                }
+
+                //商品ＣＤ
+                $valid_product=false;
+                if(!$Evacuation[3]){
+                    $Errors[]=''.$i.'行目 商品ＣＤが入力されていません。';
+                }else if(!ctype_digit($Evacuation[3])){
+                    $Errors[]=$i.'行目 商品ＣＤは数値で入力して下さい。';
+                }else{
+                    //入力値妥当性チェック
+                    $value = DB::select("SELECT 商品名 FROM 商品マスタ WHERE 商品ＣＤ=$Evacuation[3]");
+                    if (count($value)==0) {
+                        $Errors[]=$i.'行目 商品ＣＤが商品マスタに存在しません。';
+                    }
+                    else
+                    {
+                        $Evacuation[4]=$value[0]->商品名;
+                        $valid_product=true;
+                    }
+                }
+
+                //得意先ＣＤ、商品ＣＤ、配送日が全て有効な場合、得意先単価が存在するか確認
+                if ($valid_customer && $valid_product && $valid_DeliveryDate) {
+                    $value = DB::select("
+                        WITH PRICE_MASTER AS(
+                            SELECT
+                                TT.*
+                                ,IIF(
+                                    (
+                                        SELECT MAX(TT2.適用開始日)
+                                        FROM 得意先単価マスタ新 TT2
+                                        WHERE TT2.得意先ＣＤ=TT.得意先ＣＤ
+                                        AND TT2.商品ＣＤ=TT.商品ＣＤ
+                                        AND TT2.適用開始日<='$Evacuation[0]'
+                                    )= TT.適用開始日
+                                    , 1, 0
+                                ) AS 状況
+                            FROM
+                                得意先単価マスタ新 TT
+                            WHERE
+                                    TT.得意先ＣＤ='$Evacuation[1]'
+                        )
+                        SELECT 単価 FROM PRICE_MASTER WHERE 状況=1 and 商品ＣＤ='$Evacuation[3]'
+                    ");
+                    if (count($value)==0) {
+                        $Errors[]=$i.'行目 得意先単価が未設定か、適用開始日の指定が無効です。';
+                    }
+                }
+
+                //数量
+                if(!$Evacuation[5] && ($Evacuation[5]!==0) && ($Evacuation[5]!=='0')){
+                    $Errors[]=''.$i.'行目 数量が入力されていません。';
+                }else{
+                    //入力値妥当性チェック
+                    if(!ctype_digit($Evacuation[5])){
+                        $Errors[]=''.$i.'行目 数量は数値で入力して下さい。';
+                    }
+                }
             }
 
-            IF($ErrorCount > 5){
-                $message = $message = $message .'<br>'.'その他エラーあり';
-            };
-            $ErrorList[] = $message;
-
-            return $ErrorList;
+            //発生したエラーのうち先頭5件のみ表示する
+            $arrRet = array_slice($Errors,0,5);
+            if(count($Errors)>5){
+                $arrRet[]='その他エラーあり';
+            }
+            return array('last_data_row' => $last_data_row, 'error_message'=> implode('<br/>', $arrRet));
         } catch (Exception $ex) {
             return response()->json([
                 'result' => false,
@@ -590,7 +312,6 @@ class DAI01270Controller extends Controller
                 "exception" => $ex,
             ]);
         }
-
     }
     /**
      * Save
