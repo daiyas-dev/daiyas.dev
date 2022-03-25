@@ -298,16 +298,6 @@ class DAI01270Controller extends Controller
                             $Errorflg->数量 = 'OK';
                         };
 
-                        /*
-                            TODO
-                            以下の「 IF($InputErrorCount == 4) {」で
-                                落ちているように見えます。
-                                 $InputErrorCount == 4
-                                 は、必須入力チェックが4件エラー(必須項目空白)になっている
-                                 と言う意味で
-                                 ４件エラーの場合はエラーカウント(エラーの個数)を「ー４」行い
-                                 必須入力メッセージＮＯ（$NeedErrorNo）を空にしたい処理となります
-                        */
                         IF ($InputErrorCount == 4) {
                             $ErrorCount = $ErrorCount - 4;
                             $NeedErrorNo = array();
