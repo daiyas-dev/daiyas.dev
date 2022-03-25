@@ -238,9 +238,7 @@ export default {
                     vue.CustomerInfoArray = _.cloneDeep(res.Customers);
 
                     vue.setLocalData(vue.CustomerInfoArray);
-                    if(res.Executionflg == 2) {
-                        vue.footerButtons.find(v => v.id == "DAI01270Grid1_Save").disabled = true;
-                    };
+                    vue.footerButtons.find(v => v.id == "DAI01270Grid1_Save").disabled = true;
 
                     $.dialogErr({
                         title: "CSV不正",
