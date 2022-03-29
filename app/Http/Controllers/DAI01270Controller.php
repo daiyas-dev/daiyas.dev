@@ -13,6 +13,7 @@ use DB;
 use Exception;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
+use PDO;
 
 class DAI01270Controller extends Controller
 {
@@ -329,92 +330,547 @@ class DAI01270Controller extends Controller
         $date = Carbon::now()->format('Y-m-d H:i:s');
         $date_t = Carbon::now()->format('H:i:s');
         $CustomerCd = "";
+        $arrAlignList=array();
 
-        DB::beginTransaction();
+        $pdo = null;
         try {
+            $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
+            $user = 'daiyas';
+            $password = 'daiyas';
+        
+            $pdo = new PDO($dsn, $user, $password);
+        
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        
+            $pdo->beginTransaction();
+
             //注文情報登録
             foreach ($SaveList as $rec) {
 
-                IF ($CustomerCd <> $rec['得意先ＣＤ']){
+                if($CustomerCd <> $rec['得意先ＣＤ']){
                     $i = 0;
 
-                    // CSVで読み込まれた見込入力の配送日と得意先ＣＤが一致するデータの確認
-                    $exists = 注文データ::query()
-                        ->where('注文区分', 1)
-                        ->where('配送日', $rec['配送日'])
-                        ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
-                        ->get();
-
-                    // CSVで読み込まれた見込入力の配送日と得意先ＣＤが一致するデータを削除する
-                    IF (count($exists) > 0) {
-
-                        注文データ::query()
-                        ->where('注文区分', 1)
-                        ->where('配送日', $rec['配送日'])
-                        ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
-                        ->delete();
-                    }
+                    $DeleteSql = "DELETE FROM 注文データ　WHERE 注文区分=?　AND 得意先ＣＤ=?　AND 配送日=?";
+                    $stmt = $pdo->prepare($DeleteSql);
+                    $stmt->execute(array(0,$rec['得意先ＣＤ'],$rec['配送日'],));                        
                 };
 
-                $i = $i + 1;
+                $i++;
                 $CustomerCd = $rec['得意先ＣＤ'];
 
                 //注文データへ登録
-                $rec['注文区分'] = 1;
+                $rec['注文区分'] = 0;
                 $rec['注文日付'] = $date;
                 $rec['注文時間'] = $date_t;
 
                 // 部署CD取得
-                $r = 得意先マスタ::query()
-                    ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
-                    ->get();
-                $rec['部署CD'] = $r[0]->部署CD;
+                $SelectSql = "SELECT 部署CD FROM 得意先マスタ WHERE 得意先ＣＤ = ?";
+                $stmt = $pdo->prepare($SelectSql);
+                $stmt->execute(array($rec['得意先ＣＤ']));
+                $r = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                if (count($r)>0) {
+                    $rec['部署ＣＤ'] = $r[0]['部署CD'];
+                }
 
-                $rec['明細行No'] = $i;
+                $rec['明細行Ｎｏ'] = $i;
 
                 // 商品区分取得
-                $r = 商品マスタ::query()
-                    ->where('商品ＣＤ', $rec['商品ＣＤ'])
-                    ->get();
-                $rec['商品区分'] = $r[0]->商品区分;
+                $SelectSql = "SELECT 商品区分 FROM 商品マスタ WHERE 商品ＣＤ = ?";
+                $stmt = $pdo->prepare($SelectSql);
+                $stmt->execute(array($rec['商品ＣＤ']));
+                $r = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                if (count($r)>0) {
+                    $rec['商品区分'] = $r[0]['商品区分'];
+                }
 
                 $rec['入力区分'] = 0;
                 $rec['現金個数'] = 0;
                 $rec['現金金額'] = 0;
 
-
                 // 単価取得(予備金額1に登録する値)
-                $r = 得意先単価マスタ新::query()
-                    ->where('得意先ＣＤ', $rec['得意先ＣＤ'])
-                    ->where('商品ＣＤ', $rec['商品ＣＤ'])
-                    ->where('適用開始日', '<=', $date)
-                    ->latest('適用開始日')
-                    ->get();
-                    $rec['予備金額1'] = $r[0]->単価;
-
-                $rec['掛売金額'] = $rec['予備金額1'] * $rec['掛売個数'];
-                $rec['予備金額2'] = 0;
-                $rec['予備CD1'] = 0;
-                $rec['予備CD2'] = 0;
-                $rec['修正担当者CD'] = $rec['修正担当者CD'];
+                $SelectSql = "
+                    WITH PRICE_MASTER AS(
+                        SELECT
+                            TT.*
+                            ,IIF(
+                                (
+                                    SELECT MAX(TT2.適用開始日)
+                                    FROM 得意先単価マスタ新 TT2
+                                    WHERE TT2.得意先ＣＤ=TT.得意先ＣＤ
+                                    AND TT2.商品ＣＤ=TT.商品ＣＤ
+                                    AND TT2.適用開始日<=?
+                                )= TT.適用開始日
+                                , 1, 0
+                            ) AS 状況
+                        FROM
+                            得意先単価マスタ新 TT
+                    )
+                    select 単価 from PRICE_MASTER where 状況=1 and 得意先ＣＤ=? and 商品ＣＤ=?
+                ";
+                $stmt = $pdo->prepare($SelectSql);
+                $stmt->execute(array($date,$rec['得意先ＣＤ'],$rec['商品ＣＤ']));
+                $r = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                if (count($r)>0) {
+                    $rec['予備金額１'] = $r[0]['単価'];
+                }
+                $rec['掛売金額'] = $rec['予備金額１'] * $rec['掛売個数'];
+                $rec['予備金額２'] = 0;
+                $rec['予備ＣＤ１'] = 0;
+                $rec['予備ＣＤ２'] = 0;
+                $rec['修正担当者ＣＤ'] = $rec['修正担当者CD'];
                 $rec['修正日'] = $date;
 
-                注文データ::insert($rec);
+                //注文データへ登録
+                if (!!isset($rec['現金個数']) && !!isset($rec['掛売個数'])) {
+                    $this->SaveOrderData($rec,$date,$i,$pdo);
+
+                    $ali_found=false;
+                    foreach($arrAlignList as $ali_val){
+                        if(($ali_val['配送日']==$rec['配送日']) && ($ali_val['得意先ＣＤ']==$rec['得意先ＣＤ'])){
+                            $ali_found=true;
+                            break;
+                        }
+                    }
+                    if (!$ali_found) {
+                        $arrAlignList[]=array('配送日'=>$rec['配送日'],'部署ＣＤ'=>$rec['部署ＣＤ'],'得意先ＣＤ'=>$rec['得意先ＣＤ']);
+                    }
+                }
+            }
+
+            //モバイル連携データを登録
+            foreach ($arrAlignList as $ali_val) {
+                /*メッセージ構成
+                $message_json="
+                        {
+                            'department_code': vue.viewModel.BushoCd,
+                            'course_code': vue.viewModel.CourseCd,
+                            'custom_data': {
+                                'message': '注文変更: ' + vue.viewModel.CustomerNm
+                                    + (!!vue.viewModel.BikouForNotification ? ('\n' + vue.viewModel.BikouForNotification) : '')
+                                    + (!!vue.viewModel.BikouForDelivery ? ('\n' + vue.viewModel.BikouForDelivery) : '')
+                                ,
+                                'values': '',
+                            },
+                        ";
+                */
+                // 得意先情報を取得
+                $arrCustomerInfo = $this->GetCustomerInfo($ali_val['配送日'],$ali_val['得意先ＣＤ'],$pdo);
+                $customer_name = $arrCustomerInfo['得意先名略称'];
+                $CourseCd=$arrCustomerInfo['コースＣＤ'];
+
+                $arrBikou = $this->GetBikou($ali_val['配送日'],$ali_val['得意先ＣＤ'],$pdo);
+                $message='注文変更: ' . $customer_name;
+                if(!empty($arrBikou['備考通知'])){
+                    $message . "\n" . $arrBikou['備考通知'];
+                }
+                if(!empty($arrBikou['備考配送'])){
+                    $message . "\n" . $arrBikou['備考配送'];
+                }
+
+                $req['Message']['department_code']=$ali_val['部署ＣＤ'];
+                $req['Message']['course_code']=$CourseCd;
+                $req['Message']['custom_data']['message']=$message;
+                $req['Message']['custom_data']['values']='';
+                
+                $this->SaveMobileSendData($ali_val['配送日'], $ali_val['部署ＣＤ'], $CourseCd, $ali_val['得意先ＣＤ'], $req, $pdo);
             }
 
             //外部受注システム取込履歴へ登録
-            $rec2['ファイル名'] = $FileName;
-            $rec2['取込日付'] = $date;
-            $rec2['担当者CD'] = $Manager;
-            外部受注システム取込履歴::insert($rec2);
+            $this->SaveImportHistoryData($FileName,$date,$Manager,$pdo);
 
-            DB::commit();
+            $pdo->commit();
 
             //更新後内容返却
             return $this->GetResult($Contents, $TargetDate, $Existenceflg);
         } catch (Exception $exception) {
-            DB::rollBack();
+            $pdo->rollBack();
             throw $exception;
+        }
+    }
+
+    /*
+    * 受注データへ登録
+    */
+    private function SaveOrderData($rec,$date,$i,$pdo)
+    {
+        //注文データInsert処理
+        $data = $rec;
+        $data['修正日'] = $date;
+        $data['明細行Ｎｏ'] = $i;
+        $data['備考１'] = $data['備考１'] ?? '';
+        $data['備考２'] = $data['備考２'] ?? '';
+        $data['備考３'] = $data['備考３'] ?? '';
+        $data['備考４'] = $data['備考４'] ?? '';
+        $data['備考５'] = $data['備考５'] ?? '';
+        $data['特記_社内用'] = $data['特記_社内用'] ?? '';
+        $data['特記_配送用'] = $data['特記_配送用'] ?? '';
+        $data['特記_通知用'] = $data['特記_通知用'] ?? '';
+
+        $InsertSql = "
+            INSERT INTO 注文データ
+            VALUES (
+                ?
+                ,?
+                ,?
+                ,?
+                ,?
+                ,?
+                ,?
+                ,?
+                ,?
+                ,?
+                ,?
+                ,?
+                ,?
+                ,?
+                ,?
+                ,?
+                ,?
+                ,?
+                ,?
+                ,?
+                ,?
+                ,?
+                ,?
+                ,?
+                ,?
+                ,?
+                ,?
+                ,?
+                ,?
+            )
+        ";
+
+        $stmt = $pdo->prepare($InsertSql);
+        $stmt->execute(
+            array(
+                $data['注文区分'],
+                $data['注文日付'],
+                $data['注文時間'],
+                $data['部署ＣＤ'],
+                $data['得意先ＣＤ'],
+                $data['配送日'],
+                $data['明細行Ｎｏ'],
+                $data['商品ＣＤ'],
+                $data['商品区分'],
+                $data['入力区分'],
+                $data['現金個数'],
+                $data['現金金額'],
+                $data['掛売個数'],
+                $data['掛売金額'],
+                $data['備考１'],
+                $data['備考２'],
+                $data['備考３'],
+                $data['備考４'],
+                $data['備考５'],
+                $data['予備金額１'],
+                $data['予備金額２'],
+                $data['予備ＣＤ１'],
+                $data['予備ＣＤ２'],
+                $data['修正担当者ＣＤ'],
+                $data['修正日'],
+                $data['Web受注ID'] ?? null,
+                $data['特記_社内用'],
+                $data['特記_配送用'],
+                $data['特記_通知用']
+            )
+        );
+
+    }
+
+    /*
+    * 外部受注システム取込履歴へ登録
+    */
+    private function SaveImportHistoryData($FileName,$date,$Manager,$pdo)
+    {
+        $rec2['ファイル名'] = $FileName;
+        $rec2['取込日付'] = $date;
+        $rec2['担当者CD'] = $Manager;
+        $InsertSql = "INSERT INTO 外部受注システム取込履歴 VALUES (?,?,?)";
+
+        $stmt = $pdo->prepare($InsertSql);
+        $stmt->execute(
+            array(
+                $rec2['ファイル名'],
+                $rec2['取込日付'],
+                $rec2['担当者CD']
+            )
+        );            
+    }
+
+    /**
+     * 得意先情報を取得する
+     * DAI01030GetCustomerInfo.phpのSQLを全てコピーする
+     */
+    private function GetCustomerInfo($DeliveryDate,$CustomerCd,$pdo)
+    {
+        $sql = "
+            SELECT
+                M1.部署ＣＤ,
+                MB.部署名,
+                M1.得意先ＣＤ,
+                M1.得意先名,
+                M1.得意先名略称,
+                M1.得意先名カナ,
+                M1.売掛現金区分,
+                M1.電話番号１,
+                M1.備考１,
+                M1.備考２,
+                M1.備考３,
+                MC.コースＣＤ,
+                MC.コース名,
+                MC.コース区分,
+                MC.管理ＣＤ,
+                MC.一時フラグ,
+                MC.担当者ＣＤ,
+                MT.担当者名
+            FROM
+                得意先マスタ M1
+                LEFT OUTER JOIN 部署マスタ MB
+                    ON MB.部署ＣＤ = M1.部署ＣＤ
+                LEFT OUTER JOIN 祝日マスタ MH
+                    ON  MH.対象日付 = '$DeliveryDate'
+                    AND (対象部署ＣＤ IS NULL OR 対象部署ＣＤ LIKE '%' + CONVERT(varchar,MB.部署ＣＤ) + '%')
+                LEFT OUTER JOIN (
+                    SELECT
+                        CT.部署ＣＤ
+                        ,CT.コースＣＤ
+                        ,CT.管理ＣＤ
+                        ,CTC.一時フラグ
+                        ,CM.コース名
+                        ,CM.コース区分
+                        ,CM.担当者ＣＤ
+                        ,CT.得意先ＣＤ
+                    FROM
+                        (
+                            SELECT
+                                部署ＣＤ, コースＣＤ, 0 AS 管理ＣＤ, ＳＥＱ, 得意先ＣＤ, 修正担当者ＣＤ, 修正日
+                            FROM
+                                コーステーブル
+                            UNION ALL
+                            SELECT
+                                部署ＣＤ, コースＣＤ, 管理ＣＤ, ＳＥＱ, 得意先ＣＤ, 修正担当者ＣＤ, 修正日
+                            FROM
+                                コーステーブル一時
+                        ) CT
+                            INNER JOIN (
+                                SELECT
+                                    *
+                                FROM (
+                                    SELECT
+                                        部署ＣＤ
+                                        ,コースＣＤ
+                                        ,管理ＣＤ
+                                        ,一時フラグ
+                                        ,RANK() OVER(PARTITION BY 部署ＣＤ, コースＣＤ ORDER BY 一時フラグ DESC) AS RNK
+                                    FROM
+                                        コーステーブル管理
+                                    WHERE
+                                        適用開始日 <= '$DeliveryDate' AND 適用終了日 >= '$DeliveryDate'
+                                ) X
+                                WHERE
+                                    RNK = 1
+                            ) CTC
+                                ON  CTC.部署ＣＤ=CT.部署ＣＤ
+                                AND CTC.コースＣＤ=CT.コースＣＤ
+                                AND CTC.管理ＣＤ=CT.管理ＣＤ
+                        LEFT JOIN コースマスタ CM
+                            ON  CM.部署ＣＤ = CTC.部署ＣＤ
+                            AND CM.コースＣＤ = CTC.コースＣＤ
+                ) MC
+                    ON  MC.部署ＣＤ = M1.部署CD
+                    AND MC.得意先ＣＤ = M1.得意先ＣＤ
+                    AND MC.コース区分 = IIF(MH.対象日付 IS NOT NULL, 4, CASE DATEPART(WEEKDAY, '$DeliveryDate') WHEN 1 THEN 3 WHEN 7 THEN 2 ELSE 1 END)
+                LEFT OUTER JOIN 担当者マスタ MT
+                    ON MT.担当者ＣＤ = MC.担当者ＣＤ
+            WHERE
+                M1.得意先CD = $CustomerCd
+            AND (M1.受注得意先ＣＤ = 0 OR M1.受注得意先ＣＤ = M1.得意先ＣＤ)
+        ";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute();
+        $r = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if (count($r)>0) {
+            return $r[0];
+        }
+    }
+
+    /**
+     * 備考を取得する
+     * DAI01030GetBikou.phpのSQLを全てコピーする
+     */
+    private function GetBikou($DeliveryDate,$CustomerCd,$pdo)
+    {
+        $sql = "
+            SELECT
+                TK.得意先ＣＤ
+                ,ISNULL(CD.特記_社内用, TK.備考１) AS 備考社内
+                ,ISNULL(CD.特記_配送用, TK.備考２) AS 備考配送
+                ,ISNULL(CD.特記_通知用, TK.備考３) AS 備考通知
+                ,CD.注文区分
+            FROM
+                得意先マスタ TK
+                LEFT OUTER JOIN 注文データ CD
+                    ON  CD.得意先ＣＤ = TK.得意先ＣＤ
+                    AND CD.配送日 = '$DeliveryDate'
+                    AND CD.注文区分=0
+            WHERE
+                TK.得意先ＣＤ = $CustomerCd
+            ORDER BY
+                CD.注文区分 DESC
+                ,CD.商品ＣＤ
+        ";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute();
+        $r = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if (count($r)>0) {
+            return $r[0];
+        }
+    }
+
+    /**
+     * モバイル送信予定データを作成する
+     * DAI01030Save.phpのモバイル連携データ送信処理を全てコピーする
+     */
+    private function SaveMobileSendData($DeliveryDate,$BushoCd,$course_cd,$CustomerCd,$req,$pdo)
+    {
+        //事前に実行するSQLを作成(既存の注文データを削除)
+        $DeliveryDate = date('Y/m/d', strtotime($DeliveryDate));
+
+        $send_sql = "delete from OrderData where department_code = $BushoCd and customer_code = $CustomerCd and delivery_date='$DeliveryDate';";
+
+        //メインのSQL
+        $table_sql = "select * FROM 注文データ WHERE 部署ＣＤ = $BushoCd AND 得意先ＣＤ = $CustomerCd AND 配送日='$DeliveryDate'";
+        $stmt = $pdo->query($table_sql);
+        $table_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $public_path="C:/daiyas/workspace/daiyas/public";
+        $map = json_decode(file_get_contents($public_path."/dbmapping/pwa.txt"),true);
+        $map = $map["注文データ"];
+
+        $stmt = $pdo->query($table_sql);
+        $table_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        //送信用SQLを生成
+        foreach($table_data as $record_data)
+        {
+            foreach($record_data as $key=>$val)
+            {
+                if(array_key_exists($key,$map["Field"]))
+                {
+                    $new_key=$map["Field"][$key];
+                    $new_data[$new_key]=$val;
+                }
+            }
+
+            //SQLの作成
+            $new_table_name=$map["TableName"];
+            $fields="";
+            $values="";
+            foreach($new_data as $key=>$val)
+            {
+                $fields .= ", $key";
+                //値がNULLなら文字列NULL、それ以外はシングルクォート付きの値で戻す
+                $q_val = $val===NULL ? "null" : "'$val'";
+                $values .= ", $q_val";
+            }
+            $fields=substr($fields,1);
+            $values=substr($values,1);
+            $send_sql .= "insert into $new_table_name ( $fields )values( $values );";
+        }
+
+        //事後に実行するSQL(モバイル予測入力、モバイル販売入力の更新)
+        //注文数の取得
+        $order_num_sql="select 商品ＣＤ,(sum(isnull(現金個数,0)) + sum(isnull(掛売個数,0)))as 注文個数 from 注文データ where 注文区分=0 and 部署ＣＤ = $BushoCd and 得意先ＣＤ = $CustomerCd and 配送日='$DeliveryDate' group by 商品ＣＤ";
+        $stmt = $pdo->query($order_num_sql);
+        $order_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($order_list as $order_data)
+        {
+            $send_sql .= "update SaleInputData set
+                updated_at=now()
+                ,order_num={$order_data['注文個数']}
+                where department_code=$BushoCd
+                and customer_code=$CustomerCd
+                and product_code={$order_data['商品ＣＤ']}
+                and date='$DeliveryDate';";
+            $send_sql .= "update SaleInputData set
+                achievements_input=0
+                ,order_input=1
+                where department_code=$BushoCd
+                and customer_code=$CustomerCd
+                and date='$DeliveryDate';";
+            $send_sql .= "update ExpectedInputData set
+                updated_at=now()
+                ,order_num={$order_data['注文個数']}
+                ,order_input=1
+                where department_code=$BushoCd
+                and customer_code=$CustomerCd
+                and product_code={$order_data['商品ＣＤ']}
+                and date='$DeliveryDate';";
+        }
+
+        //モバイル送信リストに書き込むデータの作成
+        $controller_id="DAI01270";
+        $method_name="SaveMobileSendData";
+        $q_BushoCd   = $BushoCd;
+        $q_CustomerCd= $CustomerCd;
+        $q_course_cd  = empty($course_cd) ? 'null' : $course_cd;
+        $esc_sql=str_replace("'","''",$send_sql);
+        //メッセージの作成
+        $Message = null;
+        $now = date("Y/m/d");
+        if ($DeliveryDate == $now) {
+            //当日注文の場合、通知
+            $Message = $req['Message'];
+        }
+        $q_notify_message  = empty($Message) ? '' : json_encode($Message);
+
+        //モバイル送信リストに書き込む
+        $while_cnt=0;//SQLが成功するまでループさせるが、念のため最大5回まで試行する。
+        while ($while_cnt<5) {
+            //送信IDを取得
+            $next_id_Sql = "SELECT MAX(送信ＩＤ)+1 AS NEXT_ID FROM モバイル送信リスト";
+            $stmt = $pdo->query($next_id_Sql);
+            $send_id = $stmt->fetch()["NEXT_ID"];
+            $send_id = $send_id==null ? 1 : $send_id;
+
+            $ms_sql="INSERT INTO モバイル送信リスト(
+                    送信ＩＤ
+                ,部署ＣＤ
+                ,得意先ＣＤ
+                ,コースＣＤ
+                ,コントローラＩＤ
+                ,メソッド名
+                ,作成日時
+                ,SQL
+                ,通知メッセージ
+                ,送信済フラグ
+                ,送信済日時
+                )VALUES(
+                    $send_id
+                    ,$q_BushoCd
+                    ,$q_CustomerCd
+                    ,$q_course_cd
+                    ,'$controller_id'
+                    ,'$method_name'
+                    ,GETDATE()
+                    ,'$esc_sql'
+                    ,'$q_notify_message'
+                    ,0
+                    ,null
+                )
+                ";
+            try {
+                $pdo->exec($ms_sql);
+                break;//SQLが実行出来たらWhileを抜ける
+            } catch (Exception $e) {
+                //エラーが発生したらログを採取する
+                $path='C:/daiyas/workspace/daiyas/storage/logs/';
+                $timestamp_er=date("Y/m/d H:i:s");
+                $timestamp_fn=str_replace('.', '', microtime(true));
+                error_log("[" . $timestamp_er ."] ". $e->getMessage(), 3, $path."dai01030save_error_".$timestamp_fn.".log");
+                $while_cnt++;
+            }
         }
     }
 }
