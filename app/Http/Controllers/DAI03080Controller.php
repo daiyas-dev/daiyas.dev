@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
 use Illuminate\Support\Carbon;
+//use Illuminate\Support\Facades\Log;
 use PDO;
 class DAI03080Controller extends Controller
 {
@@ -166,6 +167,8 @@ class DAI03080Controller extends Controller
         $user = 'daiyas';
         $password = 'daiyas';
 
+        //Log::debug($sql);
+
         $pdo = new PDO($dsn, $user, $password);
         $stmt = $pdo->query($sql);
         $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -310,7 +313,7 @@ class DAI03080Controller extends Controller
         $query_value=$this->getBankValue($value,$param,$DataListRow);
 
         //パディング
-        $rpstr=preg_replace("/ |\)|[A-Z]|[a-z]|[0-9]/","",$query_value);
+        $rpstr=preg_replace("/ |\(|\)|-|[A-Z]|[a-z]|[0-9]/","",$query_value);
         $padlen=(int)$character + mb_strlen($rpstr)*2;//半角カナは3バイトなので、指定の$character数 + 半角カナ文字数*2の文字数を求める。
         if ($pad=="l") {
             $retval = str_pad($query_value, $padlen, $padvalue, STR_PAD_RIGHT);
