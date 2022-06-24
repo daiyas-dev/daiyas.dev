@@ -960,7 +960,7 @@ export default {
                 data = _.cloneDeep(rows[0].rowData);
             }
 
-            if (!!vue.viewModel.BushoCd && !vue.BushoInfo) {
+            if (!!vue.viewModel.BushoCd && (!vue.BushoInfo || (vue.viewModel.BushoCd != vue.BushoInfo.Cd))) {
                 var entity = vue.$refs.VueSelectBusho.$refs.BushoCd.entities.find(v => v.code == vue.viewModel.BushoCd);
 
                 if (!entity) return
@@ -996,8 +996,7 @@ export default {
         print: function() {
             var vue = this;
             var grid = vue.DAI02030Grid1;
-
-            if (!!vue.viewModel.BushoCd && !vue.BushoInfo) {
+            if (!!vue.viewModel.BushoCd && (!vue.BushoInfo || (vue.viewModel.BushoCd != vue.BushoInfo.Cd))) {
                 var entity = vue.$refs.VueSelectBusho.$refs.BushoCd.entities.find(v => v.code == vue.viewModel.BushoCd);
 
                 if (!entity) return
