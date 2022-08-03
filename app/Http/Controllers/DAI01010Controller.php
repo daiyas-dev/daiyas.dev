@@ -7,6 +7,7 @@ use Illuminate\Support\Arr;
 use DB;
 use Illuminate\Support\Carbon;
 use PDO;
+use Illuminate\Support\Facades\Log;
 
 class DAI01010Controller extends Controller
 {
@@ -26,7 +27,47 @@ class DAI01010Controller extends Controller
 
 
         $sql = "
-WITH WITH_注文データ AS (
+-- 指定日付で有効なコースを取得する。一時コースが設定されていれば一時コース優先 --        
+with WITH_TODAY_COURSE as(
+select
+ ct1.部署ＣＤ
+,ct1.コースＣＤ
+,cust.ＳＥＱ
+,cust.得意先ＣＤ
+,0 as special
+from コーステーブル管理 ct1
+        inner join コースマスタ cm on cm.部署ＣＤ=ct1.部署ＣＤ and cm.コース区分=$CourseKbn and cm.コースＣＤ=ct1.コースＣＤ
+        inner join コーステーブル cust on cust.部署ＣＤ=ct1.部署ＣＤ and cust.コースＣＤ=ct1.コースＣＤ
+where not exists(select 1 from コーステーブル管理 ct2 where ct2.部署ＣＤ=ct1.部署ＣＤ and ct2.コースＣＤ=ct1.コースＣＤ and ct2.管理ＣＤ<>0 and '$DeliveryDate'<=ct2.適用開始日 and ct2.適用終了日<='$DeliveryDate')
+　and ct1.部署ＣＤ=$BushoCd
+union all
+select
+    ct1.部署ＣＤ
+,ct1.コースＣＤ
+,cust.ＳＥＱ
+,cust.得意先ＣＤ
+,1 as special
+from コーステーブル管理 ct1
+        inner join コースマスタ cm on cm.部署ＣＤ=ct1.部署ＣＤ and cm.コース区分=$CourseKbn and cm.コースＣＤ=ct1.コースＣＤ
+        inner join コーステーブル一時 cust on cust.部署ＣＤ=ct1.部署ＣＤ and cust.コースＣＤ=ct1.コースＣＤ and cust.管理ＣＤ=ct1.管理ＣＤ
+where ct1.管理ＣＤ<>0
+  and '$DeliveryDate'<=ct1.適用開始日 and ct1.適用終了日<='$DeliveryDate'
+  and ct1.部署ＣＤ=$BushoCd
+)
+-- WITH_TODAY_COURSEで取得した得意先のうち、重複する得意先は一時コース優先で取得 --        
+,WITH_TODAY_COURSE_UNIQUE as(
+select
+ tod1.部署ＣＤ
+,tod1.コースＣＤ
+,tod1.ＳＥＱ
+,tod1.得意先ＣＤ
+    from WITH_TODAY_COURSE tod1
+    where (tod1.special=1
+            or ( tod1.special=0 and not exists(select 1 from WITH_TODAY_COURSE tod2 where tod2.部署ＣＤ=tod1.部署ＣＤ and tod2.得意先ＣＤ=tod1.得意先ＣＤ and tod2.special=1) )
+        )
+)
+
+,WITH_注文データ AS (
 SELECT * FROM 注文データ
 		WHERE 注文区分 = 0
 		    AND 部署CD = $BushoCd
@@ -117,7 +158,7 @@ SELECT
 
 FROM
     コースマスタ COU
-    LEFT OUTER JOIN コーステーブル CT ON
+    LEFT OUTER JOIN WITH_TODAY_COURSE_UNIQUE CT ON
     COU.コースＣＤ = CT.コースＣＤ AND
     COU.部署ＣＤ = CT.部署ＣＤ
 
@@ -173,6 +214,7 @@ ORDER BY
         $pdo = null;
 
         // $DataList = DB::select($sql);
+        //　Log::info('DAI01010 sql\n' . $sql);//TODO:
 
         return response()->json($DataList);
     }
