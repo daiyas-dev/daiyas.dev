@@ -39,10 +39,11 @@ from コーステーブル管理 ct1
         inner join コースマスタ cm on cm.部署ＣＤ=ct1.部署ＣＤ and cm.コース区分=$CourseKbn and cm.コースＣＤ=ct1.コースＣＤ
         inner join コーステーブル cust on cust.部署ＣＤ=ct1.部署ＣＤ and cust.コースＣＤ=ct1.コースＣＤ
 where not exists(select 1 from コーステーブル管理 ct2 where ct2.部署ＣＤ=ct1.部署ＣＤ and ct2.コースＣＤ=ct1.コースＣＤ and ct2.管理ＣＤ<>0 and '$DeliveryDate'<=ct2.適用開始日 and ct2.適用終了日<='$DeliveryDate')
-　and ct1.部署ＣＤ=$BushoCd
+  and ct1.部署ＣＤ=$BushoCd
+  and ct1.管理ＣＤ=0
 union all
 select
-    ct1.部署ＣＤ
+ ct1.部署ＣＤ
 ,ct1.コースＣＤ
 ,cust.ＳＥＱ
 ,cust.得意先ＣＤ
@@ -213,8 +214,8 @@ ORDER BY
         $DataList = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $pdo = null;
 
-        // $DataList = DB::select($sql);
-        //　Log::info('DAI01010 sql\n' . $sql);//TODO:
+        $DataList = DB::select($sql);
+        Log::info('DAI01010 sql\n' . $sql);//TODO:
 
         return response()->json($DataList);
     }
