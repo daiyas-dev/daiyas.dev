@@ -612,6 +612,8 @@ class DataReceiveBase
                                         }
                                     )
                                     ->min('ＳＥＱ');
+
+                                $CSeq = $CSeq == null ? 1 : $CSeq;
                             }
 
                             $rec = [];
