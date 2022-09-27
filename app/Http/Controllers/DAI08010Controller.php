@@ -541,6 +541,13 @@ class DAI08010Controller extends Controller
 
                 $CustomerData['修正日'] = $date;
 
+                // 仕出の得意先は、月末締め、翌月10日払いに設定する
+                $CustomerData['締区分'] = 2;//月締め
+                $CustomerData['締日１'] = 99;//月末締め
+                $CustomerData['締日２'] = 0;//未指定
+                $CustomerData['支払サイト'] = 1;//翌月
+                $CustomerData['支払日'] = 10;//10日
+
                 得意先マスタ::query()->updateOrInsert(
                     ['得意先ＣＤ' => $CustomerData['得意先ＣＤ']],
                     $CustomerData
