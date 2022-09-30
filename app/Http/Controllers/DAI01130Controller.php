@@ -100,7 +100,7 @@ class DAI01130Controller extends Controller
                 *
                 ,バークレー AS 振替
                 ,その他 AS チケット入金
-                ,相殺 AS 振込料
+                ,相殺 AS 手数料
             FROM 	[入金データ]
             WHERE
                 入金日付='$TargetDate'
