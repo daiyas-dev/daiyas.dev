@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use DB;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class DAI01180Controller extends Controller
 {
@@ -45,32 +46,55 @@ class DAI01180Controller extends Controller
         $DateStart = $vm->DateStart;
         $DateEnd = $vm->DateEnd;
 
-        $sql_course="
-            AND (
-                CUM.コース区分 = (
-                    SELECT
-                        D.コース区分
-                    FROM (
-                        SELECT
-                            CASE
-                                WHEN (SELECT 対象日付 FROM 祝日マスタ WHERE 対象日付 = NUD.入金日付) IS NOT NULL THEN 4
-                                ELSE
-                                    CASE DATEPART(WEEKDAY, NUD.入金日付)
-                                        WHEN 1 THEN 3
-                                        WHEN 7 THEN 2
-                                        ELSE 1
-                                    END
-                            END AS コース区分
-                    ) D
-                )
-                OR CUM.コースＣＤ IS NULL
-            )
-        ";
-        if ($BushoCd==501 || $BushoCd==602) {
-            $sql_course="";//コース区分を見ない
-        }
-
+        /*
+        コースごとの売上データ明細と、入金データを結合して取得する。
+        入金データには入金当時のコースコードを保持していないので、
+        日ごと、得意先ごとの入金データに、検索時点のコースデータを外部結合する。
+        該当するコースデータが存在しない得意先は「コースなし」として表示する。
+        (平日コースの得意先の集金を土曜に行った場合などに発生する)
+        */
         $sql = "
+  with 得意先別入金データ as (
+    select
+        入金日付 AS 日付
+      , 部署ＣＤ
+      , 得意先ＣＤ
+      , SUM(現金 + 小切手) AS 売掛現金
+      , SUM(振込) AS 振込
+      , SUM(相殺) AS 振込手数料
+      , SUM(バークレー) AS 振替
+      , SUM(その他) AS チケット
+      , SUM(値引) AS 調整額
+      ,(
+        SELECT
+            CASE
+                WHEN (SELECT 対象日付 FROM 祝日マスタ WHERE 対象日付 = 入金日付) IS NOT NULL THEN 4
+                ELSE
+                    CASE DATEPART(WEEKDAY, 入金日付)
+                        WHEN 1 THEN 3
+                        WHEN 7 THEN 2
+                        ELSE 1
+                    END
+            END
+      )as 入金日コース区分
+    from 入金データ
+    where 部署ＣＤ = $BushoCd
+          AND 入金日付 >= '$DateStart'
+          AND 入金日付 <= '$DateEnd'
+    group by
+            入金日付
+          , 部署ＣＤ
+          , 得意先ＣＤ
+)
+, コースデータ as(
+    select
+        CUM.*,CUT.SEQ,CUT.得意先ＣＤ
+    from コースマスタ CUM
+          inner join コーステーブル CUT
+          on CUM.部署ＣＤ=CUT.部署ＣＤ and CUM.コースＣＤ=CUT.コースＣＤ
+    where CUM.部署ＣＤ = $BushoCd
+)
+              
 SELECT
   CONVERT(NVARCHAR, D1.日付, 111) AS 日付
   , D1.部署ＣＤ
@@ -161,78 +185,35 @@ FROM
       , TOM.締日１
       , URID.商品区分
     UNION ALL
-    SELECT
-      NUD.入金日付 AS 日付
-      , NUD.部署ＣＤ
-      , MAX(BUM.部署名) AS 部署名
-      , CUT.コースＣＤ
-      , MAX(CUM.コース名) AS コース名
-      , CUT.ＳＥＱ
-      , NUD.得意先ＣＤ
-      , MAX(TOM.得意先名) AS 得意先名
-      , CASE
-        WHEN TOM.締日１ = 0
-          THEN '日締'
-        ELSE CASE
-          WHEN TOM.締日１ = 99
-            THEN '末締'
-          ELSE CONVERT(VARCHAR, TOM.締日１) + '日'
-          END
-        END AS 締日
+    select
+      NUD.日付
+      ,NUD.部署ＣＤ
+      ,BUM.部署名
+      ,COD.コースＣＤ
+      ,COD.コース名
+      ,COD.SEQ
+      ,NUD.得意先ＣＤ
+      ,TOM.得意先名
+      ,CASE
+          WHEN TOM.締日１ = 0 THEN '日締'
+          ELSE CASE
+            WHEN TOM.締日１ = 99 THEN '末締'
+            ELSE CONVERT(VARCHAR, TOM.締日１) + '日'
+            END
+          END AS 締日
       , 0 AS 日締現金
       , 0 AS バークレー
       , 0 AS 束売り
-      , SUM(現金 + 小切手) AS 売掛現金
-      , SUM(振込) AS 振込
-      , SUM(相殺) AS 振込手数料
-      , SUM(バークレー) AS 振替
-      , SUM(その他) AS チケット
-      , SUM(値引) AS 調整額
-    FROM
-      入金データ NUD
-      LEFT JOIN 部署マスタ BUM
-        ON BUM.部署ＣＤ = NUD.部署ＣＤ
-      LEFT JOIN 得意先マスタ TOM
-        ON TOM.得意先ＣＤ = NUD.得意先ＣＤ
-      LEFT JOIN コーステーブル CUT
-        ON CUT.得意先ＣＤ = TOM.受注得意先ＣＤ
-        AND CUT.部署ＣＤ = $BushoCd
-      LEFT JOIN コースマスタ CUM
-        ON CUM.コースＣＤ = CUT.コースＣＤ
-        AND CUM.部署ＣＤ = NUD.部署ＣＤ
-    WHERE
-      NUD.部署ＣＤ = $BushoCd
-      AND NUD.入金日付 >= '$DateStart'
-      AND NUD.入金日付 <= '$DateEnd'
-      /*
-      AND (
-        CUM.コース区分 = (
-            SELECT
-                D.コース区分
-            FROM (
-                SELECT
-                    CASE
-                        WHEN (SELECT 対象日付 FROM 祝日マスタ WHERE 対象日付 = NUD.入金日付) IS NOT NULL THEN 4
-                        ELSE
-                            CASE DATEPART(WEEKDAY, NUD.入金日付)
-                                WHEN 1 THEN 3
-                                WHEN 7 THEN 2
-                                ELSE 1
-                            END
-                    END AS コース区分
-            ) D
-        )
-        OR CUM.コースＣＤ IS NULL
-      )
-      */
-      $sql_course
-    GROUP BY
-      NUD.部署ＣＤ
-      , CUT.コースＣＤ
-      , CUT.ＳＥＱ
-      , NUD.得意先ＣＤ
-      , NUD.入金日付
-      , TOM.締日１
+      ,NUD.売掛現金
+      ,NUD.振込
+      ,NUD.振込手数料
+      ,NUD.振替
+      ,NUD.チケット
+      ,NUD.調整額
+    from 得意先別入金データ NUD
+          INNER JOIN 得意先マスタ TOM ON TOM.得意先ＣＤ = NUD.得意先ＣＤ
+          INNER JOIN 部署マスタ   BUM ON BUM.部署ＣＤ = NUD.部署ＣＤ
+          LEFT  JOIN コースデータ COD ON COD.部署ＣＤ = NUD.部署ＣＤ AND COD.コース区分=NUD.入金日コース区分 AND COD.得意先ＣＤ=TOM.受注得意先ＣＤ
   ) D1
 WHERE
   D1.部署ＣＤ = $BushoCd
@@ -250,6 +231,7 @@ ORDER BY
   , D1.ＳＥＱ
 ";
 
+        //Log::info("DAI01180 SELECT SQL\n" . $sql);
         $DataList = DB::select(DB::raw($sql));
 
         return response()->json($DataList);
