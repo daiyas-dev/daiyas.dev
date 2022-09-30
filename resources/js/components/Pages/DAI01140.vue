@@ -575,7 +575,7 @@ export default {
                                            kind == "振込" ? "振込" :
                                            kind == "バークレー" ? "振替" :
                                            kind == "その他" ? "チケット入金" :
-                                           kind == "相殺" ? "振込料" :
+                                           kind == "相殺" ? "手数料" :
                                            kind == "値引" ? "値引" : ""
                                            ;
                             data.入金金額 = data[kind];
