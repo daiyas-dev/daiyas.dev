@@ -1243,12 +1243,12 @@ export default {
                     `;
 
                     var styleSeikyuMeisai = vue.viewModel.BushoCd == 501 && vue.params.SimeKbn == 1 ? styleSeikyuMeisai501 : styleSeikyuMeisaiElse;
-
-
+                    var page_no = 0;
                     var maxPage = _.sum(target.map(t => _.chunk(t, 25).length));
                     var htmls = target.map((json, tIdx) => {
 
                         var headerFunc = (header, idx, length, chunk, chunks) => {
+                            page_no++;
                             return `
                                 <div class="header">
                                     <div>
@@ -1266,7 +1266,7 @@ export default {
                                             </div>
                                         </div>
                                         <div id="l-box">
-                                            ${tIdx + idx + 1}
+                                            ${page_no}
                                             /
                                             <span/>${maxPage}
                                         </div>
