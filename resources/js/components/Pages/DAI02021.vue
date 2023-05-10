@@ -1208,7 +1208,7 @@ export default {
                         }
                         th:first-child:nth-last-child(8) ~ th:nth-child(3),
                         th:first-child:nth-last-child(8) ~ th:nth-child(8) {
-                            width: 25.0%;
+                            width: 23.0%;
                         }
                         th:first-child:nth-last-child(8) ~ th:nth-child(4),
                         th:first-child:nth-last-child(8) ~ th:nth-child(5) {
