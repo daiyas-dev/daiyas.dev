@@ -132,7 +132,7 @@ where (tod1.special=1
 	where
 		部署ＣＤ=$BushoCd
 		and chumon.注文区分 = 0
-        AND chumon.注文日付 = '$DeliveryDate'
+        AND chumon.配送日 = '$DeliveryDate'
         AND chumon.現金個数 + chumon.掛売個数 > 0
 ),
 単価表示商品 AS (
@@ -269,7 +269,7 @@ order by
 	coutbl.ＳＥＱ
 ";
 
-        //Log::info('DAI01160 sql\n' . $sql);//TODO:
+        Log::info('DAI01160 sql\n' . $sql);//TODO:
         $DataList = DB::select(DB::raw($sql));
 
         return response()->json($DataList);
