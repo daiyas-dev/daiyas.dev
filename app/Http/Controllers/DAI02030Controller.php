@@ -112,6 +112,7 @@ class DAI02030Controller extends Controller
                 ,SEIKYU.請求日範囲終了
                 ,TOK.得意先名
                 ,TOK.得意先名略称
+                ,TOK.税区分
 				,TOK.締日１
 				,TOK.締日２
 				,TOK.郵便番号
@@ -317,13 +318,16 @@ class DAI02030Controller extends Controller
                         ON 得意先マスタ.得意先ＣＤ = 入金データ.得意先ＣＤ
             )
             SELECT
-                MEISAI.*
+                 MEISAI.*
+                ,得意先マスタ.税区分
             FROM
                 請求明細 MEISAI
                 INNER JOIN 請求データ SEIKYU
                     ON  MEISAI.請求先ＣＤ = SEIKYU.請求先ＣＤ
                     AND	MEISAI.伝票日付 >= SEIKYU.請求日範囲開始
                     AND	MEISAI.伝票日付 <= SEIKYU.請求日範囲終了
+                INNER JOIN 得意先マスタ ON 得意先マスタ.得意先ＣＤ = MEISAI.得意先ＣＤ
+
             WHERE
                 SEIKYU.予備金額１ IN ($SeikyuNoArray)
 			AND (MEISAI.伝票Ｎｏ IS NOT NULL OR MEISAI.金額 <> 0)

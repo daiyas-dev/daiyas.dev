@@ -696,15 +696,15 @@ export default {
                 }
                 #a-box {
                     float: left;
-                    width: 58%
+                    width: 54%
                 }
                 #b-box {
                     float: left;
-                    width: 20%;
+                    width: 26%;
                 }
                 #c-box {
                     float: left;
-                    width: 22%;
+                    width: 19%;
                 }
                 #d-box {
                     float: left;
@@ -795,7 +795,7 @@ export default {
                     height: 18px;
                 }
                 table.header-table tbody th {
-                    height: 24px;
+                    height: 22px;
                 }
                 table.header-table tr:first-child th {
                     border-style: solid;
@@ -826,6 +826,7 @@ export default {
                     border-bottom-width: 1px;
                 }
                 table.header-table thead:first-child th:nth-child(4) {
+                    width: 14%;
                     border-style: solid;
                     border-left-width: 3px;
                     border-top-width: 3px;
@@ -961,8 +962,50 @@ export default {
                             );
                             summary.class = "grandsummary";
                             datas.push(summary);
+
+                            //行末が税率表示途中(4行未満)で改ページとなる場合、ブランクを挿入
+                            var datas_count = datas.length;
+                            var use_page = Math.ceil(datas_count / 26);
+                            var capa_lines = 26 * use_page;
+                            var need_line=datas_count + 4;
+                            var blank_line = need_line < capa_lines ? 0 : (capa_lines - datas_count);
+                            var blank;
+                            blank={"商品名":"","class":"blank"};
+                            for(var i=1;i<=blank_line;i++)
+                            {
+                                datas.push(blank);
+                            }
+
+                            //税率毎の集計情報
+                            var taxinfo;
+                            taxinfo={"商品名":"税抜金額 (消費税 10%)","金額":0,"class":"taxinfo"};
+                            datas.push(taxinfo);
+                            taxinfo={"商品名":"消費税 10%","金額":0,"class":"taxinfo"};
+                            datas.push(taxinfo);
+                            var total_in_tax = 0;
+                            var tax = 0;
+                            var total_out_tax = 0;
+                            if(r.税区分==0)
+                            {
+                                //外税処理
+                                total_out_tax = summary.金額;
+                                tax = Math.floor((summary.金額*1) * 0.08);
+                                total_in_tax = total_out_tax + tax;
+                            }
+                            else
+                            {
+                                //内税処理
+                                total_in_tax = summary.金額;
+                                tax = Math.floor((summary.金額*1) / 108 * 8);
+                                total_out_tax = total_in_tax - tax;
+                            }
+                            taxinfo={"商品名":"税抜金額 (消費税 8%)","金額":total_out_tax,"class":"taxinfo"};
+                            datas.push(taxinfo);
+                            taxinfo={"商品名":"消費税 8%","金額":tax,"class":"taxinfo"};
+                            datas.push(taxinfo);
+
                             datas.forEach((v, i) => {
-                                v.日付 = i == 0 || pdata[i - 1].日付 != v.日付 ? v.日付 : "";
+                                //v.日付 = i == 0 || pdata[i - 1].日付 != v.日付 ? v.日付 : "";
                                 v.数量 = pq.formatNumber(v.数量, "#,##0");
                                 v.単価 = pq.formatNumber(v.単価, "#,##0");
                                 v.金額 = pq.formatNumber(v.金額, "#,##0");
@@ -1199,8 +1242,11 @@ export default {
                         table.DAI02021GridMeisai tr td:last-child {
                             border-right-width: 1px;
                         }
+                        table.DAI02021GridMeisai thead tr th{
+                            height: 18px;
+                        }
                         table.DAI02021GridMeisai tbody tr {
-                            height: 25px;
+                            height: 26px;
                         }
                         th:first-child:nth-last-child(8),
                         th:first-child:nth-last-child(8) ~ th:nth-child(2) {
@@ -1242,11 +1288,17 @@ export default {
                         tr.tsums-grandsummary td:nth-child(2){
                             border-left-width: 0;
                         }
+                        table.DAI02021GridMeisai tbody tr.blank td {
+                            border:none;
+                        }
+                        table.DAI02021GridMeisai tbody tr.taxinfo td {
+                            border:none;
+                        }
                     `;
 
                     var styleSeikyuMeisai = vue.viewModel.BushoCd == 501 && vue.params.SimeKbn == 1 ? styleSeikyuMeisai501 : styleSeikyuMeisaiElse;
                     var page_no = 0;
-                    var maxPage = _.sum(target.map(t => _.chunk(t, 25).length));
+                    var maxPage = _.sum(target.map(t => _.chunk(t, 26).length));
                     var htmls = target.map((json, tIdx) => {
 
                         var headerFunc = (header, idx, length, chunk, chunks) => {
@@ -1295,6 +1347,7 @@ export default {
                                             <div style="margin-bottom: 8px;">
                                                 株式会社<span/>ダイヤス食品
                                                 <br>${vue.viewModel.BushoCd == 501 ? "ゆとりキッチン事業部" : ""}
+                                                登録番号 T125000 100 4073
                                             </div>
                                         </div>
                                         <div id="c-box">
@@ -1361,13 +1414,6 @@ export default {
                                                     ${vue.BushoInfo.口座種別1名称}
                                                     <span/><span/>${vue.BushoInfo.口座番号1}
                                                 </div>
-                                                <div>
-                                                    ${!!vue.BushoInfo.金融機関2名称 ? vue.BushoInfo.金融機関2名称 : ""}
-                                                </div>
-                                                <div>
-                                                    ${!!vue.BushoInfo.口座種別2名称 ? vue.BushoInfo.口座種別2名称 : ""}
-                                                    <span/><span/>${!!vue.BushoInfo.口座番号2 ? vue.BushoInfo.口座番号2 : ""}
-                                                </div>
                                             </div>
                                             <div id="j-box">
                                                 <div>
@@ -1376,11 +1422,6 @@ export default {
                                                 <div>
                                                     ${vue.BushoInfo.口座名義人1}
                                                 </div>
-                                                <div>
-                                                    <span/>${!!vue.BushoInfo.金融機関支店2名称 ? vue.BushoInfo.金融機関支店2名称 : ""}
-                                                </div>
-                                                <div>
-                                                    ${!!vue.BushoInfo.口座名義人2 ? vue.BushoInfo.口座名義人2 : ""}
                                             </div>
                                         </div>
                                     </div>
@@ -1390,8 +1431,8 @@ export default {
                                             <th>前回請求額</th>
                                             <th>御入金額</th>
                                             <th>繰越金額</th>
-                                            <th>御買上金額</th>
-                                            <th>消費税</th>
+                                            <th>御買上金額 ${r.税区分 == 1 ? " (税込)" : " (税抜)"}</th>
+                                            <th> ${r.税区分 == 1 ? "うち" : ""}消費税</th>
                                             <th>今回請求額</th>
                                         </tr>
                                         <tr>
@@ -1402,7 +1443,7 @@ export default {
                                         <th>${tIdx + idx == "0" ? pq.formatNumber(r.今回入金額, "#,##0") : ""}</th>
                                         <th>${tIdx + idx == "0" ? pq.formatNumber(r.差引繰越額, "#,##0") : ""}</th>
                                         <th>${tIdx + idx == "0" ? pq.formatNumber(r.今回売上額, "#,##0") : ""}</th>
-                                        <th>${tIdx + idx == "0" ? pq.formatNumber(r.消費税額, "#,##0") : ""}</th>
+                                        <th>${tIdx + idx == "0" ? pq.formatNumber(r.税区分 == 1 ? Math.floor(r.今回売上額/108*8) :r.消費税額, "#,##0") : ""}</th>
                                         <th>${tIdx + idx == "0" ? pq.formatNumber(r.今回請求額, "#,##0") : ""}</th>
                                     </tbody>
                                 </table>
@@ -1414,7 +1455,7 @@ export default {
                             json,
                             styleSeikyuMeisai,
                             headerFunc,
-                            25,
+                            26,
                             true,
                             vue.viewModel.BushoCd == 501, //false,
                             vue.viewModel.BushoCd == 501 && vue.params.SimeKbn == 1 ? null :
@@ -1451,7 +1492,7 @@ export default {
                                     "商品名称",
                                     "食数",
                                     "単価",
-                                    "買上額",
+                                    "金額",
                                     "入金額",
                                     "備考",
                                 ],
