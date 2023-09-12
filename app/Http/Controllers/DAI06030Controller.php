@@ -92,10 +92,10 @@ class DAI06030Controller extends Controller
                 , [商品マスタ].商品ＣＤ as 商品ＣＤ
             FROM
                 [商品マスタ]
-                , [得意先単価マスタ]
+                , [得意先単価マスタ新]
             where
-                    商品マスタ.商品ＣＤ = 得意先単価マスタ.商品ＣＤ
-                and 得意先単価マスタ.得意先ＣＤ = $CustomerCd
+                    商品マスタ.商品ＣＤ = 得意先単価マスタ新.商品ＣＤ
+                and 得意先単価マスタ新.得意先ＣＤ = $CustomerCd
                     ";
         $DataList = DB::select($sql);
         return $DataList;
