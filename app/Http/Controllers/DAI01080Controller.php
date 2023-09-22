@@ -78,7 +78,6 @@ WITH WITH_注文データ AS
  	WHERE
  		注文区分 = 0
  	  AND 部署CD = $BushoCd
- 	  AND CONVERT(varchar, 注文日付, 112) = '$DeliveryDate'
  	  AND CONVERT(varchar, 配送日, 112)   = '$DeliveryDate'
 )
 ,WITH_モバイル_予測入力 AS
