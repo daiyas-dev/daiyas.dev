@@ -57,7 +57,6 @@ class DAI01230Controller extends Controller
 WITH WITH_注文データ AS (
 SELECT * FROM 注文データ
         WHERE 注文区分 = 0
-            AND 注文日付 = '$DeliveryDate'
             AND 配送日 = '$DeliveryDate'
 )
 ,WITH_モバイル_予測入力 AS (
