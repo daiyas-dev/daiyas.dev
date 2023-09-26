@@ -610,7 +610,7 @@ export default {
                     text-align: left;
                 }
                 table.header-table tbody th {
-                    font-size: 9.5pt;
+                    font-size: 9pt;
                 }
                 table.header-table tbody th {
                     height: 25px;
@@ -755,7 +755,7 @@ export default {
                                 <th>商品名</th>
                                 <th>数量</th>
                                 <th>単価</th>
-                                <th>金額</th>
+                                <th>金額(${h.税区分=='1' ? '税込' : '税抜'})</th>
                                 <th>配達</th>
                             </tr>
                         </thead>
@@ -766,17 +766,17 @@ export default {
                             ${layout_product_body}
                             <tr>
                                 ${layout_bikou1}
-                                <th>小 計</th><th>${pq.formatNumber(h.小計, "#,##0")}</th>
+                                <th>小計(税抜)</th><th>${pq.formatNumber((h.税区分=='1' ? h.小計 - Math.floor(h.合計/108*8) : h.小計), "#,##0")}</th>
                                 <th rowspan="3">
                                     <div style="text-align: left;">${h.注文日付}</div>
                                     <div>受付店：${h.会社名称}</div>
                                 </th>
                             </tr>
                             <tr>
-                                <th>消費税</th><th>${pq.formatNumber(h.消費税, "#,##0")}</th>
+                                <th>消費税(8%)</th><th>${pq.formatNumber((h.税区分=='1' ? Math.floor(h.合計/108*8) : h.消費税), "#,##0")}</th>
                             </tr>
                             <tr>
-                                <th>金額合計</th><th>${pq.formatNumber(h.合計, "#,##0")}</th>
+                                <th>合計金額(税込)</th><th>${pq.formatNumber(h.合計, "#,##0")}</th>
                             </tr>
                         </tbody>
                     `;
@@ -786,17 +786,17 @@ export default {
                             ${layout_product_body}
                             <tr>
                                 ${layout_bikou2}
-                                <th>小 計</th><th>${pq.formatNumber(h.小計, "#,##0")}</th>
+                                <th>小計(税抜)</th><th>${pq.formatNumber((h.税区分=='1' ? h.小計 - Math.floor(h.合計/108*8) : h.小計), "#,##0")}</th>
                                 <th rowspan="3">
                                     <div style="text-align: left;">${h.注文日付}</div>
                                     <div>受付店：${h.会社名称}</div>
                                 </th>
                             </tr>
                             <tr>
-                                <th>消費税</th><th>${pq.formatNumber(h.消費税, "#,##0")}</th>
+                                <th>消費税(8%)</th><th>${pq.formatNumber((h.税区分=='1' ? Math.floor(h.合計/108*8) : h.消費税), "#,##0")}</th>
                             </tr>
                             <tr>
-                                <th>金額合計</th><th>${pq.formatNumber(h.合計, "#,##0")}</th>
+                                <th>合計金額(税込)</th><th>${pq.formatNumber(h.合計, "#,##0")}</th>
                             </tr>
                         </tbody>
                     `;
@@ -805,6 +805,9 @@ export default {
                         <div style="width: 35%; float: right; margin-top: 5px;">
                             <div style="font-size: 12pt;">
                                 <span/>${h.会社名称}
+                                <div style="font-size: 9pt;margin-left:30px;">
+                                    登録番号 T125000 100 4073
+                                </div>
                             </div>
                             <div style="font-size: 9pt; margin-top: 3px; text-align: right;">
                                 ${h.住所欄}
@@ -830,16 +833,10 @@ export default {
                                         <span/><span/>${!!h.会社_銀行名1 ? h.会社_銀行名1 : ""}
                                     </div>
                                     <div><span/><span/>${!!h.会社_口座種別名1 ? h.会社_口座種別名1 : ""}　${!!h.会社_口座番号1 ? h.会社_口座番号1 : ""}</div>
-                                    <div style="margin-top: 3px;">
-                                        <span/><span/>${!!h.会社_銀行名2 ? h.会社_銀行名2 : ""}
-                                    </div>
-                                    <div><span/><span/>${!!h.会社_口座種別名2 ? h.会社_口座種別名2 : ""}　${!!h.会社_口座番号2 ? h.会社_口座番号2 : ""}</div>
                                 </div>
                                 <div style="width: 45%; float: left; margin-left: 15px;">
                                     <div>${!!h.会社_支店名1 ? h.会社_支店名1 : ""}</div>
                                     <div>${!!h.会社_口座名義人1 ? h.会社_口座名義人1 : ""}</div>
-                                    <div>${!!h.会社_支店名2 ? h.会社_支店名2 : ""}</div>
-                                    <div>${!!h.会社_口座名義人2 ? h.会社_口座名義人2 : ""}</div>
                                 </div>
                             </div>
                         </div>

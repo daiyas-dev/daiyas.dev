@@ -48,6 +48,7 @@ class DAI08020Controller extends Controller
             ,T1.得意先ＣＤ
             ,T3.得意先名カナ
             ,T3.得意先名
+            ,T1.税区分
             ,RIGHT('0000' + CONVERT(VARCHAR, YEAR(T1.配達日付)), 4) + '年'
                 +RIGHT('00' + CONVERT(VARCHAR, MONTH(T1.配達日付)), 2) + '月'
                 +RIGHT('00' + CONVERT(VARCHAR, DAY(T1.配達日付)), 2) + '日('
@@ -165,7 +166,7 @@ class DAI08020Controller extends Controller
         ORDER BY $OrderPrint
         ";
 
-        //Log::info('DAI08020 :GetNouhinListSQL' . "\n" . $sql);//TODO:
+        Log::info('DAI08020 :GetNouhinListSQL' . "\n" . $sql);//TODO:
 
         $dsn = 'sqlsrv:server=127.0.0.1;database=daiyas';
         $user = 'daiyas';
