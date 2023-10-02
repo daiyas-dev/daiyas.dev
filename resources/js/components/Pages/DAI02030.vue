@@ -1873,7 +1873,7 @@ export default {
                                         "数量",
                                         "単価",
                                         "金額",
-                                        "入金額",
+                                        "入金金額",
                                         "備考",
                                     ],
                                 vue.viewModel.BushoCd == 501 && vue.viewModel.SimeKbn == 1 ? null :
