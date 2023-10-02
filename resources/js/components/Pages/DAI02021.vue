@@ -1082,6 +1082,47 @@ export default {
                                     );
                                     gsum.class = "grandsummary";
                                     m.push(gsum);
+
+                                    //行末が税率表示途中(4行未満)で改ページとなる場合、ブランクを挿入
+                                    var datas_count = i;
+                                    var use_page = Math.ceil(datas_count / 26);
+                                    var capa_lines = 26 * use_page;
+                                    var need_line=datas_count + 4;
+                                    var blank_line = need_line < capa_lines ? 0 : (capa_lines - datas_count);
+                                    var blank;
+                                    blank={"商品名":"","class":"blank"};
+                                    for(var i=1;i<=blank_line;i++)
+                                    {
+                                        m.push(blank);
+                                    }
+
+                                    //税率毎の集計情報
+                                    var taxinfo;
+                                    taxinfo={"商品名":"税抜金額 (消費税 10%)","金額":0,"class":"taxinfo"};
+                                    m.push(taxinfo);
+                                    taxinfo={"商品名":"消費税 10%","金額":0,"class":"taxinfo"};
+                                    m.push(taxinfo);
+                                    var total_in_tax = 0;
+                                    var tax = 0;
+                                    var total_out_tax = 0;
+                                    if(r.税区分==0)
+                                    {
+                                        //外税処理
+                                        total_out_tax = gsum.金額;
+                                        tax = Math.floor((gsum.金額*1) * 0.08);
+                                        total_in_tax = total_out_tax + tax;
+                                    }
+                                    else
+                                    {
+                                        //内税処理
+                                        total_in_tax = gsum.金額;
+                                        tax = Math.floor((gsum.金額*1) / 108 * 8);
+                                        total_out_tax = total_in_tax - tax;
+                                    }
+                                    taxinfo={"商品名":"税抜金額 (消費税 8%)","金額":total_out_tax,"class":"taxinfo"};
+                                    m.push(taxinfo);
+                                    taxinfo={"商品名":"消費税 8%","金額":tax,"class":"taxinfo"};
+                                    m.push(taxinfo);
                                 }
                                 m.forEach((v, j) => {
                                     v.日付 = j == 0 || m[j - 1].日付 != v.日付 ? v.日付 : "";
