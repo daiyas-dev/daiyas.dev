@@ -1137,7 +1137,7 @@ export default {
                                                 <td>制定日:${vue.viewModel.HACCP制定日}</td>
                                                 <td></td>
                                                 <td></td>
-                                                <td></td>
+                                                <td>頁：1/1</td>
                                             </tr>
                                         </tbody>
                                     </table>
