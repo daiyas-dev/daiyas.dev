@@ -370,6 +370,41 @@
         </div>
         <div class="row">
             <div class="col-md-12">
+                <label>対策の検証</label>
+                <textarea class="form-control p-1 memo" type="text" v-model=viewModel.対策の検証 v-maxBytes="400">
+                </textarea>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <label>検証実施者</label>
+                <PopupSelect
+                    id="KenshouTanto"
+                    ref="PopupSelect_KenshouTanto"
+                    :vmodel=viewModel
+                    bind="対策の検証入力担当者コード"
+                    buddy="対策の検証入力担当者名"
+                    dataUrl="/Utilities/GetTantoListForSelect"
+                    :isPreload=true
+                    title="担当者一覧"
+                    labelCd="担当者コード"
+                    labelCdNm="担当者名"
+                    :showColumns='[
+                    ]'
+                    :isShowName=true
+                    :isModal=true
+                    :editable=true
+                    :reuse=false
+                    :existsCheck=true
+                    :inputWidth=80
+                    :nameWidth=160
+                    :isShowAutoComplete=true
+                    :AutoCompleteFunc=TantoAutoCompleteFunc
+                />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
                 <label>ステータス</label>
                 <VueCheck
                     id="StatusContinue"
@@ -501,7 +536,10 @@ export default {
                 対策入力担当者コード: vue.viewModel.対策入力担当者コード,
                 対策入力担当者名: vue.viewModel.対策入力担当者名,
                 その後客先失客: vue.viewModel.その後客先失客,
-                失客日: ml.format("YYYY-MM-DD"),
+                対策の検証: vue.viewModel.対策の検証,
+                対策の検証入力担当者コード: vue.viewModel.対策の検証入力担当者コード,
+                対策の検証入力担当者名: vue.viewModel.対策の検証入力担当者名,
+                失客日: vue.viewModel.その後客先失客 == 1 ? ml.format("YYYY-MM-DD") : "",
                 失客日数: vue.viewModel.失客日数,
                 未使用フラグ: vue.viewModel.未使用フラグ,
                 修正担当者ＣＤ: vue.viewModel.修正担当者ＣＤ,
@@ -532,7 +570,7 @@ export default {
                 ClaimDate: moment().format("YYYY年MM月DD日"),
                 ClaimTime: moment().format("HH時mm分"),
                 ProcDate: moment().format("YYYY年MM月DD日"),
-                LostDate: moment().format("YYYY年MM月DD日"),
+                LostDate: null,
                 クレームID: null,
                 受付日時: null,
                 管轄部門コード: null,
@@ -560,6 +598,9 @@ export default {
                 対策: null,
                 対策入力担当者コード: null,
                 対策入力担当者名: null,
+                対策の検証: null,
+                対策の検証入力担当者コード: null,
+                対策の検証入力担当者名: null,
                 その後客先失客: "2",
                 失客日: null,
                 失客日数: null,
@@ -590,7 +631,7 @@ export default {
             data.viewModel.ProcDate = (mt.isValid() ? mt : moment()).format("YYYY年MM月DD日");
 
             mt = moment(data.viewModel.失客日);
-            data.viewModel.LostDate = (mt.isValid() ? mt : moment()).format("YYYY年MM月DD日");
+            data.viewModel.LostDate = data.viewModel.その後客先失客 == 1 ? (mt.isValid() ? mt : moment()).format("YYYY年MM月DD日") : "";
 
             data.viewModel.平均食数 = (data.viewModel.平均食数 || 0.0) * 1;
             data.viewModel.単価 = (data.viewModel.単価 || 0) * 1;
@@ -949,17 +990,15 @@ export default {
                                                             <tr>
                                                                 <th align="center">会長</th>
                                                                 <th align="center">社長</th>
-                                                                <th align="center"></th>
                                                                 <th align="center">室長</th>
-                                                                <th align="center">総務</th>
-                                                                <th align="center">支社長</th>
+                                                                <th align="center">総務長</th>
+                                                                <th align="center">営業長</th>
                                                                 <th align="center">製造長</th>
                                                                 <th align="center">配送長</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             <tr style="height: 60px;">
-                                                                <td style="width: 60px;"></td>
                                                                 <td style="width: 60px;"></td>
                                                                 <td style="width: 60px;"></td>
                                                                 <td style="width: 60px;"></td>
@@ -1016,7 +1055,7 @@ export default {
                                                 <td>クレーム種類</td>
                                                 <td colspan=5>${vue.viewModel.クレーム区分名 || ""}</td>
                                             </tr>
-                                            <tr style="height: 100px;">
+                                            <tr style="height: 79px;">
                                                 <td>クレーム内容</td>
                                                 <td colspan=5>${vue.viewModel.クレーム内容 || ""}</td>
                                             </tr>
@@ -1040,7 +1079,7 @@ export default {
                                                 <td>処理費用</td>
                                                 <td colspan=2 style="text-align: right;">${vue.viewModel.クレーム処理費用}円</td>
                                             </tr>
-                                            <tr style="height: 100px;">
+                                            <tr style="height: 79px;">
                                                 <td>客先応答</td>
                                                 <td colspan=5>${vue.viewModel.客先反応 || ""}</td>
                                             </tr>
@@ -1054,7 +1093,7 @@ export default {
                                                 <td>原因部署担当</td>
                                                 <td colspan=5>${vue.viewModel.原因部署担当 || ""}</td>
                                             </tr>
-                                            <tr style="height: 100px;">
+                                            <tr style="height: 79px;">
                                                 <td>原因</td>
                                                 <td colspan=5>${vue.viewModel.原因 || ""}</td>
                                             </tr>
@@ -1062,9 +1101,17 @@ export default {
                                                 <td>対策記入者</td>
                                                 <td colspan=5>${vue.viewModel.対策入力担当者名 || ""}</td>
                                             </tr>
-                                            <tr style="height: 100px;">
+                                            <tr style="height: 79px;">
                                                 <td>対策</td>
                                                 <td colspan=5>${vue.viewModel.対策 || ""}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>検証実施者</td>
+                                                <td colspan=5>${vue.viewModel.対策の検証入力担当者名 || ""}</td>
+                                            </tr>
+                                            <tr style="height: 79px;">
+                                                <td>対策の検証</td>
+                                                <td colspan=5>${vue.viewModel.対策の検証 || ""}</td>
                                             </tr>
                                             <tr>
                                                 <td>継続または失客</td>
@@ -1074,7 +1121,7 @@ export default {
                                             </tr>
                                             <tr>
                                                 <td>失客日</td>
-                                                <td colspan=3>${moment(vue.viewModel.LostDate, "YYYY年MM月DD日").format("YYYY年MM月DD日(dd)")}</td>
+                                                <td colspan=3>${vue.viewModel.その後客先失客 == "1" ? moment(vue.viewModel.LostDate, "YYYY年MM月DD日").format("YYYY年MM月DD日(dd)") : ""}</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -1088,8 +1135,8 @@ export default {
                                         <tbody>
                                             <tr>
                                                 <td>制定日:${vue.viewModel.HACCP制定日}</td>
-                                                <td>改定日:${vue.viewModel.HACCP改定日}</td>
-                                                <td>改定番号:${vue.viewModel.HACCP改定番号}</td>
+                                                <td></td>
+                                                <td></td>
                                                 <td></td>
                                             </tr>
                                         </tbody>
