@@ -540,7 +540,7 @@ export default {
                 対策の検証入力担当者コード: vue.viewModel.対策の検証入力担当者コード,
                 対策の検証入力担当者名: vue.viewModel.対策の検証入力担当者名,
                 失客日: vue.viewModel.その後客先失客 == 1 ? ml.format("YYYY-MM-DD") : "",
-                失客日数: vue.viewModel.失客日数,
+                失客日数: vue.viewModel.その後客先失客 == 1 ? vue.viewModel.失客日数 : null,
                 未使用フラグ: vue.viewModel.未使用フラグ,
                 修正担当者ＣＤ: vue.viewModel.修正担当者ＣＤ,
                 修正日: vue.viewModel.修正日,
@@ -989,6 +989,7 @@ export default {
                                                         <thead>
                                                             <tr>
                                                                 <th align="center">会長</th>
+                                                                <th align="center">監査役</th>
                                                                 <th align="center">社長</th>
                                                                 <th align="center">室長</th>
                                                                 <th align="center">総務長</th>
@@ -999,6 +1000,7 @@ export default {
                                                         </thead>
                                                         <tbody>
                                                             <tr style="height: 60px;">
+                                                                <td style="width: 60px;"></td>
                                                                 <td style="width: 60px;"></td>
                                                                 <td style="width: 60px;"></td>
                                                                 <td style="width: 60px;"></td>
