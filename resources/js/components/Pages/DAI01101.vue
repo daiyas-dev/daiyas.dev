@@ -142,7 +142,7 @@ export default {
                             {
                                 title: "得意先名",
                                 dataIndx: "得意先名", dataType: "string",
-                                width: 200, minWidth: 200,
+                                width: 300, minWidth: 300,
                                 editable: false,
                             },
                         ],
